@@ -31,7 +31,7 @@ public class PortActiveTunnelKey
     }
 
     public boolean hasTunnelKey() {
-        return getData().tunnelKey == Data.NO_KEY;
+        return getData().tunnelKey != Data.NO_KEY;
     }
 
     public PortActiveTunnelKey setTunnelKey(long tunnelKey) {

@@ -16,7 +16,7 @@
 
 package org.midonet.midolman
 
-import java.util.UUID
+import java.util.{ArrayList, UUID}
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
@@ -238,6 +238,8 @@ class PacketWorkflow(
         }
 
     val backChannelHandler = new BackChannelHandler {
+        val stash = new ArrayList[SimulationBackChannel.BackChannelMessage]
+
         def handle(message: SimulationBackChannel.BackChannelMessage): Unit = {
             if (!initialized) {
                 message match {
@@ -252,8 +254,15 @@ class PacketWorkflow(
                                                              PacketWorkflow.this,
                                                              config.datapath.controlPacketTos)
                         initialized = true
-                    case _ =>
-                        log.warn(s"Invalid backchannel message in uninitialized state: $message")
+
+                        var i = 0
+                        while (i < stash.size) {
+                            handle(stash.get(i))
+                            i += 1
+                        }
+                        stash.clear()
+                    case msg =>
+                        stash.add(msg)
                 }
             } else {
                 message match {

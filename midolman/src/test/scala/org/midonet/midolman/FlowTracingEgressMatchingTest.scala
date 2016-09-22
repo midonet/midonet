@@ -113,7 +113,8 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
                                    uplinkPortAddr.toString,
                                    uplinkNwAddr.getAddress.toString,
                                    uplinkNwAddr.getPrefixLen)
-        materializePort(uplinkPort, ingressHost.getId, "uplinkPort")
+        materializePort(uplinkPort, ingressHost.getId, "uplinkPort",
+                        uplinkPort.getTunnelKey)
         portMapIngress.put(uplinkPort.getTunnelKey, uplinkPort.getId)
 
         newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0,
@@ -137,12 +138,14 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         // vm1 on egress host
         bridgeVm1Port = newBridgePort(bridge)
-        materializePort(bridgeVm1Port, egressHost.getId, "vm1Port")
+        materializePort(bridgeVm1Port, egressHost.getId, "vm1Port",
+                        bridgeVm1Port.getTunnelKey)
         portMapEgress.put(bridgeVm1Port.getTunnelKey, bridgeVm1Port.getId)
 
         // vm2 on ingress host
         bridgeVm2Port = newBridgePort(bridge)
-        materializePort(bridgeVm2Port, ingressHost.getId, "vm2Port")
+        materializePort(bridgeVm2Port, ingressHost.getId, "vm2Port",
+                        bridgeVm2Port.getTunnelKey)
         portMapIngress.put(bridgeVm2Port.getTunnelKey, bridgeVm2Port.getId)
 
         val simRouter: SimRouter = fetchDevice(router)
