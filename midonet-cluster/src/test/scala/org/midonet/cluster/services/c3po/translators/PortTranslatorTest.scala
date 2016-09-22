@@ -25,7 +25,7 @@ import com.google.protobuf.Message
 import com.typesafe.config.ConfigFactory
 
 import org.junit.runner.RunWith
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{when, verify}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.{MatchResult, Matcher}
 
@@ -245,10 +245,10 @@ class PortTranslationTest extends PortTranslatorTest {
     }
 
     "Deleting a non-existent port" should "not raise an error" in {
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portIdThatDoesNotExist))
-        midoOps shouldBe empty
+        translator.translate(transaction,
+                             DeleteOp(classOf[NeutronPort], portIdThatDoesNotExist))
+
+        verifyNoOp(transaction)
     }
 }
 
@@ -628,8 +628,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             }
             """)
 
-        val midoOps = translator.translate(transaction,
-                                           CreateOp(vifPortWithAllowedAddressPairs))
+        translator.translate(transaction, CreateOp(vifPortWithAllowedAddressPairs))
 
         // For the outbound chain
         midoOps should containOp[Message] (CreateOp(jumpRule))
@@ -646,8 +645,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
     }
 
     "Fixed IPs for a new VIF port" should "add hosts to DHCPs" in {
-        val midoOps = translator.translate(transaction,
-                                           CreateOp(vifPortWithFixedIps))
+        translator.translate(transaction, CreateOp(vifPortWithFixedIps))
 
         midoOps should contain (UpdateOp(mIpv4DhcpWithHostAdded))
         midoOps should contain (UpdateOp(mIpv6DhcpWithHostAdded))
@@ -668,7 +666,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
           port_security_enabled: false
           """)
 
-        val midoOps = translator.translate(transaction, CreateOp(vifPortNoPortSec))
+        translator.translate(transaction, CreateOp(vifPortNoPortSec))
 
         val inChain = findChainOp(midoOps, OpType.Create, inboundChainId)
         inChain should not be null
@@ -689,9 +687,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
     "A created VIF port" should "have security bindings" in {
 
         seqDispenser.reset()
-        val midoOps: OperationList =
-            translator.translate(transaction, CreateOp(vifPortWithFipsAndSgs))
-                      .asInstanceOf[OperationList]
+        translator.translate(transaction, CreateOp(vifPortWithFipsAndSgs))
 
         midoOps should contain (CreateOp(mPortWithChains))
 
@@ -882,8 +878,7 @@ class VifPortBindingTranslationTest extends VifPortTranslationTest {
     }
 
     "VIF port UPDATE with no change " should "NOT update binding" in {
-        val midoOps = translator.translate(transaction,
-                                           UpdateOp(vifPortWithBinding))
+        translator.translate(transaction, UpdateOp(vifPortWithBinding))
         midoOps.exists {
             case UpdateOp(obj: Port, _) => true
             case _ => false
@@ -922,7 +917,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     "VIF port UPDATE" should "update port admin state" in {
 
         val vifPortDown = nPortFromTxt(s"$portBaseDown")
-        val midoOps = translator.translate(transaction, UpdateOp(vifPortDown))
+        translator.translate(transaction, UpdateOp(vifPortDown))
         midoOps should contain (UpdateOp(mPortDownWithChains))
     }
 
@@ -941,7 +936,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
 
     "UPDATE VIF port with fixed IPs" should "delete old DHCP host entries " +
     "and create new DHCP host entries" in {
-        val midoOps = translator.translate(transaction, UpdateOp(vifPortWithFixedIps2))
+        translator.translate(transaction, UpdateOp(vifPortWithFixedIps2))
         val mIpv4DhcpWithHostUpdated = mDhcpFromTxt(s"""
               $mIpv4Dhcp
               hosts {
@@ -961,9 +956,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     "UPDATE VIF port with fixed IPs" should "update security rules" in {
         bind(portId, vifPortWithFipsAndSgs)
 
-        val midoOps: OperationList =
-            translator.translate(transaction, UpdateOp(vifPortWithFipsAndSgs2))
-                      .asInstanceOf[OperationList]
+        translator.translate(transaction, UpdateOp(vifPortWithFipsAndSgs2))
 
         val revFlowRuleOutbound = mRuleFromTxt(s"""
             type: LITERAL_RULE
@@ -1079,8 +1072,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     "DELETE VIF port with fixed IPs" should "delete the MidoNet Port" in {
         when(storage.getAll(classOf[IPAddrGroup], Seq()))
             .thenReturn(Future.successful(Seq()))
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort], portId))
+        translator.translate(transaction,  DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain (DeleteOp(classOf[Port], portId))
         midoOps should contain (DeleteNode(vifMacEntryPath))
         midoOps should contain (DeleteNode(vifArpEntryPath))
@@ -1100,17 +1092,15 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             """)
 
         bind(portId, vifPortWithFipsAndSgs)
-        when(storage.getAll(classOf[IPAddrGroup], Seq(sgId1, sgId2)))
-            .thenReturn(Future.successful(Seq(ipAddrGrp1, ipAddrGrp2)))
+        when(transaction.getAll(classOf[IPAddrGroup], Seq(sgId1, sgId2)))
+            .thenReturn(Seq(ipAddrGrp1, ipAddrGrp2))
 
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portId))
+        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
 
         midoOps should contain only(
-            DeleteOp(classOf[Port], portId),
             DeleteNode(vifMacEntryPath),
             DeleteNode(vifArpEntryPath),
+            DeleteOp(classOf[Port], portId),
             UpdateOp(mIpv4Dhcp),
             UpdateOp(mIpv6Dhcp),
             DeleteOp(classOf[Chain], inboundChainId),
@@ -1130,9 +1120,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         when(storage.getAll(classOf[IPAddrGroup], Seq()))
             .thenReturn(Future.successful(Seq()))
 
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portId))
+        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain (DeleteNode(fip1ArpEntryPath))
         midoOps should contain (DeleteNode(fip2ArpEntryPath))
     }
@@ -1169,12 +1157,11 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         val fips = Seq(floatingIp1, floatingIp2)
         bindAllInAnyOrder(fipIds, fips, classOf[FloatingIp])
 
-        val midoUpdateOps = translator.translate(transaction,
-                                                 UpdateOp(nGwPortUpdatedMac))
-        midoUpdateOps should contain (DeleteNode(fip1ArpEntryPath))
-        midoUpdateOps should contain (CreateNode(fip1ArpEntryPathMacUpdated))
-        midoUpdateOps should contain (DeleteNode(fip2ArpEntryPath))
-        midoUpdateOps should contain (CreateNode(fip2ArpEntryPathMacUpdated))
+        translator.translate(transaction, UpdateOp(nGwPortUpdatedMac))
+        midoOps should contain (DeleteNode(fip1ArpEntryPath))
+        midoOps should contain (CreateNode(fip1ArpEntryPathMacUpdated))
+        midoOps should contain (DeleteNode(fip2ArpEntryPath))
+        midoOps should contain (CreateNode(fip2ArpEntryPathMacUpdated))
     }
 }
 
@@ -1263,9 +1250,7 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
     }
 
     "DHCP port CREATE" should "configure DHCP" in {
-        val midoOps: OperationList =
-            translator.translate(transaction, CreateOp(dhcpPort))
-                      .asInstanceOf[OperationList]
+        translator.translate(transaction, CreateOp(dhcpPort))
 
         midoOps.size shouldBe 4
         midoOps.head shouldBe CreateOp(mRouteFromTxt(s"""
@@ -1345,7 +1330,7 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
 
     "DHCP port UPDATE" should "update port admin state" in {
         val dhcpPortDown = dhcpPort.toBuilder.setAdminStateUp(false).build
-        val midoOps = translator.translate(transaction, UpdateOp(dhcpPortDown))
+        translator.translate(transaction, UpdateOp(dhcpPortDown))
 
         midoOps should contain(UpdateOp(midoPortBaseDown))
     }
@@ -1353,11 +1338,8 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
     // TODO Add an assert that the fixed IPs haven't been changed.
 
     "DHCP port  DELETE" should "delete the MidoNet Port" in {
-        when(storage.getAll(classOf[Route], List.empty))
-            .thenReturn(Future.successful(List.empty))
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portId))
+        when(transaction.getAll(classOf[Route], List.empty)).thenReturn(List.empty)
+        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain only(
             DeleteOp(classOf[Port], portId),
             UpdateOp(mIpv4Dhcp),
@@ -1367,9 +1349,7 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
     it should "ignore an already deleted subnet referenced by a fixed IP" in {
         // The subnet has already been deleted.
         bind(nIpv4Subnet1Id, null, classOf[Dhcp])
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portId))
+        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain only(
             DeleteOp(classOf[Port], portId),
             UpdateOp(mIpv6Dhcp))
@@ -1393,20 +1373,18 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
         """)
 
     "Floating IP port CREATE" should "not create a Network port" in {
-        val midoOps = translator.translate(transaction, CreateOp(fipPortUp))
+        translator.translate(transaction, CreateOp(fipPortUp))
         midoOps shouldBe empty
     }
 
     "Floating IP port UPDATE" should "NOT update Port" in {
-        val midoOps = translator.translate(transaction, UpdateOp(fipPortUp))
+        translator.translate(transaction, UpdateOp(fipPortUp))
         midoOps shouldBe empty
      }
 
     "Floating IP DELETE" should "NOT delete the MidoNet Port" in {
         bind(portId, fipPortUp)
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portId))
+        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
         midoOps shouldBe empty
     }
 }
@@ -1431,7 +1409,7 @@ class VipPortTranslationTest extends VifPortTranslationTest {
         """)
 
     "VIP port CREATE" should "create a MidoNet port" in {
-        val midoOps = translator.translate(transaction, CreateOp(vipPortUp))
+        translator.translate(transaction, CreateOp(vipPortUp))
         midoOps should contain(CreateOp(mPortWithChains))
     }
 
@@ -1442,15 +1420,13 @@ class VipPortTranslationTest extends VifPortTranslationTest {
         bind(outboundChainId, outboundChain)
         bind(spoofChainId, antiSpoofChain)
 
-        val midoOps = translator.translate(transaction, UpdateOp(vipPortDown))
+        translator.translate(transaction, UpdateOp(vipPortDown))
         midoOps should contain(UpdateOp(mPortDownWithChains))
     }
 
     "VIP port DELETE" should "delete the MidoNet Port" in {
         bind(portId, vipPortUp)
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portId))
+        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain(DeleteOp(classOf[Port], portId))
     }
 }
@@ -1565,9 +1541,8 @@ class RouterInterfacePortCreateTranslationTest
     "Router interface port CREATE" should "create a normal Network port" in {
         bind(networkId, nNetworkBase)
         bind(networkId, mNetworkWithIpv4Subnet)
-        when(storage.getAll(classOf[NeutronBgpSpeaker]))
-            .thenReturn(Future.successful(Seq()))
-        val midoOps = translator.translate(transaction, CreateOp(routerIfPort))
+        when(transaction.getAll(classOf[NeutronBgpSpeaker])).thenReturn(Seq())
+        translator.translate(transaction, CreateOp(routerIfPort))
         midoOps should contain only (
             CreateNode(stateTableStorage.bridgeArpEntryPath(
                 networkId, IPv4Addr(routerIfPortIpStr),
@@ -1621,8 +1596,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
         """)
 
         // Update port
-        val midoOps = translator.translate(transaction,
-                                           UpdateOp(routerIfPortUpdated))
+        translator.translate(transaction, UpdateOp(routerIfPortUpdated))
 
         val mPort = mPortFromTxt(s"""
             id: { $peerPortId }
@@ -1686,9 +1660,8 @@ class RouterInterfacePortUpdateDeleteTranslationTest
     "Router interface port DELETE" should "delete both MidoNet Router " +
     "Interface Network Port, its peer Router Port and SNAT rules" in {
         bind(portId, routerIfPort)
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portWithPeerId))
+        translator.translate(transaction,
+                             DeleteOp(classOf[NeutronPort], portWithPeerId))
         midoOps should contain only (
                 DeleteOp(classOf[Port], portWithPeerId),
                 DeleteOp(classOf[Port], peerPortId),
@@ -1862,7 +1835,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest{
               }
             }
             """)
-        val midoOps = translator.translate(transaction, UpdateOp(newGwPort))
+        translator.translate(transaction, UpdateOp(newGwPort))
         midoOps should have size 6
 
         midoOps should contain (UpdateOp(nVpnService
@@ -1883,9 +1856,8 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest{
     }
 
     "Router gateway port  DELETE" should "delete the MidoNet Port" in {
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portId))
+        translator.translate(transaction,
+                             DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain (DeleteOp(classOf[Port], portId))
     }
 }
@@ -1921,8 +1893,7 @@ class RemotePortTranslationTest extends PortTranslatorTest {
     }
 
     "Remote port CREATE" should "only add ARP and MAC seedings" in {
-        val midoOps = translator.translate(transaction,
-                                           CreateOp(remotePort))
+        translator.translate(transaction, CreateOp(remotePort))
 
         midoOps should contain only(
             CreateNode(remotePortArpEntryPath),
@@ -1930,9 +1901,7 @@ class RemotePortTranslationTest extends PortTranslatorTest {
     }
 
     "Remote port DELETE" should "remote ARP and MAC seedigns" in {
-        val midoOps = translator.translate(transaction,
-                                           DeleteOp(classOf[NeutronPort],
-                                                    portId))
+        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
 
         midoOps should contain only (
             DeleteNode(remotePortArpEntryPath),

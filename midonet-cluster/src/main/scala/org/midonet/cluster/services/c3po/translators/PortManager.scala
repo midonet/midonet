@@ -21,14 +21,13 @@ import java.util.{List => JList}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.data.storage.NotFoundException
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Operation, Create, Delete, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
@@ -39,6 +38,9 @@ import org.midonet.util.concurrent.toFutureOps
  * Contains port-related operations shared by multiple translator classes.
  */
 trait PortManager extends ChainManager with RouteManager {
+
+    protected type DhcpUpdateFunction =
+        (Dhcp.Builder, String, IPAddress, JList[ExtraDhcpOpts]) => Unit
 
     protected val storage: ReadOnlyStorage
 
@@ -116,11 +118,18 @@ trait PortManager extends ChainManager with RouteManager {
         List(Update(updatedPort.build()))
     }
 
+    @Deprecated
     protected def isOnUplinkNetwork(np: NeutronPort) = {
         NetworkTranslator.isUplinkNetwork(
             storage.get(classOf[NeutronNetwork], np.getNetworkId).await())
     }
 
+    protected def isOnUplinkNetwork(tx: Transaction, np: NeutronPort) = {
+        NetworkTranslator.isUplinkNetwork(tx.get(classOf[NeutronNetwork],
+                                                 np.getNetworkId))
+    }
+
+    @Deprecated
     protected def getHostIdByName(hostName: String) : UUID = {
         // FIXME: Find host ID by looping through all hosts
         // This is temporary until host ID of MidoNet could be
@@ -133,7 +142,20 @@ trait PortManager extends ChainManager with RouteManager {
         host.getId
     }
 
+    protected def getHostIdByName(tx: Transaction, hostName: String) : UUID = {
+        // FIXME: Find host ID by looping through all hosts
+        // This is temporary until host ID of MidoNet could be
+        // deterministically fetched from the host name.
+        val hosts = tx.getAll(classOf[Host])
+        val host = hosts.find(_.getName == hostName).getOrElse {
+            throw new NotFoundException(classOf[Host], hostName)
+        }
+
+        host.getId
+    }
+
     /* Update DHCP configuration by applying the given updateFun. */
+    @Deprecated
     protected def updateDhcpEntries(
             nPort: NeutronPort,
             subnetCache: mutable.Map[UUID, Dhcp.Builder],
@@ -156,16 +178,43 @@ trait PortManager extends ChainManager with RouteManager {
         }
     }
 
-    /* Deletes a host entry with the given mac / IP address pair in DHCP. */
+    /**
+      * Updates the DHCP configuration by applying the given update function.
+      */
+    protected def updateDhcpEntries(tx: Transaction,
+                                    nPort: NeutronPort,
+                                    subnetCache: mutable.Map[UUID, Dhcp.Builder],
+                                    updateFun: DhcpUpdateFunction,
+                                    ignoreNonExistingDhcp: Boolean): Unit = {
+        for (ipAlloc <- nPort.getFixedIpsList.asScala) {
+            try {
+                val subnet = subnetCache.getOrElseUpdate(
+                    ipAlloc.getSubnetId,
+                    tx.get(classOf[Dhcp], ipAlloc.getSubnetId).toBuilder)
+                val mac = nPort.getMacAddress
+                val ipAddress = ipAlloc.getIpAddress
+                updateFun(subnet, mac, ipAddress, nPort.getExtraDhcpOptsList)
+            } catch {
+                case nfe: NotFoundException if ignoreNonExistingDhcp =>
+                // Ignores DHCPs already deleted.
+            }
+        }
+    }
+
+    /**
+      * Deletes a host entry with the given mac / IP address pair in DHCP.
+      */
     protected def delDhcpHost(dhcp: Dhcp.Builder, mac: String,
-                              ipAddr: IPAddress,
-                              opts: JList[ExtraDhcpOpts]): Unit = {
+                              ipAddr: IPAddress, opts: JList[ExtraDhcpOpts])
+    : Unit = {
         val remove = dhcp.getHostsList.asScala.indexWhere(
             h => h.getMac == mac && h.getIpAddress == ipAddr)
         if (remove >= 0) dhcp.removeHosts(remove)
     }
 
-    /** Operations to delete a port's security chains (in, out, antispoof). */
+    /**
+      * Operations to delete a port's security chains (in, out, antispoof).
+      */
     protected def deleteSecurityChainsOps(portId: UUID)
     : Seq[Operation[Chain]] = {
         Seq(Delete(classOf[Chain], inChainId(portId)),
@@ -174,12 +223,34 @@ trait PortManager extends ChainManager with RouteManager {
     }
 
     /** Operations to remove a port's IP addresses from its IPAddrGroups */
+    @Deprecated
     protected def removeIpsFromIpAddrGroupsOps(port: NeutronPort)
     : Seq[Operation[IPAddrGroup]] = {
         // Remove the fixed IPs from IP Address Groups
         val ips = port.getFixedIpsList.asScala.map(_.getIpAddress)
         val sgIds = port.getSecurityGroupsList.asScala.toList
         val addrGrps = storage.getAll(classOf[IPAddrGroup], sgIds).await()
+        for (addrGrp <- addrGrps) yield {
+            val addrGrpBldr = addrGrp.toBuilder
+            for (ipPort <- addrGrpBldr.getIpAddrPortsBuilderList.asScala) {
+                if (ips.contains(ipPort.getIpAddress)) {
+                    val idx = ipPort.getPortIdsList.indexOf(port.getId)
+                    if (idx >= 0) ipPort.removePortIds(idx)
+                }
+            }
+            Update(addrGrpBldr.build())
+        }
+    }
+
+    /**
+      * Operations that remove a port's IP addresses from its IPAddrGroups.
+      */
+    protected def removeIpsFromIpAddrGroupsOps(tx: Transaction, port: NeutronPort)
+    : Seq[Operation[IPAddrGroup]] = {
+        // Remove the fixed IPs from IP Address Groups
+        val ips = port.getFixedIpsList.asScala.map(_.getIpAddress)
+        val sgIds = port.getSecurityGroupsList.asScala.toList
+        val addrGrps = tx.getAll(classOf[IPAddrGroup], sgIds)
         for (addrGrp <- addrGrps) yield {
             val addrGrpBldr = addrGrp.toBuilder
             for (ipPort <- addrGrpBldr.getIpAddrPortsBuilderList.asScala) {
@@ -204,7 +275,7 @@ trait PortManager extends ChainManager with RouteManager {
     }
 
     def ensureRouterInterfacePortGroup(routerId: UUID):
-            (OperationList, UUID) = {
+    (OperationList, UUID) = {
         val pgId = PortManager.routerInterfacePortGroupId(routerId)
         try {
             // common case
@@ -216,8 +287,8 @@ trait PortManager extends ChainManager with RouteManager {
                 // of translation doesn't have the port group.
                 val router = storage.get(classOf[Router], routerId).await()
                 val pg = newRouterInterfacePortGroup(routerId,
-                    router.getTenantId)
-                getRouterInterfacePorts(router).foreach(pg.addPortIds(_))
+                                                     router.getTenantId)
+                getRouterInterfacePorts(router).foreach(pg.addPortIds)
                 (List(Create(pg.build())), pgId)
         }
     }
@@ -225,7 +296,7 @@ trait PortManager extends ChainManager with RouteManager {
     private def getRouterInterfacePorts(router: Router): Seq[UUID] = {
         val ports = router.getPortIdsList.asScala
 
-        ports.filter(isRouterInterfacePeer(_))
+        ports.filter(isRouterInterfacePeer)
     }
 
     private def isRouterInterfacePeer(portId: UUID): Boolean = {
