@@ -38,10 +38,6 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
         // Uplink networks don't exist in Midonet, nor do their subnets.
         if (isOnUplinkNetwork(ns)) return List()
 
-        if (ns.isIpv6)
-            throw new IllegalArgumentException(
-                "IPv6 Subnets are not supported in this version of Midonet.")
-
         val dhcp = Dhcp.newBuilder
                        .setId(ns.getId)
                        .setNetworkId(ns.getNetworkId)
