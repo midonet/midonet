@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_97a7bda6",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 1
+      },
+      "lineNbr": 2960,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-23T09:43:30Z",
+      "side": 1,
+      "message": "Should this be here? I don\u0027t see it for the other QOS types. And if it marks the beginning of a section of QOS stuff, then shouldn\u0027t it be above the rule class definitions?",
+      "range": {
+        "startLine": 2960,
+        "startChar": 0,
+        "endLine": 2960,
+        "endChar": 5
+      },
+      "revId": "1b5b5b73d15ce8a45fb913c046d428212f81424a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
