@@ -16,16 +16,27 @@
 
 package org.midonet.midolman
 
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
-import akka.actor.Actor
+import scala.collection.mutable
+import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 import com.google.inject.Inject
 
+import rx.subscriptions.CompositeSubscription
+
+import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
+import org.midonet.midolman.simulation.{Port, RouterPort}
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
+import org.midonet.util.concurrent.ReactiveActor
+import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.process.MonitoredDaemonProcess
 
 object VppController extends Referenceable {
@@ -34,36 +45,105 @@ object VppController extends Referenceable {
     val VppProcessMaximumStarts = 3
     val VppProcessFailingPeriod = 30000
 
+    private def isIPv6(port: RouterPort) = (port.portAddressV6 ne null) &&
+                                           (port.portSubnetV6 ne null)
 }
 
 
 class VppController @Inject() (config: MidolmanConfig)
-    extends Actor with ActorLogWithoutPath {
+    extends ReactiveActor[AnyRef] with ActorLogWithoutPath {
 
     import org.midonet.midolman.VppController._
 
     override def logSource = "org.midonet.vpp-controller"
 
-    private var vppProcess: MonitoredDaemonProcess = _
+    private implicit val ec: ExecutionContext = context.system.dispatcher
 
-    override def preStart(): Unit = {
-        super.preStart()
-        val exitAction = new Consumer[Exception] {
-            override def accept(t: Exception): Unit = {
+    private var vppProcess: MonitoredDaemonProcess = _
+    private val portsSubscription = new CompositeSubscription()
+    private val watchedPorts = mutable.Map.empty[UUID, RouterPort]
+
+    private var vppExiting = false
+    private val vppExitAction = new Consumer[Exception] {
+        override def accept(t: Exception): Unit = {
+            if (!vppExiting) {
                 log.debug(t.getMessage)
                 Midolman.exitAsync(MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED)
             }
         }
+    }
+
+    override def preStart(): Unit = {
+        super.preStart()
+        portsSubscription add VirtualToPhysicalMapper.portsActive.subscribe(this)
+    }
+
+    override def postStop(): Unit = {
+        if ((vppProcess ne null) && vppProcess.isRunning) {
+            stopVppProcess()
+        }
+        portsSubscription.unsubscribe()
+        watchedPorts.clear()
+        super.postStop()
+    }
+
+    override def receive: Receive = {
+        case LocalPortActive(portId, true) => handlePortActive(portId)
+        case LocalPortActive(portId, false) => handlePortInactive(portId)
+        case OnCompleted => // ignore
+        case OnError(err) => log.error("Exception on active ports observable",
+                                       err)
+        case _ =>
+            log warn "Unknown message."
+    }
+
+    private def handlePortActive(portId: UUID): Unit = {
+
+        VirtualTopology.get(classOf[Port], portId) onComplete {
+            case Success(port: RouterPort) if isIPv6(port) =>
+                log debug s"IPv6 router port attached: $port"
+                attachPort(portId, port)
+            case Success(_) => // ignore
+            case Failure(err) =>
+                log warn s"Get port $portId failed: $err"
+        }
+    }
+
+    private def handlePortInactive(portId: UUID) {
+        detachPort(portId)
+    }
+
+    private def attachPort(portId: UUID, port: RouterPort): Unit = {
+        if (vppProcess eq null) {
+            startVppProcess()
+        }
+        watchedPorts += portId -> port
+    }
+
+    private def detachPort(portId: UUID): Unit = {
+        watchedPorts remove portId match {
+            case Some(_) => log debug s"IPv6 port $portId detached"
+            case None =>
+        }
+    }
+
+    private def startVppProcess(): Unit = {
+        if (vppExiting) return
+        log debug "Starting vpp process"
         vppProcess = new MonitoredDaemonProcess(
             "/usr/share/midolman/vpp-start", log.underlying, "org.midonet.vpp",
-            VppProcessMaximumStarts, VppProcessFailingPeriod, exitAction)
+            VppProcessMaximumStarts, VppProcessFailingPeriod, vppExitAction)
         vppProcess.startAsync()
             .awaitRunning(VppProcessFailingPeriod, TimeUnit.MILLISECONDS)
     }
 
-    override def receive: Receive = {
-        case _ =>
-            log warn "Unknown message."
+    private def stopVppProcess(): Unit = {
+        log debug "Stopping vpp process"
+        // flag vpp exiting so midolman isn't stopped by the exit action
+        vppExiting = true
+        vppProcess.stopAsync()
+            .awaitTerminated(VppProcessFailingPeriod, TimeUnit.MILLISECONDS)
+        vppProcess = null
     }
 }
 
