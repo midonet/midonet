@@ -16,6 +16,19 @@
 
 # This is a script that will create the configuration file for the VPP
 # subprocess and execute it.
+if hash pidof
+then
+    RUNNING_VPPS=$(pidof vpp)
+    for pid in $RUNNING_VPPS
+    do
+        kill $pid
+    done
+    RUNNING_VPPS=$(pidof vpp)
+    if [ ! -z "$RUNNING_VPPS" ]
+    then
+        echo "Warning: vpp processes still running: $RUNNING_VPPS"
+    fi
+fi
 
 if [ -z "$MIDO_CFG" ]; then
     MIDO_CFG=/etc/midolman
