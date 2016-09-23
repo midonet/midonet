@@ -167,16 +167,16 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         val updatedNetwork = neutronNetwork.toBuilder
                                            .setAdminStateUp(!adminStateUp)
                                            .setName(newNetworkName).build
-        when(storage.get(classOf[Network], networkId))
-            .thenReturn(Future.successful(midoNetwork))
+        when(transaction.get(classOf[Network], networkId))
+            .thenReturn(midoNetwork)
 
         storageManager.interpretAndExecTxn(
                 txn("txn1", c3poUpdate(2, updatedNetwork)))
 
-        verify(transaction).update(updatedNetwork)
+        verify(transaction).update(updatedNetwork, null)
         verify(transaction).update(midoNetwork.toBuilder.setName(newNetworkName)
                                        .setAdminStateUp(!adminStateUp)
-                                       .build)
+                                       .build, null)
     }
 
     "NeutronNetwork Delete" should "call ZOOM.multi with DeleteOp on " +
