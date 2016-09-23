@@ -16,15 +16,14 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronConfig
 import org.midonet.cluster.models.Topology.TunnelZone
-import org.midonet.util.concurrent.toFutureOps
 
 /**
- * Contains custom logic specific to Tunnel Zones in one place.
- */
+  * Contains custom logic specific to Tunnel Zones in one place.
+  */
 trait TunnelZoneManager {
     def neutronDefaultTunnelZone(config: NeutronConfig) : TunnelZone = {
         // Create the singleton Neutron default Tunnel Zone
@@ -40,18 +39,18 @@ trait TunnelZoneManager {
     }
 
     /**
-     * Looks up the singleton Neutron Config object and finds the ID of the
-     * default Tunnel Zone used by Neutron.
-     */
-    def getNeutronDefaultTunnelZone(storage: ReadOnlyStorage): TunnelZone = {
-        val tzs = storage.getAll(classOf[NeutronConfig]).await()
-        if (tzs.isEmpty)
-            throw new IllegalStateException("Cannot find a Neutron Config.")
-        else if (tzs.length > 1)
-            throw new IllegalStateException("Found more than 1 Neutron Config.")
+      * Looks up the singleton Neutron Config object and finds the ID of the
+      * default Tunnel Zone used by Neutron.
+      */
+    def getNeutronDefaultTunnelZone(tx: Transaction): TunnelZone = {
+        val tunnelZones = tx.getAll(classOf[NeutronConfig])
+        if (tunnelZones.isEmpty)
+            throw new IllegalStateException("Cannot find a Neutron configuration")
+        else if (tunnelZones.length > 1)
+            throw new IllegalStateException("Found more than 1 Neutron configuration")
 
         // NeutronConfig.id is used to create a default Tunnel Zone for Neutron.
-        storage.get(classOf[TunnelZone], getTunnelZoneId(tzs(0))).await()
+        tx.get(classOf[TunnelZone], getTunnelZoneId(tunnelZones.head))
     }
 
     /* We use NeutronConfig ID as Neutron's default Tunnel Zone ID (at least
