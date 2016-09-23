@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_dc832ca8",
+        "filename": "nsdb/src/main/scala/org/midonet/logging/rule/BinaryLogTranslator.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-23T07:18:53Z",
+      "side": 1,
+      "message": "Is there no way of making this a parameter and then having this function be a util function instead?  I think having a parameter for this case would be useful, instead of hardcoding the output location, but also if the output location is a parameter, this function can become very generalized I think.",
+      "range": {
+        "startLine": 115,
+        "startChar": 32,
+        "endLine": 115,
+        "endChar": 74
+      },
+      "revId": "9136aa2cc3ac41e8e8f5381950b4ba83362ee643",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
