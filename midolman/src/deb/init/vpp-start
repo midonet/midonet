@@ -29,6 +29,9 @@ if [ -z "$VPP_CLI_PORT" ]; then
     VPP_CLI_PORT=5002
 fi
 
+# kill all running vpp instances
+pkill -x vpp_main
+
 exec >> $MIDO_LOG_DIR/vpp-stderr.log
 exec 2>&1
 
