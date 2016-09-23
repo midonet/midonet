@@ -125,3 +125,10 @@ class Bridge(resource_base.ResourceBase,
 
     def add_dhcp_subnet(self):
         return dhcp_subnet.DhcpSubnet(self.dto['dhcpSubnets'], {}, self.auth)
+
+    def get_qos_policy_id(self):
+        return self.dto['qosPolicyId']
+
+    def qos_policy_id(self, id_):
+        self.dto['qosPolicyId'] = id_
+        return self

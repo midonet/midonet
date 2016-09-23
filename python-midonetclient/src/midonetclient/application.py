@@ -30,6 +30,9 @@ from midonetclient import pool_member
 from midonetclient import pool_statistic
 from midonetclient import port
 from midonetclient import port_group
+from midonetclient import qos_policy
+from midonetclient import qos_rule_bw_limit
+from midonetclient import qos_rule_dscp
 from midonetclient import resource_base
 from midonetclient import route
 from midonetclient import router
@@ -609,3 +612,50 @@ class Application(resource_base.ResourceBase):
     def delete_tracerequest(self, _id):
         return self._delete_resource_by_id(self.get_tracerequest_template(),
                                            _id)
+
+    # QoS
+    def get_qos_dscp_rule_template(self):
+        return self.dto['qosDscpRuleTemplate']
+
+    def get_qos_bw_limit_rule_template(self):
+        return self.dto['qosBwLimitRuleTemplate']
+
+    def get_qos_policy_template(self):
+        return self.dto['qosPolicyTemplate']
+
+    def add_qos_policy(self):
+        return qos_policy.QOSPolicy(self.dto['qosPolicies'], {}, self.auth)
+
+    def get_qos_policies(self, query=None):
+        headers = {
+            'Accept':
+                vendor_media_type.APPLICATION_QOS_POLICY_COLLECTION_JSON}
+        return self.get_children(self.dto['qosPolicies'], query, headers,
+                                 qos_policy.QOSPolicy)
+
+    def delete_qos_policy(self, id_):
+            return self._delete_resource_by_id(
+                self.get_qos_policy_template(), id_)
+
+    def get_qos_policy(self, id_):
+        return self._get_resource_by_id(
+            qos_policy.QOSPolicy, self.dto['qosPolicies'],
+            self.get_qos_policy_template(), id_)
+
+    def delete_qos_bw_limit_rule(self, id_):
+        return self._delete_resource_by_id(
+            self.get_qos_bw_limit_rule_template(), id_)
+
+    def get_qos_bw_limit_rule(self, id_):
+        return self._get_resource_by_id(
+            qos_rule_bw_limit.QOSRuleBWLimit, None,
+            self.get_qos_bw_limit_rule_template(), id_)
+
+    def delete_qos_dscp_rule(self, id_):
+        return self._delete_resource_by_id(
+            self.get_qos_dscp_rule_template(), id_)
+
+    def get_qos_dscp_rule(self, id_):
+        return self._get_resource_by_id(
+            qos_rule_dscp.QOSRuleDSCP, None,
+            self.get_qos_dscp_rule_template(), id_)
