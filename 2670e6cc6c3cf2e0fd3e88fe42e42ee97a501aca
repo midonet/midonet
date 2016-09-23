@@ -22,6 +22,30 @@
       "revId": "2670e6cc6c3cf2e0fd3e88fe42e42ee97a501aca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b2052f15",
+        "filename": "midolman/src/deb/init/vpp-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-23T15:22:12Z",
+      "side": 1,
+      "message": "At first attempt I didn\u0027t succeed with pkill so I resorted to pidof/kill. It turns out I wasn\u0027t using the correct name for the vpp process.",
+      "parentUuid": "baa041b7_529703eb",
+      "range": {
+        "startLine": 21,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 8
+      },
+      "revId": "2670e6cc6c3cf2e0fd3e88fe42e42ee97a501aca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
