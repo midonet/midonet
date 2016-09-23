@@ -46,6 +46,30 @@
       "revId": "7d3ee8cd1f6e58bfaa66deae2ca378c490880d31",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_774c3976",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-23T08:05:04Z",
+      "side": 1,
+      "message": "In a world, where we do IP6 routing in midonet, they probably code be. But in this case, the data is used for different things, so it should be different data so that the code paths don\u0027t need to know about each other.",
+      "parentUuid": "baa041b7_41561707",
+      "range": {
+        "startLine": 424,
+        "startChar": 22,
+        "endLine": 427,
+        "endChar": 53
+      },
+      "revId": "7d3ee8cd1f6e58bfaa66deae2ca378c490880d31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
