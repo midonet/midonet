@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
@@ -20,9 +21,7 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update, CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.util.concurrent.toFutureOps
 import org.midonet.midolman.state.PathBuilder
 
 /** Provides a Neutron model translator for Network. */
@@ -32,40 +31,46 @@ class NetworkTranslator(protected val storage: ReadOnlyStorage,
     import NetworkTranslator._
 
     override protected def translateCreate(tx: Transaction,
-                                           nn: NeutronNetwork): OperationList = {
-        // Uplink networks don't exist in Midonet.
-        if (isUplinkNetwork(nn)) return List()
+                                           network: NeutronNetwork)
+    : OperationList = {
+        // Uplink networks do not exist in MidoNet.
+        if (isUplinkNetwork(network)) {
+            return List()
+        }
 
-        val ops = new OperationListBuffer
-        ops += Create(translate(nn))
-        ops ++= replMapPaths(nn.getId).map(CreateNode(_, null))
-        ops.toList
+        tx.create(translate(network))
+        replMapPaths(network.getId).map(tx.createNode(_, null))
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           nn: NeutronNetwork): OperationList = {
-        // Uplink networks don't exist in Midonet, and regular networks can't
-        // be turned into uplink networks via update.
-        if (isUplinkNetwork(nn)) return List()
+                                           nNetwork: NeutronNetwork)
+    : OperationList = {
+        // Uplink networks do not exist in MidoNet.
+        if (isUplinkNetwork(nNetwork)) {
+            return List()
+        }
 
-        val mNet = storage.get(classOf[Network], nn.getId).await()
-        val bldr = mNet.toBuilder
-            .setName(nn.getName)
-            .setAdminStateUp(nn.getAdminStateUp)
+        val mNetwork = tx.get(classOf[Network], nNetwork.getId)
+        val builder = mNetwork.toBuilder
+            .setName(nNetwork.getName)
+            .setAdminStateUp(nNetwork.getAdminStateUp)
 
-        List(Update(bldr.build()))
+        tx.update(builder.build())
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           nn: NeutronNetwork)
+                                           nNetwork: NeutronNetwork)
     : OperationList = {
-        // Uplink networks don't exist in Midonet.
-        if (isUplinkNetwork(nn)) return List()
+        // Uplink networks do not exist in MidoNet.
+        if (isUplinkNetwork(nNetwork)) {
+            return List()
+        }
 
-        val ops = new OperationListBuffer
-        ops += Delete(classOf[Network], nn.getId)
-        ops ++= replMapPaths(nn.getId).map(DeleteNode)
-        ops.toList
+        tx.delete(classOf[Network], nNetwork.getId)
+        replMapPaths(nNetwork.getId).map(tx.deleteNode(_))
+        List()
     }
 
     @inline
