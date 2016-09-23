@@ -196,3 +196,17 @@ APPLICATION_TRACE_REQUEST_JSON = \
     "application/vnd.org.midonet.TraceRequest-v1+json"
 APPLICATION_TRACE_REQUEST_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.TraceRequest-v1+json"
+
+# QoS
+APPLICATION_QOS_POLICY_JSON = \
+    "application/vnd.org.midonet.QOSPolicy-v1+json"
+APPLICATION_QOS_POLICY_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.QOSPolicy-v1+json"
+APPLICATION_QOS_RULE_BW_LIMIT_JSON = \
+    "application/vnd.org.midonet.QOSRuleBWLimit-v1+json"
+APPLICATION_QOS_RULE_BW_LIMIT_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.QOSRuleBWLimit-v1+json"
+APPLICATION_QOS_RULE_DSCP_JSON = \
+    "application/vnd.org.midonet.QOSRuleDSCP-v1+json"
+APPLICATION_QOS_RULE_DSCP_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.QOSRuleDSCP-v1+json"
