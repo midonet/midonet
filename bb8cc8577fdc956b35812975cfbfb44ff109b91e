@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_5a0ba77d",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-23T09:18:41Z",
+      "side": 1,
+      "message": "Why not this?\n\n  val dscpRes \u003d jerseyTest.client.resource(qosPolicy.getDscpRules)\n\nThere\u0027s an overload that takes a URI, so no need to convert to string. And no need to create a local variable with an uninformative name for such a simple expression that only gets used once.",
+      "range": {
+        "startLine": 303,
+        "startChar": 8,
+        "endLine": 303,
+        "endChar": 64
+      },
+      "revId": "bb8cc8577fdc956b35812975cfbfb44ff109b91e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
