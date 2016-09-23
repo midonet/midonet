@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,19 +120,21 @@ trait PortManager extends ChainManager with RouteManager {
     }
 
     /**
-      * Returns operations to bind the specified port to the specified host
-      * and interface. Port and host must exist in Midonet topology, and neither
-      * the port nor the interface may already be bound on the specified host.
+      * Bind the specified port to the specified host and interface. Port and
+      * host must exist in Midonet topology, and neither the port nor the
+      * interface may already be bound on the specified host.
       */
-    protected def bindPortOps(tx: Transaction, port: Port, hostId: UUID,
-                              ifName: String): Unit = {
-        if (port.hasHostId) throw new IllegalStateException(
-            s"Port ${port.getId} is already bound.")
+    @throws[IllegalStateException]
+    protected def bindPort(tx: Transaction, port: Port, hostId: UUID,
+                           interfaceName: String): Unit = {
+        if (port.hasHostId)
+            throw new IllegalStateException(s"Port ${port.getId.asJava} is " +
+                                            s"already bound.")
 
-        val updatedPort = port.toBuilder
-            .setHostId(hostId)
-            .setInterfaceName(ifName)
-        tx.update(updatedPort.build())
+        tx.update(port.toBuilder
+                      .setHostId(hostId)
+                      .setInterfaceName(interfaceName)
+                      .build())
     }
 
     @Deprecated
