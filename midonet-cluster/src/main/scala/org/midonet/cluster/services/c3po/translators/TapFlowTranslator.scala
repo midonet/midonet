@@ -19,56 +19,56 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Neutron.TapFlow
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Update
-import org.midonet.util.concurrent.toFutureOps
 
 
 class TapFlowTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[TapFlow] {
 
     override protected def translateCreate(tx: Transaction,
-                                           tf: TapFlow): OperationList = {
-        val port = storage.get(classOf[Port],
-                               tf.getSourcePort).await().toBuilder
-        val mirrorId = tf.getTapServiceId
+                                           tapFlow: TapFlow): OperationList = {
+        val builder = tx.get(classOf[Port], tapFlow.getSourcePort).toBuilder
+        val mirrorId = tapFlow.getTapServiceId
 
         // Note: Neutron and our In/Out are from the opposite POVs.
-        if (tapIn(tf)) {
-            port.addPreOutFilterMirrorIds(mirrorId)
+        if (tapIn(tapFlow)) {
+            builder.addPreOutFilterMirrorIds(mirrorId)
         }
-        if (tapOut(tf)) {
-            port.addPostInFilterMirrorIds(mirrorId)
+        if (tapOut(tapFlow)) {
+            builder.addPostInFilterMirrorIds(mirrorId)
         }
-        List(Update(port.build))
+        tx.update(builder.build())
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           tf: TapFlow): OperationList = {
-        val port = storage.get(classOf[Port],
-                               tf.getSourcePort).await().toBuilder
-        val mirrorId = tf.getTapServiceId
+                                           tapFlow: TapFlow): OperationList = {
+        val builder = tx.get(classOf[Port], tapFlow.getSourcePort).toBuilder
+        val mirrorId = tapFlow.getTapServiceId
 
         // Note: Neutron and our In/Out are from the opposite POVs.
-        if (tapIn(tf)) {
-            val idx = port.getPreOutFilterMirrorIdsList.indexOf(mirrorId)
-            port.removePreOutFilterMirrorIds(idx)
+        if (tapIn(tapFlow)) {
+            val idx = builder.getPreOutFilterMirrorIdsList.indexOf(mirrorId)
+            builder.removePreOutFilterMirrorIds(idx)
         }
-        if (tapOut(tf)) {
-            val idx = port.getPostInFilterMirrorIdsList.indexOf(mirrorId)
-            port.removePostInFilterMirrorIds(idx)
+        if (tapOut(tapFlow)) {
+            val idx = builder.getPostInFilterMirrorIdsList.indexOf(mirrorId)
+            builder.removePostInFilterMirrorIds(idx)
         }
-        List(Update(port.build))
+        tx.update(builder.build())
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           tf: TapFlow): OperationList =
+                                           tapFlow: TapFlow): OperationList =
         List()
 
-    private def tapIn(tf: TapFlow): Boolean =
-        tf.getDirection == TapFlow.TapFlowDirection.BOTH ||
-        tf.getDirection == TapFlow.TapFlowDirection.IN
+    private def tapIn(tapFlow: TapFlow): Boolean = {
+        tapFlow.getDirection == TapFlow.TapFlowDirection.BOTH ||
+        tapFlow.getDirection == TapFlow.TapFlowDirection.IN
+    }
 
-    private def tapOut(tf: TapFlow): Boolean =
-        tf.getDirection == TapFlow.TapFlowDirection.BOTH ||
-        tf.getDirection == TapFlow.TapFlowDirection.OUT
+    private def tapOut(tapFlow: TapFlow): Boolean = {
+        tapFlow.getDirection == TapFlow.TapFlowDirection.BOTH ||
+        tapFlow.getDirection == TapFlow.TapFlowDirection.OUT
+    }
 }
