@@ -41,8 +41,7 @@ import org.midonet.packets.{IPv4Addr, MAC}
  */
 abstract class TranslatorTestBase  extends FlatSpec
                                    with BeforeAndAfter
-                                   with Matchers
-                                   with StateTableManager {
+                                   with Matchers {
     /* Each implementing unit test class initializes the (mock) storage by
      * calling initMockStorage() below. */
     protected var storage: ReadOnlyStorage = _
