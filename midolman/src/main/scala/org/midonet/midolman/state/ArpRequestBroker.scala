@@ -92,7 +92,7 @@ class ArpRequestBroker(config: MidolmanConfig,
     def broker(router: Router): SingleRouterArpRequestBroker = {
         brokers.get(router.id) match {
             case null =>
-                log.info(s"Building new arp request broker for router ${router.id}")
+                log.debug(s"Building new ARP request broker for router ${router.id}")
                 val broker = new SingleRouterArpRequestBroker(router.id,
                         router.arpCache, config, backChannel, clock)
                 brokers.put(router.id, broker)
