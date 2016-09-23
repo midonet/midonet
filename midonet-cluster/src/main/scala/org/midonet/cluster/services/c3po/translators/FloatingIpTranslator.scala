@@ -34,8 +34,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
                            protected val stateTableStorage: StateTableStorage)
         extends Translator[FloatingIp] with ChainManager
                 with RouteManager
-                with RuleManager
-                with StateTableManager {
+                with RuleManager {
 
     implicit val storage: ReadOnlyStorage = readOnlyStorage
 

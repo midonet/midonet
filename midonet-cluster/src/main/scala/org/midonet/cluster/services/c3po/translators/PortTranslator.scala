@@ -60,8 +60,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                      protected val stateTableStorage: StateTableStorage,
                      sequenceDispenser: SequenceDispenser)
         extends Translator[NeutronPort]
-                with ChainManager with PortManager with RouteManager with RuleManager
-                with StateTableManager {
+        with ChainManager with PortManager with RouteManager with RuleManager {
 
     /**
       *  Neutron does not maintain the back reference to the Floating IP, so we

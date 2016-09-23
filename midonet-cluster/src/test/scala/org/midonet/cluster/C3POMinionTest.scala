@@ -53,7 +53,6 @@ import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.neutron.models.BgpPeer.AuthType
 import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
-import org.midonet.cluster.services.c3po.translators.StateTableManager
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage._
 import org.midonet.cluster.util.UUIDUtil._
@@ -73,8 +72,7 @@ import org.midonet.util.concurrent.toFutureOps
 class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                           with BeforeAndAfterAll
                                           with Matchers
-                                          with MidonetEventually
-                                          with StateTableManager {
+                                          with MidonetEventually {
 
     protected val log = LoggerFactory.getLogger(this.getClass)
 
