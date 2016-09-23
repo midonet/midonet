@@ -17,19 +17,20 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{SecurityGroup => SecurityGroupType, SecurityGroupRule => SecurityGroupRuleType}
-import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
+import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.packets.IPv4Subnet
 import org.midonet.util.concurrent.toFutureOps
-import org.scalatest.junit.JUnitRunner
-
-import scala.collection.JavaConverters._
 
 
 /**
