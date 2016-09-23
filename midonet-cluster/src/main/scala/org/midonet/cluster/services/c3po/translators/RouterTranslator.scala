@@ -36,8 +36,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                        protected val stateTableStorage: StateTableStorage,
                        config: ClusterConfig)
     extends Translator[NeutronRouter]
-            with ChainManager with PortManager with RouteManager with RuleManager
-            with StateTableManager {
+    with ChainManager with PortManager with RouteManager with RuleManager {
+
     import RouterTranslator._
     import org.midonet.cluster.services.c3po.translators.RouteManager._
 
