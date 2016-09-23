@@ -22,6 +22,52 @@
       "revId": "1b5b5b73d15ce8a45fb913c046d428212f81424a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d7fc2541",
+        "filename": "python-midonetclient/src/midonetclient/qos_policy.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-23T10:36:46Z",
+      "side": 1,
+      "message": "i think it\u0027s better to use \"bw_limit\" as it\u0027s what neutron seems to use consistently.",
+      "range": {
+        "startLine": 83,
+        "startChar": 12,
+        "endLine": 83,
+        "endChar": 19
+      },
+      "revId": "1b5b5b73d15ce8a45fb913c046d428212f81424a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_57f01566",
+        "filename": "python-midonetclient/src/midonetclient/qos_rule_bwlimit.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-23T10:36:46Z",
+      "side": 1,
+      "message": "2016?\nditto for other new files",
+      "range": {
+        "startLine": 3,
+        "startChar": 12,
+        "endLine": 3,
+        "endChar": 16
+      },
+      "revId": "1b5b5b73d15ce8a45fb913c046d428212f81424a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
