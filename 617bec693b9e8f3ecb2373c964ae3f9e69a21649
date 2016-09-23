@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_90a6a4a9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-23T16:03:54Z",
+      "side": 1,
+      "message": "Is this a bug fix?",
+      "range": {
+        "startLine": 102,
+        "startChar": 8,
+        "endLine": 105,
+        "endChar": 31
+      },
+      "revId": "617bec693b9e8f3ecb2373c964ae3f9e69a21649",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_70b680dd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-23T16:03:54Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 129,
+        "startChar": 8,
+        "endLine": 129,
+        "endChar": 81
+      },
+      "revId": "617bec693b9e8f3ecb2373c964ae3f9e69a21649",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
