@@ -68,7 +68,7 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     val peer1 = IPv4Addr.fromString("192.168.80.2")
     val peer1Id = UUID.randomUUID()
-    def baseConfig = new BgpRouter(asNumber, rport.portAddress,
+    def baseConfig = new BgpRouter(asNumber, rport.portAddressV4,
                                    Map(peer1 -> Neighbor(peer1, 100)))
 
     val peer2 = IPv4Addr.fromString("192.168.80.3")
@@ -78,13 +78,13 @@ class RoutingHandlerTest extends FeatureSpecLike
         as = ActorSystem("RoutingHandlerTest")
 
         rport = RouterPort(
-                id = UUID.randomUUID(),
-                tunnelKey = 1,
-                isActive = true,
-                routerId = UUID.randomUUID(),
-                portSubnet = IPv4Subnet.fromCidr("192.168.80.0/24"),
-                portAddress = IPv4Addr.fromString("192.168.80.1"),
-                portMac = MAC.random())
+            id = UUID.randomUUID(),
+            tunnelKey = 1,
+            isActive = true,
+            routerId = UUID.randomUUID(),
+            portSubnetV4 = IPv4Subnet.fromCidr("192.168.80.0/24"),
+            portAddressV4 = IPv4Addr.fromString("192.168.80.1"),
+            portMac = MAC.random())
 
         bgpd = new MockBgpdProcess
 
@@ -135,7 +135,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             val ifaceName = "TESTING"
             val containerRport = rport.copy(interfaceName = "TESTING",
                                             containerId = UUID.randomUUID())
-            val bgpRouter = new BgpRouter(-1, rport.portAddress)
+            val bgpRouter = new BgpRouter(-1, rport.portAddressV4)
 
             val containerRoutingHandler = TestActorRef(
                 new TestableRoutingHandler(containerRport,
@@ -173,7 +173,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             containerRoutingHandler ! BgpPort(containerPort, baseConfig, Set(peer1Id))
             bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString)
 
-            val update = new BgpRouter(asNumber, rport.portAddress,
+            val update = new BgpRouter(asNumber, rport.portAddressV4,
                                        Map(peer1 -> Neighbor(peer1, 100),
                     peer2 -> Neighbor(peer2, 200)))
             containerRoutingHandler ! PortBgpInfos(Seq(pbi1, pbi2))
@@ -231,7 +231,7 @@ class RoutingHandlerTest extends FeatureSpecLike
 
         scenario("change in the router port address") {
             val p = rport.copy(isActive = true,
-                               portAddress = IPv4Addr.fromString("192.168.80.2"))
+                               portAddressV4 = IPv4Addr.fromString("192.168.80.2"))
             routingHandler ! BgpPort(p, baseConfig, Set(peer1Id))
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
@@ -420,7 +420,7 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     feature("reacts to changes in the bgp session configuration") {
         scenario("a new peer is added or removed") {
-            val update = new BgpRouter(asNumber, rport.portAddress,
+            val update = new BgpRouter(asNumber, rport.portAddressV4,
                                        Map(peer1 -> Neighbor(peer1, 100),
                         peer2 -> Neighbor(peer2, 200)))
 
@@ -451,7 +451,7 @@ class RoutingHandlerTest extends FeatureSpecLike
         }
 
         scenario("timer values change") {
-            val update = new BgpRouter(asNumber, rport.portAddress,
+            val update = new BgpRouter(asNumber, rport.portAddressV4,
                                        Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
             routingHandler ! BgpPort(rport, update, Set(peer1Id))

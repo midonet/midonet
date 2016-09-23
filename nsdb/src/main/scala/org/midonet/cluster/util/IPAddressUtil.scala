@@ -69,18 +69,34 @@ object IPAddressUtil {
     def toIPAddr(addr: Commons.IPAddress): IPAddr =
         IPAddr.fromString(addr.getAddress)
 
-    def toIPv4Addr(addr: Commons.IPAddress): IPv4Addr = {
+    def toIPv4AddrOrNull(addr: Commons.IPAddress): IPv4Addr = {
         if (IPVersion.V4 == addr.getVersion)
             IPv4Addr(addr.getAddress)
         else
-            throw new IllegalArgumentException("Not IP version 4")
+            null
     }
 
-    def toIPv6Addr(addr: Commons.IPAddress): IPv6Addr = {
+    def toIPv4Addr(addr: Commons.IPAddress): IPv4Addr = {
+        val result = toIPv4AddrOrNull(addr)
+        if (result eq null) {
+            throw new IllegalArgumentException("Not IP version 4")
+        }
+        result
+    }
+
+    def toIPv6AddrOrNull(addr: Commons.IPAddress): IPv6Addr = {
         if (IPVersion.V6 == addr.getVersion)
             IPv6Addr(addr.getAddress)
         else
+            null
+    }
+
+    def toIPv6Addr(addr: Commons.IPAddress): IPv6Addr = {
+        val result = toIPv6AddrOrNull(addr)
+        if (result eq null) {
             throw new IllegalArgumentException("Not IP version 6")
+        }
+        result
     }
 
     def toInetAddress(addr: Commons.IPAddress): InetAddress =

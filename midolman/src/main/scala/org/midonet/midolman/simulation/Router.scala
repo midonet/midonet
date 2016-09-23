@@ -173,9 +173,9 @@ class Router(override val id: UUID,
         val tha = pkt.getTargetHardwareAddress
         val sha = pkt.getSenderHardwareAddress
 
-        if (!inPort.portSubnet.containsAddress(spa)) {
+        if (!inPort.portSubnetV4.containsAddress(spa)) {
             context.log.debug("Ignoring ARP request from address {} not in the " +
-                              "ingress port network {}", spa, inPort.portSubnet)
+                              "ingress port network {}", spa, inPort.portSubnetV4)
             return
         }
 
@@ -186,10 +186,10 @@ class Router(override val id: UUID,
             context.arpBroker.set(spa, sha, this)
             return
         }
-        if (!inPort.portAddress.equals(tpa)) {
+        if (!inPort.portAddressV4.equals(tpa)) {
             context.log.debug("Ignoring ARP request to destination address {} " +
                               "instead of ingress port address {}", tpa,
-                              inPort.portAddress)
+                              inPort.portAddressV4)
             return
         }
 
@@ -229,7 +229,7 @@ class Router(override val id: UUID,
         val spa = IPv4Addr.fromBytes(pkt.getSenderProtocolAddress)
         val sha: MAC = pkt.getSenderHardwareAddress
         val isGratuitous = tpa == spa && tha == sha
-        val isAddressedToThis = port.portAddress.equals(tpa) &&
+        val isAddressedToThis = port.portAddressV4.equals(tpa) &&
                                 tha == port.portMac
 
         if (isGratuitous) {
@@ -245,9 +245,9 @@ class Router(override val id: UUID,
 
         // Question:  Should we check if the ARP reply disagrees with an
         // existing cache entry and make noise if so?
-        if (!port.portSubnet.containsAddress(spa)) {
+        if (!port.portSubnetV4.containsAddress(spa)) {
             context.log.debug("Ignoring ARP reply from address {} not in the " +
-                              "ingress port network {}", spa, port.portSubnet)
+                              "ingress port network {}", spa, port.portSubnetV4)
             return
         }
 
@@ -305,7 +305,7 @@ class Router(override val id: UUID,
         context.addFlowTag(FlowTagger.tagForArpEntry(id, nextHopIP))
         if (port.isInterior) {
             context.arpBroker.get(nextHopIP, port, this, context.cookie)
-        } else port.portSubnet match {
+        } else port.portSubnetV4 match {
             case extAddr: IPv4Subnet if extAddr.containsAddress(nextHopIP) =>
                 context.arpBroker.get(nextHopIP, port, this, context.cookie)
             case extAddr: IPv4Subnet =>
@@ -391,7 +391,7 @@ class Router(override val id: UUID,
         }
 
         def _sendIPPacket(outPort: RouterPort, rt: Route): Boolean = {
-            if (packet.getDestinationIPAddress == outPort.portAddress) {
+            if (packet.getDestinationIPAddress == outPort.portAddressV4) {
                 /* should never happen: it means we are trying to send a packet
                  * to ourselves, probably means that somebody sent an IP packet
                  * with a forged source address belonging to this router.

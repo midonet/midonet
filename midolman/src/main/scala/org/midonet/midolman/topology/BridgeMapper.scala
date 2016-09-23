@@ -755,10 +755,10 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
                               peerState.portId, localPort.id)
                     // Learn the router MAC and IP.
                     routerMacToPortMap += routerPort.portMac -> localPort.id
-                    routerIpToMacMap += routerPort.portAddress -> routerPort.portMac
+                    routerIpToMacMap += routerPort.portAddressV4 -> routerPort.portMac
                     log.debug("Add bridge port {} linked to router port MAC: " +
                               "{} IP: {}", localPort.id, routerPort.portMac,
-                              routerPort.portAddress)
+                              routerPort.portAddressV4)
                 case _ =>
                     log.warn("Unsupported peer port for local port {}",
                              localPort.id)

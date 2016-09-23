@@ -329,13 +329,13 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
         // Filter the neighbors based on the port IP address
         val neighbors =
             if (port.containerId != null) routerState.router.neighbors
-            else if (port.portSubnet ne null)
+            else if (port.portSubnetV4 ne null)
                 routerState.router.neighbors
-                           .filterKeys(port.portSubnet.containsAddress)
+                           .filterKeys(port.portSubnetV4.containsAddress)
             else Map.empty[IPv4Addr, BgpNeighbor]
 
         BgpPort(port, BgpConfig(as = routerState.router.as,
-                                id = port.portAddress,
+                                id = port.portAddressV4,
                                 neighbors = neighbors.mapValues(_.neighbor),
                                 networks = routerState.router.networks),
                 neighbors.values.map(_.id).toSet)
