@@ -65,7 +65,7 @@ class SubnetTranslatorTest extends TranslatorTestBase {
 
     "Basic subnet CREATE" should "produce an equivalent Dhcp Object" in {
         bind(networkId, nTenantNetwork)
-        val midoOps = translator.translate(transaction, Create(nSubnet))
+        translator.translate(transaction, Create(nSubnet))
         midoOps should contain only Create(mDhcp)
     }
 
@@ -93,8 +93,8 @@ class SubnetTranslatorTest extends TranslatorTestBase {
     "CREATE subnet with a gateway IP" should "set the default gateway and " +
     "server address accordingly" in {
         bind(networkId, nTenantNetwork)
-        val midoOps = translator.translate(transaction,
-                                           Create(nSubnetWithGatewayIp))
+        translator.translate(transaction,
+                             Create(nSubnetWithGatewayIp))
         midoOps should contain only Create(mDhcpWithDefaultGateway)
     }
 
@@ -116,7 +116,7 @@ class SubnetTranslatorTest extends TranslatorTestBase {
     "CREATE subnet with DNS name server IPs" should "set the DNS server " +
     "addresses accordingly" in {
         bind(networkId, nTenantNetwork)
-        val midoOps = translator.translate(transaction, Create(nSubnetWithDNS))
+        translator.translate(transaction, Create(nSubnetWithDNS))
         midoOps should contain only Create(mDhcpWithDNS)
     }
 
@@ -147,30 +147,30 @@ class SubnetTranslatorTest extends TranslatorTestBase {
 
     "CREATE subnet with host routes" should "set Opt121 routes" in {
         bind(networkId, nTenantNetwork)
-        val midoOps = translator.translate(transaction,
-                                           Create(nSubnetWithRoutes))
+        translator.translate(transaction,
+                             Create(nSubnetWithRoutes))
         midoOps should contain only Create(mDhcpWithOpt121Routs)
     }
 
     "CREATE subnet on uplink network" should "do nothing" in {
         bind(networkId, nUplinkNetwork)
-        val midoOps = translator.translate(transaction,
-                                           Create(nSubnetWithRoutes))
+        translator.translate(transaction,
+                             Create(nSubnetWithRoutes))
         midoOps shouldBe empty
     }
 
     "UPDATE subnet on uplink network" should "do nothing" in {
         bind(networkId, nUplinkNetwork)
-        val midoOps = translator.translate(transaction,
-                                           Update(nSubnetWithRoutes))
+        translator.translate(transaction,
+                             Update(nSubnetWithRoutes))
         midoOps shouldBe empty
     }
 
     "DELETE subnet on uplink network" should "do nothing" in {
         bind(networkId, nUplinkNetwork)
         bind(nSubnetWithRoutes.getId, nSubnetWithRoutes)
-        val midoOps = translator.translate(transaction,
-            Delete(classOf[NeutronSubnet], nSubnetWithRoutes.getId))
+        translator.translate(transaction,
+                             Delete(classOf[NeutronSubnet], nSubnetWithRoutes.getId))
         midoOps should contain only Delete(classOf[Dhcp], subnetId)
     }
 
@@ -182,8 +182,8 @@ class SubnetTranslatorTest extends TranslatorTestBase {
         bind(subnetId, subnet)
         bind(subnetId, dhcp)
 
-        val midoOps = translator.translate(transaction,
-            Delete(classOf[NeutronSubnet], subnetId))
+        translator.translate(transaction,
+                             Delete(classOf[NeutronSubnet], subnetId))
         midoOps should contain only Delete(classOf[Dhcp], subnetId)
     }
 
@@ -207,8 +207,8 @@ class SubnetTranslatorTest extends TranslatorTestBase {
 
         bind(id_list.get(0), rt1)
 
-        val midoOps = translator.translate(transaction,
-            Delete(classOf[NeutronSubnet], subnetId))
+        translator.translate(transaction,
+                             Delete(classOf[NeutronSubnet], subnetId))
 
         midoOps should contain only Delete(classOf[Dhcp], subnetId)
     }
@@ -247,8 +247,8 @@ class SubnetTranslatorTest extends TranslatorTestBase {
         bind(subnetId, mDhcpWithDefaultGateway)
         bind(portId1, null, classOf[NeutronPort])  // Non-Neutron port
         bind(portId2, nPort2)
-        val midoOps = translator.translate(transaction,
-                                           Update(nSubnetWithGatewayIp))
+        translator.translate(transaction,
+                             Update(nSubnetWithGatewayIp))
         midoOps should contain only Update(expectedResult)
     }
 }
