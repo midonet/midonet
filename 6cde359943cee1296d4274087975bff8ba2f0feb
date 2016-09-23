@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_cf481bb6",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-23T07:51:55Z",
+      "side": 1,
+      "message": "subnet\u0027s",
+      "range": {
+        "startLine": 93,
+        "startChar": 36,
+        "endLine": 93,
+        "endChar": 43
+      },
+      "revId": "6cde359943cee1296d4274087975bff8ba2f0feb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ef4d1fc5",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-23T07:51:55Z",
+      "side": 1,
+      "message": "Now it\u0027s a two-item bullet list. The one above, too.",
+      "range": {
+        "startLine": 94,
+        "startChar": 6,
+        "endLine": 94,
+        "endChar": 9
+      },
+      "revId": "6cde359943cee1296d4274087975bff8ba2f0feb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7cc66017",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-23T07:51:55Z",
+      "side": 1,
+      "message": "You missed this one.",
+      "range": {
+        "startLine": 454,
+        "startChar": 0,
+        "endLine": 456,
+        "endChar": 52
+      },
+      "revId": "6cde359943cee1296d4274087975bff8ba2f0feb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bc92a8f4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-23T07:51:55Z",
+      "side": 1,
+      "message": "This is equivalent to nPortMap(portId). The get() method is for when you want an Option because you don\u0027t know whether the map contains the item you\u0027re looking for. If you\u0027re just going to call .get on the resulting option, there\u0027s no point in using get() rather than apply().",
+      "range": {
+        "startLine": 223,
+        "startChar": 23,
+        "endLine": 223,
+        "endChar": 47
+      },
+      "revId": "6cde359943cee1296d4274087975bff8ba2f0feb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7cbb0076",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-23T07:51:55Z",
+      "side": 1,
+      "message": "These too.",
+      "range": {
+        "startLine": 224,
+        "startChar": 0,
+        "endLine": 225,
+        "endChar": 73
+      },
+      "revId": "6cde359943cee1296d4274087975bff8ba2f0feb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
