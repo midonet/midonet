@@ -31,7 +31,7 @@ import org.midonet.util.concurrent.toFutureOps
 
 class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
                                     protected val stateTableStorage: StateTableStorage)
-    extends Translator[L2GatewayConnection] with StateTableManager {
+    extends Translator[L2GatewayConnection] {
     import L2GatewayConnectionTranslator._
 
 
