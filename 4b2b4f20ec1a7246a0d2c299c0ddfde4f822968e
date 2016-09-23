@@ -42,6 +42,52 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d0a0ac92",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-09-23T16:15:55Z",
+      "side": 1,
+      "message": "Condition should be \u0027err not null\u0027, it isn\u0027t?",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 9
+      },
+      "revId": "4b2b4f20ec1a7246a0d2c299c0ddfde4f822968e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d0c78c43",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-09-23T16:15:55Z",
+      "side": 1,
+      "message": "Is the try-catch needed? Nothing in toScalaFuture method seems to throw any exception.",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 5
+      },
+      "revId": "4b2b4f20ec1a7246a0d2c299c0ddfde4f822968e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d0cb0c71",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
         "patchSetId": 1
@@ -58,6 +104,46 @@
         "startChar": 2,
         "endLine": 69,
         "endChar": 43
+      },
+      "revId": "4b2b4f20ec1a7246a0d2c299c0ddfde4f822968e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d0f66cd6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-09-23T16:15:55Z",
+      "side": 1,
+      "message": "Include hw-addr as option:\n\ncreate host-interface name \u003cname\u003e [hw-addr \u003cmac\u003e]",
+      "revId": "4b2b4f20ec1a7246a0d2c299c0ddfde4f822968e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_90d464e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-09-23T16:15:55Z",
+      "side": 1,
+      "message": "I would remove it and add in case it is needed.",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 65
       },
       "revId": "4b2b4f20ec1a7246a0d2c299c0ddfde4f822968e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
