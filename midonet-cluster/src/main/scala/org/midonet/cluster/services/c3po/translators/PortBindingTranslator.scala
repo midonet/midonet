@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Update
-import org.midonet.util.concurrent.toFutureOps
 
 /**
  * Translate port binding.
@@ -31,33 +29,34 @@ class PortBindingTranslator(protected val storage: ReadOnlyStorage)
      * Creates a new port binding of a port to a host / interface, producing
      * an UPDATE operation on the port. Updates to the host are handled by
      * Zoom bindings.
-     *
-     * Throws an exception if the port is already bound.
      */
+    @throws[IllegalStateException]
     override protected def translateCreate(tx: Transaction,
                                            binding: PortBinding): OperationList = {
-        val port = storage.get(classOf[Port], binding.getPortId).await()
-        bindPortOps(port, binding.getHostId, binding.getInterfaceName)
+        val port = tx.get(classOf[Port], binding.getPortId)
+        bindPort(tx, port, binding.getHostId, binding.getInterfaceName)
+        List()
     }
 
     /**
-     * Update is not allowed for port binding.
-     */
+      * Update is not allowed for port binding.
+      */
     override protected def translateUpdate(tx: Transaction,
-                                           binding: PortBinding): OperationList =
+                                           binding: PortBinding): OperationList = {
         throw new UnsupportedOperationException(
-            "Port binding UPDATE is not allowed")
+            "Updating a port binding is not allowed")
+    }
 
     /**
-     * Deletes a port binding of a port to a host / interface, producing an
-     * UPDATE operation on the binding's port. The updates to the host is
-     * handled by the Zoom bindings.
-     */
+      * Deletes a port binding of a port to a host / interface, producing an
+      * UPDATE operation on the binding's port. The updates to the host is
+      * handled by the Zoom bindings.
+      */
     override protected def translateDelete(tx: Transaction,
                                            binding: PortBinding)
     : OperationList = {
-        val port = storage.get(classOf[Port], binding.getPortId).await()
-        val updatedPort = port.toBuilder.clearHostId().clearInterfaceName()
-        List(Update(updatedPort.build()))
+        val port = tx.get(classOf[Port], binding.getPortId)
+        tx.update(port.toBuilder.clearHostId().clearInterfaceName().build())
+        List()
     }
 }
