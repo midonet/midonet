@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_529703eb",
+        "filename": "midolman/src/deb/init/vpp-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-23T14:11:37Z",
+      "side": 1,
+      "message": "Could you have used pkill too?",
+      "range": {
+        "startLine": 21,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 8
+      },
+      "revId": "2670e6cc6c3cf2e0fd3e88fe42e42ee97a501aca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
