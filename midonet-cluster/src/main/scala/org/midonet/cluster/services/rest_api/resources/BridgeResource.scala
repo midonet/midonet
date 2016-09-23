@@ -37,13 +37,14 @@ import org.midonet.midolman.state.PathBuilder
 @ApiResource(version = 1, name = "bridges", template = "bridgeTemplate")
 @Path("bridges")
 @RequestScoped
-@AllowGet(Array(APPLICATION_BRIDGE_JSON_V4,
+@AllowGet(Array(APPLICATION_BRIDGE_JSON_V4, APPLICATION_BRIDGE_JSON_V5,
                 APPLICATION_JSON))
 @AllowList(Array(APPLICATION_BRIDGE_COLLECTION_JSON_V4,
+                 APPLICATION_BRIDGE_COLLECTION_JSON_V5,
                  APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_BRIDGE_JSON_V4,
+@AllowCreate(Array(APPLICATION_BRIDGE_JSON_V4, APPLICATION_BRIDGE_JSON_V5,
                    APPLICATION_JSON))
-@AllowUpdate(Array(APPLICATION_BRIDGE_JSON_V4,
+@AllowUpdate(Array(APPLICATION_BRIDGE_JSON_V4, APPLICATION_BRIDGE_JSON_V5,
                    APPLICATION_JSON))
 @AllowDelete
 class BridgeResource @Inject()(resContext: ResourceContext,
