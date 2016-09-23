@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,44 +20,44 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoggingResource
 import org.midonet.cluster.models.Topology.LoggingResource
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
-import org.midonet.util.concurrent.toFutureOps
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
+import org.midonet.cluster.util.UUIDUtil._
 
 class LoggingResourceTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[NeutronLoggingResource] {
 
-    /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,
-                                           nlr: NeutronLoggingResource)
+                                           loggingResource: NeutronLoggingResource)
     : OperationList = {
         throw new UnsupportedOperationException(
-            "Update LoggingResource not supported.")
+            "Creating a LoggingResource is not supported.")
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           nlr: NeutronLoggingResource)
+                                           loggingResource: NeutronLoggingResource)
     : OperationList = {
-        if (storage.exists(classOf[LoggingResource], nlr.getId).await()) {
-            val oldLogRes = storage.get(classOf[LoggingResource], nlr.getId).await()
-            val newLogRes = oldLogRes.toBuilder.setEnabled(nlr.getEnabled).build()
-            List(Update(newLogRes))
+        if (tx.exists(classOf[LoggingResource], loggingResource.getId)) {
+            val oldLoggingResource =
+                tx.get(classOf[LoggingResource], loggingResource.getId)
+            tx.update(oldLoggingResource.toBuilder
+                          .setEnabled(loggingResource.getEnabled).build())
         } else {
-            log.warn(s"LoggingResource ${nlr.getId} has not yet been created")
-            List()
+            log.warn(s"LoggingResource ${loggingResource.getId.asJava} does " +
+                     s"not exist")
         }
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           lrId: UUID)
+                                           loggingResourceId: UUID)
     : OperationList = {
-        List(Delete(classOf[LoggingResource], lrId))
+        tx.delete(classOf[LoggingResource], loggingResourceId, ignoresNeo = true)
+        List()
     }
+
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[NeutronLoggingResource])
     : List[Operation[NeutronLoggingResource]] = {
-        op match {
-            case Create(_) | Update(_, _) | Delete(_, _) => List()
-            case _ => super.retainHighLevelModel(tx, op)
-        }
+        List()
     }
 }
