@@ -584,6 +584,47 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.delete_tracerequest(_id)
 
+    def add_qos_policy(self):
+        self._ensure_application()
+        return self.app.add_qos_policy()
+
+    def get_qos_policies(self, query=None):
+        self._ensure_application()
+        return self.app.get_qos_policies(query)
+
+    def delete_qos_policy(self, id_):
+        self._ensure_application()
+        return self.app.delete_qos_policy(id_)
+
+    def get_qos_policy(self, id_):
+        self._ensure_application()
+        return self.app.get_qos_policy(id_)
+
+    def delete_qos_bw_limit_rule(self, id_):
+        self._ensure_application()
+        return self.app.delete_qos_bw_limit_rule(id_)
+
+    def get_qos_bw_limit_rule(self, id_):
+        self._ensure_application()
+        return self.app.get_qos_bw_limit_rule(id_)
+
+    def delete_qos_dscp_rule(self, id_):
+        self._ensure_application()
+        return self.app.delete_qos_dscp_rule(id_)
+
+    def get_qos_dscp_rule(self, id_):
+        self._ensure_application()
+        return self.app.get_qos_dscp_rule(id_)
+
+    def add_qos_dscp_rule(self, qos_policy, mark=0):
+        return qos_policy.add_dscp_rule().dscp_mark(mark).create()
+
+    def add_qos_bw_limit_rule(self, qos_policy, max_kbps=0, max_burst=0):
+        return (qos_policy.add_bw_limit_rule()
+                .max_kbps(max_kbps)
+                .max_burst_kbps(max_burst)
+                .create())
+
     def _ensure_application(self):
         if self.app is None:
             self.app = application.Application(None, {'uri': self.base_uri},
@@ -627,7 +668,7 @@ if __name__ == '__main__':
     tz1.get_hosts()
     tz1.delete()
 
-    tz2 = api.add_capwap_tunnel_zone().name('tunnel_vision2').create()
+    tz2 = api.add_vtep_tunnel_zone().name('tunnel_vision2').create()
     tz2.name("going' through my head2").update()
     tz2.get_hosts()
     tz2.delete()
@@ -845,3 +886,35 @@ if __name__ == '__main__':
 
     chain1.delete()
     chain2.delete()
+
+    # QoS
+    p = api.add_qos_policy().name('test-qos')\
+                            .description('test')\
+                            .shared(False)\
+                            .create()
+
+    qos_bw_limit_rule1 = p.add_bw_limit_rule().max_kbps(100)\
+                                              .max_burst_kbps(1000)\
+                                              .create()
+
+    qos_dscp_rule1 = api.add_qos_dscp_rule(p, mark=11)
+
+    print('--------- QoS ---------')
+    print('------- QOS policy: %s' % p.get_name())
+    print(p.get_id())
+
+    for br in p.get_bw_limit_rules():
+        print('------- QOS BW Limit Rule: %s/%s' % 
+              (str(br.get_max_kbps()), str(br.get_max_burst_kbps())))
+
+    for dr in p.get_dscp_rules():
+        print('------- QOS DSCP Rule: %s' % str(dr.get_dscp_mark()))
+
+    for br in p.get_bw_limit_rules():
+        api.delete_qos_bw_limit_rule(br.get_id())
+
+    for dr in p.get_dscp_rules():
+        api.delete_qos_dscp_rule(dr.get_id())
+
+    api.delete_qos_policy(p.get_id())
+
