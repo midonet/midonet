@@ -34,7 +34,6 @@ class NetworkTranslatorTest extends TranslatorTestBase {
 
     def genId() = UUIDUtil.randomUuidProto
 
-    initMockStorage()
     val translator: NetworkTranslator = new NetworkTranslator(storage)
 
     val sampleNeutronNetwork = NeutronNetwork.newBuilder()
@@ -51,9 +50,9 @@ class NetworkTranslatorTest extends TranslatorTestBase {
                                        .build()
 
     "Network CREATE" should "produce Mido Network CREATE" in {
+        initMockStorage()
         val id = UUIDUtil.fromProto(sampleNetwork.getId)
-        val midoOps = translator.translate(transaction,
-                                           Create(sampleNeutronNetwork))
+        translator.translate(transaction, Create(sampleNeutronNetwork))
         val midoNetwork = Network.newBuilder().setId(sampleNetwork.getId)
                                               .setTenantId(tenantId)
                                               .setName(networkName)
@@ -71,16 +70,15 @@ class NetworkTranslatorTest extends TranslatorTestBase {
     // TODO Test that NetworkTranslator creates a tunnel key ID
 
     "Network UPDATE" should "produce a corresponding Mido Network UPDATE" in {
-
+        initMockStorage()
         val newName = "name2"
         val newTenantId = "neutron tenant2"
         val newAdminStateUp = !adminStateUp
         bind(sampleNetwork.getId, sampleNetwork)
-        val midoOps = translator.translate(transaction,
-                                           Update(sampleNeutronNetwork.toBuilder
-                                                      .setName(newName)
-                                                      .setAdminStateUp(newAdminStateUp)
-                                                      .setTenantId(newTenantId).build))
+        translator.translate(transaction, Update(sampleNeutronNetwork.toBuilder
+                                                     .setName(newName)
+                                                     .setAdminStateUp(newAdminStateUp)
+                                                     .setTenantId(newTenantId).build))
 
         // Test that name is updated but not tenant ID
         midoOps should contain only Update(Network.newBuilder()
@@ -94,13 +92,11 @@ class NetworkTranslatorTest extends TranslatorTestBase {
     }
 
     "Network DELETE" should "produce a corresponding Mido Network DELETE" in {
+        initMockStorage()
         val id = genId()
         bind(id, NeutronNetwork.newBuilder.setId(id).build())
-        val midoOps =
-            translator.translate(transaction,
-                                 Delete(classOf[NeutronNetwork], id))
+        translator.translate(transaction, Delete(classOf[NeutronNetwork], id))
 
-        val juuid = UUIDUtil.fromProto(id)
         midoOps should contain only Delete(classOf[Network], id)
 
         // TODO Verify external network is also deleted.
