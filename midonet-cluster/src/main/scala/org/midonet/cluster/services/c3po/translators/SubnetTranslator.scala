@@ -17,17 +17,15 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
-import scala.collection.{breakOut, mutable}
+import scala.collection.mutable
 
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
 import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
-import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
-import org.midonet.util.concurrent.toFutureOps
 
 // TODO: add code to handle connection to provider router.
 class SubnetTranslator(protected val storage: ReadOnlyStorage)
@@ -36,7 +34,7 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
     override protected def translateCreate(tx: Transaction,
                                            ns: NeutronSubnet): OperationList = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
-        if (isOnUplinkNetwork(ns)) return List()
+        if (isOnUplinkNetwork(tx, ns)) return List()
 
         if (ns.isIpv6)
             throw new IllegalArgumentException(
@@ -59,30 +57,37 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
 
         addHostRoutes(dhcp, ns.getHostRoutesList.asScala)
 
-        List(Create(dhcp.build))
+        val net = tx.get(classOf[NeutronNetwork], ns.getNetworkId)
+        val updatedNet = net.toBuilder.addSubnets(ns.getId)
+
+        tx.create(dhcp.build())
+        tx.update(updatedNet.build())
+
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            ns: NeutronSubnet): OperationList = {
-        val ops = new OperationListBuffer
-        val net = storage.get(classOf[NeutronNetwork], ns.getNetworkId).await()
+        val net = tx.get(classOf[NeutronNetwork], ns.getNetworkId)
         val subIdx = net.getSubnetsList.indexOf(ns.getId)
         if (subIdx >= 0)
-            ops += Update(net.toBuilder.removeSubnets(subIdx).build())
-        ops += Delete(classOf[Dhcp], ns.getId)
-        ops.toList
+            tx.update(net.toBuilder.removeSubnets(subIdx).build())
+        tx.delete(classOf[Dhcp], ns.getId, ignoresNeo = true)
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            ns: NeutronSubnet): OperationList = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
-        if (isOnUplinkNetwork(ns)) return List()
+        if (isOnUplinkNetwork(tx, ns)) {
+            return List()
+        }
 
         if (ns.isIpv6)
             throw new IllegalArgumentException(
                 "IPv6 Subnets are not supported in this version of Midonet.")
 
-        val oldDhcp = storage.get(classOf[Dhcp], ns.getId).await()
+        val oldDhcp = tx.get(classOf[Dhcp], ns.getId)
         val newDhcp = oldDhcp.toBuilder
             .setEnabled(ns.getEnableDhcp)
             .setSubnetAddress(ns.getCidr)
@@ -97,17 +102,20 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
 
         addHostRoutes(newDhcp, ns.getHostRoutesList.asScala)
 
-        getDhcpPortIp(ns.getNetworkId).foreach({ip =>
+        getDhcpPortIp(tx, ns.getNetworkId).foreach({ ip =>
             newDhcp.addOpt121Routes(
-                opt121FromHostRoute(RouteManager.META_DATA_SRVC, ip))})
+                opt121FromHostRoute(RouteManager.META_DATA_SRVC, ip))
+        })
 
-        val routeUpdateOps = updateRouteNextHopIps(
+        tx.update(newDhcp.build())
+        updateRouteNextHopIps(
+            tx,
             if (oldDhcp.hasDefaultGateway) oldDhcp.getDefaultGateway else null,
             if (newDhcp.hasDefaultGateway) newDhcp.getDefaultGateway else null,
             oldDhcp.getGatewayRouteIdsList.asScala)
 
         // TODO: connect to provider router if external
-        Update(newDhcp.build()) +: routeUpdateOps
+        List()
     }
 
     private def addHostRoutes(dhcp: Dhcp.Builder,
@@ -123,15 +131,16 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
         Opt121Route.newBuilder().setDstSubnet(dest).setGateway(nexthop)
     }
 
-    private def getDhcpPortIp(networkId: UUID): Option[IPAddress] = {
+    private def getDhcpPortIp(tx: Transaction,
+                              networkId: UUID): Option[IPAddress] = {
 
-        val network = storage.get(classOf[Network], networkId).await()
+        val network = tx.get(classOf[Network], networkId)
         val ports = network.getPortIdsList
 
         // Find the dhcp port associated with this subnet, if it exists.
         for (portId <- ports.asScala) {
             val port = try {
-                storage.get(classOf[NeutronPort], portId).await()
+                tx.get(classOf[NeutronPort], portId)
             } catch {
                 case nfe: NotFoundException => null
             }
@@ -147,24 +156,25 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
         None
     }
 
-    private def isOnUplinkNetwork(ns: NeutronSubnet): Boolean = {
-        val nn = storage.get(classOf[NeutronNetwork], ns.getNetworkId).await()
+    private def isOnUplinkNetwork(tx: Transaction, ns: NeutronSubnet): Boolean = {
+        val nn = tx.get(classOf[NeutronNetwork], ns.getNetworkId)
         NetworkTranslator.isUplinkNetwork(nn)
     }
 
     /**
      * Update the next hop gateway of any routes using this subnet as a gateway.
      */
-    private def updateRouteNextHopIps(oldGwIp: IPAddress, newGwIp: IPAddress,
-                                      routeIds: Seq[UUID])
-    : OperationList = {
-        if (oldGwIp == newGwIp) return List()
-        val routes = storage.getAll(classOf[Route], routeIds).await()
-        routes.map { r =>
-            val bldr = r.toBuilder
-            if (newGwIp == null) bldr.clearNextHopGateway()
-            else bldr.setNextHopGateway(newGwIp)
-            Update(bldr.build())
-        }(breakOut)
+    private def updateRouteNextHopIps(tx: Transaction, oldGwIp: IPAddress,
+                                      newGwIp: IPAddress, routeIds: Seq[UUID])
+    : Unit = {
+        if (oldGwIp == newGwIp) {
+            return
+        }
+        for (route <- tx.getAll(classOf[Route], routeIds)) {
+            val builder = route.toBuilder
+            if (newGwIp == null) builder.clearNextHopGateway()
+            else builder.setNextHopGateway(newGwIp)
+            tx.update(builder.build())
+        }
     }
 }

@@ -19,16 +19,17 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import scala.collection.JavaConverters._
+
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Subnet => SubnetType}
 import org.midonet.cluster.models.Neutron.NeutronSubnet
 import org.midonet.cluster.models.Topology.Dhcp
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil._
-
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.util.concurrent.toFutureOps
-import org.scalatest.junit.JUnitRunner
 
 /**
  * Tests basic Neutron Subnet translation.
