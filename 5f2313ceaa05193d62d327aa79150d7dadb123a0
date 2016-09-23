@@ -34,6 +34,24 @@
       "revId": "5f2313ceaa05193d62d327aa79150d7dadb123a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_17a16d46",
+        "filename": "docs/qos.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-23T10:39:14Z",
+      "side": 1,
+      "message": "does it effectively abandon the effort to split the client into two, neutron and midonet?",
+      "parentUuid": "baa041b7_1cd3d4d6",
+      "revId": "5f2313ceaa05193d62d327aa79150d7dadb123a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
