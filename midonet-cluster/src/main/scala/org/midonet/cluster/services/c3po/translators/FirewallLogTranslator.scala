@@ -46,7 +46,6 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
         List(Create(RuleLogger.newBuilder
                 .setId(fl.getId)
                 .setChainId(fwdChainId(fl.getFirewallId))
-                .setFileName(s"firewall-${fromProto(fl.getId)}.log")
                 .setLoggingResourceId(fl.getLoggingResourceId)
                 .setEvent(fl.getFwEvent)
                 .build()))

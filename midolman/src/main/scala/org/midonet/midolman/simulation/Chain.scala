@@ -15,19 +15,14 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.UUID
-import java.util.{Map => JMap, List => JList}
+import java.util.{ArrayList, Arrays, UUID, List => JList, Map => JMap}
 
 import com.google.common.annotations.VisibleForTesting
 
-import org.midonet.midolman.rules.JumpRule
-import org.midonet.midolman.rules.Rule
-import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.rules.{JumpRule, Rule, RuleResult}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.sdn.flows.FlowTagger
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
+import org.midonet.sdn.flows.FlowTagger
 
 object Chain {
     private val traversedChainsTL = new ThreadLocal[ArrayList[UUID]] {
@@ -37,13 +32,15 @@ object Chain {
     val ACCEPT = new RuleResult(Action.ACCEPT)
     val DROP = new RuleResult(Action.DROP)
     val CONTINUE = new RuleResult(Action.CONTINUE)
+
+    val NoMetadata = Array[Byte]()
 }
 
 case class Chain(id: UUID,
                  rules: JList[Rule],
                  jumpTargets: JMap[UUID, Chain],
                  name: String,
-                 metadata: String = "",
+                 metadata: Array[Byte] = Chain.NoMetadata,
                  ruleLoggers: Seq[RuleLogger] = Seq())
     extends VirtualDevice with SimDevice {
     import Chain._
