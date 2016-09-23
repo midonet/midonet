@@ -88,6 +88,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_307fd8e0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-23T16:27:38Z",
+      "side": 1,
+      "message": "But the evaluation of `request` itself could throw an exception isn\u0027t it? It\u0027s a by-name parameter",
+      "parentUuid": "baa041b7_d0c78c43",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 5
+      },
+      "revId": "4b2b4f20ec1a7246a0d2c299c0ddfde4f822968e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d0cb0c71",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
         "patchSetId": 1
