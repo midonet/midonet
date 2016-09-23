@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_902d8491",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-23T15:12:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_7249e78d",
+      "range": {
+        "startLine": 92,
+        "startChar": 7,
+        "endLine": 92,
+        "endChar": 17
+      },
+      "revId": "2564a9018d228404807ae244f68ad836ff66943e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_12b85b74",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-09-23T14:22:23Z",
       "side": 1,
       "message": "If you\u0027re waiting on the future in case of failure, you can use VT.get.",
+      "range": {
+        "startLine": 98,
+        "startChar": 12,
+        "endLine": 98,
+        "endChar": 68
+      },
+      "revId": "2564a9018d228404807ae244f68ad836ff66943e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_30efd81e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-23T15:12:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_12b85b74",
       "range": {
         "startLine": 98,
         "startChar": 12,
