@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9c1484e9",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSPolicy.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-23T05:28:36Z",
+      "side": 1,
+      "message": "2016?",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "e80866977b5641754fc974fc5ee53ac28075e294",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9ceb64dc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/rest_api/ResourceUris.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-23T05:28:36Z",
+      "side": 1,
+      "message": "why not QOS_BW_LIMIT_RULES?  either ways it\u0027s better to be consistent.",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 25
+      },
+      "revId": "e80866977b5641754fc974fc5ee53ac28075e294",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bcc74863",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-23T05:28:36Z",
+      "side": 1,
+      "message": "is it intentional to update only AllowGet?",
+      "revId": "e80866977b5641754fc974fc5ee53ac28075e294",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1cdf543b",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-23T05:28:36Z",
+      "side": 1,
+      "message": "trailing whitespace",
+      "range": {
+        "startLine": 72,
+        "startChar": 67,
+        "endLine": 72,
+        "endChar": 68
+      },
+      "revId": "e80866977b5641754fc974fc5ee53ac28075e294",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fce6f014",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 11
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-23T05:28:36Z",
+      "side": 1,
+      "message": "unrelated change",
+      "revId": "e80866977b5641754fc974fc5ee53ac28075e294",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
