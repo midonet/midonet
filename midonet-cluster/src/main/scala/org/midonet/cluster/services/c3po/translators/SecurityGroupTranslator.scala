@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
 
@@ -25,47 +24,21 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
+import org.midonet.cluster.services.c3po.translators.SecurityGroupTranslator._
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.StringUtil.indent
-import org.midonet.util.concurrent.toFutureOps
 
 class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[SecurityGroup] with ChainManager
-            with RuleManager {
-    import org.midonet.cluster.services.c3po.translators.SecurityGroupTranslator._
+    extends Translator[SecurityGroup] with ChainManager with RuleManager {
 
-    private case class TranslatedSecurityGroup(
-            ipAddrGroup: IPAddrGroup,
-            inboundChain: Chain, inboundRules: List[Rule],
-            outboundChain: Chain, outboundRules: List[Rule]) {
-
-        override def toString: String = {
-            s"ipAddrGroup:\n${indent(ipAddrGroup, 4)}\n" +
-            s"inboundChain:\n${indent(inboundChain, 4)}\n" +
-            s"inboundRules:\n${toString(inboundRules)}\n" +
-            s"outboundChain:\n${indent(outboundChain, 4)}\n" +
-            s"outboundRules:\n${toString(outboundRules)}\n"
-        }
-
-        private def toString(rules: Seq[Rule]): String = {
-            rules.map(indent(_, 4)).mkString("\n")
-        }
-    }
-
-    private def translate(sg: SecurityGroup): TranslatedSecurityGroup = {
-        // A Neutron SecurityGroup translates to an IPAddrGroup and two chains,
-        // containing the rules for ingress and egress. Note that 'ingress' is
-        // 'outbound' from Midonet's perspective. A Neutron "ingress" rule is
-        // for traffic going into the VM, whereas a Midonet "outbound" chain is
-        // for traffic going out of Midonet (and into a VM port), and vice-versa
-        // for egress and inbound.
-        if (log.isTraceEnabled) {
-            log.trace("Translating security group:\n{}", indent(sg, 4))
-        }
+    protected override def translateCreate(tx: Transaction,
+                                           securityGroup: SecurityGroup)
+    : OperationList = {
 
         // Get Neutron rules and divide into egress and ingress rules.
-        val neutronRules = sg.getSecurityGroupRulesList.asScala.toList
+        val neutronRules = securityGroup.getSecurityGroupRulesList.asScala.toList
         val (neutronIngressRules, neutronEgressRules) =
             neutronRules.partition(_.getDirection == RuleDirection.INGRESS)
 
@@ -74,52 +47,64 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
         val inboundRules = neutronEgressRules.flatMap(
             SecurityGroupRuleManager.translate)
 
-        val inboundChainId = inChainId(sg.getId)
-        val outboundChainId = outChainId(sg.getId)
+        val inboundChainId = inChainId(securityGroup.getId)
+        val outboundChainId = outChainId(securityGroup.getId)
 
-        val inboundChain = newChain(inboundChainId, egressChainName(sg.getId))
-        val outboundChain = newChain(outboundChainId,
-                                     ingressChainName(sg.getId))
+        val inboundChain =
+            newChain(inboundChainId, egressChainName(securityGroup.getId))
+        val outboundChain =
+            newChain(outboundChainId, ingressChainName(securityGroup.getId))
 
-        val ipAddrGroup = createIpAddrGroup(sg, inboundChainId, outboundChainId)
+        val ipAddrGroup = IPAddrGroup.newBuilder
+            .setId(securityGroup.getId)
+            .setName(securityGroup.getName)
+            .setInboundChainId(inboundChainId)
+            .setOutboundChainId(outboundChainId)
+            .build()
 
-        val xlated = TranslatedSecurityGroup(ipAddrGroup,
-                                             inboundChain, inboundRules,
-                                             outboundChain, outboundRules)
-        log.trace("Translated security group {} to: \n{}",
-                  Array(sg.getId, xlated):_*)
+        tx.create(securityGroup)
+        securityGroup.getSecurityGroupRulesList.asScala.foreach(tx.create)
+        tx.create(inboundChain)
+        tx.create(outboundChain)
+        inboundRules.foreach(tx.create)
+        outboundRules.foreach(tx.create)
+        tx.create(ipAddrGroup)
 
-        xlated
-    }
+        if (log.isTraceEnabled) {
+            def toString(rules: Seq[Rule]): String = {
+                rules.map(indent(_, 4)).mkString("\n")
+            }
 
-    protected override def translateCreate(tx: Transaction,
-                                           sg: SecurityGroup)
-    : OperationList = {
+            log.trace(s"Translated security group: ${securityGroup.getId.asJava} " +
+                      s"ipAddrGroup: \n${indent(ipAddrGroup, 4)}\n" +
+                      s"inboundChain: \n${indent(inboundChain, 4)}\n" +
+                      s"inboundRules: \n${toString(inboundRules)}\n" +
+                      s"outboundChain: \n${indent(outboundChain, 4)}\n" +
+                      s"outboundRules: \n${toString(outboundRules)}\n")
+        }
 
-        val translatedSg = translate(sg)
-
-        val ops = new ListBuffer[Operation[_ <: Message]]
-
-        ops ++= sg.getSecurityGroupRulesList.asScala map(Create(_))
-
-        ops += Create(translatedSg.inboundChain)
-        ops += Create(translatedSg.outboundChain)
-        ops ++= translatedSg.inboundRules.map(Create(_))
-        ops ++= translatedSg.outboundRules.map(Create(_))
-        ops += Create(translatedSg.ipAddrGroup)
-        ops.toList
+        List()
     }
 
     protected override def translateUpdate(tx: Transaction,
-                                           newSg: SecurityGroup)
+                                           newSecurityGroup: SecurityGroup)
     : OperationList = {
         // Neutron doesn't modify rules via SecurityGroup update, but instead
         // always passes in an empty list of rules. The only property modifiable
         // via a Neutron SecurityGroup update that gets copied to a Midonet
         // object is the name, so we can just update that.
-        val oldIpAddrGroup =
-            storage.get(classOf[IPAddrGroup], newSg.getId).await()
-        List(Update(oldIpAddrGroup.toBuilder.setName(newSg.getName).build()))
+
+        val oldIpAddrGroup = tx.get(classOf[IPAddrGroup], newSecurityGroup.getId)
+        val oldSecurityGroup = tx.get(classOf[SecurityGroup], newSecurityGroup.getId)
+
+        tx.update(oldIpAddrGroup.toBuilder
+                      .setName(newSecurityGroup.getName).build())
+        tx.update(oldSecurityGroup.toBuilder
+                      .setName(newSecurityGroup.getName)
+                      .setDescription(newSecurityGroup.getDescription)
+                      .build())
+
+        List()
     }
 
 
@@ -127,43 +112,24 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
      * need to be maintained, or need some special handling. */
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[SecurityGroup])
-    : List[Operation[SecurityGroup]] = op match {
-        case Update(newSg, _) =>
-            // Neutron doesn't specify rules in update. Name and description
-            // are the only properties that can actually be updated, so we can
-            // just update the old SecurityGroup with them.
-            val oldSg = storage.get(classOf[SecurityGroup], newSg.getId).await()
-            List(Update(oldSg.toBuilder
-                            .setName(newSg.getName)
-                            .setDescription(newSg.getDescription)
-                            .build()))
-        case _ => super.retainHighLevelModel(tx, op)
+    : List[Operation[SecurityGroup]] = {
+        List()
     }
 
     protected override def translateDelete(tx: Transaction,
-                                           sg: SecurityGroup)
+                                           securityGroup: SecurityGroup)
     : List[Operation[_ <: Message]] = {
-        val ops = new OperationListBuffer
-
         // Delete associated SecurityGroupRules.
-        ops ++= sg.getSecurityGroupRulesList.asScala map (
-                r => Delete(classOf[SecurityGroupRule], r.getId))
-        ops += Delete(classOf[Chain], inChainId(sg.getId))
-        ops += Delete(classOf[Chain], outChainId(sg.getId))
-        ops += Delete(classOf[IPAddrGroup], sg.getId)
-        ops.toList
+        securityGroup.getSecurityGroupRulesList.asScala.foreach { rule =>
+            tx.delete(classOf[SecurityGroupRule], rule.getId, ignoresNeo = true)
+        }
+        tx.delete(classOf[Chain], inChainId(securityGroup.getId), ignoresNeo = true)
+        tx.delete(classOf[Chain], outChainId(securityGroup.getId), ignoresNeo = true)
+        tx.delete(classOf[IPAddrGroup], securityGroup.getId, ignoresNeo = true)
+        tx.delete(classOf[SecurityGroup], securityGroup.getId, ignoresNeo = true)
+        List()
     }
 
-    private def createIpAddrGroup(sg: SecurityGroup,
-                                  inboundChainId: UUID,
-                                  outboundChainId: UUID): IPAddrGroup = {
-        IPAddrGroup.newBuilder
-            .setId(sg.getId)
-            .setName(sg.getName)
-            .setInboundChainId(inboundChainId)
-            .setOutboundChainId(outboundChainId)
-            .build()
-    }
 }
 
 object SecurityGroupTranslator {
