@@ -114,7 +114,7 @@ class PortBindingTranslatorTest extends TranslatorTestBase {
     "Port binding" should "add a new PortToInterface entry" in {
         setUpPortGet(newPortId, null, null)
 
-        val midoOps = translator.translate(transaction, Create(binding1))
+        translator.translate(transaction, Create(binding1))
 
         midoOps should contain only
             Update(portWithHost(newPortId, host1NoBindingsId, newIface))
@@ -122,7 +122,7 @@ class PortBindingTranslatorTest extends TranslatorTestBase {
 
     it should "add a new mapping at the end of the existing mappings" in {
         setUpPortGet(newPortId, null, null)
-        val midoOps = translator.translate(transaction,
+        translator.translate(transaction,
                                            Create(bindingHost2NewPortInterface))
 
         midoOps should contain only
@@ -160,11 +160,9 @@ class PortBindingTranslatorTest extends TranslatorTestBase {
     "Port binding delete" should "remove port/interface mapping from Host" in {
         setUpPortGet(portYOnHost2Id, host2With2BindingsId, host2InterfaceA)
 
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[PortBinding],
-                                                  bindingHost2PortYInterfaceBId))
+        translator.translate(transaction, Delete(classOf[PortBinding],
+                                                 bindingHost2PortYInterfaceBId))
 
-        midoOps should contain only
-            Update(portWithNoHost(portYOnHost2Id))
+        midoOps should contain only Update(portWithNoHost(portYOnHost2Id))
     }
 }

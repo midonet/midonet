@@ -98,9 +98,9 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         tx.create(rtrPort)
 
         if (isUplink) {
-            bindPortOps(tx, rtrPort,
-                        getHostIdByName(tx, nPort.getHostId),
-                        nPort.getProfile.getInterfaceName)
+            bindPort(tx, rtrPort,
+                     getHostIdByName(tx, nPort.getHostId),
+                     nPort.getProfile.getInterfaceName)
         } else {
             // Only create the metadata service route if this router interface
             // port has the DHCP's gateway IP.
@@ -183,7 +183,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         // If it's a VIF port, remove chains from the Midonet port. Unless it's
         // on an uplink network, in which case there's no Midonet port.
         if (!isUplink && PortManager.isVifPort(nPort)) {
-            deleteSecurityChainsOps(tx, nPort.getId)
+            deleteSecurityChains(tx, nPort.getId)
             removeIpsFromIpAddrGroupsOps(tx, nPort)
 
             // Delete DHCP hosts.
