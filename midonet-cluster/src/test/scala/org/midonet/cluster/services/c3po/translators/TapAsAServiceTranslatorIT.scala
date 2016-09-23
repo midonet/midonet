@@ -24,15 +24,13 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{TapFlow,
-                                                             TapService}
-import org.midonet.cluster.models.Commons
+import org.midonet.cluster.data.neutron.NeutronResourceType.{TapFlow, TapService}
 import org.midonet.cluster.models.Topology.{Mirror, Port}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-class TapAsAServiceIT extends C3POMinionTestBase {
+class TapAsAServiceTranslatorIT extends C3POMinionTestBase {
 
     it should "handle tap service create" in {
         val nwId = createTenantNetwork(10)
