@@ -136,6 +136,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9070e409",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-23T16:38:51Z",
+      "side": 1,
+      "message": "iirc, it\u0027s there to turn exceptions from the lib calls into a failed future. It\u0027s a bit ugly. Maybe it\u0027s better to wrap all methods in try-catch blocks and return a failed future if something goes wrong.",
+      "parentUuid": "baa041b7_d06aec19",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 5
+      },
+      "revId": "4b2b4f20ec1a7246a0d2c299c0ddfde4f822968e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d0cb0c71",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
         "patchSetId": 1
