@@ -204,3 +204,10 @@ class Port(resource_base.ResourceBase,
                    vendor_media_type.APPLICATION_MAC_IP_COLLECTION_JSON}
         return self.get_children(self.dto['peeringTable'], query, headers,
                                  mac_ip.MacIp)
+
+    def get_qos_policy_id(self):
+        return self.dto['qosPolicyId']
+
+    def qos_policy_id(self, id_):
+        self.dto['qosPolicyId'] = id_
+        return self
