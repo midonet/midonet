@@ -16,8 +16,6 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.concurrent.Promise
-
 import org.junit.runner.RunWith
 import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
@@ -38,8 +36,7 @@ class AgentMembershipTranslatorTest extends TranslatorTestBase {
     before {
         initMockStorage()
         translator = new AgentMembershipTranslator(storage)
-        when(storage.getAll(classOf[NeutronConfig]))
-            .thenReturn(Promise.successful(Seq(nConfig)).future)
+        when(transaction.getAll(classOf[NeutronConfig])).thenReturn(Seq(nConfig))
     }
 
     private val tunnelZoneId = randomUuidProto
@@ -77,7 +74,7 @@ class AgentMembershipTranslatorTest extends TranslatorTestBase {
     "TunnelZoneHost Create" should "Update the corresponding TunnelZone " +
     "with a corresponding host-IP address mapping." in {
         bind(tunnelZoneId, mTunnelZone)
-        val midoOps = translator.translate(transaction, Create(nAgentMembership))
+        translator.translate(transaction, Create(nAgentMembership))
 
         midoOps should contain (Update(mTunnelZoneWithHost))
     }
@@ -119,8 +116,7 @@ class AgentMembershipTranslatorTest extends TranslatorTestBase {
         bind(hostId, nAgentMembershipToDelete)
         bind(tunnelZoneId, mTunnelZoneWith2Hosts)
 
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[AgentMembership], hostId))
+        translator.translate(transaction, Delete(classOf[AgentMembership], hostId))
 
         midoOps should contain (Update(mTunnelZoneAfterDelete))
     }
