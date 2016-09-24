@@ -1668,10 +1668,13 @@ class Dhcp(ObjectType):
                                  value_type = StringType(),
                                  getter = 'get_interface_mtu',
                                  setter = 'interface_mtu'))
-        self.put_attr(SingleAttr(name = 'opt121-routes',
-                                 value_type = StringType(),
+        self.put_attr(Collection(name = 'opt121-routes',
+                                 element_type = DhcpOption121,
+                                 embedded = True,
+                                 list_method = 'get_opt121_routes',
                                  getter = 'get_opt121_routes',
-                                 setter = 'opt121_routes'))
+                                 setter = 'opt121_routes',
+                                 factory_method = 'add_opt121_route'))
         self.put_attr(Collection(name = 'host',
                                  element_type = DhcpHost,
                                  list_method = 'get_dhcp_hosts',
@@ -1696,6 +1699,24 @@ class DhcpHost(ObjectType):
                                  value_type = MacAddress(),
                                  getter = 'get_mac_addr',
                                  setter = 'mac_addr'))
+
+
+class DhcpOption121(ObjectType):
+    def __init__(self, obj):
+        super(DhcpOption121, self).__init__(obj)
+        self.clear_attrs()
+        self.put_attr(CidrPair(name='destination',
+                               value_type=StringType(),
+                               addr_getter='get_destination_prefix',
+                               mask_getter='get_destination_length',
+                               addr_setter='destination_prefix',
+                               mask_setter='destination_length',
+                               optional=False))
+        self.put_attr(SingleAttr(name='gateway',
+                                 value_type=IPv4Address(),
+                                 getter='get_gateway',
+                                 setter='gateway',
+                                 optional=False))
 
 class BgpNetwork(ObjectType):
     def __init__(self, obj):

@@ -17,6 +17,7 @@
 
 
 from midonetclient import dhcp_host
+from midonetclient import dhcp_option_121
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
 
@@ -102,3 +103,6 @@ class DhcpSubnet(resource_base.ResourceBase):
 
     def add_dhcp_host(self):
         return dhcp_host.DhcpHost(self.dto['hosts'], {}, self.auth)
+
+    def add_opt121_route(self):
+        return dhcp_option_121.DhcpOption121('fake-URI', {}, 'fake-AUTH')
