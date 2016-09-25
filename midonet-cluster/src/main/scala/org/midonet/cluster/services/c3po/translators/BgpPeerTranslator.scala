@@ -217,14 +217,6 @@ object BgpPeerTranslator {
 
     val BgpPortRange = RangeUtil.toProto(179, 179)
 
-    @Deprecated
-    private[translators] def deleteBgpPeer(router: Router, bgpPeerId: UUID)
-    : OperationList = {
-        List(Delete(classOf[BgpPeer], bgpPeerId),
-             Delete(classOf[Rule], redirectRuleId(bgpPeerId)),
-             Delete(classOf[Rule], inverseRedirectRuleId(bgpPeerId)))
-    }
-
     def deleteBgpPeer(tx: Transaction, router: Router, bgpPeerId: UUID): Unit = {
         tx.delete(classOf[BgpPeer], bgpPeerId, ignoresNeo = true)
         tx.delete(classOf[Rule], redirectRuleId(bgpPeerId), ignoresNeo = true)
