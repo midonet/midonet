@@ -242,7 +242,8 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
         val thisId = getObjectId(obj)
         val key = getKey(obj.getClass, thisId)
 
-        if(objCache.contains(key) && !isDeleted(key)) {
+        val current = objCache.get(key)
+        if (current.nonEmpty && current.get.nonEmpty) {
             throw new ObjectExistsException(key.clazz, key.id)
         }
 

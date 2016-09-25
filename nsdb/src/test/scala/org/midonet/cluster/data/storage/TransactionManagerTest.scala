@@ -268,6 +268,24 @@ class TransactionManagerTest extends FeatureSpec with Matchers
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
             manager.getOps should contain (opKey -> TxCreate(defaultDevice))
         }
+
+        scenario("The object is created if it does not exist") {
+            Given("A transaction manager")
+            val manager = new TestableTransactionManager
+
+            When("Requesting whether the object exists")
+            val exists = manager.exists(classOf[FakeDevice], notFoundId)
+
+            Then("The object should not exist")
+            exists shouldBe false
+
+            And("Creating the same object")
+            manager.create(notFoundDevice)
+
+            Then("The manager adds a create operation")
+            val opKey = Key(classOf[FakeDevice], getIdString(notFoundId))
+            manager.getOps should contain (opKey -> TxCreate(notFoundDevice))
+        }
     }
 
     feature("Transaction manager handles update operations") {
