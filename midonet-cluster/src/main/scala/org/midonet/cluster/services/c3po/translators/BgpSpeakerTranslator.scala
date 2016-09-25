@@ -20,14 +20,12 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Tra
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{NeutronBgpPeer, NeutronBgpSpeaker}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Delete, Operation}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.util.concurrent.toFutureOps
 
 class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
                            protected val stateTableStorage: StateTableStorage)
-    extends Translator[NeutronBgpSpeaker] with PortManager
-                                          with RuleManager {
+    extends Translator[NeutronBgpSpeaker] with PortManager with RuleManager {
     import BgpPeerTranslator._
 
     override protected def translateCreate(tx: Transaction,
@@ -40,21 +38,19 @@ class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateUpdate(tx: Transaction,
                                            bgpSpeaker: NeutronBgpSpeaker)
     : OperationList = {
-        if (bgpSpeaker.getDelBgpPeerIdsCount == 0)
+        if (bgpSpeaker.getDelBgpPeerIdsCount == 0) {
             return List()
+        }
 
-        val router =
-            storage.get(classOf[Router], bgpSpeaker.getLogicalRouter).await()
-
-        val ops = new OperationListBuffer
+        val router = tx.get(classOf[Router], bgpSpeaker.getLogicalRouter)
 
         // Delete all specified peers.
         for (bgpPeerId <- bgpSpeaker.getDelBgpPeerIdsList) {
-            ops ++= deleteBgpPeer(router, bgpPeerId)
-            ops += Delete(classOf[NeutronBgpPeer], bgpPeerId)
+            deleteBgpPeer(tx, router, bgpPeerId)
+            tx.delete(classOf[NeutronBgpPeer], bgpPeerId, ignoresNeo = true)
         }
 
-        ops.toList
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
@@ -66,6 +62,8 @@ class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
     // We don't store the BGPSpeaker in Zookeeper.
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[NeutronBgpSpeaker])
-    : List[Operation[NeutronBgpSpeaker]] = List()
+    : List[Operation[NeutronBgpSpeaker]] = {
+        List()
+    }
 }
 
