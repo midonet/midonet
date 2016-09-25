@@ -220,8 +220,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                                             dstSubnet = r.getDestination,
                                             nextHopGwIpAddr = r.getNexthop)
             if (bgpConfigured) {
-                ops += makeBgpNetworkFromRoute(nr.getId, r)
-            }
+                ops += Create(makeBgpNetworkFromRoute(nr.getId, r))
+        }
             ops += Create(newRt)
         }
 
