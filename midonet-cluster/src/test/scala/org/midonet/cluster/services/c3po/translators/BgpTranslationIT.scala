@@ -582,9 +582,9 @@ class BgpTranslationIT extends C3POMinionTestBase {
         cond.getNwSrcIp.getAddress shouldBe bgpPeer.getAddress.getAddress
         cond.getNwProto shouldBe TCP.PROTOCOL_NUMBER
         if (inverse) {
-            cond.getTpSrc shouldBe bgpPortRange
+            cond.getTpSrc shouldBe BgpPortRange
         } else {
-            cond.getTpDst shouldBe bgpPortRange
+            cond.getTpDst shouldBe BgpPortRange
         }
     }
 
