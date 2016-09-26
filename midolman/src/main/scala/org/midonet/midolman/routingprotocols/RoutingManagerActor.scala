@@ -171,9 +171,9 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
 
     override def receive = {
         case BgpContainerReady(portId) => sendPortActive(portId)
-        case LocalPortActive(portId, true) => sendPortActive(portId)
+        case LocalPortActive(portId, _, true) => sendPortActive(portId)
 
-        case LocalPortActive(portId, false) =>
+        case LocalPortActive(portId, _, false) =>
             log.debug("Port {} became inactive", portId)
             activePorts remove portId match {
                 case Some(subscription) =>

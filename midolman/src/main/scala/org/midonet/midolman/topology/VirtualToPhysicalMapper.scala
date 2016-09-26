@@ -17,14 +17,14 @@ package org.midonet.midolman.topology
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.{TimeUnit, Executors, ConcurrentHashMap}
+import java.util.concurrent.{ConcurrentHashMap, Executors, TimeUnit}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
-import com.google.common.util.concurrent.{ThreadFactoryBuilder, AbstractService}
 import com.google.common.util.concurrent.Service.State
+import com.google.common.util.concurrent.{AbstractService, ThreadFactoryBuilder}
 
 import org.reflections.Reflections
 
@@ -39,7 +39,7 @@ import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.midolman.containers.{ContainerExecutors, ContainerService}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.devices.{TunnelZoneType, Host, TunnelZone}
+import org.midonet.midolman.topology.devices.{Host, TunnelZone, TunnelZoneType}
 import org.midonet.packets.IPAddr
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.{makeAction1, makeFunc1}
@@ -53,7 +53,7 @@ object VirtualToPhysicalMapper {
 
     /** Indicates the active state of a local port.
       */
-    case class LocalPortActive(portId: UUID, active: Boolean)
+    case class LocalPortActive(portId: UUID, portNumber: Int, active: Boolean)
 
     /** Indicates the update to a tunnel zone membership.
       */
@@ -128,9 +128,9 @@ object VirtualToPhysicalMapper {
       * a future that indicate the completion of the operation. The future will
       * complete on the virtual topology thread.
       */
-    def setPortActive(portId: UUID, active: Boolean, tunnelKey: Long)
-    : Future[StateResult] = {
-        self.setPortActive(portId, active, tunnelKey)
+    def setPortActive(portId: UUID, portNumber: Int, active: Boolean,
+                      tunnelKey: Long): Future[StateResult] = {
+        self.setPortActive(portId, portNumber, active, tunnelKey)
     }
 
     /**
@@ -198,7 +198,7 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
         new ContainerService(vt, hostId, containerExecutor, containerExecutors,
                              ioExecutor, reflections)
 
-    private val activePorts = new ConcurrentHashMap[UUID, Boolean]
+    private val activePorts = new ConcurrentHashMap[UUID, Int]
     private val portsActiveSubject = PublishSubject.create[LocalPortActive]
 
     private implicit val ec = ExecutionContext.fromExecutor(vt.vtExecutor)
@@ -270,15 +270,16 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
       * a future that indicate the completion of the operation. The future will
       * complete on the virtual topology thread.
       */
-    private def setPortActive(portId: UUID, active: Boolean, tunnelKey: Long)
-    : Future[StateResult] = {
+    private def setPortActive(portId: UUID, portNumber: Int, active: Boolean,
+                              tunnelKey: Long): Future[StateResult] = {
         backend.stateStore.setPortActive(portId, hostId, active, tunnelKey)
                .observeOn(vt.vtScheduler)
                .doOnNext(makeAction1 { result =>
                    log.debug("Port {} active to {} (owner {})", portId,
                              Boolean.box(active), Long.box(result.ownerId))
-                   portsActiveSubject onNext LocalPortActive(portId, active)
-                   if (active) activePorts.putIfAbsent(portId, true)
+                   portsActiveSubject onNext LocalPortActive(portId, portNumber,
+                                                             active)
+                   if (active) activePorts.putIfAbsent(portId, portNumber)
                    else activePorts.remove(portId)
                })
                .doOnError(makeAction1 { e =>
@@ -293,8 +294,9 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
       * that completes when the update has finished.
       */
     private def clearPortsActive(): Future[_] = {
-        val futures = for (portId: UUID <- activePorts.keySet().asScala.toSet) yield {
-            setPortActive(portId, active = false, tunnelKey = 0L)
+        val futures = for (entry <- activePorts.entrySet().asScala) yield {
+            setPortActive(entry.getKey, entry.getValue, active = false,
+                          tunnelKey = 0L)
         }
         activePorts.clear()
         Future.sequence(futures)
