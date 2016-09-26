@@ -167,5 +167,3 @@ class LoadBalancerPoolTranslatorUpdateTest
         midoOps should contain only Update(mPoolDown)
     }
 }
-
-
