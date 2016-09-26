@@ -18,32 +18,35 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Neutron.NeutronConfig
 import org.midonet.cluster.models.Topology.TunnelZone
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Create
-import org.midonet.util.concurrent.toFutureOps
 
-/** Provides a translator for Neutron Config. */
+/**
+  * Provides a translator for Neutron Config.
+  */
 class ConfigTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[NeutronConfig]
-            with TunnelZoneManager {
+    extends Translator[NeutronConfig] with TunnelZoneManager {
 
     override protected def translateCreate(tx: Transaction,
-                                           c: NeutronConfig): OperationList = {
+                                           config: NeutronConfig)
+    : OperationList = {
 
-        if (storage.exists(classOf[TunnelZone], c.getId).await())
+        if (tx.exists(classOf[TunnelZone], config.getId)) {
             return List()
+        }
 
         // Create the singleton Tunnel Zone
-        List(Create(neutronDefaultTunnelZone(c)))
+        tx.create(neutronDefaultTunnelZone(config))
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           c: NeutronConfig): OperationList = {
+                                           config: NeutronConfig)
+    : OperationList = {
         throw new UnsupportedOperationException(
             "Config Update is not supported.")
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           ncfg: NeutronConfig)
+                                           config: NeutronConfig)
     : OperationList = {
         throw new UnsupportedOperationException(
             "Config Delete is not supported.")
