@@ -67,7 +67,7 @@ class MetadataServiceManagerActor @Inject() (
     }
 
     override def receive = {
-        case LocalPortActive(portId, true) =>
+        case LocalPortActive(portId, _, true) =>
             log debug s"Port $portId became active"
             /*
              * XXX Theoretically, this can race with metadata requests
@@ -84,7 +84,7 @@ class MetadataServiceManagerActor @Inject() (
                     log debug s"Non-compute port: $portId"
             }
 
-        case LocalPortActive(portId, false) =>
+        case LocalPortActive(portId, _, false) =>
             log debug s"Port $portId became inactive"
             InstanceInfoMap getByPortId portId match {
                 case Some(remoteAddr) =>

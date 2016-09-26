@@ -131,7 +131,9 @@ class AdminStateTest extends MidolmanSpec {
         backChannel = simBackChannel
         getAndClearBC(simBackChannel)
 
-        VirtualToPhysicalMapper.setPortActive(exteriorBridgePort, active = true,
+        VirtualToPhysicalMapper.setPortActive(exteriorBridgePort,
+                                              portNumber = -1,
+                                              active = true,
                                               tunnelKey = 0L)
     }
 

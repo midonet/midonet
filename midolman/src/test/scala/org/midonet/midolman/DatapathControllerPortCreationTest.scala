@@ -172,11 +172,13 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             addInterface("if1", 1000, ip)
 
             Then("the DpC should create the datapath port")
-            testableDpc.driver.getDpPortNumberForVport(port) should not equal null
+            val portNumber = testableDpc.driver.getDpPortNumberForVport(port)
+            portNumber should not equal null
 
             And("the min MTU should be the tunnel default one")
             DatapathController.minMtu should be (1000 - VxLanTunnelPort.TUNNEL_OVERHEAD)
-            obs.getOnNextEvents.get(0) shouldBe LocalPortActive(port, active = true)
+            obs.getOnNextEvents.get(0) shouldBe LocalPortActive(port, portNumber,
+                                                                active = true)
 
             When("the network interface disappears")
             interfaceScanner.removeInterface("if1")
@@ -186,7 +188,8 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
 
             And("the min MTU should be the default one")
             DatapathController.minMtu should be (DatapathController.defaultMtu)
-            obs.getOnNextEvents.get(1) shouldBe LocalPortActive(port, active = false)
+            obs.getOnNextEvents.get(1) shouldBe LocalPortActive(port, portNumber,
+                                                                active = false)
 
             When("Adding a network interface with an MTU higher than default")
             addInterface("if2", 2000, ip)
@@ -210,14 +213,17 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             val port = addAndMaterializeBridgePort(hostId, clusterBridge, "if1")
 
             Then("the DpC should create the datapath port")
-            testableDpc.driver.getDpPortNumberForVport(port) should not equal None
-            obs.getOnNextEvents.get(0) shouldBe LocalPortActive(port, active = true)
+            val portNumber = testableDpc.driver.getDpPortNumberForVport(port)
+            portNumber should not equal None
+            obs.getOnNextEvents.get(0) shouldBe LocalPortActive(port, portNumber,
+                                                                active = true)
 
             When("the binding disappears")
             deletePort(port, hostId)
 
             Then("the DpC should delete the datapath port")
-            obs.getOnNextEvents.get(1) shouldBe LocalPortActive(port, active = false)
+            obs.getOnNextEvents.get(1) shouldBe LocalPortActive(port, portNumber,
+                                                                active = false)
         }
     }
 }

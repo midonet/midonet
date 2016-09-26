@@ -83,7 +83,7 @@ class MetadataServiceManagerActorTest extends FeatureSpecLike
 
             when(mockStore.getComputePortInfo(portJId)).thenReturn(infoOpt)
             when(mockPlumber.plumb(mockEq(info), any())).thenReturn(addr)
-            actorRef ! LocalPortActive(portJId, true)
+            actorRef ! LocalPortActive(portJId, -1, true)
             verify(mockStore).getComputePortInfo(portJId)
             InstanceInfoMap getByAddr addr shouldBe Some(info)
         }
@@ -93,7 +93,7 @@ class MetadataServiceManagerActorTest extends FeatureSpecLike
             val infoOpt = None
 
             when(mockStore.getComputePortInfo(portJId)).thenReturn(infoOpt)
-            actorRef ! LocalPortActive(portJId, true)
+            actorRef ! LocalPortActive(portJId, -1, true)
             verify(mockStore).getComputePortInfo(portJId)
             verify(mockPlumber, never()).plumb(any(), any())
         }
@@ -104,7 +104,7 @@ class MetadataServiceManagerActorTest extends FeatureSpecLike
             val info = mock[InstanceInfo]
 
             InstanceInfoMap.put(addr, portJId, info)
-            actorRef ! LocalPortActive(portJId, false)
+            actorRef ! LocalPortActive(portJId, -1, false)
             verify(mockPlumber).unplumb(mockEq(addr), mockEq(info), any())
             InstanceInfoMap getByAddr addr shouldBe None
             verify(mockStore, never()).getComputePortInfo(any())
@@ -113,7 +113,7 @@ class MetadataServiceManagerActorTest extends FeatureSpecLike
         scenario("port inactive not found") {
             val portJId = UUID.randomUUID
 
-            actorRef ! LocalPortActive(portJId, false)
+            actorRef ! LocalPortActive(portJId, -1, false)
             verify(mockPlumber, never()).unplumb(any(), any(), any())
             verify(mockStore, never()).getComputePortInfo(any())
         }
@@ -133,7 +133,7 @@ class TestableMetadataServiceManagerActor(
         datapathInterface
     ) {
 
-    override def preStart = {
+    override def preStart() = {
         store = store0
     }
 }

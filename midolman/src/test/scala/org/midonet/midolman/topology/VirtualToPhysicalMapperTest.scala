@@ -419,7 +419,8 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec with TopologyBuilder
                               MidonetBackend.ActiveKey).await(timeout).nonEmpty shouldBe false
 
             When("Setting the port as active")
-            VirtualToPhysicalMapper.setPortActive(port.getId, active = true,
+            VirtualToPhysicalMapper.setPortActive(port.getId, portNumber = -1,
+                                                  active = true,
                                                   tunnelKey = 0L)
 
             Then("The state should be saved in store")
@@ -427,7 +428,8 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec with TopologyBuilder
                               MidonetBackend.ActiveKey).await(timeout).nonEmpty shouldBe true
 
             When("Setting the port as inactive")
-            VirtualToPhysicalMapper.setPortActive(port.getId, active = false,
+            VirtualToPhysicalMapper.setPortActive(port.getId, portNumber = -1,
+                                                  active = false,
                                                   tunnelKey = 0L)
 
             Then("There is no state in store")
@@ -446,20 +448,26 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec with TopologyBuilder
             VirtualToPhysicalMapper.portsActive.subscribe(obs)
 
             When("Setting the port as active")
-            VirtualToPhysicalMapper.setPortActive(port.getId, active = true,
+            VirtualToPhysicalMapper.setPortActive(port.getId, portNumber = -1,
+                                                  active = true,
                                                   tunnelKey = 0L)
 
             Then("The observer should receive the new port status")
             obs.getOnNextEvents should have size 1
-            obs.getOnNextEvents.get(0) shouldBe LocalPortActive(port.getId, active = true)
+            obs.getOnNextEvents.get(0) shouldBe LocalPortActive(port.getId,
+                                                                portNumber = -1,
+                                                                active = true)
 
             When("Setting the port as inactive")
-            VirtualToPhysicalMapper.setPortActive(port.getId, active = false,
+            VirtualToPhysicalMapper.setPortActive(port.getId, portNumber = -1,
+                                                  active = false,
                                                   tunnelKey = 0L)
 
             Then("The observer should receive the new port status")
             obs.getOnNextEvents should have size 2
-            obs.getOnNextEvents.get(1) shouldBe LocalPortActive(port.getId, active = false)
+            obs.getOnNextEvents.get(1) shouldBe LocalPortActive(port.getId,
+                                                                portNumber = -1,
+                                                                active = false)
         }
     }
 
