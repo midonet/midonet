@@ -23,8 +23,6 @@ import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLA
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.rest_api.validation.MessageProperty.UNSUPPORTED_GATEWAY_DEVICE
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Update
-import org.midonet.util.concurrent.toFutureOps
 
 class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
                               protected val stateTableStorage: StateTableStorage)
@@ -32,10 +30,11 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
     import L2GatewayConnectionTranslator._
 
     override protected def translateCreate(tx: Transaction,
-                                           gwDev: GatewayDevice)
+                                           gatewayDevice: GatewayDevice)
     : OperationList = {
         // Only router VTEP and network VLAN are supported.
-        if (gwDev.getType != ROUTER_VTEP && gwDev.getType != NETWORK_VLAN)
+        if (gatewayDevice.getType != ROUTER_VTEP &&
+            gatewayDevice.getType != NETWORK_VLAN)
             throw new IllegalArgumentException(UNSUPPORTED_GATEWAY_DEVICE)
 
         // Nothing to do other than pass the Neutron data through to ZK.
@@ -43,28 +42,19 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           gwDev: GatewayDevice)
+                                           gatewayDevice: GatewayDevice)
     : OperationList = {
         // Nothing to do but delete the Neutron data.
         List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           gwDev: GatewayDevice)
+                                           gatewayDevice: GatewayDevice)
     : OperationList = {
 
-        def hasThisGW(conn: L2GatewayConnection) = {
-            val devs = conn.getL2Gateway.getDevicesList.asScala
-            devs.exists(_.getDeviceId == gwDev.getId)
-        }
-
-        def updatePortWithTunnelIp(conn: L2GatewayConnection) = {
-            val portId = l2gwGatewayPortId(conn.getNetworkId)
-            val port = storage.get(classOf[Port], portId).await()
-            val updatedPort = port.toBuilder
-                                  .setTunnelIp(gwDev.getTunnelIps(0))
-                                  .build()
-            Update(updatedPort)
+        def hasThisGateway(connection: L2GatewayConnection) = {
+            val devices = connection.getL2Gateway.getDevicesList.asScala
+            devices.exists(_.getDeviceId == gatewayDevice.getId)
         }
 
         /*
@@ -73,9 +63,16 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
          * the L2GatewayConnections using this gateway device, so we have
          * go through them all and update when needed.
          */
-        storage.getAll(classOf[L2GatewayConnection]).await()
-            .filter(hasThisGW)
-            .map(updatePortWithTunnelIp)
-            .toList
+        for (connection <- tx.getAll(classOf[L2GatewayConnection])
+             if hasThisGateway(connection)) {
+
+            val portId = l2gwGatewayPortId(connection.getNetworkId)
+            val port = tx.get(classOf[Port], portId)
+            val updatedPort = port.toBuilder
+                .setTunnelIp(gatewayDevice.getTunnelIps(0))
+                .build()
+            tx.update(updatedPort)
+        }
+        List()
     }
 }
