@@ -35,9 +35,10 @@ class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
                                            rm: RemoteMacEntry)
     : OperationList = {
         // Get the ports on the gateway device's router.
-        val gwDev = storage.get(classOf[GatewayDevice], rm.getDeviceId).await()
-        val router = storage.get(classOf[Router], gwDev.getResourceId).await()
-        val ports = storage.getAll(classOf[Port], router.getPortIdsList).await()
+        val gwDev  = tx.get(classOf[GatewayDevice], rm.getDeviceId)
+        val router = tx.get(classOf[Router], gwDev.getResourceId)
+        val ports = tx.getAll(classOf[Port], router.getPortIdsList)
+        //val h = new GatewayDevice()
 
         // For each port with the same VNI, add a peering table entry. Remember
         // which ports have this in their peering tables.
