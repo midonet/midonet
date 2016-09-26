@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f9cefb81",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 1
+      },
+      "lineNbr": 2960,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-26T00:33:43Z",
+      "side": 1,
+      "message": "Yes, it was just a comment to help separate the insane number of global class definitions.  It should be up above.",
+      "parentUuid": "baa041b7_97a7bda6",
+      "range": {
+        "startLine": 2960,
+        "startChar": 0,
+        "endLine": 2960,
+        "endChar": 5
+      },
+      "revId": "1b5b5b73d15ce8a45fb913c046d428212f81424a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d7fc2541",
         "filename": "python-midonetclient/src/midonetclient/qos_policy.py",
         "patchSetId": 1
