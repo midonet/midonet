@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_1983df04",
+        "filename": "docs/qos.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-26T03:03:19Z",
+      "side": 1,
+      "message": "this api design would complicate midonet qos driver.\nwhile we can implement our monolithic qos plugin this way,\nmonolithic service plugins in general have no future, given that neutron is going to be ml2-only.\n\nthe reference qos plugin sends only one object (policy) to drivers.  rules are sent as a part of the policy.\ni described it in https://review.openstack.org/#/c/375283/",
+      "revId": "5f2313ceaa05193d62d327aa79150d7dadb123a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5cdf1c0c",
         "filename": "docs/qos.md",
         "patchSetId": 6
