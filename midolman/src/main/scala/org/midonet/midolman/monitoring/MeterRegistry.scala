@@ -16,16 +16,18 @@
 package org.midonet.midolman.monitoring
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{ArrayList, HashMap => JHashMap}
+import java.util.{ArrayList, UUID, HashMap => JHashMap}
+
+import scala.util.Random
 
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.odp.FlowMatch
-import org.midonet.odp.flows.FlowStats
-import org.midonet.sdn.flows.FlowTagger.{FlowTag, MeterTag}
+import org.midonet.odp.flows.{FlowKeyIPv4, FlowStats}
+import org.midonet.sdn.flows.FlowTagger.{DeviceTag, FlowTag, MeterTag}
 import org.midonet.util.collection.ArrayObjectPool
-
 import org.midonet.management.{FlowStats => JmxFlowStats}
 
 class MeterRegistry(val maxFlows: Int) {
@@ -48,6 +50,35 @@ class MeterRegistry(val maxFlows: Int) {
     val meters = new ConcurrentHashMap[String, JmxFlowStats]()
     private val trackedFlows = new JHashMap[FlowMatch, FlowData]()
     private val DELTA = new FlowStats()
+
+    testMetrics()
+
+    private def testMetrics(): Unit = {
+        val enabled = System.getProperty("test.metrics.enabled")
+        if (enabled != "true") {
+            return
+        }
+
+        val flowCount =
+            Integer.parseInt(System.getProperty("test.metrics.flowCount", "1000"))
+        val tagCount =
+            Integer.parseInt(System.getProperty("test.metrics.tagCount", "20"))
+
+        val random = new Random()
+        val tags = new ArrayList[FlowTag](tagCount)
+        for (flowIndex <- 0 until flowCount) {
+            val flowMatch = new FlowMatch()
+            flowMatch.addKey(new FlowKeyIPv4(
+                random.nextInt(),
+                random.nextInt(),
+                0.toByte, 0.toByte, 128.toByte, 0.toByte))
+            tags.clear()
+            for (flowTag <- 0 until tagCount) {
+                tags.add(DeviceTag(UUID.randomUUID()))
+            }
+            trackFlow(flowMatch, tags)
+        }
+    }
 
     def trackFlow(flowMatch: FlowMatch, tags: ArrayList[FlowTag]): Unit = {
         if (trackedFlows.containsKey(flowMatch))
