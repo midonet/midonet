@@ -25,7 +25,6 @@ import org.midonet.cluster.models.Topology.LoggingResource.Type
 import org.midonet.cluster.models.Topology.{Chain, LoggingResource, RuleLogger}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.util.concurrent.toFutureOps
 
 class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[FirewallLog] with ChainManager {
@@ -35,78 +34,74 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,
                                            fl: FirewallLog): OperationList = {
-        val ops = new OperationListBuffer
-        ops ++= ensureLoggerResource(fl.getLoggingResource)
-        ops ++= createRuleLogger(fl)
-        ops ++= ensureMetaData(fl.getFirewallId, fl.getTenantId, fl.getId)
-        ops.toList
+        ensureLoggerResource(tx, fl.getLoggingResource)
+        createRuleLogger(tx, fl)
+        ensureMetaData(tx, fl.getFirewallId, fl.getTenantId, fl.getId)
+        List()
     }
 
-    def createRuleLogger(fl: FirewallLog): OperationList = {
-        List(Create(RuleLogger.newBuilder
-                .setId(fl.getId)
-                .setChainId(fwdChainId(fl.getFirewallId))
-                .setLoggingResourceId(fl.getLoggingResourceId)
-                .setEvent(fl.getFwEvent)
-                .build()))
+    private def createRuleLogger(tx: Transaction, fl: FirewallLog): Unit = {
+        tx.create(RuleLogger.newBuilder
+                      .setId(fl.getId)
+                      .setChainId(fwdChainId(fl.getFirewallId))
+                      .setLoggingResourceId(fl.getLoggingResourceId)
+                      .setEvent(fl.getFwEvent)
+                      .build())
     }
 
-    def ensureMetaData(fwId: UUID, tenantId: String, rlId: UUID): OperationList = {
-        val chain = storage.get(classOf[Chain], fwdChainId(fwId)).await()
+    private def ensureMetaData(tx: Transaction, fwId: UUID, tenantId: String,
+                               rlId: UUID): Unit = {
+        val chain = tx.get(classOf[Chain], fwdChainId(fwId))
         val chainMetaData = chain.getMetadataList.asScala
+
         if (!chainMetaData.exists(_.getKey == FIREWALL_ID)) {
-            val chainBldr = chain.toBuilder
-            chainBldr.addMetadataBuilder()
+            val chainBuilder = chain.toBuilder
+            chainBuilder.addMetadataBuilder()
                 .setKey(FIREWALL_ID)
                 .setValue(fromProto(fwId).toString)
-            chainBldr.addMetadataBuilder()
-              .setKey(TENANT_ID)
-              .setValue(tenantId)
-            chainBldr.addLoggerIds(rlId)
-            List(Update(chainBldr.build))
-        } else {
-            List()
+            chainBuilder.addMetadataBuilder()
+                .setKey(TENANT_ID)
+                .setValue(tenantId)
+
+            tx.update(chainBuilder.build)
         }
     }
 
-    def ensureLoggerResource(lr: NeutronLoggingResource): OperationList = {
-        if (!storage.exists(classOf[LoggingResource], lr.getId).await()) {
-            List(Create(LoggingResource.newBuilder
-                            .setId(lr.getId)
-                            .setEnabled(lr.getEnabled)
-                            .setType(Type.FILE)
-                            .build()))
-        } else {
-            List()
+    private def ensureLoggerResource(tx: Transaction,
+                                     lr: NeutronLoggingResource): Unit = {
+        if (!tx.exists(classOf[LoggingResource], lr.getId)) {
+            tx.create(LoggingResource.newBuilder
+                          .setId(lr.getId)
+                          .setEnabled(lr.getEnabled)
+                          .setType(Type.FILE)
+                          .build())
         }
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            fl: FirewallLog): OperationList = {
-        val oldLogger = storage.get(classOf[RuleLogger], fl.getId).await()
+        val oldLogger = tx.get(classOf[RuleLogger], fl.getId)
         val newLogger = oldLogger.toBuilder.setEvent(fl.getFwEvent).build()
-        List(Update(newLogger))
+        tx.update(newLogger)
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            flId: UUID): OperationList = {
-        val ops = new OperationListBuffer
-        val rl = storage.get(classOf[RuleLogger], flId).await()
-        ops += Delete(classOf[RuleLogger], flId)
-        val lr = storage.get(classOf[LoggingResource], rl.getLoggingResourceId).await()
-        if (lr.getLoggerIdsCount == 1) {
-            ops += Delete(classOf[LoggingResource], lr.getId)
+        val rl = tx.get(classOf[RuleLogger], flId)
+        tx.delete(classOf[RuleLogger], flId, ignoresNeo = true)
+
+        val lr = tx.get(classOf[LoggingResource], rl.getLoggingResourceId)
+        if (lr.getLoggerIdsCount == 0) {
+            tx.delete(classOf[LoggingResource], lr.getId, ignoresNeo = true)
         }
-        ops.toList
+        List()
     }
 
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[FirewallLog])
     : List[Operation[FirewallLog]] = {
-        op match {
-            case Update(_, _) | Create(_) | Delete(_, _) => List()
-            case _ => super.retainHighLevelModel(tx, op)
-        }
+        List()
     }
 }
 
