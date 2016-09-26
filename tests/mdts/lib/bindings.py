@@ -31,7 +31,7 @@ class BindingType:
 
 class BindingManager(fixtures.Fixture):
 
-    def __init__(self, ptm, vtm):
+    def __init__(self, ptm=None, vtm=None):
 
         self._ptm = ptm
         if self._ptm is None:
@@ -56,7 +56,7 @@ class BindingManager(fixtures.Fixture):
                 agent.get_hostname(), _tzone_name)
 
     def _update_addresses(self, iface, vport):
-        if 'port' in vport and len(vport['port']['fixed_ips']) > 0:
+        if isinstance(vport, dict) and 'port' in vport and len(vport['port']['fixed_ips']) > 0:
             # This is a neutron port, discover which ip should be used
             n_subnet_id = vport['port']['fixed_ips'][0]['subnet_id']
             base_port = {'port': dict()}
