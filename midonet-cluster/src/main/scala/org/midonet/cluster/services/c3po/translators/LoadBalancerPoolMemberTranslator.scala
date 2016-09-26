@@ -21,44 +21,51 @@ import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Commons.LBStatus.ACTIVE
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Topology.PoolMember
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
-import org.midonet.util.concurrent.toFutureOps
 
-/** Provides a Neutron model translator for NeutronLoadBalancerPoolMember. */
+/**
+  * Provides a Neutron model translator for NeutronLoadBalancerPoolMember.
+  */
 class LoadBalancerPoolMemberTranslator(protected val storage: ReadOnlyStorage)
-        extends Translator[NeutronLoadBalancerPoolMember]{
+        extends Translator[NeutronLoadBalancerPoolMember] {
 
-    private def translate(nm: NeutronLoadBalancerPoolMember,
+    private def translate(poolMember: NeutronLoadBalancerPoolMember,
                           status: LBStatus = ACTIVE)
     : PoolMember = {
         val mMember = PoolMember.newBuilder()
-                                .setId(nm.getId)
-                                .setAdminStateUp(nm.getAdminStateUp)
-                                .setProtocolPort(nm.getProtocolPort)
-                                .setWeight(nm.getWeight)
+                                .setId(poolMember.getId)
+                                .setAdminStateUp(poolMember.getAdminStateUp)
+                                .setProtocolPort(poolMember.getProtocolPort)
+                                .setWeight(poolMember.getWeight)
                                 .setStatus(status)
-        if (nm.hasPoolId) mMember.setPoolId(nm.getPoolId)
-        if (nm.hasAddress) mMember.setAddress(nm.getAddress)
+        if (poolMember.hasPoolId) mMember.setPoolId(poolMember.getPoolId)
+        if (poolMember.hasAddress) mMember.setAddress(poolMember.getAddress)
 
         mMember.build
     }
 
     override protected def translateCreate(tx: Transaction,
-                                           nm: NeutronLoadBalancerPoolMember)
-    : OperationList = List(Create(translate(nm)))
+                                           poolMember: NeutronLoadBalancerPoolMember)
+    : OperationList = {
+        tx.create(translate(poolMember))
+        List()
+    }
 
     override protected def translateDelete(tx: Transaction,
-                                           npm: NeutronLoadBalancerPoolMember)
-    : OperationList = List(Delete(classOf[PoolMember], npm.getId))
+                                           poolMember: NeutronLoadBalancerPoolMember)
+    : OperationList = {
+        tx.delete(classOf[PoolMember], poolMember.getId)
+        List()
+    }
 
     override protected def translateUpdate(tx: Transaction,
-                                           nm: NeutronLoadBalancerPoolMember)
+                                           poolMember: NeutronLoadBalancerPoolMember)
     : OperationList = {
         // Load Balancer Pool status is set to ACTIVE upon creation by default,
         // and it is to be updated only by Health Monitor. Therefore when we
         // update Pool, we need to look up the current status and explicitly
         // restore it.
-        val mMember = storage.get(classOf[PoolMember], nm.getId).await()
-        List(Update(translate(nm, status = mMember.getStatus)))
+        val status = tx.get(classOf[PoolMember], poolMember.getId).getStatus
+        tx.update(translate(poolMember, status = status))
+        List()
     }
 }

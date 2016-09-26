@@ -95,35 +95,33 @@ class LoadBalancerPoolMemberTranslatorTest extends TranslatorTestBase {
     """)
 
     "Creation of a Neutron Member" should "create a MidoNet Member" in {
-        val midoOps = translator.translate(transaction, Create(nMember))
+        translator.translate(transaction, Create(nMember))
         midoOps should contain only Create(mMember)
     }
 
     "Creation of a Neutron Member without Pool ID / address" should "create " +
     "a MidoNet Member without Pool ID / address" in {
-        val midoOps = translator.translate(transaction,
-                                           Create(nMemberNoPoolNoAddress))
+        translator.translate(transaction, Create(nMemberNoPoolNoAddress))
         midoOps should contain only Create(
                 mMemberNoPoolNoAddress)
     }
 
     "Update of a Neutron Member" should "update a MidoNet Member" in {
         bind(memberId, mMember)
-        val midoOps = translator.translate(transaction, Update(nMember))
+        translator.translate(transaction, Update(nMember))
         midoOps should contain only Update(mMember)
     }
 
     "Update of a Neutron Member" should "not modify the Member status" in {
         bind(memberId, mMemberInactive)
-        val midoOps = translator.translate(transaction, Update(nMemberUpdated))
+        translator.translate(transaction, Update(nMemberUpdated))
         midoOps should contain only Update(mMemberUpdated)
     }
 
     "Deletion of a Neutron Member" should "delete the MidoNet Member" in {
         bind(memberId, nMember)
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[NeutronLoadBalancerPoolMember],
-                                                  memberId))
+        translator.translate(transaction, Delete(classOf[NeutronLoadBalancerPoolMember],
+                                                 memberId))
         midoOps should contain only Delete(classOf[PoolMember], memberId)
     }
 }
