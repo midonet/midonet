@@ -18,18 +18,17 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
 
-import com.fasterxml.jackson.databind.JsonNode
 import scala.collection.JavaConverters._
+
+import com.fasterxml.jackson.databind.JsonNode
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{FirewallLog => FirewallLogType, LoggingResource => LoggingResourceType}
-import org.midonet.cluster.models.Topology.LoggingResource
-import org.midonet.cluster.models.Topology.RuleLogger
-import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.models.Commons.LogEvent
+import org.midonet.cluster.models.Topology.{Chain, LoggingResource, RuleLogger}
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.util.concurrent.toFutureOps
 
@@ -41,7 +40,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         val lrId = UUID.randomUUID
         val flId = createFirewallLog(10, fwId, lrId)
         eventually {
-            verifyMedatData(fwId)
+            verifyMetadata(fwId)
             verifyLoggingResource(lrId)
             verifyRuleLogger(fwId, flId)
         }
@@ -63,8 +62,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         val flId2 = createFirewallLog(11, fwId2, lrId)
 
         eventually {
-            verifyMedatData(fwId)
-            verifyMedatData(fwId2)
+            verifyMetadata(fwId)
+            verifyMetadata(fwId2)
             verifyLoggingResource(lrId, 2)
             verifyRuleLogger(fwId, flId)
             verifyRuleLogger(fwId2, flId2)
@@ -73,8 +72,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         insertDeleteTask(12, FirewallLogType, flId)
 
         eventually {
-            verifyMedatData(fwId)
-            verifyMedatData(fwId2)
+            verifyMetadata(fwId)
+            verifyMetadata(fwId2)
             verifyLoggingResource(lrId, 1)
             verifyRuleLogger(fwId2, flId2)
             storage.exists(classOf[LoggingResource], lrId).await() shouldBe true
@@ -85,8 +84,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         insertDeleteTask(13, FirewallLogType, flId2)
 
         eventually {
-            verifyMedatData(fwId)
-            verifyMedatData(fwId2)
+            verifyMetadata(fwId)
+            verifyMetadata(fwId2)
             storage.exists(classOf[RuleLogger], flId).await() shouldBe false
             storage.exists(classOf[RuleLogger], flId2).await() shouldBe false
             storage.exists(classOf[LoggingResource], lrId).await() shouldBe false
@@ -103,8 +102,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         val flId2 = createFirewallLog(11, fwId2, lrId2)
 
         eventually {
-            verifyMedatData(fwId)
-            verifyMedatData(fwId2)
+            verifyMetadata(fwId)
+            verifyMetadata(fwId2)
             verifyLoggingResource(lrId, 1)
             verifyLoggingResource(lrId2, 1)
             verifyRuleLogger(fwId, flId)
@@ -114,8 +113,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         insertDeleteTask(12, FirewallLogType, flId)
 
         eventually {
-            verifyMedatData(fwId)
-            verifyMedatData(fwId2)
+            verifyMetadata(fwId)
+            verifyMetadata(fwId2)
             verifyLoggingResource(lrId2, 1)
             storage.exists(classOf[LoggingResource], lrId).await() shouldBe false
             verifyRuleLogger(fwId2, flId2)
@@ -126,8 +125,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         insertDeleteTask(13, FirewallLogType, flId2)
 
         eventually {
-            verifyMedatData(fwId)
-            verifyMedatData(fwId2)
+            verifyMetadata(fwId)
+            verifyMetadata(fwId2)
             storage.exists(classOf[RuleLogger], flId).await() shouldBe false
             storage.exists(classOf[RuleLogger], flId2).await() shouldBe false
             storage.exists(classOf[LoggingResource], lrId).await() shouldBe false
@@ -140,7 +139,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         val lrId = UUID.randomUUID
         val flId = createFirewallLog(10, fwId, lrId)
         eventually {
-            verifyMedatData(fwId)
+            verifyMetadata(fwId)
             verifyLoggingResource(lrId)
             verifyRuleLogger(fwId, flId)
         }
@@ -159,7 +158,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         val lrId = UUID.randomUUID
         val flId = createFirewallLog(10, fwId, lrId)
         eventually {
-            verifyMedatData(fwId)
+            verifyMetadata(fwId)
             verifyLoggingResource(lrId)
             verifyRuleLogger(fwId, flId)
         }
@@ -178,7 +177,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         val lrId = UUID.randomUUID
         val flId = createFirewallLog(10, fwId, lrId)
         eventually {
-            verifyMedatData(fwId)
+            verifyMetadata(fwId)
             verifyLoggingResource(lrId)
             verifyRuleLogger(fwId, flId)
         }
@@ -199,8 +198,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         val flId2 = createFirewallLog(11, fwId2, lrId)
 
         eventually {
-            verifyMedatData(fwId)
-            verifyMedatData(fwId2)
+            verifyMetadata(fwId)
+            verifyMetadata(fwId2)
             verifyLoggingResource(lrId, 2)
             verifyRuleLogger(fwId, flId)
             verifyRuleLogger(fwId2, flId2)
@@ -215,7 +214,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         }
     }
 
-    def verifyMedatData(fwId: UUID): Unit = {
+    def verifyMetadata(fwId: UUID): Unit = {
         val chain = storage.get(classOf[Chain], fwdChainId(toProto(fwId))).await()
         val md = chain.getMetadataList.asScala
         md map (_.getKey) contains "firewall_id" shouldBe true
@@ -245,7 +244,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         n.put("description", description.getOrElse("Logging resource " + id))
         n.put("enabled", enabled)
         n.put("id", id.toString)
-        n.put("name", name.getOrElse("loggging-resource-" + id))
+        n.put("name", name.getOrElse("logging-resource-" + id))
         n.put("tenant_id", tenantId)
         n
     }
