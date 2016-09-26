@@ -34,10 +34,14 @@ sudo modprobe 8021q
 # TODO: remove once Jenkins slave image has been regenerated including it
 sudo apt-get install --no-install-recommends -y libssl-dev libffi-dev
 
-# install python dependencies (may have changed since image build)
+# Upgrade docker daemon to latest version and configure to use v2 registry in artifactory
+sudo apt-get install -qy -o Dpkg::Options::="--force-confnew" --only-upgrade docker-engine=1.12.1-0~trusty
+sudo sed -i 's/^#DOCKER_OPTS=.*/DOCKER_OPTS="--insecure-registry artifactory-v2.bcn.midokura.com"/' /etc/default/docker
+sudo service docker restart
+
+# create virtualenv for sandbox and mdts
 virtualenv venv
 . venv/bin/activate
-pip install -r tests/mdts.dependencies
 
 # We assume all gates/nightlies put the necessary packages in $WORKSPACE
 # so we know where to find them.
@@ -59,9 +63,12 @@ cd midonet-sandbox
 python setup.py install
 cd -
 
+# Install mdts deps, on top of sandbox deps
+pip install -r tests/mdts.dependencies
+
 # Start sandbox
 cd tests/
-echo "docker_registry=artifactory.bcn.midokura.com" >> sandbox.conf
+echo "docker_registry=artifactory-v2.bcn.midokura.com" >> sandbox.conf
 echo "docker_insecure_registry=True" >> sandbox.conf
 sandbox-manage -c sandbox.conf pull-all $SANDBOX_FLAVOUR
 sandbox-manage -c sandbox.conf \
