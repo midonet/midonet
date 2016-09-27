@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_37b587ec",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T04:40:17Z",
+      "side": 1,
+      "message": "how about minimum bandwidth rules, which seem to be in 9.0.0.0rc1?",
+      "range": {
+        "startLine": 3,
+        "startChar": 59,
+        "endLine": 4,
+        "endChar": 40
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_37ac679e",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T04:40:17Z",
+      "side": 1,
+      "message": "the value is literally copied to the dscp field of the outer ip header?\n\ndoes it mean dscp values should be coordinated among tenants?",
+      "range": {
+        "startLine": 24,
+        "startChar": 15,
+        "endLine": 24,
+        "endChar": 35
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1796034c",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T04:40:17Z",
+      "side": 1,
+      "message": "the traffic shaper will be configured in the exactly same way as the neutron\u0027s reference implementation?",
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f7927f56",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T04:40:17Z",
+      "side": 1,
+      "message": "and the rules will be deleted if the list shrinks?",
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d79bfb71",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T04:40:17Z",
+      "side": 1,
+      "message": "does this mean the traffic shaping will be briefly disabled when the setting was changed?",
+      "range": {
+        "startLine": 120,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 66
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_778d4f30",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T04:40:17Z",
+      "side": 1,
+      "message": "does it mean we only care tunneled traffic?",
+      "range": {
+        "startLine": 146,
+        "startChar": 33,
+        "endLine": 147,
+        "endChar": 55
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b7987776",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T04:40:17Z",
+      "side": 1,
+      "message": "how do you set it?",
+      "range": {
+        "startLine": 148,
+        "startChar": 59,
+        "endLine": 149,
+        "endChar": 8
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
