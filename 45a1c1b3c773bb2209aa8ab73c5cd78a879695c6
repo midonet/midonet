@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2d6f7ac5",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/FutureSequenceWithRollback.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T10:48:41Z",
+      "side": 1,
+      "message": "If I use log directly I get this error:\n\n SequenceWithRollback.scala:94: macro implementation not found: debug\n (the most common reason for that is that you cannot use macro implementations in the same compilation run that defines them)\n            logger.debug(s\"Started to $operation $name\")\n\nSaw other classes on the same package were using the underlying, that fixed the problem, but I really don\u0027t understand whats going on. I\u0027m not familiar with macros",
+      "parentUuid": "baa041b7_baa3be42",
+      "range": {
+        "startLine": 68,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 39
+      },
+      "revId": "45a1c1b3c773bb2209aa8ab73c5cd78a879695c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9a4a3a82",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/FutureSequenceWithRollback.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-09-27T10:34:50Z",
       "side": 1,
       "message": "Add some scala doc here, at first sight is not very intuitive how to use this.",
+      "range": {
+        "startLine": 110,
+        "startChar": 4,
+        "endLine": 112,
+        "endChar": 77
+      },
+      "revId": "45a1c1b3c773bb2209aa8ab73c5cd78a879695c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ed6512e1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/FutureSequenceWithRollback.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T10:48:41Z",
+      "side": 1,
+      "message": "will do",
+      "parentUuid": "baa041b7_9a4a3a82",
       "range": {
         "startLine": 110,
         "startChar": 4,
