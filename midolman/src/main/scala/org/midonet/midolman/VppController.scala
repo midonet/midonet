@@ -21,8 +21,8 @@ import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext
-import scala.util.control.NonFatal
+import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 import com.google.inject.Inject
@@ -31,6 +31,7 @@ import rx.subscriptions.CompositeSubscription
 
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
@@ -44,6 +45,7 @@ object VppController extends Referenceable {
     override val Name: String = "VppController"
     val VppProcessMaximumStarts = 3
     val VppProcessFailingPeriod = 30000
+    val VppRollbackTimeout = 30000
 
     private def isIPv6(port: RouterPort) = (port.portAddressV6 ne null) &&
                                            (port.portSubnetV6 ne null)
@@ -57,11 +59,17 @@ class VppController @Inject() (config: MidolmanConfig)
 
     override def logSource = "org.midonet.vpp-controller"
 
+    @Inject
+    var upcallConnManager: UpcallDatapathConnectionManager = null
+
+    @Inject
+    var datapathState: DatapathState = null
+
     private implicit val ec: ExecutionContext = context.system.dispatcher
 
     private var vppProcess: MonitoredDaemonProcess = _
     private val portsSubscription = new CompositeSubscription()
-    private val watchedPorts = mutable.Map.empty[UUID, RouterPort]
+    private val watchedPorts = mutable.Map.empty[UUID, (RouterPort, VppSetup)]
 
     private var vppExiting = false
     private val vppExitAction = new Consumer[Exception] {
@@ -79,6 +87,9 @@ class VppController @Inject() (config: MidolmanConfig)
     }
 
     override def postStop(): Unit = {
+        watchedPorts.foreach { element =>
+            Await.ready(element._2._2.rollback(), VppRollbackTimeout millis)
+        }
         if ((vppProcess ne null) && vppProcess.isRunning) {
             stopVppProcess()
         }
@@ -117,12 +128,20 @@ class VppController @Inject() (config: MidolmanConfig)
         if (vppProcess eq null) {
             startVppProcess()
         }
-        watchedPorts += portId -> port
+        val setup = new VppSetup(port.interfaceName,
+                                 upcallConnManager,
+                                 datapathState)
+        setup.execute() onComplete {
+            case Success(_) => watchedPorts += portId -> (port, setup)
+            case Failure(err) => setup.rollback()
+        }
     }
 
     private def detachPort(portId: UUID): Unit = {
         watchedPorts remove portId match {
-            case Some(_) => log debug s"IPv6 port $portId detached"
+            case Some(entry) =>
+                log debug s"IPv6 port $portId detached"
+                entry._2.rollback()
             case None =>
         }
     }
@@ -135,6 +154,7 @@ class VppController @Inject() (config: MidolmanConfig)
             VppProcessMaximumStarts, VppProcessFailingPeriod, vppExitAction)
         vppProcess.startAsync()
             .awaitRunning(VppProcessFailingPeriod, TimeUnit.MILLISECONDS)
+        log debug "vpp process started"
     }
 
     private def stopVppProcess(): Unit = {
