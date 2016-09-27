@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_8d74469c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T10:48:40Z",
+      "side": 1,
+      "message": "Add to constructor",
+      "range": {
+        "startLine": 62,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 43
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6d790293",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T10:48:40Z",
+      "side": 1,
+      "message": "Add a private case class for this so we can make it easier to add more info, e.g. the datapath port no, and also to make it clearer what each fields represents.",
+      "range": {
+        "startLine": 72,
+        "startChar": 55,
+        "endLine": 72,
+        "endChar": 77
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0d6956be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T10:48:40Z",
+      "side": 1,
+      "message": "can this be done in parallel?",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 91,
+        "endChar": 76
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_7ac1b6e3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
         "patchSetId": 1
