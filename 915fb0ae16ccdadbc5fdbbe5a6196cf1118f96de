@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_107de91b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8d74469c",
+      "range": {
+        "startLine": 62,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 43
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6d790293",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-09-27T10:48:40Z",
       "side": 1,
       "message": "Add a private case class for this so we can make it easier to add more info, e.g. the datapath port no, and also to make it clearer what each fields represents.",
+      "range": {
+        "startLine": 72,
+        "startChar": 55,
+        "endLine": 72,
+        "endChar": 77
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_90b699da",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6d790293",
       "range": {
         "startLine": 72,
         "startChar": 55,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_50ac9187",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0d6956be",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 91,
+        "endChar": 76
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6da6a2c2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2016-09-27T11:53:04Z",
       "side": 1,
       "message": "are these traits needed?",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 21
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8dbc466d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "I need to expose this data from a task. I can\u0027t just pass it by value as the data will not be available until a task is run. Do you fancy another way of passing this fields?",
+      "parentUuid": "baa041b7_6da6a2c2",
       "range": {
         "startLine": 29,
         "startChar": 4,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6dc102e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ed1d1210",
+      "range": {
+        "startLine": 30,
+        "startChar": 12,
+        "endLine": 30,
+        "endChar": 18
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_cd16cef1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
         "patchSetId": 1
@@ -128,6 +248,30 @@
       "writtenOn": "2016-09-27T11:53:04Z",
       "side": 1,
       "message": "private?",
+      "range": {
+        "startLine": 41,
+        "startChar": 8,
+        "endLine": 41,
+        "endChar": 30
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4db2be97",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Agree. Not applicable anymore after a refactor.",
+      "parentUuid": "baa041b7_cd16cef1",
       "range": {
         "startLine": 41,
         "startChar": 8,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2db77a86",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8dd32638",
+      "range": {
+        "startLine": 50,
+        "startChar": 16,
+        "endLine": 50,
+        "endChar": 53
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0de836e1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
         "patchSetId": 1
@@ -186,6 +354,54 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f06f2590",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0de836e1",
+      "range": {
+        "startLine": 56,
+        "startChar": 28,
+        "endLine": 56,
+        "endChar": 46
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f0cba570",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0de836e1",
+      "range": {
+        "startLine": 56,
+        "startChar": 28,
+        "endLine": 56,
+        "endChar": 46
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_edcbd270",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
         "patchSetId": 1
@@ -197,6 +413,54 @@
       "writtenOn": "2016-09-27T11:53:04Z",
       "side": 1,
       "message": "add space",
+      "range": {
+        "startLine": 61,
+        "startChar": 19,
+        "endLine": 61,
+        "endChar": 20
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_900579c3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_edcbd270",
+      "range": {
+        "startLine": 61,
+        "startChar": 19,
+        "endLine": 61,
+        "endChar": 20
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d0c42161",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_edcbd270",
       "range": {
         "startLine": 61,
         "startChar": 19,
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_50225155",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Converted to an Option",
+      "parentUuid": "baa041b7_8da1e6ab",
+      "range": {
+        "startLine": 104,
+        "startChar": 12,
+        "endLine": 104,
+        "endChar": 18
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_7ac1b6e3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
         "patchSetId": 1
@@ -289,6 +577,30 @@
       "writtenOn": "2016-09-27T10:37:40Z",
       "side": 1,
       "message": "the interface name may be limited to 15 chars",
+      "range": {
+        "startLine": 130,
+        "startChar": 4,
+        "endLine": 130,
+        "endChar": 55
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_50d93155",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_7ac1b6e3",
       "range": {
         "startLine": 130,
         "startChar": 4,
@@ -318,6 +630,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1021694d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_3a456e6e",
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1a5f4a42",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
         "patchSetId": 1
@@ -329,6 +659,24 @@
       "writtenOn": "2016-09-27T10:34:48Z",
       "side": 1,
       "message": "remove blank line?",
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f01de50f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T15:40:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1a5f4a42",
       "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
