@@ -45,6 +45,30 @@
       "revId": "56fbeb4a5fe2c15dd7a4dee82b07001e009833e2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5a56f25e",
+        "filename": "docs/qos.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-27T10:30:13Z",
+      "side": 1,
+      "message": "It should not be possible to have a rule shared among policies.  So if a policy is deleted, all the rules under it would be deleted.",
+      "parentUuid": "baa041b7_57312b58",
+      "range": {
+        "startLine": 87,
+        "startChar": 9,
+        "endLine": 88,
+        "endChar": 31
+      },
+      "revId": "56fbeb4a5fe2c15dd7a4dee82b07001e009833e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
