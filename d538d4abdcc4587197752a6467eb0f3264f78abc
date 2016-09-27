@@ -22,6 +22,52 @@
       "revId": "d538d4abdcc4587197752a6467eb0f3264f78abc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_771d4f72",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-27T07:57:00Z",
+      "side": 1,
+      "message": "nitpick: not needed, map will already traverse the string\u0027s chars",
+      "range": {
+        "startLine": 74,
+        "startChar": 34,
+        "endLine": 74,
+        "endChar": 45
+      },
+      "revId": "d538d4abdcc4587197752a6467eb0f3264f78abc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_570ecb3d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-27T07:57:00Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 84,
+        "startChar": 34,
+        "endLine": 84,
+        "endChar": 45
+      },
+      "revId": "d538d4abdcc4587197752a6467eb0f3264f78abc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
