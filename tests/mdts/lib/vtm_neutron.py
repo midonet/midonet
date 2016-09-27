@@ -85,13 +85,13 @@ class NeutronTopologyManager(TopologyManager):
             self.api.create_network({'network': network_params }))
         return network['network']
 
-    def create_subnet(self, name, network, cidr, enable_dhcp=True):
+    def create_subnet(self, name, network, cidr, enable_dhcp=True, version=4):
         subnet = self.create_resource(
             self.api.create_subnet(
                 {'subnet':
                     {'name': name,
                      'network_id': network['id'],
-                     'ip_version': 4,
+                     'ip_version': version,
                      'cidr': cidr,
                      'enable_dhcp': enable_dhcp}}))
         return subnet['subnet']
@@ -126,7 +126,7 @@ class NeutronTopologyManager(TopologyManager):
                             {'port_id': port['id']})
 
     def create_port(self, name, network,
-                    host_id=None, interface=None, fixed_ip=None):
+                    host_id=None, interface=None, fixed_ips=None):
         port_params = {'name': name,
                        'network_id': network['id'],
                        'admin_state_up': True,
@@ -136,8 +136,11 @@ class NeutronTopologyManager(TopologyManager):
         if interface:
             port_params['binding:profile'] = { 'type': 'dict',
                                                'interface_name': interface }
-        if fixed_ip:
-            port_params['fixed_ips'] = [{ "ip_address": fixed_ip }]
+        for f in fixed_ips:
+            if not port_params.has_key('fixed_ips'):
+                port_params['fixed_ips'] = []
+            port_params['fixed_ips'] = port_params['fixed_ips'] \
+                                       + [{ "ip_address": f }]
 
         # We need a custom cleanup for ports, because if a port is added
         # to a router, the cleanup for removing it from the router removes
