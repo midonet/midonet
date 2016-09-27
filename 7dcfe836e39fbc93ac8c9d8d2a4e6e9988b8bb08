@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d0a66153",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-27T16:34:28Z",
+      "side": 1,
+      "message": "make this something more distinct, like -14428765, define it as a constant and make it greppable. -1 is overused.",
+      "range": {
+        "startLine": 357,
+        "startChar": 30,
+        "endLine": 357,
+        "endChar": 32
+      },
+      "revId": "7dcfe836e39fbc93ac8c9d8d2a4e6e9988b8bb08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
