@@ -68,8 +68,6 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                 self.api.create_security_group_rule({
                     'security_group_rule': {
                         'direction': 'ingress',
-                        'port_range_min': 0,
-                        'port_range_max': 65535,
                         'protocol': 'udp',
                         'security_group_id': public_port['port']['security_groups'][0]
                     }

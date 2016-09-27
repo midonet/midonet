@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SANDBOX_NAME="mdts"
-SANDBOX_FLAVOUR="default_v2_neutron+kilo"
+SANDBOX_FLAVOUR="default_v2_neutron+mitaka"
 OVERRIDE="sandbox/override_v2"
 PROVISIONING="sandbox/provisioning/all-provisioning.sh"
 JENKINS_VERSION="v1"
