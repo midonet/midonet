@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_fa3706e1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-27T08:09:05Z",
+      "side": 1,
+      "message": "It\u0027s there so that the result is an Array[Char]. Maybe:\n name.map(_.toByte).toArray\n\nis better?",
+      "parentUuid": "baa041b7_771d4f72",
+      "range": {
+        "startLine": 74,
+        "startChar": 34,
+        "endLine": 74,
+        "endChar": 45
+      },
+      "revId": "d538d4abdcc4587197752a6467eb0f3264f78abc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_570ecb3d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
         "patchSetId": 4
