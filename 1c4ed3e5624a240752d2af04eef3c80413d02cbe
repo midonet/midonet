@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_37834705",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-27T05:18:22Z",
+      "side": 1,
+      "message": "I missed this. Thanks for pointing it out. Fixed.",
+      "parentUuid": "baa041b7_37b587ec",
+      "range": {
+        "startLine": 3,
+        "startChar": 59,
+        "endLine": 4,
+        "endChar": 40
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_37ac679e",
         "filename": "docs/qos.md",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2016-09-27T04:40:17Z",
       "side": 1,
       "message": "the value is literally copied to the dscp field of the outer ip header?\n\ndoes it mean dscp values should be coordinated among tenants?",
+      "range": {
+        "startLine": 24,
+        "startChar": 15,
+        "endLine": 24,
+        "endChar": 35
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_177de31b",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-27T05:18:22Z",
+      "side": 1,
+      "message": "Yes, it will be literally copied. I haven\u0027t given thought to how tenants should coordinate the use of the DSCP rules. Now that you mention it though, it seems like the users don\u0027t necessarily need to coordinate. The administrator will need to understand the consequences of letting multiple tenants choose the DSCP field.",
+      "parentUuid": "baa041b7_37ac679e",
       "range": {
         "startLine": 24,
         "startChar": 15,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f7795f30",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-27T05:18:22Z",
+      "side": 1,
+      "message": "Yes, the exact same way.",
+      "parentUuid": "baa041b7_1796034c",
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f7927f56",
         "filename": "docs/qos.md",
         "patchSetId": 7
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d772db49",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-27T05:18:22Z",
+      "side": 1,
+      "message": "Yes. Updated the spec to mention this.",
+      "parentUuid": "baa041b7_f7927f56",
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d79bfb71",
         "filename": "docs/qos.md",
         "patchSetId": 7
@@ -93,6 +177,30 @@
       "writtenOn": "2016-09-27T04:40:17Z",
       "side": 1,
       "message": "does this mean the traffic shaping will be briefly disabled when the setting was changed?",
+      "range": {
+        "startLine": 120,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 66
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_77bb0fc5",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-27T05:18:22Z",
+      "side": 1,
+      "message": "Good observation, i didn\u0027t consider that, but yes. It seems like the ref architecture does the same thing: https://github.com/openvswitch/ovs/blob/master/lib/netdev-linux.c#L2070\n\nI guess in a later iteration we could improve on this by being finer grained in our netlink ops.",
+      "parentUuid": "baa041b7_d79bfb71",
       "range": {
         "startLine": 120,
         "startChar": 0,
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_57ac8b87",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-27T05:18:22Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "baa041b7_778d4f30",
+      "range": {
+        "startLine": 146,
+        "startChar": 33,
+        "endLine": 147,
+        "endChar": 55
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b7987776",
         "filename": "docs/qos.md",
         "patchSetId": 7
@@ -139,6 +271,30 @@
       "writtenOn": "2016-09-27T04:40:17Z",
       "side": 1,
       "message": "how do you set it?",
+      "range": {
+        "startLine": 148,
+        "startChar": 59,
+        "endLine": 149,
+        "endChar": 8
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_37b107e1",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-27T05:18:22Z",
+      "side": 1,
+      "message": "OVS will set it in the same way it sets other fields in packets. I have added a line mentioning this.",
+      "parentUuid": "baa041b7_b7987776",
       "range": {
         "startLine": 148,
         "startChar": 59,
