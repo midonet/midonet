@@ -71,6 +71,213 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6da6a2c2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:53:04Z",
+      "side": 1,
+      "message": "are these traits needed?",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 21
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ed1d1210",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:53:04Z",
+      "side": 1,
+      "message": "scala getters use just names, e.g. `mac` or `vpp`",
+      "range": {
+        "startLine": 30,
+        "startChar": 12,
+        "endLine": 30,
+        "endChar": 18
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cd16cef1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:53:04Z",
+      "side": 1,
+      "message": "private?",
+      "range": {
+        "startLine": 41,
+        "startChar": 8,
+        "endLine": 41,
+        "endChar": 30
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8dd32638",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:53:04Z",
+      "side": 1,
+      "message": "you could just use try...catch here",
+      "range": {
+        "startLine": 50,
+        "startChar": 16,
+        "endLine": 50,
+        "endChar": 53
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0de836e1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:53:04Z",
+      "side": 1,
+      "message": "If this is async, you may consider scheduling a retry that will complete the future, rather than sleeping and blocking the thread",
+      "range": {
+        "startLine": 56,
+        "startChar": 28,
+        "endLine": 56,
+        "endChar": 46
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_edcbd270",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:53:04Z",
+      "side": 1,
+      "message": "add space",
+      "range": {
+        "startLine": 61,
+        "startChar": 19,
+        "endLine": 61,
+        "endChar": 20
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6dbfc2d0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:53:04Z",
+      "side": 1,
+      "message": "I think this will create a runnable, a promise, schedule the runnable on the execution context, and return the promise future. I think it\u0027s less expensive to just return Future.successful(...), unless you want to make sure that the code always executes on your executor.",
+      "range": {
+        "startLine": 81,
+        "startChar": 46,
+        "endLine": 81,
+        "endChar": 54
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4db07efd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:53:04Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 87,
+        "startChar": 47,
+        "endLine": 87,
+        "endChar": 53
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8da1e6ab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:53:04Z",
+      "side": 1,
+      "message": "null check?",
+      "range": {
+        "startLine": 104,
+        "startChar": 12,
+        "endLine": 104,
+        "endChar": 18
+      },
+      "revId": "915fb0ae16ccdadbc5fdbbe5a6196cf1118f96de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_7ac1b6e3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
         "patchSetId": 1
