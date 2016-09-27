@@ -28,7 +28,6 @@ import com.google.inject.Inject
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder
 import org.midonet.cluster.rest_api.neutron.models.L2GatewayConnection
-import org.midonet.cluster.rest_api.validation.MessageProperty.{RESOURCE_NOT_FOUND, getMessage}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes
 import org.midonet.cluster.services.rest_api.neutron.plugin.L2GatewayConnectionApi
 
