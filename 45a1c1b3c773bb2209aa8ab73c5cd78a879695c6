@@ -117,6 +117,52 @@
       "revId": "45a1c1b3c773bb2209aa8ab73c5cd78a879695c6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_adfcaab5",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/FutureSequenceWithRollback.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:34:34Z",
+      "side": 1,
+      "message": "indent",
+      "range": {
+        "startLine": 121,
+        "startChar": 33,
+        "endLine": 121,
+        "endChar": 55
+      },
+      "revId": "45a1c1b3c773bb2209aa8ab73c5cd78a879695c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4d22be55",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/FutureSequenceWithRollback.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T11:34:34Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 125,
+        "startChar": 30,
+        "endLine": 125,
+        "endChar": 46
+      },
+      "revId": "45a1c1b3c773bb2209aa8ab73c5cd78a879695c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
