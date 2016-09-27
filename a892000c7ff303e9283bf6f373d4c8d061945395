@@ -122,6 +122,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_50537116",
+        "filename": "python-midonetclient/src/midonetclient/api.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-27T14:08:57Z",
+      "side": 1,
+      "message": "The test wouldn\u0027t work without this change, so in order to even get to my tests, this had to be fixed.",
+      "parentUuid": "baa041b7_3a0d6e8f",
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ba197ed3",
         "filename": "python-midonetclient/src/midonetclient/application.py",
         "patchSetId": 4
