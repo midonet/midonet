@@ -1,0 +1,193 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1a406aa4",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 4
+      },
+      "lineNbr": 1997,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T09:57:57Z",
+      "side": 1,
+      "message": "-id is necesssary?",
+      "range": {
+        "startLine": 1997,
+        "startChar": 51,
+        "endLine": 1997,
+        "endChar": 54
+      },
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fa3ca630",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 4
+      },
+      "lineNbr": 2389,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T09:57:57Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 2389,
+        "startChar": 51,
+        "endLine": 2389,
+        "endChar": 54
+      },
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1ad2aa00",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 4
+      },
+      "lineNbr": 2935,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T09:57:57Z",
+      "side": 1,
+      "message": "extra newline?",
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7a09b694",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 4
+      },
+      "lineNbr": 2951,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T09:57:57Z",
+      "side": 1,
+      "message": "kbps",
+      "range": {
+        "startLine": 2951,
+        "startChar": 51,
+        "endLine": 2951,
+        "endChar": 55
+      },
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_facee658",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 4
+      },
+      "lineNbr": 2957,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T09:57:57Z",
+      "side": 1,
+      "message": "extra newline?",
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3a0d6e8f",
+        "filename": "python-midonetclient/src/midonetclient/api.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T09:57:57Z",
+      "side": 1,
+      "message": "is this related to the rest of change?",
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ba197ed3",
+        "filename": "python-midonetclient/src/midonetclient/application.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 637,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T09:57:57Z",
+      "side": 1,
+      "message": "indentation error?",
+      "range": {
+        "startLine": 637,
+        "startChar": 12,
+        "endLine": 637,
+        "endChar": 18
+      },
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1a6e2a2f",
+        "filename": "python-midonetclient/src/midonetclient/qos_rule_bw_limit.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T09:57:57Z",
+      "side": 1,
+      "message": "this variable name seems inappropriate.",
+      "range": {
+        "startLine": 50,
+        "startChar": 23,
+        "endLine": 50,
+        "endChar": 27
+      },
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fa6a6619",
+        "filename": "python-midonetclient/src/midonetclient/qos_rule_bw_limit.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T09:57:57Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 54,
+        "startChar": 29,
+        "endLine": 54,
+        "endChar": 31
+      },
+      "revId": "a892000c7ff303e9283bf6f373d4c8d061945395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
