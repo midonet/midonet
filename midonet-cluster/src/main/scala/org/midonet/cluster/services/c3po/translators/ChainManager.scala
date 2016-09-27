@@ -18,6 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.{Chain, RouterOrBuilder, Rule}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete}
@@ -68,7 +69,15 @@ trait ChainManager {
     }
 
     /** Returns operations to delete all rules for the specified chain. */
+    @Deprecated
     protected def deleteRulesOps(chain: Chain): Seq[Delete[Rule]] = {
         chain.getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
     }
+
+    protected def deleteRules(tx: Transaction, chain: Chain): Unit = {
+        chain.getRuleIdsList.asScala.foreach {
+            tx.delete(classOf[Rule], _, ignoresNeo = true)
+        }
+    }
+
 }
