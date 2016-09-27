@@ -260,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_972b33eb",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T06:11:38Z",
+      "side": 1,
+      "message": "why to be different from the neutron reference implementation?\n\nas we use the same api, it should have same semantics where possible.",
+      "parentUuid": "baa041b7_57ac8b87",
+      "range": {
+        "startLine": 146,
+        "startChar": 33,
+        "endLine": 147,
+        "endChar": 55
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b7987776",
         "filename": "docs/qos.md",
         "patchSetId": 7
@@ -295,6 +319,30 @@
       "side": 1,
       "message": "OVS will set it in the same way it sets other fields in packets. I have added a line mentioning this.",
       "parentUuid": "baa041b7_b7987776",
+      "range": {
+        "startLine": 148,
+        "startChar": 59,
+        "endLine": 149,
+        "endChar": 8
+      },
+      "revId": "1c4ed3e5624a240752d2af04eef3c80413d02cbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b7ebd7a3",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-27T06:11:38Z",
+      "side": 1,
+      "message": "you mean OVS_KEY_ATTR_TUNNEL?",
+      "parentUuid": "baa041b7_37b107e1",
       "range": {
         "startLine": 148,
         "startChar": 59,
