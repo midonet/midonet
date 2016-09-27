@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_70bf95d0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-27T15:31:31Z",
+      "side": 1,
+      "message": "we have this too. It\u0027s basically whether the underlying medium is up or down. For example, you admin state up/down your ethernet, which turns it on or off. link up/down is the same as pulling out the cable.",
+      "range": {
+        "startLine": 106,
+        "startChar": 8,
+        "endLine": 108,
+        "endChar": 69
+      },
+      "revId": "c1662f41d40368ab7cd12312496ff5ab8f0b4456",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
