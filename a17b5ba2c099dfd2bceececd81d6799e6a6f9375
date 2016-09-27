@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f0a04592",
+        "filename": "tests/mdts/lib/vtm_neutron.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-27T15:39:45Z",
+      "side": 1,
+      "message": "direction?",
+      "range": {
+        "startLine": 159,
+        "startChar": 25,
+        "endLine": 159,
+        "endChar": 34
+      },
+      "revId": "a17b5ba2c099dfd2bceececd81d6799e6a6f9375",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
