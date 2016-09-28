@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_427de41a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-09-28T21:09:37Z",
+      "side": 1,
+      "message": "IndexMask ?",
+      "range": {
+        "startLine": 62,
+        "startChar": 8,
+        "endLine": 62,
+        "endChar": 30
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1ca4e2a3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
         "patchSetId": 1
@@ -89,6 +112,29 @@
         "startChar": 8,
         "endLine": 97,
         "endChar": 32
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8231ac5b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-09-28T21:09:37Z",
+      "side": 1,
+      "message": "The \"hi\" part should be put to position [7:4], right?\n(mark \u0026 FlowIndexLowMask) | ((mark \u003e\u003e\u003e FlowIndexShift) \u003c\u003c\u003c FlowIndexLowBits)",
+      "range": {
+        "startLine": 97,
+        "startChar": 8,
+        "endLine": 97,
+        "endChar": 60
       },
       "revId": "4441186149d9af767c212435fd4207a8424dce9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
