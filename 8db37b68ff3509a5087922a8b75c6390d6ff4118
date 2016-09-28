@@ -22,6 +22,30 @@
       "revId": "8db37b68ff3509a5087922a8b75c6390d6ff4118",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_01111d52",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/FutureSequenceWithRollback.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-28T10:23:01Z",
+      "side": 1,
+      "message": "Will be removed in a later patch. It\u0027s a left over from the unit test",
+      "parentUuid": "baa041b7_060a5326",
+      "range": {
+        "startLine": 37,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 30
+      },
+      "revId": "8db37b68ff3509a5087922a8b75c6390d6ff4118",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
