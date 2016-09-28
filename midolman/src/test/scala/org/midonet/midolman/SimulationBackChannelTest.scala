@@ -17,20 +17,23 @@ package org.midonet.midolman
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.scalatest.{BeforeAndAfter, Matchers, FeatureSpec}
+import scala.collection.mutable
+
+import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
-import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 
 @RunWith(classOf[JUnitRunner])
 class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAndAfter {
 
-    val checkTriggers = new AtomicInteger(0)
-    var backChannel: ShardedSimulationBackChannel = null
-    var p1, p2, p3: SimulationBackChannel = _
+    private val checkTriggers = new AtomicInteger(0)
+    private var backChannel: ShardedSimulationBackChannel = null
+    private var p1, p2, p3, p4: SimulationBackChannel = _
+    private var c1: mutable.ArrayBuffer[BackChannelMessage] = _
 
-    var _processedMsgs: List[BackChannelMessage] = Nil
+    private var _processedMsgs: List[BackChannelMessage] = Nil
 
     def processedMsgs = {
         val ret = _processedMsgs
@@ -47,13 +50,15 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
     before {
         checkTriggers.set(0)
         backChannel = new ShardedSimulationBackChannel()
+        c1 = new mutable.ArrayBuffer[BackChannelMessage]()
         p1 = backChannel.registerProcessor()
         p2 = backChannel.registerProcessor()
         p3 = backChannel.registerProcessor()
+        p4 = backChannel.registerProcessor(c1 += _)
     }
 
     feature("delivers and handles messages") {
-        scenario("a message sent to one shard remains in that shard") {
+        scenario("a message sent to one queue shard remains in that shard") {
             p1.tell(Message("foo"))
             process(p1)
             processedMsgs should be (List(Message("foo")))
@@ -61,9 +66,21 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
             processedMsgs should be (Nil)
             process(p3)
             processedMsgs should be (Nil)
+            c1 shouldBe empty
         }
 
-        scenario("a broacast message sent to one shard ends up in all shards") {
+        scenario("a message sent to one callback shard remains in that shard") {
+            p4.tell(Message("foo"))
+            process(p1)
+            processedMsgs should be (Nil)
+            process(p2)
+            processedMsgs should be (Nil)
+            process(p3)
+            processedMsgs should be (Nil)
+            c1 should contain only Message("foo")
+        }
+
+        scenario("a broadcast message sent to one queue shard ends up in all shards") {
             p1.tell(new Message("foo") with Broadcast)
             process(p1)
             processedMsgs should be (List(Message("foo")))
@@ -71,6 +88,18 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
             processedMsgs should be (List(Message("foo")))
             process(p3)
             processedMsgs should be (List(Message("foo")))
+            c1 should contain only Message("foo")
+        }
+
+        scenario("a broadcast message sent to one callback shard ends up in all shards") {
+            p4.tell(new Message("foo") with Broadcast)
+            process(p1)
+            processedMsgs should be (List(Message("foo")))
+            process(p2)
+            processedMsgs should be (List(Message("foo")))
+            process(p3)
+            processedMsgs should be (List(Message("foo")))
+            c1 should contain only Message("foo")
         }
 
         scenario("cannot process messaged on the main channel") {
@@ -85,6 +114,12 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
             }
         }
 
+        scenario("cannot poll on the callback shard") {
+            intercept[UnsupportedOperationException] {
+                p4.poll()
+            }
+        }
+
         scenario("a broadcast message sent to the parent channel ends up in all shards") {
             backChannel.tell(new Message("foo") with Broadcast)
             process(p1)
@@ -93,6 +128,7 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
             processedMsgs should be (List(Message("foo")))
             process(p3)
             processedMsgs should be (List(Message("foo")))
+            c1 should contain only Message("foo")
         }
 
         scenario("shards report correctly whether they contain messages") {
@@ -111,6 +147,8 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
             p3.hasMessages should be (true)
             process(p3)
             p3.hasMessages should be (false)
+
+            p4.hasMessages shouldBe false
 
             backChannel.hasMessages should be (false)
         }
