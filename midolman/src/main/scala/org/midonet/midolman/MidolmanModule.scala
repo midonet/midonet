@@ -118,7 +118,7 @@ class MidolmanModule(injector: Injector,
 
         bind(classOf[DatapathConnectionPool]).toInstance(connectionPool())
 
-        bind(classOf[DatapathConnectionService]).asEagerSingleton()
+        bind(classOf[DatapathService]).asEagerSingleton()
 
         bind(classOf[FlowStateStorageFactory]).toInstance(flowStateStorageFactory())
 
