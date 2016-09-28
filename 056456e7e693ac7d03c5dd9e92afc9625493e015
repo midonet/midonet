@@ -22,6 +22,30 @@
       "revId": "056456e7e693ac7d03c5dd9e92afc9625493e015",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c1b21549",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-28T10:56:50Z",
+      "side": 1,
+      "message": "I meant to be expected to the VPP controller in later patches. Perhaps it should be the packet workflow too, but I\u0027m not working on that at the moment.",
+      "parentUuid": "baa041b7_2169c1be",
+      "range": {
+        "startLine": 15,
+        "startChar": 18,
+        "endLine": 15,
+        "endChar": 32
+      },
+      "revId": "056456e7e693ac7d03c5dd9e92afc9625493e015",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
