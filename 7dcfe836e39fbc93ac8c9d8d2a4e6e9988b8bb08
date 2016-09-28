@@ -22,6 +22,30 @@
       "revId": "7dcfe836e39fbc93ac8c9d8d2a4e6e9988b8bb08",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e6c40f61",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-28T08:01:18Z",
+      "side": 1,
+      "message": "You\u0027re right, kept Integer then, where needed it\u0027s easy to check whether it\u0027s null or not.",
+      "parentUuid": "baa041b7_d0a66153",
+      "range": {
+        "startLine": 357,
+        "startChar": 30,
+        "endLine": 357,
+        "endChar": 32
+      },
+      "revId": "7dcfe836e39fbc93ac8c9d8d2a4e6e9988b8bb08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
