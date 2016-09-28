@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_26279713",
+        "filename": "tests/mdts/lib/vtm_neutron.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-28T08:49:04Z",
+      "side": 1,
+      "message": "Maybe this could be the default behaviour (ignoring not found objects when cleaning up) and moved into create_resource and add a flag in create_resource like ignore_not_found or something with True as default. Just in case we delete something on the test for some valid reason.",
+      "range": {
+        "startLine": 145,
+        "startChar": 8,
+        "endLine": 149,
+        "endChar": 20
+      },
+      "revId": "a17b5ba2c099dfd2bceececd81d6799e6a6f9375",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f0a04592",
         "filename": "tests/mdts/lib/vtm_neutron.py",
         "patchSetId": 1
