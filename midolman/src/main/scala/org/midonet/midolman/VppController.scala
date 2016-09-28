@@ -88,8 +88,10 @@ class VppController @Inject() (config: MidolmanConfig)
     }
 
     override def receive: Receive = {
-        case LocalPortActive(portId, true) => handlePortActive(portId)
-        case LocalPortActive(portId, false) => handlePortInactive(portId)
+        case LocalPortActive(portId, portNumber, true) =>
+            handlePortActive(portId)
+        case LocalPortActive(portId, portNumber, false) =>
+            handlePortInactive(portId)
         case OnCompleted => // ignore
         case OnError(err) => log.error("Exception on active ports observable",
                                        err)
