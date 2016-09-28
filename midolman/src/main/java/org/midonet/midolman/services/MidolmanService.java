@@ -52,7 +52,7 @@ public class MidolmanService extends AbstractService {
     PacketWorkersService packetWorkersService;
 
     @Inject
-    DatapathConnectionService datapathConnectionService;
+    DatapathService datapathService;
 
     @Inject
     SelectLoopService selectLoopService;
@@ -164,7 +164,7 @@ public class MidolmanService extends AbstractService {
 
     private List<Service> services() {
         ArrayList<Service> services = new ArrayList<>(5);
-        services.add(datapathConnectionService);
+        services.add(datapathService);
         services.add(selectLoopService);
         if (hostService != null)
             services.add(hostService);
