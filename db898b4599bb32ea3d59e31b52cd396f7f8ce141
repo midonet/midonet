@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3ca6860f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/SimulationBackChannel.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-28T13:51:38Z",
+      "side": 1,
+      "message": "Any comment on the concurrency guarantees of the callback? Any assumption on who is the caller of offer and the one registering the callback?",
+      "range": {
+        "startLine": 147,
+        "startChar": 8,
+        "endLine": 148,
+        "endChar": 30
+      },
+      "revId": "db898b4599bb32ea3d59e31b52cd396f7f8ce141",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
