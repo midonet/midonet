@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2169c1be",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-28T10:48:42Z",
+      "side": 1,
+      "message": "packet workflow? Or is this message expected to be forwarded to the vpp controller in later patches?",
+      "range": {
+        "startLine": 15,
+        "startChar": 18,
+        "endLine": 15,
+        "endChar": 32
+      },
+      "revId": "056456e7e693ac7d03c5dd9e92afc9625493e015",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
