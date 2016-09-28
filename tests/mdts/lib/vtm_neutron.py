@@ -15,7 +15,11 @@
 #
 from mdts.lib.topology_manager import TopologyManager
 from mdts.tests.utils.utils import get_neutron_api, get_keystone_api
+from neutronclient.common.exceptions import NotFound
 
+import logging
+
+LOG = logging.getLogger(__name__)
 
 class NeutronTopologyManager(TopologyManager):
     """
@@ -40,7 +44,7 @@ class NeutronTopologyManager(TopologyManager):
         self.api = get_neutron_api()
         self.keystone = get_keystone_api()
 
-    def create_resource(self, resource, name=None):
+    def create_resource(self, resource, name=None, ignore_not_found=True):
         # Get the type of the resource just created.
         rtype = resource.keys()[0]
 
@@ -63,5 +67,99 @@ class NeutronTopologyManager(TopologyManager):
             self.method_mappings['create'],
             rtype)
         delete = getattr(self.api, delete_method_name)
-        self.addCleanup(delete, resource[rtype]['id'])
+
+        def delete_ignoring_not_found(id):
+            try:
+                delete(id)
+            except NotFound:
+                LOG.warn("%s %s not found during cleanup" % (rtype, id))
+
+        self.addCleanup(delete_ignoring_not_found, resource[rtype]['id'])
+
         return resource
+
+    def create_network(self, name, external=False, uplink=False):
+        network_params = {'name': name,
+                          'admin_state_up': True,
+                          'router:external': external,
+                          'tenant_id': 'admin'}
+        if uplink:
+            network_params['provider:network_type'] = 'uplink'
+        network = self.create_resource(
+            self.api.create_network({'network': network_params }))
+        return network['network']
+
+    def create_subnet(self, name, network, cidr, enable_dhcp=True):
+        subnet = self.create_resource(
+            self.api.create_subnet(
+                {'subnet':
+                    {'name': name,
+                     'network_id': network['id'],
+                     'ip_version': 4,
+                     'cidr': cidr,
+                     'enable_dhcp': enable_dhcp}}))
+        return subnet['subnet']
+
+    def create_router(self, name):
+        router = self.create_resource(
+            self.api.create_router(
+                    {'router': {'name': name,
+                                'tenant_id': 'admin' }}))
+        return router['router']
+
+    def set_router_gateway(self, router, network):
+        router = self.api.update_router(router['id'],
+                                        {'router': {
+                                            'external_gateway_info': {
+                                                'network_id': network['id']
+                                            }
+                                        }})
+
+    def add_router_interface(self, router, subnet=None, port=None):
+        if subnet != None:
+            self.api.add_interface_router(
+                router['id'], {'subnet_id': subnet['id']})
+            self.addCleanup(self.api.remove_interface_router,
+                            router['id'],
+                            {'subnet_id': subnet['id']})
+        elif port != None:
+            self.api.add_interface_router(
+                router['id'], {'port_id': port['id']})
+            self.addCleanup(self.api.remove_interface_router,
+                            router['id'],
+                            {'port_id': port['id']})
+
+    def create_port(self, name, network,
+                    host_id=None, interface=None, fixed_ip=None):
+        port_params = {'name': name,
+                       'network_id': network['id'],
+                       'admin_state_up': True,
+                       'tenant_id': 'admin'}
+        if host_id:
+            port_params['binding:host_id'] = host_id
+        if interface:
+            port_params['binding:profile'] = { 'type': 'dict',
+                                               'interface_name': interface }
+        if fixed_ip:
+            port_params['fixed_ips'] = [{ "ip_address": fixed_ip }]
+
+        port = self.create_resource(
+            self.api.create_port({'port': port_params}))
+        return port['port']
+
+    def create_sg_rule(self, sgid, direction='ingress', protocol=None):
+        rule_definition = {
+            'direction': direction,
+            'security_group_id': sgid
+        }
+        if protocol:
+            rule_definition['protocol'] = protocol
+        try:
+            self.create_resource(
+                self.api.create_security_group_rule({
+                    'security_group_rule': rule_definition
+                }))
+        except:
+            pass
+
+
