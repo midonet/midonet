@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1ca4e2a3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-28T15:24:07Z",
+      "side": 1,
+      "message": "So according to the comment above, every character in this diagram represents a bit, you should use 1 instead F for a set bit.",
+      "range": {
+        "startLine": 57,
+        "startChar": 13,
+        "endLine": 57,
+        "endChar": 40
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5cfa6a78",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-28T15:24:07Z",
+      "side": 1,
+      "message": "You\u0027re taking the lower 8 bits and not the lower 4 bits. You should use FlowIndexLowerMask.",
+      "range": {
+        "startLine": 97,
+        "startChar": 8,
+        "endLine": 97,
+        "endChar": 32
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
