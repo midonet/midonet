@@ -128,7 +128,7 @@ class VppController @Inject()(config: MidolmanConfig,
             startVppProcess()
         }
 
-        val setup = new VppSetup(port.interfaceName,
+        val setup = new VppSetup(port,
                                  upcallConnManager,
                                  datapathState,
                                  context.system.scheduler)
