@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory
 
 import rx.Observer
 
-import org.midonet.midolman.PacketWorkflow.DuplicateFlow
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.{DatapathState, SimulationBackChannel}
@@ -55,6 +55,19 @@ object FlowProcessor {
         classOf[FlowProcessor].getDeclaredField("lastSequence"))
 
     private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
+
+    /**
+      * A flow back-channel message.
+      */
+    trait FlowMessage extends BackChannelMessage with Broadcast
+    /**
+      * Back-channel message for a duplicate flow.
+      */
+    case class DuplicateFlow(index: Int) extends FlowMessage
+    /**
+      * Back-channel message for a flow error.
+      */
+    case class FlowError(index: Int) extends FlowMessage
 
 }
 
@@ -112,6 +125,7 @@ class FlowProcessor(dpState: DatapathState,
     override def onEvent(event: PacketContextHolder, sequence: Long,
                          endOfBatch: Boolean): Boolean = {
         val context = event.flowCreateRef
+        log.debug(s"Packet context event $context with flow ${context.flow}")
         event.flowCreateRef = null
         if (context.flow ne null) {
             // We use the same index for linked flows: if there is a problem
@@ -255,11 +269,14 @@ class FlowProcessor(dpState: DatapathState,
         } catch {
             case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
                 datapathMetrics.flowCreateDupes.mark()
-                log.debug("Tried to add duplicate DP flow")
+                log.debug("Tried to add duplicate DP flow with index " +
+                          s"0x${Integer.toHexString(ne.seq)}")
                 backChannel.tell(DuplicateFlow(ne.seq))
-            case e: NetlinkException =>
+            case ne: NetlinkException =>
                 datapathMetrics.flowCreateErrors.mark()
-                log.warn("Failed to create flow", e)
+                log.warn("Failed to create flow with index " +
+                         s"0x${Integer.toHexString(ne.seq)}", ne)
+                backChannel.tell(FlowError(ne.seq))
             case NonFatal(e) =>
                 datapathMetrics.flowCreateErrors.mark()
                 log.error("Unexpected error when creating a flow")
