@@ -64,12 +64,16 @@ trait ChainManager {
                            ruleIds: Seq[UUID] = Seq(),
                            jumpRuleIds: Seq[UUID] = Seq(),
                            routerId: UUID = null): Chain = {
-        val bldr = Chain.newBuilder.setId(id).setName(name)
-        bldr.addAllRuleIds(ruleIds.asJava)
-        bldr.addAllJumpRuleIds(jumpRuleIds.asJava)
-        if (routerId != null) {
+        val bldr = Chain.newBuilder()
+            .setId(id)
+            .setName(name)
+            .addAllRuleIds(ruleIds.asJava)
+            .addAllJumpRuleIds(jumpRuleIds.asJava)
+
+        if (routerId ne null) {
             bldr.addRouterRedirectIds(routerId)
         }
+
         bldr.build()
     }
 
@@ -86,7 +90,15 @@ trait ChainManager {
     }
 
     /** Returns operations to delete all rules for the specified chain. */
+    @Deprecated
     protected def deleteRulesOps(chain: Chain): Seq[Delete[Rule]] = {
         chain.getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
     }
+
+    protected def deleteRules(tx: Transaction, chain: Chain): Unit = {
+        chain.getRuleIdsList.asScala.foreach {
+            tx.delete(classOf[Rule], _, ignoresNeo = true)
+        }
+    }
+
 }
