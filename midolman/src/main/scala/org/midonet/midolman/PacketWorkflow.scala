@@ -43,7 +43,8 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.{Port, _}
-import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
+import org.midonet.midolman.datapath.FlowProcessor.{DuplicateFlow, FlowError}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatKey, releaseBinding}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -72,8 +73,6 @@ object PacketWorkflow {
     case class HandlePackets(packet: Array[Packet])
     case class RestartWorkflow(context: PacketContext, error: Throwable)
         extends BackChannelMessage
-
-    case class DuplicateFlow(index: Int) extends BackChannelMessage with Broadcast
 
     sealed trait GeneratedPacket extends BackChannelMessage {
         val eth: Ethernet
@@ -296,6 +295,7 @@ class PacketWorkflow(
         case m: GeneratedPacket => startWorkflow(generatedPacketContext(m))
         case m: FlowStateBatch => replicator.importFromStorage(m)
         case DuplicateFlow(index) => duplicateFlow(index)
+        case FlowError(index) => // Do nothing.
     }
 
     override def process(): Unit = {
