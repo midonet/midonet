@@ -22,6 +22,30 @@
       "revId": "82d817de7e3aadbc849f609ebc96a444dc24c6fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_46ff3b66",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-28T08:24:42Z",
+      "side": 1,
+      "message": "You\u0027re right. When we add the other veth pair we can improve the naming.",
+      "parentUuid": "baa041b7_067a5324",
+      "range": {
+        "startLine": 147,
+        "startChar": 32,
+        "endLine": 147,
+        "endChar": 55
+      },
+      "revId": "82d817de7e3aadbc849f609ebc96a444dc24c6fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
