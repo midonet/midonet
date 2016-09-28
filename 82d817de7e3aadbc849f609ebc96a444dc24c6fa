@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_067a5324",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-28T08:08:38Z",
+      "side": 1,
+      "message": "comment for a future patch: maybe we should make these a prefix?",
+      "range": {
+        "startLine": 147,
+        "startChar": 32,
+        "endLine": 147,
+        "endChar": 55
+      },
+      "revId": "82d817de7e3aadbc849f609ebc96a444dc24c6fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
