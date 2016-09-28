@@ -2015,6 +2015,11 @@ class Bridge(ObjectType):
                                  getter = 'get_outbound_filter_id',
                                  setter = 'outbound_filter_id',
                                  unsetter = 'outbound_filter_id'))
+        self.put_attr(SingleAttr(name = 'qos-policy',
+                                 value_type = ObjectRef('qos-policy'),
+                                 getter = 'get_qos_policy_id',
+                                 setter = 'qos_policy_id',
+                                 optional = True))
         self.put_attr(ListAttr(name = 'in-mirrors',
                                  element_type = MirrorRef(),
                                  getter = 'get_inbound_mirrors',
@@ -2402,6 +2407,11 @@ class BridgePort(ObjectType):
         self.put_attr(SingleAttr(name = 'vni',
                                  value_type = StringType(),
                                  getter = 'get_vni'))
+        self.put_attr(SingleAttr(name = 'qos-policy',
+                                 value_type = ObjectRef('qos-policy'),
+                                 getter = 'get_qos_policy_id',
+                                 setter = 'qos_policy_id',
+                                 optional = True))
         self.put_attr(ListAttr(name = 'in-mirrors',
                                  element_type = MirrorRef(),
                                  getter = 'get_inbound_mirrors',
@@ -2929,6 +2939,73 @@ class TraceRequest(Condition):
     def type_name(self):
         return "tr"
 
+# QoS
+class QOSRuleDSCP(ObjectType):
+    def __init__(self, obj):
+        super(QOSRuleDSCP, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'policy',
+                                 value_type = ObjectRef('qos-policy'),
+                                 getter = 'get_policy_id',
+                                 setter = 'policy_id',
+                                 show = False))
+        self.put_attr(SingleAttr(name = 'dscp-mark',
+                                 value_type = StringType(),
+                                 getter = 'get_dscp_mark',
+                                 setter = 'dscp_mark'))
+
+    def type_name(self):
+        return "qos-dscp-rule"
+
+class QOSRuleBWLimit(ObjectType):
+    def __init__(self, obj):
+        super(QOSRuleBWLimit, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'policy',
+                                 value_type = ObjectRef('qos-policy'),
+                                 getter = 'get_policy_id',
+                                 setter = 'policy_id',
+                                 show = False))
+        self.put_attr(SingleAttr(name = 'max-kbps',
+                                 value_type = StringType(),
+                                 getter = 'get_max_kbps',
+                                 setter = 'max_kbps'))
+        self.put_attr(SingleAttr(name = 'max-burst-kbps',
+                                 value_type = StringType(),
+                                 optional=True,
+                                 getter = 'get_max_burst_kbps',
+                                 setter = 'max_burst_kbps'))
+
+    def type_name(self):
+        return "qos-bw-limit-rule"
+
+class QOSPolicy(ObjectType):
+    def __init__(self, obj):
+        super(QOSPolicy, self).__init__(obj)
+        self.put_attr(TenantAttr())
+        self.put_attr(Collection(name = 'dscp-rule',
+                                 element_type = QOSRuleDSCP,
+                                 list_method = 'get_dscp_rules',
+                                 getter = 'get_qos_dscp_rule',
+                                 factory_method = 'add_dscp_rule'))
+        self.put_attr(Collection(name = 'bw-limit-rule',
+                                 element_type = QOSRuleBWLimit,
+                                 list_method = 'get_bw_limit_rules',
+                                 getter = 'get_qos_bw_limit_rule',
+                                 factory_method = 'add_bw_limit_rule'))
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 setter = 'name',
+                                 getter = 'get_name'))
+        self.put_attr(SingleAttr(name = 'description',
+                                 value_type = StringType(),
+                                 setter = 'description',
+                                 getter = 'get_description'))
+        self.put_attr(SingleAttr(name = 'shared',
+                                 value_type = BooleanType(),
+                                 setter = 'shared',
+                                 getter = 'get_shared'))
+    def type_name(self):
+        return "qos-policy"
+
 def _port_resolver(port):
     # This function dispatches the appropriate port class depending on the
     # given port's type and instantiate it.
@@ -3051,6 +3128,11 @@ class Midonet(ObjectType):
                                  list_method = 'get_service_container_groups',
                                  getter = 'get_service_container_group',
                                  factory_method = 'add_service_container_group'))
+        self.put_attr(Collection(name = 'qos-policy',
+                                 element_type = QOSPolicy,
+                                 list_method = 'get_qos_policies',
+                                 getter = 'get_qos_policy',
+                                 factory_method = 'add_qos_policy'))
 
 ################################################################################
 # Grammar tokens
