@@ -18,13 +18,23 @@ package org.midonet.midolman
 
 import java.util.ArrayList
 
+import scala.util.control.NonFatal
+
 import org.jctools.queues.MpscLinkedQueue8
 
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
 object SimulationBackChannel {
+
+    type BackChannelCallback = (BackChannelMessage) => Unit
+
     trait BackChannelMessage
     trait Broadcast { this: BackChannelMessage => }
+
+    trait BackChannelShard extends SimulationBackChannel {
+        def offer(msg: BackChannelMessage): Unit
+    }
+
 }
 
 trait SimulationBackChannel {
@@ -33,23 +43,38 @@ trait SimulationBackChannel {
     def poll(): SimulationBackChannel.BackChannelMessage
 }
 
-final class ShardedSimulationBackChannel
-    extends SimulationBackChannel {
+final class ShardedSimulationBackChannel extends SimulationBackChannel {
     import SimulationBackChannel._
 
-    private val NO_SHARD: BackChannelShard = null
+    private val noShard: BackChannelShard = null
     private val processors = new ArrayList[BackChannelShard]()
 
+    /**
+      * Registers a queue-based back-channel shard.
+      */
     def registerProcessor(): BackChannelShard = {
-        val processor = new BackChannelShard()
-        processors.add(processor)
-        processor
+        processors.synchronized {
+            val processor = new QueueBackChannelShard()
+            processors.add(processor)
+            processor
+        }
+    }
+
+    /**
+      * Registers a callback-based back-channel shard.
+      */
+    def registerProcessor(callback: BackChannelCallback): BackChannelShard = {
+        processors.synchronized {
+            val processor = new CallbackBackChannelShard(callback)
+            processors.add(processor)
+            processor
+        }
     }
 
     override def tell(msg: BackChannelMessage): Unit =
         msg match {
             case msg: Broadcast =>
-                tellOthers(NO_SHARD, msg)
+                tellOthers(noShard, msg)
             case _ =>
                 throw new IllegalArgumentException(
                     "Scheduling a non-broadcast messaged on the main back " +
@@ -80,20 +105,25 @@ final class ShardedSimulationBackChannel
 
     override def poll(): BackChannelMessage =
         throw new UnsupportedOperationException(
-            "Calling process on the main back channel is not supported")
+            "Calling poll on the main back channel is not supported")
 
-    final class BackChannelShard extends SimulationBackChannel with Parkable {
+    /**
+      * A back-channel shard that uses a multi-producer single-consumer queue.
+      * Back-channel consumers must regularly poll the shard in order to fetch
+      * the last back-channel messages.
+      */
+    final class QueueBackChannelShard extends BackChannelShard with Parkable {
 
         private val q = new MpscLinkedQueue8[BackChannelMessage]()
 
-        private[ShardedSimulationBackChannel] def offer(msg: BackChannelMessage): Unit = {
+        override def offer(msg: BackChannelMessage): Unit = {
             while (!q.offer(msg)) {
                 park(retries = 0)
             }
         }
 
         /**
-         * Schedules this message on the current backchannel, and, if it is
+         * Schedules this message on the current back-channel, and, if it is
          * a broadcast message, schedules it on all the remaining shards.
          */
         override def tell(msg: BackChannelMessage): Unit = {
@@ -111,5 +141,38 @@ final class ShardedSimulationBackChannel
             q.poll()
 
         override def shouldWakeUp(): Boolean = hasMessages
+    }
+
+    /**
+      * A back-channel shard that uses a callback function to send back-channel
+      * messages to consumers.
+      */
+    final class CallbackBackChannelShard(callback: (BackChannelMessage) => Unit)
+        extends BackChannelShard {
+
+        override def offer(msg: BackChannelMessage): Unit = {
+            try callback(msg)
+            catch { case NonFatal(e) => /* Catch all exceptions */ }
+        }
+
+        /**
+          * Schedules this message on the current back-channel, and, if it is
+          * a broadcast message, schedules it on all the remaining shards.
+          */
+        override def tell(msg: BackChannelMessage): Unit = {
+            offer(msg)
+            if (msg.isInstanceOf[BackChannelMessage with Broadcast])
+                tellOthers(this, msg)
+        }
+
+        override def hasMessages: Boolean = false
+
+        /**
+          * Processes the messages in this instance.
+          */
+        override def poll(): BackChannelMessage = {
+            throw new UnsupportedOperationException(
+                "Calling poll on the callback back channel is not supported")
+        }
     }
 }
