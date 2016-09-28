@@ -23,6 +23,7 @@ import scala.util.{Failure, Success, Try}
 import akka.actor.Scheduler
 
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.vpp.VppApi
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
@@ -33,19 +34,23 @@ object VppSetup {
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
 
-    private trait MacSource {
+    private trait MacAddressProvider {
         def macAddress: Option[Array[Byte]]
     }
 
-    private trait VppSource {
+    private trait VppApiProvider {
         def vppApi: Option[VppApi]
+    }
+
+    private trait VppInterfaceProvider {
+        def vppInterface: Option[Int]
     }
 
     private class VethPairSetup(override val name: String,
                         devName: String,
                         peerName: String)
                        (implicit ec: ExecutionContext)
-        extends FutureTaskWithRollback with MacSource {
+        extends FutureTaskWithRollback with MacAddressProvider {
 
         var macAddress: Option[Array[Byte]] = None
 
@@ -63,12 +68,12 @@ object VppSetup {
 
     private class VppDevice(override val name: String,
                     deviceName: String,
-                    vppSource: VppSource,
-                    macSource: MacSource)
+                    vppSource: VppApiProvider,
+                    macSource: MacAddressProvider)
                    (implicit ec: ExecutionContext)
-        extends FutureTaskWithRollback {
+        extends FutureTaskWithRollback with VppInterfaceProvider {
 
-        var interfaceIndex: Option[Int] = None
+        var vppInterface: Option[Int] = None
 
         @throws[Exception]
         override def execute(): Future[Any] = {
@@ -79,7 +84,7 @@ object VppSetup {
                                                isUp = true)
                         .map( _ => result.swIfIndex)
                 } andThen {
-                    case Success(index) => interfaceIndex = Some(index)
+                    case Success(index) => vppInterface = Some(index)
                 }
         }
 
@@ -90,9 +95,34 @@ object VppSetup {
         }
     }
 
+    private class VppIpAddr(override val name: String,
+                            vppSource: VppApiProvider,
+                            deviceId: VppInterfaceProvider,
+                            address: Array[Byte],
+                            prefix: Byte)
+                           (implicit ec: ExecutionContext)
+        extends FutureTaskWithRollback {
+        require(address.size == 4 || address.size == 16)
+
+        @throws[Exception]
+        override def execute(): Future[Any] = addDelIpAddress(isAdd = true)
+
+        @throws[Exception]
+        override def rollback(): Future[Any] = addDelIpAddress(isAdd = false)
+
+        private def addDelIpAddress(isAdd: Boolean) = {
+            val vppApi = vppSource.vppApi.get
+            vppApi.addDelDeviceAddress(deviceId.vppInterface.get,
+                                       address,
+                                       prefix,
+                                       isIpv6=(address.size!=4),
+                                       isAdd)
+        }
+    }
+
     private class VppConnect(scheduler: Scheduler)
                             (implicit ec: ExecutionContext)
-        extends FutureTaskWithRollback with VppSource {
+        extends FutureTaskWithRollback with VppApiProvider {
 
         override def name: String = "vpp connect"
 
@@ -135,7 +165,7 @@ object VppSetup {
     }
 }
 
-class VppSetup(uplinkInterface: String,
+class VppSetup(uplinkPort: RouterPort,
                upcallConnManager: UpcallDatapathConnectionManager,
                datapathState: DatapathState,
                scheduler: Scheduler)
@@ -144,10 +174,14 @@ class VppSetup(uplinkInterface: String,
 
     import VppSetup._
 
-    private val uplinkVppName = uplinkInterface + "-uv"
-    private val uplinkOvsName = uplinkInterface + "-uo"
+    private val uplinkVppName = uplinkPort.interfaceName + "-uv"
+    private val uplinkOvsName = uplinkPort.interfaceName + "-uo"
+    private val uplinkVppAddr = Array[Byte](0x20, 0x01, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0x1)
+    private val uplinkVppPrefix: Byte = 64
 
     private val vppConnect = new VppConnect(scheduler)
+
     private val uplinkVeth = new VethPairSetup("uplink veth pair",
                                        uplinkVppName,
                                        uplinkOvsName)
@@ -157,10 +191,16 @@ class VppSetup(uplinkInterface: String,
                                   vppConnect,
                                   uplinkVeth)
 
+    private val ipAddrVpp = new VppIpAddr("set ip addr for vpp port",
+                                          vppConnect,
+                                          uplinkVpp,
+                                          uplinkVppAddr,
+                                          uplinkVppPrefix)
     /*
      * setup the tasks, in execution order
      */
     add(vppConnect)
     add(uplinkVeth)
     add(uplinkVpp)
+    add(ipAddrVpp)
 }
