@@ -52,7 +52,7 @@ class RuleLoggerMapper(id: UUID, vt: VirtualTopology)
     // NB: The order of merged observables is important. LogResTracker's
     // observable must be merged before ruleLoggerObservable is merged, so that
     // the LogResource update isn't dropped.
-    override def observable: Observable[SimRuleLogger] =
+    override val observable: Observable[SimRuleLogger] =
         Observable.merge(logResTracker.refsObservable, ruleLoggerObservable)
             .observeOn(vt.vtScheduler)
             .filter(makeFunc1(isReady))

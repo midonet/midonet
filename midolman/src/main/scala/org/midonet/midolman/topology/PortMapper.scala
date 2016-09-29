@@ -30,7 +30,7 @@ import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, L2Insertion}
 import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
-import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc4}
+import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
 /**
  * A device mapper that exposes an [[rx.Observable]] with notifications for
@@ -62,12 +62,15 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     override def logSource = "org.midonet.devices.port"
     override def logMark = s"port:$id"
 
-    private var currentPort: SimulationPort = _
-    private var prevAdminStateUp: Boolean = false
-    private var prevActive: Boolean = false
+    private var topologyPort: TopologyPort = null
 
     private val portStateSubject = PublishSubject.create[UUID]
-    private var portStateReady = false
+    private var portState: PortState = null
+
+    private var traceChainIdOpt: Option[UUID] = None
+
+    private var prevAdminStateUp: Boolean = false
+    private var prevActive: Boolean = false
 
     private val chainsTracker =
         new ObjectReferenceTracker(vt, classOf[Chain], log)
@@ -77,60 +80,52 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         new StoreObjectReferenceTracker(vt, classOf[L2Insertion], log)
     private var peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty
 
-    private lazy val combinator =
-        makeFunc4[PortState, Option[UUID], JList[UUID],
-                  TopologyPort, SimulationPort](
-            (state: PortState, traceChain: Option[UUID],
-             servicePorts: JList[UUID], port: TopologyPort) => {
+    private def buildPort(ignored: AnyRef): SimulationPort = {
+        val inFilters = new JArrayList[UUID](2)
+        val outFilters = new JArrayList[UUID](2)
+        traceChainIdOpt.foreach(inFilters.add)
+        if (topologyPort.hasL2InsertionInfilterId) {
+            inFilters.add(topologyPort.getL2InsertionInfilterId)
+        }
+        if (topologyPort.hasInboundFilterId) {
+            inFilters.add(topologyPort.getInboundFilterId)
+        }
+        if (topologyPort.hasOutboundFilterId) {
+            outFilters.add(topologyPort.getOutboundFilterId)
+        }
+        if (topologyPort.hasL2InsertionOutfilterId) {
+            outFilters.add(topologyPort.getL2InsertionOutfilterId)
+        }
 
-                val infilters = new JArrayList[UUID](1)
-                val outfilters = new JArrayList[UUID](1)
-                traceChain.foreach(infilters.add)
-                if (port.hasL2InsertionInfilterId) {
-                    infilters.add(port.getL2InsertionInfilterId)
-                }
-                if (port.hasInboundFilterId) {
-                    infilters.add(port.getInboundFilterId)
-                }
-                if (port.hasOutboundFilterId) {
-                    outfilters.add(port.getOutboundFilterId)
-                }
-                if (port.hasL2InsertionOutfilterId) {
-                    outfilters.add(port.getL2InsertionOutfilterId)
-                }
-                val portState = if (portStateReady) state else PortInactive
+        SimulationPort(topologyPort, portState, inFilters, outFilters,
+                       makeServicePortList, peeringTable)
+    }
 
-                SimulationPort(port, portState, infilters, outfilters, servicePorts,
-                               peeringTable)
-            })
+    private lazy val portObservable =
+        vt.store.observable(classOf[TopologyPort], id)
+            .observeOn(vt.vtScheduler)
+            .doOnNext(makeAction1(topologyPortUpdated))
+            .doOnCompleted(makeAction0(portDeleted()))
+            .distinctUntilChanged()
 
-    private lazy val portObservable = Observable
-        .combineLatest[PortState, Option[UUID], JList[UUID],
-                       TopologyPort, SimulationPort](
-            vt.stateStore.portStateObservable(id, portStateSubject)
-                .observeOn(vt.vtScheduler)
-                .doOnNext(makeAction1(_ => portStateReady = true))
-                .onErrorResumeNext(Observable.empty()),
-            Observable.merge(traceChainObservable, Observable.just(None)),
-            Observable.merge(Observable.just(new JArrayList[UUID](0)),
-                             l2insertionsTracker.refsObservable
-                                 .observeOn(vt.vtScheduler)
-                                 .filter(makeFunc1(areL2InsertionsReady))
-                                 .map[JList[UUID]](makeFunc1(makeServicePortList))),
-            vt.store.observable(classOf[TopologyPort], id)
-                .observeOn(vt.vtScheduler)
-                .doOnNext(makeAction1(topologyPortUpdated))
-                .doOnCompleted(makeAction0(topologyPortDeleted()))
-                .distinctUntilChanged,
-            combinator)
-        .doOnCompleted(makeAction0(portDeleted()))
+    private lazy val portStateObservable =
+        vt.stateStore.portStateObservable(id, portStateSubject)
+            .observeOn(vt.vtScheduler)
+            .doOnNext(makeAction1(portState = _))
+            .onErrorResumeNext(Observable.empty())
 
-    protected lazy override val observable = Observable
-        .merge(chainsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
-               mirrorsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
-               portObservable.map[SimulationPort](makeFunc1(portUpdated)))
+    private val refUpdatedAction = makeAction1(refUpdated)
+
+    override lazy val observable: Observable[SimulationPort] = Observable
+        .merge(chainsTracker.refsObservable.doOnNext(refUpdatedAction),
+               l2insertionsTracker.refsObservable.doOnNext(refUpdatedAction),
+               mirrorsTracker.refsObservable.doOnNext(refUpdatedAction),
+               traceChainObservable.doOnNext(makeAction1(traceChainUpdated)),
+               portStateObservable, portObservable)
         .filter(makeFunc1(isPortReady))
-        .doOnNext(makeAction1(maybeInvalidateFlowState))
+        .map[SimulationPort](makeFunc1(buildPort))
+        .doOnNext(makeAction1(portUpdated))
+        .distinctUntilChanged()
 
     private def topologyPortUpdated(port: TopologyPort): Unit = {
         // Request the chains for this port.
@@ -143,10 +138,10 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
         // If the port host has changed request the port state from the new
         // host and invalidate the port host.
-        val hostId = if (port.hasHostId) port.getHostId.asJava else null
-        if ((currentPort eq null) || (currentPort.hostId != hostId)) {
+        if (topologyPort == null || topologyPort.getHostId != port.getHostId) {
+            val hostId = if (port.hasHostId) port.getHostId.asJava else null
             log.debug("Monitoring port state for host: {}", hostId)
-            portStateReady = false
+            portState = null
             portStateSubject onNext hostId
         }
 
@@ -165,34 +160,20 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         requestTraceChain(port.getTraceRequestIdsList)
 
         l2insertionsTracker.requestRefs(port.getInsertionIdsList :_*)
+
+        topologyPort = port
     }
 
-    private def areL2InsertionsReady(insertion: L2Insertion): Boolean = {
-        l2insertionsTracker.areRefsReady
-    }
-
-    private def makeServicePortList(insertion: L2Insertion): JList[UUID] = {
+    private def makeServicePortList: JList[UUID] = {
         l2insertionsTracker.currentRefs.map {
             case (k,v) => v.getSrvPortId }.toList.asJava
     }
 
-    private def topologyPortDeleted(): Unit = {
-        if (peeringTable ne StateTable.empty) {
-            peeringTable.stop()
-            peeringTable = StateTable.empty
-        }
-        portStateSubject.onCompleted()
-        completeTraceChain()
-        l2insertionsTracker.completeRefs()
-    }
-
     /** Handles updates to the simulation port. */
-    private def portUpdated(port: SimulationPort): SimulationPort = {
+    private def portUpdated(port: SimulationPort): Unit = {
         assertThread()
         log.debug("Port updated {}", port)
-
-        currentPort = port
-        port
+        maybeInvalidateFlowState(port)
     }
 
     private def maybeInvalidateFlowState(port: SimulationPort): Unit = {
@@ -207,25 +188,38 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
     /** Handles the deletion of the simulation port. */
     private def portDeleted(): Unit = {
+        if (peeringTable ne StateTable.empty) {
+            peeringTable.stop()
+            peeringTable = StateTable.empty
+        }
+        portStateSubject.onCompleted()
+        completeTraceChain()
+        l2insertionsTracker.completeRefs()
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
     }
 
     /** Handles updates to the chains. */
-    private def refUpdated(obj: AnyRef): SimulationPort = {
+    private def refUpdated(obj: AnyRef): Unit = {
         assertThread()
         log.debug("Port reference updated {}", obj)
-        currentPort
+    }
+
+    private def traceChainUpdated(chainId: Option[UUID]): Unit = {
+        assertThread()
+        log.debug("Trace chain ID updated: {}", chainId)
+        traceChainIdOpt = chainId
     }
 
     /** Indicates whether the current port is ready. A port is ready when
       * receiving all of the following: port, port active state, and port filter
       * chains. */
-    private def isPortReady(port: SimulationPort): Boolean = {
-        (currentPort ne null) &&
-            chainsTracker.areRefsReady &&
-                mirrorsTracker.areRefsReady &&
-                    l2insertionsTracker.areRefsReady &&
-                        isTracingReady && portStateReady
+    private def isPortReady(ignored: AnyRef): Boolean = {
+        topologyPort != null &&
+        portState != null &&
+        chainsTracker.areRefsReady &&
+        l2insertionsTracker.areRefsReady &&
+        mirrorsTracker.areRefsReady &&
+        isTracingReady
     }
 }
