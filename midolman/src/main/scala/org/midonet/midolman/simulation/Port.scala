@@ -47,15 +47,18 @@ object Port {
               inFilters: JList[UUID],
               outFilters: JList[UUID],
               servicePorts: JList[UUID] = emptyList(),
-              peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty): Port = {
+              peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
+              qosPolicy: QosPolicy = null): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
             servicePort(proto, state, inFilters)
         else if (proto.hasVtepId)
             vxLanPort(proto, state, inFilters, outFilters)
         else if (proto.hasNetworkId)
-            bridgePort(proto, state, inFilters, outFilters, servicePorts)
+            bridgePort(proto, state, inFilters, outFilters,
+                       servicePorts, qosPolicy)
         else if (proto.hasRouterId)
-            routerPort(proto, state, inFilters, outFilters, peeringTable)
+            routerPort(proto, state, inFilters, outFilters,
+                       peeringTable, qosPolicy)
         else
             throw new ConvertException("Unknown port type")
     }
@@ -64,7 +67,8 @@ object Port {
                            state: PortState,
                            inFilters: JList[UUID],
                            outFilters: JList[UUID],
-                           servicePorts: JList[UUID]) =
+                           servicePorts: JList[UUID],
+                           qosPolicy: QosPolicy) =
         new BridgePort(
             id = p.getId,
             inboundFilters = inFilters,
@@ -83,13 +87,15 @@ object Port {
             postOutFilterMirrors = p.getOutboundMirrorIdsList,
             postInFilterMirrors = p.getPostInFilterMirrorIdsList,
             preOutFilterMirrors = p.getPreOutFilterMirrorIdsList,
-            servicePorts = servicePorts)
+            servicePorts = servicePorts,
+            qosPolicy = qosPolicy)
 
     private def routerPort(p: Topology.Port,
                            state: PortState,
                            inFilters: JList[UUID],
                            outFilters: JList[UUID],
-                           peeringTable: StateTable[MAC, IPv4Addr]) = {
+                           peeringTable: StateTable[MAC, IPv4Addr],
+                           qosPolicy: QosPolicy) = {
 
         var ip4Addr: IPv4Addr = Port.DefaultIPv4Address
         var ip6Addr: IPv6Addr = null
@@ -130,7 +136,8 @@ object Port {
             preOutFilterMirrors = p.getPreOutFilterMirrorIdsList,
             vni = if (p.hasVni) p.getVni else 0,
             tunnelIp = if (p.hasTunnelIp) toIPv4Addr(p.getTunnelIp) else null,
-            peeringTable = peeringTable)
+            peeringTable = peeringTable,
+            qosPolicy = qosPolicy)
     }
 
     private def vxLanPort(p: Topology.Port,
@@ -187,6 +194,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
     def servicePorts: JList[UUID]
+    def qosPolicy: QosPolicy = null
 
     val action = ToPortAction(id)
 
@@ -312,7 +320,8 @@ class BridgePort(override val id: UUID,
                  override val postOutFilterMirrors: JList[UUID] = emptyList(),
                  override val postInFilterMirrors: JList[UUID] = emptyList(),
                  override val preOutFilterMirrors: JList[UUID] = emptyList(),
-                 override val servicePorts: JList[UUID] = emptyList())
+                 override val servicePorts: JList[UUID] = emptyList(),
+                 override val qosPolicy: QosPolicy = null)
         extends Port {
 
     override def toString =
@@ -438,7 +447,8 @@ case class RouterPort(override val id: UUID,
                         emptyList(),
                       vni: Int = 0,
                       tunnelIp: IPv4Addr = null,
-                      peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty)
+                      peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
+                      override val qosPolicy: QosPolicy = null)
     extends Port {
 
     override val servicePorts: JList[UUID] = emptyList()
