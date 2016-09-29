@@ -44,6 +44,7 @@ sudo sed -i 's/^#DOCKER_OPTS=.*/DOCKER_OPTS="--insecure-registry artifactory-v2.
 sudo service docker restart
 
 # create virtualenv for sandbox and mdts
+sudo pip install --upgrade pip setuptools virtualenv
 virtualenv venv
 . venv/bin/activate
 
