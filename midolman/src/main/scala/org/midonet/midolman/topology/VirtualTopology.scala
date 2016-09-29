@@ -211,6 +211,8 @@ class VirtualTopology(val backend: MidonetBackend,
             classOf[Port], new PortMapper(_, this, traceChains)),
         classOf[PortGroup] -> DeviceFactory(
             classOf[PortGroup], new PortGroupMapper(_, this)),
+        classOf[QosPolicy] -> DeviceFactory(
+            classOf[QosPolicy], new QosPolicyMapper(_, this)),
         classOf[Router] -> DeviceFactory(
             classOf[Router], new RouterMapper(_, this, traceChains)),
         classOf[RouterPort] -> DeviceFactory(
