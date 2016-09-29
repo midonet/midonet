@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_05f9264e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-29T08:22:19Z",
+      "side": 1,
+      "message": "Nit: I think these names are a bit confusing: unless you\u0027re familiar with the code you don\u0027t really know what they\u0027re supposed to mean",
+      "range": {
+        "startLine": 194,
+        "startChar": 43,
+        "endLine": 194,
+        "endChar": 68
+      },
+      "revId": "73f29db65a062d6ff3f5cca4e32dba4c2ab0db2a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
