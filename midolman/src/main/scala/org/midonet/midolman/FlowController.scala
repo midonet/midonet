@@ -18,31 +18,29 @@ package org.midonet.midolman
 
 import java.util.ArrayList
 
-import akka.actor.{Actor, ActorSystem}
 import org.jctools.queues.SpscArrayQueue
 
 import org.midonet.ErrorCode._
 import org.midonet.Util
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
-import org.midonet.midolman.flows.{FlowIndexer, FlowTagIndexer}
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
-import org.midonet.midolman.flows._
+import org.midonet.midolman.flows.{FlowIndexer, FlowTagIndexer, _}
 import org.midonet.midolman.management.Metering
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.monitoring.MeterRegistry
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
-import org.midonet.util.concurrent.{DisruptorBackChannel, NanoClock}
+import org.midonet.util.collection.{ArrayObjectPool, NoOpPool}
 import org.midonet.util.concurrent.WakerUpper.Parkable
+import org.midonet.util.concurrent.{DisruptorBackChannel, NanoClock}
 import org.midonet.util.functors.Callback0
 
 object FlowController {
-    private val NO_CALLBACKS = new ArrayList[Callback0]()
-    private val NO_TAGS = new ArrayList[FlowTag]()
-    private val INDEX_SHIFT = 28 // Leave 4 bits for the work ID
-    private val INDEX_MASK = (1 << INDEX_SHIFT) - 1
+    private val NoCallbacks = new ArrayList[Callback0]()
+    private val NoTags = new ArrayList[FlowTag]()
+    private[midolman] val IndexShift = 28 // Leave 4 bits for the work ID
+    private[midolman] val IndexMask = (1 << IndexShift) - 1
 }
 
 trait FlowController extends FlowIndexer with FlowTagIndexer
@@ -61,7 +59,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
 
     protected val maxFlows = Math.min(
         ((config.datapath.maxFlowCount / config.simulationThreads) * 1.2).toInt,
-        (1 << INDEX_SHIFT) - 1)
+        (1 << IndexShift) - 1)
     private var indexToFlow = new Array[ManagedFlow](
         Util.findNextPositivePowerOfTwo(maxFlows))
     private var mask = indexToFlow.length - 1
@@ -88,7 +86,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
             // the inner packets flow first, make that the main ManagedFlow
             val outerFlow = takeFlow()
             outerFlow.reset(
-                context.origMatch, NO_TAGS, NO_CALLBACKS,
+                context.origMatch, NoTags, NoCallbacks,
                 0L, expiration, clock.tick, flow)
             flow.reset(
                 context.recircMatch, context.flowTags, context.flowRemovedCallbacks,
@@ -262,7 +260,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
             index = curIndex & mask
         } while (indexToFlow(index) ne null)
         indexToFlow(index) = flow
-        flow.mark = (curIndex & INDEX_MASK) | (workerId << INDEX_SHIFT)
+        flow.mark = (curIndex & IndexMask) | (workerId << IndexShift)
     }
 
     private def clearFlowIndex(flow: ManagedFlow): Unit = {
