@@ -18,10 +18,11 @@ package org.midonet.sdn.flows
 
 import java.util.{UUID, WeakHashMap}
 import java.lang.ref.WeakReference
-import scala.reflect.{ClassTag,classTag}
 
-import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
-import org.midonet.packets.{IPv6Addr, IPv4Addr, IPAddr, MAC}
+import scala.reflect.{ClassTag, classTag}
+
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
 import org.midonet.midolman.layer3.Route
 
 object FlowTagger {
@@ -82,6 +83,7 @@ object FlowTagger {
     class MirrorDeviceTag(device: UUID) extends DeviceTag(device)
     class ChainDeviceTag(device: UUID) extends DeviceTag(device)
     class RuleLoggerDeviceTag(device: UUID) extends DeviceTag(device)
+    class QosPolicyDeviceTag(device: UUID) extends DeviceTag(device)
 
     val cachedDeviceTags = new ThreadLocal[TagsTrie] {
         override def initialValue = new TagsTrie
@@ -118,6 +120,7 @@ object FlowTagger {
     def tagForChain(device: UUID) = tagForDevice[ChainDeviceTag](device)
     def tagForMirror(device: UUID) = tagForDevice[MirrorDeviceTag](device)
     def tagForRuleLogger(device: UUID) = tagForDevice[RuleLoggerDeviceTag](device)
+    def tagForQosPolicy(device: UUID) = tagForDevice[QosPolicyDeviceTag](device)
 
     case class PortTxTag(port: UUID) extends FlowTag with MeterTag {
         override def toString = "port:tx:" + port
