@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8878ad7f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-29T10:14:21Z",
+      "side": 1,
+      "message": "Agree, I will this in a separate patch.",
+      "parentUuid": "baa041b7_427de41a",
+      "range": {
+        "startLine": 62,
+        "startChar": 8,
+        "endLine": 62,
+        "endChar": 30
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1ca4e2a3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
         "patchSetId": 1
@@ -142,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_687d696c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-29T10:14:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8231ac5b",
+      "range": {
+        "startLine": 97,
+        "startChar": 8,
+        "endLine": 97,
+        "endChar": 60
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9c18f285",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
         "patchSetId": 1
@@ -153,6 +201,30 @@
       "writtenOn": "2016-09-28T16:26:03Z",
       "side": 1,
       "message": "Can index here overflow indexToFlow ? Inside the loop you\u0027re taking the lower bits of currentIndex so it never overflows.",
+      "range": {
+        "startLine": 275,
+        "startChar": 8,
+        "endLine": 275,
+        "endChar": 32
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_85e416a8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-29T10:14:21Z",
+      "side": 1,
+      "message": "Corrected: just use currentIndex:\n\ncurrentIndex \u003d (currentIndex + 1) \u0026 FlowIndexFilter",
+      "parentUuid": "baa041b7_9c18f285",
       "range": {
         "startLine": 275,
         "startChar": 8,
@@ -188,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_65e9127f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-29T10:14:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_5c0eea3d",
+      "range": {
+        "startLine": 276,
+        "startChar": 34,
+        "endLine": 276,
+        "endChar": 41
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1c2622ce",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
         "patchSetId": 1
@@ -211,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4503ae42",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-29T10:14:21Z",
+      "side": 1,
+      "message": "I think FlowIndexFilter is fine: we want the index to span the entire interval allocated to vpp flows, e.g. [0 - 0xff]",
+      "parentUuid": "baa041b7_1c2622ce",
+      "range": {
+        "startLine": 278,
+        "startChar": 35,
+        "endLine": 278,
+        "endChar": 50
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4214c442",
         "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
         "patchSetId": 1
@@ -222,6 +342,30 @@
       "writtenOn": "2016-09-28T16:26:03Z",
       "side": 1,
       "message": "index instead of currentIndex, otherwise it can be larger than flowIndexToMark expects.\nMaybe just get rid of index and make sure currentIndex never gets out of range:\n\n currentIndex \u003d (currentIndex + 1) \u0026 Mask",
+      "range": {
+        "startLine": 281,
+        "startChar": 36,
+        "endLine": 281,
+        "endChar": 48
+      },
+      "revId": "4441186149d9af767c212435fd4207a8424dce9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_65135266",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-29T10:14:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4214c442",
       "range": {
         "startLine": 281,
         "startChar": 36,
