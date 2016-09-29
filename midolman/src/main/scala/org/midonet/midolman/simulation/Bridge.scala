@@ -96,7 +96,8 @@ class Bridge(val id: UUID,
              override val preInFilterMirrors: JList[UUID] =
                 new util.ArrayList[UUID](),
              override val postOutFilterMirrors: JList[UUID] =
-                new util.ArrayList[UUID]())
+                new util.ArrayList[UUID](),
+             val qosPolicy: QosPolicy = null)
         extends SimDevice
         with ForwardingDevice
         with InAndOutFilters
