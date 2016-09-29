@@ -1,0 +1,100 @@
+/*
+ * Copyright 2016 Midokura SARL
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.midonet.midolman.topology
+
+import java.util.UUID
+
+import scala.collection.JavaConverters._
+import scala.collection.breakOut
+
+import rx.Observable
+
+import org.midonet.cluster.models.Topology.{QOSPolicy, QOSRuleBWLimit, QOSRuleDSCP}
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.simulation.{QosBandwidthRule, QosDscpRule, QosPolicy => SimQosPolicy}
+import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
+
+class QosPolicyMapper(id: UUID, vt: VirtualTopology)
+    extends VirtualDeviceMapper(classOf[SimQosPolicy], id, vt)
+            with MidolmanLogging {
+
+    override def logSource: String = "org.medonet.devices.qos-policy"
+    override def logMark: String = s"qos-policy:$id"
+
+    private val bandwidthRuleTracker =
+        new StoreObjectReferenceTracker(vt, classOf[QOSRuleBWLimit], log)
+    private val dscpRuleTracker =
+        new StoreObjectReferenceTracker(vt, classOf[QOSRuleDSCP], log)
+
+    private var qosPolicy: QOSPolicy = _
+    private val qosPolicyObservable =
+        vt.store.observable(classOf[QOSPolicy], id)
+            .observeOn(vt.vtScheduler)
+            .doOnCompleted(makeAction0(qosPolicyDeleted()))
+            .doOnNext(makeAction1(qosPolicyUpdated))
+
+    override def observable: Observable[SimQosPolicy] =
+        Observable.merge[AnyRef](bandwidthRuleTracker.refsObservable,
+                                 dscpRuleTracker.refsObservable,
+                                 qosPolicyObservable)
+            .observeOn(vt.vtScheduler)
+            .filter(makeFunc1(isReady))
+            .map[SimQosPolicy](makeFunc1(buildQosPolicy))
+            .distinctUntilChanged()
+
+    private def isReady(ignored: AnyRef): Boolean = {
+        assertThread()
+        bandwidthRuleTracker.areRefsReady && dscpRuleTracker.areRefsReady
+    }
+
+    private def qosPolicyDeleted(): Unit = {
+        assertThread()
+        log.debug(s"QOSPolicy $id deleted")
+        bandwidthRuleTracker.completeRefs()
+        dscpRuleTracker.completeRefs()
+    }
+
+    private def qosPolicyUpdated(p: QOSPolicy): Unit = {
+        assertThread()
+        log.debug(s"QOSPolicy $id updated")
+        val bwRuleIds: Set[UUID] =
+            p.getBandwidthLimitRuleIdsList.asScala.map(_.asJava)(breakOut)
+        val dscpRuleIds: Set[UUID] =
+            p.getDscpMarkingRuleIdsList.asScala.map(_.asJava)(breakOut)
+        bandwidthRuleTracker.requestRefs(bwRuleIds)
+        dscpRuleTracker.requestRefs(dscpRuleIds)
+        qosPolicy = p
+    }
+
+    private def buildQosPolicy(ignored: Any): SimQosPolicy = {
+        assertThread()
+
+        val bandwidthRules = bandwidthRuleTracker.currentRefs.map(
+            e => QosBandwidthRule(e._1, e._2.getMaxKbps, e._2.getMaxBurstKbps))
+        val dscpRules = dscpRuleTracker.currentRefs.map(
+            e => QosDscpRule(e._1, e._2.getDscpMark.toByte))
+
+        val simQosPolicy = SimQosPolicy(qosPolicy.getId.asJava,
+                                        qosPolicy.getName,
+                                        bandwidthRules.toSeq,
+                                        dscpRules.toSeq)
+
+        log.debug(s"Emitting $simQosPolicy")
+        simQosPolicy
+    }
+}

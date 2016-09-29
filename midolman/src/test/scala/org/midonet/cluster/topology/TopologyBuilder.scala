@@ -61,7 +61,8 @@ trait TopologyBuilder {
                          adminStateUp: Boolean = false,
                          portGroupIds: Set[UUID] = Set.empty,
                          vlanId: Option[Int] = None,
-                         containerId: Option[UUID] = None): Port = {
+                         containerId: Option[UUID] = None,
+                         qosPolicyId: Option[UUID] = None): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
@@ -71,6 +72,8 @@ trait TopologyBuilder {
             builder.setVlanId(vlanId.get)
         if (containerId.isDefined)
             builder.setServiceContainerId(containerId.get.asProto)
+        if (qosPolicyId.isDefined)
+            builder.setQosPolicyId(qosPolicyId.get.asProto)
         builder.build()
     }
 
@@ -1102,6 +1105,38 @@ trait TopologyBuilder {
             .setId(id.asProto)
             .setEvent(logEvent)
         bldr.build()
+    }
+
+    def createQosPolicy(id: UUID = UUID.randomUUID(),
+                        name: Option[String] = None,
+                        description: Option[String] = None): QOSPolicy = {
+        QOSPolicy.newBuilder
+            .setId(id.asProto)
+            .setName(name.getOrElse(s"qos-policy-$id"))
+            .setDescription(description.getOrElse(s"QOS policy with ID $id"))
+            .build()
+    }
+
+    def createQosRuleBWLimit(policyId: UUID,
+                             maxKbps: Int,
+                             maxBurstKbps: Int,
+                             id: UUID = UUID.randomUUID()): QOSRuleBWLimit = {
+        QOSRuleBWLimit.newBuilder
+            .setId(id.asProto)
+            .setPolicyId(policyId.asProto)
+            .setMaxKbps(maxKbps)
+            .setMaxBurstKbps(maxBurstKbps)
+            .build()
+    }
+
+    def createQosRuleDscp(policyId: UUID,
+                          dscpMark: Int,
+                          id: UUID = UUID.randomUUID()): QOSRuleDSCP = {
+        QOSRuleDSCP.newBuilder
+            .setId(id.asProto)
+            .setPolicyId(policyId.asProto)
+            .setDscpMark(dscpMark)
+            .build()
     }
 }
 

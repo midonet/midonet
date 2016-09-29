@@ -15,9 +15,7 @@
  */
 package org.midonet.midolman.topology
 
-import java.util.{ArrayList => JArrayList, List => JList, UUID}
-
-import org.midonet.packets.{MAC, IPv4Addr}
+import java.util.{UUID, ArrayList => JArrayList, List => JList}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -25,11 +23,12 @@ import scala.collection.mutable
 import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
-import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.data.storage.StateTable
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, L2Insertion}
+import org.midonet.cluster.models.Topology.{L2Insertion, Port => TopologyPort}
 import org.midonet.cluster.state.PortStateStorage._
-import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.simulation.{Chain, Mirror, QosPolicy, Port => SimulationPort}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
 /**
@@ -76,6 +75,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         new ObjectReferenceTracker(vt, classOf[Chain], log)
     private val mirrorsTracker =
         new ObjectReferenceTracker(vt, classOf[Mirror], log)
+    private val qosPolicyTracker =
+        new ObjectReferenceTracker(vt, classOf[QosPolicy], log)
     private val l2insertionsTracker =
         new StoreObjectReferenceTracker(vt, classOf[L2Insertion], log)
     private var peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty
@@ -97,8 +98,10 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             outfilters.add(topologyPort.getL2InsertionOutfilterId)
         }
 
+        val qosPolicy = qosPolicyTracker.currentRefs.headOption.map(_._2).orNull
+
         SimulationPort(topologyPort, portState, infilters, outfilters,
-                       makeServicePortList, peeringTable)
+                       makeServicePortList, peeringTable, qosPolicy)
     }
 
     private lazy val portObservable =
@@ -120,6 +123,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                l2insertionsTracker.refsObservable.doOnNext(refUpdatedAction),
                mirrorsTracker.refsObservable.doOnNext(refUpdatedAction),
                traceChainObservable.doOnNext(makeAction1(traceChainUpdated)),
+               qosPolicyTracker.refsObservable.doOnNext(refUpdatedAction),
                portStateObservable, portObservable)
         .filter(makeFunc1(isPortReady))
         .map[SimulationPort](makeFunc1(buildPort))
@@ -154,6 +158,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         mirrorsTracker.requestRefs(port.getOutboundMirrorIdsList :_*)
         mirrorsTracker.requestRefs(port.getPostInFilterMirrorIdsList :_*)
         mirrorsTracker.requestRefs(port.getPreOutFilterMirrorIdsList :_*)
+
+        if (port.hasQosPolicyId)
+            qosPolicyTracker.requestRefs(port.getQosPolicyId)
 
         requestTraceChain(port.getTraceRequestIdsList)
         traceChainIdOpt = None
@@ -196,6 +203,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         l2insertionsTracker.completeRefs()
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
+        qosPolicyTracker.completeRefs()
     }
 
     /** Handles updates to the chains. */
@@ -219,6 +227,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         chainsTracker.areRefsReady &&
         l2insertionsTracker.areRefsReady &&
         mirrorsTracker.areRefsReady &&
+        qosPolicyTracker.areRefsReady &&
         isTracingReady
     }
 }
