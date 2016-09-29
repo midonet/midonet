@@ -4,8 +4,9 @@ SANDBOX_NAME="mdts"
 SANDBOX_FLAVOUR="default_v2_neutron+kilo"
 OVERRIDE="sandbox/override_v2"
 PROVISIONING="sandbox/provisioning/all-provisioning.sh"
+JENKINS_VERSION="v1"
 
-while getopts ":f:o:p:h" opt; do
+while getopts ":f:o:p:hu" opt; do
     case $opt in
     f)
         SANDBOX_FLAVOUR=$OPTARG
@@ -21,6 +22,9 @@ while getopts ":f:o:p:h" opt; do
              " [-p PROVISIONING_SCRIPT]"
         exit 1
         ;;
+    u)
+        JENKINS_VERSION="v2"
+        ;;
     esac
 done
 
@@ -35,9 +39,11 @@ sudo modprobe 8021q
 sudo apt-get install --no-install-recommends -y libssl-dev libffi-dev
 
 # Upgrade docker daemon to latest version and configure to use v2 registry in artifactory
-sudo apt-get install -qy -o Dpkg::Options::="--force-confnew" --only-upgrade docker-engine=1.12.1-0~trusty
-sudo sed -i 's/^#DOCKER_OPTS=.*/DOCKER_OPTS="--insecure-registry artifactory-v2.bcn.midokura.com"/' /etc/default/docker
-sudo service docker restart
+if [ "$JENKINS_VERSION" == "v1" ]; then
+    sudo apt-get install -qy -o Dpkg::Options::="--force-confnew" --only-upgrade docker-engine=1.12.1-0~trusty
+    sudo sed -i 's/^#DOCKER_OPTS=.*/DOCKER_OPTS="--insecure-registry artifactory-v2.bcn.midokura.com"/' /etc/default/docker
+    sudo service docker restart
+fi
 
 # create virtualenv for sandbox and mdts
 sudo pip install --upgrade pip setuptools virtualenv
