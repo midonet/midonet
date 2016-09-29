@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_68420911",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppFlows.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-29T16:17:28Z",
+      "side": 1,
+      "message": "Isn\u0027t this an infinite loop when flowCount \u003e\u003d MaxFlows? Why remove the limit check?",
+      "range": {
+        "startLine": 278,
+        "startChar": 8,
+        "endLine": 282,
+        "endChar": 51
+      },
+      "revId": "120459b25df3a4a2d957499c782444fa28dbb0ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
