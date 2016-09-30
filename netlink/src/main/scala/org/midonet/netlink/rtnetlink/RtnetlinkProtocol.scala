@@ -18,8 +18,8 @@ package org.midonet.netlink.rtnetlink
 
 import java.nio.ByteBuffer
 
-import org.midonet.netlink.{NetlinkMessageWrapper, NLFlag}
-import org.midonet.packets.{MAC, IPv4Addr}
+import org.midonet.netlink.{NLFlag, NetlinkMessage, NetlinkMessageWrapper}
+import org.midonet.packets.{IPv4Addr, MAC}
 
 final class RtnetlinkProtocol(pid: Int) {
     def messageFor(buf: ByteBuffer,
@@ -31,6 +31,54 @@ final class RtnetlinkProtocol(pid: Int) {
         messageFor(buf, rtnetlinkType)
             .withFlags((NLFlag.REQUEST | NLFlag.Get.DUMP).toShort)
             .finalize(pid)
+
+    def prepareGetQdisc(buf: ByteBuffer, ifindex: Int): Unit = {
+        messageFor(buf, Rtnetlink.Type.GETQDISC)
+            .withFlags((NLFlag.REQUEST | NLFlag.Get.DUMP).toShort)
+        Tcmsg.addGetQdiscTcmsg(buf, ifindex)
+    }
+
+    def tcmsgIngressQdisc(buf: ByteBuffer, ifindex: Int, op: Short,
+                          flag: Short): Unit = {
+        val message = messageFor(buf, op).withFlags(flag)
+        Tcmsg.addIngressQdiscTcmsg(buf, ifindex)
+        NetlinkMessage.writeStringAttr(buf, TcmsgType.TCA_KIND, "ingress")
+        NetlinkMessage.writeAttrEmpty(buf, TcmsgType.TCA_OPTIONS)
+        message.finalize(pid)
+    }
+
+    def prepareDeleteIngressQdisc(buf: ByteBuffer, ifindex: Int): Unit = {
+        val flags = NLFlag.REQUEST
+        tcmsgIngressQdisc(buf, ifindex, Rtnetlink.Type.DELQDISC, flags.toShort)
+    }
+
+    def prepareAddIngressQdisc(buf: ByteBuffer, ifindex: Int): Unit = {
+        val flags = NLFlag.REQUEST | NLFlag.New.CREATE | NLFlag.New.EXCL
+        tcmsgIngressQdisc(buf, ifindex, Rtnetlink.Type.NEWQDISC, flags.toShort)
+    }
+
+    def prepareAddPoliceFilter(buf: ByteBuffer, ifindex: Int,
+                               rate: Int, burst: Int, mtu: Int,
+                               tickInUsec: Double): Unit = {
+        val message = messageFor(buf, Rtnetlink.Type.NEWTFILTER)
+            .withFlags((NLFlag.REQUEST |
+                        NLFlag.New.CREATE |
+                        NLFlag.New.EXCL | NLFlag.ACK).toShort)
+        Tcmsg.addIngressFilter(buf, ifindex)
+        NetlinkMessage.writeStringAttr(buf, TcmsgType.TCA_KIND, "basic")
+        val kind_beg = buf.position()
+
+        NetlinkMessage.writeAttrEmpty(buf, TcmsgType.TCA_OPTIONS)
+        val bp_pos =  buf.position()
+        NetlinkMessage.writeAttrEmpty(buf, TcmsgBasicType.TCA_BASIC_POLICE)
+        NetlinkMessage.writeAttr(buf, TcmsgPoliceType.TCA_POLICE_TBF,
+                                 new TcPolice(rate, burst, mtu))
+        NetlinkMessage.writeAttr(buf, TcmsgPoliceType.TCA_POLICE_RATE,
+                                 new TcRtab(mtu, rate, tickInUsec))
+        buf.putShort(bp_pos, (buf.position() - bp_pos).toShort)
+        buf.putShort(kind_beg, (buf.position() - kind_beg).toShort)
+        message.finalize(pid)
+    }
 
     def prepareLinkList(buf: ByteBuffer): Unit = {
         val message = messageFor(buf, Rtnetlink.Type.GETLINK)

@@ -43,6 +43,21 @@ public final class NetlinkMessage {
                                           NLMSG_FLAGS_SIZE + NLMSG_SEQ_SIZE +
                                           NLMSG_PID_SIZE;
 
+    static public final int TCM_FAMILY_OFFSET = NLMSG_PID_OFFSET + NLMSG_PID_SIZE;
+    static public final int TCM_FAMILY_SIZE = 1;
+    static public final int TCM_PAD1_OFFSET = TCM_FAMILY_OFFSET + TCM_FAMILY_SIZE;
+    static public final int TCM_PAD1_SIZE = 1;
+    static public final int TCM_PAD2_OFFSET = TCM_PAD1_OFFSET + TCM_PAD1_SIZE;
+    static public final int TCM_PAD2_SIZE = 2;
+    static public final int TCM_IFINDEX_OFFSET = TCM_PAD2_OFFSET + TCM_PAD2_SIZE;
+    static public final int TCM_IFINDEX_SIZE = 4;
+    static public final int TCM_HANDLE_OFFSET = TCM_IFINDEX_OFFSET + TCM_IFINDEX_SIZE;
+    static public final int TCM_HANDLE_SIZE = 4;
+    static public final int TCM_PARENT_OFFSET = TCM_HANDLE_OFFSET + TCM_HANDLE_SIZE;
+    static public final int TCM_PARENT_SIZE = 4;
+    static public final int TCM_INFO_OFFSET = TCM_PARENT_OFFSET + TCM_PARENT_SIZE;
+    static public final int TCM_INFO_SIZE = 4;
+
     static public final int GENL_CMD_OFFSET = NLMSG_PID_OFFSET + NLMSG_PID_SIZE;
     static public final int GENL_CMD_SIZE = 1;
     static public final int GENL_VER_OFFSET = GENL_CMD_OFFSET + GENL_CMD_SIZE;
@@ -96,6 +111,13 @@ public final class NetlinkMessage {
         NetlinkMessage.setAttrHeader(buffer, id, 0); // space for nl_attr header
         int nbytes = ATTR_HEADER_LEN + value.serializeInto(buffer);
         buffer.putShort(start, (short) nbytes); // write nl_attr length field
+        alignBuffer(buffer);
+        return buffer.position() - start;
+    }
+
+    public static int writeAttrEmpty(ByteBuffer buffer, short id) {
+        int start = buffer.position(); // save position
+        NetlinkMessage.setAttrHeader(buffer, id, 4);
         alignBuffer(buffer);
         return buffer.position() - start;
     }
