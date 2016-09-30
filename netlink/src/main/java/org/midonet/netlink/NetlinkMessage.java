@@ -100,6 +100,13 @@ public final class NetlinkMessage {
         return buffer.position() - start;
     }
 
+    public static int writeAttrEmpty(ByteBuffer buffer, short id) {
+        int start = buffer.position(); // save position
+        NetlinkMessage.setAttrHeader(buffer, id, 4);
+        alignBuffer(buffer);
+        return buffer.position() - start;
+    }
+
     public static int writeAttrNested(ByteBuffer buffer, short id,
                                       NetlinkSerializable value) {
         return writeAttr(buffer, nested(id), value);
