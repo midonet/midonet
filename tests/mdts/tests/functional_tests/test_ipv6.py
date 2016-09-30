@@ -186,27 +186,14 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
     def build(self, binding_data=None):
         self._edgertr = self.create_router("edge")
         uplinknet = self.create_network("uplink", uplink=True)
-        uplinksubnet = self.create_subnet("uplinksubnet", uplinknet,
-                                          "10.1.0.0/24", enable_dhcp=False)
+        uplinksubnet6 = self.create_subnet("uplinksubnet6", uplinknet,
+                                           "2001::/64", enable_dhcp=False,
+                                           version=6)
         uplinkport = self.create_port("uplinkport", uplinknet,
                                       host_id="midolman1",
                                       interface="bgp0",
-                                      fixed_ip="10.1.0.1")
+                                      fixed_ips=["2001::1"])
         self.add_router_interface(self._edgertr, port=uplinkport)
-
-        # wire uplink
-        global UPLINK_VETH_MAC
-        self.create_veth_pair('midolman1', 'uplink-vpp', 'uplink-ovs',
-                              ep1mac=UPLINK_VETH_MAC)
-        self.add_port_to_ovs('midolman1', 'uplink-ovs')
-
-        self.create_ipv6_flows('midolman1', 'bgp0', 'uplink-ovs')
-
-        self.start_vpp('midolman1')
-        self.add_port_to_vpp('midolman1',
-                             port='uplink-vpp',
-                             mac=UPLINK_VETH_MAC,
-                             address='2001::1/64')
 
         # setup quagga1
         self.setup_remote_host('quagga1', 'bgp1')
@@ -248,7 +235,7 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
         self.add_route_to_vpp('midolman1',
                               prefix='bbbb::/48',
                               via='2001::2',
-                              port='uplink-vpp')
+                              port='bgp0-uv')
         self.add_route_to_vpp('midolman1',
                               prefix='20.0.0.0/26',
                               via='10.0.0.2',
@@ -310,7 +297,8 @@ def test_uplink_ipv6():
     Title: ping ipv6 uplink of midolman1 from quagga1. VPP must respond
 
     """
-    ping_from_inet('quagga1', '2001::1', 4)
+    time.sleep(10)
+    ping_from_inet('quagga1', '2001::1', 10)
 
 
 @attr(version="v1.2.0")
@@ -320,4 +308,5 @@ def test_ping_vm_ipv6():
     """
     Title: ping a VM in a IPv4 neutron topology from a remote IPv6 endpoint
     """
-    ping_from_inet('quagga1', 'cccc:bbbb::1400:2', 4, namespace='ip6')
+    time.sleep(10)
+    ping_from_inet('quagga1', 'cccc:bbbb::1400:2', 10, namespace='ip6')
