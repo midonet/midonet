@@ -274,7 +274,7 @@ keystone:
   extends:
     file: $BASE/keystone.yml
     service: keystone
-  image: sandbox/keystone:liberty
+  image: sandbox/keystone:mitaka
   hostname: keystone
   labels:
     interface: mdts.services.keystone.KeystoneHost
@@ -284,7 +284,7 @@ neutron:
   extends:
     file: $BASE/neutron.yml
     service: neutron
-  image: sandbox/neutron:liberty
+  image: sandbox/neutron:mitaka
   hostname: neutron
   labels:
     interface: mdts.services.neutron.NeutronHost

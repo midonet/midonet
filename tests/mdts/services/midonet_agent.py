@@ -121,7 +121,7 @@ class MidonetAgentHost(Service):
         return self.is_haproxy_running(pool_id) and self.hm_namespace_exists(pool_id)
 
     def vppctl(self, cmd):
-        self.exec_command("vppctl %s" % cmd)
+        self.try_command_blocking("vppctl %s" % cmd)
 
     def create_vmguest(self, **iface_kwargs):
         """
@@ -219,8 +219,8 @@ class MidonetAgentHost(Service):
         iface_kwargs['compute_host'] = self
         return Interface(**iface_kwargs)
 
-    def destroy_provided(self, **iface_kwargs):
-        raise NotImplementedError()
+    def destroy_provided(self, iface):
+        pass
 
     def bind_port(self, interface, mn_port_id, type=BindingType.API):
         if type == BindingType.API:
