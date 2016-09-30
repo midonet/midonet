@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_fcc49760",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-30T09:08:02Z",
+      "side": 1,
+      "message": "where are these constants used?",
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dceaf3d7",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-30T09:08:02Z",
+      "side": 1,
+      "message": "missing copyright notice?",
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9ca6abbf",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-30T09:08:02Z",
+      "side": 1,
+      "message": "which value?",
+      "range": {
+        "startLine": 135,
+        "startChar": 7,
+        "endLine": 135,
+        "endChar": 12
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
