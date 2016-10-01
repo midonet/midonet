@@ -19,8 +19,6 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Commons
@@ -29,48 +27,42 @@ import org.midonet.cluster.util.UUIDUtil._
 
 object L2InsertionTranslation {
 
-    private final val Timeout = 15 seconds
     private final val PcpInMask = 1 << 13
     private final val PcpOutMask = 2 << 13
     private final val PcpFinalMask = 1 << 15
 
-    private final class FutureOps[T](val future: Future[T]) extends AnyVal {
-
-        def getOrThrow: T = Await.result(future, Timeout)
-    }
-
-    private implicit def toFutureOps[U](future: Future[U]): FutureOps[U] = {
-        new FutureOps(future)
-    }
-
-    private def ensureRedirectChains(store: Storage, portId: Commons.UUID)
-            : (Chain, Chain, Seq[PersistenceOp]) = {
-        val port = store.get(classOf[Port], portId).getOrThrow
+    private def ensureRedirectChains(tx: Transaction, portId: Commons.UUID)
+    : (Chain, Chain) = {
+        val port = tx.get(classOf[Port], portId)
         val portBuilder = port.toBuilder
-        var ops = Seq.empty[PersistenceOp]
 
         val inFilter = if (!port.hasL2InsertionInfilterId) {
             val chain: Chain = Chain.newBuilder()
                 .setId(UUID.randomUUID.asProto)
                 .setName("InboundRedirect" + port.getId.asJava.toString).build
-            ops = ops :+ CreateOp(chain)
+            tx.create(chain)
             portBuilder.setL2InsertionInfilterId(chain.getId)
             chain
-        } else store.get(classOf[Chain], port.getL2InsertionInfilterId).getOrThrow
+        } else {
+            tx.get(classOf[Chain], port.getL2InsertionInfilterId)
+        }
 
         val outFilter = if (!port.hasL2InsertionOutfilterId) {
             val chain = Chain.newBuilder()
                 .setId(UUID.randomUUID.asProto)
                 .setName("OutboundRedirect" + port.getId.asJava.toString).build
-            ops = ops :+ CreateOp(chain)
+            tx.create(chain)
             portBuilder.setL2InsertionOutfilterId(chain.getId)
             chain
-        } else store.get(classOf[Chain], port.getL2InsertionOutfilterId).getOrThrow
-
-        if (ops.nonEmpty) {
-            ops = ops :+ UpdateOp(portBuilder.build())
+        } else {
+            tx.get(classOf[Chain], port.getL2InsertionOutfilterId)
         }
-        (inFilter, outFilter, ops)
+
+        val updatedPort = portBuilder.build()
+        if (updatedPort != port) {
+            tx.update(portBuilder.build())
+        }
+        (inFilter, outFilter)
     }
 
     implicit object InsertOrdering extends Ordering[L2Insertion] {
@@ -88,10 +80,10 @@ object L2InsertionTranslation {
         }
     }
 
-    private def removeServicePortRules(chain: Chain, insertion: L2Insertion)
-            : (Chain, Seq[PersistenceOp]) = {
-        val ops = Seq(DeleteOp(classOf[Rule], insertion.getSrvRuleInId),
-                      DeleteOp(classOf[Rule], insertion.getSrvRuleOutId))
+    private def removeServicePortRules(tx: Transaction, chain: Chain,
+                                       insertion: L2Insertion): Chain = {
+        tx.delete(classOf[Rule], insertion.getSrvRuleInId)
+        tx.delete(classOf[Rule], insertion.getSrvRuleOutId)
         val chainBuilder = chain.toBuilder
         chainBuilder.clearRuleIds().addAllRuleIds(
             chain.getRuleIdsList.asScala.filter(
@@ -99,14 +91,15 @@ object L2InsertionTranslation {
                     id != insertion.getSrvRuleInId &&
                         id != insertion.getSrvRuleOutId
                 }).asJava)
-        (chainBuilder.build(), ops)
+        chainBuilder.build()
     }
 
-    private def addServicePortRules(chain: Chain,
+    private def addServicePortRules(tx: Transaction,
+                                    chain: Chain,
                                     insertionInChain: Chain,
                                     insertionOutChain: Chain,
                                     insertion: L2Insertion)
-            : (Chain, L2Insertion, Seq[PersistenceOp]) = {
+    : (Chain, L2Insertion) = {
         val ruleInBuilder = Rule.newBuilder()
             .setId(UUID.randomUUID.asProto)
             .setChainId(chain.getId)
@@ -136,7 +129,10 @@ object L2InsertionTranslation {
 
         val ruleIn = ruleInBuilder.build()
         val ruleOut = ruleOutBuilder.build()
-        val ops = Seq(CreateOp(ruleIn), CreateOp(ruleOut))
+
+        tx.create(ruleIn)
+        tx.create(ruleOut)
+
         val modifiedChain = chain.toBuilder
             .addRuleIds(ruleIn.getId)
             .addRuleIds(ruleOut.getId).build()
@@ -144,14 +140,15 @@ object L2InsertionTranslation {
             .setSrvRuleInId(ruleIn.getId)
             .setSrvRuleOutId(ruleOut.getId).build()
 
-        (modifiedChain, modifiedInsertion, ops)
+        (modifiedChain, modifiedInsertion)
     }
 
-    private def buildInsertionRules(previous: Option[L2Insertion],
+    private def buildInsertionRules(tx: Transaction,
+                                    previous: Option[L2Insertion],
                                     cur: L2Insertion,
                                     inChainId: Commons.UUID,
                                     outChainId: Commons.UUID)
-            : (Commons.UUID, Commons.UUID, Seq[PersistenceOp]) = {
+    : (Commons.UUID, Commons.UUID) = {
         val portId = cur.getPortId
         val ruleInBuilder = Rule.newBuilder()
             .setId(UUID.randomUUID.asProto)
@@ -206,13 +203,17 @@ object L2InsertionTranslation {
         val ruleIn = ruleInBuilder.build()
         val ruleOut = ruleOutBuilder.build()
 
-        (ruleIn.getId, ruleOut.getId, Seq(CreateOp(ruleIn), CreateOp(ruleOut)))
+        tx.create(ruleIn)
+        tx.create(ruleOut)
+
+        (ruleIn.getId, ruleOut.getId)
     }
 
-    private def buildEndRules(endInsertion: L2Insertion,
+    private def buildEndRules(tx: Transaction,
+                              endInsertion: L2Insertion,
                               inChainId: Commons.UUID,
                               outChainId: Commons.UUID)
-            : (Seq[Commons.UUID], Commons.UUID, Seq[PersistenceOp]) = {
+    : (Seq[Commons.UUID], Commons.UUID) = {
         val portId = endInsertion.getPortId
         // This rule matches during evaluation of the last service port's
         // inbound chain. It will redirect into the inspected port and
@@ -278,70 +279,73 @@ object L2InsertionTranslation {
         val ruleIn2 = ruleInBuilder2.build()
         val ruleOut = ruleOutBuilder.build()
 
-        (Seq(ruleIn.getId, ruleIn2.getId), ruleOut.getId,
-         Seq(CreateOp(ruleIn), CreateOp(ruleIn2), CreateOp(ruleOut)))
+        tx.create(ruleIn)
+        tx.create(ruleIn2)
+        tx.create(ruleOut)
+
+        (Seq(ruleIn.getId, ruleIn2.getId), ruleOut.getId)
     }
 
-    private def buildInsertionChains(inChain: Chain, outChain: Chain,
+    private def buildInsertionChains(tx: Transaction,
+                                     inChain: Chain, outChain: Chain,
                                      insertions: Seq[L2Insertion])
-            : (Chain, Chain, Seq[PersistenceOp]) = {
+    : (Chain, Chain) = {
         val inChainBuilder = inChain.toBuilder
         val outChainBuilder = outChain.toBuilder
 
         type Accumulator = (Option[L2Insertion], Seq[PersistenceOp])
         // Now recompile all the insertions into new inspected port rules
-        val (lastInsertion, rulesOps) =
-            insertions.foldLeft[Accumulator]((None, Seq.empty[PersistenceOp]))(
-                (previous: Accumulator, cur: L2Insertion) => {
-                    val (ruleInId, ruleOutId, ruleOps) =
-                        buildInsertionRules(previous._1, cur,
+        val lastInsertion =
+            insertions.foldLeft[Option[L2Insertion]](None)(
+                (previous: Option[L2Insertion], current: L2Insertion) => {
+                    val (ruleInId, ruleOutId) =
+                        buildInsertionRules(tx, previous, current,
                                             inChain.getId, outChain.getId)
                     inChainBuilder.addRuleIds(0, ruleInId)
                     outChainBuilder.addRuleIds(0, ruleOutId)
 
-                    (Some(cur), previous._2 ++ ruleOps)
+                    Some(current)
                 })
 
         // Finally, add rules to handle the return from the last service port
-        val endRuleOps = lastInsertion match {
+        lastInsertion match {
             case Some(insertion) =>
-                val (rulesIn, ruleOut, ops) = buildEndRules(
-                    insertion, inChain.getId, outChain.getId)
+                val (rulesIn, ruleOut) = buildEndRules(
+                    tx, insertion, inChain.getId, outChain.getId)
                 rulesIn.foreach { inChainBuilder.addRuleIds(0, _) }
                 outChainBuilder.addRuleIds(0, ruleOut)
-                ops
-            case None => Seq.empty[PersistenceOp]
+            case None =>
         }
 
-        (inChainBuilder.build(), outChainBuilder.build(),
-         rulesOps ++ endRuleOps)
+        (inChainBuilder.build(), outChainBuilder.build())
     }
 
-    private def cleanChain(chain: Chain): (Chain, Seq[PersistenceOp]) = {
-        val ops = chain.getRuleIdsList.asScala.map {
-            DeleteOp(classOf[Rule], _)
+    private def cleanChain(tx: Transaction, chain: Chain): Chain = {
+        chain.getRuleIdsList.asScala.foreach {
+            tx.delete(classOf[Rule], _)
         }
-        (chain.toBuilder.clearRuleIds().build(), ops)
+        chain.toBuilder.clearRuleIds().build()
     }
 
     private def insertionWithSamePortsAlreadyExists(
         insertions: Seq[L2Insertion], newInsertion: L2Insertion): Boolean = {
-        insertions.exists(x => x.getPortId == newInsertion.getPortId &&
-                               x.getSrvPortId == newInsertion.getSrvPortId)
+        insertions.exists(i => i.getId != newInsertion.getId &&
+                               i.getPortId == newInsertion.getPortId &&
+                               i.getSrvPortId == newInsertion.getSrvPortId)
     }
 
-    private def getAndValidatePorts(store: Storage,
+    private def getAndValidatePorts(tx: Transaction,
                                     insertion: L2Insertion): (Port, Port) = {
         val portId = insertion.getPortId
         val srvPortId = insertion.getSrvPortId
 
-        val port: Port = store.get(classOf[Port], portId).getOrThrow
+        val port: Port = tx.get(classOf[Port], portId)
         if (port.getSrvInsertionIdsCount > 0) {
             throw new IllegalArgumentException(
                 s"Protected port $portId can't have a service")
         }
 
-        val srvPort: Port = store.get(classOf[Port], srvPortId).getOrThrow
+        val srvPort: Port = tx.get(classOf[Port], srvPortId)
         if (srvPort.getInsertionIdsCount > 0) {
             throw new IllegalArgumentException(
                 s"Service port $srvPortId can't have an insertion")
@@ -349,11 +353,11 @@ object L2InsertionTranslation {
         (port, srvPort)
     }
 
-    def translateInsertionDelete(store: Storage,
+    def translateInsertionDelete(tx: Transaction,
                                  insertionId: Commons.UUID,
                                  ignoreMissing: Boolean = false): Unit = {
         val insertion = try {
-            store.get(classOf[L2Insertion], insertionId).getOrThrow
+            tx.get(classOf[L2Insertion], insertionId)
         } catch {
             case e: Exception =>
                 ignoreMissing match {
@@ -367,55 +371,44 @@ object L2InsertionTranslation {
         val srvPortId = insertion.getSrvPortId
 
         // ensure that ports have the required chains
-        val (inChain, outChain, ensureChainOps) =
-            ensureRedirectChains(store, portId)
-        val (inSrvChain, _, ensureSrvChainOps) =
-            ensureRedirectChains(store, srvPortId)
+        val (inChain, outChain) = ensureRedirectChains(tx, portId)
+        val (inSrvChain, _) = ensureRedirectChains(tx, srvPortId)
 
         // clean service port rules
-        val (cleanedSrvChain, removeSrvChainOps) =
-            removeServicePortRules(inSrvChain, insertion)
-        val serviceChainOps = removeSrvChainOps ++
-            Seq(UpdateOp(cleanedSrvChain))
+        val cleanedSrvChain = removeServicePortRules(tx, inSrvChain, insertion)
+        tx.update(cleanedSrvChain)
 
         // clean chains
-        val (cleanedInChain, cleanInChainOps) = cleanChain(inChain)
-        val (cleanedOutChain, cleanOutChainOps) = cleanChain(outChain)
+        val cleanedInChain = cleanChain(tx, inChain)
+        val cleanedOutChain = cleanChain(tx, outChain)
 
         // build insertion list
-        val (port, _) = getAndValidatePorts(store, insertion)
-        val insertions = store.getAll(
+        val (port, _) = getAndValidatePorts(tx, insertion)
+        val insertions = tx.getAll(
             classOf[L2Insertion], port.getInsertionIdsList.asScala)
-            .getOrThrow
             .filter(_.getId != insertion.getId)
             .sorted
 
         // translate insertion list to chain
-        val (inChainModified, outChainModified, insertionOps) =
-            buildInsertionChains(cleanedInChain, cleanedOutChain, insertions)
+        val (inChainModified, outChainModified) =
+            buildInsertionChains(tx, cleanedInChain, cleanedOutChain, insertions)
 
-        val ops = ensureChainOps ++ ensureSrvChainOps ++ serviceChainOps ++
-            cleanInChainOps ++ cleanOutChainOps ++ insertionOps ++
-            Seq(UpdateOp(inChainModified), UpdateOp(outChainModified),
-                DeleteOp(classOf[L2Insertion], insertionId, ignoreMissing))
-
-        store.multi(ops)
+        tx.update(inChainModified)
+        tx.update(outChainModified)
+        tx.delete(classOf[L2Insertion], insertionId, ignoresNeo = true)
     }
 
-    def translateInsertionUpdate(store: Storage,
+    def translateInsertionUpdate(tx: Transaction,
                                  insertion: L2Insertion): Unit = {
         val portId = insertion.getPortId
         val srvPortId = insertion.getSrvPortId
 
         // ensure that ports have the required chains
-        val (inChain, outChain, ensureChainOps) =
-            ensureRedirectChains(store, portId)
-        val (inSrvChain, _, ensureSrvChainOps) =
-            ensureRedirectChains(store, srvPortId)
+        val (inChain, outChain) = ensureRedirectChains(tx, portId)
+        val (inSrvChain, _) = ensureRedirectChains(tx, srvPortId)
 
         // update service port rules
-        val oldInsertion = store.get(classOf[L2Insertion],
-                                     insertion.getId).getOrThrow
+        val oldInsertion = tx.get(classOf[L2Insertion], insertion.getId)
         // Don't allow changing the ports
         if (oldInsertion.getPortId != insertion.getPortId ||
                 oldInsertion.getSrvPortId != insertion.getSrvPortId) {
@@ -423,24 +416,23 @@ object L2InsertionTranslation {
                 "Port/SrvPort can't be changed for an insertion")
         }
 
-        val (cleanedSrvChain, removeSrvChainOps) =
-            removeServicePortRules(inSrvChain, oldInsertion)
-        val (modifiedSrvChain, modifiedInsertion, addSrvChainOps) =
-            addServicePortRules(cleanedSrvChain, inChain, outChain, insertion)
+        val cleanedSrvChain =
+            removeServicePortRules(tx, inSrvChain, oldInsertion)
+        val (modifiedSrvChain, modifiedInsertion) =
+            addServicePortRules(tx, cleanedSrvChain, inChain, outChain, insertion)
 
-        val serviceChainOps = removeSrvChainOps ++ addSrvChainOps ++
-            Seq(UpdateOp(modifiedSrvChain), UpdateOp(modifiedInsertion))
+        tx.update(modifiedSrvChain)
+        tx.update(modifiedInsertion)
 
         // clean chains
-        val (cleanedInChain, cleanInChainOps) = cleanChain(inChain)
-        val (cleanedOutChain, cleanOutChainOps) = cleanChain(outChain)
+        val cleanedInChain = cleanChain(tx, inChain)
+        val cleanedOutChain = cleanChain(tx, outChain)
 
         // build insertion list
-        val (port, _) = getAndValidatePorts(store, insertion)
+        val (port, _) = getAndValidatePorts(tx, insertion)
 
-        val existingInsertions = store.getAll(
+        val existingInsertions = tx.getAll(
             classOf[L2Insertion], port.getInsertionIdsList.asScala)
-            .getOrThrow
             .filter(_.getId != insertion.getId)
         if (insertionWithSamePortsAlreadyExists(existingInsertions,
                                                 insertion)) {
@@ -450,58 +442,48 @@ object L2InsertionTranslation {
         val insertions = (existingInsertions :+ insertion).sorted
 
         // translate insertion list to chain
-        val (inChainModified, outChainModified, insertionOps) =
-            buildInsertionChains(cleanedInChain, cleanedOutChain, insertions)
+        val (inChainModified, outChainModified) =
+            buildInsertionChains(tx, cleanedInChain, cleanedOutChain, insertions)
 
-        val ops = ensureChainOps ++ ensureSrvChainOps ++ serviceChainOps ++
-            cleanInChainOps ++ cleanOutChainOps ++ insertionOps ++
-            Seq(UpdateOp(inChainModified), UpdateOp(outChainModified))
-
-        store.multi(ops)
+        tx.update(inChainModified)
+        tx.update(outChainModified)
     }
 
-    def translateInsertionCreate(store: Storage,
+    def translateInsertionCreate(tx: Transaction,
                                  insertion: L2Insertion): Unit = {
         val portId = insertion.getPortId
         val srvPortId = insertion.getSrvPortId
 
         // ensure that ports have the required chains
-        val (inChain, outChain, ensureChainOps) =
-            ensureRedirectChains(store, portId)
-        val (inSrvChain, _, ensureSrvChainOps) =
-            ensureRedirectChains(store, srvPortId)
+        val (inChain, outChain) = ensureRedirectChains(tx, portId)
+        val (inSrvChain, _) = ensureRedirectChains(tx, srvPortId)
 
         // add service port rules for insertion
-        val (modifiedSrvChain, modifiedInsertion, addSrvChainOps) =
-            addServicePortRules(inSrvChain, inChain, outChain, insertion)
+        val (modifiedSrvChain, modifiedInsertion) =
+            addServicePortRules(tx, inSrvChain, inChain, outChain, insertion)
 
-        val serviceChainOps = addSrvChainOps ++ Seq(UpdateOp(modifiedSrvChain),
-                                                    CreateOp(modifiedInsertion))
+        tx.update(modifiedSrvChain)
+        tx.create(modifiedInsertion)
 
         // clean chains
-        val (cleanedInChain, cleanInChainOps) = cleanChain(inChain)
-        val (cleanedOutChain, cleanOutChainOps) = cleanChain(outChain)
+        val cleanedInChain = cleanChain(tx, inChain)
+        val cleanedOutChain = cleanChain(tx, outChain)
 
         // build insertion list
-        val (port,_) = getAndValidatePorts(store, insertion)
+        val (port, _) = getAndValidatePorts(tx, insertion)
 
-        val existingInsertions = store.getAll(
-            classOf[L2Insertion], port.getInsertionIdsList.asScala).getOrThrow
-        if (insertionWithSamePortsAlreadyExists(existingInsertions,
-                                                insertion)) {
+        val insertions = tx.getAll(
+            classOf[L2Insertion], port.getInsertionIdsList.asScala)
+        if (insertionWithSamePortsAlreadyExists(insertions, insertion)) {
             throw new IllegalArgumentException(
                 s"Insertion for same port/srvPort pair already exists")
         }
-        val insertions = (existingInsertions :+ insertion).sorted
 
         // translate insertion list to chain
-        val (inChainModified, outChainModified, insertionOps) =
-            buildInsertionChains(cleanedInChain, cleanedOutChain, insertions)
+        val (inChainModified, outChainModified) =
+            buildInsertionChains(tx, cleanedInChain, cleanedOutChain, insertions)
 
-        val ops = ensureChainOps ++ ensureSrvChainOps ++ serviceChainOps ++
-            cleanInChainOps ++ cleanOutChainOps ++ insertionOps ++
-            Seq(UpdateOp(inChainModified), UpdateOp(outChainModified))
-
-        store.multi(ops)
+        tx.update(inChainModified)
+        tx.update(outChainModified)
     }
 }

@@ -19,7 +19,6 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.UUID
 import javax.ws.rs.Path
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.Response
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -64,17 +63,17 @@ class L2InsertionResource @Inject()(resContext: ResourceContext)
     protected override def createFilter(l2Insertion: L2Insertion,
                                         tx: ResourceTransaction): Unit = {
         val msg = toProto(l2Insertion).asInstanceOf[Topology.L2Insertion]
-        translateInsertionCreate(store, msg)
+        translateInsertionCreate(tx.tx, msg)
     }
 
     protected override def updateFilter(to: L2Insertion, from: L2Insertion,
                                         tx: ResourceTransaction): Unit = {
         val msg = toProto(to).asInstanceOf[Topology.L2Insertion]
-        translateInsertionUpdate(store, msg)
+        translateInsertionUpdate(tx.tx, msg)
     }
 
     protected override def deleteFilter(id: String, tx: ResourceTransaction): Unit = {
-        translateInsertionDelete(store, UUID.fromString(id.toString).asProto)
+        translateInsertionDelete(tx.tx, UUID.fromString(id.toString).asProto)
     }
 
 }
