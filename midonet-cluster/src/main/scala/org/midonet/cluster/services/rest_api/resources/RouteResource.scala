@@ -128,9 +128,9 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
 
     private def getLearnedRoutesFromStateStore(portId: UUID,
                                                hostId: UUID): Seq[Route] = {
-        val obs = resContext.backend.stateStore.getPortRoutes(portId, hostId)
+        val obs = stateStore.getPortRoutes(portId, hostId)
         val routes = obs.asFuture.getOrThrow.toSeq
-        routes.map(Route.fromLearned(_, resContext.uriInfo.getBaseUri))
+        routes.map(Route.fromLearned(_, uriInfo.getBaseUri))
     }
 
     private def getLearnedRoutes(port: RouterPort,

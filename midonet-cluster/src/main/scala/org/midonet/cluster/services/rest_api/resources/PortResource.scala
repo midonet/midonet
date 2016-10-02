@@ -245,8 +245,9 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
         super.updateFilter(to, from, tx)
     }
 
-    private def peeringTable(id: UUID) =
-        resContext.backend.stateTableStore.portPeeringTable(id)
+    private def peeringTable(id: UUID) = {
+        stateTableStore.portPeeringTable(id)
+    }
 
     @GET
     @Path("{id}/peering_table/{pair}")

@@ -103,10 +103,8 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
     }
 
     private def throwIfTunnelZoneNameUsed(tz: TunnelZone): Unit = {
-        val store = resContext.backend.store
-        val nameCollision = store.getAll(classOf[Topology.TunnelZone])
-                                 .getOrThrow.find ( _.getName == tz.name )
-        if (nameCollision.nonEmpty) {
+        for (tunnelZone <- listResources(classOf[TunnelZone])
+             if tunnelZone.name == tz.name) {
             throw new ConflictHttpException(
                 getMessage(UNIQUE_TUNNEL_ZONE_NAME_TYPE))
         }
