@@ -134,5 +134,4 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
                 r
             }).toSeq)).asFuture.getOrThrow
     }
-
 }

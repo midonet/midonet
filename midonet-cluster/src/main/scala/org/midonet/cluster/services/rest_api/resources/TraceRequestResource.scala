@@ -25,14 +25,11 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.data.TraceRequest.DeviceType
-import org.midonet.cluster.data.storage.NotFoundException
-import org.midonet.cluster.models.Topology
-import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowCreate, AllowDelete}
-import org.midonet.cluster.rest_api.annotation.{AllowGet, AllowList, AllowUpdate}
+import org.midonet.cluster.rest_api.NotFoundHttpException
+import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
-import org.midonet.cluster.util.UUIDUtil._
 
 @ApiResource(version = 1, name = "traceRequests", template = "traceRequestTemplate")
 @Path("traces")
@@ -52,8 +49,7 @@ class TraceRequestResource @Inject()(resContext: ResourceContext)
     protected override def listFilter(
         traceRequests: Seq[TraceRequest]): Seq[TraceRequest] = {
 
-        val tenantId = resContext.uriInfo
-            .getQueryParameters.getFirst("tenant_id")
+        val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
         if (tenantId eq null) traceRequests
         else {
             traceRequests filter {
@@ -70,33 +66,32 @@ class TraceRequestResource @Inject()(resContext: ResourceContext)
 
     private def checkPortTenant(id: UUID, tenantId: String): Boolean = {
         try {
-            val port = resContext.backend.store.get(
-                classOf[Topology.Port], id).getOrThrow
-            if (port.hasNetworkId) {
-                checkNetworkTenant(port.getNetworkId, tenantId)
-            } else if (port.hasRouterId) {
-                checkRouterTenant(port.getRouterId, tenantId)
-            } else false
+            val port = getResource(classOf[Port], id)
+            port match {
+                case bridgePort: BridgePort =>
+                    checkNetworkTenant(port.getDeviceId, tenantId)
+                case routerPort: RouterPort =>
+                    checkRouterTenant(port.getDeviceId, tenantId)
+                case _ => false
+            }
         } catch {
-            case e: NotFoundException => false
+            case e: NotFoundHttpException => false
         }
     }
 
     private def checkNetworkTenant(id: UUID, tenantId: String): Boolean = {
         try {
-            resContext.backend.store.get(
-                classOf[Topology.Network], id).getOrThrow.getTenantId == tenantId
+            getResource(classOf[Bridge], id).tenantId == tenantId
         } catch {
-            case e: NotFoundException => false
+            case e: NotFoundHttpException => false
         }
     }
 
     private def checkRouterTenant(id: UUID, tenantId: String): Boolean = {
         try {
-            resContext.backend.store.get(
-                classOf[Topology.Router], id).getOrThrow.getTenantId == tenantId
+            getResource(classOf[Router], id).tenantId == tenantId
         } catch {
-            case e: NotFoundException => false
+            case e: NotFoundHttpException => false
         }
     }
 }
