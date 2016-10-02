@@ -47,7 +47,6 @@ public class Pool extends UriResource {
     @ZoomField(name = "health_monitor_id", converter = UUIDUtil.Converter.class)
     public UUID healthMonitorId;
 
-    @NotNull
     @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
     public UUID loadBalancerId;
 
