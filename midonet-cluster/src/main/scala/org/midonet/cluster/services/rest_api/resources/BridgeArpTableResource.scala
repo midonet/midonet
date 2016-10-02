@@ -117,7 +117,7 @@ class BridgeArpTableResource(bridgeId: UUID, resourceContext: ResourceContext)
     }
 
     private def arpTable: StateTable[IPv4Addr, MAC] = {
-        resourceContext.backend.stateTableStore.bridgeArpTable(bridgeId)
+        stateTableStore.bridgeArpTable(bridgeId)
     }
 
     private def parseIpMac(pair: String): (IPv4Addr, MAC) = {
