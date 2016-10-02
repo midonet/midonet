@@ -16,33 +16,18 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util
 import java.util.UUID
 
-import javax.ws.rs.core.{Response, UriInfo}
 import javax.ws.rs.{Path, _}
-
-import scala.collection.JavaConversions._
-import scala.concurrent.Await
-import scala.concurrent.duration._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-import com.typesafe.scalalogging.Logger
 
-import org.slf4j.LoggerFactory
-
-import org.midonet.cluster.data.storage.{NotFoundException, Storage}
-import org.midonet.cluster.models.Topology
-import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
+import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{IpAddrGroup, IpAddrGroupAddr, Ipv4AddrGroupAddr, Ipv6AddrGroupAddr}
-import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
-import org.midonet.cluster.util.IPAddressUtil.{toIPAddr, toProto}
-import org.midonet.packets.IPAddr.canonicalize
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr}
 
 @ApiResource(version = 1, name = "ipAddrGroups", template = "ipAddrGroupTemplate")
 @Path("ip_addr_groups")
@@ -52,7 +37,7 @@ import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr}
 @AllowCreate(Array(APPLICATION_IP_ADDR_GROUP_JSON))
 @AllowDelete
 class IpAddrGroupResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[IpAddrGroup](resContext){
+    extends MidonetResource[IpAddrGroup](resContext) {
 
     @Path("{id}/ip_addrs")
     def ports(@PathParam("id") id: UUID): IpAddrGroupAddrResource = {
@@ -60,159 +45,13 @@ class IpAddrGroupResource @Inject()(resContext: ResourceContext)
     }
 
     @Path("/{id}/versions/{version}/ip_addrs")
-    def getIpAddrGroupAddrVersionResource(@PathParam("id") id: UUID,
-                                          @PathParam("version") version: Int)
+    def addressVersion(@PathParam("id") id: UUID,
+                       @PathParam("version") version: Int)
     :IpAddrGroupAddrVersionResource = {
         if (version != 4 && version != 6) {
             throw new BadRequestHttpException("Invalid IP version: " + version)
         }
-      new IpAddrGroupAddrVersionResource(id, resContext)
-    }
-
-}
-
-sealed trait IpAddrGroupAddrSubResource {
-
-    protected[this] val store: Storage
-    protected[this] val ipAddrGroupId: UUID
-    protected[this] val uriInfo: UriInfo
-    protected[this] val requestTimeout: FiniteDuration
-
-    protected[resources] def ipg = try {
-        Await.result(
-            store.get(classOf[Topology.IPAddrGroup], ipAddrGroupId),
-            requestTimeout)
-    } catch {
-        case e: NotFoundException =>
-            throw new NotFoundHttpException("IP addr group not found: " +
-                                            ipAddrGroupId)
-    }
-
-    protected[this] def extractAddresses(from: Topology.IPAddrGroup.IPAddrPorts)
-    : IpAddrGroupAddr = {
-        val res = toIpGroupAddr(toIPAddr(from.getIpAddress))
-        res.setBaseUri(uriInfo.getBaseUri)
-        res.ipAddrGroupId = ipAddrGroupId
-        res
-    }
-
-    protected[this] def toIpGroupAddr(ip: IPAddr): IpAddrGroupAddr = ip match {
-        case ip4: IPv4Addr =>
-            new Ipv4AddrGroupAddr(uriInfo.getBaseUri, ipAddrGroupId, ip4)
-        case ip6: IPv6Addr =>
-            new Ipv6AddrGroupAddr(uriInfo.getBaseUri, ipAddrGroupId, ip6)
-    }
-
-}
-
-@RequestScoped
-class IpAddrGroupAddrVersionResource @Inject()(
-          protected[this] val ipAddrGroupId: UUID, resContext: ResourceContext)
-    extends IpAddrGroupAddrSubResource {
-
-    protected[this] val store = resContext.backend.store
-    protected[this] val uriInfo = resContext.uriInfo
-    protected[this] val requestTimeout =
-        resContext.config.requestTimeoutMs millis
-
-    protected final implicit val log =
-        Logger(LoggerFactory.getLogger(getClass))
-
-    @GET
-    @Path("{addr}")
-    @Produces(Array(APPLICATION_IP_ADDR_GROUP_ADDR_JSON))
-    def get(@PathParam("addr") addr: String): IpAddrGroupAddr = {
-        val canonicalAddr = IPAddr.canonicalize(addr)
-        ipg.getIpAddrPortsList.map(extractAddresses).find {
-            _.addr == canonicalAddr
-        } match {
-            case None =>
-                throw new NotFoundHttpException("The IP address group does " +
-                                                "not contain the specified " +
-                                                "address " + addr)
-            case Some(_) =>
-                toIpGroupAddr(IPAddr.fromString(canonicalize(addr)))
-        }
-    }
-
-    @DELETE
-    @Path("{addr}")
-    def delete(@PathParam("addr")addr: String): Response = {
-        val canonicalAddr = IPAddr.canonicalize(addr)
-        val oldIpg = ipg
-        val oldList = oldIpg.getIpAddrPortsList
-        val newList =
-            new util.ArrayList[Topology.IPAddrGroup.IPAddrPorts](oldList.size)
-        var doUpdate = false
-        oldList.foreach { a =>
-            if (toIPAddr(a.getIpAddress).toString == canonicalAddr) {
-                doUpdate = true
-            } else {
-                newList.add(a)
-            }
-        }
-        MidonetResource.tryWrite {
-            if (doUpdate) {
-                store.update(ipg.toBuilder.clearIpAddrPorts()
-                                          .addAllIpAddrPorts(newList)
-                                          .build())
-            }
-            MidonetResource.OkNoContentResponse
-        }
-
-    }
-}
-
-@RequestScoped
-class IpAddrGroupAddrResource @Inject()(protected[this] val ipAddrGroupId: UUID,
-                                        resContext: ResourceContext)
-    extends IpAddrGroupAddrSubResource {
-
-    protected[this] val store = resContext.backend.store
-    protected[this] val uriInfo = resContext.uriInfo
-    protected[this] val requestTimeout =
-        resContext.config.requestTimeoutMs millis
-
-    @GET
-    @Produces(Array(APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON))
-    def list(): util.List[IpAddrGroupAddr] = {
-        ipg.getIpAddrPortsList.map(extractAddresses).toList
-    }
-
-    @POST
-    @Consumes(Array(APPLICATION_IP_ADDR_GROUP_ADDR_JSON))
-    def create(addr: IpAddrGroupAddr): Response = {
-
-        resContext.validator.validate(addr)
-        if (addr.getVersion != 4 && addr.getVersion != 6) {
-            throw new BadRequestHttpException(
-                "Invalid IP version: " + addr.getVersion)
-        }
-
-        val canonicalAddr = try {
-            IPAddr.fromString(IPAddr.canonicalize(addr.addr))
-        } catch {
-            case t: IllegalArgumentException =>
-                throw new BadRequestHttpException(t.getMessage)
-        }
-
-        ipg.getIpAddrPortsList.find ( p =>
-            toIPAddr(p.getIpAddress).toString == addr.addr
-        ) match {
-            case None =>
-                store.update(ipg.toBuilder.addIpAddrPorts(
-                    IPAddrPorts.newBuilder()
-                        .setIpAddress(canonicalAddr)
-                        .build()
-                    ).build()
-                )
-            case Some(_) => // Ignore if the IP address group exists.
-        }
-
-        addr.create(ipAddrGroupId)
-        addr.setBaseUri(resContext.uriInfo.getBaseUri)
-        addr.ipAddrGroupId = ipAddrGroupId
-        MidonetResource.OkCreated(addr.getUri)
+        new IpAddrGroupAddrVersionResource(id, resContext)
     }
 
 }
