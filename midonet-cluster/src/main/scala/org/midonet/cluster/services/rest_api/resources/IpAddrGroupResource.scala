@@ -104,7 +104,7 @@ sealed trait IpAddrGroupAddrSubResource {
 @RequestScoped
 class IpAddrGroupAddrVersionResource @Inject()(
           protected[this] val ipAddrGroupId: UUID, resContext: ResourceContext)
-extends IpAddrGroupAddrSubResource {
+    extends IpAddrGroupAddrSubResource {
 
     protected[this] val store = resContext.backend.store
     protected[this] val uriInfo = resContext.uriInfo
