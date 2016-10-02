@@ -33,7 +33,7 @@ import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.packets.IPv4;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
-        property = "version")
+    property = "version")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Ipv4AddrGroupAddr.class, name = "4"),
     @JsonSubTypes.Type(value = Ipv6AddrGroupAddr.class, name = "6")
