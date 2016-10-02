@@ -33,10 +33,7 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.storage.SingleValueKey
-import org.midonet.cluster.models.Topology
-import org.midonet.cluster.rest_api.ResourceUris._
 import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.annotation._
@@ -205,24 +202,15 @@ class BridgePortResource @Inject()(bridgeId: UUID,
     }
 
     private def getBindings(id: UUID): List[VtepBinding] = {
-        val p = store.get(classOf[Topology.Port], id).getOrThrow
-        if (!p.hasVtepId) {
+        val p = getResource(classOf[VxLanPort], id)
+        if (p.vtepId eq null) {
             throw new BadRequestHttpException(getMessage(PORT_NOT_VXLAN_PORT,
                                                          id))
         }
-        val vtep = store.get(classOf[Topology.Vtep], p.getVtepId).getOrThrow
-        val bindings =
-            vtep.getBindingsList.asScala
-                                .filter { _.getNetworkId == p.getNetworkId }
-                                .map { fromProto(_, classOf[VtepBinding]) }
-                                .toList
-        if (bindings.isEmpty) {
-            log.warn("Network VXLAN port {} exists, but no bindings are " +
-                     "found in VTEP {}, this is wrong as the port is deleted " +
-                     "when the last binding is removed. Data inconsistency?",
-                     id, vtep.getId.asJava)
-        }
-        bindings
+        val vtep = getResource(classOf[Vtep], p.vtepId)
+        vtep.bindings.asScala
+                     .filter { _.networkId == p.networkId }
+                     .toList
     }
 }
 

@@ -18,15 +18,14 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.lang.{Short => JShort}
 import java.util
-import java.util.{List => JList, UUID}
+import java.util.{UUID, List => JList}
+
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import scala.reflect.ClassTag
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -88,14 +87,13 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
      * we can selectively map a ZOOM's not found to a 404 or a 400 based on the
      * use case.  Leaving this for its own patch.
      */
-    private def loadOrBadRequest[T](id: UUID)(implicit ct: ClassTag[T]): T = {
-        try {
-            store.get(ct.runtimeClass, id).getOrThrow.asInstanceOf[T]
-        } catch {
-            case t: NotFoundHttpException =>
+    private def loadOrBadRequest[T](tx: Transaction, clazz: Class[T], id: UUID)
+    : T = {
+        try tx.get(clazz, id)
+        catch {
+            case t: NotFoundException =>
                 throw new BadRequestHttpException(
-                    getMessage(RESOURCE_NOT_FOUND,
-                               ct.runtimeClass.getSimpleName, id))
+                    getMessage(RESOURCE_NOT_FOUND, clazz.getSimpleName, id))
         }
     }
 
@@ -104,81 +102,75 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                     APPLICATION_JSON))
     override def create(binding: VtepBinding,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
-
+    : Response = tryTx { tx =>
         binding.vtepId = vtepId
 
         throwIfViolationsOn(binding)
 
-        val vtep = loadOrBadRequest[Topology.Vtep](vtepId)
-        val network = loadOrBadRequest[Topology.Network](binding.networkId)
+        val vtep = loadOrBadRequest(tx.tx, classOf[Topology.Vtep], vtepId)
+        val network = loadOrBadRequest(tx.tx, classOf[Topology.Network],
+                                       binding.networkId)
         val mgmtIp = toIPv4Addr(vtep.getManagementIp)
         val mgmtPort  = vtep.getManagementPort
-        val cnxn = cnxnProvider.get(mgmtIp, mgmtPort)
-        val client = OvsdbVtepDataClient(cnxn)
 
-        val result = client.connect() flatMap { _ =>
-            client.physicalSwitch
-        } flatMap {
-            case Some(physicalSwitch) =>
-                Future.sequence(physicalSwitch.ports map client.physicalPort)
-            case None =>
-                throw new ServiceUnavailableHttpException(
-                    s"Cannot add binding to VTEP $mgmtIp:" +
-                    s"${vtep.getManagementPort} because the physical " +
-                    "switch is not configured")
-        } map { ports =>
-
-            if (!ports.flatten.exists(_.name == binding.portName)) {
-                val msg = getMessage(VTEP_PORT_NOT_FOUND, mgmtIp,
-                                     Int.box(mgmtPort), binding.portName)
-                throw new NotFoundHttpException(msg)
-            }
-
-            throwIfConflictingBinding(vtep, binding)
-
-            val protoBdg = binding.toProto(classOf[Topology.Vtep.Binding])
-                                  .toBuilder
-                                  .setVlanId(binding.vlanId)
-                                  .setPortName(binding.portName)
-                                  .setNetworkId(uuidToProto(binding.networkId))
-                                  .build()
-
-            val newVtep = vtep.toBuilder.addBindings(protoBdg).build()
-
-            // The vxLan port id is deterministically generated from the
-            // vxlan and network ids.
-            findVxPortForVtep(network, vtepId) match {
-                case Some(p) =>
-                    store.update(newVtep)
+        val client = OvsdbVtepDataClient(cnxnProvider.get(mgmtIp, mgmtPort))
+        val ports = try {
+            client.connect() flatMap { _ =>
+                client.physicalSwitch
+            } flatMap {
+                case Some(physicalSwitch) =>
+                    Future.sequence(physicalSwitch.ports map client.physicalPort)
                 case None =>
-                    val vni = if (!network.hasVni) {
-                        seqDispenser.next(VxgwVni).getOrThrow
-                    } else {
-                        network.getVni
-                    }
-
-                    val p = makeAVxlanPort(vtep, network)
-                    val n = network.toBuilder
-                                   .setVni(vni)
-                                   .addVxlanPortIds(p.getId)
-                                   .build()
-                    store.multi (
-                        Seq(UpdateOp(newVtep), UpdateOp(n), CreateOp(p))
-                    )
-            }
-
-            binding.setBaseUri(resContext.uriInfo.getBaseUri)
-            OkCreated(binding.getUri)
-        } recover {
-            case t: Throwable =>
-                client.close()
-                throw t
+                    throw new ServiceUnavailableHttpException(
+                        s"Cannot add binding to VTEP $mgmtIp:" +
+                        s"${vtep.getManagementPort} because the physical " +
+                        "switch is not configured")
+            } getOrThrow
+        } finally {
+            client.close()
         }
 
-        val res = result.getOrThrow
-        client.close()
-        res
+        if (!ports.flatten.exists(_.name == binding.portName)) {
+            val msg = getMessage(VTEP_PORT_NOT_FOUND, mgmtIp,
+                                 Int.box(mgmtPort), binding.portName)
+            throw new NotFoundHttpException(msg)
+        }
+
+        throwIfConflictingBinding(vtep, binding)
+
+        val protoBdg = binding.toProto(classOf[Topology.Vtep.Binding])
+                              .toBuilder
+                              .setVlanId(binding.vlanId)
+                              .setPortName(binding.portName)
+                              .setNetworkId(uuidToProto(binding.networkId))
+                              .build()
+
+        val newVtep = vtep.toBuilder.addBindings(protoBdg).build()
+
+        // The vxLan port id is deterministically generated from the
+        // vxlan and network ids.
+        findVxPortForVtep(tx.tx, network, vtepId) match {
+            case Some(p) =>
+                tx.tx.update(newVtep)
+            case None =>
+                val vni = if (!network.hasVni) {
+                    seqDispenser.next(VxgwVni).getOrThrow
+                } else {
+                    network.getVni
+                }
+
+                val p = makeAVxlanPort(vtep, network)
+                val n = network.toBuilder
+                               .setVni(vni)
+                               .addVxlanPortIds(p.getId)
+                               .build()
+                tx.tx.update(newVtep)
+                tx.tx.update(n)
+                tx.tx.create(p)
+        }
+
+        binding.setBaseUri(resContext.uriInfo.getBaseUri)
+        OkCreated(binding.getUri)
     }
 
     /** Makes a new VxLAN port for the given vtep and network, that resides
@@ -200,7 +192,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
       */
     private def throwIfConflictingBinding(vtep: Topology.Vtep, bdg: VtepBinding)
     : Unit = {
-        val conflict = vtep.getBindingsList.find { proto =>
+        val conflict = vtep.getBindingsList.asScala.find { proto =>
             proto.getVlanId.toShort == bdg.vlanId &&
             proto.getPortName == bdg.portName
         }
@@ -218,11 +210,11 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
     /**
      * Find the VxLAN port for the given VTEP in the given network.
      */
-    private def findVxPortForVtep(n: Topology.Network, vtepId: UUID)
+    private def findVxPortForVtep(tx: Transaction, n: Topology.Network, vtepId: UUID)
     : Option[Topology.Port] = {
         val protoVtepId = uuidToProto(vtepId)
-        val ids = n.getVxlanPortIdsList
-        val ports = store.getAll(classOf[Topology.Port], ids).getOrThrow
+        val ids = n.getVxlanPortIdsList.asScala
+        val ports = tx.getAll(classOf[Topology.Port], ids)
         ports.find { _.getVtepId == protoVtepId }
     }
 
@@ -238,12 +230,12 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
     @DELETE
     @Path("{portName}/{vlanId}")
     def delete(@PathParam("portName") portName: String,
-               @PathParam("vlanId") vlanId: Short): Response = {
+               @PathParam("vlanId") vlanId: Short): Response = tryTx { tx =>
         // Validate the physical port exists.
-        val vtep = store.get(classOf[Topology.Vtep], vtepId).getOrThrow
+        val vtep = tx.tx.get(classOf[Topology.Vtep], vtepId)
         val newBindings = new util.ArrayList[Topology.Vtep.Binding]
         var removedBinding: Topology.Vtep.Binding = null
-        vtep.getBindingsList.foreach { b =>
+        vtep.getBindingsList.asScala.foreach { b =>
             if (b.getPortName == portName && b.getVlanId == vlanId) {
                 removedBinding = b
             } else {
@@ -258,38 +250,36 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
         val newVtep = vtep.toBuilder.clearBindings()
                                     .addAllBindings(newBindings).build()
 
-        val bindingsLeftOnNetwork = newBindings.count {
+        val bindingsLeftOnNetwork = newBindings.asScala.count {
             _.getNetworkId == removedBinding.getNetworkId
         }
 
-        val ops = new util.ArrayList[PersistenceOp]
         val nwId = fromProto(removedBinding.getNetworkId)
         if (bindingsLeftOnNetwork <= 0) {
             log.debug(s"No bindings left from $vtepId to network $nwId")
             try {
-                val nw = store.get(classOf[Topology.Network],
-                               removedBinding.getNetworkId).getOrThrow
-                findVxPortForVtep(nw, vtepId) map { p =>
+                val nw = tx.tx.get(classOf[Topology.Network],
+                                   removedBinding.getNetworkId)
+                findVxPortForVtep(tx.tx, nw, vtepId) foreach { p =>
                     // Exclude this port from the network's vxlan ports
-                    val newVxPorts = nw.getVxlanPortIdsList - p.getId
+                    val newVxPorts = nw.getVxlanPortIdsList.asScala - p.getId
                     val newNw = nw.toBuilder
                                   .clearVxlanPortIds()
-                                  .addAllVxlanPortIds(newVxPorts)
+                                  .addAllVxlanPortIds(newVxPorts.asJava)
                                   .build()
-                    ops.add(UpdateOp(newNw))
-                    ops.add(DeleteOp(classOf[Topology.Port], p.getId))
+                    tx.tx.update(newNw)
+                    tx.tx.delete(classOf[Topology.Port], p.getId)
                 }
             } catch {
                 case t: NotFoundException =>
-                    log.info(s"No vxlan port found for network $nwId and VTEP" +
-                             s" $vtepId when trying to remove it after all " +
+                    log.info(s"No VXLAN port found for network $nwId and VTEP " +
+                             s"$vtepId when trying to remove it after all " +
                              "bindings are deleted")
                  // idempotent
             }
         }
 
-        ops.add(UpdateOp(newVtep))
-        store.multi(ops)
+        tx.tx.update(newVtep)
         OkNoContentResponse
     }
 
