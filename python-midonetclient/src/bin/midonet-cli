@@ -901,10 +901,12 @@ class Collection(Attr):
     def __init__(self, name, element_type, list_method,
                  list_with_tenant = False,
                  getter = None,
+                 setter = None,
                  sort_by = None,
                  factory_method = None,
                  install_method = None,
-                 show = True):
+                 show = True,
+                 embedded = False):
         self.name = name
         self.element_type = element_type
         self.list_method = list_method
@@ -914,6 +916,8 @@ class Collection(Attr):
         self.install_method = install_method
         self.show = show
         self.sort_by = sort_by
+        self.embedded = embedded
+        self.setter = setter
 
 class SingleObject(Attr):
     def __init__(self, name, getter, element_type, show = True):
@@ -1232,6 +1236,18 @@ class ObjectType(object):
                 return True
         return False
 
+    def delete(self):
+        if hasattr(self, 'embedded_parent_collection'):
+            col = self.embedded_parent_collection
+            setter = self.owner.reflect(col.setter)
+            getter = self.owner.reflect(col.getter)
+            members = getter()
+            new_val = [i for i in members if i != self.object().dto]
+            setter(new_val)
+            self.owner.object().update()
+        else:
+            self.object().delete()
+
     def fetch_one_for_type(self, object_type, id_):
         if not is_valid_uuid(id_):
             return None
@@ -1266,7 +1282,23 @@ class ObjectType(object):
             api_objects = func(query)
         else:
             api_objects = func()
+
+        if attr.embedded:
+            raw_objects = api_objects
+            api_objects = []
+            factory = self.reflect(attr.factory_method)
+            for raw in raw_objects:
+                api_obj = factory()
+                api_obj.dto = raw
+                api_objects.append(api_obj)
+
         cli_objects = map(lambda elem: attr.element_type(elem), api_objects)
+
+        for cli_obj in cli_objects:
+            cli_obj.owner = self
+            if attr.embedded:
+                cli_obj.embedded_parent_collection = attr
+
         if list_filter is None or len(list_filter) == 0:
             results = cli_objects
         else:
@@ -1786,6 +1818,7 @@ class Chain(ObjectType):
 class Condition(ObjectType):
     def __init__(self, obj):
         super(Condition, self).__init__(obj)
+        self.clear_attrs()
         self.put_attr(SingleAttr(name = 'hw-src',
                                  value_type = MacAddress(),
                                  getter = 'get_dl_src',
@@ -3517,6 +3550,10 @@ class Create(Command):
         if collection is None:
             raise Exception("Bug in command pattern definition")
 
+        if collection.embedded:
+            self.do_embedded(obj, collection, fields)
+            return
+
         if not collection.factory_method:
             raise Exception("Creating elements of this type is not possible")
         factory = obj.reflect(collection.factory_method)
@@ -3533,6 +3570,26 @@ class Create(Command):
             print ":".join(alias_chain)
         else:
             print wrapper.describe()
+
+    def do_embedded(self, obj, collection, fields):
+        factory = obj.reflect(collection.factory_method)
+        new_object = factory()
+
+        wrapper = collection.element_type(new_object)
+        if wrapper.has_field('tenant'):
+            wrapper.set_field('tenant', session.tenant_id)
+        for f in fields:
+            wrapper.set_field(f.name, f.value)
+
+        getter = obj.reflect(collection.getter)
+        setter = obj.reflect(collection.setter)
+
+        current_val = getter()
+        current_val.append(new_object.dto)
+        setter(current_val)
+        obj.object().update()
+
+        print wrapper.describe()
 
 class Clear(Command):
     """clear - Clear the value of a field on an existing object
@@ -3674,7 +3731,7 @@ class Delete(Command):
             if isinstance(tok, ObjectType):
                 obj = tok
         assert(obj is not None)
-        obj.object().delete()
+        obj.delete()
 
 
 class Show(Command):
