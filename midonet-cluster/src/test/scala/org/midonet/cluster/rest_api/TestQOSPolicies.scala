@@ -17,17 +17,17 @@
 package org.midonet.cluster.rest_api
 
 import java.net.URI
+import java.util
 import java.util.UUID
-
 import javax.ws.rs.core.Response
 
+import scala.collection.JavaConverters._
 import com.sun.jersey.api.client.{ClientResponse, WebResource}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
-
 import org.midonet.cluster.HttpRequestChecks
+import org.midonet.cluster.rest_api.models.QOSPolicy.QOSRule
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.rest_api.FuncJerseyTest
 
@@ -60,22 +60,120 @@ class TestQOSPolicies extends FeatureSpec
         jerseyTest.tearDown()
     }
 
-    scenario("Create, Read, Update, Delete QOS Policy") {
-        val qosPolicy = new QOSPolicy()
+    private def createPolicy(name: String, baseURI: URI)
+    : QOSPolicy = {
+        val qosPolicy = new QOSPolicy
         qosPolicy.id = UUID.randomUUID
-        qosPolicy.name = "test-qos"
-        qosPolicy.description = "desc"
+        qosPolicy.name = name
+        qosPolicy.description = "test-description"
         qosPolicy.shared = true
         qosPolicy.setBaseUri(baseUri)
+        qosPolicy
+    }
+
+    private def createPolicyRule(`type`: String,
+                                 maxKbps: Integer = null,
+                                 maxBurst: Integer = null,
+                                 dscpMark: Integer = null,
+                                 id: UUID = null)
+    : QOSRule = {
+        val rule = new QOSRule
+        rule.id = if (id == null) UUID.randomUUID else id
+        rule.`type` = `type`
+        rule.maxKbps = maxKbps
+        rule.maxBurstKbps = maxBurst
+        rule.dscpMark = dscpMark
+        rule
+    }
+
+    private def createTopLevelBwLimitRule(maxKbps: Integer, maxBurst: Integer,
+                                          baseUri: URI)
+    : QOSRuleBWLimit = {
+        val bwLimitRule = new QOSRuleBWLimit()
+        bwLimitRule.id = UUID.randomUUID()
+        bwLimitRule.maxKbps = maxKbps
+        bwLimitRule.maxBurstKbps = maxBurst
+        bwLimitRule.setBaseUri(baseUri)
+        bwLimitRule
+    }
+
+    private def createTopLevelDSCPRule(dscpMark: Integer, baseUri: URI)
+    : QOSRuleDSCP = {
+        val dscpRule = new QOSRuleDSCP()
+        dscpRule.id = UUID.randomUUID()
+        dscpRule.dscpMark = dscpMark
+        dscpRule.setBaseUri(baseUri)
+        dscpRule
+    }
+
+    private def checkPolicy(testPolicy: QOSPolicy, controlPolicy: QOSPolicy,
+                            qosPolicyUri: URI)
+    : Unit = {
+        testPolicy.id shouldBe controlPolicy.id
+        testPolicy.name shouldBe controlPolicy.name
+        testPolicy.description shouldBe controlPolicy.description
+        testPolicy.shared shouldBe controlPolicy.shared
+        testPolicy.getUri shouldBe qosPolicyUri
+    }
+
+    private def checkDscpRule(testRule: QOSRuleDSCP, controlRule: QOSRuleDSCP)
+    : Unit = {
+        testRule.dscpMark shouldBe controlRule.dscpMark
+        testRule.id shouldBe controlRule.id
+    }
+
+    private def checkBwLimitRule(testRule: QOSRuleBWLimit,
+                                 controlRule: QOSRuleBWLimit)
+    : Unit = {
+        testRule.maxKbps shouldBe controlRule.maxKbps
+        testRule.maxBurstKbps shouldBe controlRule.maxBurstKbps
+        testRule.id shouldBe controlRule.id
+    }
+
+    private def checkJSONRuleList(ruleList: util.List[QOSRule],
+                                  expectedList: util.List[QOSRule])
+    : Unit = {
+        ruleList.size shouldBe expectedList.size
+        for ((testRule, expectedRule) <-
+             ruleList.asScala zip expectedList.asScala) {
+            testRule.id shouldBe expectedRule.id
+            testRule.`type` shouldBe expectedRule.`type`
+            testRule.maxKbps shouldBe expectedRule.maxKbps
+            testRule.maxBurstKbps shouldBe expectedRule.maxBurstKbps
+            testRule.dscpMark shouldBe expectedRule.dscpMark
+        }
+    }
+
+    private def checkRulesMatchJSONRulesOnPolicy(qosPolicy: QOSPolicy,
+                                                 expectedBWList: List[QOSRule],
+                                                 expectedDSCPList: List[QOSRule])
+    : Unit = {
+        val bwRes = jerseyTest.client().resource(qosPolicy.getBwLimitRules)
+        val dscpRes = jerseyTest.client().resource(qosPolicy.getDscpRules)
+
+        val bwLimitRules = listAndAssertOk[QOSRuleBWLimit](bwRes.getURI)
+        bwLimitRules.size shouldBe expectedBWList.size
+        for ((testRule, expectedRule) <- bwLimitRules zip expectedBWList) {
+            testRule.id shouldBe expectedRule.id
+            testRule.maxKbps shouldBe expectedRule.maxKbps
+            testRule.maxBurstKbps shouldBe expectedRule.maxBurstKbps
+        }
+
+        val dscpRules = listAndAssertOk[QOSRuleDSCP](dscpRes.getURI)
+        dscpRules.size shouldBe expectedDSCPList.size
+        for ((testRule, expectedRule) <- dscpRules zip expectedDSCPList) {
+            testRule.id shouldBe expectedRule.id
+            testRule.dscpMark shouldBe expectedRule.dscpMark
+        }
+    }
+
+    scenario("Create, Read, Update, Delete QOS Policy") {
+        val qosPolicy = createPolicy("test-qos", baseUri)
 
         val qosPolicyUri = postAndAssertOk(qosPolicy, qosPolicyResource.getURI)
         val qosPolicyResp = getAndAssertOk[QOSPolicy](qosPolicyUri)
 
-        qosPolicyResp.id shouldBe qosPolicy.id
-        qosPolicyResp.name shouldBe qosPolicy.name
-        qosPolicyResp.description shouldBe qosPolicy.description
-        qosPolicyResp.shared shouldBe qosPolicy.shared
-        qosPolicyResp.getUri shouldBe qosPolicyUri
+        checkPolicy(qosPolicyResp, qosPolicy, qosPolicyUri)
 
         qosPolicyResp.name = "foobar"
         putAndAssertOk(qosPolicyResp)
@@ -86,50 +184,122 @@ class TestQOSPolicies extends FeatureSpec
         deleteAndAssertGone[QOSPolicy](qosPolicyResp.getUri)
     }
 
+    scenario("Create QOS Policy With Rules Attached") {
+        val qosPolicy = createPolicy("test-qos", baseUri)
+
+        val bwLimitRule = createPolicyRule(
+            QOSRule.QOS_RULE_TYPE_BW_LIMIT,
+            maxKbps = 100,maxBurst = 1000)
+
+        val dscpRule = createPolicyRule(
+            QOSRule.QOS_RULE_TYPE_DSCP,
+            dscpMark = 11)
+
+        qosPolicy.rules.add(bwLimitRule)
+        qosPolicy.rules.add(dscpRule)
+
+        val qosPolicyUri = postAndAssertOk(qosPolicy, qosPolicyResource.getURI)
+        val qosPolicyResp = getAndAssertOk[QOSPolicy](qosPolicyUri)
+
+        checkPolicy(qosPolicyResp, qosPolicy, qosPolicyUri)
+
+        checkJSONRuleList(qosPolicyResp.rules, qosPolicy.rules)
+        checkRulesMatchJSONRulesOnPolicy(qosPolicyResp,
+            List(bwLimitRule),
+            List(dscpRule))
+
+        deleteAndAssertGone[QOSPolicy](qosPolicyResp.getUri)
+    }
+
+    scenario("Update QOS Policy With New, Changed, and Deleted Rules") {
+        val qosPolicy = createPolicy("test-qos", baseUri)
+
+        val bwLimitRule = createPolicyRule(
+            QOSRule.QOS_RULE_TYPE_BW_LIMIT,
+            maxKbps = 100,maxBurst = 1000)
+
+        val dscpRule = createPolicyRule(
+            QOSRule.QOS_RULE_TYPE_DSCP,
+            dscpMark = 11)
+
+        val dscpRule2 = createPolicyRule(
+            QOSRule.QOS_RULE_TYPE_DSCP,
+            dscpMark = 22)
+
+        qosPolicy.rules.add(bwLimitRule)
+        qosPolicy.rules.add(dscpRule)
+        qosPolicy.rules.add(dscpRule2)
+
+        val qosPolicyUri = postAndAssertOk(qosPolicy, qosPolicyResource.getURI)
+        val qosPolicyCreated = getAndAssertOk[QOSPolicy](qosPolicyUri)
+
+        checkJSONRuleList(qosPolicyCreated.rules, qosPolicy.rules)
+        checkRulesMatchJSONRulesOnPolicy(qosPolicyCreated,
+            List(bwLimitRule),
+            List(dscpRule, dscpRule2))
+
+        val bwLimitRule2 = createPolicyRule(
+            QOSRule.QOS_RULE_TYPE_BW_LIMIT,
+            maxKbps = 50,maxBurst = 500)
+
+        dscpRule.dscpMark = 33
+
+        qosPolicy.rules.clear()
+        qosPolicy.rules.add(dscpRule)
+        qosPolicy.rules.add(dscpRule2)
+        qosPolicy.rules.add(bwLimitRule2)
+
+        putAndAssertOk(qosPolicy)
+
+        val qosPolicyUpdated = getAndAssertOk[QOSPolicy](qosPolicyUri)
+
+        checkJSONRuleList(qosPolicyUpdated.rules, qosPolicy.rules)
+        checkRulesMatchJSONRulesOnPolicy(qosPolicyUpdated,
+            List(bwLimitRule2),
+            List(dscpRule, dscpRule2))
+
+        deleteAndAssertGone[QOSPolicy](qosPolicyUpdated.getUri)
+    }
+
     scenario("Creating BW Limit Rules w/o Policy Should Fail") {
-        val bwLimitRule = new QOSRuleBWLimit()
-        bwLimitRule.id = UUID.randomUUID()
-        bwLimitRule.maxKbps = 100
-        bwLimitRule.maxBurstKbps = 1000
-        bwLimitRule.setBaseUri(baseUri)
+        val bwLimitRule = createTopLevelBwLimitRule(100, 1000, baseUri)
 
         postAndAssertStatus(bwLimitRule, qosBWLimitRulesResource.getURI,
                             ClientResponse.Status.METHOD_NOT_ALLOWED.getStatusCode)
     }
 
     scenario("Create, Read, Update, Delete BW Limit Rules") {
-        val qosPolicy = new QOSPolicy()
-        qosPolicy.id = UUID.randomUUID
-        qosPolicy.name = "test-qos"
-        qosPolicy.description = "desc"
-        qosPolicy.shared = true
-        qosPolicy.setBaseUri(baseUri)
+        val qosPolicy = createPolicy("test-qos", baseUri)
 
-        postAndAssertOk(qosPolicy, qosPolicyResource.getURI)
+        val qosPolicyUri = postAndAssertOk(qosPolicy, qosPolicyResource.getURI)
 
-        val bwLimitRule = new QOSRuleBWLimit()
-        bwLimitRule.id = UUID.randomUUID()
-        bwLimitRule.maxKbps = 100
-        bwLimitRule.maxBurstKbps = 1000
-        bwLimitRule.setBaseUri(baseUri)
+        val bwLimitRule = createTopLevelBwLimitRule(100, 1000, baseUri)
 
         val bwRes = jerseyTest.client().resource(qosPolicy.getBwLimitRules)
 
         val bwLimitRuleUri = postAndAssertOk(bwLimitRule, bwRes.getURI)
         val bwLimitRuleResp = getAndAssertOk[QOSRuleBWLimit](bwLimitRuleUri)
+        checkBwLimitRule(bwLimitRuleResp, bwLimitRule)
 
-        bwLimitRuleResp.id shouldBe bwLimitRule.id
-        bwLimitRuleResp.maxKbps shouldBe bwLimitRule.maxKbps
-        bwLimitRuleResp.maxBurstKbps shouldBe bwLimitRule.maxBurstKbps
+        val qosPolicyUpdated = getAndAssertOk[QOSPolicy](qosPolicyUri)
+        val checkRule = createPolicyRule(
+            QOSRule.QOS_RULE_TYPE_BW_LIMIT,
+            maxKbps = 100, maxBurst = 1000,
+            id = bwLimitRule.id)
 
-        val bwLimitRulesResp = listAndAssertOk[QOSRuleBWLimit](bwRes.getURI)
-        bwLimitRulesResp.length shouldBe 1
-        bwLimitRulesResp.head.id shouldBe bwLimitRule.id
+        checkRulesMatchJSONRulesOnPolicy(qosPolicyUpdated,
+            List(checkRule), List())
 
         bwLimitRuleResp.maxKbps = 200
         putAndAssertOk(bwLimitRuleResp)
         val bwLimitRuleUpdated = getAndAssertOk[QOSRuleBWLimit](bwLimitRuleUri)
-        bwLimitRuleUpdated.maxKbps shouldBe bwLimitRuleResp.maxKbps
+        checkBwLimitRule(bwLimitRuleUpdated, bwLimitRuleResp)
+
+        val qosPolicyUpdated2 = getAndAssertOk[QOSPolicy](qosPolicyUri)
+        checkRule.maxKbps = 200
+
+        checkRulesMatchJSONRulesOnPolicy(qosPolicyUpdated2,
+            List(checkRule), List())
 
         deleteAndAssertGone[QOSRuleBWLimit](bwLimitRuleUri)
 
@@ -139,45 +309,43 @@ class TestQOSPolicies extends FeatureSpec
     }
 
     scenario("Creating DSCP Rules w/o Policy Should Fail") {
-        val dscpRule = new QOSRuleDSCP()
-        dscpRule.id = UUID.randomUUID()
-        dscpRule.dscpMark = 11
-        dscpRule.setBaseUri(baseUri)
+        val dscpRule = createTopLevelDSCPRule(11, baseUri)
 
         postAndAssertStatus(dscpRule, qosDSCPRulesResource.getURI,
                             ClientResponse.Status.METHOD_NOT_ALLOWED.getStatusCode)
     }
 
     scenario("Create, Read, Update, Delete DSCP Rules") {
-        val qosPolicy = new QOSPolicy()
-        qosPolicy.id = UUID.randomUUID
-        qosPolicy.name = "test-qos"
-        qosPolicy.description = "desc"
-        qosPolicy.shared = true
-        qosPolicy.setBaseUri(baseUri)
-        postAndAssertOk(qosPolicy, qosPolicyResource.getURI)
+        val qosPolicy = createPolicy("test-qos", baseUri)
+        val qosPolicyUri = postAndAssertOk(qosPolicy, qosPolicyResource.getURI)
 
-        val dscpRule = new QOSRuleDSCP()
-        dscpRule.id = UUID.randomUUID()
-        dscpRule.dscpMark = 11
-        dscpRule.setBaseUri(baseUri)
+        val dscpRule = createTopLevelDSCPRule(11, baseUri)
 
         val dscpRes = jerseyTest.client().resource(qosPolicy.getDscpRules)
         val dscpRuleUri = postAndAssertOk(dscpRule, dscpRes.getURI)
         val dscpRuleResp = getAndAssertOk[QOSRuleDSCP](dscpRuleUri)
 
-        dscpRuleResp.id shouldBe dscpRule.id
-        dscpRuleResp.dscpMark shouldBe dscpRule.dscpMark
+        checkDscpRule(dscpRuleResp, dscpRule)
 
-        val dscpRulesResp = listAndAssertOk[QOSRuleDSCP](dscpRes.getURI)
-        dscpRulesResp.length shouldBe 1
-        dscpRulesResp.head.id shouldBe dscpRule.id
+        val qosPolicyUpdated = getAndAssertOk[QOSPolicy](qosPolicyUri)
+        val checkRule = createPolicyRule(
+            QOSRule.QOS_RULE_TYPE_DSCP,
+            dscpMark = 11,
+            id = dscpRule.id)
+
+        checkRulesMatchJSONRulesOnPolicy(qosPolicyUpdated,
+            List(), List(checkRule))
 
         dscpRuleResp.dscpMark = 22
         putAndAssertOk(dscpRuleResp)
 
         val dscpRuleUpdated = getAndAssertOk[QOSRuleDSCP](dscpRuleUri)
-        dscpRuleUpdated.dscpMark shouldBe dscpRuleResp.dscpMark
+        checkDscpRule(dscpRuleUpdated, dscpRuleResp)
+
+        val qosPolicyUpdated2 = getAndAssertOk[QOSPolicy](qosPolicyUri)
+        checkRule.dscpMark = 22
+        checkRulesMatchJSONRulesOnPolicy(qosPolicyUpdated2,
+            List(), List(checkRule))
 
         deleteAndAssertGone[QOSRuleDSCP](dscpRuleUri)
 
@@ -186,29 +354,12 @@ class TestQOSPolicies extends FeatureSpec
     }
 
     scenario("Test policy <-> rule bindings") {
-        val qosPolicy = new QOSPolicy()
-        qosPolicy.id = UUID.randomUUID
-        qosPolicy.name = "test-qos"
-        qosPolicy.description = "desc"
-        qosPolicy.shared = true
-        qosPolicy.setBaseUri(baseUri)
+        val qosPolicy = createPolicy("test-qos", baseUri)
         val qosPolicyUri = postAndAssertOk(qosPolicy, qosPolicyResource.getURI)
 
-        val dscpRule = new QOSRuleDSCP()
-        dscpRule.id = UUID.randomUUID()
-        dscpRule.dscpMark = 11
-        dscpRule.setBaseUri(baseUri)
-
-        val dscpRule2 = new QOSRuleDSCP()
-        dscpRule2.id = UUID.randomUUID()
-        dscpRule2.dscpMark = 22
-        dscpRule2.setBaseUri(baseUri)
-
-        val bwLimitRule = new QOSRuleBWLimit()
-        bwLimitRule.id = UUID.randomUUID()
-        bwLimitRule.maxKbps = 100
-        bwLimitRule.maxBurstKbps = 1000
-        bwLimitRule.setBaseUri(baseUri)
+        val dscpRule = createTopLevelDSCPRule(11, baseUri)
+        val dscpRule2 = createTopLevelDSCPRule(22, baseUri)
+        val bwLimitRule = createTopLevelBwLimitRule(100, 1000, baseUri)
 
         val dscpRes = jerseyTest.client().resource(qosPolicy.getDscpRules)
         val bwRes = jerseyTest.client().resource(qosPolicy.getBwLimitRules)
