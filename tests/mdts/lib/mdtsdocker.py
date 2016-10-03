@@ -19,7 +19,7 @@ from docker import Client
 class DockerClient(Client):
     def __init__(self, base_url, timeout, sandbox_prefix, sandbox_name):
         super(DockerClient, self).__init__(base_url=base_url,
-                                           timeout=timeout)
+                                           timeout=timeout, version='auto')
         self.sandbox_prefix = sandbox_prefix
         self.sandbox_name = sandbox_name
 
