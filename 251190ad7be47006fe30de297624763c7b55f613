@@ -16,6 +16,24 @@
       "revId": "251190ad7be47006fe30de297624763c7b55f613",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9fd9fa58",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-03T08:51:52Z",
+      "side": 1,
+      "message": "Interesting.  None of that was in the Neutron API doc, or any online information I could find, nor did I find it in the code itself when I examined it.  \n\nDid we get this output as what is actually sent from the neutron client to the REST API?  If so, how much can we expect that this format will hold true across drivers and across revisions?  And lastly, I think this code should still be compatible, because I believe we ignore JSON elements that we cannot deserialize, so the question is how much we have to make sure we are full-featured and deserialize every element (this goes into the \"iterative\" approach model we were being asked to follow as well).  Could we just leave the feature here and then iteratively add more elements?  Or do we have to deserialize everything to make any part of this feature work?",
+      "parentUuid": "baa041b7_ff892670",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
