@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5fe812e2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-03T08:54:28Z",
+      "side": 1,
+      "message": "so FloatingIpTranslator changes are for tenant router\nand RouterInterface changes are for edge router?",
+      "parentUuid": "baa041b7_cc4fe290",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_31cb4855",
         "filename": "/COMMIT_MSG",
         "patchSetId": 11
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "I have not investigated neutron l3 agent. I just assumed the problem would be different with the l3 agent because their router is a namespace and adding/deleting routes would be trivial.",
       "parentUuid": "baa041b7_31cb4855",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1fee0aed",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-03T08:54:28Z",
+      "side": 1,
+      "message": "i don\u0027t think l3 agent does \"add second subnet route\" things.\ni concern this change makes us diverge further from the api semantics.",
+      "parentUuid": "baa041b7_ec31860c",
       "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
