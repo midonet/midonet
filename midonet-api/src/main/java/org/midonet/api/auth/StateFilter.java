@@ -98,7 +98,8 @@ public final class StateFilter implements Filter {
         } catch(StateAccessException ex) {
             ResponseUtils.setErrorResponse((HttpServletResponse) response,
                     HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                    "Can not access topology information");
+                    "Can not access topology information."
+                    +" Is NSDB down?");
             log.error("Can not access topology information");
             return;
         }

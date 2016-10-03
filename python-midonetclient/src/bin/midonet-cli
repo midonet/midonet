@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import cmd
-import inspect
+import inspect, json
 import logging
 import re
 import socket
@@ -4090,9 +4090,16 @@ class MidonetCLI(cmd.Cmd):
             import traceback
             if session.debug:
                 print traceback.format_exc()
-            print "Internal error: %s" % e
+            print "Internal error: %s" % self.exception_to_error_string(e)
 
         return False
+
+    def exception_to_error_string(self, e):
+        try:
+            error_json = json.loads(str(e))
+            return "%s (Code: %d)" % (error_json['message'], error_json['code'])
+        except:
+            return e
 
     def complete(self, line, state):
         try:
