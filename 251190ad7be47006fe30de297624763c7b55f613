@@ -52,6 +52,24 @@
       "revId": "251190ad7be47006fe30de297624763c7b55f613",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5fcff27e",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-03T09:04:58Z",
+      "side": 1,
+      "message": "the output i pasted is the result of to_dict() of the policy object.  it\u0027s versioned, so i expect they will maintain compatibility.  it was from version 1.3.\n\nit\u0027s fine to ignore uninteresting fields.\nmy suggestion is to use \"type\" field to distinguish rule types, rather than guessing from the existence of other fields.",
+      "parentUuid": "baa041b7_9fd9fa58",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
