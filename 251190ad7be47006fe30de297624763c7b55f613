@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_ff892670",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-03T07:56:11Z",
+      "side": 1,
+      "message": "neutron qos policy object is serialized like the following.\nit\u0027s better to follow, unless there\u0027s a strong reason not to.\n\n{\n   \"name\" : \"hoge\",\n   \"rules\" : [\n      {\n         \"max_kbps\" : 1000,\n         \"type\" : \"bandwidth_limit\",\n         \"id\" : \"202e5aa9-2560-4de8-b3f8-556371e873d5\",\n         \"max_burst_kbps\" : 0,\n         \"qos_policy_id\" : \"b4f344c8-cc67-484c-bcce-e4656c920eaf\"\n      }\n   ],\n   \"id\" : \"b4f344c8-cc67-484c-bcce-e4656c920eaf\",\n   \"tenant_id\" : \"9275f288155944c497e50c8bccdd127c\",\n   \"shared\" : false,\n   \"updated_at\" : \"2016-10-03T06:56:27Z\",\n   \"revision_number\" : 1,\n   \"created_at\" : \"2016-10-03T06:56:27Z\",\n   \"description\" : \"\"\n}",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
