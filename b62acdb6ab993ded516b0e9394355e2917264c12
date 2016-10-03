@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_cc4fe290",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T06:05:55Z",
+      "side": 1,
+      "message": "Yes you are right. I have updated the commit message to reflect the fact that this change focuses on the edge router, where the interface would actually be a router interface and not a router gateway.",
+      "parentUuid": "baa041b7_71ac3088",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_31cb4855",
         "filename": "/COMMIT_MSG",
         "patchSetId": 11
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-30T04:05:42Z",
       "side": 1,
       "message": "have you investigated what neutron l3 agent does?",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ec31860c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T06:05:55Z",
+      "side": 1,
+      "message": "I have not investigated neutron l3 agent. I just assumed the problem would be different with the l3 agent because their router is a namespace and adding/deleting routes would be trivial.",
+      "parentUuid": "baa041b7_31cb4855",
       "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0c526a35",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T06:05:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d16f7c5e",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 12
+      },
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b1b638da",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 11
@@ -70,6 +130,24 @@
       "writtenOn": "2016-09-30T04:05:42Z",
       "side": 1,
       "message": "so, this function effectively checks if nRouter has an on-link route for fipAddr?",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ec63c618",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T06:05:55Z",
+      "side": 1,
+      "message": "Correct.",
+      "parentUuid": "baa041b7_b1b638da",
       "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -93,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6c78d6c4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T06:05:55Z",
+      "side": 1,
+      "message": "Yes, this is intended. The goal is to have all subnets attached to a given network routable from the router, to give access to any floating IP in the network (not just the ones in the first subnet).",
+      "parentUuid": "baa041b7_51b12cdf",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f1a9607d",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 11
@@ -104,6 +200,30 @@
       "writtenOn": "2016-09-30T04:05:42Z",
       "side": 1,
       "message": "isn\u0027t it simpler to make this use subnetRouteId as well?",
+      "range": {
+        "startLine": 91,
+        "startChar": 17,
+        "endLine": 91,
+        "endChar": 39
+      },
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4c7512c9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T06:05:55Z",
+      "side": 1,
+      "message": "Yes, you are right this would be simpler. However, when this code gets to users the data in Zookeeper will still assume an id generated from routerInterfaceRouteId. So we are leaving this here to support backward compatibility.",
+      "parentUuid": "baa041b7_f1a9607d",
       "range": {
         "startLine": 91,
         "startChar": 17,
