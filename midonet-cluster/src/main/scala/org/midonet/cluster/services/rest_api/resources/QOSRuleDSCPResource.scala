@@ -23,8 +23,8 @@ import javax.ws.rs.core.MediaType._
 import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
+import org.midonet.cluster.rest_api.models.QOSPolicy.QOSRule
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -39,6 +39,30 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 @AllowDelete
 class QOSRuleDSCPResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[QOSRuleDSCP](resContext) {
+    protected override def updateFilter(to: QOSRuleDSCP,
+                                        from: QOSRuleDSCP,
+                                        tx: ResourceTransaction)
+    : Unit = {
+        tx.update(to)
+
+        val policy = tx.get(classOf[QOSPolicy], to.policyId)
+        for (rule <- policy.rules.asScala) {
+            if (rule.id == to.id) {
+                rule.dscpMark = to.dscpMark
+            }
+        }
+        tx.update(policy)
+    }
+
+    protected override def deleteFilter(id: String, tx: ResourceTransaction)
+    : Unit = {
+        val rule = tx.get(classOf[QOSRuleDSCP], id)
+
+        val policy = tx.get(classOf[QOSPolicy], rule.policyId)
+        policy.rules = policy.rules.asScala.filterNot(_.id == id).asJava
+        tx.update(policy)
+        tx.delete(classOf[QOSRuleDSCP], id)
+    }
 }
 
 @RequestScoped
@@ -58,5 +82,11 @@ class QOSPolicyRuleDSCPResource @Inject()(policyId: UUID,
     : Unit = {
         rule.policyId = policyId
         tx.create(rule)
+        val policy = tx.get(classOf[QOSPolicy], policyId)
+        val newRule = new QOSRule
+        newRule.id = rule.id
+        newRule.dscpMark = rule.dscpMark
+        policy.rules.add(newRule)
+        tx.update(policy)
     }
 }
