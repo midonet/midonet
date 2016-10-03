@@ -2,6 +2,298 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_ff980677",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSPolicy.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "Needs @JsonProperty(\"tenant_id\"), I think.",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bf1dde74",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "This name makes it sound like a pure function, but it has the side effect of adding to the transaction. How about \"createTopLevelRule\"? That also has the advantage of consistency with the other two functions.",
+      "range": {
+        "startLine": 60,
+        "startChar": 16,
+        "endLine": 60,
+        "endChar": 40
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3f6b0e20",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "Why t?",
+      "range": {
+        "startLine": 83,
+        "startChar": 40,
+        "endLine": 83,
+        "endChar": 41
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3f242e0b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "Might be better to structure it like this:\n\n  if (newRule.maxKbps !\u003d oldRule.maxKbps ||\n      newRule.maxBurstKbps !\u003d oldRule.maxBurstKbps) {\n      ...\n  } else if (newRule.dscpMark !\u003d oldRule.dscpMark) {\n      ...\n  }",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ff1926d2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "If these are null, should we clear the respective protobuf fields?",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 64
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9f7fbade",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "Blank line.",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bf36fe00",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "Is this special case needed? If from.rules is empty, then oldRuleHash will be empty.",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 43
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_df31c20c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "These can be vals, since you don\u0027t ever reassign the reference. You can (and should, where possible) have a val reference to a mutable object.",
+      "range": {
+        "startLine": 150,
+        "startChar": 12,
+        "endLine": 150,
+        "endChar": 15
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ffdec6d8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "The more idiomatic way to do this would be something like:\n\n  val oldRuleMap \u003d from.rules.asScala.map(\n      rule \u003d\u003e rule.id -\u003e rule).toMap\n\nor:\n\n  val oldRuleMap: Map[UUID, QOSPolicy.QOSRule] \u003d\n      from.rules.asScala.map(rule \u003d\u003e rule.id -\u003e rule)(breakOut)\n\nThe latter avoids the creation of an intermediate list, at the cost of confusing new Scala users.\n\nNote that both approaches avoid the use of a mutable map.",
+      "range": {
+        "startLine": 152,
+        "startChar": 0,
+        "endLine": 154,
+        "endChar": 13
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9f0e9a3b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "Can the rule\u0027s type change? If it can, I don\u0027t think checkAndUpdateTopLevelRule handles this case.",
+      "range": {
+        "startLine": 162,
+        "startChar": 35,
+        "endLine": 163,
+        "endChar": 47
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_df18a286",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "A simpler overall approach to take might be:\n\n  val oldRules \u003d from.rules.asScala.map(r \u003d\u003e r.id -\u003e r).toMap\n  val newRules \u003d to.rules.asScala.map(r \u003d\u003e r.id -\u003e r).toMap\n\n  // For extra conciseness at the cost of just a bit of\n  // clarity, these could be substituted inline, using\n  // \"newRules.keys union oldRules.keys\" for the kept rule IDs.\n  val addedRuleIds \u003d newRules.keys -- oldRules.keys\n  val deletedRuleIds \u003d oldRules.keys -- newRules.keys\n  val keptRuleIds \u003d newRules.keys -- addedRuleIds\n\n  for (ruleId \u003c- addedRuleIds)\n      convertRuleToTopLevelObj(to, newRuleMap(ruleId), tx)\n  \n  for (ruleId \u003c- keptRuleIds)\n      checkAndUpdateTopLevelRule(oldRules(ruleId), newRules(ruleId), tx)\n\n  for (ruleId \u003c- deletedRuleIds)\n      deleteTopLevelRule(oldRules(oldRules(ruleId), tx)",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5f0db23c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleBWLimitResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "Alternatively:\n\n  for (rule \u003c- policy.rules.asScala.find(_.id \u003d to.id) {\n      ...\n  }\n\nor:\n\n  for (rule \u003c- policy.rules.asScala if rule.id \u003d\u003d to.id) {\n      ...\n  }\n\nThe latter is a bit easier to read, but the former makes it clear that we\u0027re only looking for one particular rule.",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 9
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3f0aee26",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleDSCPResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "Same comment as other rule type.",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 9
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e2ff4dff",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "This could use some utility functions to eliminate code duplication, like factory methods for policy and rules, and also methods to validate policy/rule responses against expectations.",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ff892670",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 1
@@ -85,6 +377,47 @@
       "side": 1,
       "message": "I can do that.  I\u0027m a little worried that this change so late in the game will jeopardize our sprint target, but we might be able to still get it in, and it would definitely look cleaner.",
       "parentUuid": "baa041b7_5fcff27e",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1f03aa11",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "If you\u0027re going to do this, Jackson has a feature that allows you to deserialize to a specific subclass based on the value of type discriminator field, so maybe we should take advantage of that. Take a look at org.midonet.cluster.rest_api.models.Rule",
+      "parentUuid": "baa041b7_5f7db21a",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ffffe6ff",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-03T11:25:04Z",
+      "side": 1,
+      "message": "Should these be considered backreferences, since they\u0027re not serialized in the JSON?",
+      "range": {
+        "startLine": 446,
+        "startChar": 0,
+        "endLine": 447,
+        "endChar": 44
+      },
       "revId": "251190ad7be47006fe30de297624763c7b55f613",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
