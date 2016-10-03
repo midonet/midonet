@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bfe27ed3",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Nowhere. removed.",
+      "parentUuid": "baa041b7_fcc49760",
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_7f275663",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-03T09:14:03Z",
       "side": 1,
       "message": "In general, this file should have more comments to explain what\u0027s going on.",
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9fac5a89",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "I added some comments.",
+      "parentUuid": "baa041b7_7f275663",
       "revId": "9010e2b227a6e42879124131e581644b8e812266",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7fb196df",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_dceaf3d7",
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8cb79a84",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 1
@@ -64,6 +118,30 @@
       "writtenOn": "2016-10-03T09:14:03Z",
       "side": 1,
       "message": "Space after colon.",
+      "range": {
+        "startLine": 9,
+        "startChar": 19,
+        "endLine": 9,
+        "endChar": 23
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5fcb7253",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8cb79a84",
       "range": {
         "startLine": 9,
         "startChar": 19,
@@ -99,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1fc16a2f",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_dfff82ff",
+      "range": {
+        "startLine": 43,
+        "startChar": 8,
+        "endLine": 43,
+        "endChar": 27
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6cb1f68e",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 1
@@ -110,6 +212,30 @@
       "writtenOn": "2016-10-03T09:14:03Z",
       "side": 1,
       "message": "Should probably just spell this out to avoid confusion: kilobitsToBytes. It probably doesn\u0027t need to have \"rate\" in the name, since it applies to size just as well as to rate.",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 17
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ffbda6b1",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6cb1f68e",
       "range": {
         "startLine": 49,
         "startChar": 8,
@@ -145,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bfbb9ec3",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_7fa63610",
+      "range": {
+        "startLine": 53,
+        "startChar": 32,
+        "endLine": 53,
+        "endChar": 35
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_bf04be14",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 1
@@ -156,6 +306,30 @@
       "writtenOn": "2016-10-03T09:14:03Z",
       "side": 1,
       "message": "ticksPerBurst?",
+      "range": {
+        "startLine": 59,
+        "startChar": 8,
+        "endLine": 59,
+        "endChar": 25
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dfb662db",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_bf04be14",
       "range": {
         "startLine": 59,
         "startChar": 8,
@@ -191,6 +365,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ffa6c6a9",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_9f057a11",
+      "range": {
+        "startLine": 105,
+        "startChar": 27,
+        "endLine": 105,
+        "endChar": 33
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5f149242",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 1
@@ -202,6 +400,30 @@
       "writtenOn": "2016-10-03T09:14:03Z",
       "side": 1,
       "message": "Should we do this the lazy way?\n\n  // Next 24 bytes are fields we don\u0027t use.\n  buf.put(0L)\n  buf.put(0L)\n  buf.put(0L)\n\nEither way is fine with me.",
+      "range": {
+        "startLine": 116,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 30
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3fa1ce94",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "I prefer to be explicit here.",
+      "parentUuid": "baa041b7_5f149242",
       "range": {
         "startLine": 116,
         "startChar": 0,
@@ -237,6 +459,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bf94be36",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Old Comment. Removed.",
+      "parentUuid": "baa041b7_9ca6abbf",
+      "range": {
+        "startLine": 135,
+        "startChar": 7,
+        "endLine": 135,
+        "endChar": 12
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1f1a8a6f",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 1
@@ -260,6 +506,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9f957a33",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1f1a8a6f",
+      "range": {
+        "startLine": 140,
+        "startChar": 12,
+        "endLine": 140,
+        "endChar": 15
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ff16c647",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 1
@@ -271,6 +541,30 @@
       "writtenOn": "2016-10-03T09:14:03Z",
       "side": 1,
       "message": "There\u0027s nothing wrong with this, but I think \"i \u003c- 0 to 255\" is the stardard way.\n\nThe iproute2 code iterates from 0 to 255 because it needs to use i to index the array. But since you\u0027re just calling buf.putInt, you don\u0027t need i, just i + 1. So you might as well just iterate from 1 to 256.",
+      "range": {
+        "startLine": 143,
+        "startChar": 18,
+        "endLine": 143,
+        "endChar": 31
+      },
+      "revId": "9010e2b227a6e42879124131e581644b8e812266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1faa8a71",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-03T09:38:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ff16c647",
       "range": {
         "startLine": 143,
         "startChar": 18,
