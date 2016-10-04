@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_382324bf",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-04T05:08:45Z",
+      "side": 1,
+      "message": "Is it intended that this defaults to zero if you use the name-only constructor?",
+      "range": {
+        "startLine": 81,
+        "startChar": 4,
+        "endLine": 81,
+        "endChar": 26
+      },
+      "revId": "8f1e8d1d76438dfa30b3d9dbf09387b381d63bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d84af882",
         "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
         "patchSetId": 1
@@ -13,6 +36,29 @@
       "writtenOn": "2016-10-04T05:07:47Z",
       "side": 1,
       "message": "how about these toString variants?",
+      "revId": "8f1e8d1d76438dfa30b3d9dbf09387b381d63bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_182ce0aa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-04T05:08:45Z",
+      "side": 1,
+      "message": "Alignment.",
+      "range": {
+        "startLine": 193,
+        "startChar": 44,
+        "endLine": 193,
+        "endChar": 72
+      },
       "revId": "8f1e8d1d76438dfa30b3d9dbf09387b381d63bd3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
