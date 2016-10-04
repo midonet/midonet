@@ -18,18 +18,21 @@ package org.midonet.midolman.datapath
 
 import java.util.UUID
 
-import com.typesafe.scalalogging.Logger
-import org.junit.runner.RunWith
-import org.midonet.midolman.simulation.PacketContext
-import org.midonet.odp.{Packet, FlowMatch}
-import org.midonet.packets.util.{EthBuilder, PacketBuilder}
-import org.midonet.packets._
-import org.scalatest.{Matchers, FlatSpec}
-import org.scalatest.junit.JUnitRunner
-import org.midonet.packets.util.PacketBuilder._
-import org.slf4j.LoggerFactory
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
+
+import com.typesafe.scalalogging.Logger
+
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
+import org.slf4j.LoggerFactory
+
+import org.midonet.midolman.simulation.PacketContext
+import org.midonet.odp.{FlowMatch, Packet}
+import org.midonet.packets._
+import org.midonet.packets.util.PacketBuilder
+import org.midonet.packets.util.PacketBuilder._
 
 @RunWith(classOf[JUnitRunner])
 class MSSClampTest extends FlatSpec with Matchers {
@@ -139,6 +142,18 @@ class MSSClampTest extends FlatSpec with Matchers {
         checkChecksumCleared(ctx.packet.getEthernet, cleared = false)
     }
 
+    it should "handle TCP packet without options" in {
+        val pkt = { eth src srcMac2 dst dstMac2 } <<
+                  { ip4 src srcIp2 dst dstIp2 } <<
+                  { udp src srcPort2 dst dstPort2 } <<
+                  { vxlan vni 5 } <<
+                  { eth src srcMac1 dst dstMac1 } <<
+                  { ip4 src srcIp1 dst dstIp2 } <<
+                  { tcp src srcPort1 dst dstPort1 flags synFlags }
+        val ctx = makeCtx(pkt)
+        clampAndCheck(ctx, -1, checksumCleared = false)
+    }
+
     private def clampAndCheck(ctx: PacketContext, mss: Short,
                               checksumCleared: Boolean): Unit = {
         val eth = ctx.packet.getEthernet
@@ -161,9 +176,11 @@ class MSSClampTest extends FlatSpec with Matchers {
 
     @tailrec
     private def checkMss(pkt: IPacket, mss: Short): Unit = pkt match {
-        case t: TCP =>
+        case t: TCP if t.getOptions ne null =>
             t.getOptions should contain inOrder(
                 2, 4, (mss >> 8).toByte, mss.toByte)
+        case t: TCP =>
+            mss shouldBe -1.toShort
         case _ => checkMss(pkt.getPayload, mss)
     }
 
