@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_efd73121",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-10-04T16:20:25Z",
+      "side": 1,
+      "message": "missing \u0027ignoresNeo \u003d true\u0027 parameter to make idempotent",
+      "range": {
+        "startLine": 64,
+        "startChar": 31,
+        "endLine": 64,
+        "endChar": 65
+      },
+      "revId": "172262328e9240b062689c822670f954b8a2693a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2f13d902",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-10-04T16:20:25Z",
+      "side": 1,
+      "message": "I think all this can be replaced with simply returning List(). This method should be removed shortly",
+      "range": {
+        "startLine": 73,
+        "startChar": 45,
+        "endLine": 77,
+        "endChar": 5
+      },
+      "revId": "172262328e9240b062689c822670f954b8a2693a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
