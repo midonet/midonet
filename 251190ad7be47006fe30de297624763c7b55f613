@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d888b824",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSPolicy.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-04T02:14:27Z",
+      "side": 1,
+      "message": "Yes, as this data is coming in in the neutron object, it must have the proper JSON field set.",
+      "parentUuid": "baa041b7_ff980677",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_bf1dde74",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
         "patchSetId": 1
@@ -214,6 +232,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_189ce068",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-04T02:14:27Z",
+      "side": 1,
+      "message": "No, a rule\u0027s type should not be changing.  A new rule would be created with a new ID.  So, I think we\u0027re safe.  If someone messes up, an error should be given indicating the stored type is of the other rule type.",
+      "parentUuid": "baa041b7_9f0e9a3b",
+      "range": {
+        "startLine": 162,
+        "startChar": 35,
+        "endLine": 163,
+        "endChar": 47
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_df18a286",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
         "patchSetId": 1
@@ -225,6 +267,24 @@
       "writtenOn": "2016-10-03T11:25:04Z",
       "side": 1,
       "message": "A simpler overall approach to take might be:\n\n  val oldRules \u003d from.rules.asScala.map(r \u003d\u003e r.id -\u003e r).toMap\n  val newRules \u003d to.rules.asScala.map(r \u003d\u003e r.id -\u003e r).toMap\n\n  // For extra conciseness at the cost of just a bit of\n  // clarity, these could be substituted inline, using\n  // \"newRules.keys union oldRules.keys\" for the kept rule IDs.\n  val addedRuleIds \u003d newRules.keys -- oldRules.keys\n  val deletedRuleIds \u003d oldRules.keys -- newRules.keys\n  val keptRuleIds \u003d newRules.keys -- addedRuleIds\n\n  for (ruleId \u003c- addedRuleIds)\n      convertRuleToTopLevelObj(to, newRuleMap(ruleId), tx)\n  \n  for (ruleId \u003c- keptRuleIds)\n      checkAndUpdateTopLevelRule(oldRules(ruleId), newRules(ruleId), tx)\n\n  for (ruleId \u003c- deletedRuleIds)\n      deleteTopLevelRule(oldRules(oldRules(ruleId), tx)",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f8981c77",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-04T02:14:27Z",
+      "side": 1,
+      "message": "This looks great, although \"--\" doesn\u0027t seem to resolve to any known symbol.  But if there is a way to automatically remove the intersection of two sets, that is actually pretty cool!",
+      "parentUuid": "baa041b7_df18a286",
       "revId": "251190ad7be47006fe30de297624763c7b55f613",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -401,6 +461,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7883ec03",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-04T02:14:27Z",
+      "side": 1,
+      "message": "I suggest we iterate that one, as that sounds like it would be something of a destabilizing change at this point that would result in quite some different code on the back-end, which would possibly jeopardize getting the feature into place, at least at a basic level.  I believe that the code as is (with the type-field added and checking the type field rather than the data fields) is sufficient and wouldn\u0027t result in errors, even if it isn\u0027t as succinct or clean as using inbuilt mechanics.  Does that sound okay?",
+      "parentUuid": "baa041b7_1f03aa11",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ffffe6ff",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 1
@@ -412,6 +490,30 @@
       "writtenOn": "2016-10-03T11:25:04Z",
       "side": 1,
       "message": "Should these be considered backreferences, since they\u0027re not serialized in the JSON?",
+      "range": {
+        "startLine": 446,
+        "startChar": 0,
+        "endLine": 447,
+        "endChar": 44
+      },
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_987eb019",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-04T02:14:27Z",
+      "side": 1,
+      "message": "They\u0027re really forward references, as this is the de facto midonet-side list of IDs that belong to this policy.  In other classes, we seem to store non-JSON de-serialized forward-reference ID lists as normal members (see Router::route_ids, etc. as an example).",
+      "parentUuid": "baa041b7_ffffe6ff",
       "range": {
         "startLine": 446,
         "startChar": 0,
