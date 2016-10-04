@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d84af882",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-04T05:07:47Z",
+      "side": 1,
+      "message": "how about these toString variants?",
+      "revId": "8f1e8d1d76438dfa30b3d9dbf09387b381d63bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
