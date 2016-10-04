@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d3ee598a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-04T08:57:10Z",
+      "side": 1,
+      "message": "space.",
+      "parentUuid": "baa041b7_337a2525",
+      "range": {
+        "startLine": 240,
+        "startChar": 32,
+        "endLine": 240,
+        "endChar": 34
+      },
+      "revId": "e546e6f3e5dd3276f42948791091e4cce7c43ee1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_93957133",
         "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-10-04T08:11:37Z",
       "side": 1,
       "message": "is it intended to put ifindex out of parens?",
+      "range": {
+        "startLine": 241,
+        "startChar": 29,
+        "endLine": 241,
+        "endChar": 30
+      },
+      "revId": "e546e6f3e5dd3276f42948791091e4cce7c43ee1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_33d905f4",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-04T08:57:10Z",
+      "side": 1,
+      "message": "it was, but i don\u0027t know why i thought that was a good idea.",
+      "parentUuid": "baa041b7_93957133",
       "range": {
         "startLine": 241,
         "startChar": 29,
