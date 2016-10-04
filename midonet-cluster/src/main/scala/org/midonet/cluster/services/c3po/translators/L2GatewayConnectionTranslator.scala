@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,18 @@ import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLA
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection, RemoteMacEntry}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.rest_api.validation.MessageProperty.{ONLY_ONE_GW_DEV_SUPPORTED, UNSUPPORTED_GATEWAY_DEVICE}
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, CreateNode, Delete, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.util.concurrent.toFutureOps
 
 class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
                                     protected val stateTableStorage: StateTableStorage)
     extends Translator[L2GatewayConnection] {
+
     import L2GatewayConnectionTranslator._
 
-
-    private def translateRouterVtepCreate(cnxn: L2GatewayConnection,
-                                          gwDev: GatewayDevice)
-    : OperationList = {
+    private def translateRouterVtepCreate(tx: Transaction,
+                                          cnxn: L2GatewayConnection,
+                                          gwDev: GatewayDevice): Unit = {
         val nwPort = Port.newBuilder
             .setId(l2gwNetworkPortId(cnxn.getNetworkId))
             .setNetworkId(cnxn.getNetworkId)
@@ -53,22 +51,23 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
 
         // TODO: Find a better way than scanning all the RemoteMacEntries for
         // the specified gateway device.
-        val rms = storage.getAll(classOf[RemoteMacEntry],
-                                 gwDev.getRemoteMacEntryIdsList).await()
-        val rmOps = for (rm <- rms if rm.getSegmentationId == vni) yield {
+        val rms = tx.getAll(classOf[RemoteMacEntry],
+                            gwDev.getRemoteMacEntryIdsList)
+        for (rm <- rms if rm.getSegmentationId == vni) {
             rtrPortBldr.addRemoteMacEntryIds(rm.getId)
-            CreateNode(stateTableStorage.portPeeringEntryPath(
+            tx.createNode(stateTableStorage.portPeeringEntryPath(
                 rtrPortBldr.getId.asJava,
                 MAC.fromString(rm.getMacAddress),
                 IPv4Addr(rm.getVtepAddress.getAddress)))
         }
 
-        List(Create(nwPort), Create(rtrPortBldr.build())) ++ rmOps
+        tx.create(nwPort)
+        tx.create(rtrPortBldr.build())
     }
 
-    private def translateNetworkVlanCreate(cnxn: L2GatewayConnection,
-                                           gwDev: GatewayDevice)
-    : OperationList = {
+    private def translateNetworkVlanCreate(tx: Transaction,
+                                           cnxn: L2GatewayConnection,
+                                           gwDev: GatewayDevice): Unit = {
 
         val nwPort = Port.newBuilder
             .setId(l2gwNetworkPortId(cnxn.getNetworkId))
@@ -82,7 +81,8 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
             .setPeerId(nwPort.getId)
             .build()
 
-        List(Create(nwPort), Create(vlanPort))
+        tx.create(nwPort)
+        tx.create(vlanPort)
     }
 
     override protected def translateCreate(tx: Transaction,
@@ -91,39 +91,45 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         if (cnxn.getL2Gateway.getDevicesCount != 1) {
             throw new IllegalArgumentException(ONLY_ONE_GW_DEV_SUPPORTED)
         }
+
         val gwDevId = cnxn.getL2Gateway.getDevices(0).getDeviceId
-        val gwDev = storage.get(classOf[GatewayDevice], gwDevId).await()
+        val gwDev = tx.get(classOf[GatewayDevice], gwDevId)
 
         gwDev.getType match {
             case ROUTER_VTEP =>
-                translateRouterVtepCreate(cnxn, gwDev)
+                translateRouterVtepCreate(tx, cnxn, gwDev)
             case NETWORK_VLAN =>
-                translateNetworkVlanCreate(cnxn, gwDev)
+                translateNetworkVlanCreate(tx, cnxn, gwDev)
             case _ =>
                 throw new IllegalArgumentException(UNSUPPORTED_GATEWAY_DEVICE)
         }
+
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            cnxn: L2GatewayConnection)
     : OperationList = {
         val gwPortId = l2gwGatewayPortId(cnxn.getNetworkId)
-        val gwPort = storage.get(classOf[Port], gwPortId).await()
+        val gwPort = tx.get(classOf[Port], gwPortId)
 
         // Even though remote mac entries are only applicable to VTEP router
         // case, it does no harm in other cases to do a fetch here.
-        val rms = storage.getAll(classOf[RemoteMacEntry],
-                                 gwPort.getRemoteMacEntryIdsList).await()
-        val rmOps = for (rm <- rms) yield {
-            DeleteNode(stateTableStorage.portPeeringEntryPath(
-                gwPortId.asJava,
-                MAC.fromString(rm.getMacAddress),
-                IPv4Addr(rm.getVtepAddress.getAddress)))
+        val remoteMacEntries = tx.getAll(classOf[RemoteMacEntry],
+                                         gwPort.getRemoteMacEntryIdsList)
+        for (remoteMacEntry <- remoteMacEntries) {
+            tx.deleteNode(
+                stateTableStorage.portPeeringEntryPath(
+                    gwPortId.asJava,
+                    MAC.fromString(remoteMacEntry.getMacAddress),
+                    IPv4Addr(remoteMacEntry.getVtepAddress.getAddress)))
         }
 
-        Delete(classOf[Port], l2gwNetworkPortId(cnxn.getNetworkId)) ::
-        Delete(classOf[Port], gwPortId) ::
-        rmOps.toList
+        tx.delete(classOf[Port], l2gwNetworkPortId(cnxn.getNetworkId),
+                  ignoresNeo = true)
+        tx.delete(classOf[Port], gwPortId, ignoresNeo = true)
+
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,

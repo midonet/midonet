@@ -84,7 +84,7 @@ trait Transaction {
 
     /** Creates a new data node as part of the current transaction. */
     @throws[StorageNodeExistsException]
-    def createNode(path: String, value: String): Unit
+    def createNode(path: String, value: String = null): Unit
 
     /** Updates a data node as part of the current transaction. */
     @throws[StorageNodeNotFoundException]
