@@ -17,7 +17,7 @@
 package org.midonet.midolman.l4lb
 
 import java.io._
-import java.util.UUID
+import java.util.{ConcurrentModificationException, UUID}
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConversions._
@@ -32,6 +32,7 @@ import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchList
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.data.storage.{Storage, Transaction}
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
@@ -59,6 +60,9 @@ object HealthMonitor extends Referenceable {
 
     private val log: Logger
         = LoggerFactory.getLogger(classOf[HealthMonitor])
+
+    // The maximum number of retries to commit the transaction
+    val StorageAttempts = 3
 
     def isRunningHaproxyPid(pid: Int, pidFilePath: String,
                             confFilePath: String): Boolean = {
@@ -205,6 +209,45 @@ object HealthMonitor extends Referenceable {
             lock.release()
         }
     }
+    /**
+      * This method is borrowed from MidonetResourse class.
+      * Tries to commit storage transaction with the operations that adds function f
+      * throws a ConcurrentModificationException if failed "StorageAttempts" times to commit
+      *  transaction
+      */
+     def tryTx(store: Storage,
+                lockFactory: ZookeeperLockFactory,
+                populate: (Transaction) => Unit,
+                lockNeeded: Boolean = true): Unit = {
+        def executeOperations(): Unit = {
+            val tx = store.transaction()
+            populate(tx)
+            tx.commit()
+        }
+        var attempt = 1
+        while (attempt <= StorageAttempts) {
+            try {
+                if (lockNeeded) {
+                    zkLock(lockFactory)(executeOperations)
+                } else {
+                    executeOperations()
+                }
+                return
+            } catch {
+                case e: ConcurrentModificationException =>
+                    log.warn(s"Write $attempt of $StorageAttempts failed " +
+                             "due to a concurrent modification ({}): retrying",
+                             e.getMessage)
+                    if (attempt == StorageAttempts) {
+                        log.error(
+                            s"Failed to write to store after $StorageAttempts attempts")
+                        throw e
+                    }
+                    Thread.sleep(10)
+                    attempt += 1
+            }
+        }
+    }
 }
 
 /*
@@ -249,10 +292,10 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
     private def setPoolMappingStatus(poolId: UUID, status: PoolHMMappingStatus)
     : Unit = {
         try {
-            HealthMonitor.zkLock(lockFactory) {
-                val pool = store.get(classOf[Pool], poolId).await()
-                store.update(pool.toBuilder.setMappingStatus(status).build())
-            }
+            tryTx(store, lockFactory, { tx =>
+                val pool = tx.get(classOf[Pool], poolId)
+                tx.update(pool.toBuilder.setMappingStatus(status).build())
+            }, lockNeeded = true)
         } catch {
             case NonFatal(e) =>
                 log.error("Unable to set the mapping status for pool {}",
