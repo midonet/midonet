@@ -400,7 +400,7 @@ public class HostServiceTest {
         assertEquals(hostState.getInterfacesCount(), 0);
 
         MockInterfaceScanner scanner = getInterfaceScanner();
-        scanner.addInterface(new InterfaceDescription("eth0"));
+        scanner.addInterface(new InterfaceDescription("eth0", 1));
 
         hostState = getHostState(hostId);
         assertNotNull(hostState);
@@ -428,7 +428,7 @@ public class HostServiceTest {
         assertNull(getHostState(hostId));
 
         MockInterfaceScanner scanner = getInterfaceScanner();
-        scanner.addInterface(new InterfaceDescription("eth0"));
+        scanner.addInterface(new InterfaceDescription("eth0", 1));
 
         assertNull(getHostState(hostId));
     }
