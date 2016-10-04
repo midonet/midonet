@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ffd486e9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-04T04:00:20Z",
+      "side": 1,
+      "message": "yes.",
+      "parentUuid": "baa041b7_5fe812e2",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_31cb4855",
         "filename": "/COMMIT_MSG",
         "patchSetId": 11
@@ -102,6 +120,24 @@
       "side": 1,
       "message": "i don\u0027t think l3 agent does \"add second subnet route\" things.\ni concern this change makes us diverge further from the api semantics.",
       "parentUuid": "baa041b7_ec31860c",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_58f9487f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-04T04:00:20Z",
+      "side": 1,
+      "message": "The second subnet route will only be added to our edge routers (or more specifically: routers with router interfaces in networks with multiple subnets). I think semantically this is consistent with the reference implementation because our edge router has no analog. It would correspond to the uplink router outside of the deployement, which I am assuming would have a second subnet route.",
+      "parentUuid": "baa041b7_1fee0aed",
       "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
