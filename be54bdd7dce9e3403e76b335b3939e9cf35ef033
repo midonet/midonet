@@ -16,6 +16,24 @@
       "revId": "be54bdd7dce9e3403e76b335b3939e9cf35ef033",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_13c1612f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 526,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-04T08:20:03Z",
+      "side": 1,
+      "message": "you\u0027re right, it\u0027s redundant. i\u0027ll remove.",
+      "parentUuid": "baa041b7_f8a6dca9",
+      "revId": "be54bdd7dce9e3403e76b335b3939e9cf35ef033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
