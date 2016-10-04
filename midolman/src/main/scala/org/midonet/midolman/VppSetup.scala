@@ -20,12 +20,13 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
-import akka.actor.Scheduler
+import akka.actor.{ActorSystem, Scheduler}
 
-import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VppUplink}
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.vpp.VppApi
 import org.midonet.netlink.rtnetlink.LinkOps
+import org.midonet.odp.ports.NetDevPort
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
 
 object VppSetup {
@@ -63,6 +64,32 @@ object VppSetup {
         @throws[Exception]
         override def rollback(): Future[Any] = Future {
             LinkOps.deleteLink(devName)
+        }
+    }
+
+    private class OvsDevice (override val name: String,
+                            deviceName: String,
+                            upcallConnManager: UpcallDatapathConnectionManager,
+                            datapathState: DatapathState)
+                            (implicit ec: ExecutionContext, actorSystem: ActorSystem)
+        extends FutureTaskWithRollback {
+
+        var portNo: Int = _
+
+        @throws[Exception]
+        override def execute(): Future[Any] = Future {
+            upcallConnManager.createAndHookDpPort(datapathState.datapath,
+                                                  new NetDevPort(name),
+                                                  VppUplink)
+            .andThen {
+                case Success((_, createdPortNo)) => portNo = createdPortNo
+            }
+        }
+
+        @throws[Exception]
+        override def rollback(): Future[Any] = Future {
+            upcallConnManager.deleteDpPort(datapathState.datapath,
+                                           new NetDevPort(name, portNo))
         }
     }
 
@@ -169,7 +196,7 @@ class VppSetup(uplinkPort: RouterPort,
                upcallConnManager: UpcallDatapathConnectionManager,
                datapathState: DatapathState,
                scheduler: Scheduler)
-              (implicit ec: ExecutionContext)
+              (implicit ec: ExecutionContext, actorSystem: ActorSystem)
     extends FutureSequenceWithRollback("VPP setup") {
 
     import VppSetup._
@@ -186,6 +213,11 @@ class VppSetup(uplinkPort: RouterPort,
                                        uplinkVppName,
                                        uplinkOvsName)
 
+    private val uplinkOvs = new OvsDevice("uplink device at ovs",
+                                          uplinkOvsName,
+                                          upcallConnManager,
+                                          datapathState)
+
     private val uplinkVpp = new VppDevice("uplink device at vpp",
                                   uplinkVppName,
                                   vppConnect,
@@ -201,6 +233,7 @@ class VppSetup(uplinkPort: RouterPort,
      */
     add(vppConnect)
     add(uplinkVeth)
+    add(uplinkOvs)
     add(uplinkVpp)
     add(ipAddrVpp)
 }

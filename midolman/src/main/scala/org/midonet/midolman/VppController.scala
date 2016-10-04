@@ -25,6 +25,8 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
+import akka.actor.ActorSystem
+
 import com.google.inject.Inject
 
 import rx.subscriptions.CompositeSubscription
@@ -57,6 +59,7 @@ object VppController extends Referenceable {
 class VppController @Inject()(config: MidolmanConfig,
                               upcallConnManager: UpcallDatapathConnectionManager,
                               datapathState: DatapathState)
+                             (implicit actorSystem: ActorSystem)
     extends ReactiveActor[AnyRef] with ActorLogWithoutPath {
 
     import org.midonet.midolman.VppController._

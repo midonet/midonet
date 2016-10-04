@@ -21,3 +21,4 @@ sealed trait ChannelType
 case object VirtualMachine extends ChannelType
 case object OverlayTunnel extends ChannelType
 case object VtepTunnel extends ChannelType
+case object VppUplink extends ChannelType
