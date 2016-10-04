@@ -36,7 +36,8 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
-import org.midonet.util.concurrent.ReactiveActor
+import org.midonet.midolman.vpp.VppApi
+import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.process.MonitoredDaemonProcess
 
@@ -46,6 +47,12 @@ object VppController extends Referenceable {
     val VppProcessMaximumStarts = 3
     val VppProcessFailingPeriod = 30000
     val VppRollbackTimeout = 30000
+
+    private val VppConnectionName = "midonet"
+    private val VppConnectMaxRetries = 10
+    private val VppConnectDelayMs = 1000
+    private val VppConnectionTimeoutMs =
+        VppConnectMaxRetries * VppConnectDelayMs * 1.5
 
     private case class BoundPort(port: RouterPort, setup: VppSetup)
 
@@ -66,6 +73,10 @@ class VppController @Inject()(config: MidolmanConfig,
     private implicit val ec: ExecutionContext = context.system.dispatcher
 
     private var vppProcess: MonitoredDaemonProcess = _
+    private var vppApi: VppApi = _
+    private var vppOvs: VppOvs = new VppOvs(datapathState.datapath)
+    private val belt = new ConveyorBelt(_ => {})
+
     private val portsSubscription = new CompositeSubscription()
     private val watchedPorts = mutable.Map.empty[UUID, BoundPort]
 
@@ -94,6 +105,7 @@ class VppController @Inject()(config: MidolmanConfig,
         watchedPorts.clear()
         super.postStop()
     }
+
 
     override def receive: Receive = {
         case LocalPortActive(portId, portNumber, true) =>
@@ -126,24 +138,46 @@ class VppController @Inject()(config: MidolmanConfig,
     private def attachPort(portId: UUID, port: RouterPort): Unit = {
         if (vppProcess eq null) {
             startVppProcess()
+            vppApi = createApiConnection(VppConnectMaxRetries)
         }
 
-        val setup = new VppSetup(port,
-                                 upcallConnManager,
-                                 datapathState,
-                                 context.system.scheduler)
-        setup.execute() onComplete {
-            case Success(_) => watchedPorts += portId -> BoundPort(port, setup)
-            case Failure(err) => setup.rollback()
+        def setupPort(): Future[_] = {
+            val setup = new VppSetup(port,
+                                     datapathState.getDpPortNumberForVport(portId),
+                                     vppApi,
+                                     vppOvs)
+            setup.execute() andThen {
+                case Success(_) => watchedPorts += portId -> BoundPort(port, setup)
+                case Failure(err) => setup.rollback()
+            }
         }
+
+        belt.handle(setupPort)
     }
 
     private def detachPort(portId: UUID): Unit = {
-        watchedPorts remove portId match {
-            case Some(entry) =>
-                log debug s"IPv6 port $portId detached"
-                entry.setup.rollback()
-            case None =>
+        def cleanupPort(): Future[_] = {
+            watchedPorts remove portId match {
+                case Some(entry) =>
+                    log debug s"IPv6 port $portId detached"
+                    entry.setup.rollback()
+                case None => Future.successful(Unit)
+            }
+        }
+        belt.handle(cleanupPort)
+    }
+
+    private def createApiConnection(retriesLeft: Int): VppApi = {
+        try {
+            // sleep before trying api, because otherwise it hangs when
+            // trying to connect to vpp
+            Thread.sleep(VppConnectDelayMs)
+            new VppApi(VppConnectionName)
+        } catch {
+            case err: Throwable if retriesLeft > 0 =>
+                Thread.sleep(VppConnectDelayMs)
+                createApiConnection(retriesLeft - 1)
+            case err: Throwable => throw err
         }
     }
 
