@@ -17,10 +17,11 @@
 package org.midonet.midolman.l4lb
 
 import java.io._
-import java.util.UUID
+import java.util.{ConcurrentModificationException, UUID}
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConversions._
+import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
 import akka.actor.{Actor, ActorRef, Props}
@@ -32,6 +33,7 @@ import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchList
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.data.storage.{Storage, Transaction}
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
@@ -45,9 +47,13 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.util.AwaitRetriable
 import org.midonet.util.concurrent.toFutureOps
+import scala.concurrent.duration._
 
-object HealthMonitor extends Referenceable {
+object HealthMonitor extends Referenceable with AwaitRetriable {
+    override val interval: Duration = 10 seconds
+    override val maxRetries = 3
     override val Name = "HealthMonitor"
     case class ConfigUpdated(poolId: UUID, config: PoolConfig, routerId: UUID)
     case class ConfigDeleted(id: UUID)
@@ -59,6 +65,9 @@ object HealthMonitor extends Referenceable {
 
     private val log: Logger
         = LoggerFactory.getLogger(classOf[HealthMonitor])
+
+    // The maximum number of retries to commit the transaction
+    val StorageAttempts = 3
 
     def isRunningHaproxyPid(pid: Int, pidFilePath: String,
                             confFilePath: String): Boolean = {
@@ -205,6 +214,24 @@ object HealthMonitor extends Referenceable {
             lock.release()
         }
     }
+    /**
+      * This method is borrowed from MidonetResourse class.
+      * Tries to commit storage transaction with the operations that adds function f
+      * throws a ConcurrentModificationException if failed "StorageAttempts" times to commit
+      *  transaction
+      */
+
+     def tryTx(store: Storage, lockFactory: ZookeeperLockFactory)
+              (populate: (Transaction) => Unit): Unit = {
+        def executeOperations(): Unit = {
+            val tx = store.transaction()
+            populate(tx)
+            tx.commit()
+        }
+        retry(log, "Commit transaction") {
+            zkLock(lockFactory)(executeOperations)
+        }
+    }
 }
 
 /*
@@ -249,9 +276,9 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
     private def setPoolMappingStatus(poolId: UUID, status: PoolHMMappingStatus)
     : Unit = {
         try {
-            HealthMonitor.zkLock(lockFactory) {
-                val pool = store.get(classOf[Pool], poolId).await()
-                store.update(pool.toBuilder.setMappingStatus(status).build())
+            tryTx(store, lockFactory) { tx =>
+                val pool = tx.get(classOf[Pool], poolId)
+                tx.update(pool.toBuilder.setMappingStatus(status).build())
             }
         } catch {
             case NonFatal(e) =>
