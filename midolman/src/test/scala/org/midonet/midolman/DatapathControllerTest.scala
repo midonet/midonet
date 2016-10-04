@@ -114,7 +114,7 @@ class DatapathControllerTest extends MidolmanSpec {
 
         scenario("The minimum MTU is computed for current interfaces") {
             Given("An interface")
-            val interface1 = new InterfaceDescription("eth0")
+            val interface1 = new InterfaceDescription("eth0", 1)
             interface1.setMtu(1500)
             interface1.setInetAddress("1.0.0.1")
 
@@ -131,7 +131,7 @@ class DatapathControllerTest extends MidolmanSpec {
             DatapathController.minMtu shouldBe 1500 - VxLanTunnelPort.TUNNEL_OVERHEAD
 
             Given("Another interface")
-            val interface2 = new InterfaceDescription("eth0")
+            val interface2 = new InterfaceDescription("eth0", 1)
             interface2.setMtu(1000)
             interface2.setInetAddress("1.0.0.2")
 
@@ -150,7 +150,7 @@ class DatapathControllerTest extends MidolmanSpec {
 
         scenario("Datapath controller handles maximum MTU") {
             Given("An interface")
-            val interface = new InterfaceDescription("eth0")
+            val interface = new InterfaceDescription("eth0", 1)
             interface.setMtu(0xffff)
             interface.setInetAddress("1.0.0.1")
 
@@ -168,7 +168,7 @@ class DatapathControllerTest extends MidolmanSpec {
 
         scenario("Datapath controller ignores interfaces without tunnel zone") {
             Given("An interface")
-            val interface = new InterfaceDescription("eth0")
+            val interface = new InterfaceDescription("eth0", 1)
             interface.setMtu(0xffff)
             interface.setInetAddress("1.0.0.1")
 
@@ -186,7 +186,7 @@ class DatapathControllerTest extends MidolmanSpec {
 
         scenario("Datapath controller ignores interfaces without addresses") {
             Given("An interface")
-            val interface = new InterfaceDescription("eth0")
+            val interface = new InterfaceDescription("eth0", 1)
             interface.setMtu(0xffff)
 
             When("The datapath controller receives the host")
@@ -203,7 +203,7 @@ class DatapathControllerTest extends MidolmanSpec {
 
         scenario("The MTU does not exceed 0xffff") {
             Given("An interface")
-            val interface = new InterfaceDescription("eth0")
+            val interface = new InterfaceDescription("eth0", 1)
             interface.setMtu(Int.MaxValue)
             interface.setInetAddress("1.0.0.1")
 
@@ -221,7 +221,7 @@ class DatapathControllerTest extends MidolmanSpec {
 
         scenario("The MTU reverts to default with no tunnel interfaces") {
             Given("An interface")
-            val interface = new InterfaceDescription("eth0")
+            val interface = new InterfaceDescription("eth0", 1)
             interface.setMtu(1000)
             interface.setInetAddress("1.0.0.1")
 

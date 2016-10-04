@@ -91,7 +91,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     }
 
     private def addInterface(name: String, mtu: Int, ipAddr: IPv4Addr) {
-        val intf = new InterfaceDescription(name)
+        val intf = new InterfaceDescription(name, 1)
         intf.setInetAddress(ipAddr.toString)
         intf.setMtu(mtu)
         intf.setUp(true)

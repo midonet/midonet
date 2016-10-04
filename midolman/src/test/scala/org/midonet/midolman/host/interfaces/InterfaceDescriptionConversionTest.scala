@@ -94,7 +94,7 @@ class InterfaceDescriptionConversionTest extends FlatSpec with Matchers {
 
     private def testToProto(t: PojoType, ep: PojoEndpoint, pt: PojoPortType)
     : Unit = {
-        val pojo = new InterfaceDescription(random.nextString(10))
+        val pojo = new InterfaceDescription(random.nextString(10), 10)
         pojo.setType(t)
         pojo.setMac(MAC.random.toString)
         pojo.setUp(random.nextBoolean())

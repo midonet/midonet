@@ -84,7 +84,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
 
         override def act(): Unit = {
             val ifts = new HashSet[InterfaceDescription]()
-            val ift = new InterfaceDescription(port)
+            val ift = new InterfaceDescription(port, 1)
             ift.setUp(isUp)
             ifts.add(ift)
             entangler.updateInterfaces(ifts)
@@ -448,7 +448,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
 
         val id = UUID.randomUUID()
         val binding = new PortBinding(id, null, 1, "eth1")
-        val desc = new InterfaceDescription("eth1")
+        val desc = new InterfaceDescription("eth1", 1)
         desc.setUp(true)
         entangler.updateVportInterfaceBindings(Map(id -> binding))
         entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })

@@ -77,6 +77,8 @@ public class InterfaceDescription extends ZoomObject {
     ///////////////////////////////////////////////////////////////////////////
     @ZoomField(name = "name")
     protected String name;
+    @ZoomField(name = "ifindex")
+    protected int ifindex;
     @ZoomField(name = "type")
     protected Type type;
     @ZoomField(name = "mac", converter = MACUtil.Converter.class)
@@ -101,8 +103,9 @@ public class InterfaceDescription extends ZoomObject {
     ///////////////////////////////////////////////////////////////////////////
     public InterfaceDescription() { }
 
-    public InterfaceDescription(String name) {
+    public InterfaceDescription(String name, int ifindex) {
         this.name = name;
+        this.ifindex = ifindex;
         this.type = Type.UNKNOWN;
         this.mac = MAC.fromString("00:00:00:00:00:00");
         this.inetAddresses = new LinkedList<>();
@@ -119,6 +122,14 @@ public class InterfaceDescription extends ZoomObject {
 
     public String getName() {
         return this.name;
+    }
+
+    public void setIfindex(int ifindex) {
+        this.ifindex = ifindex;
+    }
+
+    public int getIfindex() {
+        return this.ifindex;
     }
 
     public void setMac(String macString) {
@@ -212,6 +223,7 @@ public class InterfaceDescription extends ZoomObject {
     public String toString() {
         return "InterfaceDescription{" +
             "name='" + name + '\'' +
+            ", ifindex=" + ifindex +
             ", type=" + type +
             ", mac=" + mac +
             ", inetAddresses=" + inetAddresses +
@@ -225,7 +237,8 @@ public class InterfaceDescription extends ZoomObject {
     }
 
     public String logString() {
-        return name + "(" +
+        return name + ", ifindex= " +
+                ifindex + ", (" +
                 type +
                 " mac " + mac +
                 " inet " + inetAddresses +
@@ -258,6 +271,7 @@ public class InterfaceDescription extends ZoomObject {
         if (null == obj || !(obj instanceof InterfaceDescription)) return false;
         InterfaceDescription id = (InterfaceDescription)obj;
         return Objects.equals(name, id.name) &&
+               ifindex == id.ifindex &&
                type == id.type &&
                Objects.equals(mac, id.mac) &&
                Objects.equals(inetAddresses, id.inetAddresses) &&
@@ -271,7 +285,7 @@ public class InterfaceDescription extends ZoomObject {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, type, mac, inetAddresses, isUp, hasLink, mtu,
-                            endpoint, portType, properties);
+        return Objects.hash(name, ifindex, type, mac, inetAddresses, isUp,
+                            hasLink, mtu, endpoint, portType, properties);
     }
 }
