@@ -10,6 +10,8 @@ ExecStart=/usr/share/midonet-cluster/midonet-cluster-start
 SuccessExitStatus=143
 KillMode=process
 Restart=on-failure
+StartLimitInterval=0
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
