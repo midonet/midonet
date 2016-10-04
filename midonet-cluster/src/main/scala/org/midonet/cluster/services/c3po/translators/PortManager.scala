@@ -83,25 +83,20 @@ trait PortManager extends ChainManager with RouteManager {
      *
      * Does not set peer's peerId. Storage engine is assumed to handle this.
      */
-    protected def linkPortOps(port: Port, peer: PortOrBuilder)
-    : OperationList = {
+    protected def linkPorts(tx: Transaction, port: Port, peer: PortOrBuilder)
+    : Unit = {
         checkNoPeerId(port)
         checkNoPeerId(peer)
 
-        val ops = new OperationListBuffer
-
         val portBldr = Port.newBuilder(port)
         portBldr.setPeerId(peer.getId)
-        ops += Update(portBldr.build())
+        tx.update(portBldr.build())
 
-        // For router ports,
-        if (port.hasRouterId)
-            ops ++= addLocalRouteToRouter(port)
+        def addLocalRouteToRouter(rPort: PortOrBuilder): Unit =
+            tx.create(newLocalRoute(rPort.getId, rPort.getPortAddress))
 
-        if (peer.hasRouterId)
-            ops ++= addLocalRouteToRouter(peer)
-
-        ops.toList
+        if (port.hasRouterId) addLocalRouteToRouter(port)
+        if (peer.hasRouterId) addLocalRouteToRouter(peer)
     }
 
     /**
