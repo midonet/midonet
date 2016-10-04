@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b3d51544",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-04T07:56:37Z",
+      "side": 0,
+      "message": "Why was this removed?  Does this change make this rule unnecessary?",
+      "revId": "0a453ac4ff053c2fbdfd5bd5a49ecee3979b00b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

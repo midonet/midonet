@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_73a66d10",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-04T07:56:37Z",
+      "side": 1,
+      "message": "Is this here only to support the case of multiple external networks attached to the router?",
+      "revId": "4af13c324621880a44e372cc0b04928b86320611",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f3139dff",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterManager.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-04T07:56:37Z",
+      "side": 1,
+      "message": "Unused",
+      "revId": "4af13c324621880a44e372cc0b04928b86320611",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_93d9f158",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterManager.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-04T07:56:37Z",
+      "side": 1,
+      "message": "Unused",
+      "revId": "4af13c324621880a44e372cc0b04928b86320611",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_73de6d3f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterManager.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-04T07:56:37Z",
+      "side": 1,
+      "message": "Unused",
+      "revId": "4af13c324621880a44e372cc0b04928b86320611",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_33e58508",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterManager.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-04T07:56:37Z",
+      "side": 1,
+      "message": "Unused",
+      "revId": "4af13c324621880a44e372cc0b04928b86320611",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
