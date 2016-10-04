@@ -18,11 +18,16 @@ package org.midonet.midolman.datapath
 
 import java.nio.BufferOverflowException
 import java.nio.channels.AsynchronousCloseException
-import java.util.{ArrayList => JArrayList}
 import java.util.concurrent.TimeUnit
+import java.util.{ArrayList => JArrayList}
+
+import scala.annotation.tailrec
+import scala.util.control.NonFatal
 
 import com.lmax.disruptor.{EventHandler, LifecycleAware}
 import com.typesafe.scalalogging.Logger
+
+import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.DatapathState
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
@@ -33,9 +38,6 @@ import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction
 import org.midonet.packets._
 import org.midonet.util.concurrent.NanoClock
-import org.slf4j.LoggerFactory
-import scala.annotation.tailrec
-import scala.util.control.NonFatal
 
 trait StatePacketExecutor {
     val log: Logger
@@ -80,10 +82,10 @@ object PacketExecutor {
     @tailrec
     private def clampMss(pkt: IPacket, wrapperSize: Int, log: Logger)
     : Unit = pkt match {
-        case t: TCP if t.getFlag(TCP.Flag.Syn) =>
+        case t: TCP if t.getFlag(TCP.Flag.Syn) && (t.getOptions ne null) =>
             var i = 0
             val opts = t.getOptions
-            while (i < opts.size) {
+            while (i < opts.length) {
                 val code = opts(i)
                 i += 1
                 if (code <= TCP.OptionKind.NOP.code) {
