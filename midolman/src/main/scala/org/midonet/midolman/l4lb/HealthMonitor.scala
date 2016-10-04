@@ -17,14 +17,21 @@
 package org.midonet.midolman.l4lb
 
 import java.io._
-import java.util.UUID
+import java.util.{ConcurrentModificationException, UUID}
 import java.util.concurrent.atomic.AtomicInteger
+
+import scala.annotation.tailrec
+import scala.collection.JavaConversions._
+import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
+import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorRef, Props}
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.data.storage.{Storage, Transaction}
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
@@ -41,11 +48,11 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.util.concurrent.toFutureOps
 import org.slf4j.{Logger, LoggerFactory}
 
-import scala.collection.JavaConversions._
-import scala.util.control.NonFatal
-
 object HealthMonitor extends Referenceable {
+    val interval: Duration = 10 seconds
+    val maxRetries = 3
     override val Name = "HealthMonitor"
+
     case class ConfigUpdated(poolId: UUID, config: PoolConfig, routerId: UUID)
     case class ConfigDeleted(id: UUID)
     case class ConfigAdded(poolId: UUID, config: PoolConfig, routerId: UUID)
@@ -202,6 +209,47 @@ object HealthMonitor extends Referenceable {
             lock.release()
         }
     }
+    /**
+      * This method is borrowed from MidonetResourse class.
+      * Tries to commit storage transaction with the operations that adds function f
+      * throws a ConcurrentModificationException if failed "StorageAttempts" times to commit
+      *  transaction
+      */
+
+     def tryTx(store: Storage, lockFactory: ZookeeperLockFactory)
+              (populate: (Transaction) => Unit): Unit = {
+        def executeOperations(): Unit = {
+            val tx = store.transaction()
+            populate(tx)
+            tx.commit()
+        }
+        retry(log, "Commit transaction") {
+            zkLock(lockFactory)(executeOperations)
+        }
+    }
+
+    @throws[Throwable]
+    def retry[T](log: Logger, message: String)(retriable: => T): T = {
+        retry(maxRetries, log, message)(retriable)
+    }
+
+    @throws[Throwable]
+    @tailrec
+    private def retry[T](retries: Int, log: Logger, message: String)
+                        (retriable: => T): T = {
+        try return retriable
+        catch {
+            case NonFatal(e) if retries > 0 =>
+                log debug s"$message failed. Remaining retries: ${retries - 1}. " +
+                    s"Retrying in ${interval toMillis} ms."
+                Thread.sleep(interval toMillis)
+            case NonFatal(e) =>
+                log debug s"$message failed after $maxRetries attempts. " +
+                          s"Giving up. ${e.getMessage}"
+                throw e
+        }
+        retry(retries - 1, log, message)(retriable)
+    }
 }
 
 /*
@@ -249,9 +297,9 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
     : Unit = {
         try {
             log.debug("Set mapping status for pool {} to {}", poolId, status)
-            HealthMonitor.zkLock(lockFactory) {
-                val pool = store.get(classOf[Pool], poolId).await()
-                store.update(pool.toBuilder.setMappingStatus(status).build())
+            tryTx(store, lockFactory) { tx =>
+                val pool = tx.get(classOf[Pool], poolId)
+                tx.update(pool.toBuilder.setMappingStatus(status).build())
             }
         } catch {
             case NonFatal(e) =>
