@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8eb0aafe",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/L2InsertionTranslation.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-10-04T10:43:40Z",
+      "side": 1,
+      "message": "missing ignoresNeo",
+      "range": {
+        "startLine": 325,
+        "startChar": 12,
+        "endLine": 325,
+        "endChar": 39
+      },
+      "revId": "2b61e8bb1cf30204ab566304bf6f8ca6460197ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
