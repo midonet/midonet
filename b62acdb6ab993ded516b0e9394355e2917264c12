@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_737d4d6c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-04T07:11:51Z",
+      "side": 1,
+      "message": "the latter is unnecessary if a user creates router interfaces per subnet?",
+      "parentUuid": "baa041b7_ffd486e9",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_31cb4855",
         "filename": "/COMMIT_MSG",
         "patchSetId": 11
@@ -138,6 +156,24 @@
       "side": 1,
       "message": "The second subnet route will only be added to our edge routers (or more specifically: routers with router interfaces in networks with multiple subnets). I think semantically this is consistent with the reference implementation because our edge router has no analog. It would correspond to the uplink router outside of the deployement, which I am assuming would have a second subnet route.",
       "parentUuid": "baa041b7_1fee0aed",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_13b6013e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-04T07:11:51Z",
+      "side": 1,
+      "message": "while i can understand the intention, i don\u0027t understand how the criteria excludes non-edge routers.\nare you assuming that tenant networks do never have multiple subnets for some reasons?",
+      "parentUuid": "baa041b7_58f9487f",
       "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
