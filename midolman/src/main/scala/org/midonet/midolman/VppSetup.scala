@@ -16,30 +16,23 @@
 
 package org.midonet.midolman
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import scala.util.Success
 
-import akka.actor.Scheduler
-
-import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.vpp.VppApi
 import org.midonet.netlink.rtnetlink.LinkOps
+import org.midonet.odp.DpPort
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
 
-object VppSetup {
+object VppSetup extends MidolmanLogging {
 
-    private val VppConnectionName = "midonet"
-    private val VppConnectMaxRetries = 10
-    private val VppConnectDelayMs = 1000
+    override def logSource = s"org.midonet.vpp-setup"
 
     private trait MacAddressProvider {
         def macAddress: Option[Array[Byte]]
-    }
-
-    private trait VppApiProvider {
-        def vppApi: Option[VppApi]
     }
 
     private trait VppInterfaceProvider {
@@ -68,7 +61,7 @@ object VppSetup {
 
     private class VppDevice(override val name: String,
                     deviceName: String,
-                    vppSource: VppApiProvider,
+                    vppApi: VppApi,
                     macSource: MacAddressProvider)
                    (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback with VppInterfaceProvider {
@@ -77,7 +70,6 @@ object VppSetup {
 
         @throws[Exception]
         override def execute(): Future[Any] = {
-            val vppApi = vppSource.vppApi.get
             vppApi.createDevice(deviceName, macSource.macAddress)
                 .flatMap[Int] { result =>
                     vppApi.setDeviceAdminState(result.swIfIndex,
@@ -90,13 +82,12 @@ object VppSetup {
 
         @throws[Exception]
         override def rollback(): Future[Any] = {
-            val vppApi = vppSource.vppApi.get
             vppApi.deleteDevice(deviceName)
         }
     }
 
     private class VppIpAddr(override val name: String,
-                            vppSource: VppApiProvider,
+                            vppApi: VppApi,
                             deviceId: VppInterfaceProvider,
                             address: Array[Byte],
                             prefix: Byte)
@@ -111,7 +102,6 @@ object VppSetup {
         override def rollback(): Future[Any] = addDelIpAddress(isAdd = false)
 
         private def addDelIpAddress(isAdd: Boolean) = {
-            val vppApi = vppSource.vppApi.get
             vppApi.addDelDeviceAddress(deviceId.vppInterface.get,
                                        address,
                                        prefix,
@@ -120,55 +110,87 @@ object VppSetup {
         }
     }
 
-    private class VppConnect(scheduler: Scheduler)
-                            (implicit ec: ExecutionContext)
-        extends FutureTaskWithRollback with VppApiProvider {
-
-        override def name: String = "vpp connect"
-
-        var vppApi: Option[VppApi] = None
+    private class OvsBind(override val name: String,
+                          vppOvs: VppOvs,
+                          endpointName: String)
+            extends FutureTaskWithRollback {
+        var dpPort: Option[DpPort] = None
 
         @throws[Exception]
         override def execute(): Future[Any] = {
-            vppApi = None
-            createApiConnection(VppConnectMaxRetries)
-        }
-
-        private def createApiConnection(retriesLeft: Int): Future[VppApi] = {
-
-            val promise = Promise[VppApi]
-
-            def createApi(): Unit = {
-                Try {
-                    new VppApi(VppConnectionName)
-                } match {
-                    case Success(api) =>
-                        vppApi = Some(api)
-                        promise.trySuccess(api)
-                    case Failure(err) if retriesLeft > 0 =>
-                        scheduler.scheduleOnce(VppConnectDelayMs millis) {
-                            createApi()
-                        }
-                    case Failure(err) => promise.tryFailure(err)
-                }
+            try {
+                dpPort = Some(vppOvs.createDpPort(endpointName))
+                Future.successful(Unit)
+            } catch {
+                case e: Throwable => Future.failed(e)
             }
-
-            createApi()
-            promise.future
         }
 
         @throws[Exception]
         override def rollback(): Future[Any] = {
-            vppApi = None
-            Future.successful(())
+            dpPort match {
+                case Some(port) => try {
+                    vppOvs.deleteDpPort(port)
+                    Future.successful(Unit)
+                } catch {
+                    case e: Throwable => Future.failed(e)
+                }
+                case _ =>
+                    Future.successful(Unit)
+            }
+        }
+
+        @throws[IllegalStateException]
+        def getPortNo(): Int = dpPort match {
+            case Some(port) => port.getPortNo
+            case _ => throw new IllegalStateException(
+                s"Datapath Port hasn't been created for $endpointName")
+        }
+    }
+
+    private class FlowInstall(override val name: String,
+                              vppOvs: VppOvs,
+                              ep1fn: () => Int,
+                              ep2fn: () => Int)
+            extends FutureTaskWithRollback {
+        @throws[Exception]
+        override def execute(): Future[Any] = {
+            try {
+                vppOvs.addIpv6Flow(ep1fn(), ep2fn())
+                vppOvs.addIpv6Flow(ep2fn(), ep1fn())
+                Future.successful(Unit)
+            } catch {
+                case e: Throwable => Future.failed(e)
+            }
+        }
+
+        @throws[Exception]
+        override def rollback(): Future[Any] = {
+            var firstException: Option[Throwable] = None
+            try {
+                vppOvs.clearIpv6Flow(ep1fn(), ep2fn())
+            } catch {
+                case e: Throwable => firstException = Some(e)
+            }
+            try {
+                vppOvs.clearIpv6Flow(ep2fn(), ep1fn())
+            } catch {
+                case e: Throwable => if (!firstException.isDefined) {
+                    firstException = Some(e)
+                }
+            }
+            firstException match {
+                case None => Future.successful(Unit)
+                case Some(e) => Future.failed(e)
+            }
         }
     }
 }
 
 class VppSetup(uplinkPort: RouterPort,
-               upcallConnManager: UpcallDatapathConnectionManager,
-               datapathState: DatapathState,
-               scheduler: Scheduler)
+               uplinkPortDpNo: Int,
+               vppApi: VppApi,
+               vppOvs: VppOvs)
               (implicit ec: ExecutionContext)
     extends FutureSequenceWithRollback("VPP setup") {
 
@@ -180,27 +202,34 @@ class VppSetup(uplinkPort: RouterPort,
                                             0, 0, 0, 0, 0, 0, 0, 0x1)
     private val uplinkVppPrefix: Byte = 64
 
-    private val vppConnect = new VppConnect(scheduler)
-
     private val uplinkVeth = new VethPairSetup("uplink veth pair",
                                        uplinkVppName,
                                        uplinkOvsName)
 
     private val uplinkVpp = new VppDevice("uplink device at vpp",
                                   uplinkVppName,
-                                  vppConnect,
+                                  vppApi,
                                   uplinkVeth)
 
     private val ipAddrVpp = new VppIpAddr("uplink IPv6 address at vpp",
-                                          vppConnect,
+                                          vppApi,
                                           uplinkVpp,
                                           uplinkVppAddr,
                                           uplinkVppPrefix)
+    private val ovsBind = new OvsBind("ovs bind for vpp uplink veth",
+                                      vppOvs,
+                                      uplinkOvsName)
+    private val vppFlows = new FlowInstall("install ipv6 flows",
+                                           vppOvs,
+                                           () => { ovsBind.getPortNo },
+                                           () => { uplinkPortDpNo })
+
     /*
      * setup the tasks, in execution order
      */
-    add(vppConnect)
     add(uplinkVeth)
     add(uplinkVpp)
     add(ipAddrVpp)
+    add(ovsBind)
+    add(vppFlows)
 }
