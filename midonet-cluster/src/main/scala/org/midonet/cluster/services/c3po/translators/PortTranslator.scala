@@ -88,7 +88,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
 
         if (hasMacAndArpTableEntries(nPort)) {
-            macAndArpTableEntryPaths(nPort).foreach(tx.createNode(_, null))
+            macAndArpTableEntryPaths(nPort).foreach(tx.createNode(_))
         }
 
         // Remote site ports have the MAC/ARP entries, but no Midonet port.
@@ -811,7 +811,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             if (hasMacAndArpTableEntries(oldPort) && oldPort.hasMacAddress)
                 tx.deleteNode(macEntryPath(oldPort))
             if (hasMacAndArpTableEntries(newPort) && newPort.hasMacAddress)
-                tx.createNode(macEntryPath(newPort), null)
+                tx.createNode(macEntryPath(newPort))
         }
     }
 
@@ -826,7 +826,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         if (oldIp != newIp) {
             if (oldIp != null) tx.deleteNode(arpEntryPath(oldPort))
-            if (newIp != null) tx.createNode(arpEntryPath(newPort), null)
+            if (newIp != null) tx.createNode(arpEntryPath(newPort))
         }
     }
 
@@ -871,7 +871,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         for (fip <- tx.getAll(classOf[FloatingIp], fipIds.distinct)) {
             tx.deleteNode(fipArpEntryPath(oldPort, fip))
-            tx.createNode(fipArpEntryPath(newPort, fip), null)
+            tx.createNode(fipArpEntryPath(newPort, fip))
         }
     }
 
