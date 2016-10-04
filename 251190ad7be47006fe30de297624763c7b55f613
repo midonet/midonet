@@ -291,6 +291,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_38a1e494",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-04T03:32:32Z",
+      "side": 1,
+      "message": "Joe and I just played around with this and it looks like -- was deprecated and \"filterNot\" + \"contains\" is the suggested alternative, so I went with that.",
+      "parentUuid": "baa041b7_f8981c77",
+      "revId": "251190ad7be47006fe30de297624763c7b55f613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5f0db23c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleBWLimitResource.scala",
         "patchSetId": 1
