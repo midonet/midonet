@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f8a6dca9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 526,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-04T04:46:41Z",
+      "side": 1,
+      "message": "Is this log necessary?  \u0027applyDnat\u0027 method already logs the DNAT event.",
+      "revId": "be54bdd7dce9e3403e76b335b3939e9cf35ef033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
