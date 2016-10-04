@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f365ddae",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-04T07:57:24Z",
+      "side": 1,
+      "message": "do we maintain embedded rules in zk?",
+      "range": {
+        "startLine": 130,
+        "startChar": 30,
+        "endLine": 130,
+        "endChar": 35
+      },
+      "revId": "d5bbbae5ca48b5713e8c32a81e014e4078b7a871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_73278d63",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleDSCPResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-04T07:57:24Z",
+      "side": 1,
+      "message": "it\u0027s better to avoid keeping redundant info (ie. embedded rules and \"top-level\" rules) in zk, rather than trying to keep possible copies consistent.",
+      "revId": "d5bbbae5ca48b5713e8c32a81e014e4078b7a871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
