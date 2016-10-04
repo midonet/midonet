@@ -189,7 +189,8 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
     private def linkToIntefaceDescription(link: Link): InterfaceDescription = {
         val descOption: Option[InterfaceDescription] =
             interfaceDescriptions.get(link.ifi.index)
-        val desc = descOption.getOrElse(new InterfaceDescription(link.getName))
+        val desc = descOption.getOrElse(new InterfaceDescription(
+                                            link.getName, link.ifi.index))
         linkToDesc(link, desc)
     }
 
@@ -216,7 +217,8 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
         val descOption: Option[InterfaceDescription] =
             interfaceDescriptions.get(addr.ifa.index)
         val desc = descOption.getOrElse(
-            new InterfaceDescription(addr.ifa.index.toString))
+            new InterfaceDescription(addr.ifa.index.toString,
+                                     addr.ifa.index))
         addrToDesc(addr, desc)
     }
 
@@ -394,6 +396,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
 
     private def cloneIfDesc(ifdesc: InterfaceDescription): InterfaceDescription = {
         val clone = new InterfaceDescription(ifdesc.getName)
+        clone.setIfindex(ifdesc.getIfindex)
         clone.setEndpoint(ifdesc.getEndpoint)
         ifdesc.getInetAddresses foreach clone.setInetAddress
         clone.setHasLink(ifdesc.hasLink)

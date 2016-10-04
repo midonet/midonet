@@ -77,6 +77,7 @@ message HostState {
         optional int32 mtu = 7;
         optional Endpoint endpoint = 8;
         optional DpPortType port_type = 9;
+        optional int32 ifindex = 10;
     }
 
     optional UUID host_id = 1;
