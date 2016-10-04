@@ -35,6 +35,7 @@ class ConfigTranslator(protected val storage: ReadOnlyStorage)
 
         // Create the singleton Tunnel Zone
         tx.create(neutronDefaultTunnelZone(config))
+
         List()
     }
 

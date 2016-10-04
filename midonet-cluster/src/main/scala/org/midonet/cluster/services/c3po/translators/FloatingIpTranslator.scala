@@ -97,7 +97,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
     /* Generates a CreateNode Op for FIP IP and Router GW port. */
     private def addArpEntry(tx: Transaction, fip: FloatingIp,
                             gwPortId: UUID): Unit = {
-        tx.createNode(fipArpEntryPath(tx, fip, gwPortId), null)
+        tx.createNode(fipArpEntryPath(tx, fip, gwPortId))
     }
 
     /* Generate Create Ops for SNAT and DNAT for the floating IP address. */

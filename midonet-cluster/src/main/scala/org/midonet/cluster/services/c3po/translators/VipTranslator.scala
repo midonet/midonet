@@ -71,7 +71,7 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
                 networkId,
                 IPv4Addr(nVip.getAddress.getAddress),
                 MAC.fromString(gwPort.getMacAddress))
-            tx.createNode(arpPath, null)
+            tx.createNode(arpPath)
             // Set a back reference from gateway port to VIP.
             mVip.setGatewayPortId(router.getGwPortId)
         } else {
