@@ -30,6 +30,7 @@ OPTIONS:
  -t TEST     Runs this test(s)
  -l LOG_DIR  Directory where to store results (defaults to ./logs)
  -r DIR      Use DIR as the Python root (to determine imported modules)
+ -n SANDBOX  Use this sandbox name to run the tests on (defaults to mdts)
  -g          Do not run gate tests
  -G          Run only gate tests
  -s          Do not run slow tests
@@ -67,7 +68,7 @@ ATTR=""
 ARGS=""  # passed directly to nosetests runner
 LOG_DIR="logs-$(date +"%y%m%d%H%M%S")"
 
-while getopts "e:ht:sSv:V:xXr:l:gG" OPTION
+while getopts "e:ht:sSv:V:xXr:l:gGn:" OPTION
 do
     case $OPTION in
         h)
@@ -112,6 +113,9 @@ do
             else
                 ATTR="$ATTR and gate"
             fi
+            ;;
+        n)
+            export MDTS_SANDBOX_NAME=$OPTARG
             ;;
         s)
             if [ -z "$ATTR" ]
