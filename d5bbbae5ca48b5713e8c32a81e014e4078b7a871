@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_52ffe0aa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-04T23:48:38Z",
+      "side": 1,
+      "message": "Yes.  We have them as part of the model for information purposes.  This is so the responses and GETs can have the embedded rules as would be expected.  These rules are only used to keep information.  They won\u0027t be used by the midonet code itself (this is why these rules do not have a URI or any ability to modify outside of the policy)",
+      "parentUuid": "baa041b7_f365ddae",
+      "range": {
+        "startLine": 130,
+        "startChar": 30,
+        "endLine": 130,
+        "endChar": 35
+      },
+      "revId": "d5bbbae5ca48b5713e8c32a81e014e4078b7a871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_73278d63",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleDSCPResource.scala",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2016-10-04T07:57:24Z",
       "side": 1,
       "message": "it\u0027s better to avoid keeping redundant info (ie. embedded rules and \"top-level\" rules) in zk, rather than trying to keep possible copies consistent.",
+      "revId": "d5bbbae5ca48b5713e8c32a81e014e4078b7a871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_122cb848",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleDSCPResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-04T23:48:38Z",
+      "side": 1,
+      "message": "This was really the only way I found to fix the problem where neutron sends a blob of info, rather than editing rules separately, without an entire re-write of the code, as well as making the QoS inconsistent with every other midonet object (which stores subobjects as top-level objects with links).\n\nWe have to have a rules blob in the model, because the JSON coming in will have it.  We also have to have separated rules as top-level objects (as already coded in the models in the previous commits) because that\u0027s how midonet expects objects to be laid out.  So, what do we do?  We either have translators, which was decided from higher up NOT to do for this, or we have to have both put into the same model, which is this code here.\n\nIf we must have translations, then IMHO we need to have that discussion separately and iterate this code to add translations and separate neutron models.  But I don\u0027t think this code review is the place for that discussion.  Let\u0027s bring it up during our sprint planning and see if we have to add a new task for that.\n\nIf you have other ideas for how to accept a rules blob as well as store top-level objects and keep the responses in sync with the actual midonet data, I\u0027m definitely open to suggestions, though. :)",
+      "parentUuid": "baa041b7_73278d63",
       "revId": "d5bbbae5ca48b5713e8c32a81e014e4078b7a871",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
