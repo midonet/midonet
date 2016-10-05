@@ -21,15 +21,13 @@ import java.util.{List => JList}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import org.midonet.cluster.data.storage.ObjectNameNotUniqueException
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Topology.{Dhcp, Host, Port, PortOrBuilder, _}
-import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Delete, Operation, Update}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
@@ -43,8 +41,6 @@ trait PortManager extends ChainManager with RouteManager {
 
     protected type DhcpUpdateFunction =
         (Dhcp.Builder, String, IPAddress, JList[ExtraDhcpOpts]) => Unit
-
-    protected val storage: ReadOnlyStorage
 
     protected def newTenantRouterGWPort(id: UUID,
                                         routerId: UUID,
