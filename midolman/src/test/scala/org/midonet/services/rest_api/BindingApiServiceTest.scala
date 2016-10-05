@@ -16,13 +16,11 @@
 
 package org.midonet.services.rest_api
 
-import java.nio.channels.ByteChannel
-import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.ByteBuffer
-import java.net.BindException
-import java.util.concurrent.TimeUnit
+import java.nio.channels.ByteChannel
+import java.nio.file.{Files, Path}
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
@@ -31,34 +29,30 @@ import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.FileUtils
 import org.apache.curator.framework.CuratorFramework
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{mock, times, verify}
-import org.mockito.{Matchers => mockito}
+import org.mockito.Mockito.mock
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{Matchers, FeatureSpec}
+import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.minion.Context
-import org.midonet.netlink.Netlink
-import org.midonet.netlink.NetlinkSelectorProvider
+import org.midonet.netlink.{Netlink, NetlinkSelectorProvider}
 import org.midonet.util.AfUnix
 
 
 @RunWith(classOf[JUnitRunner])
-class RestApiServiceTest extends FeatureSpec with Matchers {
+class BindingApiServiceTest extends FeatureSpec with Matchers {
 
-    private class RestApiServiceForTesting(
+    private class BindingApiServiceForTesting(
             nodeContext: Context,
             backend: MidonetBackend,
             curator: CuratorFramework,
             config: MidolmanConfig)
-        extends RestApiService(nodeContext, backend, curator, config) {
+        extends BindingApiService(nodeContext, backend, curator, config) {
 
         override protected def makeModule = {
             new JerseyServletModule {
-                override protected def configureServlets = {
+                override protected def configureServlets(): Unit = {
                     bind(classOf[EchoHandler])
                     serve("/*").`with`(classOf[GuiceContainer])
                 }
@@ -81,7 +75,7 @@ class RestApiServiceTest extends FeatureSpec with Matchers {
             val config = ConfigFactory.parseString(
                 s"""
                    |agent.minions.binding_api.enabled : true
-                   |agent.minions.binding_api.unix_socket : ${socket}
+                   |agent.minions.binding_api.unix_socket : $socket
                    |""".stripMargin)
             test(MidolmanConfig.forTests(config))
         }
@@ -91,10 +85,10 @@ class RestApiServiceTest extends FeatureSpec with Matchers {
         val context = Context(UUID.randomUUID())
         val backend = mock(classOf[MidonetBackend])
         val curator = mock(classOf[CuratorFramework])
-        new RestApiServiceForTesting(context, backend, curator, config)
+        new BindingApiServiceForTesting(context, backend, curator, config)
     }
 
-    private def withService(test: (RestApiService, MidolmanConfig) => Any) {
+    private def withService(test: (BindingApiService, MidolmanConfig) => Any) {
         withConfig { config =>
             val service = createService(config)
             service.startAsync().awaitRunning(60, TimeUnit.SECONDS)

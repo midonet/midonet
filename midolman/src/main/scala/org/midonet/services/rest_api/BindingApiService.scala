@@ -17,7 +17,7 @@
 package org.midonet.services.rest_api
 
 import java.io.File
-import java.util.EnumSet
+import java.util
 
 import javax.servlet.DispatcherType
 
@@ -42,7 +42,7 @@ import org.midonet.services.BindingApiLog
 import org.midonet.services.rest_api.hacks.UnixDomainServerConnector
 import org.midonet.util.logging.Logging
 
-object RestApiService extends Logging {
+object BindingApiService extends Logging {
 
     override def logSource = BindingApiLog
 
@@ -57,14 +57,13 @@ object RestApiService extends Logging {
   * Note: A unix domain socket is used to simplify credential management.
   */
 @MinionService(name = "binding-api", runsOn = TargetNode.AGENT)
-class RestApiService @Inject()(
-        nodeContext: Context,
-        backend: MidonetBackend,
-        curator: CuratorFramework,
-        config: MidolmanConfig)
+class BindingApiService @Inject()(nodeContext: Context,
+                                  backend: MidonetBackend,
+                                  curator: CuratorFramework,
+                                  config: MidolmanConfig)
     extends Minion(nodeContext) {
 
-    import RestApiService.log
+    import BindingApiService.log
 
     var server: Server = null
 
@@ -72,13 +71,13 @@ class RestApiService @Inject()(
 
     protected def makeModule = {
         new JerseyServletModule {
-            override protected def configureServlets = {
+            override protected def configureServlets(): Unit = {
                 bind(classOf[CuratorFramework]).toInstance(curator)
                 bind(classOf[MidolmanConfig]).toInstance(config)
                 bind(classOf[MidonetBackend]).toInstance(backend)
-                bind(classOf[PathBuilder]).asEagerSingleton
-                bind(classOf[ZookeeperLockFactory]).asEagerSingleton
-                bind(classOf[BindingHandler]).asEagerSingleton
+                bind(classOf[PathBuilder]).asEagerSingleton()
+                bind(classOf[ZookeeperLockFactory]).asEagerSingleton()
+                bind(classOf[BindingHandler]).asEagerSingleton()
                 serve("/*").`with`(classOf[GuiceContainer])
             }
         }
@@ -95,7 +94,7 @@ class RestApiService @Inject()(
             override protected def getInjector = Guice.createInjector(makeModule)
         })
         context.addFilter(classOf[GuiceFilter], "/*",
-                          EnumSet.allOf(classOf[DispatcherType]))
+                          util.EnumSet.allOf(classOf[DispatcherType]))
         context.addServlet(classOf[DefaultServlet], "/*")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
         server.setHandler(context)
@@ -103,7 +102,7 @@ class RestApiService @Inject()(
     }
 
     protected override def doStart(): Unit = {
-        log info "Starting binding-api service"
+        log info "Starting binding API service"
 
         val socketPath = config.bindingApi.unixSocket
         try {
@@ -115,22 +114,22 @@ class RestApiService @Inject()(
                 case NonFatal(e) => // ok to ignore
             }
             val s = makeServer(socketPath)
-            s.start
+            s.start()
             server = s
             notifyStarted()
         } catch {
             case NonFatal(e) =>
-                log error "Failed to start binding-api service"
+                log error "Failed to start binding API service"
                 notifyFailed(e)
         }
     }
 
     protected override def doStop(): Unit = {
-        log info "Stopping binding-api service"
+        log info "Stopping binding API service"
 
         if (server != null) {
-            server.stop
-            server.join
+            server.stop()
+            server.join()
             server = null
         }
         notifyStopped()
