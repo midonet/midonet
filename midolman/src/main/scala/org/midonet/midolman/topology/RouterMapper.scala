@@ -558,8 +558,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         val postOutFilterMirrors = new java.util.ArrayList[UUID]()
         postOutFilterMirrors.addAll(router.getOutboundMirrorIdsList.asScala.map(_.asJava).asJava)
 
-        val infilters = new JArrayList[UUID](0)
-        val outfilters = new JArrayList[UUID](0)
+        val infilters = new JArrayList[UUID](2)
+        val outfilters = new JArrayList[UUID](2)
         if (router.hasLocalRedirectChainId) {
             infilters.add(router.getLocalRedirectChainId)
         }
@@ -613,8 +613,9 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         chainsTracker.requestRefs(infilters.asScala ++ outfilters.asScala :_*)
 
         // Request the mirrors for this router.
-        mirrorsTracker.requestRefs(router.getInboundMirrorIdsList.asScala map (_.asJava) :_*)
-        mirrorsTracker.requestRefs(router.getOutboundMirrorIdsList.asScala map (_.asJava) :_*)
+        mirrorsTracker.requestRefs(
+            router.getInboundMirrorIdsList.asScala.map(_.asJava) ++
+            router.getOutboundMirrorIdsList.asScala.map(_.asJava) :_*)
 
         // Complete the previous load-balancer state, if any and different from
         // the current one.

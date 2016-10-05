@@ -30,15 +30,14 @@ import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter}
+import org.midonet.cluster.models.Topology.{Mirror => TopologyMirror, Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.simulation.{Chain, Router => SimulationRouter}
-import org.midonet.midolman.simulation.RouterPort
+import org.midonet.midolman.simulation.{Chain, Mirror, RouterPort, Router => SimulationRouter}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
@@ -1351,6 +1350,69 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout)
             obs.getOnNextEvents should have size 2
             obs.getOnNextEvents.get(1) shouldBeDeviceOf router3
+        }
+    }
+
+    feature("Test mirror updates") {
+        scenario("The bridge receives existing mirrors") {
+            val obs = createObserver()
+
+            Given("A chain mapper")
+            val routerId = UUID.randomUUID
+            val mapper = new RouterMapper(routerId, vt, mutable.Map())
+
+            And("Two mirrors")
+            val bridge = createBridge()
+            val port1 = createBridgePort(bridgeId = Some(bridge.getId))
+            val mirror1 = createMirror(toPort = port1.getId)
+            val mirror2 = createMirror(toPort = port1.getId)
+            store.multi(Seq(CreateOp(bridge), CreateOp(port1), CreateOp(mirror1),
+                            CreateOp(mirror2)))
+
+            And("A router with the mirrors")
+            val router = createRouter(id = routerId,
+                                      inboundMirrorIds = Set(mirror1.getId),
+                                      outboundMirrorIds = Set(mirror2.getId))
+
+            When("The router is created")
+            store.create(router)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the router")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0)
+            device1 shouldBeDeviceOf router
+
+            And("The virtual topology should have prefetched the mirrors")
+            VirtualTopology.tryGet(classOf[Mirror], mirror1.getId) shouldBeDeviceOf mirror1
+            VirtualTopology.tryGet(classOf[Mirror], mirror2.getId) shouldBeDeviceOf mirror2
+
+            When("The first mirror updates to a different port")
+            val port2 = createBridgePort(bridgeId = Some(bridge.getId))
+            val mirror3 = mirror1.toBuilder
+                .setToPortId(port2.getId)
+                .addRouterInboundIds(router.getId)
+                .build()
+            store.multi(Seq(CreateOp(port2), UpdateOp(mirror3)))
+
+            Then("The observer should receive the bridge")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(1)
+            device2 shouldBeDeviceOf router
+
+            And("The virtual topology should have prefetched the mirrors")
+            VirtualTopology.tryGet(classOf[Mirror], mirror1.getId) shouldBeDeviceOf mirror3
+            VirtualTopology.tryGet(classOf[Mirror], mirror2.getId) shouldBeDeviceOf mirror2
+
+            When("The second mirror is deleted")
+            store.delete(classOf[TopologyMirror], mirror2.getId)
+
+            Then("The observer should receive the bridge")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(2)
+            device3 shouldBeDeviceOf router
         }
     }
 }
