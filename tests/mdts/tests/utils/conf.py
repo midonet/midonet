@@ -20,6 +20,8 @@ conf_file = os.getenv('MDTS_CONF_FILE', 'mdts.conf')
 conf = ConfigParser.ConfigParser()
 conf.read(conf_file)
 
+mdts_sandbox_name = os.getenv('MDTS_SANDBOX_NAME')
+
 def is_vxlan_enabled():
     """Returns boolean to indicate if vxlan tunnels are enabled"""
     return conf.getboolean('default', 'vxlan')
@@ -31,7 +33,17 @@ def docker_http_timeout():
     return conf.getint('sandbox', 'docker_http_timeout')
 
 def sandbox_name():
-    return conf.get('sandbox', 'sandbox_name')
+    """ Returns the name of the sandbox that was received as an option when the
+    job were run. If the option was not passed, it resolves to the sandbox name
+    defined in mdts.conf
+
+    The name can also be passed as an env variable:
+        `export MDTS_SANDBOX_NAME=mdts`
+    This is what the script that runs the tests does internally."""
+    if mdts_sandbox_name is not None:
+        return mdts_sandbox_name
+    else:
+        return conf.get('sandbox', 'sandbox_name')
 
 def sandbox_prefix():
     return conf.get('sandbox', 'sandbox_prefix')
