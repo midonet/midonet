@@ -134,8 +134,8 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
                     prevPortId = x.getSrvPortId
                 })
         }
-        checkInsertions(srcInsertions, true)
-        checkInsertions(dstInsertions, false)
+        checkInsertions(srcInsertions, inbound = true)
+        checkInsertions(dstInsertions, inbound = false)
         checkPacket("The packet ingresses the last srv port",
                     "It finally makes its way out the destination port",
                     packet(srcMac, dstMac, prevVlan),
@@ -155,6 +155,12 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
         log.info("Checking return path")
         checkInsertionPath(dstPortId, srcPortId, dstMac, srcMac,
                            dstInsertions, srcInsertions)
+    }
+
+    def commitTx(f: (Transaction) => Unit): Unit = {
+        val tx = store.transaction()
+        f(tx)
+        tx.commit()
     }
 
     feature("Test redirect without vlans") {
@@ -225,7 +231,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
                 .setPosition(1)
                 .setVlan(10)
                 .build
-            translateInsertionCreate(store, vm1ins1)
+            commitTx(translateInsertionCreate(_, vm1ins1))
             fetchPorts(srv1Port.getId)
 
             // Now check the insertion on vm1
@@ -241,7 +247,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
                 .setPosition(2)
                 .setVlan(20)
                 .build
-            translateInsertionCreate(store, vm1ins2)
+            commitTx(translateInsertionCreate(_, vm1ins2))
             fetchPorts(srv2Port.getId)
 
             // Now check the two insertions on vm1
@@ -257,17 +263,17 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
                 .setPosition(1)
                 .setVlan(10)
                 .build
-            translateInsertionCreate(store, vm2ins1)
+            commitTx(translateInsertionCreate(_, vm2ins1))
 
             // Now check the concurrent insertions on vm1 and vm2 (same bridge)
             checkRoundTrip(vm1Port.getId, vm2Port.getId,
                            mac1, mac2, Seq(vm1ins1, vm1ins2), Seq(vm2ins1))
             // Now delete the insertion on vm2
-            translateInsertionDelete(store, vm2ins1.getId)
+            commitTx(translateInsertionDelete(_, vm2ins1.getId))
 
             // Now modify the insertion vm1->srv1 to use vlan 30.
             vm1ins1 = vm1ins1.toBuilder.setVlan(30).build
-            translateInsertionUpdate(store, vm1ins1)
+            commitTx(translateInsertionUpdate(_, vm1ins1))
             eventually (timeout(Span(2, Seconds))) {
                 val port = VirtualTopology.tryGet(classOf[SimPort], vm1ins1.getPortId)
                 val chain = VirtualTopology
@@ -283,7 +289,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
 
             // Now modify the insertion vm1->srv1 to NOT use vlan tags.
             vm1ins1 = vm1ins1.toBuilder.setVlan(0).build
-            translateInsertionUpdate(store, vm1ins1)
+            commitTx(translateInsertionUpdate(_, vm1ins1))
             eventually (timeout(Span(2, Seconds))) {
                 val port = VirtualTopology.tryGet(classOf[SimPort], vm1ins1.getPortId)
                 val chain = VirtualTopology
@@ -307,7 +313,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
                 .setVlan(10)
                 .setFailOpen(true)
                 .build
-            translateInsertionCreate(store, vm3ins1)
+            commitTx(translateInsertionCreate(_, vm3ins1))
 
             // Now check the insertion on vm3
             checkRoundTrip(vm3Port.getId, vm4Port.getId,
@@ -322,15 +328,15 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
                            mac3, mac4, Seq.empty[L2Insertion])
 
             // Now delete the insertion vm1 -> srv1 (keep vm1 -> srv2)
-            translateInsertionDelete(store, vm1ins1.getId)
+            commitTx(translateInsertionDelete(_, vm1ins1.getId))
 
             // Now check the remaining insertion on vm1
             checkRoundTrip(vm1Port.getId, vm2Port.getId, mac1, mac2,
                            Seq(vm1ins2))
 
             // Finally, delete the 2 remaining insertions.
-            translateInsertionDelete(store, vm1ins2.getId)
-            translateInsertionDelete(store, vm3ins1.getId)
+            commitTx(translateInsertionDelete(_, vm1ins2.getId))
+            commitTx(translateInsertionDelete(_, vm3ins1.getId))
         }
     }
 }
