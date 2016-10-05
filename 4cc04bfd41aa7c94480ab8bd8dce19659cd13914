@@ -93,6 +93,29 @@
       "revId": "4cc04bfd41aa7c94480ab8bd8dce19659cd13914",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_55458ab1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-10-05T08:51:11Z",
+      "side": 1,
+      "message": "I noticed that we use this retry pattern quite often. It might be useful to use the AwaitRetriable trait if applicable. Maybe for later.",
+      "range": {
+        "startLine": 171,
+        "startChar": 8,
+        "endLine": 180,
+        "endChar": 44
+      },
+      "revId": "4cc04bfd41aa7c94480ab8bd8dce19659cd13914",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
