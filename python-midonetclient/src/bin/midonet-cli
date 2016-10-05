@@ -769,13 +769,9 @@ class L4PortRange(SingleAttr):
         if not isinstance(value, dict):
             raise Exception("Bug: expected a dict, received '%s'" % (value))
 
-        if value.has_key('start') and value['start']:
-            pstr = value['start']
-            if value.has_key('end') and value['end']:
-                if value['end'] != value['start']:
-                    pstr = "%s-%s" % (pstr, value['end'])
-            return pstr
-        return None
+        start = value.get('start', '?')
+        end = value.get('end', start)
+        return "%s-%s" % (start, end)
 
     def _cli_to_api(self, value):
         prange = {}
