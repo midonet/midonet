@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 project.ext {
     midonetVersion = "5.2.1-rc6"
     vendor = 'MidoNet'
@@ -351,6 +353,18 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     task integration(type: Test) {
         testClassesDir = sourceSets.integration.output.classesDir
         classpath = sourceSets.integration.runtimeClasspath
+    }
+
+    task integrationJar(type: ShadowJar, dependsOn: integrationClasses) {
+        baseName = 'integrationTests'
+        classifier = null
+        version = null
+        zip64 = true
+        from sourceSets.integration.output
+        configurations = [project.configurations.integrationRuntime]
+        manifest {
+            attributes 'Main-Class': 'org.midonet.IntegrationTests'
+        }
     }
 
     task manpages() {
