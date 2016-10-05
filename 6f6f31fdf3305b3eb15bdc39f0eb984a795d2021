@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_40426aac",
+        "filename": "tests/mdts/lib/vtm_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-10-05T10:48:32Z",
+      "side": 1,
+      "message": "port_params[\u0027fixed_ips\u0027].append({ \"ip_address\": f }) ?",
+      "range": {
+        "startLine": 146,
+        "startChar": 12,
+        "endLine": 147,
+        "endChar": 62
+      },
+      "revId": "6f6f31fdf3305b3eb15bdc39f0eb984a795d2021",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
