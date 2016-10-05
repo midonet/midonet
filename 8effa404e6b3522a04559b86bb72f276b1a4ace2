@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9b4b432b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-05T11:56:41Z",
+      "side": 1,
+      "message": "Finally left it as it is.",
+      "parentUuid": "baa041b7_406f0a60",
+      "range": {
+        "startLine": 143,
+        "startChar": 12,
+        "endLine": 143,
+        "endChar": 73
+      },
+      "revId": "8effa404e6b3522a04559b86bb72f276b1a4ace2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e0217e50",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7b487f2d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-05T11:56:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e0217e50",
+      "range": {
+        "startLine": 208,
+        "startChar": 24,
+        "endLine": 209,
+        "endChar": 69
+      },
+      "revId": "8effa404e6b3522a04559b86bb72f276b1a4ace2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e07dfe1e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2016-10-05T10:25:34Z",
       "side": 1,
       "message": "maybe these should be part of the same transaction?",
+      "range": {
+        "startLine": 247,
+        "startChar": 16,
+        "endLine": 249,
+        "endChar": 61
+      },
+      "revId": "8effa404e6b3522a04559b86bb72f276b1a4ace2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3b4e7738",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-05T11:56:41Z",
+      "side": 1,
+      "message": "Since we are not sure. Left them as they are",
+      "parentUuid": "baa041b7_e07dfe1e",
       "range": {
         "startLine": 247,
         "startChar": 16,
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3bb79722",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-05T11:56:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c0ab1a87",
+      "range": {
+        "startLine": 220,
+        "startChar": 16,
+        "endLine": 220,
+        "endChar": 48
+      },
+      "revId": "8effa404e6b3522a04559b86bb72f276b1a4ace2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_40982a75",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 2
@@ -128,6 +224,30 @@
       "writtenOn": "2016-10-05T10:25:34Z",
       "side": 1,
       "message": "this is always true (?), maybe just remove it",
+      "range": {
+        "startLine": 221,
+        "startChar": 16,
+        "endLine": 221,
+        "endChar": 42
+      },
+      "revId": "8effa404e6b3522a04559b86bb72f276b1a4ace2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1b3733b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-05T11:56:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_40982a75",
       "range": {
         "startLine": 221,
         "startChar": 16,
