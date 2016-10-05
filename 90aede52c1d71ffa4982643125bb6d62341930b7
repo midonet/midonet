@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f53b7e9a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-10-05T08:10:16Z",
+      "side": 1,
+      "message": "There\u0027s an AwaitRetriable trait that implements this in the midonet-util package. Maybe it can be used here?",
+      "range": {
+        "startLine": 149,
+        "startChar": 8,
+        "endLine": 170,
+        "endChar": 9
+      },
+      "revId": "90aede52c1d71ffa4982643125bb6d62341930b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
