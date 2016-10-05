@@ -91,6 +91,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_92a3289e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-05T04:21:56Z",
+      "side": 1,
+      "message": "Tenant routers won\u0027t need the extra interfaces because the traffic would go up to the edge router, then routed down to the correct tenant router.",
+      "parentUuid": "baa041b7_737d4d6c",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_31cb4855",
         "filename": "/COMMIT_MSG",
         "patchSetId": 11
@@ -174,6 +192,24 @@
       "side": 1,
       "message": "while i can understand the intention, i don\u0027t understand how the criteria excludes non-edge routers.\nare you assuming that tenant networks do never have multiple subnets for some reasons?",
       "parentUuid": "baa041b7_58f9487f",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d2941037",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-05T04:21:56Z",
+      "side": 1,
+      "message": "I am assuming that tenant networks will be hooked up to an external network through a gateway port, rather than a router interface. The extra routes only show up on routers with router interfaces.",
+      "parentUuid": "baa041b7_13b6013e",
       "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
