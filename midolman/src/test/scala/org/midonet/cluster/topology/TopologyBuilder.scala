@@ -210,6 +210,8 @@ trait TopologyBuilder {
                      adminStateUp: Boolean = false,
                      inboundFilterId: Option[UUID] = None,
                      outboundFilterId: Option[UUID] = None,
+                     inboundMirrorIds: Set[UUID] = Set.empty,
+                     outboundMirrorIds: Set[UUID] = Set.empty,
                      loadBalancerId: Option[UUID] = None,
                      asNumber: Option[Int] = None,
                      routeIds: Seq[UUID] = Seq.empty,
@@ -219,6 +221,8 @@ trait TopologyBuilder {
             .setAdminStateUp(adminStateUp)
             .addAllRouteIds(routeIds.map(_.asProto).asJava)
             .addAllPortIds(portIds.map(_.asProto).asJava)
+            .addAllInboundMirrorIds(inboundMirrorIds.map(_.asProto).asJava)
+            .addAllOutboundMirrorIds(outboundMirrorIds.map(_.asProto).asJava)
         if (tenandId.isDefined) builder.setTenantId(tenandId.get)
         if (name.isDefined) builder.setName(name.get)
         if (inboundFilterId.isDefined)
