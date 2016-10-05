@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c699f26e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-05T14:35:14Z",
+      "side": 1,
+      "message": "while empty rules mean to remove rules,\nyou should not remove rules if rules are not specified\nbecause it should be non-neutron request, right?",
+      "revId": "fdf76e49b94baa3ea424836a7c0dc38a1bfb9f22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_268f7e24",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-05T14:35:14Z",
+      "side": 1,
+      "message": "missing space after comma",
+      "range": {
+        "startLine": 195,
+        "startChar": 25,
+        "endLine": 195,
+        "endChar": 26
+      },
+      "revId": "fdf76e49b94baa3ea424836a7c0dc38a1bfb9f22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e694f636",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-05T14:35:14Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 217,
+        "startChar": 25,
+        "endLine": 217,
+        "endChar": 26
+      },
+      "revId": "fdf76e49b94baa3ea424836a7c0dc38a1bfb9f22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
