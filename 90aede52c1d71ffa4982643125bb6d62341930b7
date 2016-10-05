@@ -46,6 +46,30 @@
       "revId": "90aede52c1d71ffa4982643125bb6d62341930b7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a6682ebb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-10-05T13:34:26Z",
+      "side": 1,
+      "message": "I\u0027m pretty sure the NonFatal extractor should also match against ConcurrentModificationException. I think it matches all runtime exceptions",
+      "parentUuid": "baa041b7_d5ccfa35",
+      "range": {
+        "startLine": 149,
+        "startChar": 8,
+        "endLine": 170,
+        "endChar": 9
+      },
+      "revId": "90aede52c1d71ffa4982643125bb6d62341930b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
