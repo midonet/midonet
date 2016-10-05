@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_5b7dbbb0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-10-05T13:15:06Z",
+      "side": 1,
+      "message": "we should check it exists before trying to delete it",
+      "range": {
+        "startLine": 190,
+        "startChar": 35,
+        "endLine": 190,
+        "endChar": 41
+      },
+      "revId": "85636b19aeae1def4b7381e459a68c8637bc4c3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3b7af7ba",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-10-05T13:15:06Z",
+      "side": 1,
+      "message": "another case where you should check it exists first",
+      "range": {
+        "startLine": 524,
+        "startChar": 19,
+        "endLine": 524,
+        "endChar": 25
+      },
+      "revId": "85636b19aeae1def4b7381e459a68c8637bc4c3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
