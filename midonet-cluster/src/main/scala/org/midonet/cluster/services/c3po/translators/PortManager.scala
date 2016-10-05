@@ -24,11 +24,10 @@ import scala.collection.mutable
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectNameNotUniqueException, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
-import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Delete, Operation, Update}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
@@ -42,8 +41,6 @@ trait PortManager extends ChainManager with RouteManager {
 
     protected type DhcpUpdateFunction =
         (Dhcp.Builder, String, IPAddress, JList[ExtraDhcpOpts]) => Unit
-
-    protected val storage: ReadOnlyStorage
 
     protected def newTenantRouterGWPort(id: UUID,
                                         routerId: UUID,
@@ -228,28 +225,28 @@ trait PortManager extends ChainManager with RouteManager {
             // of translation doesn't have the port group.
             val router = tx.get(classOf[Router], routerId)
             val pg = newRouterInterfacePortGroup(routerId, router.getTenantId)
-            getRouterInterfacePorts(router).foreach(pg.addPortIds)
+            getRouterInterfacePorts(tx, router).foreach(pg.addPortIds)
             tx.create(pg.build())
         }
 
         pgId
     }
 
-    private def getRouterInterfacePorts(router: Router): Seq[UUID] = {
+    private def getRouterInterfacePorts(tx: Transaction, router: Router): Seq[UUID] = {
         val ports = router.getPortIdsList.asScala
 
-        ports.filter(isRouterInterfacePeer)
+        ports.filter(isRouterInterfacePeer(tx, _))
     }
 
-    private def isRouterInterfacePeer(portId: UUID): Boolean = {
+    private def isRouterInterfacePeer(tx: Transaction, portId: UUID): Boolean = {
         // Using routerInterfacePortPeerId in the opposite way.
         val nPortId = PortManager.routerInterfacePortPeerId(portId)
-        val nPort = try {
-            storage.get(classOf[NeutronPort], nPortId).await()
-        } catch {
-            case ex: NotFoundException => return false
+        if (tx.exists(classOf[NeutronPort], nPortId)) {
+            val nPort = tx.get(classOf[NeutronPort], nPortId)
+            PortManager.isRouterInterfacePort(nPort)
+        } else {
+            false
         }
-        PortManager.isRouterInterfacePort(nPort)
     }
 }
 
