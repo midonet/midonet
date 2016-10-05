@@ -163,7 +163,7 @@ class BridgeMacTableResource(bridgeId: UUID, vlanOption: Option[Short],
     }
 
     private def macTable(vlanId: Short): StateTable[MAC, UUID] = {
-        resourceContext.backend.stateTableStore.bridgeMacTable(bridgeId, vlanId)
+        stateTableStore.bridgeMacTable(bridgeId, vlanId)
     }
 
     private def parseMacPort(macPort: String): (MAC, UUID) = {

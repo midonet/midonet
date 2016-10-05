@@ -170,11 +170,11 @@ class VtepResource @Inject()(resContext: ResourceContext,
     }
 
     private def getConfiguration(vtepId: UUID): VtepConfiguration = {
-        resContext.backend.stateStore.getVtepConfig(vtepId).asFuture.getOrThrow
+        stateStore.getVtepConfig(vtepId).asFuture.getOrThrow
     }
 
     private def getConnectionState(vtepId: UUID): VtepConnectionState = {
-        resContext.backend.stateStore.getVtepConnectionState(vtepId).asFuture.getOrThrow
+        stateStore.getVtepConnectionState(vtepId).asFuture.getOrThrow
     }
 
 }
