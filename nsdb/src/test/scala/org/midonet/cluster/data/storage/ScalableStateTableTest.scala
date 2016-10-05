@@ -611,7 +611,9 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             table.localSnapshot shouldBe Map("key0" -> "value1")
 
             And("The storage should contain the latest entry")
-            curator.checkExists().forPath(s"$path/key0,value0,0000000000") shouldBe null
+            eventually {
+                curator.checkExists().forPath(s"$path/key0,value0,0000000000") shouldBe null
+            }
             curator.checkExists().forPath(s"$path/key0,value1,0000000001") should not be null
 
             table.stop()
