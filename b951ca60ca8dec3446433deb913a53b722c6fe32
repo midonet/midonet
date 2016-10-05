@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_92ca084e",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-05T04:59:58Z",
+      "side": 1,
+      "message": "constant",
+      "range": {
+        "startLine": 32,
+        "startChar": 9,
+        "endLine": 32,
+        "endChar": 16
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_72c78445",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-05T04:59:58Z",
+      "side": 1,
+      "message": "kilobits is one word, so the B shouldn\u0027t be capitalized.",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 82,
+        "endChar": 23
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_580dc83c",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-05T04:59:58Z",
+      "side": 1,
+      "message": "Oh, whoops. This is actually microseconds per burst, not clock ticks.",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 21
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_32bd7cb1",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-05T04:59:58Z",
+      "side": 1,
+      "message": "Should be timeUnitsPerBurst, or usecPerBurst. I guess the former, since we\u0027re pretending that we don\u0027t know that \"time units\" are microseconds.",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 21
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d2e2d0d3",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-05T04:59:58Z",
+      "side": 1,
+      "message": "This sounds like it means \"tick length, expressed in microseconds,\" when really it\u0027s the number of ticks per microsecond. Could you rename it to ticksPerUsec?",
+      "range": {
+        "startLine": 127,
+        "startChar": 48,
+        "endLine": 127,
+        "endChar": 58
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b2e74ce2",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-05T04:59:58Z",
+      "side": 1,
+      "message": "This sounds like a quantity, when it\u0027s actually a rate. Let\u0027s call it bytesPerSec, and convert it to double here, instead of doing it in each iteration through the loop.",
+      "range": {
+        "startLine": 172,
+        "startChar": 12,
+        "endLine": 172,
+        "endChar": 17
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_92d1e8fd",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-05T04:59:58Z",
+      "side": 1,
+      "message": "It\u0027s not strictly necessary to convert both to double explicitly, since performing an arithmetic operation on a double and an int will produce a double. You also don\u0027t need the parentheses; x * (y / z) \u003d\u003d x * y / z",
+      "range": {
+        "startLine": 177,
+        "startChar": 48,
+        "endLine": 177,
+        "endChar": 56
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_72ce645b",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-05T04:59:58Z",
+      "side": 1,
+      "message": "Unless you\u0027re doing it for the floor, .toInt is pointless here, since you\u0027re multiplying it by a double. Also, you\u0027re calling .toInt on the result.",
+      "range": {
+        "startLine": 178,
+        "startChar": 24,
+        "endLine": 178,
+        "endChar": 34
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
