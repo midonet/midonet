@@ -44,10 +44,6 @@ object FlowExpirationIndexer {
         def value = FLOW_EXPIRATION.value * 5
         val typeId = 3
     }
-    object VppFlowExpiration extends Expiration {
-        def value = (3650 days).toNanos
-        val typeId = 4
-    }
 
     private final val maxType = 4
 }
