@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_72d8a4ef",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-05T06:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_92ca084e",
+      "range": {
+        "startLine": 32,
+        "startChar": 9,
+        "endLine": 32,
+        "endChar": 16
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_72c78445",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-10-05T04:59:58Z",
       "side": 1,
       "message": "kilobits is one word, so the B shouldn\u0027t be capitalized.",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 82,
+        "endChar": 23
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_52e1209a",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-05T06:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_72c78445",
       "range": {
         "startLine": 82,
         "startChar": 8,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_32de9cda",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-05T06:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_580dc83c",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 21
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d2e2d0d3",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 2
@@ -105,6 +177,30 @@
       "writtenOn": "2016-10-05T04:59:58Z",
       "side": 1,
       "message": "This sounds like it means \"tick length, expressed in microseconds,\" when really it\u0027s the number of ticks per microsecond. Could you rename it to ticksPerUsec?",
+      "range": {
+        "startLine": 127,
+        "startChar": 48,
+        "endLine": 127,
+        "endChar": 58
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_12eef88a",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-05T06:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d2e2d0d3",
       "range": {
         "startLine": 127,
         "startChar": 48,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f2f2746e",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-05T06:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_b2e74ce2",
+      "range": {
+        "startLine": 172,
+        "startChar": 12,
+        "endLine": 172,
+        "endChar": 17
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_92d1e8fd",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 2
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d2e3f09e",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-05T06:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_92d1e8fd",
+      "range": {
+        "startLine": 177,
+        "startChar": 48,
+        "endLine": 177,
+        "endChar": 56
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_72ce645b",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
         "patchSetId": 2
@@ -174,6 +318,30 @@
       "writtenOn": "2016-10-05T04:59:58Z",
       "side": 1,
       "message": "Unless you\u0027re doing it for the floor, .toInt is pointless here, since you\u0027re multiplying it by a double. Also, you\u0027re calling .toInt on the result.",
+      "range": {
+        "startLine": 178,
+        "startChar": 24,
+        "endLine": 178,
+        "endChar": 34
+      },
+      "revId": "b951ca60ca8dec3446433deb913a53b722c6fe32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b2e86c7c",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/Tcmsg.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-05T06:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_72ce645b",
       "range": {
         "startLine": 178,
         "startChar": 24,
