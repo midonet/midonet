@@ -16,11 +16,9 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
-import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPool. */
 class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
@@ -40,42 +38,41 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
         // If no Load Balancer has been created for the Router, create one.
         val lbId = loadBalancerId(nPool.getRouterId)
         val midoOps = new OperationListBuffer
-        if (!storage.exists(classOf[LoadBalancer], lbId).await()) {
+        if (!tx.exists(classOf[LoadBalancer], lbId)) {
             val lb = LoadBalancer.newBuilder()
                                  .setId(lbId)
                                  .setAdminStateUp(nPool.getAdminStateUp)
                                  .setRouterId(nPool.getRouterId).build()
-            midoOps += Create(lb)
+            tx.create(lb)
         }
 
         // Create a MidoNet Pool.
-        midoOps += Create(translatePool(nPool))
-
-        midoOps.toList
+        tx.create(translatePool(nPool))
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            npool: NeutronLoadBalancerPool)
     : OperationList = {
-        val pool = storage.get(classOf[Pool], npool.getId).await()
+        val pool = tx.get(classOf[Pool], npool.getId)
         val lbId = pool.getLoadBalancerId // if !hasLoadBalancerId it's a bug
-        val lb = storage.get(classOf[LoadBalancer], lbId).await()
-        val delPool = Delete(classOf[Pool], npool.getId)
+        val lb = tx.get(classOf[LoadBalancer], lbId)
+        tx.delete(classOf[Pool], npool.getId, ignoresNeo = true)
         if (lb.getPoolIdsCount == 1) {
-            List(delPool, Delete(classOf[LoadBalancer], lbId))
-        } else {
-            List(delPool)
+            tx.delete(classOf[LoadBalancer], lbId, ignoresNeo = true)
         }
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            nPool: NeutronLoadBalancerPool)
     : OperationList = {
-        val oldPool = storage.get(classOf[Pool], nPool.getId).await()
+        val oldPool = tx.get(classOf[Pool], nPool.getId)
         val updatedPool = oldPool.toBuilder
             .setAdminStateUp(nPool.getAdminStateUp)
             .build()
-        List(Update(updatedPool))
+        tx.update(updatedPool)
+        List()
     }
 
     private def translatePool(nPool: NeutronLoadBalancerPool): Pool = {
