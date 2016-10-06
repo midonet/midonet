@@ -34,6 +34,24 @@
       "revId": "035f358cb962ec3293a5c7c96e1b68203cf5b783",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_16eb85a5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-06T08:53:33Z",
+      "side": 1,
+      "message": "Ok then since hostId is only used within the if block, why not just move it in?",
+      "parentUuid": "baa041b7_b6f97984",
+      "revId": "035f358cb962ec3293a5c7c96e1b68203cf5b783",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
