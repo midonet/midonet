@@ -16,6 +16,24 @@
       "revId": "035f358cb962ec3293a5c7c96e1b68203cf5b783",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b6f97984",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T08:49:41Z",
+      "side": 1,
+      "message": "Yes, because topology.Port.getHostId will never return null. If it\u0027s not set, it will return 0L/0L",
+      "parentUuid": "baa041b7_d603dd0b",
+      "revId": "035f358cb962ec3293a5c7c96e1b68203cf5b783",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
