@@ -225,7 +225,14 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     }
 
     def egress(context: PacketContext): SimulationResult = {
-        egressCommon(context, mirrorFilterAndContinueOut)
+        if (context.devicesTraversed >= Simulator.MaxDevicesTraversed) {
+            context.log.debug("Dropping packet that traversed too many devices "+
+                              s"(${context.devicesTraversed}}): possible " +
+                              s"topology loop")
+            ErrorDrop
+        } else {
+            egressCommon(context, mirrorFilterAndContinueOut)
+        }
     }
 
     private[this] val ingressDevice: SimStep = context => {
