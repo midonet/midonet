@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f394b3e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T06:45:46Z",
+      "side": 1,
+      "message": "Why not just make this a case class, which gives you free equals() and hashCode() implementations?\n\nFor that matter, is this even used?",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 5
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d399af20",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T06:45:46Z",
+      "side": 1,
+      "message": "Should add a comment to explain why this clears the buffer immediately after reading.",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 19
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_735e6346",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T06:45:46Z",
+      "side": 1,
+      "message": "Re-add after deleting the old one.",
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_936d6705",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T06:45:46Z",
+      "side": 1,
+      "message": "You could make this \"lazy val ticksPerUsec\" and move it to a companion object. No reason to run this more than once, since it seems to be fixed at kernel compile-time.",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 22
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d3c08fe2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T06:45:46Z",
+      "side": 1,
+      "message": "This is a bit more concise, but maybe harder to read?\n\n  val Array(t2us, us2t) \u003d scala.io.Source.fromFile(\"/proc/net/psched\")\n      .getLines.next.split(\" \").take(2)\n      .map(Integer.parseInt(_, 16).toDouble)\n\nAlso, the names are wrong. Here\u0027s the source for psched_show:\n\n  1886 static int psched_show(struct seq_file *seq, void *v)\n  1887 {\n  1888         seq_printf(seq, \"%08x %08x %08x %08x\\n\",\n  1889                    (u32)NSEC_PER_USEC, (u32)PSCHED_TICKS2NS(1),\n  1890                    1000000,\n  1891                    (u32)NSEC_PER_SEC / hrtimer_resolution);\n  1892 \n  1893         return 0;\n  1894 }\n\nNSEC_PER_USEC is, of course, hard-coded to 1,000, and we should call it us2ns, or nsecPerUsec. The second one is always 64, and should be called t2ns or nsPerTick.\n\nBy the way, we were wrong about these being clock ticks. These are packet-scheduling ticks. Though I have only a vague idea of what that means.",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 37
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d34e4f95",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T06:45:46Z",
+      "side": 1,
+      "message": "Or like this:\n\n  request.op match {\n      case ADDFILTER \u003d\u003e ...\n      case REMQDISC \u003d\u003e ...\n  }",
+      "range": {
+        "startLine": 123,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 17
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_13515730",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TcRequestHandlerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T06:45:46Z",
+      "side": 1,
+      "message": "To count, use count():\n\n  val numAdds \u003d reqTypes.count(_ \u003d\u003d add)\n  val numRems \u003d reqTypes.count(_ \u003d\u003d rem)",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 76,
+        "endChar": 54
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_53223fba",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TcRequestHandlerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T06:45:46Z",
+      "side": 1,
+      "message": "I don\u0027t think any of these parentheses are necessary. The ones after size(), in particular, should be omitted because size has no side effects.",
+      "range": {
+        "startLine": 77,
+        "startChar": 33,
+        "endLine": 77,
+        "endChar": 80
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_732543c0",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TcRequestHandlerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T06:45:46Z",
+      "side": 1,
+      "message": "This looks suspicious, and I\u0027m not sure it\u0027s the right approach to what you\u0027re trying to do. This will just rerun the code in the block if it fails. It won\u0027t restore the handler to the state it was in before anything was popped.",
+      "range": {
+        "startLine": 80,
+        "startChar": 12,
+        "endLine": 80,
+        "endChar": 24
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
