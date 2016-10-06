@@ -324,4 +324,13 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
             context should be (processedWith (ToPort, SetKey, SetKey, ToPort, ToPort))
         }
     }
+
+    feature("Loop detection") {
+        scenario("to-port is mirrored back") {
+            addMirrorToPort(dstPortA, mirrorA, inbound = false)
+
+            val (result, context) = simulate(packetContextFor(frameLeftToRightL2(23), dstPortB))
+            result should be (ErrorDrop)
+        }
+    }
 }
