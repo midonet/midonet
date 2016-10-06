@@ -79,7 +79,7 @@ class StateProxyProtocolHandler(manager: StateTableManager)
         try {
             manager.unregister(context.channel().remoteAddress())
         } catch {
-            case e: IllegalArgumentException =>
+            case e: IllegalStateException =>
                 Log.debug("Client unregistration during shutdown" +
                           s"client=${context.channel().remoteAddress()}")
             case NonFatal(e) =>
