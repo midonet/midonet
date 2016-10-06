@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_09136a02",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 507,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-10-06T10:27:34Z",
+      "side": 1,
+      "message": "take it from the match rather than getEthernet. At some point, getEthernet should do a bunch of parsing of the package, which happens by default for all packets but creates loads of garbage. Doing it from the match gives it to us for free.",
+      "range": {
+        "startLine": 507,
+        "startChar": 0,
+        "endLine": 507,
+        "endChar": 64
+      },
+      "revId": "abf3ee03fa16005555280217089b36321d224490",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
