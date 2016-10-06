@@ -148,6 +148,7 @@ class FutureSequenceWithRollback(val name: String)
         if (position >=0 && position < steps.size) {
             try {
                 val task = steps(position)
+                position = op.next(position)
                 log.debug(s"Sequence $name: $op ${task.name}")
                 op(task) recover {
                     case NonFatal(err) =>
@@ -163,7 +164,6 @@ class FutureSequenceWithRollback(val name: String)
                         }
                 } flatMap { _ =>
                     log.debug(s"Sequence $name: completed $op ${task.name}")
-                    position = op.next(position)
                     executeChained(op)
                 }
             } catch {
