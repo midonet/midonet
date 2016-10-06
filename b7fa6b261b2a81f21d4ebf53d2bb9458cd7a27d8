@@ -16,6 +16,24 @@
       "revId": "b7fa6b261b2a81f21d4ebf53d2bb9458cd7a27d8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c9d7c221",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-10-06T10:29:08Z",
+      "side": 1,
+      "message": "For some reason the ingress is not being hit when the mirroring occurs. It goes to RouterPort.continue and then to egress.\n\nSee a stack trace:\n\n        at org.midonet.midolman.simulation.Port$class.egressCommon(Port.scala:247) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.RouterPort.egressCommon(Port.scala:474) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.Port$class.egress(Port.scala:251) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.RouterPort.egress(Port.scala:411) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.SimDevice$class.continue(Simulator.scala:145) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.RouterPort.continue(Port.scala:411) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.SimDevice$class.branch(Simulator.scala:108) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.SimDevice$class.flattenContinue(Simulator.scala:131) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.SimDevice$class.continue(Simulator.scala:149) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.RouterPort.continue(Port.scala:411) ~[midolman.jar:5.3-SNAPSHOT]\n        at org.midonet.midolman.simulation.MirroringDevice$class.mirroringPostOutFilter(Mirror.scala:60) ~[midolman.jar:5.3-SNAPSHO",
+      "parentUuid": "baa041b7_a9211e51",
+      "revId": "b7fa6b261b2a81f21d4ebf53d2bb9458cd7a27d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
