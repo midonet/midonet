@@ -63,6 +63,7 @@ case class Mirror(id: UUID, conditions: JList[Condition], toPort: UUID) extends 
     def process(context: PacketContext): SimulationResult = {
         context.log.debug(s"Processing mirror $id")
         context.addFlowTag(deviceTag)
+        context.devicesTraversed += 1
         var i = 0
         while (i < conditions.size()) {
             if (conditions.get(i) matches context)
