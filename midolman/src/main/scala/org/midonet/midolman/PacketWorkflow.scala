@@ -503,8 +503,13 @@ class PacketWorkflow(
             processPacket(packet)
         }
 
-    private def processPacket(packet: Packet): Unit =
-        startWorkflow(packetContext(packet))
+    private def processPacket(packet: Packet): Unit = {
+        if (packet.getMatch.getEtherType != IPv6.ETHERTYPE) {
+            startWorkflow(packetContext(packet))
+        } else {
+            log.debug(s"Ignoring IPv6 packet: $packet")
+        }
+    }
 
     private def flushTransactions(): Unit = {
         connTrackTx.flush()
