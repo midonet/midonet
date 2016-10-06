@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_730c2342",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-06T07:38:56Z",
+      "side": 1,
+      "message": "I don\u0027t actually know why I put this here... removed.",
+      "parentUuid": "baa041b7_f394b3e8",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 5
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d399af20",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-10-06T06:45:46Z",
       "side": 1,
       "message": "Should add a comment to explain why this clears the buffer immediately after reading.",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 19
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_53091f30",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-06T07:38:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d399af20",
       "range": {
         "startLine": 77,
         "startChar": 0,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_13ff1703",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-06T07:38:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_735e6346",
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_936d6705",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
         "patchSetId": 1
@@ -76,6 +142,30 @@
       "writtenOn": "2016-10-06T06:45:46Z",
       "side": 1,
       "message": "You could make this \"lazy val ticksPerUsec\" and move it to a companion object. No reason to run this more than once, since it seems to be fixed at kernel compile-time.",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 22
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9620b59b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-06T07:38:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_936d6705",
       "range": {
         "startLine": 105,
         "startChar": 4,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3630c9e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-06T07:38:56Z",
+      "side": 1,
+      "message": "I guess I got this from a different version of iproute than the one you are looking out. In mine:\n\n    fp \u003d fopen(\"/proc/net/psched\", \"r\");\n    if (fp \u003d\u003d NULL)\n        return -1;\n\n    if (fscanf(fp, \"%08x%08x%08x\", \u0026t2us, \u0026us2t, \u0026clock_res) !\u003d 3) {\n        fclose(fp);\n        return -1;\n    }\n    fclose(fp);",
+      "parentUuid": "baa041b7_d3c08fe2",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 37
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d34e4f95",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
         "patchSetId": 1
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b61bb96e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-06T07:38:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d34e4f95",
+      "range": {
+        "startLine": 123,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 17
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_13515730",
         "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TcRequestHandlerTest.scala",
         "patchSetId": 1
@@ -145,6 +283,30 @@
       "writtenOn": "2016-10-06T06:45:46Z",
       "side": 1,
       "message": "To count, use count():\n\n  val numAdds \u003d reqTypes.count(_ \u003d\u003d add)\n  val numRems \u003d reqTypes.count(_ \u003d\u003d rem)",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 76,
+        "endChar": 54
+      },
+      "revId": "1eeced7b9e4e1e366923a5ceaf3d9184ccc0fefa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_16b26549",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TcRequestHandlerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-06T07:38:56Z",
+      "side": 1,
+      "message": "I\u0027ve rewritten this test to address these comments.",
+      "parentUuid": "baa041b7_13515730",
       "range": {
         "startLine": 75,
         "startChar": 1,
