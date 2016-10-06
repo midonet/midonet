@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a9211e51",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-10-06T10:24:41Z",
+      "side": 1,
+      "message": "I don\u0027t think this change is needed, as when it hits the ingress on the port it should be dropped.",
+      "revId": "b7fa6b261b2a81f21d4ebf53d2bb9458cd7a27d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
