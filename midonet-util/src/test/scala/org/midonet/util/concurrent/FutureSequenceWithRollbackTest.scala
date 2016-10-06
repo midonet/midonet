@@ -116,7 +116,7 @@ class FutureSequenceWithRollbackTest extends FeatureSpec
 
             Await.result(exec.rollback(), Timeout)
             for (i <- count-1 to 0 by -1) {
-                if (i < failurePos) {
+                if (i <= failurePos) {
                     inOrder.verify(tasks(i), Mockito.times(1)).rollback()
                 } else {
                     Mockito.verify(tasks(i), Mockito.times(0)).rollback()
@@ -198,7 +198,7 @@ class FutureSequenceWithRollbackTest extends FeatureSpec
 
             Await.result(exec.rollback(), Timeout)
             for (i <- NumTasks-1 to 0 by -1) {
-                if (i < FailurePoint) {
+                if (i <= FailurePoint) {
                     inOrder.verify(tasks(i), Mockito.times(1)).rollback()
                 } else {
                     Mockito.verify(tasks(i), Mockito.times(0)).rollback()
