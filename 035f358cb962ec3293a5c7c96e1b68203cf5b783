@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d603dd0b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-06T07:19:58Z",
+      "side": 1,
+      "message": "Was it intentional to check against port.getHostId instead of hostId?  If so why not move the line above inside this if block?",
+      "revId": "035f358cb962ec3293a5c7c96e1b68203cf5b783",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
