@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b6abb970",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-06T08:58:45Z",
+      "side": 1,
+      "message": "What happens if this file is missing.  Apparently kernel may not have this file if it was compiled without CONFIG_NET_SCHED.  However, in that case, tc can only do simple FIFO.\n\nsource: https://github.com/svinota/pyroute2/issues/245",
+      "revId": "108a9911060cdd5916ebcdd1c537adff8558276d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
