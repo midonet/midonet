@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_29baae0b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T10:43:02Z",
+      "side": 1,
+      "message": "If/else is okay as well, but for future reference the preferred style in Scala is to use match. This has the advantage of throwing an exception if none of the expected cases matches.\n\nBut at the very least this should be if/else if rather than two independent if blocks, to emphasize that the two branches are mutually exclusive. Same for the other functions.",
+      "range": {
+        "startLine": 61,
+        "startChar": 8,
+        "endLine": 61,
+        "endChar": 68
+      },
+      "revId": "3674d72cd4297531067d0c4a1df945a6c7778bdd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a90a3ecf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T10:43:02Z",
+      "side": 1,
+      "message": "Why not just use newRule.`type`?",
+      "range": {
+        "startLine": 82,
+        "startChar": 43,
+        "endLine": 82,
+        "endChar": 60
+      },
+      "revId": "3674d72cd4297531067d0c4a1df945a6c7778bdd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c93b429b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T10:43:02Z",
+      "side": 1,
+      "message": "This should be ||, right?",
+      "range": {
+        "startLine": 88,
+        "startChar": 14,
+        "endLine": 88,
+        "endChar": 16
+      },
+      "revId": "3674d72cd4297531067d0c4a1df945a6c7778bdd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_094eca37",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T10:43:02Z",
+      "side": 1,
+      "message": "This is a matter of taste, I guess, but in my opinion it\u0027s better to return early if to.rules is null, rather than nesting 80% of the function in this block.",
+      "range": {
+        "startLine": 136,
+        "startChar": 8,
+        "endLine": 136,
+        "endChar": 31
+      },
+      "revId": "3674d72cd4297531067d0c4a1df945a6c7778bdd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_69a3169f",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-06T10:43:02Z",
+      "side": 1,
+      "message": "You can specify UUID.randomUUID() here. Also, I think it should have parentheses, since it has a side effect (it changes the internal state, affecting future calls to randomUUID()). Not 100% sure if it\u0027s the correct way, but it\u0027s the way we\u0027ve been doing it.",
+      "range": {
+        "startLine": 78,
+        "startChar": 44,
+        "endLine": 78,
+        "endChar": 48
+      },
+      "revId": "3674d72cd4297531067d0c4a1df945a6c7778bdd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
