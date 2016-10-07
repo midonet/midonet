@@ -308,17 +308,22 @@ rpm.doFirst {
         '-d', 'python',
         '-d', 'quagga >= 0.99.23',
         '-d', 'iproute',
-        '-d', 'java-openjdk-headless >= 1.8.0',
         '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
         '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
         '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
     ])
     switch(project.rhelTarget) {
       case "el7":
-        project.packaging.fpmOpts.addAll(['--depends', 'python-setproctitle'])
+        project.packaging.fpmOpts.addAll([
+            '--depends', 'python-setproctitle',
+            '--depends', 'java-openjdk-headless >= 1.8.0'
+        ])
         break
       case "sles12":
-        project.packaging.fpmOpts.addAll(['--depends', 'iproute2'])
+        project.packaging.fpmOpts.addAll([
+            '--depends', 'iproute2',
+            '--depends', 'java-1_8_0-openjdk-headless'
+        ])
         break
       default:
         logger.warn("Invalid project-rhelTarget: " + project.rhelTarget +
