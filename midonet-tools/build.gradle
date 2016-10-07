@@ -74,8 +74,17 @@ rpm.doFirst {
     project.packaging.version = project.rpmVersion
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
-    project.packaging.fpmOpts.addAll([
-        '--depends', 'java-1.8.0-openjdk-headless'])
+    switch(project.rhelTarget) {
+      case "el7":
+        project.packaging.fpmOpts.addAll(['--depends', 'java-openjdk-headless >= 1.8.0'])
+        break
+      case "sles12":
+        project.packaging.fpmOpts.addAll(['--depends', 'java-1_8_0-openjdk-headless'])
+        break
+      default:
+        logger.warn("Invalid project-rhelTarget: " + project.rhelTarget +
+                    ". Must be either 'el7' or 'sles12'")
+    }
 }
 
 tar.doFirst {

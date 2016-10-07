@@ -293,22 +293,28 @@ rpm.doFirst {
         '-d', 'libreswan >= 1.15.0',
         '-d', 'iproute',
         '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
-    if (project.rhelTarget == "el7") {
+    switch(project.rhelTarget) {
+      case "el7":
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
             '--depends', 'python-setproctitle',
-            '--depends', 'java-1.8.0-openjdk-headless'])
-    } else { // (project.rhelTarget == "sles12")
+            '--depends', 'java-openjdk-headless >= 1.8.0'])
+        break
+      case "sles12":
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
             '--depends', 'iproute2',
-            '--depends', 'java >= 1.8.0'])
+            '--depends', 'java-1_8_0-openjdk-headless'])
+        break
+      default:
+        logger.warn("Invalid project-rhelTarget: " + project.rhelTarget +
+                    ". Must be either 'el7' or 'sles12'")
     }
 }
 
