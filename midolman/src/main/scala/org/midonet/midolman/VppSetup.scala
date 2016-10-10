@@ -17,7 +17,6 @@
 package org.midonet.midolman
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
 import scala.util.Success
 
 import org.midonet.midolman.logging.MidolmanLogging
@@ -93,7 +92,7 @@ object VppSetup extends MidolmanLogging {
                             prefix: Byte)
                            (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
-        require(address.size == 4 || address.size == 16)
+        require(address.length == 4 || address.length == 16)
 
         @throws[Exception]
         override def execute(): Future[Any] = addDelIpAddress(isAdd = true)
@@ -105,7 +104,7 @@ object VppSetup extends MidolmanLogging {
             vppApi.addDelDeviceAddress(deviceId.vppInterface.get,
                                        address,
                                        prefix,
-                                       isIpv6=(address.size!=4),
+                                       isIpv6 = address.length != 4,
                                        isAdd)
         }
     }
@@ -141,7 +140,7 @@ object VppSetup extends MidolmanLogging {
         }
 
         @throws[IllegalStateException]
-        def getPortNo(): Int = dpPort match {
+        def getPortNo: Int = dpPort match {
             case Some(port) => port.getPortNo
             case _ => throw new IllegalStateException(
                 s"Datapath Port hasn't been created for $endpointName")
@@ -175,7 +174,7 @@ object VppSetup extends MidolmanLogging {
             try {
                 vppOvs.clearIpv6Flow(ep2fn(), ep1fn())
             } catch {
-                case e: Throwable => if (!firstException.isDefined) {
+                case e: Throwable => if (firstException.isEmpty) {
                     firstException = Some(e)
                 }
             }
@@ -196,8 +195,9 @@ class VppSetup(uplinkPort: RouterPort,
 
     import VppSetup._
 
-    private val uplinkVppName = uplinkPort.interfaceName + "-uv"
-    private val uplinkOvsName = uplinkPort.interfaceName + "-uo"
+    private val uplinkSuffix = uplinkPort.id.toString.substring(0, 7)
+    private val uplinkVppName = s"vpp-$uplinkSuffix"
+    private val uplinkOvsName = s"ovs-$uplinkSuffix"
     private val uplinkVppAddr = Array[Byte](0x20, 0x01, 0, 0, 0, 0, 0, 0,
                                             0, 0, 0, 0, 0, 0, 0, 0x1)
     private val uplinkVppPrefix: Byte = 64
