@@ -147,6 +147,8 @@ trait TopologyBuilder {
                      tunnelKey: Long = -1L,
                      inboundFilterId: Option[UUID] = None,
                      outboundFilterId: Option[UUID] = None,
+                     inboundMirrorIds: Set[UUID] = Set.empty,
+                     outboundMirrorIds: Set[UUID] = Set.empty,
                      portIds: Set[UUID] = Set.empty,
                      vxlanPortIds: Set[UUID] = Set.empty,
                      vni: Option[Int] = None,
@@ -158,13 +160,15 @@ trait TopologyBuilder {
             .addAllPortIds(portIds.map(_.asProto).asJava)
             .addAllVxlanPortIds(vxlanPortIds.map(_.asProto).asJava)
             .addAllDhcpIds(dhcpIds.map(_.asProto).asJava)
+            .addAllInboundMirrorIds(inboundMirrorIds.map(_.asProto).asJava)
+            .addAllOutboundMirrorIds(outboundMirrorIds.map(_.asProto).asJava)
         if (tenantId.isDefined) builder.setTenantId(tenantId.get)
         if (name.isDefined) builder.setName(name.get)
         if (inboundFilterId.isDefined)
             builder.setInboundFilterId(inboundFilterId.get.asProto)
         if (outboundFilterId.isDefined)
             builder.setOutboundFilterId(outboundFilterId.get.asProto)
-        if(vni.isDefined) {
+        if (vni.isDefined) {
             builder.setVni(vni.get)
         }
         builder.build()
