@@ -351,6 +351,11 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     }
 
     task integration(type: Test) {
+        doFirst {
+            checkUbuntu()
+            checkBgpd()
+        }
+
         testClassesDir = sourceSets.integration.output.classesDir
         classpath = sourceSets.integration.runtimeClasspath
     }
@@ -497,6 +502,34 @@ configure(subprojects) {
 }
 
 // Utility methods start here
+
+def checkUbuntu() {
+    if (!org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+        throw new GradleException('Integration tests should run in Ubuntu')
+    }
+
+    def cmd = "grep ^NAME /etc/os-release"
+    def proc = cmd.execute()
+
+    if (proc.text.trim().toLowerCase().contains('ubuntu')) {
+        println('Integration tests: running in Ubuntu')
+    } else {
+        throw new GradleException('Integration tests should run in Ubuntu')
+    }
+}
+
+def checkBgpd() {
+    def bgpdLocations = ['/usr/sbin/bgpd', '/usr/lib/quagga/bgpd']
+
+    for (location in bgpdLocations) {
+        if (file(location).exists()) {
+            println('Integration tests: bgpd daemon found')
+            return
+        }
+    }
+
+    throw new GradleException('Integration tests need bgpd daemon installed')
+}
 
 def getOrAddComponent(iml, name) {
     iml.asNode().component.find { it.@name == name } ?:
