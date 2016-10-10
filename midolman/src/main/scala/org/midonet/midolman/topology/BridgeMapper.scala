@@ -523,8 +523,10 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
             if (bridge.hasInboundFilterId) bridge.getInboundFilterId else null,
             if (bridge.hasOutboundFilterId) bridge.getOutboundFilterId else null)
 
-        mirrorsTracker.requestRefs(bridge.getInboundMirrorIdsList.asScala map (_.asJava) :_*)
-        mirrorsTracker.requestRefs(bridge.getOutboundMirrorIdsList.asScala map (_.asJava) :_*)
+        // Request the mirrors for this bridge.
+        mirrorsTracker.requestRefs(
+            bridge.getInboundMirrorIdsList.asScala.map(_.asJava) ++
+            bridge.getOutboundMirrorIdsList.asScala.map(_.asJava) :_*)
     }
 
     /**

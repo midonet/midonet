@@ -29,12 +29,12 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
-import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort}
+import org.midonet.cluster.models.Topology.{Mirror => TopologyMirror, Network => TopologyBridge, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge, BridgePort, Chain}
+import org.midonet.midolman.simulation.{BridgePort, Chain, Mirror, Bridge => SimulationBridge}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -1722,6 +1722,69 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("The virtual topology should not have the chain")
             VirtualTopology.tryGet(classOf[Chain], chain.getId)
+        }
+    }
+
+    feature("Test mirror updates") {
+        scenario("The bridge receives existing mirrors") {
+            val obs = createObserver()
+
+            Given("A chain mapper")
+            val bridgeId = UUID.randomUUID
+            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+
+            And("Two mirrors")
+            val router = createRouter()
+            val port1 = createRouterPort(routerId = Some(router.getId))
+            val mirror1 = createMirror(toPort = port1.getId)
+            val mirror2 = createMirror(toPort = port1.getId)
+            store.multi(Seq(CreateOp(router), CreateOp(port1), CreateOp(mirror1),
+                            CreateOp(mirror2)))
+
+            And("A bridge with the chain")
+            val bridge = createBridge(id = bridgeId,
+                                      inboundMirrorIds = Set(mirror1.getId),
+                                      outboundMirrorIds = Set(mirror2.getId))
+
+            When("The bridge is created")
+            store.create(bridge)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the bridge")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0)
+            device1 shouldBeDeviceOf bridge
+
+            And("The virtual topology should have prefetched the mirrors")
+            VirtualTopology.tryGet(classOf[Mirror], mirror1.getId) shouldBeDeviceOf mirror1
+            VirtualTopology.tryGet(classOf[Mirror], mirror2.getId) shouldBeDeviceOf mirror2
+
+            When("The first mirror updates to a different port")
+            val port2 = createRouterPort(routerId = Some(router.getId))
+            val mirror3 = mirror1.toBuilder
+                .setToPortId(port2.getId)
+                .addNetworkInboundIds(bridge.getId)
+                .build()
+            store.multi(Seq(CreateOp(port2), UpdateOp(mirror3)))
+
+            Then("The observer should receive the bridge")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(1)
+            device2 shouldBeDeviceOf bridge
+
+            And("The virtual topology should have prefetched the mirrors")
+            VirtualTopology.tryGet(classOf[Mirror], mirror1.getId) shouldBeDeviceOf mirror3
+            VirtualTopology.tryGet(classOf[Mirror], mirror2.getId) shouldBeDeviceOf mirror2
+
+            When("The second mirror is deleted")
+            store.delete(classOf[TopologyMirror], mirror2.getId)
+
+            Then("The observer should receive the bridge")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(2)
+            device3 shouldBeDeviceOf bridge
         }
     }
 }
