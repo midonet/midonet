@@ -26,6 +26,7 @@ from nose.tools import nottest, with_setup
 import time
 import pdb, logging
 import re
+import uuid
 
 LOG = logging.getLogger(__name__)
 
@@ -182,18 +183,27 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
             self._midonet_api.delete_route(routeid)
         self.addCleanup(delete_mn_route, route.get_id())
 
+    def get_mn_uplink_port_id(self, uplink_port):
+        return str(uuid.UUID(int=uuid.UUID(uplink_port['id']).int ^
+                                 0x9c30300ec91f4f1988449d37e61b60f0L))
+
 class UplinkWithVPP(NeutronVPPTopologyManagerBase):
+
+    def __init__(self):
+        super(UplinkWithVPP, self).__init__()
+        self.uplink_port = {}
+
     def build(self, binding_data=None):
         self._edgertr = self.create_router("edge")
         uplinknet = self.create_network("uplink", uplink=True)
         uplinksubnet6 = self.create_subnet("uplinksubnet6", uplinknet,
                                            "2001::/64", enable_dhcp=False,
                                            version=6)
-        uplinkport = self.create_port("uplinkport", uplinknet,
-                                      host_id="midolman1",
-                                      interface="bgp0",
-                                      fixed_ips=["2001::1"])
-        self.add_router_interface(self._edgertr, port=uplinkport)
+        self.uplink_port = self.create_port("uplinkport", uplinknet,
+                                            host_id="midolman1",
+                                            interface="bgp0",
+                                            fixed_ips=["2001::1"])
+        self.add_router_interface(self._edgertr, port=self.uplink_port)
 
         # setup quagga1
         self.setup_remote_host('quagga1', 'bgp1')
@@ -226,6 +236,11 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
 
         # wire up downlink
         global DOWNLINK_VETH_MAC
+        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
+        port_name = 'vpp-'+uplink_port_id[0:8]
+
+        import ipdb; ipdb.set_trace()
+
         self.create_veth_pair('midolman1', 'downlink-vpp', 'downlink-ovs',
                               ep1mac=DOWNLINK_VETH_MAC)
         self.add_port_to_vpp('midolman1',
@@ -235,7 +250,7 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
         self.add_route_to_vpp('midolman1',
                               prefix='bbbb::/48',
                               via='2001::2',
-                              port='bgp0-uv')
+                              port=port_name)
         self.add_route_to_vpp('midolman1',
                               prefix='20.0.0.0/26',
                               via='10.0.0.2',
@@ -309,4 +324,5 @@ def test_ping_vm_ipv6():
     Title: ping a VM in a IPv4 neutron topology from a remote IPv6 endpoint
     """
     time.sleep(10)
+    import ipdb; ipdb.set_trace()
     ping_from_inet('quagga1', 'cccc:bbbb::1400:2', 10, namespace='ip6')
