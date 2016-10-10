@@ -16,7 +16,7 @@
 package org.midonet.odp;
 
 /** This public interface contains integer constants defined in the openvswitch header.
- *  These constants can be maintenaned and kept updated by taking diffs of the
+ *  These constants can be maintained and kept updated by taking diffs of the
  *  openvswitch/include/linux/openvswitch.h header between different versions.
  *  Alternatively, if you are using the native ovs datapath in the linux kernel,
  *  you should refer to /include/uapi/linux/openvswitch.h in the kernel source.
@@ -25,6 +25,7 @@ package org.midonet.odp;
  *  openvswitch netlink public interface for serialization and deserialization
  *  purposes should refer to this public interface exclusively.
  */
+@SuppressWarnings("unused")
 public interface OpenVSwitch {
 
     String headerVersion    = "2.1.2";
@@ -34,7 +35,7 @@ public interface OpenVSwitch {
         short OVS_PORT = 0x1b;
     }
 
-    public interface Datapath {
+    interface Datapath {
 
         //#define OVS_DATAPATH_FAMILY   "ovs_datapath"
         //#define OVS_DATAPATH_MCGROUP  "ovs_datapath"
@@ -52,7 +53,7 @@ public interface OpenVSwitch {
         //    OVS_DP_CMD_GET,
         //    OVS_DP_CMD_SET
         //};
-        public interface Cmd {
+        interface Cmd {
             byte New        = (byte) 1;
             byte Del        = (byte) 2;
             byte Get        = (byte) 3;
@@ -68,7 +69,7 @@ public interface OpenVSwitch {
         //    OVS_DP_ATTR_USER_FEATURES,  /* OVS_DP_F_*  */
         //    __OVS_DP_ATTR_MAX
         //};
-        public interface Attr {
+        interface Attr {
             short Name          = (short) 1;
             short UpcallPID     = (short) 2;
             short Stat          = (short) 3;
@@ -92,13 +93,13 @@ public interface OpenVSwitch {
         //};
 
         // OVS_DP_F_ constants
-        public interface UserFeat {
+        interface UserFeat {
             int Unaligned = 1 << 0;
             int VPortPids = 1 << 1;
         }
     }
 
-    public interface Packet {
+    interface Packet {
 
         //#define OVS_PACKET_FAMILY "ovs_packet"
         //#define OVS_PACKET_VERSION 0x1
@@ -115,7 +116,7 @@ public interface OpenVSwitch {
         //  /* Userspace commands. */
         //  OVS_PACKET_CMD_EXECUTE  /* Apply actions to a packet. */
         //};
-        public interface Cmd {
+        interface Cmd {
             byte Miss       = (byte) 1;
             byte Action     = (byte) 2;
             byte Exec       = (byte) 3;
@@ -129,7 +130,7 @@ public interface OpenVSwitch {
         //  OVS_PACKET_ATTR_USERDATA,    /* OVS_ACTION_ATTR_USERSPACE arg. */
         //  __OVS_PACKET_ATTR_MAX
         //};
-        public interface Attr {
+        interface Attr {
             short Packet    = (short) 1;
             short Key       = (short) 2;
             short Actions   = (short) 3;
@@ -138,7 +139,7 @@ public interface OpenVSwitch {
 
     }
 
-    public interface Port {
+    interface Port {
 
         //#define OVS_VPORT_FAMILY  "ovs_vport"
         //#define OVS_VPORT_MCGROUP "ovs_vport"
@@ -156,7 +157,7 @@ public interface OpenVSwitch {
         //  OVS_VPORT_CMD_GET,
         //  OVS_VPORT_CMD_SET
         //};
-        public interface Cmd {
+        interface Cmd {
             byte New        = (byte) 1;
             byte Del        = (byte) 2;
             byte Get        = (byte) 3;
@@ -173,7 +174,7 @@ public interface OpenVSwitch {
         //  OVS_VPORT_TYPE_LISP = 105,  /* LISP tunnel */
         //  __OVS_VPORT_TYPE_MAX
         //};
-        public interface Type {
+        interface Type {
             short Netdev    = (short) 1;
             short Internal  = (short) 2;
             short Gre       = (short) 3;
@@ -192,7 +193,7 @@ public interface OpenVSwitch {
         //  OVS_VPORT_ATTR_STATS,      /* struct ovs_vport_stats */
         //  __OVS_VPORT_ATTR_MAX
         //};
-        public interface Attr {
+        interface Attr {
             short PortNo    = (short) 1;
             short Type      = (short) 2;
             short Name      = (short) 3;
@@ -206,7 +207,7 @@ public interface OpenVSwitch {
         //  OVS_TUNNEL_ATTR_DST_PORT, /* 16-bit UDP port, used by L4 tunnels. */
         //  __OVS_TUNNEL_ATTR_MAX
         //};
-        public interface VPortTunnelOptions {
+        interface VPortTunnelOptions {
             short DstPort   = (short) 1;                  // u16
         }
 
@@ -223,7 +224,7 @@ public interface OpenVSwitch {
 
     }
 
-    public interface Flow {
+    interface Flow {
 
         //#define OVS_FLOW_FAMILY  "ovs_flow"
         //#define OVS_FLOW_MCGROUP "ovs_flow"
@@ -239,7 +240,7 @@ public interface OpenVSwitch {
         //  OVS_FLOW_CMD_GET,
         //  OVS_FLOW_CMD_SET
         //};
-        public interface Cmd {
+        interface Cmd {
             byte New        = (byte) 1;
             byte Del        = (byte) 2;
             byte Get        = (byte) 3;
@@ -257,7 +258,7 @@ public interface OpenVSwitch {
         //    OVS_FLOW_ATTR_MASK,      /* Sequence of OVS_KEY_ATTR_* attributes. */
         //    __OVS_FLOW_ATTR_MAX
         //};
-        public interface Attr {
+        interface Attr {
             short Key       = (short) 1;
             short Actions   = (short) 2;
             short Stats     = (short) 3;
@@ -274,7 +275,7 @@ public interface OpenVSwitch {
 
     }
 
-    public interface FlowKey {
+    interface FlowKey {
 
         //enum ovs_key_attr {
         //  OVS_KEY_ATTR_UNSPEC,
@@ -304,7 +305,7 @@ public interface OpenVSwitch {
         //  OVS_KEY_ATTR_MPLS = 62, /* struct ovs_key_mpls */
         //  __OVS_KEY_ATTR_MAX
         //};
-        public interface Attr {
+        interface Attr {
             short Encap     = (short) 1;
             short Priority  = (short) 2;
             short InPort    = (short) 3;
@@ -341,7 +342,7 @@ public interface OpenVSwitch {
         //    OVS_TUNNEL_KEY_ATTR_CSUM,        /* No argument. CSUM packet. */
         //    __OVS_TUNNEL_KEY_ATTR_MAX
         //};
-        public interface TunnelAttr {
+        interface TunnelAttr {
             short Id        = (short) 0;
             short IPv4Src   = (short) 1;
             short IPv4Dst   = (short) 2;
@@ -357,7 +358,7 @@ public interface OpenVSwitch {
         //    OVS_FRAG_TYPE_LATER,
         //    __OVS_FRAG_TYPE_MAX
         //};
-        public interface FragType {
+        interface FragType {
             short None      = (short) 0;
             short First     = (short) 1;
             short Later     = (short) 2;
@@ -431,7 +432,7 @@ public interface OpenVSwitch {
         //};
     }
 
-    public interface FlowAction {
+    interface FlowAction {
 
         //enum ovs_action_attr {
         //    OVS_ACTION_ATTR_UNSPEC,
@@ -445,7 +446,7 @@ public interface OpenVSwitch {
         //    OVS_ACTION_ATTR_POP_MPLS,     /* __be16 ethertype. */
         //    __OVS_ACTION_ATTR_MAX
         //};
-        public interface Attr {
+        interface Attr {
             short Output    = (short) 1;
             short Userspace = (short) 2;
             short Set       = (short) 3;
@@ -462,7 +463,7 @@ public interface OpenVSwitch {
         //    OVS_SAMPLE_ATTR_ACTIONS,     /* Nested OVS_ACTION_ATTR_* attributes. */
         //    __OVS_SAMPLE_ATTR_MAX,
         //};
-        public interface SampleAttr {
+        interface SampleAttr {
             short Probability = (short) 1;
             short Actions     = (short) 2;
         }
@@ -473,7 +474,7 @@ public interface OpenVSwitch {
         //    OVS_USERSPACE_ATTR_USERDATA, /* Optional user-specified cookie. */
         //    __OVS_USERSPACE_ATTR_MAX
         //};
-        public interface UserspaceAttr {
+        interface UserspaceAttr {
             short PID       = (short) 1;
             short Userdata  = (short) 2;
         }
