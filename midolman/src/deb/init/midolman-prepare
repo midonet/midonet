@@ -74,6 +74,16 @@ cleanup_bgp_space() {
     set -e
 }
 
+remove_interface() {
+    set +e
+
+    INTERFACE=$1
+    echo "Removing interface $INTERFACE"
+    ip link del $INTERFACE
+
+    set -e
+}
+
 cleanup_bgps() {
     ps aux | grep -- '--socket /var/run/quagga/zserv' | grep -v grep | \
     while read i ; do
@@ -91,4 +101,15 @@ cleanup_bgps() {
     done
 }
 
+cleanup_vpp() {
+    for INTERFACE in `ip -o link show | awk -F': ' '{print $2}' | grep ^vpp` ; do
+        remove_interface $INTERFACE
+    done
+
+    for INTERFACE in `ip -o link show | awk -F': ' '{print $2}' | grep ^ovs` ; do
+        remove_interface $INTERFACE
+    done
+}
+
 cleanup_bgps
+cleanup_vpp
