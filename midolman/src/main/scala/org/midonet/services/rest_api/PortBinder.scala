@@ -18,7 +18,6 @@ package org.midonet.services.rest_api
 
 import java.util.UUID
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.UUIDUtil
@@ -39,9 +38,8 @@ trait PortBinder {
     }
 }
 
-class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
-                     lockFactory: ZookeeperLockFactory) extends PortBinder
-                                                        with ImmediateRetriable {
+class ZoomPortBinder(storage: Storage, stateStorage: StateStorage)
+    extends PortBinder with ImmediateRetriable {
 
     import RestApiService.log
 

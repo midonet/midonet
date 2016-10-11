@@ -18,20 +18,13 @@ package org.midonet.services.rest_api
 
 import java.util.UUID
 
+import javax.ws.rs._
 import javax.ws.rs.core.MediaType
-import javax.ws.rs.DELETE
-import javax.ws.rs.PUT
-import javax.ws.rs.Path
-import javax.ws.rs.PathParam
-import javax.ws.rs.Consumes
-import javax.ws.rs.Produces
 
 import com.google.inject.Inject
 
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.ZookeeperLockFactory
-
-import RestApiService.log
+import org.midonet.services.rest_api.RestApiService.log
 
 
 /*
@@ -40,19 +33,16 @@ import RestApiService.log
  */
 
 @Path("/binding")
-class BindingHandler @Inject()(
-        lockFactory: ZookeeperLockFactory,
-        backend: MidonetBackend) {
+class BindingHandler @Inject()(backend: MidonetBackend) {
 
-    private val binder = new ZoomPortBinder(backend.store, backend.stateStore,
-                                            lockFactory)
+    private val binder = new ZoomPortBinder(backend.store, backend.stateStore)
 
     @PUT
     @Path("{portId}")
     @Consumes(Array(MediaType.APPLICATION_JSON))
     @Produces(Array(MediaType.APPLICATION_JSON))
     def put(@PathParam("portId") portId: String, body: BindingInfo) = {
-        log info s"PUT ${portId} ${body}"
+        log info s"PUT $portId $body"
         binder.bindPort(UUID.fromString(portId), body.interfaceName)
         body
     }
@@ -60,7 +50,7 @@ class BindingHandler @Inject()(
     @DELETE
     @Path("{portId}")
     def delete(@PathParam("portId") portId: String) = {
-        log info s"DELETE ${portId}"
+        log info s"DELETE $portId"
         binder.unbindPort(UUID.fromString(portId))
     }
 }

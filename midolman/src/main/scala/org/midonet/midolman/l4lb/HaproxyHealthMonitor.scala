@@ -19,12 +19,7 @@ import java.io._
 import java.nio.ByteBuffer
 import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
-import java.util.concurrent.TimeUnit
-import java.util.{ConcurrentModificationException, UUID}
-
-import javax.ws.rs.WebApplicationException
-import javax.ws.rs.core.Response
-import javax.ws.rs.core.Response.Status._
+import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -33,16 +28,14 @@ import scala.util.control.NonFatal
 
 import akka.actor._
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, SequenceDispenser}
-import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{CheckHealth, ConfigUpdate, _}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
@@ -68,11 +61,9 @@ import org.midonet.util.process.ProcessHelper
 */
 object HaproxyHealthMonitor {
     def props(config: PoolConfig, manager: ActorRef, routerId: UUID,
-              store: Storage, hostId: UUID, lockFactory: ZookeeperLockFactory,
-              sequenceDispenser: SequenceDispenser):
+              store: Storage, hostId: UUID, sequenceDispenser: SequenceDispenser):
         Props = Props(new HaproxyHealthMonitor(config, manager, routerId,
-                                               store, hostId, lockFactory,
-                                               sequenceDispenser))
+                                               store, hostId, sequenceDispenser))
 
     sealed trait HHMMessage
     // This is a way of alerting the manager that setup has failed
@@ -112,7 +103,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                            var routerId: UUID,
                            val store: Storage,
                            val hostId: UUID,
-                           val lockFactory: ZookeeperLockFactory,
                            val seqDispenser: SequenceDispenser)
     extends Actor with ActorLogWithoutPath with Stash {
 
@@ -132,10 +122,9 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
 
     private def setPoolMappingStatus(poolId: UUID, status: PoolHMMappingStatus,
-                                     lockNeeded: Boolean = true,
                                      rethrowException: Boolean = false)
     : Unit = try {
-        HealthMonitor.tryTx(store, lockFactory) { tx =>
+        HealthMonitor.tryTx(store) { tx =>
             val pool = tx.get(classOf[Pool], poolId)
             tx.update(pool.toBuilder.setMappingStatus(status).build())
         }
@@ -184,7 +173,9 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                                    config.haproxyConfFileLoc,
                                    config.haproxyPidFileLoc)
 
-                    def populateTransaction(tx: Transaction): Unit = {
+                    // The vip may have changed. If so, we need to change the
+                    // routes on the router.
+                    HealthMonitor.tryTx(store) { tx =>
                         if (config.vip != conf.vip) {
                             if (routeId != null) {
                                 tx.delete(classOf[Route], routeId, ignoresNeo = true)
@@ -200,10 +191,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                         val pool = tx.get(classOf[Pool], config.id)
                         tx.update(pool.toBuilder.setMappingStatus(ACTIVE).build())
                     }
-
-                    // The vip may have changed. If so, we need to change the
-                    // routes on the router.
-                    HealthMonitor.tryTx(store, lockFactory)(populateTransaction)
                 } else {
                     killHaproxyIfRunning(healthMonitorName,
                                          conf.haproxyConfFileLoc,
@@ -267,7 +254,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     protected def setMembersStatus(activeMemberIds: Set[UUID],
                                    inactiveMemberIds: Set[UUID]):Unit = {
 
-        def populateTransaction(tx: Transaction): Unit = {
+        HealthMonitor.tryTx(store) { tx =>
             val upMembers = tx
                 .getAll(classOf[PoolMember], activeMemberIds.toSeq)
             for (activeMember <- upMembers) {
@@ -280,8 +267,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 tx.update(inactiveMember.toBuilder.setStatus(LBStatus.INACTIVE).build)
             }
         }
-
-        HealthMonitor.tryTx(store, lockFactory)(populateTransaction)
     }
 
     /*
@@ -487,7 +472,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     def hookNamespaceToRouter(): Unit = {
         if (routerId == null)
             return
-        def populateTransaction(tx: Transaction): Unit = {
+        HealthMonitor.tryTx(store) { tx =>
             val host = tx.get(classOf[Host], toProto(hostId))
             val ports = tx.getAll(classOf[Port], host.getPortIdsList)
 
@@ -513,14 +498,13 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             routerPortId = fromProto(hmPort.getId)
             tx.create(createVipRoute(config.vip.ip))
         }
-        HealthMonitor.tryTx(store, lockFactory)(populateTransaction)
         createIpTableRules(healthMonitorName, config.vip.ip)
     }
 
     def unhookNamespaceFromRouter():Unit = {
         if (routerPortId != null) {
             // This should delete the route also
-            HealthMonitor.tryTx(store, lockFactory) { tx =>
+            HealthMonitor.tryTx(store) { tx =>
                 tx.delete(classOf[Port], routerPortId, ignoresNeo = true)
             }
 

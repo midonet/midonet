@@ -32,7 +32,6 @@ import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.{Connector, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.PathBuilder
@@ -77,7 +76,6 @@ class RestApiService @Inject()(
                 bind(classOf[MidolmanConfig]).toInstance(config)
                 bind(classOf[MidonetBackend]).toInstance(backend)
                 bind(classOf[PathBuilder]).asEagerSingleton
-                bind(classOf[ZookeeperLockFactory]).asEagerSingleton
                 bind(classOf[BindingHandler]).asEagerSingleton
                 serve("/*").`with`(classOf[GuiceContainer])
             }

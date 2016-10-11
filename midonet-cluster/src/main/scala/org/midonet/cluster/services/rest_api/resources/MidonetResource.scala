@@ -18,7 +18,6 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.lang.annotation.Annotation
 import java.net.URI
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 
@@ -43,7 +42,6 @@ import org.slf4j.LoggerFactory.getLogger
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList, AllowUpdate}
@@ -59,8 +57,6 @@ import org.midonet.util.reactivex._
 object MidonetResource {
 
     private final val StorageAttempts = 3
-
-    private final val LockOpNumber = new AtomicInteger(1)
 
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
@@ -167,7 +163,6 @@ object MidonetResource {
     case class ResourceContext @Inject() (config: RestApiConfig,
                                           backend: MidonetBackend,
                                           executionContext: ExecutionContext,
-                                          lockFactory: ZookeeperLockFactory,
                                           uriInfo: UriInfo,
                                           validator: Validator,
                                           seqDispenser: SequenceDispenser)
@@ -439,14 +434,13 @@ abstract class MidonetResource[T >: Null <: UriResource]
         var attempt = 1
         while (attempt <= StorageAttempts) {
             try {
-                return zkLock {
-                    val tx = transaction()
-                    val response = f(tx)
-                    tx.commit()
-                    response
-                }
+                val tx = transaction()
+                val response = f(tx)
+                tx.commit()
+                return response
             } catch {
-                case e: WebApplicationException => throw e
+                case e: WebApplicationException =>
+                    return e.getResponse
                 case e: NotFoundException =>
                     log.warn(e.getMessage)
                     return buildErrorResponse(NOT_FOUND, e.getMessage)
@@ -492,50 +486,4 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
     }
 
-    /**
-      * This method acquires a ZooKeeper lock to perform updates to storage.
-      * This is to prevent races with other components modifying the topology
-      * concurrently that may result in a [[ConcurrentModificationException]].
-      */
-    private def zkLock[R](f: => Response): Response = {
-        val lock = new ZkOpLock(resContext.lockFactory,
-                                LockOpNumber.getAndIncrement,
-                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
-
-        try lock.acquire(resContext.config.nsdbLockTimeoutMs,
-                         TimeUnit.MILLISECONDS) catch {
-            case NonFatal(t) =>
-                log.info("Could not acquire storage lock.", t)
-                throw new ServiceUnavailableHttpException(
-                    "Could not acquire lock for storage operation.")
-        }
-        try {
-            f
-        } catch {
-            case e: NotFoundException =>
-                log.info(e.getMessage)
-                buildErrorResponse(NOT_FOUND, e.getMessage)
-            case e: ObjectReferencedException =>
-                log.info(e.getMessage)
-                buildErrorResponse(CONFLICT, e.getMessage)
-            case e: ReferenceConflictException =>
-                log.info(e.getMessage)
-                buildErrorResponse(CONFLICT, e.getMessage)
-            case e: ObjectExistsException =>
-                log.info(e.getMessage)
-                buildErrorResponse(CONFLICT, e.getMessage)
-            /* In case the object was modified elsewhere without acquiring
-               a lock. */
-            case e: ConcurrentModificationException =>
-                log.info("Write to storage failed due to contention", e)
-                Response.status(CONFLICT).build()
-            case e: WebApplicationException =>
-                e.getResponse
-            case NonFatal(e) =>
-                log.info("Unhandled exception", e)
-                buildErrorResponse(INTERNAL_SERVER_ERROR, e.getMessage)
-        } finally {
-            lock.release()
-        }
-    }
 }
