@@ -20,7 +20,9 @@ import org.junit.runner.JUnitCore
 object IntegrationTests {
     val defaultTests = List(classOf[org.midonet.RecircTest],
                             classOf[org.midonet.midolman.host.scanner.InterfaceScannerTest],
-                            classOf[org.midonet.quagga.BgpdTest]) map { _.getCanonicalName }
+                            classOf[org.midonet.quagga.BgpdTest],
+                            classOf[org.midonet.midolman.vpp.VppApiIntegrationTest]) map { _.getCanonicalName }
+
     def main(args: Array[String]): Unit = {
         if (args.length == 0) {
             JUnitCore.main(defaultTests:_*)
