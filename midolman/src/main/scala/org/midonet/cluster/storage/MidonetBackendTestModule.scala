@@ -62,8 +62,4 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
     override protected def bindCurator(): Unit = {
 
     }
-
-    override protected def bindLockFactory(): Unit = {
-        // all tests that need it use a real MidonetBackend, with a Test server
-    }
 }
