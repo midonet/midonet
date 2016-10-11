@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_884ac6ab",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-11T04:34:16Z",
+      "side": 1,
+      "message": "what\u0027s wrong with sorting with id?",
+      "parentUuid": "baa041b7_a86a2a18",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 160,
+        "endChar": 9
+      },
+      "revId": "3dc05e994033629a8008442f971e55f672b81de0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_28305a55",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
         "patchSetId": 7
