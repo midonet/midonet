@@ -145,7 +145,7 @@ class IpAddrGroupAddrVersionResource @Inject()(
                 newList.add(a)
             }
         }
-        MidonetResource.tryWrite {
+        MidonetResource.tryLegacyWrite {
             if (doUpdate) {
                 store.update(ipg.toBuilder.clearIpAddrPorts()
                                           .addAllIpAddrPorts(newList)

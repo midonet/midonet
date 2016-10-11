@@ -29,7 +29,6 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.ClientCnxn
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
@@ -47,15 +46,8 @@ class MidonetBackendModule(val conf: MidonetBackendConfig)
     override def configure(): Unit = {
         bindCurator()
         bindStorage()
-        bindLockFactory()
-
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
         expose(classOf[MidonetBackendConfig])
-    }
-
-    protected def bindLockFactory(): Unit = {
-        bind(classOf[ZookeeperLockFactory]).asEagerSingleton()
-        expose(classOf[ZookeeperLockFactory])
     }
 
     protected def bindStorage(): Unit = {

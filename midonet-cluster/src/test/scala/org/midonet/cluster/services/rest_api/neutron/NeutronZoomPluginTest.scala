@@ -28,14 +28,13 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.{ClusterConfig, ZookeeperLockFactory}
 import org.midonet.cluster.data.ZoomConvert.toProto
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRouter, NeutronRouterInterface, NeutronSubnet, SecurityGroup => NeutronSecurityGroup}
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
-import org.midonet.cluster.services.c3po.{C3POMinion, NeutronTranslatorManager}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
@@ -44,6 +43,7 @@ import org.midonet.cluster.util.{CuratorTestFramework, SequenceDispenser, IPSubn
 import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
 import org.midonet.cluster.util.{CuratorTestFramework, IPSubnetUtil, SequenceDispenser}
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.cluster.{ClusterConfig, RestApiConfig}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -63,6 +63,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         val cfg = new MidonetBackendConfig(ConfigFactory.parseString(s"""
            |zookeeper.zookeeper_hosts : "${zk.getConnectString}"
            |zookeeper.root_key : "$zkRoot"
+           |zookeeper.transaction_attempts : 5
         """.stripMargin)
         )
         val clusterConfig = new ClusterConfig(ConfigFactory.parseString(s"""
@@ -78,17 +79,15 @@ class NeutronZoomPluginTest extends FeatureSpec
         val paths = new PathBuilder(zkRoot)
         val resContext = new ResourceContext(backend,
                                              executionContext = null,
-                                             lockFactory = null,
                                              uriInfo = null,
                                              validator = null,
                                              seqDispenser = null,
                                              stateTables = null)
-        val lockFactory = new ZookeeperLockFactory(curator, paths)
         val sequenceDispenser = new SequenceDispenser(curator, cfg)
         val manager = new NeutronTranslatorManager(clusterConfig,
                                                    backend,
                                                    sequenceDispenser, paths)
-        plugin = new NeutronZoomPlugin(resContext, manager, lockFactory)
+        plugin = new NeutronZoomPlugin(resContext, manager)
     }
 
     override def teardown(): Unit = {

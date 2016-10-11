@@ -33,7 +33,6 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.{PersistenceOp, Storage, Transaction}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.MidonetBackend
@@ -53,14 +52,12 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
     val backend: MidonetBackend = mock[MidonetBackend]
     val resContext: ResourceContext = new ResourceContext(backend,
                                                           executionContext = null,
-                                                          lockFactory = null,
                                                           uriInfo = null,
                                                           validator = null,
                                                           seqDispenser = null,
                                                           stateTables = null)
     val paths: PathBuilder = mock[PathBuilder]
     val c3po: C3POStorageManager = mock[C3POStorageManager]
-    val lockFactory: ZookeeperLockFactory = mock[ZookeeperLockFactory]
 
     val mutex: InterProcessSemaphoreMutex =
         new InterProcessSemaphoreMutex(null, "/meh") {
@@ -81,7 +78,6 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
     val store = Mockito.mock(classOf[Storage])
     val transaction = Mockito.mock(classOf[Transaction])
 
-    Mockito.when(lockFactory.createShared(Matchers.any())).thenReturn(mutex)
     Mockito.when(backend.store).thenReturn(store)
     Mockito.when(store.transaction()).thenReturn(transaction)
     Mockito.when(transaction.commit()).thenAnswer(new Answer[Unit] {
@@ -91,7 +87,7 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
     })
 
 
-    val plugin = new NeutronZoomPlugin(resContext, c3po, lockFactory)
+    val plugin = new NeutronZoomPlugin(resContext, c3po)
 
     def makePort: Port = {
         val p = new Port
