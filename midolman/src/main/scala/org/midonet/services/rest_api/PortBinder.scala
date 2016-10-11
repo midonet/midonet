@@ -18,16 +18,15 @@ package org.midonet.services.rest_api
 
 import java.util.UUID
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.services.rest_api.BindingApiService.log
 import org.midonet.util.ImmediateRetriable
 
-class PortBinder(storage: Storage, stateStorage: StateStorage,
-                 lockFactory: ZookeeperLockFactory) extends ImmediateRetriable {
+class PortBinder(storage: Storage, stateStorage: StateStorage)
+    extends ImmediateRetriable {
 
-    import BindingApiService.log
 
     override def maxRetries = 3
 

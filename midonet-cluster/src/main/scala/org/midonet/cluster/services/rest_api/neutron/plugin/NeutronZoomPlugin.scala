@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.neutron.plugin
 
 import java.util
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ConcurrentModificationException, UUID}
 
@@ -37,7 +36,6 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, _}
-import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.data.{ZoomClass, ZoomConvert, ZoomObject}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rest_api._
@@ -48,7 +46,7 @@ import org.midonet.cluster.services.c3po.translators.TranslationException
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin.MaxStorageAttempts
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.cluster.{RestApiNeutronLog, ZookeeperLockFactory}
+import org.midonet.cluster.RestApiNeutronLog
 import org.midonet.util.concurrent.toFutureOps
 
 object NeutronZoomPlugin {
@@ -58,8 +56,7 @@ object NeutronZoomPlugin {
 // All the dependants should be reimplemented as TranslatedResource
 @Deprecated
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
-                                  translatorManager: NeutronTranslatorManager,
-                                  lockFactory: ZookeeperLockFactory)
+                                  translatorManager: NeutronTranslatorManager)
     extends L3Api
             with GatewayDeviceApi
             with FirewallApi
@@ -83,20 +80,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     private def tryRead[T](f: => T): T = tryStorageOp(f)
 
-    private def tryWrite(f: => Unit): Unit = {
-        val lock = new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
-                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
-        try lock.acquire(resourceContext.config.nsdbLockTimeoutMs,
-                         TimeUnit.MILLISECONDS) catch {
-            case NonFatal(t) =>
-                log.error("Could not acquire Zookeeper lock.", t)
-                throw new ServiceUnavailableHttpException(
-                    "Could not acquire lock for storage operation.")
-        }
-        try tryStorageOp(f) finally {
-            lock.release()
-        }
-    }
+    private def tryWrite(f: => Unit): Unit = tryStorageOp(f)
 
     /** Transform StorageExceptions to appropriate HTTP exceptions. */
     private def tryStorageOp[T](f: => T): T = {
