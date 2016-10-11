@@ -20,24 +20,22 @@ import java.util.UUID
 
 import scala.util.control.NonFatal
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.services.rest_api.BindingApiService.log
 import org.midonet.util.{DefaultRetriable, ImmediateRetriable}
 
-class PortBinder(storage: Storage, stateStorage: StateStorage,
-                 lockFactory: ZookeeperLockFactory)
+class PortBinder(storage: Storage, stateStorage: StateStorage)
     extends DefaultRetriable with ImmediateRetriable {
 
-    import BindingApiService.log
 
     override def maxRetries = 3
 
     def bindPort(portId: UUID, hostId: UUID, deviceName: String): Unit = {
         val protoHostId = hostId.asProto
-        try retry(log.underlying, s"Binding port $portId") {
-            val tx = storage.transaction()
+        log debug s"Binding port $portId"
+        try storage.tryTransaction { tx =>
             val oldPort = tx.get(classOf[Port], portId)
             val newPortBldr = oldPort.toBuilder
                 .setHostId(protoHostId)
@@ -62,8 +60,8 @@ class PortBinder(storage: Storage, stateStorage: StateStorage,
     def unbindPort(portId: UUID, hostId: UUID): Unit = {
         val pHostId = hostId.asProto
 
-        try retry(log.underlying, s"Unbinding port $portId") {
-            val tx = storage.transaction()
+        log debug s"Unbinding port $portId"
+        try storage.tryTransaction { tx =>
             val oldPort = tx.get(classOf[Port], portId)
 
             // Unbind only if the port is currently bound to an interface on
