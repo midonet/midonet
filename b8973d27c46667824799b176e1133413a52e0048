@@ -22,6 +22,30 @@
       "revId": "b8973d27c46667824799b176e1133413a52e0048",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1b639eb2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/QosPolicy.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-11T08:55:27Z",
+      "side": 1,
+      "message": "Changed to QosMaxBandwidthRule. I think just \"BW\" is too obscure, and \"Limit\" is still ambiguous; it could mean maximum limit or minimum limit.",
+      "parentUuid": "baa041b7_28f3ba74",
+      "range": {
+        "startLine": 32,
+        "startChar": 11,
+        "endLine": 32,
+        "endChar": 27
+      },
+      "revId": "b8973d27c46667824799b176e1133413a52e0048",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
