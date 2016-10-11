@@ -17,6 +17,8 @@
 package org.midonet.midolman.vpp
 
 import java.lang.{Process, ProcessBuilder}
+import java.nio.ByteBuffer
+import java.util.UUID
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 import scala.concurrent.Await
@@ -31,11 +33,17 @@ import org.scalatest.FeatureSpec
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.ErrorCode
+import org.midonet.midolman.VppOvs
+import org.midonet.midolman.VppSetup
+import org.midonet.netlink._
+import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.odp.{Datapath, OvsNetlinkFamilies, OvsProtocol}
 import org.midonet.packets.{IPAddr, IPSubnet, MAC}
 
 @RunWith(classOf[JUnitRunner])
-class VppApiIntegrationTest extends FeatureSpec {
-    val log = LoggerFactory.getLogger(classOf[VppApiIntegrationTest])
+class VppIntegrationTest extends FeatureSpec {
+    val log = LoggerFactory.getLogger(classOf[VppIntegrationTest])
 
     def startVpp(): Process = {
         log.info("Start VPP")
@@ -78,6 +86,65 @@ class VppApiIntegrationTest extends FeatureSpec {
         cmd(s"ip l del dev ${name}dp")
     }
 
+    private def doDatapathOp(opBuf: (OvsProtocol) => ByteBuffer): Unit = {
+        val factory = new NetlinkChannelFactory()
+        val famchannel = factory.create(blocking = true,
+                                        NetlinkProtocol.NETLINK_GENERIC,
+                                        NetlinkUtil.NO_NOTIFICATION)
+        val families = OvsNetlinkFamilies.discover(famchannel)
+        famchannel.close()
+
+        val channel = factory.create(blocking = false)
+        val writer = new NetlinkBlockingWriter(channel)
+        val reader = new NetlinkTimeoutReader(channel, 1 minute)
+        val protocol = new OvsProtocol(channel.getLocalAddress.getPid, families)
+
+        try {
+            val buf = opBuf(protocol)
+            writer.write(buf)
+            buf.clear()
+            reader.read(buf)
+            buf.flip()
+        } finally {
+            channel.close()
+        }
+    }
+
+    def createDatapath(name: String): Datapath =  {
+        val buf = BytesUtil.instance.allocate(2 * 1024)
+        try {
+            doDatapathOp((protocol) => {
+                             protocol.prepareDatapathDel(0, name, buf)
+                             buf
+                         })
+        } catch {
+            case t: NetlinkException
+                    if (t.getErrorCodeEnum == ErrorCode.ENODEV ||
+                            t.getErrorCodeEnum == ErrorCode.ENOENT ||
+                            t.getErrorCodeEnum == ErrorCode.ENXIO) =>
+        }
+        buf.clear()
+        doDatapathOp((protocol) => {
+                         protocol.prepareDatapathCreate(name, buf)
+                         buf
+                     })
+        buf.position(NetlinkMessage.GENL_HEADER_SIZE)
+        Datapath.buildFrom(buf)
+    }
+
+    def deleteDatapath(datapath: Datapath): Unit = {
+        val buf = BytesUtil.instance.allocate(2 * 1024)
+        try {
+            doDatapathOp((protocol) => {
+                             protocol.prepareDatapathDel(
+                                 0, datapath.getName, buf)
+                             buf
+                         })
+        } catch {
+            case t: Throwable => log.warn("Error deleting datapath $name", t)
+        }
+    }
+
     feature("VPP Api") {
         // this is failing, we need to make this not fail
         ignore("Api connects within 5 seconds when vpp comes up") {
@@ -87,7 +154,7 @@ class VppApiIntegrationTest extends FeatureSpec {
                     log.info("Connecting to vpp")
                     try {
                         val vppApi = new VppApi("midonet")
-                        println("Connected to vpp")
+                        log.info("Connected to vpp")
                         connectedLatch.countDown()
                     } catch {
                         case t: Throwable => log.error("Error connecting", t)
@@ -336,6 +403,40 @@ class VppApiIntegrationTest extends FeatureSpec {
 
                 deleteNamespace(nsRight)
                 deleteNamespace(nsLeft)
+            }
+        }
+    }
+
+    feature("VPP Setup") {
+        scenario("VPP sets up uplink port") {
+            val uplinkns = "uplink2"
+
+            val proc = startVpp()
+            Thread.sleep(1000) // only needed while first testcase is failing
+            val api = new VppApi("test")
+            val datapath = createDatapath("foobar")
+            val ovs = new VppOvs(datapath)
+
+            log.info("Creating dummy uplink port")
+
+            var setup: Option[VppSetup] = None
+            try {
+                createNamespace(uplinkns)
+                val uplinkDp = ovs.createDpPort(s"${uplinkns}dp")
+
+                setup = Some(new VppSetup(UUID.randomUUID,
+                                          uplinkDp.getPortNo,
+                                          api, ovs))
+                assertCmdInNs(uplinkns, s"ip a add 2001::2/64 dev ${uplinkns}ns")
+
+                setup foreach { s => Await.result(s.execute, 1 minute) }
+                assertCmdInNs(uplinkns, s"ping6 -c 5 2001::1")
+            } finally {
+                setup foreach { s => Await.result(s.rollback, 1 minute) }
+                deleteNamespace(uplinkns)
+                deleteDatapath(datapath)
+                api.close()
+                proc.destroy()
             }
         }
     }
