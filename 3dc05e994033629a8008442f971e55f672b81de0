@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a86a2a18",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-11T04:17:25Z",
+      "side": 1,
+      "message": "True that order is not enforced, but in this test, they will always (guaranteed to) be in order because the QoS policy used for the check is constructed that way in the test itself.  This seemed the easiest way to test that all the rules were in place given that we have two lists of different types of rule objects (one is a JSON list, the other is a top-level rule object list), so they aren\u0027t easy to find equivalence.  \n\nBut in the end, the test works and appropriately tests this condition, even if it also accepts the ordered list.  Do you believe this is a problem enough to require a new patch?",
+      "parentUuid": "baa041b7_482b9eeb",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 160,
+        "endChar": 9
+      },
+      "revId": "3dc05e994033629a8008442f971e55f672b81de0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_28305a55",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2016-10-11T02:59:13Z",
       "side": 1,
       "message": "i\u0027m not sure how having two dscp rules in a policy makes sense, but it\u0027s probably ok for unit tests.",
+      "range": {
+        "startLine": 268,
+        "startChar": 0,
+        "endLine": 269,
+        "endChar": 38
+      },
+      "revId": "3dc05e994033629a8008442f971e55f672b81de0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8873e615",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-11T04:17:25Z",
+      "side": 1,
+      "message": "Yes.  I think it\u0027s okay.  It\u0027s a good way to ensure that in the future, we can have multiple rules (like DSCP mark 11 for VOIP packets and DSCP mark 12 for NTP, or something crazy like that).",
+      "parentUuid": "baa041b7_28305a55",
       "range": {
         "startLine": 268,
         "startChar": 0,
