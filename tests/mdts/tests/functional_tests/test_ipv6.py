@@ -119,6 +119,13 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
                     + "ip6-pfx " + ip6prefix + " ea-bits-len 8"
                     + " psid-offset 0 psid-len 0 ip6-src " + ip6src +" map-t")
 
+    def setup_fip64(self, container, ip6ext, ip6fip, ip4fip64, ip4fixed):
+        cont = service.get_container_by_hostname(container)
+        cont.vppctl("fip64 add %s %s %s %s" % (ip6ext,
+                                               ip6fip,
+                                               ip4fip64,
+                                               ip4fixed))
+
     def cleanup_remote_host(self, container, interface):
         cont = service.get_container_by_hostname(container)
         cont.exec_command('ip r del 100.0.0.0/8')
@@ -147,11 +154,11 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont.try_command_blocking('ip netns exec ip6 ip link set up dev lo')
         cont.try_command_blocking('ip netns exec ip6 ip link set up dev ip6ns')
         cont.try_command_blocking(
-            'ip a add bbbb::4100:0:1400:41:1/48 dev ip6dp')
+            'ip a add bbbb::1/48 dev ip6dp')
         cont.try_command_blocking(
-            'ip netns exec ip6 ip a add bbbb::4100:0:1400:41:0/48 dev ip6ns')
+            'ip netns exec ip6 ip a add bbbb::2/48 dev ip6ns')
         cont.try_command_blocking(
-            'ip netns exec ip6 ip -6 r add default via bbbb::4100:0:1400:41:1')
+            'ip netns exec ip6 ip -6 r add default via bbbb::1')
 
     def add_mn_router_port(self, name, router_id, port_address,
                            network_addr, network_len):
@@ -186,6 +193,9 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
     def get_mn_uplink_port_id(self, uplink_port):
         return str(uuid.UUID(int=uuid.UUID(uplink_port['id']).int ^
                                  0x9c30300ec91f4f1988449d37e61b60f0L))
+
+    def get_mn_uplink_port_interface(self, uplink_port):
+        return uplink_port['binding:profile']['interface_name']
 
 class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
@@ -236,7 +246,7 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
 
         # wire up downlink
         global DOWNLINK_VETH_MAC
-        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
+        uplink_port_dev = self.get_mn_uplink_port_interface(self.uplink_port)
 
         self.create_veth_pair('midolman1', 'downlink-vpp', 'downlink-ovs',
                               ep1mac=DOWNLINK_VETH_MAC)
@@ -247,7 +257,7 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
         self.add_route_to_vpp('midolman1',
                               prefix='bbbb::/48',
                               via='2001::2',
-                              port='vpp-'+uplink_port_id[0:8])
+                              port=uplink_port_dev + '-uv')
         self.add_route_to_vpp('midolman1',
                               prefix='20.0.0.0/26',
                               via='10.0.0.2',
@@ -261,11 +271,11 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
         self.add_mn_route(tenantrtr['id'], "0.0.0.0/0", "20.0.0.64/26",
                           via="10.0.0.1",
                           port=mn_tenant_downlink.get_id())
-
-        self.setup_map_t("midolman1",
-                         ip4prefix="20.0.0.0/24",
-                         ip6prefix="bbbb::/48",
-                         ip6src="cccc:bbbb::/96")
+        self.setup_fip64("midolman1",
+                         ip6ext = "bbbb::2",
+                         ip6fip = "cccc:bbbb::2",
+                         ip4fip64 = "20.0.0.65",
+                         ip4fixed = "20.0.0.2")
 
 binding_empty = {
     'description': 'nothing bound',
@@ -321,4 +331,4 @@ def test_ping_vm_ipv6():
     Title: ping a VM in a IPv4 neutron topology from a remote IPv6 endpoint
     """
     time.sleep(10)
-    ping_from_inet('quagga1', 'cccc:bbbb::1400:2', 10, namespace='ip6')
+    ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')
