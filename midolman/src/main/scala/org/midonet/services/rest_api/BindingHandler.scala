@@ -23,7 +23,6 @@ import javax.ws.rs.core.MediaType
 
 import com.google.inject.Inject
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.HostIdGenerator
 import org.midonet.services.rest_api.BindingApiService.log
@@ -35,12 +34,9 @@ import org.midonet.services.rest_api.BindingApiService.log
  */
 
 @Path("/binding")
-class BindingHandler @Inject()(
-        lockFactory: ZookeeperLockFactory,
-        backend: MidonetBackend) {
+class BindingHandler @Inject()(backend: MidonetBackend) {
 
-    private val binder = new PortBinder(backend.store, backend.stateStore,
-                                        lockFactory)
+    private val binder = new PortBinder(backend.store, backend.stateStore)
 
     @PUT
     @Path("{portId}")
