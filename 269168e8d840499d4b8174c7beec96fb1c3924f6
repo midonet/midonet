@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f90a42d0",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-11T15:14:43Z",
+      "side": 1,
+      "message": "do you need to remove this one?",
+      "range": {
+        "startLine": 212,
+        "startChar": 11,
+        "endLine": 212,
+        "endChar": 59
+      },
+      "revId": "269168e8d840499d4b8174c7beec96fb1c3924f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
