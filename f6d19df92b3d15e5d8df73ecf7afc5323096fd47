@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4cae322f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/QosPolicyMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-11T02:02:41Z",
+      "side": 1,
+      "message": "midonet",
+      "range": {
+        "startLine": 36,
+        "startChar": 42,
+        "endLine": 36,
+        "endChar": 49
+      },
+      "revId": "f6d19df92b3d15e5d8df73ecf7afc5323096fd47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
