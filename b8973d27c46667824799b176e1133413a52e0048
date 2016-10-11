@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_28f3ba74",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/QosPolicy.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-11T07:33:31Z",
+      "side": 1,
+      "message": "this name might be confusing because neutron has \"minimum bandwidth\" rule types.\ni\u0027d suggest QosBWLimitRules.",
+      "range": {
+        "startLine": 32,
+        "startChar": 11,
+        "endLine": 32,
+        "endChar": 27
+      },
+      "revId": "b8973d27c46667824799b176e1133413a52e0048",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
