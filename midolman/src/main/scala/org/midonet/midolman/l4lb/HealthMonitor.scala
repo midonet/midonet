@@ -17,13 +17,12 @@
 package org.midonet.midolman.l4lb
 
 import java.io._
-import java.util.{ConcurrentModificationException, UUID}
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConversions._
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, _}
 import scala.util.control.NonFatal
-import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorRef, Props}
 
@@ -33,9 +32,6 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.{Logger, LoggerFactory}
 
-import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.data.storage.{Storage, Transaction}
-import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
@@ -45,7 +41,7 @@ import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.util.{AwaitRetriable, DefaultRetriable}
@@ -193,43 +189,6 @@ object HealthMonitor extends Referenceable with DefaultRetriable
         }
     }
 
-    // TODO: Move this functionality to the cluster and make it more generic
-    //       (mna-1054).
-    private[l4lb] def zkLock(lockFactory: ZookeeperLockFactory)
-                            (f: => Unit) : Unit = {
-        val lock = new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
-                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
-        try lock.acquire() catch {
-            case NonFatal(e) =>
-                log.info("Could not acquire exclusive write access to " +
-                         "storage.", e)
-                throw e
-        }
-
-        try {
-            f
-        } finally {
-            lock.release()
-        }
-    }
-    /**
-      * This method is borrowed from MidonetResourse class.
-      * Tries to commit storage transaction with the operations that adds function f
-      * throws a ConcurrentModificationException if failed "StorageAttempts" times to commit
-      *  transaction
-      */
-
-     def tryTx(store: Storage, lockFactory: ZookeeperLockFactory)
-              (populate: (Transaction) => Unit): Unit = {
-        def executeOperations(): Unit = {
-            val tx = store.transaction()
-            populate(tx)
-            tx.commit()
-        }
-        retry(log, "Commit transaction") {
-            zkLock(lockFactory)(executeOperations)
-        }
-    }
 }
 
 /*
@@ -239,7 +198,6 @@ object HealthMonitor extends Referenceable with DefaultRetriable
  */
 class HealthMonitor @Inject() (config: MidolmanConfig,
                                backend: MidonetBackend,
-                               lockFactory: ZookeeperLockFactory,
                                curator: CuratorFramework,
                                backendCfg: MidonetBackendConfig)
     extends Actor with ActorLogWithoutPath {
@@ -274,7 +232,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
     private def setPoolMappingStatus(poolId: UUID, status: PoolHMMappingStatus)
     : Unit = {
         try {
-            tryTx(store, lockFactory) { tx =>
+            store.tryTransaction { tx =>
                 val pool = tx.get(classOf[Pool], poolId)
                 tx.update(pool.toBuilder.setMappingStatus(status).build())
             }
@@ -387,7 +345,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
         context.actorOf(
             Props(
                 new HaproxyHealthMonitor(config, self, routerId, store, hostId,
-                                         lockFactory, seqDispenser)
+                                         seqDispenser)
             ).withDispatcher(context.props.dispatcher),
             config.id.toString)
     }
