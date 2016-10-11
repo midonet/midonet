@@ -31,7 +31,6 @@ import org.apache.zookeeper.ClientCnxn
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.models.Topology
@@ -60,12 +59,7 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
         val failFastCurator = failFastCuratorFramework()
         val storage = backend(curator, failFastCurator)
         bind(classOf[MidonetBackend]).toInstance(storage)
-        bindLockFactory()
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
-    }
-
-    protected def bindLockFactory(): Unit = {
-        bind(classOf[ZookeeperLockFactory]).asEagerSingleton()
     }
 
     protected def backend(curatorFramework: CuratorFramework,

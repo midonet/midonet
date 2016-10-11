@@ -17,9 +17,7 @@
 package org.midonet.cluster.services.rest_api.neutron.plugin
 
 import java.util
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.{ConcurrentModificationException, UUID}
+import java.util.UUID
 
 import javax.ws.rs.WebApplicationException
 
@@ -35,9 +33,9 @@ import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.RestApiNeutronLog
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, _}
-import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.data.{ZoomClass, ZoomConvert, ZoomObject}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rest_api._
@@ -45,21 +43,14 @@ import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.translators.TranslationException
-import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin.MaxStorageAttempts
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.cluster.{RestApiNeutronLog, ZookeeperLockFactory}
 import org.midonet.util.concurrent.toFutureOps
-
-object NeutronZoomPlugin {
-    final val MaxStorageAttempts = 10
-}
 
 // All the dependants should be reimplemented as TranslatedResource
 @Deprecated
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
-                                  translatorManager: NeutronTranslatorManager,
-                                  lockFactory: ZookeeperLockFactory)
+                                  translatorManager: NeutronTranslatorManager)
     extends L3Api
             with GatewayDeviceApi
             with FirewallApi
@@ -79,73 +70,49 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     private val timeout = 10.seconds
     private val store = resourceContext.backend.store
 
-    private val lockOpNumber = new AtomicInteger(0)
-
     private def tryRead[T](f: => T): T = tryStorageOp(f)
 
-    private def tryWrite(f: => Unit): Unit = {
-        val lock = new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
-                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
-        try lock.acquire(resourceContext.config.nsdbLockTimeoutMs,
-                         TimeUnit.MILLISECONDS) catch {
-            case NonFatal(t) =>
-                log.error("Could not acquire Zookeeper lock.", t)
-                throw new ServiceUnavailableHttpException(
-                    "Could not acquire lock for storage operation.")
-        }
-        try tryStorageOp(f) finally {
-            lock.release()
-        }
+    private def tryWrite(f: (Transaction) => Unit): Unit = {
+        tryStorageOp(store.tryTransaction(f))
     }
 
     /** Transform StorageExceptions to appropriate HTTP exceptions. */
     private def tryStorageOp[T](f: => T): T = {
-        var attempt = 1
-        var last: Throwable = null
-        while (attempt < MaxStorageAttempts) {
-            try {
-                return f
-            } catch {
-                case e: StorageException => throw toHttpException(e)
-                case e: TranslationException => throw toHttpException(e)
-                case e: ConcurrentModificationException =>
-                    log warn s"Write $attempt of $MaxStorageAttempts failed " +
-                             s"due to a concurrent modification (${e.getMessage})"
-                    attempt += 1
-                    last = e
-            }
+        try f catch {
+            case e: StorageException => throw toHttpException(e)
+            case e: TranslationException => throw toHttpException(e)
         }
-        throw last
     }
 
     private def toHttpException(ex: TranslationException)
     : WebApplicationException = {
         ex.cause match {
-            case e: StorageException => throw toHttpException(e)
+            case e: StorageException => toHttpException(e)
             case e: IllegalArgumentException =>
-                throw new BadRequestHttpException(ex, ex.getMessage)
+                new BadRequestHttpException(ex, ex.getMessage)
             case e: IllegalStateException =>
-                throw new ConflictHttpException(ex, ex.getMessage)
+                new ConflictHttpException(ex, ex.getMessage)
             case _ =>
-                throw new InternalServerErrorHttpException(
-                    ex, ex.getMessage)
+                new InternalServerErrorHttpException(ex, ex.getMessage)
         }
     }
 
     private def toHttpException(ex: StorageException)
-    : WebApplicationException = ex match {
-        case e: NotFoundException =>
-            new NotFoundHttpException(e, e.getMessage)
-        case e: ObjectExistsException =>
-            new ConflictHttpException(e, e.getMessage)
-        case e: ReferenceConflictException =>
-            new ConflictHttpException(e, e.getMessage)
-        case e: ObjectReferencedException =>
-            new ConflictHttpException(e, e.getMessage)
-        case e: ObjectNameNotUniqueException =>
-            new ConflictHttpException(e, e.getMessage)
-        case e: StorageException =>
-            new InternalServerErrorHttpException(e, e.getMessage)
+    : WebApplicationException = {
+        ex match {
+            case e: NotFoundException =>
+                new NotFoundHttpException(e, e.getMessage)
+            case e: ObjectExistsException =>
+                new ConflictHttpException(e, e.getMessage)
+            case e: ReferenceConflictException =>
+                new ConflictHttpException(e, e.getMessage)
+            case e: ObjectReferencedException =>
+                new ConflictHttpException(e, e.getMessage)
+            case e: ObjectNameNotUniqueException =>
+                new ConflictHttpException(e, e.getMessage)
+            case e: StorageException =>
+                new InternalServerErrorHttpException(e, e.getMessage)
+        }
     }
 
     def create[T >: Null <: ZoomObject](dto: T)(implicit ct: ClassTag[T]): T = {
@@ -153,11 +120,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val protoClass = protoClassOf(dto)
         val neutronOp = Create(toProto(dto, protoClass))
         val id = idOf(neutronOp.model)
-        tryWrite {
-            val tx = store.transaction()
-            translatorManager.translate(tx, neutronOp)
-            tx.commit()
-        }
+        tryWrite { translatorManager.translate(_, neutronOp) }
         log.debug(s"Create ${dto.getClass.getSimpleName} $id succeeded.")
         dto
     }
@@ -173,12 +136,10 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val dtoClass = dtos.head.getClass
         val protoClass = protoClassOf(dtoClass)
         val creates = dtos.map { d => Create(toProto(d, protoClass)) }
-        tryWrite {
-            val tx = store.transaction()
+        tryWrite { tx =>
             for (create <- creates) {
                 translatorManager.translate(tx, create)
             }
-            tx.commit()
         }
         val ids = list[T](creates.map(c => idOf(c.model)))
         log.debug(s"Bulk create ${dtoClass.getSimpleName} succeeded: $ids")
@@ -201,11 +162,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val protoClass = protoClassOf(dto)
         val neutronOp = Update(toProto(dto, protoClass))
         val id = idOf(neutronOp.model)
-        tryWrite {
-            val tx = store.transaction()
-            translatorManager.translate(tx, neutronOp)
-            tx.commit()
-        }
+        tryWrite { translatorManager.translate(_, neutronOp) }
         log.debug(s"Update ${dto.getClass.getSimpleName} $id succeeded")
         dto
     }
@@ -214,11 +171,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         log.debug(s"Delete ${dtoClass.getSimpleName}: $id")
         val protoClass = protoClassOf(dtoClass)
         val neutronOp = Delete(protoClass, UUIDUtil.toProto(id))
-        tryWrite {
-            val tx = store.transaction()
-            translatorManager.translate(tx, neutronOp)
-            tx.commit()
-        }
+        tryWrite { translatorManager.translate(_, neutronOp) }
         log.debug(s"Delete ${dtoClass.getSimpleName} $id succeeded")
     }
 

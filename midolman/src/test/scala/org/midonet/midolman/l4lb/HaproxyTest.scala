@@ -25,9 +25,10 @@ import scala.concurrent.Future
 
 import akka.actor.{Actor, ActorRef, Props}
 import akka.testkit.TestActorRef
+
 import com.typesafe.config.{Config, ConfigFactory}
+
 import org.apache.commons.io.FileUtils
-import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.Mockito.{mock, spy, times, verify}
@@ -35,7 +36,6 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.SpanSugar
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
@@ -67,7 +67,6 @@ class HaproxyTest extends MidolmanSpec
     var hmSystem: ActorRef = _
     var backend: MidonetBackend = _
     var conf = mock(classOf[MidolmanConfig])
-    var lockFactory: ZookeeperLockFactory = _
     var poolConfig: PoolConfig = _
     var checkHealthReceived = 0
     var haProxy: TestableHaproxy = _
@@ -162,10 +161,9 @@ class HaproxyTest extends MidolmanSpec
 
     class TestableHaproxy(config: PoolConfig, hm: ActorRef, routerId: UUID,
                           store: Storage, hostId: UUID,
-                          lockFactory: ZookeeperLockFactory,
                           seqDispenser: SequenceDispenser)
         extends HaproxyHealthMonitor(config, hm, routerId, store, hostId,
-                                     lockFactory, seqDispenser) {
+                                     seqDispenser) {
 
             var shouldWriteConf = false
 
@@ -190,8 +188,8 @@ class HaproxyTest extends MidolmanSpec
             }
     }
 
-    class TestableHealthMonitor extends HMSystem(conf, backend, lockFactory,
-                                                 curator = null, backendCfg) {
+    class TestableHealthMonitor extends HMSystem(conf, backend, curator = null,
+                                                 backendCfg) {
 
         override val seqDispenser = new SequenceDispenser(null, backendCfg) {
             private val mockCounter = new AtomicInteger(100)
@@ -213,8 +211,7 @@ class HaproxyTest extends MidolmanSpec
             context.actorOf(
                 Props({
                     haProxy = new TestableHaproxy(config, self, routerId,
-                                                  store, hostId, lockFactory,
-                                                  seqDispenser)
+                                                  store, hostId, seqDispenser)
                     haProxy
                 }).withDispatcher(context.props.dispatcher),
                 config.id.toString)
@@ -235,14 +232,6 @@ class HaproxyTest extends MidolmanSpec
     override def beforeTest(): Unit = {
         backend = injector.getInstance(classOf[MidonetBackend])
         conf = injector.getInstance(classOf[MidolmanConfig])
-        lockFactory = mock(classOf[ZookeeperLockFactory])
-        val mutex = mock(classOf[InterProcessSemaphoreMutex])
-        Mockito.when(
-            lockFactory.createShared(ZookeeperLockFactory.ZOOM_TOPOLOGY))
-            .thenReturn(mutex)
-        Mockito.when(mutex.acquire(org.mockito.Matchers.anyLong(),
-                                   org.mockito.Matchers.anyObject()))
-               .thenReturn(true)
         HMSystem.ipCommand = mock(classOf[IP])
         hmSystem = TestActorRef(Props(new TestableHealthMonitor()))(actorSystem)
     }
@@ -305,14 +294,15 @@ class HaproxyTest extends MidolmanSpec
         val portId = port.getId.asJava
         port.getRouteIdsCount shouldBe 1
 
-        val simPort = new RouterPort(port.getId.asJava,
-                                     tunnelKey = port.getTunnelKey,
-                                     routerId = routerId,
-                                     portAddress = HaproxyHealthMonitor.RouterIp,
-                                     portSubnet = HaproxyHealthMonitor.NetSubnet,
-                                     portMac = HaproxyHealthMonitor.RouterMAC,
-                                     hostId = hostId,
-                                     interfaceName = hmName + "_dp")
+        val simPort = RouterPort(port.getId.asJava,
+                                 tunnelKey = port.getTunnelKey,
+                                 routerId = routerId,
+                                 portAddress = HaproxyHealthMonitor.RouterIp,
+                                 portSubnet = HaproxyHealthMonitor.NetSubnet,
+                                 portMac = HaproxyHealthMonitor.RouterMAC,
+                                 hostId = hostId,
+                                 interfaceName = hmName + "_dp")
+
         simPort shouldBeDeviceOf port
 
         val routeId = port.getRouteIds(0).asJava
