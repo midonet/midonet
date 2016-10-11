@@ -16,25 +16,23 @@
 package org.midonet.midolman.l4lb
 
 import java.io.{File, FileWriter}
-import java.util.UUID
-import java.util.LinkedList
+import java.util.{LinkedList, UUID}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 import akka.actor.{Actor, ActorRef, Props}
+
 import com.typesafe.config.{Config, ConfigFactory}
+
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
-import org.mockito.Matchers._
 import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.scalatest.OneInstancePerTest
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
@@ -43,7 +41,7 @@ import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{SetupFailure, ConfigUpdate, RouterAdded, RouterRemoved}
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure}
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.MidonetEventually
@@ -74,8 +72,6 @@ class HealthMonitorTest extends MidolmanSpec
     var healthMonitorUT: ActorRef = _
     var haproxyFakeActor: ActorRef = _
     var backend: MidonetBackend = _
-    var lockFactory: ZookeeperLockFactory = _
-    var lock: InterProcessSemaphoreMutex = _
 
     // Accounting
     var actorStarted = 0
@@ -88,18 +84,13 @@ class HealthMonitorTest extends MidolmanSpec
         backend = injector.getInstance(classOf[MidonetBackend])
 
         val config = injector.getInstance(classOf[MidolmanConfig])
-        lockFactory = mock[ZookeeperLockFactory]
         val curator = mock[CuratorFramework]
 
         HealthMonitor.ipCommand = mock[IP]
         setupIpMock(HealthMonitor.ipCommand)
-        lock = mock[InterProcessSemaphoreMutex]
-        Mockito.when(lockFactory.createShared(ZookeeperLockFactory.ZOOM_TOPOLOGY))
-               .thenReturn(lock)
-        Mockito.when(lock.acquire(anyLong(), anyObject())).thenReturn(true)
 
         healthMonitorUT = actorSystem.actorOf(
-            Props(new HealthMonitorUT(config, backend, lockFactory, curator))
+            Props(new HealthMonitorUT(config, backend, curator))
         )
     }
 
@@ -156,11 +147,6 @@ class HealthMonitorTest extends MidolmanSpec
 
             Then ("The pool status should be updated to INACTIVE")
             eventually { getPoolStatus(poolId) shouldBe INACTIVE }
-
-            And("The lock should have been acquired to perform this operation")
-            verify(lock, times(1)).acquire(anyLong(), anyObject())
-            And("The lock should have been released")
-            verify(lock, times(1)).release()
         }
 
         scenario ("A config is added with no router and a disabled pool") {
@@ -451,10 +437,8 @@ class HealthMonitorTest extends MidolmanSpec
      * the functions that would block and perform IO.
      */
     class HealthMonitorUT(config: MidolmanConfig, backend: MidonetBackend,
-                          lockFactory: ZookeeperLockFactory,
                           curator: CuratorFramework)
-        extends HealthMonitor(config, backend, lockFactory, curator,
-                              backendCfg) {
+        extends HealthMonitor(config, backend, curator, backendCfg) {
 
         override val seqDispenser = new SequenceDispenser(null, backendCfg)
 
