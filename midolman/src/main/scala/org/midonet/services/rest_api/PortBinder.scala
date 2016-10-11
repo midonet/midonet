@@ -18,72 +18,73 @@ package org.midonet.services.rest_api
 
 import java.util.UUID
 
-import org.midonet.cluster.ZookeeperLockFactory
+import scala.util.control.NonFatal
+
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.services.rest_api.BindingApiService.log
 import org.midonet.util.ImmediateRetriable
 
-class PortBinder(storage: Storage, stateStorage: StateStorage,
-                 lockFactory: ZookeeperLockFactory) extends ImmediateRetriable {
+class PortBinder(storage: Storage, stateStorage: StateStorage)
+    extends ImmediateRetriable {
 
-    import BindingApiService.log
 
     override def maxRetries = 3
 
     def bindPort(portId: UUID, hostId: UUID, deviceName: String): Unit = {
         val protoHostId = hostId.asProto
-        val update = retry(log.underlying, s"Binding port $portId") {
-            val tx = storage.transaction()
-            val oldPort = tx.get(classOf[Port], portId)
-            val newPortBldr = oldPort.toBuilder
-                .setHostId(protoHostId)
-                .setInterfaceName(deviceName)
-            // If binding from a different host before unbinding,
-            // update previous host. This is necessary since in Nova, bind
-            // on the new host happens before unbind on live migration, and
-            // we need to update the previous host to know where to fetch the
-            // flow state from.
-            if (oldPort.hasHostId && (oldPort.getHostId != protoHostId)) {
-                newPortBldr.setPreviousHostId(oldPort.getHostId)
+        log debug s"Binding port $portId"
+        try {
+            storage.tryTransaction { tx =>
+                val oldPort = tx.get(classOf[Port], portId)
+                val newPortBldr = oldPort.toBuilder
+                    .setHostId(protoHostId)
+                    .setInterfaceName(deviceName)
+                // If binding from a different host before unbinding,
+                // update previous host. This is necessary since in Nova, bind
+                // on the new host happens before unbind on live migration, and
+                // we need to update the previous host to know where to fetch the
+                // flow state from.
+                if (oldPort.hasHostId && (oldPort.getHostId != protoHostId)) {
+                    newPortBldr.setPreviousHostId(oldPort.getHostId)
+                }
+                tx.update(newPortBldr.build)
+                tx.commit()
             }
-            tx.update(newPortBldr.build)
-            tx.commit()
-        }
-
-        if (update.isLeft) {
-            val e = update.left.get
-            log.error(s"Unable to bind port $portId to host $hostId", e)
-            throw e
+        } catch {
+            case NonFatal(e) =>
+                log.error(s"Unable to bind port $portId to host $hostId", e)
+                throw e
         }
     }
 
     def unbindPort(portId: UUID, hostId: UUID): Unit = {
         val pHostId = hostId.asProto
 
-        val update = retry(log.underlying, s"Unbinding port $portId") {
-            val tx = storage.transaction()
-            val oldPort = tx.get(classOf[Port], portId)
+        log debug s"Unbinding port $portId"
+        try {
+            storage.tryTransaction { tx =>
+                val oldPort = tx.get(classOf[Port], portId)
 
-            // Unbind only if the port is currently bound to an interface on
-            // the same host.  This is necessary since in Nova, bind on the
-            // new host happens before unbind on live migration, and we don't
-            // want remove the existing binding on the new host.
-            if (oldPort.hasHostId && oldPort.getHostId == pHostId) {
-                val newPort = oldPort.toBuilder
-                    .clearHostId()
-                    .clearInterfaceName()
-                    .setPreviousHostId(pHostId)
-                    .build()
-                tx.update(newPort)
-                tx.commit()
+                // Unbind only if the port is currently bound to an interface on
+                // the same host.  This is necessary since in Nova, bind on the
+                // new host happens before unbind on live migration, and we don't
+                // want remove the existing binding on the new host.
+                if (oldPort.hasHostId && oldPort.getHostId == pHostId) {
+                    val newPort = oldPort.toBuilder
+                        .clearHostId()
+                        .clearInterfaceName()
+                        .setPreviousHostId(pHostId)
+                        .build()
+                    tx.update(newPort)
+                    tx.commit()
+                }
             }
-        }
-
-        if (update.isLeft) {
-            val e = update.left.get
-            log.error(s"Unable to unbind port $portId from host $hostId", e)
-            throw e
+        } catch {
+            case NonFatal(e) =>
+                log.error(s"Unable to unbind port $portId from host $hostId", e)
+                throw e
         }
     }
 
