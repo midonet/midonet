@@ -32,6 +32,7 @@ LOG = logging.getLogger(__name__)
 
 UPLINK_VETH_MAC = '2e:0e:2f:68:00:11'
 DOWNLINK_VETH_MAC = '2e:0e:2f:68:00:22'
+DOWNLINK_VETH_MAC_2 = '2e:0e:2f:68:00:33'
 
 class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
     def cleanup_veth(self, container, name):
@@ -94,43 +95,41 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         except:
             LOG.error("Erroring deleting interface %s from vpp" % port)
 
-    def add_port_to_vpp(self, container, port, mac, address):
+    def add_port_to_vpp(self, container, port, mac, address, vrf=0):
         cont = service.get_container_by_hostname(container)
         self.addCleanup(self.del_port_from_vpp, container, port)
         cont.vppctl('create host-interface name %s hw-addr %s' % (port, mac))
         cont.vppctl('set int state host-%s up' % port)
+        if vrf != 0:
+            cont.vppctl('set int ip table host-%s %d' % (port, vrf))
         cont.vppctl('set int ip address host-%s %s' % (port, address))
 
-    def del_route_from_vpp(self, container, prefix, via, port):
+    def del_route_from_vpp(self, container, prefix, via, port, vrf):
         cont = service.get_container_by_hostname(container)
         try:
             cont.vppctl('ip route del %s' % (prefix))
         except:
             LOG.error("Erroring deleting route %s from vpp" % prefix)
 
-    def add_route_to_vpp(self, container, prefix, via, port):
+    def add_route_to_vpp(self, container, prefix, via, port, vrf=0):
         cont = service.get_container_by_hostname(container)
-        self.addCleanup(self.del_route_from_vpp, container, prefix, via, port)
+        self.addCleanup(self.del_route_from_vpp, container, prefix, via, port, vrf)
         cont.vppctl('ip route add %s via %s host-%s' % (prefix, via, port))
 
-    def setup_map_t(self, container, ip4prefix, ip6prefix, ip6src):
+    def setup_fip64(self, container, ip6ext, ip6fip, ip4fip64, ip4fixed, tableId=0):
         cont = service.get_container_by_hostname(container)
-        cont.vppctl("map add domain ip4-pfx " + ip4prefix
-                    + "ip6-pfx " + ip6prefix + " ea-bits-len 8"
-                    + " psid-offset 0 psid-len 0 ip6-src " + ip6src +" map-t")
-
-    def setup_fip64(self, container, ip6ext, ip6fip, ip4fip64, ip4fixed):
-        cont = service.get_container_by_hostname(container)
-        cont.vppctl("fip64 add %s %s %s %s" % (ip6ext,
+        cont.vppctl("fip64 add %s %s %s %s table %d" % (ip6ext,
                                                ip6fip,
                                                ip4fip64,
-                                               ip4fixed))
+                                               ip4fixed,
+                                               tableId))
 
     def cleanup_remote_host(self, container, interface):
         cont = service.get_container_by_hostname(container)
         cont.exec_command('ip r del 100.0.0.0/8')
         cont.exec_command('ip a del 2001::2/64 dev %s' % interface)
         cont.exec_command('ip -6 r del cccc:bbbb::/32')
+        cont.exec_command('ip -6 r del cccc:cccc::/32')
 
         cont.exec_command('ip netns delete ip6')
 
@@ -141,6 +140,7 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont.try_command_blocking('ip r add 100.0.0.0/8 via 10.1.0.1')
         cont.try_command_blocking('ip a add 2001::2/64 dev %s' % interface)
         cont.try_command_blocking('ip -6 r add cccc:bbbb::/32 via 2001::1')
+        cont.try_command_blocking('ip -6 r add cccc:cccc::/32 via 2001::1')
 
         # enable ip6 forwarding
         cont.try_command_blocking('sysctl net.ipv6.conf.all.forwarding=1')
@@ -204,6 +204,7 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
     def __init__(self):
         super(UplinkWithVPP, self).__init__()
         self.uplink_port = {}
+        self.vrf = 0
 
     def build(self, binding_data=None):
         self._edgertr = self.create_router("edge")
@@ -223,7 +224,61 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         self.flush_neighbours('quagga1', 'bgp1')
         self.flush_neighbours('midolman1', 'bgp0')
 
+    def addTenant(self, name, pubnet, pubsubnet, uplinkPortName, mac, port_name):
 
+        self.vrf += 1
+
+        dlink_vpp_name = name + '-dv'
+        dlink_ovs_name = name + '-do'
+
+        # build internal network
+        tenantrtr = self.create_router(name)
+        self.set_router_gateway(tenantrtr, pubnet)
+
+        privnet = self.create_network("private-" + name)
+        privsubnet = self.create_subnet("privatesubnet-" + name,
+                                        privnet,
+                                        '20.0.0.0/26')
+        self.add_router_interface(tenantrtr, subnet=privsubnet)
+
+        port1 = self.create_port(port_name, privnet)
+        self.create_sg_rule(port1['security_groups'][0])
+
+        # wire up downlink
+        self.create_veth_pair('midolman1', dlink_vpp_name, dlink_ovs_name,
+                              ep1mac=mac)
+        self.add_port_to_vpp('midolman1',
+                             port=dlink_vpp_name,
+                             mac=mac,
+                             address='10.0.0.1/24',
+			     vrf=self.vrf)
+        self.add_route_to_vpp('midolman1',
+                              prefix='::/0',
+                              via='2001::2',
+                              port=uplinkPortName)
+        self.add_route_to_vpp('midolman1',
+                              prefix="20.0.0.0/26",
+                              via="10.0.0.2",
+                              port=dlink_vpp_name,
+                              vrf=self.vrf)
+
+        # hook up downlink to topology
+        mn_tenant_downlink = self.add_mn_router_port(
+                                                name,
+                                                tenantrtr['id'],
+                                                "10.0.0.2",
+                                                "10.0.0.0",
+                                                24)
+        self.add_mn_route(tenantrtr['id'],
+                          "0.0.0.0/0",
+                          "10.0.0.0/24",
+                          port=mn_tenant_downlink.get_id())
+        self.add_mn_route(tenantrtr['id'],
+                          "0.0.0.0/0",
+                          "20.0.0.64/26",
+                          via="10.0.0.1",
+                          port=mn_tenant_downlink.get_id())
+        return self.vrf
 
 # Neutron topology with a single tenant and uplink
 # configured
@@ -231,63 +286,69 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
     def build(self, binding_data=None):
         super(SingleTenantAndUplinkWithVPP, self).build(binding_data)
 
-        # build internal network
         pubnet = self.create_network("public", external=True)
         pubsubnet = self.create_subnet("publicsubnet",
-                                       pubnet, "100.0.0.0/8")
-        tenantrtr = self.create_router("tenant")
-        self.set_router_gateway(tenantrtr, pubnet)
+                                            pubnet,
+                                            "100.0.0.0/8")
 
-        privnet = self.create_network("private")
-        privsubnet = self.create_subnet("privatesubnet",
-                                        privnet, "20.0.0.0/26")
-        self.add_router_interface(tenantrtr, subnet=privsubnet)
-
-        port1 = self.create_port("port1", privnet)
-        self.create_sg_rule(port1['security_groups'][0])
+        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
+        uplink_port_name = 'vpp-' + uplink_port_id[0:8]
 
         # add to the edge router
         self.add_router_interface(self._edgertr, subnet=pubsubnet)
 
-        # wire up downlink
         global DOWNLINK_VETH_MAC
-        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
 
-        self.create_veth_pair('midolman1', 'downlink-vpp', 'downlink-ovs',
-                              ep1mac=DOWNLINK_VETH_MAC)
-        self.add_port_to_vpp('midolman1',
-                             port='downlink-vpp',
-                             mac=DOWNLINK_VETH_MAC,
-                             address='10.0.0.1/24')
-        self.add_route_to_vpp('midolman1',
-                              prefix='bbbb::/48',
-                              via='2001::2',
-                              port='vpp-'+uplink_port_id[0:8])
-        self.add_route_to_vpp('midolman1',
-                              prefix='20.0.0.0/26',
-                              via='10.0.0.2',
-                              port='downlink-vpp')
-
-        # hook up downlink to topology
-        mn_tenant_downlink = self.add_mn_router_port(
-            "downlink", tenantrtr['id'], "10.0.0.2", "10.0.0.0", 24)
-        self.add_mn_route(tenantrtr['id'], "0.0.0.0/0", "10.0.0.0/24",
-                          port=mn_tenant_downlink.get_id())
-        self.add_mn_route(tenantrtr['id'], "0.0.0.0/0", "20.0.0.64/26",
-                          via="10.0.0.1",
-                          port=mn_tenant_downlink.get_id())
+        vrf = self.addTenant('tenant', pubnet, pubsubnet, uplink_port_name, DOWNLINK_VETH_MAC, 'port1')
         self.setup_fip64("midolman1",
-                         ip6ext = "bbbb::2",
-                         ip6fip = "cccc:bbbb::2",
+                         ip6ext = 'bbbb::2',
+                         ip6fip = 'cccc:bbbb::2',
                          ip4fip64 = "20.0.0.65",
-                         ip4fixed = "20.0.0.2")
+                         ip4fixed = "20.0.0.2",
+                         tableId=vrf)
+
+# Neutron topology with a 3 tenants and uplink
+# configured
+class MultiTenantAndUplinkWithVPP(UplinkWithVPP):
+    def build(self, binding_data=None):
+        super(MultiTenantAndUplinkWithVPP, self).build(binding_data)
+
+        pubnet = self.create_network("public", external=True)
+        pubsubnet = self.create_subnet("publicsubnet",
+                                            pubnet,
+                                            "100.0.0.0/8")
+
+        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
+        uplink_port_name = 'vpp-' + uplink_port_id[0:8]
+
+        # add to the edge router
+        self.add_router_interface(self._edgertr, subnet=pubsubnet)
+
+        global DOWNLINK_VETH_MAC
+        global DOWNLINK_VETH_MAC_2
+
+        vrf = self.addTenant('tenant1', pubnet, pubsubnet, uplink_port_name, DOWNLINK_VETH_MAC, 'port1')
+        self.setup_fip64("midolman1",
+                         ip6ext = 'bbbb::2',
+                         ip6fip = 'cccc:bbbb::2',
+                         ip4fip64 = "20.0.0.65",
+                         ip4fixed = "20.0.0.2",
+                         tableId = vrf)
+
+        vrf = self.addTenant('tenant2', pubnet, pubsubnet, uplink_port_name, DOWNLINK_VETH_MAC_2, 'port2')
+        self.setup_fip64("midolman1",
+                         ip6ext = 'bbbb::2',
+                         ip6fip = 'cccc:cccc::2',
+                         ip4fip64 = "20.0.0.65",
+                         ip4fixed = "20.0.0.2",
+                         tableId = vrf)
 
 binding_empty = {
     'description': 'nothing bound',
     'bindings': []
 }
 
-binding_multihost = {
+binding_multihost_singletenant = {
     'description': 'spanning across 2 midolman',
     'bindings': [
          {'vport': 'port1',
@@ -296,9 +357,39 @@ binding_multihost = {
              'hostname': 'midolman2',
              'type': 'vmguest'
          }},
-         {'vport': 'downlink',
+         {'vport': 'tenant',
          'interface': {
-             'definition': { 'ifname': 'downlink-ovs' },
+             'definition': { 'ifname': 'tenant-do' },
+             'hostname': 'midolman1',
+             'type': 'provided'
+         }}
+    ]
+}
+
+binding_multihost_multitenant = {
+    'description': 'spanning across 3 midolman',
+    'bindings': [
+         {'vport': 'port1',
+         'interface': {
+             'definition': { "ipv4_gw": "20.0.0.1" },
+             'hostname': 'midolman2',
+             'type': 'vmguest'
+         }},
+         {'vport': 'tenant1',
+         'interface': {
+             'definition': { 'ifname': 'tenant1-do' },
+             'hostname': 'midolman1',
+             'type': 'provided'
+         }},
+         {'vport': 'port2',
+         'interface': {
+             'definition': { "ipv4_gw": "20.0.0.1" },
+             'hostname': 'midolman3',
+             'type': 'vmguest'
+         }},
+         {'vport': 'tenant2',
+         'interface': {
+             'definition': { 'ifname': 'tenant2-do' },
              'hostname': 'midolman1',
              'type': 'provided'
          }}
@@ -328,7 +419,7 @@ def test_uplink_ipv6():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_multihost,
+@bindings(binding_multihost_singletenant,
           binding_manager=BindingManager(vtm=SingleTenantAndUplinkWithVPP()))
 def test_ping_vm_ipv6():
     """
@@ -336,3 +427,12 @@ def test_ping_vm_ipv6():
     """
     ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')
 
+@attr(version="v1.2.0")
+@bindings(binding_multihost_multitenant,
+          binding_manager=BindingManager(vtm=MultiTenantAndUplinkWithVPP()))
+def test_ping_multi_vms_ipv6():
+    """
+    Title: ping two VMs in a IPv4 neutron topology from a remote IPv6 endpoint
+    """
+    ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')
+    ping_from_inet('quagga1', 'cccc:cccc::2', 10, namespace='ip6')
