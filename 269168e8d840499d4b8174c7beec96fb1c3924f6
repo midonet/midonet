@@ -22,6 +22,30 @@
       "revId": "269168e8d840499d4b8174c7beec96fb1c3924f6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_79c4f25e",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-10-11T15:21:10Z",
+      "side": 1,
+      "message": "This is the one for el7. I guess it only can be either el7 or sles7 by now, but maybe I am wrong. I think is better to fail and fix in case an unknown tag is provided. Now that you mention, I only put a warning on the defaul clause of the switch, so it could be missed, leaving RPMs without Java dependencies.",
+      "parentUuid": "baa041b7_f90a42d0",
+      "range": {
+        "startLine": 212,
+        "startChar": 11,
+        "endLine": 212,
+        "endChar": 59
+      },
+      "revId": "269168e8d840499d4b8174c7beec96fb1c3924f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
