@@ -37,6 +37,7 @@ import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.VppApi
+import org.midonet.util.concurrent.SingleThreadExecutionContextProvider
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.process.MonitoredDaemonProcess
@@ -64,13 +65,14 @@ object VppController extends Referenceable {
 class VppController @Inject()(config: MidolmanConfig,
                               upcallConnManager: UpcallDatapathConnectionManager,
                               datapathState: DatapathState)
-    extends ReactiveActor[AnyRef] with ActorLogWithoutPath {
+    extends ReactiveActor[AnyRef] with ActorLogWithoutPath
+        with SingleThreadExecutionContextProvider {
 
     import org.midonet.midolman.VppController._
 
     override def logSource = "org.midonet.vpp-controller"
 
-    private implicit val ec: ExecutionContext = context.system.dispatcher
+    private implicit val ec: ExecutionContext = singleThreadExecutionContext
 
     private var vppProcess: MonitoredDaemonProcess = _
     private var vppApi: VppApi = _
@@ -106,8 +108,7 @@ class VppController @Inject()(config: MidolmanConfig,
         super.postStop()
     }
 
-
-    override def receive: Receive = {
+    override def receive: Receive = super.receive orElse {
         case LocalPortActive(portId, portNumber, true) =>
             handlePortActive(portId)
         case LocalPortActive(portId, portNumber, false) =>
