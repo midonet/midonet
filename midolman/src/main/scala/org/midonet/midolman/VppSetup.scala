@@ -24,6 +24,7 @@ import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.vpp.VppApi
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
+import org.midonet.packets.{IPAddr, IPv6Addr, MAC}
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
 
 object VppSetup extends MidolmanLogging {
@@ -31,11 +32,11 @@ object VppSetup extends MidolmanLogging {
     override def logSource = s"org.midonet.vpp-setup"
 
     private trait MacAddressProvider {
-        def macAddress: Option[Array[Byte]]
+        def macAddress: Option[MAC]
     }
 
     private trait VppInterfaceProvider {
-        def vppInterface: Option[Int]
+        def vppInterface: Option[VppApi.Device]
     }
 
     private class VethPairSetup(override val name: String,
@@ -44,12 +45,12 @@ object VppSetup extends MidolmanLogging {
                                (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback with MacAddressProvider {
 
-        var macAddress: Option[Array[Byte]] = None
+        var macAddress: Option[MAC] = None
 
         @throws[Exception]
         override def execute(): Future[Any] = Future {
             val veth = LinkOps.createVethPair(devName, peerName, up=true)
-            macAddress = Some(veth.dev.mac.getAddress)
+            macAddress = Some(veth.dev.mac)
         }
 
         @throws[Exception]
@@ -65,48 +66,43 @@ object VppSetup extends MidolmanLogging {
                            (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback with VppInterfaceProvider {
 
-        var vppInterface: Option[Int] = None
+        var vppInterface: Option[VppApi.Device] = None
 
         @throws[Exception]
         override def execute(): Future[Any] = {
             vppApi.createDevice(deviceName, macSource.macAddress)
-                .flatMap[Int] { result =>
-                    vppApi.setDeviceAdminState(result.swIfIndex,
-                                               isUp = true)
-                        .map( _ => result.swIfIndex)
-                } andThen {
-                    case Success(index) => vppInterface = Some(index)
-                }
+                .flatMap { device => {
+                              vppInterface = Some(device)
+                              vppApi.setDeviceAdminState(device, isUp = true)
+                          }}
         }
 
         @throws[Exception]
         override def rollback(): Future[Any] = {
-            vppApi.deleteDevice(deviceName)
+            if (vppInterface.isDefined) {
+                vppApi.deleteDevice(vppInterface.get)
+            } else {
+                Future.successful(Unit)
+            }
         }
     }
 
     private class VppIpAddr(override val name: String,
                             vppApi: VppApi,
-                            deviceId: VppInterfaceProvider,
-                            address: Array[Byte],
-                            prefix: Byte)
+                            device: VppInterfaceProvider,
+                            address: IPAddr,
+                            prefixLen: Byte)
                            (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
-        require(address.length == 4 || address.length == 16)
 
         @throws[Exception]
-        override def execute(): Future[Any] = addDelIpAddress(isAdd = true)
+        override def execute(): Future[Any] =
+            vppApi.addDeviceAddress(device.vppInterface.get, address, prefixLen)
 
         @throws[Exception]
-        override def rollback(): Future[Any] = addDelIpAddress(isAdd = false)
-
-        private def addDelIpAddress(isAdd: Boolean) = {
-            vppApi.addDelDeviceAddress(deviceId.vppInterface.get,
-                                       address,
-                                       prefix,
-                                       isIpv6 = address.length != 4,
-                                       isAdd)
-        }
+        override def rollback(): Future[Any] =
+            vppApi.deleteDeviceAddress(device.vppInterface.get,
+                                       address, prefixLen)
     }
 
     private class OvsBind(override val name: String,
@@ -198,8 +194,8 @@ class VppSetup(uplinkPort: RouterPort,
     private val uplinkSuffix = uplinkPort.id.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
     private val uplinkOvsName = s"ovs-$uplinkSuffix"
-    private val uplinkVppAddr = Array[Byte](0x20, 0x01, 0, 0, 0, 0, 0, 0,
-                                            0, 0, 0, 0, 0, 0, 0, 0x1)
+    private val uplinkVppAddr = IPv6Addr.fromString("2001::1")
+
     private val uplinkVppPrefix: Byte = 64
 
     private val uplinkVeth = new VethPairSetup("uplink veth pair",

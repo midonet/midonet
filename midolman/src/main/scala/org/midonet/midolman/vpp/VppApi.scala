@@ -27,10 +27,13 @@ import org.openvpp.jvpp.core.JVppCoreImpl
 import org.openvpp.jvpp.core.dto._
 import org.openvpp.jvpp.core.future.FutureJVppCoreFacade
 
+import org.midonet.packets.{IPAddr, IPv6Addr, IPSubnet, IPv6Subnet, MAC}
+
 /**
   * Midonet wrapper for VPP java API
   */
 object VppApi {
+    case class Device(name: String, swIfIndex: Int)
 
     private def toScalaFuture[T](cs: CompletionStage[T])
                                 (implicit ec: ExecutionContext): Future[T] = {
@@ -59,7 +62,8 @@ object VppApi {
     }
 }
 
-class VppApi(connectionName: String)(implicit ec: ExecutionContext) {
+class VppApi(connectionName: String)(implicit ec: ExecutionContext)
+        extends AutoCloseable {
 
     import VppApi._
 
@@ -67,35 +71,41 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext) {
     private val coreLib = new JVppCoreImpl
     private val lib = new FutureJVppCoreFacade(registry, coreLib)
 
+    def close(): Unit = {
+        registry.close()
+    }
+
     /** equivalent to:
      * vpp# delete host-interface name <name> */
-    def deleteDevice(name: String): Future[AfPacketDeleteReply] = {
+    def deleteDevice(device: Device): Future[Any] = {
         val request = new AfPacketDelete
-        request.hostIfName = name.toCharArray.map(_.toByte)
+        request.hostIfName = device.name.toCharArray.map(_.toByte)
         execVppRequest(request, lib.afPacketDelete)
     }
 
     /** equivalent to:
     * vpp# create host-interface name <name> [hw-addr 01:02:03:04:05:06]*/
     def createDevice(name: String,
-                     mac: Option[Array[Byte]]): Future[AfPacketCreateReply] = {
+                     mac: Option[MAC]): Future[Device] = {
 
         val request = new AfPacketCreate
         request.hostIfName = name.toCharArray.map(_.toByte)
         mac match {
             case Some(addr) =>
-                request.hwAddr = addr
+                request.hwAddr = addr.getAddress
                 request.useRandomHwAddr = 0
             case None =>
                 request.useRandomHwAddr = 1
         }
-        execVppRequest(request, lib.afPacketCreate)
+        execVppRequest(request, lib.afPacketCreate) map {
+            result => Device(name, result.swIfIndex)
+        }
     }
 
     /** equivalent to:
      * vpp# set int state <interface> up */
-    def setDeviceAdminState(ifIndex: Int,
-                            isUp: Boolean): Future[SwInterfaceSetFlagsReply] = {
+    def setDeviceAdminState(device: Device,
+                            isUp: Boolean): Future[Any] = {
         val setUpMsg = new SwInterfaceSetFlags
         setUpMsg.adminUpDown = if (isUp) {
             1
@@ -107,22 +117,20 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext) {
         // like this in example code, for example in:
         // https://wiki.fd.io/view/VPP/How_To_Use_The_API_Trace_Tools
         setUpMsg.linkUpDown = 0
-        setUpMsg.swIfIndex = ifIndex
+        setUpMsg.swIfIndex = device.swIfIndex
         execVppRequest(setUpMsg, lib.swInterfaceSetFlags)
     }
 
     /** equivalent to:
      * vpp# set int ip address <address>/<prefix> <interface> */
-    def addDelDeviceAddress(ifIndex: Int,
-                            address: Array[Byte],
-                            addressLength: Byte,
-                            isIpv6: Boolean,
-                            isAdd: Boolean,
-                            deleteAll: Boolean = false)
-    : Future[SwInterfaceAddDelAddressReply] = {
+    private def addDelDeviceAddress(device: Device,
+                                    address: IPAddr,
+                                    addressPrefixLen: Byte,
+                                    isAdd: Boolean,
+                                    deleteAll: Boolean = false): Future[Any] = {
         val msg = new SwInterfaceAddDelAddress
-        msg.address = address
-        msg.addressLength = addressLength
+        msg.address = address.toBytes
+        msg.addressLength = addressPrefixLen
         msg.delAll = if (deleteAll) {
             1
         } else {
@@ -133,33 +141,41 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext) {
         } else {
             0
         }
-        msg.isIpv6 = if (isIpv6) {
+        msg.isIpv6 = if (address.isInstanceOf[IPv6Addr]) {
             1
         } else {
             0
         }
-        msg.swIfIndex = ifIndex
+        msg.swIfIndex = device.swIfIndex
         execVppRequest(msg, lib.swInterfaceAddDelAddress)
     }
 
+    def addDeviceAddress(device: Device,
+                         address: IPAddr,
+                         addressPrefixLen: Byte): Future[Any] =
+        addDelDeviceAddress(device, address, addressPrefixLen, true)
+
+    def deleteDeviceAddress(device: Device,
+                            address: IPAddr,
+                            addressPrefixLen: Byte): Future[Any] =
+        addDelDeviceAddress(device, address, addressPrefixLen, false)
+
     /** equivalent to:
      * ip route add/del address/prefix via nextHop */
-    def addDelRoute(address: Array[Byte],
-                    prefix: Byte,
-                    nextHop: Option[Array[Byte]],
-                    device: Option[Int],
-                    isAdd: Boolean,
-                    isIpv6: Boolean,
-                    multiplath: Boolean = false): Future[IpAddDelRouteReply] = {
+    private def addDelRoute(subnet: IPSubnet[_ <: IPAddr],
+                            nextHop: Option[IPAddr],
+                            device: Option[Device],
+                            isAdd: Boolean,
+                            multipath: Boolean = false): Future[Any] = {
         val routeMsg = new IpAddDelRoute
-        routeMsg.dstAddress = address
-        routeMsg.dstAddressLength = prefix
+        routeMsg.dstAddress = subnet.getAddress.toBytes
+        routeMsg.dstAddressLength = subnet.getPrefixLen.toByte
         routeMsg.isAdd = if (isAdd) {
             1
         } else {
             0
         }
-        routeMsg.isIpv6 = if (isIpv6) {
+        routeMsg.isIpv6 = if (subnet.isInstanceOf[IPv6Subnet]) {
             1
         } else {
             0
@@ -176,19 +192,31 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext) {
 
         // this seems to be set automatically when you add more than
         // one route to the same destination, not sure
-        routeMsg.isMultipath = if (multiplath) {
+        routeMsg.isMultipath = if (multipath) {
             1
         } else {
             0
         }
 
         if (nextHop.isDefined) {
-            routeMsg.nextHopAddress = nextHop.get
+            routeMsg.nextHopAddress = nextHop.get.toBytes
         }
         if (device.isDefined) {
-            routeMsg.nextHopSwIfIndex = device.get
+            routeMsg.nextHopSwIfIndex = device.get.swIfIndex
         }
         execVppRequest(routeMsg, lib.ipAddDelRoute)
+    }
+
+    def addRoute(subnet: IPSubnet[_ <: IPAddr],
+                 nextHop: Option[IPAddr] = None,
+                 device: Option[Device] = None): Future[Any] = {
+        addDelRoute(subnet, nextHop, device, isAdd=true)
+    }
+
+    def deleteRoute(subnet: IPSubnet[_ <: IPAddr],
+                 nextHop: Option[IPAddr] = None,
+                 device: Option[Device] = None): Future[Any] = {
+        addDelRoute(subnet, nextHop, device, isAdd=false)
     }
 
     /** equivalent to:
