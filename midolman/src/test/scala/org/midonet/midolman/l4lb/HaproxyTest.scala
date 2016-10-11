@@ -28,9 +28,10 @@ import scala.concurrent.Future
 
 import akka.actor.{Actor, ActorRef, Props}
 import akka.testkit.TestActorRef
+
 import com.typesafe.config.{Config, ConfigFactory}
+
 import org.apache.commons.io.FileUtils
-import org.apache.curator.framework.recipes.locks.InterProcessLock
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.Mockito.{mock, spy, times, verify}
@@ -38,7 +39,6 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.SpanSugar
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.{HealthMonitor => protoHM, _}
@@ -70,7 +70,6 @@ class HaproxyTest extends MidolmanSpec
     var hmSystem: ActorRef = _
     var backend: MidonetBackend = _
     var conf = mock(classOf[MidolmanConfig])
-    var lockFactory: ZookeeperLockFactory = _
     var poolConfig: PoolConfig = _
     var checkHealthReceived = 0
     var haProxy: TestableHaproxy = _
@@ -165,10 +164,9 @@ class HaproxyTest extends MidolmanSpec
 
     class TestableHaproxy(config: PoolConfig, hm: ActorRef, routerId: UUID,
                           store: Storage, hostId: UUID,
-                          lockFactory: ZookeeperLockFactory,
                           seqDispenser: SequenceDispenser)
         extends HaproxyHealthMonitor(config, hm, routerId, store, hostId,
-                                     lockFactory, seqDispenser) {
+                                     seqDispenser) {
 
         var shouldWriteConf = false
 
@@ -192,8 +190,8 @@ class HaproxyTest extends MidolmanSpec
         }
     }
 
-    class TestableHealthMonitor extends HMSystem(conf, backend, lockFactory,
-                                                 curator = null, backendCfg) {
+    class TestableHealthMonitor extends HMSystem(conf, backend, curator = null,
+                                                 backendCfg) {
 
         override val seqDispenser = new SequenceDispenser(null, backendCfg) {
             private val mockCounter = new AtomicInteger(100)
@@ -215,8 +213,7 @@ class HaproxyTest extends MidolmanSpec
             context.actorOf(
                 Props({
                     haProxy = new TestableHaproxy(config, self, routerId,
-                                                  store, hostId, lockFactory,
-                                                  seqDispenser)
+                                                  store, hostId, seqDispenser)
                     haProxy
                 }).withDispatcher(context.props.dispatcher),
                 config.id.toString)
@@ -238,22 +235,6 @@ class HaproxyTest extends MidolmanSpec
     override def beforeTest(): Unit = {
         backend = injector.getInstance(classOf[MidonetBackend])
         conf = injector.getInstance(classOf[MidolmanConfig])
-        lockFactory = mock(classOf[ZookeeperLockFactory])
-
-        val mutex = new InterProcessLock() {
-            val realLock = new ReentrantLock()
-            def acquire(): Unit = realLock.lock()
-            def acquire(time: Long, unit: TimeUnit): Boolean =
-                realLock.tryLock(time, unit)
-            def isAcquiredInThisProcess(): Boolean =
-                realLock.isHeldByCurrentThread()
-            def release(): Unit = realLock.unlock()
-        }
-
-        Mockito.when(
-            lockFactory.createShared(ZookeeperLockFactory.ZOOM_TOPOLOGY))
-            .thenReturn(mutex)
-
         HMSystem.ipCommand = mock(classOf[IP])
 
         val host = Host.newBuilder
@@ -266,10 +247,6 @@ class HaproxyTest extends MidolmanSpec
 
     override def afterTest(): Unit = {
         actorSystem.stop(hmSystem)
-
-        val protoHostId = UUIDUtil.toProto(hostId)
-        HealthMonitor.zkLock(lockFactory)(
-            backend.store.delete(classOf[Host], protoHostId))
     }
 
     private def checkCreateNameSpace(hmName: String): Unit = {
