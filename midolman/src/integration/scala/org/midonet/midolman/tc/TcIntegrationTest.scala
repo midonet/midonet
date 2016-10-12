@@ -25,7 +25,7 @@ import org.scalatest.{FeatureSpec, ShouldMatchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.host.services.TcRequestHandler
-import org.midonet.netlink._
+import org.midonet.netlink.NetlinkChannelFactory
 import org.midonet.netlink.rtnetlink.LinkOps
 
 @RunWith(classOf[JUnitRunner])
@@ -34,6 +34,8 @@ class TcIntegrationTest extends FeatureSpec
                         with ShouldMatchers {
 
     val log = LoggerFactory.getLogger(classOf[TcIntegrationTest])
+
+    val factory = new NetlinkChannelFactory
 
     def verifyIngressQdisc(dev: String, noQdisc: Boolean = false): Unit = {
         eventually {
@@ -49,8 +51,6 @@ class TcIntegrationTest extends FeatureSpec
             (filters contains rateStr) shouldBe true
         }
     }
-
-    val factory = new NetlinkChannelFactory()
 
     feature("write TC config") {
         scenario("add new tc config") {
@@ -92,6 +92,7 @@ class TcIntegrationTest extends FeatureSpec
 
             val handler = new TcRequestHandler(factory)
             handler.startAsync().awaitRunning()
+
             try {
                 val veth1 = LinkOps.createVethPair(devName1, s"p$devName1")
                 val r1 = 300
