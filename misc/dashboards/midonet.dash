@@ -2,7 +2,7 @@
 title = MidoNet Review Inbox
 description = Review Inbox
 baseurl = https://review.gerrithub.io/#/dashboard/?
-foreach = (project:midonet/midonet) status:open NOT owner:self NOT label:Workflow<=-1 label:Verified>=1,Monitor@midokura.com NOT label:Code-Review>=-2,self
+foreach = (project:midonet/midonet OR project:midokura/midonet) status:open NOT owner:self NOT label:Workflow<=-1 label:Verified>=1,Monitor@midokura.com NOT label:Code-Review>=-2,self
 
 [section "Needs Feedback (Changes older than 5 days that have not been reviewed by anyone)"]
 query = NOT label:Code-Review<=2 age:5d branch:master
@@ -28,5 +28,8 @@ query = branch:staging/v5.0
 [section "staging/v2015.06"]
 query = branch:staging/v2015.06
 
+[section "staging/v1.9 (Midokura private)"]
+query = branch:staging/v1.9
+
 [section "other branches"]
-query = NOT branch:master AND NOT branch:staging/v5.2 AND NOT branch:staging/v5.0 AND NOT branch:staging/v2015.06
+query = NOT branch:master AND NOT branch:staging/v5.2 AND NOT branch:staging/v5.0 AND NOT branch:staging/v2015.06 AND NOT branch:staging/v1.9
