@@ -16,34 +16,73 @@
 package org.midonet.midolman.management
 
 import java.lang.management._
-import java.util.HashSet
+import java.util
+
 import javax.management._
 
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
-import org.midonet.management.MeteringMXBean
+import org.midonet.management.{FlowMeters, FlowStats, MeteringMXBean}
 import org.midonet.midolman.monitoring.MeterRegistry
-import org.midonet.management.FlowStats
 
 object Metering extends MeteringMXBean {
-    val log = Logger(LoggerFactory.getLogger("org.midonet.midolman.management"))
+    private val Log =
+        Logger(LoggerFactory.getLogger("org.midonet.midolman.management"))
 
     private var registries = List[MeterRegistry]()
+    @volatile private var flowMeters: Array[FlowMeters] = _
 
     override def listMeters = {
-        val keys = new HashSet[String]
+        val keys = new util.HashSet[String]
         registries foreach { keys addAll _.meters.keySet() }
         keys.toArray(new Array[String](keys.size()))
     }
 
-    override def getMeter(name: String) =
+    override def getMeter(name: String) = {
         registries.foldLeft(new FlowStats()) { (acc, r) =>
             val meter = r.meters.get(name)
             if (meter ne null)
                 acc.add(meter)
             acc
         }
+    }
+
+    override def getMeters: Array[FlowMeters] = {
+        var meters = flowMeters
+        val r = registries
+        if ((meters eq null) || meters.length < r.length) {
+            meters = new Array[FlowMeters](r.length)
+            var index = 0
+            while (index < meters.length) {
+                meters(index) = new FlowMeters(index, r(index).meters)
+                index += 1
+            }
+            flowMeters = meters
+        }
+        meters
+    }
+
+    override def getConsolidatedMeters: FlowMeters = {
+        val iterator = registries.iterator
+        val meters = new util.HashMap[String, FlowStats]()
+        while (iterator.hasNext) {
+            val i = iterator.next().meters.entrySet().iterator()
+            while (i.hasNext) {
+                val entry = i.next()
+                val stats = meters.get(entry.getKey)
+                if (stats eq null) {
+                    meters.put(entry.getKey, new FlowStats(
+                        entry.getValue.getPackets,
+                        entry.getValue.getBytes))
+                } else {
+                    stats.add(entry.getValue)
+                }
+            }
+        }
+        new FlowMeters(-1, meters)
+    }
 
     def registerAsMXBean(meters: MeterRegistry) = this.synchronized {
         try {
@@ -54,7 +93,7 @@ object Metering extends MeteringMXBean {
             }
         } catch {
             case e: Exception =>
-                log.error("Failed to register metering JMX bean", e)
+                Log.error("Failed to register metering JMX bean", e)
         }
     }
 }

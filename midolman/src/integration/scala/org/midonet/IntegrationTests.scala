@@ -21,6 +21,7 @@ object IntegrationTests {
     val defaultTests = List(/*classOf[org.midonet.RecircTest],*/
                             classOf[org.midonet.midolman.host.scanner.InterfaceScannerTest],
                             classOf[org.midonet.quagga.BgpdTest]) map { _.getCanonicalName }
+
     def main(args: Array[String]): Unit = {
         if (args.length == 0) {
             JUnitCore.main(defaultTests:_*)
