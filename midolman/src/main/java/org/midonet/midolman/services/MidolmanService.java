@@ -25,6 +25,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Inject;
+import org.midonet.midolman.host.services.QosService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +52,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject
     PacketWorkersService packetWorkersService;
+
+    @Inject
+    QosService qosService;
 
     @Inject
     DatapathService datapathService;
@@ -167,7 +171,7 @@ public class MidolmanService extends AbstractService {
     }
 
     private List<Service> services() {
-        ArrayList<Service> services = new ArrayList<>(7);
+        ArrayList<Service> services = new ArrayList<>(8);
         services.add(datapathService);
         services.add(selectLoopService);
         if (hostService != null)
@@ -176,6 +180,9 @@ public class MidolmanService extends AbstractService {
         services.add(actorsService);
         services.add(packetWorkersService);
         services.add(tcRequestHandler);
+        // qos service must be started after the VTPM because there
+        // is a direct dependency.
+        services.add(qosService);
         return services;
     }
 }
