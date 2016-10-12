@@ -20,12 +20,9 @@ import java.util.UUID
 import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.{Notification, Observable}
-
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{Router, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
