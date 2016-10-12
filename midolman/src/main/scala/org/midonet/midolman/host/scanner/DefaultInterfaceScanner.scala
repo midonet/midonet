@@ -27,7 +27,7 @@ import scala.collection.mutable
 
 import rx.observables.ConnectableObservable
 import rx.subjects.{BehaviorSubject, PublishSubject}
-import rx.{Observable, Observer, Subscription}
+import rx.{Observable, Observer, Scheduler, Subscription}
 
 import org.midonet.Util
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -364,8 +364,13 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
     notifications.subscribe(new ErrorReporter[Set[InterfaceDescription]])
 
     override
-    def subscribe(obs: Observer[Set[InterfaceDescription]]): Subscription = {
-        val subscription = notifications.subscribe(obs)
+    def subscribe(obs: Observer[Set[InterfaceDescription]],
+                  scheduler: Option[Scheduler] = None): Subscription = {
+        val subscription = scheduler match {
+            case Some(sched) => notifications.observeOn(sched).subscribe(obs)
+            case None => notifications.subscribe(obs)
+        }
+
         if (!isSubscribed) {
             isSubscribed = true
             notifications.connect()
