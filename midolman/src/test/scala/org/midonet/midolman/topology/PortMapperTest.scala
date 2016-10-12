@@ -27,7 +27,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.models.Topology.{Mirror => TopologyMirror, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.cluster.state.PortStateStorage._
@@ -35,7 +35,7 @@ import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.topology.TopologyBuilder._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
-import org.midonet.midolman.simulation.{BridgePort, RouterPort, VxLanPort, Port => SimPort}
+import org.midonet.midolman.simulation.{BridgePort, Mirror, RouterPort, VxLanPort, Port => SimPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.reactivex._
 
@@ -397,6 +397,81 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observer should receive a completed notification")
             obs.awaitCompletion(timeout)
             obs.getOnCompletedEvents should not be empty
+        }
+    }
+
+    feature("Test mirror updates") {
+        scenario("The port receives existing mirrors") {
+            Given("A port mapper")
+            val id = UUID.randomUUID
+            val mapper = new PortMapper(id, vt, mutable.Map())
+
+            And("Two mirrors")
+            val router = createRouter()
+            val port1 = createRouterPort(routerId = Some(router.getId))
+            val mirror1 = createMirror(toPort = port1.getId)
+            val mirror2 = createMirror(toPort = port1.getId)
+            val mirror3 = createMirror(toPort = port1.getId)
+            val mirror4 = createMirror(toPort = port1.getId)
+            store.multi(Seq(CreateOp(router), CreateOp(port1),
+                            CreateOp(mirror1), CreateOp(mirror2),
+                            CreateOp(mirror3), CreateOp(mirror4)))
+
+            And("A port")
+            val port = createRouterPort(id = id,
+                                        routerId = Some(router.getId),
+                                        inboundMirrorIds = Set(mirror1.getId),
+                                        outboundMirrorIds = Set(mirror2.getId),
+                                        postInFilterMirrorIds = Set(mirror3.getId),
+                                        preOutFilterMirrorIds = Set(mirror4.getId))
+            store.create(port)
+
+            And("An observer to the port mapper")
+            val obs = new DeviceObserver[SimPort](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0)
+            device1 shouldBeDeviceOf port
+
+            And("The virtual topology should have prefetched the mirrors")
+            VirtualTopology.tryGet(classOf[Mirror], mirror1.getId) shouldBeDeviceOf mirror1
+            VirtualTopology.tryGet(classOf[Mirror], mirror2.getId) shouldBeDeviceOf mirror2
+            VirtualTopology.tryGet(classOf[Mirror], mirror3.getId) shouldBeDeviceOf mirror3
+            VirtualTopology.tryGet(classOf[Mirror], mirror4.getId) shouldBeDeviceOf mirror4
+
+            When("The first mirror updates to a different port")
+            val port2 = createRouterPort(routerId = Some(router.getId))
+            val mirror5 = mirror1.toBuilder
+                .setToPortId(port2.getId)
+                .addPortInboundIds(port.getId)
+                .build()
+            store.multi(Seq(CreateOp(port2), UpdateOp(mirror5)))
+
+            Then("The virtual topology should have prefetched the mirrors")
+            VirtualTopology.tryGet(classOf[Mirror], mirror1.getId) shouldBeDeviceOf mirror5
+            VirtualTopology.tryGet(classOf[Mirror], mirror2.getId) shouldBeDeviceOf mirror2
+            VirtualTopology.tryGet(classOf[Mirror], mirror3.getId) shouldBeDeviceOf mirror3
+            VirtualTopology.tryGet(classOf[Mirror], mirror4.getId) shouldBeDeviceOf mirror4
+
+            When("The second mirror is deleted")
+            store.delete(classOf[TopologyMirror], mirror2.getId)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(1)
+            device2 shouldBeDeviceOf port
+
+            When("The fourth mirror is deleted")
+            store.delete(classOf[TopologyMirror], mirror4.getId)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(2)
+            device3 shouldBeDeviceOf port
         }
     }
 }
