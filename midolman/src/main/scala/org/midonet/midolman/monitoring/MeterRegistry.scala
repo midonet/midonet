@@ -19,16 +19,16 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.{ArrayList, HashMap => JHashMap}
 
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.FlowStats
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, MeterTag}
 import org.midonet.util.collection.ArrayObjectPool
+import org.midonet.management.{FlowMeterRegistry, FlowStats => JmxFlowStats}
 
-import org.midonet.management.{FlowStats => JmxFlowStats}
-
-class MeterRegistry(val maxFlows: Int) {
+class MeterRegistry(val maxFlows: Int) extends FlowMeterRegistry {
     val log = Logger(LoggerFactory.getLogger("org.midonet.metering"))
 
     class FlowData {
@@ -45,7 +45,7 @@ class MeterRegistry(val maxFlows: Int) {
     private val metadataPool = new ArrayObjectPool[FlowData]((maxFlows * 1.1).toInt,
                                                               pool => new FlowData())
 
-    val meters = new ConcurrentHashMap[String, JmxFlowStats]()
+    override val meters = new ConcurrentHashMap[String, JmxFlowStats]()
     private val trackedFlows = new JHashMap[FlowMatch, FlowData]()
     private val DELTA = new FlowStats()
 

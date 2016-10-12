@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.management;
 
-public interface MeteringMXBean {
-    String NAME = "org.midonet.midolman:type=Metering";
+import java.util.Map;
 
-    FlowStats getMeter(String name);
-    FlowMeters[] getMeters();
-    FlowMeters getConsolidatedMeters();
-    String[] listMeters();
+public interface FlowMeterRegistry {
+
+    Map<String, FlowStats> meters();
+
 }
