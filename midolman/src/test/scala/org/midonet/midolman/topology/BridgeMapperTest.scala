@@ -1741,7 +1741,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         scenario("The bridge receives existing mirrors") {
             val obs = createObserver()
 
-            Given("A chain mapper")
+            Given("A bridge mapper")
             val bridgeId = UUID.randomUUID
             val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
 
