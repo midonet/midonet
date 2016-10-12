@@ -109,6 +109,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ca267e66",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-12T10:07:21Z",
+      "side": 1,
+      "message": "i meant, if you create an extra router interface on the edge router, it will have the extra route similar to the one this patch provides?",
+      "parentUuid": "baa041b7_92a3289e",
+      "revId": "b62acdb6ab993ded516b0e9394355e2917264c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_31cb4855",
         "filename": "/COMMIT_MSG",
         "patchSetId": 11
