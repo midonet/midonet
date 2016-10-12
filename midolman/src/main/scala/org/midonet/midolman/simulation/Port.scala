@@ -81,7 +81,8 @@ object Port {
     private def routerPort(p: Topology.Port,
                            state: PortState,
                            infilters: JList[UUID],
-                           outfilters: JList[UUID]) = new RouterPort(
+                           outfilters: JList[UUID]) =
+        RouterPort(
             p.getId,
             infilters,
             outfilters,

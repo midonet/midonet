@@ -55,10 +55,13 @@ trait TopologyBuilder {
                          interfaceName: Option[String] = None,
                          adminStateUp: Boolean = false,
                          portGroupIds: Set[UUID] = Set.empty,
+                         inboundMirrorIds: Set[UUID] = Set.empty,
+                         outboundMirrorIds: Set[UUID] = Set.empty,
                          vlanId: Option[Int] = None): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
-            hostId, interfaceName, adminStateUp, portGroupIds)
+            hostId, interfaceName, adminStateUp, portGroupIds,
+            inboundMirrorIds, outboundMirrorIds)
         if (bridgeId.isDefined) builder.setNetworkId(bridgeId.get.asProto)
         if (vlanId.isDefined) builder.setVlanId(vlanId.get)
         builder.build()
@@ -75,6 +78,8 @@ trait TopologyBuilder {
                          interfaceName: Option[String] = None,
                          adminStateUp: Boolean = false,
                          portGroupIds: Set[UUID] = Set.empty,
+                         inboundMirrorIds: Set[UUID] = Set.empty,
+                         outboundMirrorIds: Set[UUID] = Set.empty,
                          portSubnet: IPSubnet[_] = randomIPv4Subnet,
                          portAddress: IPAddr = IPv4Addr.random,
                          portMac: MAC = MAC.random,
@@ -82,7 +87,8 @@ trait TopologyBuilder {
                          routeIds: Set[UUID] = Set.empty): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
-            hostId, interfaceName, adminStateUp, portGroupIds)
+            hostId, interfaceName, adminStateUp, portGroupIds,
+            inboundMirrorIds, outboundMirrorIds)
             .setPortSubnet(portSubnet.asProto)
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
@@ -105,10 +111,13 @@ trait TopologyBuilder {
                         interfaceName: Option[String] = None,
                         adminStateUp: Boolean = false,
                         portGroupIds: Set[UUID] = Set.empty,
+                        inboundMirrorIds: Set[UUID] = Set.empty,
+                        outboundMirrorIds: Set[UUID] = Set.empty,
                         vtepId: Option[UUID] = None): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
-            hostId, interfaceName, adminStateUp, portGroupIds)
+            hostId, interfaceName, adminStateUp, portGroupIds,
+            inboundMirrorIds, outboundMirrorIds)
         if (bridgeId.isDefined) builder.setNetworkId(bridgeId.get.asProto)
         if (vtepId.isDefined) builder.setVtepId(vtepId.get.asProto)
         builder.build()
@@ -783,12 +792,17 @@ trait TopologyBuilder {
                                   hostId: Option[UUID],
                                   interfaceName: Option[String],
                                   adminStateUp: Boolean,
-                                  portGroupIds: Set[UUID]): Port.Builder = {
+                                  portGroupIds: Set[UUID],
+                                  inboundMirrorIds: Set[UUID],
+                                  outboundMirrorIds: Set[UUID])
+    : Port.Builder = {
         val builder = Port.newBuilder
             .setId(id.asProto)
             .setTunnelKey(tunnelKey)
             .setAdminStateUp(adminStateUp)
             .addAllPortGroupIds(portGroupIds.map(_.asProto).asJava)
+            .addAllInboundMirrorIds(inboundMirrorIds.map(_.asProto).asJava)
+            .addAllOutboundMirrorIds(outboundMirrorIds.map(_.asProto).asJava)
 
         if (inboundFilterId.isDefined)
             builder.setInboundFilterId(inboundFilterId.get.asProto)

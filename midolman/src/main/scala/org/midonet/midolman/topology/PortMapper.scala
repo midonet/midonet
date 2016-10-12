@@ -59,7 +59,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     override def logSource = "org.midonet.devices.port"
     override def logMark = s"port:$id"
 
-    private var currentPort: SimulationPort = null
+    private var currentPort: SimulationPort = _
     private var prevAdminStateUp: Boolean = false
     private var prevActive: Boolean = false
 
@@ -119,7 +119,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             combinator)
         .doOnCompleted(makeAction0(portDeleted()))
 
-    protected override val observable = Observable
+    protected lazy override val observable = Observable
         .merge(chainsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
                mirrorsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
@@ -144,8 +144,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             portStateSubject onNext hostId
         }
 
-        mirrorsTracker.requestRefs(port.getInboundMirrorIdsList :_*)
-        mirrorsTracker.requestRefs(port.getOutboundMirrorIdsList :_*)
+        mirrorsTracker.requestRefs(
+            port.getInboundMirrorIdsList.asScala.map(_.asJava) ++
+            port.getOutboundMirrorIdsList.asScala.map(_.asJava) :_*)
 
         requestTraceChain(port.getTraceRequestIdsList)
 
