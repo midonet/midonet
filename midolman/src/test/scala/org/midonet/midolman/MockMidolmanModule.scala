@@ -21,16 +21,12 @@ import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.IndexedSeq
 import scala.concurrent.Future
-
 import akka.actor.ActorSystem
-
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Injector
 import com.lmax.disruptor.{RingBuffer, SequenceBarrier}
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
-
 import org.reflections.Reflections
-
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.cluster.storage.FlowStateStorage
@@ -38,6 +34,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath.{FlowProcessor, _}
 import org.midonet.midolman.host.scanner.InterfaceScanner
+import org.midonet.midolman.host.services.{QosService, TcRequestHandler}
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.FlowTracingAppender
 import org.midonet.midolman.monitoring.{FlowRecorder, NullFlowRecorder}
@@ -74,6 +71,17 @@ class MockMidolmanModule(override val hostId: UUID,
                override def doStop(): Unit = notifyStopped()
         })
     }
+
+    class MockQosService extends QosService(null, hostId, null) {
+        // a no-op qos service.
+        override def start(): Unit = {}
+        override def stop(): Unit = {}
+    }
+
+    protected override def qosService(
+        scanner: InterfaceScanner,
+        hostId: UUID,
+        tcRequestHandler: TcRequestHandler): QosService = new MockQosService()
 
     protected override def natAllocator() =
         new MockNatBlockAllocator
