@@ -24,8 +24,8 @@ object IntegrationTests {
              classOf[org.midonet.quagga.BgpdTest],
              classOf[org.midonet.midolman.logging.FlowTracingAppenderTest],
              classOf[org.midonet.midolman.logging.FlowTracingSchemaTest],
-             classOf[org.midonet.midolman.state.FlowStateStorageTest]
-             //classOf[org.midonet.midolman.management.MeteringTest]
+             classOf[org.midonet.midolman.state.FlowStateStorageTest],
+             classOf[org.midonet.midolman.management.MeteringTest]
         ) map { _.getCanonicalName }
 
     def main(args: Array[String]): Unit = {

@@ -19,13 +19,13 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.{ArrayList, HashMap => JHashMap}
 
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.FlowStats
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, MeterTag}
 import org.midonet.util.collection.ArrayObjectPool
-
 import org.midonet.management.{FlowStats => JmxFlowStats}
 
 class MeterRegistry(val maxFlows: Int) {
