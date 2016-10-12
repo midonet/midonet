@@ -175,8 +175,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                        5 seconds)
             vt.store.update(topPort.toBuilder.setInboundFilterId(chain2).build())
 
-            portSubscriber.getOnNextEvents.size shouldBe 4
-            port = portSubscriber.getOnNextEvents.get(3)
+            portSubscriber.getOnNextEvents.size shouldBe 3
+            port = portSubscriber.getOnNextEvents.get(2)
             port.inboundFilters.get(0) shouldBe traceChainId
             chainObj = chainMap.get(port.inboundFilters.get(0))
                 .get.toBlocking.first
@@ -190,8 +190,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
             port.inboundFilters.get(1) shouldBe chain2
 
             vt.store.update(tr.toBuilder.setEnabled(false).build())
-            portSubscriber.getOnNextEvents.size shouldBe 5
-            port = portSubscriber.getOnNextEvents.get(4)
+            portSubscriber.getOnNextEvents.size shouldBe 4
+            port = portSubscriber.getOnNextEvents.get(3)
             port.inboundFilters.get(0) shouldBe chain2
         }
 
