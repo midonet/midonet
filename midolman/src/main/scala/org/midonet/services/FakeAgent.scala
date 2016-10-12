@@ -22,7 +22,7 @@ import com.codahale.metrics.MetricRegistry
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 
-import rx.{Observer, Subscription}
+import rx.{Observer, Scheduler, Subscription}
 
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.cluster.services.MidonetBackendService
@@ -114,8 +114,8 @@ object FakeAgent extends App {
 }
 
 class NullInterfaceScanner extends InterfaceScanner {
-    override def subscribe(obs: Observer[Set[InterfaceDescription]])
-            : Subscription = {
+    override def subscribe(obs: Observer[Set[InterfaceDescription]],
+                           scheduler: Option[Scheduler] = None): Subscription = {
         obs.onNext(Set.empty)
         new Subscription() {
             private var unsubscribed = false
