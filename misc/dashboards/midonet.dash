@@ -25,7 +25,7 @@ query = branch:staging/v5.2
 [section "staging/v5.0 (LTS)"]
 query = branch:staging/v5.0
 
-[section "staging/v2015.06"]
+[section "staging/v2015.06 (No longer supported but still used by OpenStack CI)"]
 query = branch:staging/v2015.06
 
 [section "staging/v1.9 (Midokura private)"]
