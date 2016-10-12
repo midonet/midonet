@@ -119,7 +119,7 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory)
 
         val pschedFile = "/proc/net/psched"
         val defaultTicksPerUsec = 15.65
-        val ticksPerUsec =  {
+        val ticksPerUsec = {
             try {
                 val psched = scala.io.Source.fromFile(pschedFile)
                     .getLines.toList.head.split(" ")
@@ -137,6 +137,7 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory)
                     defaultTicksPerUsec
             }
         }
+
         override def run(): Unit = {
             try {
                 while (true) {
