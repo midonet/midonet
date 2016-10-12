@@ -30,10 +30,7 @@ object TcRequestOps {
     val REMQDISC = 2
 }
 
-class TcRequest(val op: Int, val ifindex: Int, val rate: Int = 0,
-                val burst: Int = 0) {
-    def isAdd = op == TcRequestOps.ADDFILTER
-}
+case class TcRequest(op: Int, ifindex: Int, rate: Int = 0, burst: Int = 0)
 
 /*
  * This class will start a thread that blocks waiting for requests to be
@@ -98,7 +95,7 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory,
 
         val pschedFile = "/proc/net/psched"
         val defaultTicksPerUsec = 15.65
-        val ticksPerUsec =  {
+        val ticksPerUsec = {
             try {
                 val psched = scala.io.Source.fromFile(pschedFile)
                     .getLines.toList.head.split(" ")
@@ -116,6 +113,7 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory,
                     defaultTicksPerUsec
             }
         }
+
         override def run(): Unit = {
             while (true) {
                 val request = q.take()
@@ -133,4 +131,5 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory,
     }
 
     def start() = processingThread.start()
+    def stop() = processingThread.interrupt()
 }
