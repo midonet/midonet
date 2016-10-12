@@ -20,6 +20,7 @@ import java.nio.ByteBuffer
 import java.util
 import java.util.concurrent.LinkedBlockingQueue
 
+import scala.concurrent.duration._
 import org.junit.runner.RunWith
 import org.midonet.midolman.util.MockNetlinkChannelFactory
 import org.midonet.netlink.NetlinkMessage
@@ -28,8 +29,43 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterAll, FeatureSpec, Matchers}
 import org.scalatest.concurrent._
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
 
 case class TR(msg: Int, ifi: Int)
+
+class TestableTcRequestHandler(q: LinkedBlockingQueue[TcRequest])
+    extends TcRequestHandler(new MockNetlinkChannelFactory(), q) {
+
+    val reqs = new util.ArrayList[Int]()
+
+    override def writeRead(buf: ByteBuffer): Unit = {
+        val msgType = buf.getShort(NetlinkMessage.NLMSG_TYPE_OFFSET)
+        val offset = NetlinkMessage.NLMSG_PID_OFFSET +
+          NetlinkMessage.NLMSG_PID_SIZE + 4
+        val ifindex = buf.getInt(offset)
+        reqs.add(msgType)
+        reqs.add(ifindex)
+        buf.clear()
+    }
+
+    def opsMatchReqs(reqList: List[TR]): Boolean = {
+        val expected = new util.ArrayList[Int]()
+        reqList foreach { tr =>
+            tr.msg match {
+                case TcRequestOps.ADDFILTER =>
+                    expected.add(Rtnetlink.Type.NEWQDISC)
+                    expected.add(tr.ifi)
+                    expected.add(Rtnetlink.Type.NEWTFILTER)
+                    expected.add(tr.ifi)
+                case TcRequestOps.REMQDISC =>
+                    expected.add(Rtnetlink.Type.DELQDISC)
+                    expected.add(tr.ifi)
+            }
+        }
+
+        expected equals reqs
+    }
+}
 
 @RunWith(classOf[JUnitRunner])
 class TcRequestHandlerTest extends FeatureSpec
@@ -40,39 +76,6 @@ class TcRequestHandlerTest extends FeatureSpec
     val add = TcRequestOps.ADDFILTER
     val rem = TcRequestOps.REMQDISC
 
-    class TestableTcRequestHandler(q: LinkedBlockingQueue[TcRequest])
-        extends TcRequestHandler(new MockNetlinkChannelFactory(), q) {
-
-        val reqs = new util.ArrayList[Int]()
-
-        override def writeRead(buf: ByteBuffer): Unit = {
-            val msgType = buf.getShort(NetlinkMessage.NLMSG_TYPE_OFFSET)
-            val offset = NetlinkMessage.NLMSG_PID_OFFSET +
-                         NetlinkMessage.NLMSG_PID_SIZE + 4
-            val ifindex = buf.getInt(offset)
-            reqs.add(msgType)
-            reqs.add(ifindex)
-            buf.clear()
-        }
-
-        def opsMatchReqs(reqList: List[TR]): Boolean = {
-            val expected = new util.ArrayList[Int]()
-            reqList foreach { tr =>
-                tr.msg match {
-                    case TcRequestOps.ADDFILTER =>
-                        expected.add(Rtnetlink.Type.NEWQDISC)
-                        expected.add(tr.ifi)
-                        expected.add(Rtnetlink.Type.NEWTFILTER)
-                        expected.add(tr.ifi)
-                    case TcRequestOps.REMQDISC =>
-                        expected.add(Rtnetlink.Type.DELQDISC)
-                        expected.add(tr.ifi)
-                }
-            }
-
-            expected equals reqs
-        }
-    }
 
 
     feature("Handler processes requests") {
@@ -91,7 +94,7 @@ class TcRequestHandlerTest extends FeatureSpec
                 q.add(new TcRequest(tr.msg, tr.ifi, 300, 200))
             }
 
-            eventually {
+            eventually (new Timeout(1 minute)){
                 handler.opsMatchReqs(reqs) shouldBe true
             }
         }

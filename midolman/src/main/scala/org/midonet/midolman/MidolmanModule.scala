@@ -22,18 +22,14 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.IndexedSeq
-
 import akka.actor.{ActorSystem, OneForOneStrategy, SupervisorStrategy}
-
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Injector, Key}
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
-
 import org.reflections.Reflections
 import org.slf4j.{Logger, LoggerFactory}
-
 import org.midonet.Util
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.services.MidonetBackend
@@ -43,7 +39,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.scanner.{DefaultInterfaceScanner, InterfaceScanner}
-import org.midonet.midolman.host.services.HostService
+import org.midonet.midolman.host.services.{HostService, QosService}
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.rule.{DisruptorRuleLogEventChannel, RuleLogEventChannel}
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
@@ -132,6 +128,10 @@ class MidolmanModule(injector: Injector,
 
         bind(classOf[Plumber]).toInstance(plumber(dpState))
 
+        val qosService = QosService.makeQosService(
+            channelFactory, scanner, host)
+
+        bind(classOf[QosService]).toInstance(qosService)
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
         val flowRecorder = createFlowRecorder(host)
