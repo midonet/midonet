@@ -67,7 +67,7 @@ object Port {
                            outFilters: JList[UUID],
                            servicePorts: JList[UUID],
                            qosPolicy: QosPolicy) =
-        new BridgePort(
+        BridgePort(
             id = p.getId,
             inboundFilters = inFilters,
             outboundFilters = outFilters,
@@ -160,7 +160,7 @@ object Port {
     private def servicePort(p: Topology.Port,
                             state: PortState,
                             inFilters: JList[UUID]) =
-        new ServicePort(
+        ServicePort(
             id = p.getId,
             inboundFilters = inFilters,
             tunnelKey = state.tunnelKey.getOrElse(p.getTunnelKey),
@@ -308,29 +308,9 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
 
 }
 
-class BridgePort(override val id: UUID,
-                 override val inboundFilters: JList[UUID] = emptyList(),
-                 override val outboundFilters: JList[UUID] = emptyList(),
-                 override val tunnelKey: Long = 0,
-                 override val peerId: UUID = null,
-                 override val hostId: UUID = null,
-                 override val previousHostId: UUID = null,
-                 override val interfaceName: String = null,
-                 override val adminStateUp: Boolean = true,
-                 override val portGroups: JList[UUID] = emptyList(),
-                 override val isActive: Boolean = false,
-                 override val vlanId: Short = Bridge.UntaggedVlanId,
-                 val networkId: UUID,
-                 override val preInFilterMirrors: JList[UUID] = emptyList(),
-                 override val postOutFilterMirrors: JList[UUID] = emptyList(),
-                 override val postInFilterMirrors: JList[UUID] = emptyList(),
-                 override val preOutFilterMirrors: JList[UUID] = emptyList(),
-                 override val servicePorts: JList[UUID] = emptyList(),
-                 override val qosPolicy: QosPolicy = null)
-        extends Port {
+trait AbstractBridgePort extends Port {
 
-    override def toString =
-        s"BridgePort [${super.toString} networkId=$networkId]"
+    def networkId: UUID
 
     override def deviceId = networkId
 
@@ -347,33 +327,59 @@ class BridgePort(override val id: UUID,
             super.egressCommon(context, next)
         }
     }
+
 }
 
-class ServicePort(override val id: UUID,
-                  override val inboundFilters: JList[UUID] = emptyList(),
-                  override val tunnelKey: Long = 0,
-                  override val peerId: UUID = null,
-                  override val hostId: UUID = null,
-                  override val previousHostId: UUID = null,
-                  override val interfaceName: String = null,
-                  val realAdminStateUp: Boolean,
-                  override val portGroups: JList[UUID] = emptyList(),
-                  override val isActive: Boolean = false,
-                  override val vlanId: Short = Bridge.UntaggedVlanId,
-                  override val networkId: UUID,
-                  override val preInFilterMirrors: JList[UUID] = emptyList(),
-                  override val postOutFilterMirrors: JList[UUID] = emptyList(),
-                  override val postInFilterMirrors: JList[UUID] = emptyList(),
-                  override val preOutFilterMirrors: JList[UUID] = emptyList())
-        extends BridgePort(id, inboundFilters, emptyList(),
-                           tunnelKey, peerId, hostId, previousHostId,
-                           interfaceName, true, portGroups, isActive, vlanId,
-                           networkId, preInFilterMirrors, postOutFilterMirrors,
-                           postInFilterMirrors, preOutFilterMirrors) {
+case class BridgePort(override val id: UUID,
+                      override val inboundFilters: JList[UUID] = emptyList(),
+                      override val outboundFilters: JList[UUID] = emptyList(),
+                      override val tunnelKey: Long = 0,
+                      override val peerId: UUID = null,
+                      override val hostId: UUID = null,
+                      override val previousHostId: UUID = null,
+                      override val interfaceName: String = null,
+                      override val adminStateUp: Boolean = true,
+                      override val portGroups: JList[UUID] = emptyList(),
+                      override val isActive: Boolean = false,
+                      override val vlanId: Short = Bridge.UntaggedVlanId,
+                      networkId: UUID,
+                      override val preInFilterMirrors: JList[UUID] = emptyList(),
+                      override val postOutFilterMirrors: JList[UUID] = emptyList(),
+                      override val postInFilterMirrors: JList[UUID] = emptyList(),
+                      override val preOutFilterMirrors: JList[UUID] = emptyList(),
+                      override val servicePorts: JList[UUID] = emptyList(),
+                      override val qosPolicy: QosPolicy = null)
+        extends AbstractBridgePort {
+
+    override def toString =
+        s"BridgePort [${super.toString} networkId=$networkId]"
+
+}
+
+case class ServicePort(override val id: UUID,
+                       override val inboundFilters: JList[UUID] = emptyList(),
+                       override val outboundFilters: JList[UUID] = emptyList(),
+                       override val tunnelKey: Long = 0,
+                       override val peerId: UUID = null,
+                       override val hostId: UUID = null,
+                       override val previousHostId: UUID = null,
+                       override val interfaceName: String = null,
+                       override val adminStateUp: Boolean = true,
+                       realAdminStateUp: Boolean,
+                       override val portGroups: JList[UUID] = emptyList(),
+                       override val isActive: Boolean = false,
+                       override val vlanId: Short = Bridge.UntaggedVlanId,
+                       networkId: UUID,
+                       override val preInFilterMirrors: JList[UUID] = emptyList(),
+                       override val postOutFilterMirrors: JList[UUID] = emptyList(),
+                       override val postInFilterMirrors: JList[UUID] = emptyList(),
+                       override val preOutFilterMirrors: JList[UUID] = emptyList(),
+                       override val servicePorts: JList[UUID] = emptyList())
+        extends AbstractBridgePort {
 
     override def toString =
         s"ServicePort [${super.toString} networkId=$networkId " +
-        s"realAdminState=$realAdminStateUp]"
+        s"realAdminStateUp=$realAdminStateUp]"
 
     override def ingress(context: PacketContext): SimulationResult = {
         if (!realAdminStateUp) {
