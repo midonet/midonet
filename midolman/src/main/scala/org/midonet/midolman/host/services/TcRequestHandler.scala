@@ -39,11 +39,11 @@ case class TcRequest(op: Int, ifindex: Int, rate: Int = 0, burst: Int = 0)
  * It will take requests from the q and translate them into equivalent tc
  * netlink messages, which it will then send over to the kernel.
  */
-class TcRequestHandler(channelFactory: NetlinkChannelFactory)
-        extends MidolmanLogging {
+class TcRequestHandler() extends MidolmanLogging {
 
     val EEXIST = 17
 
+    val channelFactory = new NetlinkChannelFactory()
     val channel = channelFactory.create(blocking = true,
         NetlinkProtocol.NETLINK_ROUTE)
 
@@ -93,7 +93,7 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory)
                 protocol.prepareDeleteIngressQdisc(buf, ifindex)
                 writeRead(buf)
                 protocol.prepareAddIngressQdisc(buf, ifindex)
-                // TODO: why no ack
+                // TODO: why no ack?
                 writer.write(buf)
                 buf.clear()
         }
@@ -106,7 +106,7 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory)
 
         val pschedFile = "/proc/net/psched"
         val defaultTicksPerUsec = 15.65
-        val ticksPerUsec =  {
+        val ticksPerUsec = {
             try {
                 val psched = scala.io.Source.fromFile(pschedFile)
                     .getLines.toList.head.split(" ")
@@ -124,6 +124,7 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory)
                     defaultTicksPerUsec
             }
         }
+
         override def run(): Unit = {
             try {
                 while (true) {

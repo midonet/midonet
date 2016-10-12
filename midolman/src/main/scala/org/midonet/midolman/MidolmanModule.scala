@@ -20,8 +20,8 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.IndexedSeq
+import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor.{ActorSystem, OneForOneStrategy, SupervisorStrategy}
 
@@ -43,7 +43,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.scanner.{DefaultInterfaceScanner, InterfaceScanner}
-import org.midonet.midolman.host.services.HostService
+import org.midonet.midolman.host.services.{HostService, QosService}
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.rule.{DisruptorRuleLogEventChannel, RuleLogEventChannel}
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
@@ -132,6 +132,9 @@ class MidolmanModule(injector: Injector,
 
         bind(classOf[Plumber]).toInstance(plumber(dpState))
 
+        val qosService = QosService(scanner, host)
+
+        bind(classOf[QosService]).toInstance(qosService)
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
         val flowRecorder = createFlowRecorder(host)

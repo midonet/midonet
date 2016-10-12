@@ -25,7 +25,6 @@ import org.scalatest.{FeatureSpec, ShouldMatchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.host.services.TcRequestHandler
-import org.midonet.netlink._
 import org.midonet.netlink.rtnetlink.LinkOps
 
 @RunWith(classOf[JUnitRunner])
@@ -46,14 +45,12 @@ class TcIntegrationTest extends FeatureSpec with Eventually with ShouldMatchers 
         }
     }
 
-    val factory = new NetlinkChannelFactory()
-
     feature("write TC config") {
         scenario("add tc config") {
 
             val devName = "test"
 
-            val handler = new TcRequestHandler(factory)
+            val handler = new TcRequestHandler()
             handler.start()
 
             try {
@@ -76,7 +73,7 @@ class TcIntegrationTest extends FeatureSpec with Eventually with ShouldMatchers 
         scenario("add new tc config") {
             val devName = "test1"
 
-            val handler = new TcRequestHandler(factory)
+            val handler = new TcRequestHandler()
             handler.start()
 
             try {
@@ -109,7 +106,7 @@ class TcIntegrationTest extends FeatureSpec with Eventually with ShouldMatchers 
         scenario("delete added TC conf") {
             val devName = "test2"
 
-            val handler = new TcRequestHandler(factory)
+            val handler = new TcRequestHandler()
             handler.start()
 
             try {
@@ -137,7 +134,7 @@ class TcIntegrationTest extends FeatureSpec with Eventually with ShouldMatchers 
             val devName1 = "test4"
             val devName2 = "test5"
 
-            val handler = new TcRequestHandler(factory)
+            val handler = new TcRequestHandler()
             handler.start()
             try {
                 val veth1 = LinkOps.createVethPair(devName1, s"p$devName1")
