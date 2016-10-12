@@ -20,7 +20,7 @@ import java.nio.ByteBuffer
 import scala.collection.mutable
 
 import rx.subjects.BehaviorSubject
-import rx.{Observable, Observer, Subscription}
+import rx.{Observable, Observer, Scheduler, Subscription}
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
@@ -52,8 +52,12 @@ class MockInterfaceScanner extends InterfaceScanner {
             _ => interfaceDescriptions.values.toSet))
 
     override
-    def subscribe(obs: Observer[Set[InterfaceDescription]]): Subscription = {
-        val subscription: Subscription = notifications.subscribe(obs)
+    def subscribe(obs: Observer[Set[InterfaceDescription]],
+                  scheduler: Option[Scheduler] = None): Subscription = {
+        val subscription: Subscription = scheduler match {
+            case Some(sched) => notifications.observeOn(sched).subscribe(obs)
+            case None => notifications.subscribe(obs)
+        }
         obs.onNext(interfaceDescriptions.values.toSet)
         subscription
     }

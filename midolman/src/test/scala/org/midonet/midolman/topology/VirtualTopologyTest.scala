@@ -20,12 +20,9 @@ import java.util.UUID
 import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.{Notification, Observable}
-
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{Router, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
@@ -440,13 +437,13 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             }.waitFor, timeout)
 
             Then("The metrics should be updated")
-            vt.metrics.devicesGauge.getValue shouldBe 1
-            vt.metrics.observablesGauge.getValue shouldBe 1
+            vt.metrics.devicesGauge.getValue shouldBe 2
+            vt.metrics.observablesGauge.getValue shouldBe 2
             vt.metrics.cacheHitGauge.getValue shouldBe 0
             vt.metrics.cacheMissGauge.getValue shouldBe 1
-            vt.metrics.deviceUpdateCounter.getCount shouldBe 1
-            vt.metrics.deviceUpdateMeter.getCount shouldBe 1
-            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 2
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 2
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 2
 
             When("Creating an observer to the VT observable")
             val observer = new DeviceObserver[SimulationPort](vt)
@@ -460,13 +457,13 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             observer.awaitOnNext(2, timeout)
 
             Then("The metrics should be updated")
-            vt.metrics.devicesGauge.getValue shouldBe 1
-            vt.metrics.observablesGauge.getValue shouldBe 1
+            vt.metrics.devicesGauge.getValue shouldBe 2
+            vt.metrics.observablesGauge.getValue shouldBe 2
             vt.metrics.cacheHitGauge.getValue shouldBe 0
             vt.metrics.cacheMissGauge.getValue shouldBe 1
-            vt.metrics.deviceUpdateCounter.getCount shouldBe 2
-            vt.metrics.deviceUpdateMeter.getCount shouldBe 2
-            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 3
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 3
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 2
 
             When("Requesting the port")
             VirtualTopology.tryGet(classOf[SimulationPort], id)
@@ -481,13 +478,13 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             observer.awaitCompletion(timeout)
 
             Then("The metrics should be updated")
-            vt.metrics.devicesGauge.getValue shouldBe 0
-            vt.metrics.observablesGauge.getValue shouldBe 0
-            vt.metrics.deviceUpdateCounter.getCount shouldBe 2
-            vt.metrics.deviceUpdateMeter.getCount shouldBe 2
+            vt.metrics.devicesGauge.getValue shouldBe 1
+            vt.metrics.observablesGauge.getValue shouldBe 1
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 3
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 3
             vt.metrics.deviceCompleteCounter.getCount shouldBe 1
             vt.metrics.deviceCompleteMeter.getCount shouldBe 1
-            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 2
             vt.metrics.deviceLifetimeHistogram.getCount shouldBe 1
       }
     }

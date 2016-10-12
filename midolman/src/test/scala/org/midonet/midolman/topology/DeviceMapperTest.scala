@@ -674,13 +674,13 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(observer)
 
             Then("The metrics should not change")
-            vt.metrics.deviceUpdateCounter.getCount shouldBe 0
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 1
             vt.metrics.deviceErrorCounter.getCount shouldBe 0
             vt.metrics.deviceCompleteCounter.getCount shouldBe 0
-            vt.metrics.deviceUpdateMeter.getCount shouldBe 0
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 1
             vt.metrics.deviceErrorMeter.getCount shouldBe 0
             vt.metrics.deviceCompleteMeter.getCount shouldBe 0
-            vt.metrics.deviceLatencyHistogram.getCount shouldBe 0
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
             vt.metrics.deviceLifetimeHistogram.getCount shouldBe 0
         }
 
@@ -701,13 +701,13 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(observer)
 
             Then("Only the updated meter should be changed.")
-            vt.metrics.deviceUpdateCounter.getCount shouldBe 1
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 2
             vt.metrics.deviceErrorCounter.getCount shouldBe 0
             vt.metrics.deviceCompleteCounter.getCount shouldBe 0
-            vt.metrics.deviceUpdateMeter.getCount shouldBe 1
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 2
             vt.metrics.deviceErrorMeter.getCount shouldBe 0
             vt.metrics.deviceCompleteMeter.getCount shouldBe 0
-            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 2
             vt.metrics.deviceLifetimeHistogram.getCount shouldBe 0
         }
 
@@ -728,13 +728,13 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(observer)
 
             Then("Only the error metric should be increased.")
-            vt.metrics.deviceUpdateCounter.getCount shouldBe 0
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 1
             vt.metrics.deviceErrorCounter.getCount shouldBe 1
             vt.metrics.deviceCompleteCounter.getCount shouldBe 0
-            vt.metrics.deviceUpdateMeter.getCount shouldBe 0
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 1
             vt.metrics.deviceErrorMeter.getCount shouldBe 1
             vt.metrics.deviceCompleteMeter.getCount shouldBe 0
-            vt.metrics.deviceLatencyHistogram.getCount shouldBe 0
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
             vt.metrics.deviceLifetimeHistogram.getCount shouldBe 1
     }
   }
