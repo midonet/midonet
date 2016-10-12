@@ -65,6 +65,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8af636d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-12T10:01:39Z",
+      "side": 1,
+      "message": "this seems to be called by both of rtnetlinkNotificationReadThread and VT thread, right?\nis this thread-safe?",
+      "range": {
+        "startLine": 78,
+        "startChar": 8,
+        "endLine": 78,
+        "endChar": 24
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_af26ac13",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
