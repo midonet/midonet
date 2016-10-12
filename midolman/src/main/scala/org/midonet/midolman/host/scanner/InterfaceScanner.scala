@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.host.scanner
 
-import rx.{Observer, Subscription}
+import rx.{Observer, Scheduler, Subscription}
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.netlink.rtnetlink.AbstractRtnetlinkConnection
@@ -36,7 +36,8 @@ trait InterfaceScanner extends AbstractRtnetlinkConnection {
      * @return Subscription object through which users can unsubscribe events
      *         from InterfaceScanner.
      */
-    def subscribe(obs: Observer[Set[InterfaceDescription]]): Subscription
+    def subscribe(obs: Observer[Set[InterfaceDescription]],
+                  scheduler: Option[Scheduler] = None): Subscription
     /**
      * Start scanning and notifying the interfaces on the host.
      */
