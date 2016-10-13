@@ -67,14 +67,7 @@ cd python-midonetclient
 python setup.py install
 cd -
 
-# Install sandbox, directly from repo (ignoring submodule)
-rm -rf midonet-sandbox
-git clone --depth=1 https://github.com/midonet/midonet-sandbox.git
-cd midonet-sandbox
-python setup.py install
-cd -
-
-# Install mdts deps, on top of sandbox deps
+# Install mdts deps (including midonet-sandbox deps)
 pip install -r tests/mdts.dependencies
 
 # Start sandbox

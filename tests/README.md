@@ -70,7 +70,6 @@ everything on it:
 virtualenv venv
 source venv/bin/activate
 pushd tests && pip install -r mdts.dependencies && popd
-pushd midonet-sandbox && python setup.py install && popd
 pushd python-midonetclient && python setup.py install && popd
 ```
 
