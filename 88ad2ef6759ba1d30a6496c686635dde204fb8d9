@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_bcea610d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/Metering.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-13T10:33:52Z",
+      "side": 1,
+      "message": "add meters.length \u003c registries.length",
+      "range": {
+        "startLine": 54,
+        "startChar": 7,
+        "endLine": 54,
+        "endChar": 29
+      },
+      "revId": "88ad2ef6759ba1d30a6496c686635dde204fb8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3c9891bf",
         "filename": "nsdb/src/main/java/org/midonet/management/FlowMeterRegistry.java",
         "patchSetId": 1
