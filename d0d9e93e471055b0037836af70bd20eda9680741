@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1c65cddf",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppIntegrationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-13T10:28:32Z",
+      "side": 1,
+      "message": "did you put these here on purpose?",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 34
+      },
+      "revId": "d0d9e93e471055b0037836af70bd20eda9680741",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bc9ca1c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppOvs.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-13T10:28:32Z",
+      "side": 1,
+      "message": "nit: not needed, but don\u0027t resubmit for this",
+      "range": {
+        "startLine": 58,
+        "startChar": 15,
+        "endLine": 58,
+        "endChar": 16
+      },
+      "revId": "d0d9e93e471055b0037836af70bd20eda9680741",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bc838155",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppOvs.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-13T10:28:32Z",
+      "side": 1,
+      "message": "just out of curiosity: do you know why there are multiple responses in the read buffer?",
+      "range": {
+        "startLine": 66,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 59
+      },
+      "revId": "d0d9e93e471055b0037836af70bd20eda9680741",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
