@@ -145,7 +145,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
 
         if (hasMacAndArpTableEntries(nPort)) {
-            macAndArpTableEntryPaths(nPort).foreach(tx.deleteNode(_))
+            for (path <- macAndArpTableEntryPaths(nPort)) {
+                tx.deleteNode(path, idempotent = true)
+            }
         }
 
         tx.delete(classOf[Port], nPort.getId, ignoresNeo = true)
