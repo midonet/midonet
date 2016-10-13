@@ -19,6 +19,7 @@ import java.util.{ConcurrentModificationException, UUID}
 
 import scala.concurrent.duration._
 
+import org.apache.curator.utils.ZKPaths
 import org.junit.runner.RunWith
 import org.scalatest.GivenWhenThen
 import org.scalatest.junit.JUnitRunner
@@ -655,6 +656,99 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             storage.delete(classOf[PojoBridge], bridge.id)
 
             intercept[ConcurrentModificationException] {
+                tx.commit()
+            }
+        }
+
+        scenario("Create node") {
+            Given("A transaction")
+            val tx = storage.transaction()
+
+            When("Creating a node")
+            val path = s"$zkRoot/test-node-0"
+            tx.createNode(path, null)
+
+            And("Committing the transaction")
+            tx.commit()
+
+            Then("The node should exist")
+            curator.checkExists().forPath(path) should not be null
+        }
+
+        scenario("Delete node") {
+            Given("A node in storage")
+            val path = s"$zkRoot/test-node-1"
+            ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, path)
+
+            And("A transaction")
+            val tx = storage.transaction()
+
+            When("Deleting the node")
+            tx.deleteNode(path)
+
+            And("Committing the transaction")
+            tx.commit()
+
+            Then("The node should not exist")
+            curator.checkExists().forPath(path) shouldBe null
+        }
+
+        scenario("Delete node is idempotent") {
+            Given("A transaction")
+            val tx = storage.transaction()
+
+            When("Deleting a non-existing node")
+            val path = s"$zkRoot/test-node-2"
+            tx.deleteNode(path)
+
+            Then("Committing the transaction should not fail")
+            tx.commit()
+        }
+
+        scenario("Delete after create does not create the node") {
+            Given("A transaction")
+            val tx = storage.transaction()
+
+            When("Creating and then deleting a node")
+            val path = s"$zkRoot/test-node-3"
+            tx.createNode(path, null)
+            tx.deleteNode(path)
+            tx.commit()
+
+            Then("The node should node exist")
+            curator.checkExists().forPath(path) shouldBe null
+        }
+
+        scenario("Multiple delete node is idempotent") {
+            Given("A node in storage")
+            val path = s"$zkRoot/test-node-1"
+            ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, path)
+            And("A transaction")
+            val tx = storage.transaction()
+
+            When("Deleting the node")
+            tx.deleteNode(path)
+
+            Then("Deleting the node a second time should not fail")
+            tx.deleteNode(path)
+
+            When("Committing the transaction")
+            tx.commit()
+
+            Then("The node should not exist")
+            curator.checkExists().forPath(path) shouldBe null
+        }
+
+        scenario("Transaction fails on delete node if not idempotent") {
+            Given("A transaction")
+            val tx = storage.transaction()
+
+            And("Deleting a non-existing node")
+            val path = s"$zkRoot/test-node-2"
+            tx.deleteNode(path, idempotent = false)
+
+            Then("Committing the transaction should fail")
+            intercept[StorageNodeNotFoundException] {
                 tx.commit()
             }
         }
