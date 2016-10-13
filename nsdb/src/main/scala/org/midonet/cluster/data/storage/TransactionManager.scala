@@ -496,13 +496,18 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
     }
 
     /** Deletes a data node as part of the current transaction. */
-    override def deleteNode(path: String): Unit = {
+    override def deleteNode(path: String, idempotent: Boolean): Unit = {
+
         // First mark all known descendants for deletion.
         for ((p, op) <- nodeOps.getDescendants(path)) op match {
             case TxCreateNode(_) => nodeOps -= p
             case TxUpdateNode(_) | TxNodeExists =>
                 nodeOps(p) = TxDeleteNode
             case TxDeleteNode =>
+        }
+
+        if (idempotent && !nodeExists(path)) {
+            return
         }
 
         // Mark the node itself for deletion.

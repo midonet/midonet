@@ -211,9 +211,9 @@ class StorageErrorMetricsTest extends FlatSpec
         Given("A path")
         val path = s"$zkRoot/${UUID.randomUUID()}"
 
-        When("Deleting the path")
+        When("Updating the path")
         intercept[StorageNodeNotFoundException] {
-            storage.multi(Seq(DeleteNodeOp(path)))
+            storage.multi(Seq(UpdateNodeOp(path, "foo")))
         }
 
         Then("The storage node not found exception counter should be incremented")
