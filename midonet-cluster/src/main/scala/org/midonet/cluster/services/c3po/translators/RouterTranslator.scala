@@ -34,7 +34,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                        protected val stateTableStorage: StateTableStorage,
                        config: ClusterConfig)
     extends Translator[NeutronRouter]
-    with ChainManager with PortManager with RouteManager with RuleManager {
+    with ChainManager with PortManager with RouteManager
+    with RouterManager with RuleManager {
 
     import RouterTranslator._
     import org.midonet.cluster.services.c3po.translators.RouteManager._
@@ -48,6 +49,12 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                                 postRouteChainName(nr.getId))
         val fwdChain = newChain(r.getForwardChainId,
                                 forwardChainName(nr.getId))
+        val floatSnatExactChain = newChain(floatSnatExactChainId(nr.getId),
+                                           floatSnatExactChainName(nr.getId))
+        val floatSnatChain = newChain(floatSnatChainId(nr.getId),
+                                      floatSnatChainName(nr.getId))
+        val skipSnatChain = newChain(skipSnatChainId(nr.getId),
+                                     skipSnatChainName(nr.getId))
 
         // This is actually only needed for edge routers, but edge routers are
         // only defined by having an interface to an uplink network, so it's
@@ -63,8 +70,12 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         val routerInterfacePortGroup = newRouterInterfacePortGroup(
             nr.getId, nr.getTenantId).build()
 
-        List(inChain, outChain, fwdChain, r, portGroup,
-             routerInterfacePortGroup).foreach(tx.create)
+        List(floatSnatExactChain, floatSnatChain, skipSnatChain,
+             inChain, outChain, fwdChain, r, portGroup,
+             routerInterfacePortGroup,
+             jumpRule(outChain.getId, floatSnatExactChain.getId),
+             jumpRule(outChain.getId, floatSnatChain.getId),
+             jumpRule(outChain.getId, skipSnatChain.getId)).foreach(tx.create)
         gatewayPortCreates(tx, nr, r)
 
         List()
@@ -76,6 +87,10 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         tx.delete(classOf[Chain], inChainId(nr.getId), ignoresNeo = true)
         tx.delete(classOf[Chain], outChainId(nr.getId), ignoresNeo = true)
         tx.delete(classOf[Chain], fwdChainId(nr.getId), ignoresNeo = true)
+        tx.delete(classOf[Chain], floatSnatExactChainId(nr.getId),
+                  ignoresNeo = true)
+        tx.delete(classOf[Chain], floatSnatChainId(nr.getId), ignoresNeo = true)
+        tx.delete(classOf[Chain], skipSnatChainId(nr.getId), ignoresNeo = true)
         tx.delete(classOf[PortGroup], PortManager.portGroupId(nr.getId),
                   ignoresNeo = true)
         tx.delete(classOf[PortGroup],
@@ -89,6 +104,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 
     override protected def translateUpdate(tx: Transaction,
                                            nr: NeutronRouter): OperationList = {
+        checkOldRouterTranslation(tx, nr.getId)
         val router = tx.get(classOf[Router], nr.getId).toBuilder
         router.setAdminStateUp(nr.getAdminStateUp)
         router.setName(nr.getName)
@@ -270,16 +286,26 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
             .setChainId(r.getInboundFilterId)
         def inRuleConditionBuilder = Condition.newBuilder
             .setNwDstIp(portSubnet)
+        def skipSnatGwPortRuleBuilder() = Rule.newBuilder
+            .setId(skipSnatGwPortRuleId(r.getId))
+            .setType(Rule.Type.LITERAL_RULE)
+            .setAction(Action.ACCEPT)
+            .setChainId(skipSnatChainId(r.getId))
+            .setCondition(anyFragCondition.addInPortIds(tenantGwPortId))
+        def dstRewrittenSnatRuleBuilder() =
+            outRuleBuilder(dstRewrittenSnatRuleId(r.getId))
+            .setCondition(anyFragCondition.setMatchNwDstRewritten(true))
+        def applySnat(bldr: Rule.Builder) =
+            bldr.setType(Rule.Type.NAT_RULE)
+                .setAction(Action.ACCEPT)
+                .setNatRuleData(natRuleData(gwIpAddr, dnat = false,
+                                            dynamic = true,
+                                            config.translators.dynamicNatPortStart,
+                                            config.translators.dynamicNatPortEnd))
 
-
-        List(outRuleBuilder(outSnatRuleId(nr.getId))
-                 .setType(Rule.Type.NAT_RULE)
-                 .setAction(Action.ACCEPT)
-                 .setNatRuleData(natRuleData(gwIpAddr, dnat = false,
-                                             dynamic = true,
-                                             config.translators.dynamicNatPortStart,
-                                             config.translators.dynamicNatPortEnd))
-                 .setCondition(outRuleConditionBuilder),
+        List(applySnat(outRuleBuilder(outSnatRuleId(nr.getId))
+                 .setCondition(outRuleConditionBuilder)),
+             applySnat(dstRewrittenSnatRuleBuilder()),
              outRuleBuilder(outDropUnmatchedFragmentsRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)
                  .setAction(Action.DROP)
@@ -288,15 +314,15 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
              inRuleBuilder(inReverseSnatRuleId(nr.getId))
                  .setType(Rule.Type.NAT_RULE)
                  .setAction(Action.ACCEPT)
-                 .setCondition(inRuleConditionBuilder
-                                   .addInPortIds(tenantGwPortId))
+                 .setCondition(inRuleConditionBuilder)
                  .setNatRuleData(revNatRuleData(dnat = false)),
              inRuleBuilder(inDropWrongPortTrafficRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)
                  .setAction(Action.DROP)
                  .setCondition(inRuleConditionBuilder
                                    .setNwProto(ICMP.PROTOCOL_NUMBER)
-                                   .setNwProtoInv(true))
+                                   .setNwProtoInv(true)),
+             skipSnatGwPortRuleBuilder()
         ).foreach(bldr => tx.create(bldr.build()))
     }
 
@@ -310,6 +336,10 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
             tx.delete(classOf[Rule], outDropUnmatchedFragmentsRuleId(routerId),
                       ignoresNeo = true)
             tx.delete(classOf[Rule], outSnatRuleId(routerId), ignoresNeo = true)
+            tx.delete(classOf[Rule], dstRewrittenSnatRuleId(routerId),
+                      ignoresNeo = true)
+            tx.delete(classOf[Rule], skipSnatGwPortRuleId(routerId),
+                      ignoresNeo = true)
         }
     }
 
@@ -341,6 +371,12 @@ object RouterTranslator {
 
     def forwardChainName(id: UUID) = "OS_FORWARD_" + id.asJava
 
+    def floatSnatExactChainName(id: UUID) = "OS_FLOAT_SNAT_EXACT_" + id.asJava
+
+    def floatSnatChainName(id: UUID) = "OS_FLOAT_SNAT_" + id.asJava
+
+    def skipSnatChainName(id: UUID) = "OS_SKIP_SNAT_" + id.asJava
+
     def portGroupName(id: UUID) = "OS_PORT_GROUP_" + id.asJava
 
     /** ID of tenant router port that connects to external network port. */
@@ -357,4 +393,9 @@ object RouterTranslator {
         routerId.xorWith(0x928eb605e3e04119L, 0x8c40e4ca90769cf4L)
     def inDropWrongPortTrafficRuleId(routerId: UUID): UUID =
         routerId.xorWith(0xb807509d2fa04b9eL, 0x96b1f45a04e6d128L)
+    def dstRewrittenSnatRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0xf5d39101f0431a3eL, 0xdd7a9236bf83a3e7L)
+
+    def skipSnatGwPortRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0x6f90386f458e12ffL, 0x6ec14164bde7cee6L)
 }
