@@ -16,12 +16,11 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
-import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.validation.groups.Default;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.base.MoreObjects;
@@ -33,10 +32,11 @@ import org.midonet.cluster.rest_api.ResourceUris;
 
 
 @ZoomClass(clazz = Topology.IPAddrGroup.class)
+@SuppressWarnings("unused")
 public class IpAddrGroup extends UriResource {
 
-    public static final int MIN_IP_ADDR_GROUP_NAME_LEN = 1;
-    public static final int MAX_IP_ADDR_GROUP_NAME_LEN = 255;
+    private static final int MIN_IP_ADDR_GROUP_NAME_LEN = 1;
+    private static final int MAX_IP_ADDR_GROUP_NAME_LEN = 255;
 
     @ZoomField(name = "id")
     public UUID id;
@@ -45,6 +45,18 @@ public class IpAddrGroup extends UriResource {
     @Size(min = MIN_IP_ADDR_GROUP_NAME_LEN, max = MAX_IP_ADDR_GROUP_NAME_LEN)
     @ZoomField(name = "name")
     public String name;
+
+    @ZoomField(name = "ip_addr_ports")
+    public List<IpAddrPort> ipAddrPorts;
+
+    @ZoomField(name = "inbound_chain_id")
+    public UUID inboundChainId;
+
+    @ZoomField(name = "outbound_chain_id")
+    public UUID outboundChainId;
+
+    @ZoomField(name = "rule_ids")
+    public List<UUID> ruleIds;
 
     public IpAddrGroup() {
     }
@@ -63,39 +75,9 @@ public class IpAddrGroup extends UriResource {
         return absoluteUri(ResourceUris.IP_ADDR_GROUPS(), id);
     }
 
-    @SuppressWarnings("unused") // used by serializers
     public URI getAddrs() {
         return UriBuilder.fromUri(relativeUri(ResourceUris.IP_ADDRS()))
                          .build();
-    }
-
-    public org.midonet.cluster.data.IpAddrGroup toData() {
-
-        return new org.midonet.cluster.data.IpAddrGroup()
-                .setId(this.id)
-                .setName(this.name);
-    }
-
-    /**
-     * Interface used for a Validation group. This group gets triggered after
-     * the default validations.
-     */
-    public interface IpAddrGroupExtended {
-    }
-
-    /**
-     * Interface used for validating a IP addr group on creates.
-     */
-    public interface IpAddrGroupCreateGroup {
-    }
-
-    /**
-     * Interface that defines the ordering of validation groups for IP addr
-     * group create.
-     */
-    @GroupSequence({ Default.class, IpAddrGroupCreateGroup.class,
-                     IpAddrGroupExtended.class })
-    public interface IpAddrGroupCreateGroupSequence {
     }
 
     @Override
