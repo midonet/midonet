@@ -143,7 +143,7 @@ class VppController @Inject()(config: MidolmanConfig,
         }
 
         def setupPort(): Future[_] = {
-            val setup = new VppSetup(port,
+            val setup = new VppSetup(port.id,
                                      datapathState.getDpPortNumberForVport(portId),
                                      vppApi,
                                      vppOvs)

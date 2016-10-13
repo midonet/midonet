@@ -13,7 +13,7 @@ touch /etc/init.d/vpp
 
 # Failfast if we cannot update the packages locally
 apt-get install -qy --force-yes midolman/local \
-                                midonet-tools/local || exit 1
+                                midonet-tools/local vpp vpp-lib || exit 1
 
 # Make sure we can access the remote management interface from outside the container
 HOST_NAME=`hostname`

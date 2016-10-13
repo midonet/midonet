@@ -16,6 +16,8 @@
 
 package org.midonet.midolman
 
+import java.util.UUID
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
@@ -182,7 +184,7 @@ object VppSetup extends MidolmanLogging {
     }
 }
 
-class VppSetup(uplinkPort: RouterPort,
+class VppSetup(uplinkPortId: UUID,
                uplinkPortDpNo: Int,
                vppApi: VppApi,
                vppOvs: VppOvs)
@@ -191,7 +193,7 @@ class VppSetup(uplinkPort: RouterPort,
 
     import VppSetup._
 
-    private val uplinkSuffix = uplinkPort.id.toString.substring(0, 8)
+    private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
     private val uplinkOvsName = s"ovs-$uplinkSuffix"
     private val uplinkVppAddr = IPv6Addr.fromString("2001::1")
