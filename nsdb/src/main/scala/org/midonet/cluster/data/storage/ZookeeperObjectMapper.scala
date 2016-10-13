@@ -298,8 +298,14 @@ class ZookeeperObjectMapper(override val rootPath: String,
             deleteStateTables()
         }
 
-        override protected def nodeExists(path: String): Boolean =
-            curator.checkExists.forPath(path) != null
+        override protected def nodeExists(path: String): Boolean = {
+            val stat = curator.checkExists.forPath(path)
+            if ((stat ne null) && stat.getMzxid > zxid) {
+                throw new ConcurrentModificationException(
+                    s"Node $path was modified during the transaction.")
+            }
+            stat ne null
+        }
 
         override protected def childrenOf(path: String): Seq[String] = {
             val prefix = if (path == "/") path else path + "/"

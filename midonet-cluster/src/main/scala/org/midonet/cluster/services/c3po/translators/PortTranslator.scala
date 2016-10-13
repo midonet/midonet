@@ -150,7 +150,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
 
         if (hasMacAndArpTableEntries(nPort)) {
-            macAndArpTableEntryPaths(nPort).foreach(tx.deleteNode)
+            for (path <- macAndArpTableEntryPaths(nPort)) {
+                tx.deleteNode(path, idempotent = true)
+            }
         }
 
         // No corresponding Midonet port for the remote site port.

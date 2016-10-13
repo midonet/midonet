@@ -21,6 +21,7 @@ import scala.concurrent.duration._
 
 import com.codahale.metrics.MetricRegistry
 
+import org.apache.curator.utils.ZKPaths
 import org.junit.runner.RunWith
 import org.scalatest.GivenWhenThen
 import org.scalatest.junit.JUnitRunner
@@ -647,6 +648,65 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             storage.delete(classOf[PojoBridge], bridge.id)
 
             intercept[ConcurrentModificationException] {
+                tx.commit()
+            }
+        }
+
+        scenario("Create node") {
+            Given("A transaction")
+            val tx = storage.transaction()
+
+            When("Creating a node")
+            val path = s"$zkRoot/test-node-0"
+            tx.createNode(path)
+
+            And("Committing the transaction")
+            tx.commit()
+
+            Then("The node should exist")
+            curator.checkExists().forPath(path) should not be null
+        }
+
+        scenario("Delete node") {
+            Given("A node in storage")
+            val path = s"$zkRoot/test-node-1"
+            ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, path)
+
+            And("A transaction")
+            val tx = storage.transaction()
+
+            When("Deleting the node")
+            tx.deleteNode(path)
+
+            And("Committing the transaction")
+            tx.commit()
+
+            Then("The node should not exist")
+            curator.checkExists().forPath(path) shouldBe null
+        }
+
+        scenario("Delete node is idempotent") {
+            Given("A transaction")
+            val tx = storage.transaction()
+
+            When("Deleting a non-existing node")
+            val path = s"$zkRoot/test-node-2"
+            tx.deleteNode(path)
+
+            Then("Committing the transaction should not fail")
+            tx.commit()
+        }
+
+        scenario("Transaction fails on delete node if not idempotent") {
+            Given("A transaction")
+            val tx = storage.transaction()
+
+            And("Deleting a non-existing node")
+            val path = s"$zkRoot/test-node-2"
+            tx.deleteNode(path, idempotent = false)
+
+            Then("Committing the transaction should fail")
+            intercept[StorageNodeNotFoundException] {
                 tx.commit()
             }
         }
