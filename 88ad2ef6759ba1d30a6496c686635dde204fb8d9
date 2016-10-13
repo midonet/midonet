@@ -68,6 +68,30 @@
       "revId": "88ad2ef6759ba1d30a6496c686635dde204fb8d9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_373c2ac7",
+        "filename": "nsdb/src/main/java/org/midonet/management/FlowMeters.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-13T13:09:27Z",
+      "side": 1,
+      "message": "because the MeterRegistry is using a ConcurrentHashMap underneath to track the meters. So i pass this map instance as is without creating another object, and the MXBean will just serialize the map. my understanding is that an MXBean will serialize both lists and maps to the same tabular format, however i don\u0027t know if the memory usage difference between them is significant - my goal was just to prevent the allocation of an intermediate list",
+      "parentUuid": "baa041b7_9c7d5de9",
+      "range": {
+        "startLine": 30,
+        "startChar": 33,
+        "endLine": 30,
+        "endChar": 36
+      },
+      "revId": "88ad2ef6759ba1d30a6496c686635dde204fb8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
