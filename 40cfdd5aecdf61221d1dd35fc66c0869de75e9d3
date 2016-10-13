@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b1d4ca1f",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-10-13T08:58:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_59e00e26",
+      "revId": "40cfdd5aecdf61221d1dd35fc66c0869de75e9d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d9cade9f",
         "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-11T15:06:30Z",
       "side": 1,
       "message": "python format would be cleaner.\n\n\"fip64 add %s %s %s %s\" % (ip6ext, ip6fip, ip4fip64, ip4fixed)",
+      "revId": "40cfdd5aecdf61221d1dd35fc66c0869de75e9d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_91d78622",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-10-13T08:58:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d9cade9f",
       "revId": "40cfdd5aecdf61221d1dd35fc66c0869de75e9d3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
