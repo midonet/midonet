@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3c9891bf",
+        "filename": "nsdb/src/main/java/org/midonet/management/FlowMeterRegistry.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-13T10:30:34Z",
+      "side": 1,
+      "message": "remove this",
+      "range": {
+        "startLine": 21,
+        "startChar": 17,
+        "endLine": 21,
+        "endChar": 34
+      },
+      "revId": "88ad2ef6759ba1d30a6496c686635dde204fb8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
