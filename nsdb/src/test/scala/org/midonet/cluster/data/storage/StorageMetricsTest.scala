@@ -50,7 +50,7 @@ class StorageMetricsTest extends FeatureSpec
 
     protected override def setup(): Unit = {
         registry = new MetricRegistry()
-        zoom = new ZookeeperObjectMapper(zkRoot, UUID.randomUUID().toString,
+        zoom = new ZookeeperObjectMapper(config, UUID.randomUUID().toString,
                                          curator, registry)
         initAndBuildStorage(zoom)
     }
