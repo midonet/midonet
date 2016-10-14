@@ -123,7 +123,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
     }
 
     private val zoom =
-        new ZookeeperObjectMapper(config.rootKey, namespaceId.toString, curator,
+        new ZookeeperObjectMapper(config, namespaceId.toString, curator,
                                   failFastCurator, stateTableClientWrapper,
                                   reactor, new StorageMetrics(metricRegistry))
 

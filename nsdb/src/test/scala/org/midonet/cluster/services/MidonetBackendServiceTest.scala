@@ -19,7 +19,6 @@ package org.midonet.cluster.services
 import java.util.UUID
 
 import com.codahale.metrics.MetricRegistry
-import com.typesafe.config.ConfigFactory
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito
@@ -29,7 +28,6 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
-import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.conf.HostIdGenerator
 
@@ -75,15 +73,7 @@ class MidonetBackendServiceTest extends FeatureSpec with Matchers
                                 with GivenWhenThen with MidonetBackendTest {
     import MidonetBackendServiceTest._
 
-    private var config: MidonetBackendConfig = _
-
-    override def beforeEach(): Unit = {
-        super.beforeEach()
-        config = new MidonetBackendConfig(ConfigFactory.parseString(
-            """
-              |state_proxy.enabled : false
-            """.stripMargin))
-    }
+    protected override def configParams: String = "state_proxy.enabled : false"
 
     scenario("Backend calls plugins") {
         Given("A backend service")
