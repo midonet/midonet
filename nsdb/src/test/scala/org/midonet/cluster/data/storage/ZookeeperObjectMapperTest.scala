@@ -24,6 +24,7 @@ import com.codahale.metrics.MetricRegistry
 import org.apache.curator.utils.ZKPaths
 import org.junit.runner.RunWith
 import org.scalatest.GivenWhenThen
+import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
@@ -36,7 +37,7 @@ import org.midonet.util.reactivex.{AwaitableObserver, TestAwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
-                                with GivenWhenThen {
+                                        with GivenWhenThen with Eventually {
 
     import StorageTest._
 
@@ -55,6 +56,12 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
         new ZookeeperObjectMapper(config, hostId, curator, curator, stateTables,
                                   reactor, new StorageMetrics(new MetricRegistry))
     }
+
+    protected override def configParams =
+        """
+          |zookeeper.lock_timeout : 60s
+          |zookeeper.transaction_attempts : 1000
+        """.stripMargin
 
     feature("Test subscribe") {
         scenario("Test object observable recovers after close") {
@@ -265,7 +272,6 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             storage.observable(classOf[PojoBridge]) eq obs shouldBe true
         }
     }
-
 
     feature("Test transactions") {
         scenario("Get fails on non-existing object") {
@@ -743,6 +749,93 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             intercept[StorageNodeNotFoundException] {
                 tx.commit()
             }
+        }
+    }
+
+    feature("Test transaction locks and retries") {
+        scenario("Storage executes a transaction") {
+            Given("An object")
+            val bridge = createPojoBridge()
+
+            When("Executing a transaction")
+            storage.tryTransaction { tx =>
+                tx.create(bridge)
+            }
+
+            Then("The transaction should be committed")
+            await(storage.get(classOf[PojoBridge], bridge.id)) shouldBe bridge
+        }
+
+        scenario("Storage handles contention without lock") {
+            Given("A bridge")
+            val bridge = createPojoBridge(name = "0")
+            storage.create(bridge)
+
+            Then("The storage should be lock free")
+            storage.asInstanceOf[ZookeeperObjectMapper].isLockFree shouldBe true
+
+            And("The ten modifying threads")
+            val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
+                override def run(): Unit = {
+                    storage.tryTransaction { tx =>
+                        val b = tx.get(classOf[PojoBridge], bridge.id)
+                        Thread.sleep(50)
+                        val i = Integer.parseInt(b.name) + 1
+                        b.name = i.toString
+                        tx.update(b)
+                    }
+                }
+            })
+
+            When("Starting all threads")
+            threads.foreach(_.start())
+
+            And("Waiting for all transactions to complete")
+            threads.foreach(_.join())
+
+            Then("The bridge name should have been incremented atomically")
+            val b = await(storage.get(classOf[PojoBridge], bridge.id))
+            b.name shouldBe "10"
+        }
+
+        scenario("Storage handles contention with lock") {
+            Given("A bridge")
+            val bridge = createPojoBridge(name = "0")
+            storage.create(bridge)
+
+            Then("The storage should be lock free")
+            val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
+            zoom.isLockFree shouldBe true
+
+            When("The lock path is created")
+            curator.create().creatingParentsIfNeeded().forPath(zoom.topologyLockPath)
+
+            Then("Eventually the storage should not be lock free")
+            eventually {
+                zoom.isLockFree shouldBe false
+            }
+
+            And("The ten modifying threads")
+            val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
+                override def run(): Unit = {
+                    storage.tryTransaction { tx =>
+                        val b = tx.get(classOf[PojoBridge], bridge.id)
+                        val i = Integer.parseInt(b.name) + 1
+                        b.name = i.toString
+                        tx.update(b)
+                    }
+                }
+            })
+
+            When("Starting all threads")
+            threads.foreach(_.start())
+
+            And("Waiting for all transactions to complete")
+            threads.foreach(_.join())
+
+            Then("The bridge name should have been incremented atomically")
+            val b = await(storage.get(classOf[PojoBridge], bridge.id))
+            b.name shouldBe "10"
         }
     }
 

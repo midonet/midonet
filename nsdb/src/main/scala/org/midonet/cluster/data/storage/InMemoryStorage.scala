@@ -624,6 +624,13 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         new InMemoryTransactionManager
     }
 
+    override def tryTransaction[R](f: (Transaction) => R): R = {
+        val tx = transaction()
+        val result = f(tx)
+        tx.commit()
+        result
+    }
+
     /** Create an object without referential integrity protection. */
     def createRaw(obj: Obj): Unit = {
         val clazz = obj.getClass
