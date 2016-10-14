@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_85ce1d2b",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-14T15:20:49Z",
+      "side": 1,
+      "message": "this link also goes through the datapath",
+      "range": {
+        "startLine": 22,
+        "startChar": 19,
+        "endLine": 22,
+        "endChar": 31
+      },
+      "revId": "437d86d74fecea71e4a0e916aa7554df8edf2537",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_65e8b97b",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-14T15:20:49Z",
+      "side": 1,
+      "message": "for future work, we should make this figure upside down, with the uplink at the top",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 5
+      },
+      "revId": "437d86d74fecea71e4a0e916aa7554df8edf2537",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_85e5fda4",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-14T15:20:49Z",
+      "side": 1,
+      "message": "this is the downlink, the uplink connects the provider router with the world",
+      "range": {
+        "startLine": 60,
+        "startChar": 21,
+        "endLine": 60,
+        "endChar": 60
+      },
+      "revId": "437d86d74fecea71e4a0e916aa7554df8edf2537",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_45049548",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-14T15:20:49Z",
+      "side": 1,
+      "message": "don\u0027t worry about adding too much info here, this is still work in progress. the issue required only to complete the structure of this doc.",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 21
+      },
+      "revId": "437d86d74fecea71e4a0e916aa7554df8edf2537",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
