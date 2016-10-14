@@ -58,7 +58,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
     override val enableFailFastCurator = true
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, namespaceId, curator,
+        storage = new ZookeeperObjectMapper(config, namespaceId, curator,
                                             failFastCurator, stateTables,
                                             reactor,
                                             new StorageMetrics(new MetricRegistry))
@@ -92,7 +92,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         connectionWatcher2.setZkConnection(connection)
         val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
         val namespaceId2 = if (sameNamespace) namespaceId else UUID.randomUUID().toString
-        val storage2 = new ZookeeperObjectMapper(zkRoot, namespaceId2, curator2,
+        val storage2 = new ZookeeperObjectMapper(config, namespaceId2, curator2,
                                                  curator2, stateTables, reactor,
                                                  new StorageMetrics(new MetricRegistry))
         initAndBuildStorage(storage2)
