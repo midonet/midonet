@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bda25bac",
+        "filename": "midolman/src/main/java/org/midonet/midolman/services/MidolmanService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_2f129cb4",
+      "range": {
+        "startLine": 170,
+        "startChar": 54,
+        "endLine": 170,
+        "endChar": 55
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0f17d8a3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1d926757",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0f17d8a3",
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ef07146e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
@@ -53,6 +95,30 @@
       "writtenOn": "2016-10-12T07:49:46Z",
       "side": 1,
       "message": "By convention, factory methods are usually called apply(), so that they can be invoked like this:\n\n  val qosService \u003d QosService(channelFactor, scanner, hostId, q, reqHandler)",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 22
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3d7e4b19",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ef07146e",
       "range": {
         "startLine": 45,
         "startChar": 8,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1d79472f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "good call, i missed that. It is called from 2 different threads. I have made it synchronized.",
+      "parentUuid": "baa041b7_8af636d5",
+      "range": {
+        "startLine": 78,
+        "startChar": 8,
+        "endLine": 78,
+        "endChar": 24
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_af26ac13",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
@@ -99,6 +189,30 @@
       "writtenOn": "2016-10-12T07:49:46Z",
       "side": 1,
       "message": "You don\u0027t have to change this, but I can\u0027t not point it out:\n\n  val r \u003d p.qosPolicy.bandwidthRules.head\n  new TcConf(ifIndex, r.maxKbps, r.maxBurstKbps)",
+      "range": {
+        "startLine": 94,
+        "startChar": 12,
+        "endLine": 96,
+        "endChar": 40
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fd73434c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_af26ac13",
       "range": {
         "startLine": 94,
         "startChar": 12,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_dd6e3f63",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4f1960d0",
+      "range": {
+        "startLine": 99,
+        "startChar": 22,
+        "endLine": 99,
+        "endChar": 66
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0fcc7833",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
@@ -145,6 +283,30 @@
       "writtenOn": "2016-10-12T07:49:46Z",
       "side": 1,
       "message": "I think the preferred way to express this is just tcConfs.contains",
+      "range": {
+        "startLine": 117,
+        "startChar": 31,
+        "endLine": 117,
+        "endChar": 50
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bd901b44",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0fcc7833",
       "range": {
         "startLine": 117,
         "startChar": 31,
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9d93174f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_efccb435",
+      "range": {
+        "startLine": 120,
+        "startChar": 26,
+        "endLine": 120,
+        "endChar": 50
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_cfd1f0cd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
@@ -191,6 +377,30 @@
       "writtenOn": "2016-10-12T07:49:46Z",
       "side": 1,
       "message": "Why not keep it as a Set, given how it\u0027s used below?",
+      "range": {
+        "startLine": 153,
+        "startChar": 37,
+        "endLine": 153,
+        "endChar": 63
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7d96133f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_cfd1f0cd",
       "range": {
         "startLine": 153,
         "startChar": 37,
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5d990f6c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4fde00db",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 61
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_af022c3c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
@@ -237,6 +471,30 @@
       "writtenOn": "2016-10-12T07:49:46Z",
       "side": 1,
       "message": "This doesn\u0027t do anything, since you already added all entries in data to the map in the first line of this function.",
+      "range": {
+        "startLine": 159,
+        "startChar": 0,
+        "endLine": 160,
+        "endChar": 70
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3da52ba1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_af022c3c",
       "range": {
         "startLine": 159,
         "startChar": 0,
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ddbcffb6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "No, we need to only catch a NotFoundException",
+      "parentUuid": "baa041b7_6ff8a44a",
+      "range": {
+        "startLine": 174,
+        "startChar": 33,
+        "endLine": 174,
+        "endChar": 34
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8fff6833",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
@@ -283,6 +565,30 @@
       "writtenOn": "2016-10-12T07:49:46Z",
       "side": 1,
       "message": "Does sleep need to get reset after we succeed, or does this only happen once?",
+      "range": {
+        "startLine": 179,
+        "startChar": 16,
+        "endLine": 179,
+        "endChar": 21
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1dc70746",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "It only happens once, on startup.",
+      "parentUuid": "baa041b7_8fff6833",
       "range": {
         "startLine": 179,
         "startChar": 16,
@@ -318,6 +624,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9dbaf7be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4ff5e04e",
+      "range": {
+        "startLine": 227,
+        "startChar": 10,
+        "endLine": 227,
+        "endChar": 68
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0f9a3814",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
@@ -329,6 +659,30 @@
       "writtenOn": "2016-10-12T07:49:46Z",
       "side": 1,
       "message": "When you\u0027re just using a function reference, as opposed to an inline function definition, I think parentheses with no spaces is preferred.",
+      "range": {
+        "startLine": 229,
+        "startChar": 27,
+        "endLine": 229,
+        "endChar": 55
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7dadf382",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0f9a3814",
       "range": {
         "startLine": 229,
         "startChar": 27,
@@ -364,6 +718,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3dcc0b69",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_cf9fb000",
+      "range": {
+        "startLine": 232,
+        "startChar": 31,
+        "endLine": 232,
+        "endChar": 61
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ef9a7412",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
@@ -375,6 +753,30 @@
       "writtenOn": "2016-10-12T07:49:46Z",
       "side": 1,
       "message": "Closing brace on next line.",
+      "range": {
+        "startLine": 235,
+        "startChar": 49,
+        "endLine": 235,
+        "endChar": 50
+      },
+      "revId": "9782e9fb7f48a6c9cd5486efb719d4aada942892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fdaa2370",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-14T05:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ef9a7412",
       "range": {
         "startLine": 235,
         "startChar": 49,
