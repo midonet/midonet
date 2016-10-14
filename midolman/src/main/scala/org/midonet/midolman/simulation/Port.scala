@@ -21,8 +21,6 @@ import java.util.{UUID, List => JList}
 
 import scala.collection.JavaConverters._
 
-import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Topology
@@ -111,7 +109,7 @@ object Port {
             case subnet: IPv6Subnet => ip6Subnet = subnet
         }
 
-        new RouterPort(
+        RouterPort(
             id = p.getId,
             inboundFilters = inFilters,
             outboundFilters = outFilters,
@@ -444,14 +442,10 @@ case class RouterPort(override val id: UUID,
                       portAddressV6: IPv6Addr = null,
                       portMac: MAC,
                       routeIds: Set[UUID] = Set.empty,
-                      override val preInFilterMirrors: JList[UUID] =
-                        emptyList(),
-                      override val postOutFilterMirrors: JList[UUID] =
-                        emptyList(),
-                      override val postInFilterMirrors: JList[UUID] =
-                        emptyList(),
-                      override val preOutFilterMirrors: JList[UUID] =
-                        emptyList(),
+                      override val preInFilterMirrors: JList[UUID] = emptyList(),
+                      override val postOutFilterMirrors: JList[UUID] = emptyList(),
+                      override val postInFilterMirrors: JList[UUID] = emptyList(),
+                      override val preOutFilterMirrors: JList[UUID] = emptyList(),
                       vni: Int = 0,
                       tunnelIp: IPv4Addr = null,
                       peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
@@ -510,12 +504,9 @@ case class VxLanPort(override val id: UUID,
                      networkId: UUID,
                      vtepId: UUID,
                      override val preInFilterMirrors: JList[UUID] = emptyList(),
-                     override val postOutFilterMirrors: JList[UUID] =
-                        emptyList(),
-                     override val postInFilterMirrors: JList[UUID] =
-                        emptyList(),
-                     override val preOutFilterMirrors: JList[UUID] =
-                        emptyList())
+                     override val postOutFilterMirrors: JList[UUID] = emptyList(),
+                     override val postInFilterMirrors: JList[UUID] = emptyList(),
+                     override val preOutFilterMirrors: JList[UUID] = emptyList())
     extends Port {
 
     override def hostId = null
