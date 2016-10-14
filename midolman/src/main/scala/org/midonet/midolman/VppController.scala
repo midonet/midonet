@@ -77,7 +77,9 @@ class VppController @Inject()(config: MidolmanConfig,
     private var vppProcess: MonitoredDaemonProcess = _
     private var vppApi: VppApi = _
     private var vppOvs: VppOvs = new VppOvs(datapathState.datapath)
-    private val belt = new ConveyorBelt(_ => {})
+    private val belt = new ConveyorBelt(t => {
+                                            log.error("Error on conveyor belt", t)
+                                        })
 
     private val portsSubscription = new CompositeSubscription()
     private val watchedPorts = mutable.Map.empty[UUID, BoundPort]
