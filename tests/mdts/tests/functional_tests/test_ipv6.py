@@ -324,7 +324,6 @@ def test_uplink_ipv6():
     Title: ping ipv6 uplink of midolman1 from quagga1. VPP must respond
 
     """
-    time.sleep(10)
     ping_from_inet('quagga1', '2001::1', 10)
 
 
@@ -335,5 +334,5 @@ def test_ping_vm_ipv6():
     """
     Title: ping a VM in a IPv4 neutron topology from a remote IPv6 endpoint
     """
-    time.sleep(10)
     ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')
+
