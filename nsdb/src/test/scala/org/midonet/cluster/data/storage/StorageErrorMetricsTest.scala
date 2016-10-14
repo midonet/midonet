@@ -53,7 +53,7 @@ class StorageErrorMetricsTest extends FlatSpec
 
     protected override def setup(): Unit = {
         registry = new MetricRegistry()
-        storage = new ZookeeperObjectMapper(zkRoot, UUID.randomUUID().toString,
+        storage = new ZookeeperObjectMapper(config, UUID.randomUUID().toString,
                                             curator, registry) with ZoomIntrospector {
             override def publicInternalObservable[T](clazz: Class[T], id: Any)
             : Observable[T] = {

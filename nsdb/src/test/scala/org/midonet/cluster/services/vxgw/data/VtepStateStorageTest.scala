@@ -44,11 +44,10 @@ class VtepStateStorageTest extends FlatSpec with CuratorTestFramework
 
     private var storage: ZookeeperObjectMapper = _
     private var ownerId: Long = _
-    private val random = new Random
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, ClusterNamespaceId.toString,
+        storage = new ZookeeperObjectMapper(config, ClusterNamespaceId.toString,
                                             curator)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)

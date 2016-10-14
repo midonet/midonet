@@ -49,7 +49,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
     }
 
     protected override def createStorage = {
-        new ZookeeperObjectMapper(zkRoot, hostId, curator)
+        new ZookeeperObjectMapper(config, hostId, curator)
     }
 
     feature("Test subscribe") {
