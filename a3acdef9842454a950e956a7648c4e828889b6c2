@@ -71,6 +71,52 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_efbcaab6",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-14T10:08:21Z",
+      "side": 1,
+      "message": "Should be bidirectional",
+      "range": {
+        "startLine": 27,
+        "startChar": 10,
+        "endLine": 27,
+        "endChar": 17
+      },
+      "revId": "a3acdef9842454a950e956a7648c4e828889b6c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0fc22e34",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-14T10:08:21Z",
+      "side": 1,
+      "message": "Should be bidirectional",
+      "range": {
+        "startLine": 27,
+        "startChar": 33,
+        "endLine": 27,
+        "endChar": 41
+      },
+      "revId": "a3acdef9842454a950e956a7648c4e828889b6c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_11093631",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -94,6 +140,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6fb41af0",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-14T10:08:21Z",
+      "side": 1,
+      "message": "Sounds confusing for me. The Ipv4 VMs cannot initiate v6 operations. AFAIK midonet does not support (yet) ipv6 nets",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 45
+      },
+      "revId": "a3acdef9842454a950e956a7648c4e828889b6c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_dc2c0595",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -110,6 +179,52 @@
         "startChar": 37,
         "endLine": 71,
         "endChar": 38
+      },
+      "revId": "a3acdef9842454a950e956a7648c4e828889b6c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4f971648",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-14T10:08:21Z",
+      "side": 1,
+      "message": "My understanding was the ipv6 port can be attached only to Edge Router of midonet. I might be very wrong though :)",
+      "range": {
+        "startLine": 84,
+        "startChar": 122,
+        "endLine": 84,
+        "endChar": 173
+      },
+      "revId": "a3acdef9842454a950e956a7648c4e828889b6c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6f82da00",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-14T10:08:21Z",
+      "side": 1,
+      "message": "Adrian did his best to kill all previous VPP processes when lunching midolman\u0027s VPP. This ensures that our VPP can be run smoothly. We should mention that midolman cannot coexist with \"external\" VPP processes and will try to kill them.\n\nOur VPP is listening port 5002 and need it free for successfull lunch",
+      "range": {
+        "startLine": 88,
+        "startChar": 2,
+        "endLine": 88,
+        "endChar": 43
       },
       "revId": "a3acdef9842454a950e956a7648c4e828889b6c2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
