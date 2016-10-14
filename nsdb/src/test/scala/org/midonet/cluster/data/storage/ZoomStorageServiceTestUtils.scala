@@ -18,6 +18,8 @@ package org.midonet.cluster.data.storage
 import java.util.{List => JList}
 
 import scala.concurrent.Future
+import com.codahale.metrics.MetricRegistry
+import com.typesafe.config.ConfigFactory
 
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
@@ -28,6 +30,7 @@ import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.models.Topology.{Chain, Network, Port, Router, Rule}
 import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.storage.MidonetBackendConfig
 
 /**
  * DTO for ZOOM binding.
@@ -149,7 +152,7 @@ trait ZoomStorageTester extends StorageTester
     override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
 
     override protected def setup(): Unit = {
-        zoom = new ZookeeperObjectMapper(zkRoot, "host", curator)
+        zoom = new ZookeeperObjectMapper(config, "host", curator)
         registerClasses(deviceClasses, bindings)
         zoom.build()
     }

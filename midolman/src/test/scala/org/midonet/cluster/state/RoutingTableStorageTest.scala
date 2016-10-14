@@ -52,7 +52,7 @@ class RoutingTableStorageTest extends FlatSpec with CuratorTestFramework
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator)
+        storage = new ZookeeperObjectMapper(config, hostId.toString, curator)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }

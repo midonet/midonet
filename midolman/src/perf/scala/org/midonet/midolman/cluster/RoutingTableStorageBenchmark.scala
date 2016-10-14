@@ -25,6 +25,8 @@ import scala.concurrent.duration._
 import scala.util.Random
 import scala.util.control.NonFatal
 
+import com.codahale.metrics.MetricRegistry
+import com.typesafe.config.ConfigFactory
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.RetryNTimes
 import org.openjdk.jmh.annotations._
@@ -38,6 +40,7 @@ import org.midonet.cluster.data.storage.{StateResult, ZookeeperObjectMapper}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.state.RoutingTableStorage._
+import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
@@ -58,6 +61,10 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
     private final val zkServer = "127.0.0.1:2181"
     private final val zkRoot = "/midonet/benchmark"
     private final val hostId = UUID.randomUUID()
+    private final val config = new MidonetBackendConfig(ConfigFactory.parseString(
+        s"""
+           |zookeeper.zookeeper.root_key=$zkRoot
+        """.stripMargin))
 
     private var curator: CuratorFramework = _
     private var storage: ZookeeperObjectMapper = _
@@ -102,7 +109,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
                                                     cnxnTimeoutMs,
                                                     retryPolicy)
         curator.start()
-        storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator)
+        storage = new ZookeeperObjectMapper(config, hostId.toString, curator)
         storage.registerClass(classOf[Port])
         storage.registerKey(classOf[Port], RoutesKey, Multiple)
         storage.build()
