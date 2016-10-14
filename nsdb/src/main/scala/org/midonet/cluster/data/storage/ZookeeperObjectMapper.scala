@@ -17,6 +17,7 @@ package org.midonet.cluster.data.storage
 
 import java.util.ConcurrentModificationException
 import java.util.concurrent.Executors._
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.JavaConversions._
@@ -34,6 +35,7 @@ import com.google.protobuf.Message
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
+import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException._
 import org.apache.zookeeper.OpResult.ErrorResult
@@ -121,8 +123,11 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     protected[storage] override val zoomPath = s"$rootPath/zoom"
 
     private[cluster] val basePath = s"$zoomPath/" + version.get
+    private[storage] val lockPath = s"$basePath/locks/zoom-topology"
     private[storage] val locksPath = basePath + s"/zoomlocks/lock"
     private[storage] val modelPath = basePath + s"/models"
+    private val lock = new InterProcessSemaphoreMutex(curator, lockPath)
+    @volatile private var lockFree = false
 
     private val executor = newSingleThreadExecutor(
         new NamedThreadFactory("zoom", isDaemon = true))
@@ -419,6 +424,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     override def build(): Unit = {
         ensureClassNodes()
         super.build()
+        lockFree = lockFreeAndWatch()
         metrics.build(this)
     }
 
@@ -714,6 +720,39 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         }).clazz.asInstanceOf[Observable[Observable[T]]]
     }
 
+    /**
+      * @see[[Storage.tryTransaction()]]
+      */
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ObjectReferencedException]
+    @throws[ReferenceConflictException]
+    @throws[StorageException]
+    override def tryTransaction[R](f: (Transaction) => R): R = {
+        val lf = lockFree
+        if (lf || lock.acquire(config.lockTimeoutMs, TimeUnit.MILLISECONDS)) {
+            var attempt = 0
+            while (attempt < config.transactionAttempts) {
+                try {
+                    val tx = transaction()
+                    val result = f(tx)
+                    tx.commit()
+                    return result
+                } catch {
+                    case e: ConcurrentModificationException => attempt += 1
+                } finally {
+                    if (!lf) {
+                        lock.release()
+                    }
+                }
+            }
+            null.asInstanceOf[R]
+        } else {
+            throw new StorageException("Acquiring lock timed-out after " +
+                                       s"${config.lockTimeoutMs} ms")
+        }
+    }
+
     protected[cluster] def classes: Set[Class[_]] = {
         classInfo.keySet.toSet
     }
@@ -741,6 +780,16 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                                                version: Long = version.longValue())
     : String = {
         classPath(clazz) + "/" + getIdString(id)
+    }
+
+    protected[cluster] def isLockFree = lockFree
+
+    private def lockFreeAndWatch(): Boolean = {
+        curator.checkExists().usingWatcher(new Watcher {
+            override def process(event: WatchedEvent): Unit = {
+                lockFree = false
+            }
+        }).forPath(lockPath) eq null
     }
 
 }
