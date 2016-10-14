@@ -137,6 +137,10 @@ trait ZoomStorageTester extends StorageTester
         zoom.transaction()
     }
 
+    override def tryTransaction[R](f: (Transaction) => R): R = {
+        zoom.tryTransaction(f)
+    }
+
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         zoom.observable(clazz, id)
     }
