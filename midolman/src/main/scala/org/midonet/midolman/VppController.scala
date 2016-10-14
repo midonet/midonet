@@ -149,12 +149,26 @@ class VppController @Inject()(config: MidolmanConfig,
                                      datapathState.getDpPortNumberForVport(portId),
                                      vppApi,
                                      vppOvs)
-            setup.execute() andThen {
-                case Success(_) => watchedPorts += portId -> BoundPort(port, setup)
-                case Failure(err) => setup.rollback()
+            val boundPort = BoundPort(port, setup)
+
+            val unbindF = watchedPorts.put(portId, boundPort) match {
+                case Some(previousBinding) =>
+                    previousBinding.setup.rollback()
+                case None => Future.successful(Unit)
+            }
+            unbindF andThen {
+                case _ => setup.execute()
+            } andThen {
+                case Failure(err) => {
+                    setup.rollback()
+                    watchedPorts.get(portId) match {
+                        case Some(p) if p == boundPort =>
+                            watchedPorts.remove(portId)
+                        case _ =>
+                    }
+                }
             }
         }
-
         belt.handle(setupPort)
     }
 
