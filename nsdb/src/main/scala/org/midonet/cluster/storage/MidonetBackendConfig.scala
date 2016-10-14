@@ -36,6 +36,7 @@ class MidonetBackendConfig(val conf: Config) {
     @Deprecated // TODO: waiting for RoutingHandlerTest to be refactored
     def useNewStack = true
     def bufferSize = conf.getInt("zookeeper.buffer_size")
+    def lockTimeoutMs = conf.getDuration("zookeeper.lock_timeout", TimeUnit.MILLISECONDS)
 }
 
 class CassandraConfig(val conf: Config) {
