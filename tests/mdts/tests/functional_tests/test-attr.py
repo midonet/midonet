@@ -86,6 +86,7 @@ test_tracing.test_tracing_egress_matching.gate=1
 test_tracing.test_tracing_egress_matching_over_nat.gate=1
 test_tracing.test_tracing_with_limit.gate=1
 test_vpnaas.test_ping_between_three_sites.gate=1
+test_vpnaas.test_ping_between_three_sites.flaky=1
 test_vxlangw.test_to_multi_vtep_multi_tz.gate=1
 test_vxlangw.test_to_multi_vtep_single_tz.gate=1
 test_vxlangw.test_to_single_vtep_multi_bridge.gate=1
