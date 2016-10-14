@@ -292,3 +292,6 @@ neutron:
   links:
   - "keystone:keystone"
   - "cluster1:midonetapi"
+
+provision: sandbox/provisioning/all-provisioning.sh
+override: sandbox/override_v2
