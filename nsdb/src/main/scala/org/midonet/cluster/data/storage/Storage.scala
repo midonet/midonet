@@ -242,6 +242,16 @@ trait Storage extends ReadOnlyStorage {
      */
     def observable[T](clazz: Class[T]): Observable[Observable[T]]
 
+    /**
+      * Tries to execute a transaction using the current write and retry policy.
+      */
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ObjectReferencedException]
+    @throws[ReferenceConflictException]
+    @throws[StorageException]
+    def tryTransaction[R](f: (Transaction) => R): R
+
     /* We should remove the methods below, but first we must make ZOOM support
      * offline class registration so that we can register classes from the
      * guice modules without causing exceptions */
