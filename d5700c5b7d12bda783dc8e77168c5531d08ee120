@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_fdefc3ae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-14T07:02:03Z",
+      "side": 1,
+      "message": "It seems that preferred way to do this is:\n\n    import collection.mutable\n\n    val boundPortsObvrs \u003d mutable.HashMap[UUID, Subscription]()\n\nsource: https://blog.jetbrains.com/scala/2012/05/26/mutableimmutable-collections-prefix-convention-support/\n\nor more concisely:\n\n    import collection.{mutable \u003d\u003e m}\n\n    val boundPortsObvrs \u003d m.HashMap[UUID, Subscription]()",
+      "revId": "d5700c5b7d12bda783dc8e77168c5531d08ee120",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9d2f97f5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-14T07:02:03Z",
+      "side": 1,
+      "message": "nit: no big deal, but this check does not seem to be related to whether this port has a bandwidth rule.",
+      "revId": "d5700c5b7d12bda783dc8e77168c5531d08ee120",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ddeabf9f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-14T07:02:03Z",
+      "side": 1,
+      "message": "Remove \u0027new\u0027 since apply method is automatically provided on case classes.",
+      "revId": "d5700c5b7d12bda783dc8e77168c5531d08ee120",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7d32935f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-14T07:02:03Z",
+      "side": 1,
+      "message": "\u0027new\u0027 unnecessary",
+      "revId": "d5700c5b7d12bda783dc8e77168c5531d08ee120",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2f10524d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-14T07:02:03Z",
+      "side": 1,
+      "message": "how come this is handled differently from onError for Host observer?",
+      "revId": "d5700c5b7d12bda783dc8e77168c5531d08ee120",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2f3732e4",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TcRequestHandlerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-14T07:02:03Z",
+      "side": 1,
+      "message": "\u0027new\u0027 is unncessary",
+      "revId": "d5700c5b7d12bda783dc8e77168c5531d08ee120",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ef15ca3c",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-14T07:02:03Z",
+      "side": 1,
+      "message": "nit: p2 is unused",
+      "revId": "d5700c5b7d12bda783dc8e77168c5531d08ee120",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_af2a227c",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-14T07:02:03Z",
+      "side": 1,
+      "message": "nit: p1 is unused",
+      "revId": "d5700c5b7d12bda783dc8e77168c5531d08ee120",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8f1d1e64",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-14T07:02:03Z",
+      "side": 1,
+      "message": "nit: p3 is unused",
+      "revId": "d5700c5b7d12bda783dc8e77168c5531d08ee120",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
