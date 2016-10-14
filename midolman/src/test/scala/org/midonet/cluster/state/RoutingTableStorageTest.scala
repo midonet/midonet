@@ -55,7 +55,7 @@ class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator,
+        storage = new ZookeeperObjectMapper(config, hostId.toString, curator,
                                             curator, null, reactor,
                                             new StorageMetrics(new MetricRegistry))
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId

@@ -49,8 +49,9 @@ import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, deserializerOf, serialize}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
-import org.midonet.cluster.data.{getIdString, Obj, ObjId}
+import org.midonet.cluster.data.{Obj, ObjId, getIdString}
 import org.midonet.cluster.services.state.client.StateTableClient
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException, PathCacheClosedException}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.eventloop.Reactor
@@ -103,7 +104,7 @@ import org.midonet.util.functors.makeFunc1
  * Port.class, "peerId", CLEAR);
  *
  */
-class ZookeeperObjectMapper(override val rootPath: String,
+class ZookeeperObjectMapper(config: MidonetBackendConfig,
                             protected override val namespace: String,
                             protected override val curator: CuratorFramework,
                             protected override val failFastCurator: CuratorFramework,
@@ -116,6 +117,7 @@ class ZookeeperObjectMapper(override val rootPath: String,
     import ZookeeperObjectMapper._
 
     protected[storage] override val version = new AtomicLong(0)
+    protected[cluster] override val rootPath = config.rootKey
     protected[storage] override val zoomPath = s"$rootPath/zoom"
 
     private[cluster] val basePath = s"$zoomPath/" + version.get

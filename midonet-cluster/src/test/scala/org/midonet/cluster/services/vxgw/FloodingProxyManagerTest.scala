@@ -359,7 +359,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
     private def toggleAlive(id: UUID, isAlive: Boolean = true) = {
         // Create a private store with the host ID as namespace.
         val hostStore =
-            new ZookeeperObjectMapper(backendCfg.rootKey, id.toString,
+            new ZookeeperObjectMapper(backendCfg, id.toString,
                                       backend.curator, backend.failFastCurator,
                                       null, backend.reactor,
                                       new StorageMetrics(new MetricRegistry))
