@@ -194,6 +194,11 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         return str(uuid.UUID(int=uuid.UUID(uplink_port['id']).int ^
                                  0x9c30300ec91f4f1988449d37e61b60f0L))
 
+    def flush_neighbours(self, container, interface):
+        cont_services = service.get_container_by_hostname(container)
+        cont_services.try_command_blocking('ip neigh flush dev %s' % interface)
+
+
 class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
     def __init__(self):
@@ -214,6 +219,9 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
         # setup quagga1
         self.setup_remote_host('quagga1', 'bgp1')
+
+        self.flush_neighbours('quagga1', 'bgp1')
+        self.flush_neighbours('midolman1', 'bgp0')
 
 
 
