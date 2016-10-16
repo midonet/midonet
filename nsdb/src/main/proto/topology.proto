@@ -411,7 +411,7 @@ message PortGroup {
     repeated UUID service_group_ids = 102;
 }
 
-message QOSRuleBWLimit {
+message QosRuleBandwidthLimit {
     optional UUID id = 1;
     optional int32 max_kbps = 2;
     optional int32 max_burst_kbps = 3;
@@ -420,7 +420,7 @@ message QOSRuleBWLimit {
     optional UUID policy_id = 101;
 }
 
-message QOSRuleDSCP {
+message QosRuleDscp {
     optional UUID id = 1;
     optional int32 dscp_mark = 2;
 
@@ -428,14 +428,14 @@ message QOSRuleDSCP {
     optional UUID policy_id = 101;
 }
 
-message QOSPolicy {
+message QosPolicy {
     optional UUID id = 1;
     optional string name = 2;
     optional string description = 3;
     optional bool shared = 4;
     repeated UUID bandwidth_limit_rules = 5;
 
-    message QOSRule {
+    message QosRule {
         optional UUID id = 1;
         optional string type = 2;
         optional int32 max_kbps = 3;
@@ -443,7 +443,7 @@ message QOSPolicy {
         optional int32 dscp_mark = 5;
     }
 
-    repeated QOSRule rules = 6;
+    repeated QosRule rules = 6;
     repeated UUID bandwidth_limit_rule_ids = 7;
     repeated UUID dscp_marking_rule_ids = 8;
 
