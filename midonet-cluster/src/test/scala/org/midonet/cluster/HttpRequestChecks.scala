@@ -46,13 +46,13 @@ trait HttpRequestChecks extends ShouldMatchers {
             APPLICATION_HOST_JSON_V3, APPLICATION_HOST_COLLECTION_JSON_V3),
         classOf[Port] -> (
             APPLICATION_PORT_V3_JSON, APPLICATION_PORT_V3_COLLECTION_JSON),
-        classOf[QOSPolicy] -> (
+        classOf[QosPolicy] -> (
             APPLICATION_QOS_POLICY_JSON,
             APPLICATION_QOS_POLICY_COLLECTION_JSON),
-        classOf[QOSRuleBWLimit] -> (
+        classOf[QosRuleBandwidthLimit] -> (
             APPLICATION_QOS_RULE_BW_LIMIT_JSON,
             APPLICATION_QOS_RULE_BW_LIMIT_COLLECTION_JSON),
-        classOf[QOSRuleDSCP] -> (
+        classOf[QosRuleDscp] -> (
             APPLICATION_QOS_RULE_DSCP_JSON,
             APPLICATION_QOS_RULE_DSCP_COLLECTION_JSON),
         classOf[Router] -> (

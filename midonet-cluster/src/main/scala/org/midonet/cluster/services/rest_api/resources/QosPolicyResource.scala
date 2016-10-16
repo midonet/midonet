@@ -17,14 +17,17 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
+
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType._
 
 import scala.collection.JavaConverters._
+
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
+
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.QOSPolicy
+import org.midonet.cluster.rest_api.models.QosPolicy.QosRule
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -42,12 +45,12 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 @AllowList(Array(APPLICATION_QOS_POLICY_COLLECTION_JSON,
                  APPLICATION_JSON))
 @AllowDelete
-class QOSPolicyResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[QOSPolicy](resContext) {
+class QosPolicyResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[QosPolicy](resContext) {
 
     @Path("{id}/qos_bw_limit_rules")
-    def bw_limit_rules(@PathParam("id") id: UUID): QOSPolicyRuleBWLimitResource = {
-        new QOSPolicyRuleBWLimitResource(id, resContext)
+    def bw_limit_rules(@PathParam("id") id: UUID): QosPolicyRuleBandwidthLimitResource = {
+        new QosPolicyRuleBandwidthLimitResource(id, resContext)
     }
 
     @Path("{id}/qos_dscp_rules")
@@ -55,22 +58,22 @@ class QOSPolicyResource @Inject()(resContext: ResourceContext)
         new QOSPolicyRuleDSCPResource(id, resContext)
     }
 
-    private def createTopLevelRuleForPolicy(pol: QOSPolicy,
-                                            rule: QOSPolicy.QOSRule,
+    private def createTopLevelRuleForPolicy(pol: QosPolicy,
+                                            rule: QosRule,
                                             tx: ResourceTransaction): Unit = {
         rule.`type` match {
-            case QOSPolicy.QOSRule.QOS_RULE_TYPE_BW_LIMIT =>
+            case QosPolicy.QosRule.QOS_RULE_TYPE_BW_LIMIT =>
                 // Create the rule
-                val newRule = new QOSRuleBWLimit
+                val newRule = new QosRuleBandwidthLimit
                 newRule.id = rule.id
                 if (rule.maxKbps != null) newRule.maxKbps = rule.maxKbps
                 if (rule.maxBurstKbps != null)
                     newRule.maxBurstKbps = rule.maxBurstKbps
                 newRule.policyId = pol.id
                 tx.create(newRule)
-            case QOSPolicy.QOSRule.QOS_RULE_TYPE_DSCP =>
+            case QosPolicy.QosRule.QOS_RULE_TYPE_DSCP =>
                 // Create the rule
-                val newRule = new QOSRuleDSCP
+                val newRule = new QosRuleDscp
                 newRule.id = rule.id
                 newRule.dscpMark = rule.dscpMark
                 newRule.policyId = pol.id
@@ -79,19 +82,19 @@ class QOSPolicyResource @Inject()(resContext: ResourceContext)
     }
 
     private def checkAndUpdateTopLevelRule(ruleId: UUID,
-                                           newRule: QOSPolicy.QOSRule,
+                                           newRule: QosRule,
                                            tx: ResourceTransaction): Unit = {
         newRule.`type` match {
-            case QOSPolicy.QOSRule.QOS_RULE_TYPE_BW_LIMIT =>
-                val zoomRule = tx.get(classOf[QOSRuleBWLimit], ruleId)
+            case QosPolicy.QosRule.QOS_RULE_TYPE_BW_LIMIT =>
+                val zoomRule = tx.get(classOf[QosRuleBandwidthLimit], ruleId)
                 if (zoomRule.maxKbps != newRule.maxKbps
                   || zoomRule.maxBurstKbps != newRule.maxBurstKbps) {
                     zoomRule.maxKbps = newRule.maxKbps
                     zoomRule.maxBurstKbps = newRule.maxBurstKbps
                     tx.update(zoomRule)
                 }
-            case QOSPolicy.QOSRule.QOS_RULE_TYPE_DSCP =>
-                val zoomRule = tx.get(classOf[QOSRuleDSCP], ruleId)
+            case QosPolicy.QosRule.QOS_RULE_TYPE_DSCP =>
+                val zoomRule = tx.get(classOf[QosRuleDscp], ruleId)
                 if (zoomRule.dscpMark != newRule.dscpMark) {
                     zoomRule.dscpMark = newRule.dscpMark
                     tx.update(zoomRule)
@@ -103,14 +106,14 @@ class QOSPolicyResource @Inject()(resContext: ResourceContext)
                                    ruleType: String,
                                    tx: ResourceTransaction): Unit = {
         ruleType match {
-            case QOSPolicy.QOSRule.QOS_RULE_TYPE_BW_LIMIT =>
-                tx.delete(classOf[QOSRuleBWLimit], ruleId)
-            case QOSPolicy.QOSRule.QOS_RULE_TYPE_DSCP =>
-                tx.delete(classOf[QOSRuleDSCP], ruleId)
+            case QosPolicy.QosRule.QOS_RULE_TYPE_BW_LIMIT =>
+                tx.delete(classOf[QosRuleBandwidthLimit], ruleId)
+            case QosPolicy.QosRule.QOS_RULE_TYPE_DSCP =>
+                tx.delete(classOf[QosRuleDscp], ruleId)
         }
     }
 
-    protected override def createFilter(pol: QOSPolicy,
+    protected override def createFilter(pol: QosPolicy,
                                         tx: ResourceTransaction): Unit = {
         tx.create(pol)
         if (pol.rules != null) {
@@ -120,8 +123,8 @@ class QOSPolicyResource @Inject()(resContext: ResourceContext)
         }
     }
 
-    protected override def updateFilter(to: QOSPolicy,
-                                        from: QOSPolicy,
+    protected override def updateFilter(to: QosPolicy,
+                                        from: QosPolicy,
                                         tx: ResourceTransaction): Unit = {
         // Update non-JSON data to new policy object so those will carry
         // through the update.
@@ -156,8 +159,8 @@ class QOSPolicyResource @Inject()(resContext: ResourceContext)
         }
         for (ruleId <- deletedRules) {
             val ruleType =
-                if (oldBWRuleSet contains ruleId) QOSPolicy.QOSRule.QOS_RULE_TYPE_BW_LIMIT
-                else QOSPolicy.QOSRule.QOS_RULE_TYPE_DSCP
+                if (oldBWRuleSet contains ruleId) QosPolicy.QosRule.QOS_RULE_TYPE_BW_LIMIT
+                else QosPolicy.QosRule.QOS_RULE_TYPE_DSCP
             deleteTopLevelRule(ruleId, ruleType, tx)
         }
         for (ruleId <- updatedRules) {

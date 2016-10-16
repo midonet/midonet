@@ -31,10 +31,10 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 
 @ZoomClass(clazz = Topology.QosPolicy.class)
-public class QOSPolicy extends UriResource {
+public class QosPolicy extends UriResource {
 
     @ZoomClass(clazz = Topology.QosPolicy.QosRule.class)
-    public static class QOSRule extends ZoomObject {
+    public static class QosRule extends ZoomObject {
 
         public static final String QOS_RULE_TYPE_BW_LIMIT = "bandwidth_limit";
         public static final String QOS_RULE_TYPE_DSCP = "dscp_marking";
@@ -82,7 +82,7 @@ public class QOSPolicy extends UriResource {
     @ZoomField(name = "dscp_marking_rule_ids")
     public List<UUID> dscpMarkingRuleIds;
 
-    public List<QOSRule> rules = null;
+    public List<QosRule> rules = null;
 
     @JsonIgnore
     @ZoomField(name = "port_ids")
@@ -114,7 +114,7 @@ public class QOSPolicy extends UriResource {
     }
 
     @JsonIgnore
-    public void update(QOSPolicy from) {
+    public void update(QosPolicy from) {
         id = from.id;
         bandwidthLimitRuleIds = from.bandwidthLimitRuleIds;
         dscpMarkingRuleIds = from.dscpMarkingRuleIds;

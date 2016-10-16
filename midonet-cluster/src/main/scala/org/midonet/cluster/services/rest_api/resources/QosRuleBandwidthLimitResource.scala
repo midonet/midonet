@@ -36,8 +36,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 @AllowUpdate(Array(APPLICATION_QOS_RULE_BW_LIMIT_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class QOSRuleBWLimitResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[QOSRuleBWLimit](resContext) {
+class QosRuleBandwidthLimitResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[QosRuleBandwidthLimit](resContext) {
 }
 
 @RequestScoped
@@ -45,15 +45,15 @@ class QOSRuleBWLimitResource @Inject()(resContext: ResourceContext)
     APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_QOS_RULE_BW_LIMIT_JSON,
     APPLICATION_JSON))
-class QOSPolicyRuleBWLimitResource @Inject()(policyId: UUID,
-                                             resContext: ResourceContext)
-    extends MidonetResource[QOSRuleBWLimit](resContext) {
+class QosPolicyRuleBandwidthLimitResource @Inject()(policyId: UUID,
+                                                    resContext: ResourceContext)
+    extends MidonetResource[QosRuleBandwidthLimit](resContext) {
 
     protected override def listIds: Seq[Any] = {
-        getResource(classOf[QOSPolicy], policyId).bandwidthLimitRuleIds.asScala
+        getResource(classOf[QosPolicy], policyId).bandwidthLimitRuleIds.asScala
     }
 
-    protected override def createFilter(rule: QOSRuleBWLimit, tx: ResourceTransaction)
+    protected override def createFilter(rule: QosRuleBandwidthLimit, tx: ResourceTransaction)
     : Unit = {
         rule.policyId = policyId
         tx.create(rule)
