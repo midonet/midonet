@@ -50,7 +50,27 @@ private[storage] class TableInfo {
   */
 trait StateTableStorage extends Storage {
 
+    protected[this] val tables = new TrieMap[String, TableProvider]
     protected[this] val tableInfo = new TrieMap[Class[_], TableInfo]
+
+    /**
+      * Registers a global state table. The state table is identified by the
+      * given key class, value class and name, and it associated with the
+      * specified provider class. The method throws an [[IllegalStateException]]
+      * if the storage was already built, and an [[IllegalArgumentException]]
+      * if the specified object class was not previously registered, or if a
+      * state table with same parameters was already registered.
+      */
+    @throws[IllegalStateException]
+    def registerTable[K, V](key: Class[K], value: Class[V], name: String,
+                            provider: Class[_ <: StateTable[K,V]]): Unit = {
+        if (!registerTable(tables, key, value, name, provider)) {
+            throw new IllegalArgumentException(
+                s"Global table for key ${key.getSimpleName} " +
+                s"value ${value.getSimpleName} name $name is already " +
+                "registered to a different provider")
+        }
+    }
 
     /**
      * Registers a new state table for the given class. The state table is
@@ -66,24 +86,16 @@ trait StateTableStorage extends Storage {
     def registerTable[K, V](clazz: Class[_], key: Class[K],
                             value: Class[V], name: String,
                             provider: Class[_ <: StateTable[K,V]]): Unit = {
-        if (isBuilt) {
-            throw new IllegalStateException(
-                "Cannot register a state table after building the storage")
-        }
         if (!isRegistered(clazz)) {
             throw new IllegalArgumentException(
                 s"Class ${clazz.getSimpleName} is not registered")
         }
-        val newProvider = TableProvider(key, value, provider)
-        val oldProvider = tableInfo(clazz).tables.getOrElse(name, {
-            tableInfo(clazz).tables.putIfAbsent(name, newProvider)
-                .getOrElse(newProvider)
-        })
-        if (newProvider != oldProvider) {
+
+        if (!registerTable(tableInfo(clazz).tables, key, value, name, provider)) {
             throw new IllegalArgumentException(
                 s"Table for class ${clazz.getSimpleName} key ${key.getSimpleName} " +
-                    s"value ${value.getSimpleName} name $name is already " +
-                    "registered to a different provider")
+                s"value ${value.getSimpleName} name $name is already " +
+                "registered to a different provider")
         }
     }
 
@@ -147,6 +159,20 @@ trait StateTableStorage extends Storage {
     def portPeeringEntryPath(portId: UUID, mac: MAC, address: IPv4Addr): String = {
         portPeeringTablePath(portId) +
             MacToIp4Encoder.encodePersistentPath(mac, address)
+    }
+
+    private def registerTable[K,V](map: TrieMap[String, TableProvider],
+                                   key: Class[K], value: Class[V], name: String,
+                                   provider: Class[_ <: StateTable[K,V]])
+    : Boolean = {
+        if (isBuilt) {
+            throw new IllegalStateException(
+                "Cannot register a state table after building the storage")
+        }
+        val newProvider = TableProvider(key, value, provider)
+        map.getOrElse(name, {
+            map.putIfAbsent(name, newProvider).getOrElse(newProvider)
+        }) == newProvider
     }
 
 }

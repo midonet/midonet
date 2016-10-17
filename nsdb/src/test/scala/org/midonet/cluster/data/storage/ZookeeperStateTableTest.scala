@@ -98,12 +98,53 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
         storage.registerClass(classOf[PojoBridge])
         storage.registerTable(classOf[PojoBridge], classOf[Int], classOf[String],
                               "score-table", classOf[ScoreStateTable])
+        storage.registerTable(classOf[Int], classOf[String], "global-table",
+                              classOf[ScoreStateTable])
         storage.build()
         storage
     }
 
     feature("Input validation") {
-        scenario("Cannot register a state table after the storage was built") {
+        scenario("Cannot register a global state table after the storage was built") {
+            val storage = setupStorage()
+            intercept[IllegalStateException] {
+                storage.registerTable(classOf[PojoBridge], classOf[Int],
+                                      classOf[String], "another-global-table",
+                                      classOf[ScoreStateTable])
+            }
+        }
+
+        scenario("Cannot register a global state table for a different key") {
+            val storage = newStorage()
+            storage.registerTable(classOf[Int], classOf[String], "same-table",
+                                  classOf[ScoreStateTable])
+            intercept[IllegalArgumentException] {
+                storage.registerTable(classOf[String], classOf[String],
+                                      "same-table", classOf[OtherKeyStateTable])
+            }
+        }
+
+        scenario("Cannot register a global state table for a different value") {
+            val storage = newStorage()
+            storage.registerTable(classOf[Int], classOf[String], "same-table",
+                                  classOf[ScoreStateTable])
+            intercept[IllegalArgumentException] {
+                storage.registerTable(classOf[Int], classOf[Int], "same-table",
+                                      classOf[OtherValueStateTable])
+            }
+        }
+
+        scenario("Cannot register a global state table for a different provider") {
+            val storage = newStorage()
+            storage.registerTable(classOf[Int], classOf[String], "same-table",
+                                  classOf[ScoreStateTable])
+            intercept[IllegalArgumentException] {
+                storage.registerTable(classOf[Int], classOf[String], "same-table",
+                                      classOf[OtherStateTable])
+            }
+        }
+
+        scenario("Cannot register a class state table after the storage was built") {
             val storage = setupStorage()
             intercept[IllegalStateException] {
                 storage.registerTable(classOf[PojoBridge], classOf[Int],
@@ -112,7 +153,7 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             }
         }
 
-        scenario("Cannot register a state table for a non-registered class") {
+        scenario("Cannot register a class state table for a non-registered class") {
             val storage = newStorage()
             intercept[IllegalArgumentException] {
                 storage.registerTable(classOf[PojoRouter], classOf[Int],
@@ -121,7 +162,7 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             }
         }
 
-        scenario("Cannot register a state table for a different key") {
+        scenario("Cannot register a class state table for a different key") {
             val storage = newStorage()
             storage.registerClass(classOf[PojoBridge])
             storage.registerTable(classOf[PojoBridge], classOf[Int],
@@ -134,7 +175,7 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             }
         }
 
-        scenario("Cannot register a state table for a different value") {
+        scenario("Cannot register a class state table for a different value") {
             val storage = newStorage()
             storage.registerClass(classOf[PojoBridge])
             storage.registerTable(classOf[PojoBridge], classOf[Int],
@@ -147,7 +188,7 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             }
         }
 
-        scenario("Cannot register a state table for a different provider") {
+        scenario("Cannot register a class state table for a different provider") {
             val storage = newStorage()
             storage.registerClass(classOf[PojoBridge])
             storage.registerTable(classOf[PojoBridge], classOf[Int],
