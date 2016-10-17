@@ -21,6 +21,7 @@ import java.net.{InetSocketAddress, Socket}
 import java.util.UUID
 
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import org.midonet.cluster.flowstate.FlowStateTransfer.{StateRequest, StateResponse}
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -30,9 +31,10 @@ import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser._
 import org.midonet.services.flowstate.transfer.internal._
 import org.midonet.util.io.stream.ByteBufferBlockWriter
-import org.midonet.util.{AwaitRetriable, ClosingRetriable}
+import org.midonet.util.{AwaitRetriable, ClosingRetriable, DefaultRetriable}
 
-trait FlowStateRequestClient extends ClosingRetriable with AwaitRetriable {
+trait FlowStateRequestClient extends DefaultRetriable with ClosingRetriable
+                                     with AwaitRetriable {
 
     override def interval = flowStateConfig.connectionTimeout millis
 
@@ -51,7 +53,7 @@ trait FlowStateRequestClient extends ClosingRetriable with AwaitRetriable {
     protected def sendRequest(socket: Socket, dis: DataInputStream,
                             stateRequest: StateRequest) = {
         try {
-            socket.getOutputStream().write(stateRequest.toByteArray)
+            socket.getOutputStream.write(stateRequest.toByteArray)
 
             val protobufSize = dis.readInt()
 
@@ -94,7 +96,7 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
         val aggregator = new FlowStateAggregator
         var socket: Socket = null
 
-        retryClosing(socket, s"Request flow state to $host for port $portId") {
+        try retryClosing(socket, s"Request flow state to $host for port $portId") {
             socket = initSocket()
             val dis = new DataInputStream(socket.getInputStream)
 
@@ -112,7 +114,7 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
                     log warn "Ignoring response: received a malformed/illegal" +
                         s" response from $host"
             }
-        }
+        } catch { case NonFatal(e) => }
 
         aggregator.batch()
     }
@@ -121,7 +123,7 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
         val aggregator = new FlowStateAggregator
         var socket: Socket = null
 
-        retryClosing(socket, s"Request flow state to internal minion for port $portId") {
+        try retryClosing(socket, s"Request flow state to internal minion for port $portId") {
             socket = initSocket()
             val dis = new DataInputStream(socket.getInputStream)
 
@@ -139,7 +141,7 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
                     log warn "Ignoring response: received a malformed/illegal" +
                         " response"
             }
-        }
+        } catch { case NonFatal(e) => }
 
         aggregator.batch()
     }
@@ -174,7 +176,7 @@ class FlowStateRemoteClient(override val flowStateConfig: FlowStateConfig)
                                   writer: ByteBufferBlockWriter[_]): Unit = {
         var socket: Socket = null
 
-        retryClosing(socket, s"Request raw flow state to $host for port $portId") {
+        try retryClosing(socket, s"Request raw flow state to $host for port $portId") {
             socket = initSocket(host)
             val dis = new DataInputStream(socket.getInputStream)
 
@@ -192,7 +194,7 @@ class FlowStateRemoteClient(override val flowStateConfig: FlowStateConfig)
                     log warn "Ignoring response: received a malformed/illegal" +
                         s" response from $host"
             }
-        }
+        } catch { case NonFatal(e) => }
     }
 
     private def pipelinedReadWriteRawState(dis: DataInputStream,
