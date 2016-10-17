@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3d96413e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T15:38:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_7abdef66",
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3a0f673a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2016-10-17T12:52:48Z",
       "side": 1,
       "message": "this would release the lock after the first attempt failed.\nis it intended?",
+      "range": {
+        "startLine": 745,
+        "startChar": 24,
+        "endLine": 745,
+        "endChar": 38
+      },
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5d8c6534",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 745,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T15:38:30Z",
+      "side": 1,
+      "message": "good catch, missed this",
+      "parentUuid": "baa041b7_3a0f673a",
       "range": {
         "startLine": 745,
         "startChar": 24,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bd73714d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 748,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T15:38:30Z",
+      "side": 1,
+      "message": "it applies, i looked at it but seemed a bit heavy here because\n- it requires the creation of an additional instance: maybe we should have a static method or an object?\n- the retry method is called recursively potentially filling up the stack\n\nwell, maybe i could just add it here",
+      "parentUuid": "baa041b7_bd3131ef",
+      "range": {
+        "startLine": 735,
+        "startChar": 12,
+        "endLine": 748,
+        "endChar": 13
+      },
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ba55b71e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 2
@@ -76,6 +142,30 @@
       "writtenOn": "2016-10-17T12:52:48Z",
       "side": 1,
       "message": "why null, instead of raising something which indicates CONFLICT?",
+      "range": {
+        "startLine": 749,
+        "startChar": 12,
+        "endLine": 749,
+        "endChar": 32
+      },
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7d904943",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 749,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T15:38:30Z",
+      "side": 1,
+      "message": "will add, I think that for some reason I though that we never get here",
+      "parentUuid": "baa041b7_ba55b71e",
       "range": {
         "startLine": 749,
         "startChar": 12,
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0015543e",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 688,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T15:38:30Z",
+      "side": 1,
+      "message": "i didn\u0027t add a sleep because the round-trip to ZK when initializing the transaction (to create the lock) provided enough latency to ensure that most transactions would fail because of a concurrent modification\n\ndone.",
+      "parentUuid": "baa041b7_1d201d99",
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fd145944",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
         "patchSetId": 2
@@ -116,6 +224,24 @@
       "writtenOn": "2016-10-17T12:52:48Z",
       "side": 1,
       "message": "i suspect this kind of tests needs far more iterations to detect bugs.",
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e00f102c",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 703,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T15:38:30Z",
+      "side": 1,
+      "message": "well, this is the number of threads, if at least 2 race that should be enough I think\n\nI did some tests when I submitted by first patch and it appeared that the probability of contention was quite high, and most of the transactions entered at least once on the transaction loop.",
+      "parentUuid": "baa041b7_fd145944",
       "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
