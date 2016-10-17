@@ -219,6 +219,8 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             val version = storage.version.get
             val id = UUID.randomUUID()
             storage.tablesPath() shouldBe s"$zkRoot/zoom/$version/tables"
+            storage.tablesGlobalPath() shouldBe
+                s"$zkRoot/zoom/$version/tables/global"
             storage.tablesClassPath(classOf[PojoBridge]) shouldBe
                 s"$zkRoot/zoom/$version/tables/PojoBridge"
             storage.tablesObjectPath(classOf[PojoBridge], id) shouldBe
@@ -231,6 +233,8 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0"
             storage.tablePath(classOf[PojoBridge], id, "name", version, 0, 1) shouldBe
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0/1"
+            storage.globalTablePath("name", version) shouldBe
+                s"$zkRoot/zoom/$version/tables/global/name"
 
             And("The legacy paths are correct for a network")
             storage.legacyTablePath(classOf[Network], id, "mac_table") shouldBe
@@ -246,6 +250,28 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             val storage = setupStorage()
             val path = storage.tablesClassPath(classOf[PojoBridge])
             Then("The path should exist")
+            curator.checkExists().forPath(path) should not be null
+        }
+
+        scenario("Global state table path created with storage") {
+            Given("A storage")
+            val storage = setupStorage()
+
+            And("A path for global tables")
+            val path = storage.tablesGlobalPath()
+
+            Then("Tables path created with storage")
+            curator.checkExists().forPath(path) should not be null
+        }
+
+        scenario("Global table path created with storage") {
+            Given("A storage")
+            val storage = setupStorage()
+
+            And("A path for global tables")
+            val path = storage.globalTablePath("global-table")
+
+            Then("Tables path created with storage")
             curator.checkExists().forPath(path) should not be null
         }
 
