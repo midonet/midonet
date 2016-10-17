@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bd3131ef",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 748,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-10-17T12:52:32Z",
+      "side": 1,
+      "message": "ImmediateRetriable? could be handy, not sure if it applies 100% (mostly because the specific exception catch).",
+      "range": {
+        "startLine": 735,
+        "startChar": 12,
+        "endLine": 748,
+        "endChar": 13
+      },
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
