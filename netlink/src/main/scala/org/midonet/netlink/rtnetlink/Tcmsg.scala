@@ -75,9 +75,9 @@ object Tcmsg {
     // time units is microseconds
     val TIME_UNITS_PER_SEC = 1000000
 
-    val IP_PROTO = 8
+    val ETH_P_ALL = 3
 
-    def makeInfo(prio: Int) = prio << 16 | IP_PROTO
+    def makeInfo(prio: Int) = prio << 16 | ETH_P_ALL
 
     def kilobitsToBytes(rate: Int) = (rate * 1000 / 8).toDouble
 
