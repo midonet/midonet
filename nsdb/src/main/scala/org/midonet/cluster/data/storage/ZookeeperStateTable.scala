@@ -70,6 +70,12 @@ trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
     }
 
     @inline
+    private[cluster] def tablesGlobalPath(version: Long = version.longValue())
+    : String = {
+        s"$zoomPath/$version/tables/global"
+    }
+
+    @inline
     private[cluster] def tablesClassPath(clazz: Class[_],
                                          version: Long = version.longValue()): String = {
         tablesPath(version) + "/" + clazz.getSimpleName
@@ -98,6 +104,13 @@ trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
                 (sb, s) => sb.append('/').append(s)
             }.toString()
         }
+    }
+
+    @inline
+    private[cluster] def globalTablePath(name: String,
+                                         version: Long = version.longValue())
+    : String = {
+        tablesGlobalPath(version) + "/" + name
     }
 }
 
