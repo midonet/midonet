@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6078a08f",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-10-17T17:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_f9a2303e",
+      "range": {
+        "startLine": 9,
+        "startChar": 42,
+        "endLine": 9,
+        "endChar": 68
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8075e498",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-10-17T17:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d9640c23",
+      "range": {
+        "startLine": 9,
+        "startChar": 29,
+        "endLine": 9,
+        "endChar": 35
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b9670824",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2016-10-17T06:56:00Z",
       "side": 1,
       "message": "if you mean latest by \"current\", it\u0027s Newton.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 32
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e064b0e5",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-10-17T17:28:00Z",
+      "side": 1,
+      "message": "I meant \"current\" in a broad sense, like \"the current version this functionality is available/tested\", but it is true that can be misleading.",
+      "parentUuid": "baa041b7_b9670824",
       "range": {
         "startLine": 17,
         "startChar": 0,
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_809cc4c0",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-10-17T17:28:00Z",
+      "side": 1,
+      "message": "I was referring specifically to IPv6 FIPs, but it is not put in the test, so I will correct it.",
+      "parentUuid": "baa041b7_996a04ec",
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_397418cd",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 3
@@ -99,6 +189,30 @@
       "writtenOn": "2016-10-17T06:56:00Z",
       "side": 1,
       "message": "different?",
+      "range": {
+        "startLine": 25,
+        "startChar": 50,
+        "endLine": 25,
+        "endChar": 60
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_20a5f801",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-10-17T17:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_397418cd",
       "range": {
         "startLine": 25,
         "startChar": 50,
@@ -174,6 +288,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a0c0e84a",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-10-17T17:28:00Z",
+      "side": 1,
+      "message": "Well, we are still figuring out all the details, so this part is a work in progress. The goal is to avoid to add to simulation IPv6 stuff, so the idea is that edge router will be bypassed somehow.",
+      "parentUuid": "baa041b7_d919ac89",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 32
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b91ca877",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 3
@@ -197,6 +335,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0022f451",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-10-17T17:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_b91ca877",
+      "range": {
+        "startLine": 99,
+        "startChar": 24,
+        "endLine": 99,
+        "endChar": 42
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_990fa438",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 3
@@ -208,6 +370,30 @@
       "writtenOn": "2016-10-17T06:56:00Z",
       "side": 1,
       "message": "you mean our fork here?",
+      "range": {
+        "startLine": 132,
+        "startChar": 21,
+        "endLine": 132,
+        "endChar": 39
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_80a284ac",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-10-17T17:28:00Z",
+      "side": 1,
+      "message": "yes, in our fork. I have updated it.",
+      "parentUuid": "baa041b7_990fa438",
       "range": {
         "startLine": 132,
         "startChar": 21,
