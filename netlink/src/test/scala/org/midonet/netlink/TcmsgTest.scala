@@ -147,7 +147,7 @@ class TcmsgTest extends FeatureSpec
             val nlmsghdr = Array(
                 52, 0, 0, 0,
                 36, 0,
-                1, 6,
+                5, 6,
                 0, 0, 0, 0,
                 0, 0, 0, 0).toList
 
@@ -190,7 +190,7 @@ class TcmsgTest extends FeatureSpec
             val nlmsghdr = Array(
                 52, 0, 0, 0,
                 37, 0,
-                1, 0,
+                5, 0,
                 0, 0, 0, 0,
                 0, 0, 0, 0).toList
 

@@ -87,7 +87,9 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory,
                 protocol.prepareDeleteIngressQdisc(buf, ifindex)
                 writeRead(buf)
                 protocol.prepareAddIngressQdisc(buf, ifindex)
-                writeRead(buf)
+                // TODO: Why doesn't this ack?
+                writer.write(buf)
+                buf.clear()
         }
 
         protocol.prepareAddPoliceFilter(buf, ifindex, rate, burst, mtu, tickInUsec)
