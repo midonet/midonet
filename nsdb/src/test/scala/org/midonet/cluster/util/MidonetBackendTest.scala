@@ -16,14 +16,11 @@
 
 package org.midonet.cluster.util
 
-import com.codahale.metrics.MetricRegistry
-
 import org.scalatest.Suite
 
 import rx.Observable
 
 import org.midonet.cluster.backend.zookeeper.ZkConnection
-import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => StateClientConnectionState}
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}

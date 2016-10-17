@@ -22,15 +22,13 @@ import java.util.concurrent.TimeUnit
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
 
-import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{GivenWhenThen, FeatureSpec, Matchers}
+import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
@@ -43,8 +41,6 @@ class MidonetDiscoveryTest extends FeatureSpec with Matchers
 
     private val timeout = Duration(5, TimeUnit.SECONDS)
     private val executor = new SameThreadButAfterExecutorService
-
-    private val config = new MidonetBackendConfig(ConfigFactory.empty())
 
     feature("discovery basics") {
         scenario("instantiation") {
