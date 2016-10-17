@@ -418,8 +418,9 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
 
     override def build(): Unit = {
         ensureClassNodes()
-        super.build()
+        ensureStateTableNodes()
         metrics.build(this)
+        super.build()
     }
 
     /**
@@ -443,7 +444,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             txn.commit()
             return
         } catch {
-            case ex: Exception =>
+            case NonFatal(e) =>
                 Log.info("Could not confirm existence of all class nodes in " +
                          "Zookeeper. Creating missing class node(s).")
         }
@@ -459,7 +460,40 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                                tablesClassPath(clazz))
             }
         } catch {
-            case ex: Exception => throw new InternalObjectMapperException(ex)
+            case NonFatal(e) => throw new InternalObjectMapperException(e)
+        }
+    }
+
+    /**
+      * Ensures that the global state table nodes in ZooKeeper for each table
+      * exist, creating them if needed.
+      */
+    private def ensureStateTableNodes(): Unit = {
+        // First try a multi-check for all the classes. If they already exist,
+        // as they usually will except on the first startup, we can verify this
+        // in a single round trip to Zookeeper.
+        var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
+        for (table <- tables.keys) {
+            txn = txn.check().forPath(globalTablePath(table)).and()
+        }
+        try {
+            txn.commit()
+            return
+        } catch {
+            case NonFatal(e) =>
+                Log.info("Could not confirm existence of all state table " +
+                         "nodes in Zookeeper. Creating missing state table " +
+                         "node(s).")
+        }
+
+        // One or more didn't exist, so we'll have to check them individually.
+        try {
+            for (table <- tables.keys) {
+                ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                               globalTablePath(table))
+            }
+        } catch {
+            case NonFatal(e) => throw new InternalObjectMapperException(e)
         }
     }
 
