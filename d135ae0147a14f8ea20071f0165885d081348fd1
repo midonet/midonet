@@ -16,6 +16,29 @@
       "revId": "d135ae0147a14f8ea20071f0165885d081348fd1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f488f56c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/QosPolicyMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T07:54:52Z",
+      "side": 1,
+      "message": "how about this?",
+      "range": {
+        "startLine": 55,
+        "startChar": 13,
+        "endLine": 55,
+        "endChar": 28
+      },
+      "revId": "d135ae0147a14f8ea20071f0165885d081348fd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
