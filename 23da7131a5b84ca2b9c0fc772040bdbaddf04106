@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_20f3b80a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-17T16:09:25Z",
+      "side": 1,
+      "message": "To be more consistent we could keep the name of this function as tablePath(). Function parameters differentiate global and \"object\" tables. registerTable() method already does this.",
+      "range": {
+        "startLine": 110,
+        "startChar": 21,
+        "endLine": 110,
+        "endChar": 40
+      },
+      "revId": "23da7131a5b84ca2b9c0fc772040bdbaddf04106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
