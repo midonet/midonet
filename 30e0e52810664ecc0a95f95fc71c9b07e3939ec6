@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_7abdef66",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T12:52:48Z",
+      "side": 1,
+      "message": "lockPath and locksPath seem too confusing.\ncan you consider to rename either?",
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3a0f673a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 745,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T12:52:48Z",
+      "side": 1,
+      "message": "this would release the lock after the first attempt failed.\nis it intended?",
+      "range": {
+        "startLine": 745,
+        "startChar": 24,
+        "endLine": 745,
+        "endChar": 38
+      },
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_bd3131ef",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 2
@@ -19,6 +59,63 @@
         "endLine": 748,
         "endChar": 13
       },
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ba55b71e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 749,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T12:52:48Z",
+      "side": 1,
+      "message": "why null, instead of raising something which indicates CONFLICT?",
+      "range": {
+        "startLine": 749,
+        "startChar": 12,
+        "endLine": 749,
+        "endChar": 32
+      },
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1d201d99",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 688,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T12:52:48Z",
+      "side": 1,
+      "message": "how about sleeping here to increase the chance of race?",
+      "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fd145944",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 703,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T12:52:48Z",
+      "side": 1,
+      "message": "i suspect this kind of tests needs far more iterations to detect bugs.",
       "revId": "30e0e52810664ecc0a95f95fc71c9b07e3939ec6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
