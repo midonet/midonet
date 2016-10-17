@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_7a616f38",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T12:25:31Z",
+      "side": 1,
+      "message": "i\u0027m not sure if synchronized is an appropriate thing here.\neg. ifaceNameToId is still freely modified by another thread, isn\u0027t it?",
+      "range": {
+        "startLine": 80,
+        "startChar": 35,
+        "endLine": 80,
+        "endChar": 47
+      },
+      "revId": "e55518086598d98f2c68d52c99e07bbb98a838f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fa4c5f43",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 3
