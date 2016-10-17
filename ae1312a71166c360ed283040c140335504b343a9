@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b4302d9f",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/vxgw/data/VtepStateStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T08:27:34Z",
+      "side": 0,
+      "message": "unrelated change?",
+      "revId": "ae1312a71166c360ed283040c140335504b343a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
