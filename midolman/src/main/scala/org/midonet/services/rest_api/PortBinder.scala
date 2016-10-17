@@ -18,14 +18,17 @@ package org.midonet.services.rest_api
 
 import java.util.UUID
 
+import scala.util.control.NonFatal
+
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.util.ImmediateRetriable
+import org.midonet.util.{DefaultRetriable, ImmediateRetriable}
 
 class PortBinder(storage: Storage, stateStorage: StateStorage,
-                 lockFactory: ZookeeperLockFactory) extends ImmediateRetriable {
+                 lockFactory: ZookeeperLockFactory)
+    extends DefaultRetriable with ImmediateRetriable {
 
     import BindingApiService.log
 
@@ -33,7 +36,7 @@ class PortBinder(storage: Storage, stateStorage: StateStorage,
 
     def bindPort(portId: UUID, hostId: UUID, deviceName: String): Unit = {
         val protoHostId = hostId.asProto
-        val update = retry(log.underlying, s"Binding port $portId") {
+        try retry(log.underlying, s"Binding port $portId") {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
             val newPortBldr = oldPort.toBuilder
@@ -49,19 +52,17 @@ class PortBinder(storage: Storage, stateStorage: StateStorage,
             }
             tx.update(newPortBldr.build)
             tx.commit()
-        }
-
-        if (update.isLeft) {
-            val e = update.left.get
-            log.error(s"Unable to bind port $portId to host $hostId", e)
-            throw e
+        } catch {
+            case NonFatal(e) =>
+                log.error(s"Unable to bind port $portId to host $hostId", e)
+                throw e
         }
     }
 
     def unbindPort(portId: UUID, hostId: UUID): Unit = {
         val pHostId = hostId.asProto
 
-        val update = retry(log.underlying, s"Unbinding port $portId") {
+        try retry(log.underlying, s"Unbinding port $portId") {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
 
@@ -78,12 +79,10 @@ class PortBinder(storage: Storage, stateStorage: StateStorage,
                 tx.update(newPort)
                 tx.commit()
             }
-        }
-
-        if (update.isLeft) {
-            val e = update.left.get
-            log.error(s"Unable to unbind port $portId from host $hostId", e)
-            throw e
+        } catch {
+            case NonFatal(e) =>
+                log.error(s"Unable to unbind port $portId from host $hostId", e)
+                throw e
         }
     }
 

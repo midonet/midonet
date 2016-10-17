@@ -48,9 +48,10 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.util.AwaitRetriable
+import org.midonet.util.{AwaitRetriable, DefaultRetriable}
 
-object HealthMonitor extends Referenceable with AwaitRetriable {
+object HealthMonitor extends Referenceable with DefaultRetriable
+                             with AwaitRetriable {
     override val interval: Duration = 10 seconds
     override val maxRetries = 3
     override val Name = "HealthMonitor"
