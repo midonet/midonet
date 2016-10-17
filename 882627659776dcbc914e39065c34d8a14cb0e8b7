@@ -34,6 +34,24 @@
       "revId": "882627659776dcbc914e39065c34d8a14cb0e8b7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d47a91f0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 423,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T09:19:12Z",
+      "side": 1,
+      "message": "i got it.  thank you for explanation.\nhow about having the common code in a trait rather than copying?",
+      "parentUuid": "baa041b7_34ac1dec",
+      "revId": "882627659776dcbc914e39065c34d8a14cb0e8b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
