@@ -16,8 +16,10 @@
 package org.midonet.management;
 
 public interface MeteringMXBean {
-    static String NAME = "org.midonet.midolman:type=Metering";
+    String NAME = "org.midonet.midolman:type=Metering";
 
     FlowStats getMeter(String name);
+    FlowMeters[] getMeters();
+    FlowMeters getConsolidatedMeters();
     String[] listMeters();
 }
