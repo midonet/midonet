@@ -28,7 +28,6 @@ import org.midonet.cluster.rest_api.annotation.ApiResource
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder._
 import org.midonet.cluster.rest_api.neutron.models.Neutron
 import org.midonet.cluster.rest_api.neutron.resources._
-import org.midonet.cluster.services.c3po.C3POStorageManager
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -95,11 +94,11 @@ class NeutronResource @Inject()(uriInfo: UriInfo,
         new BgpPeerResource(uriInfo, api)
 
     @Path("tap_flows")
-    def tapFlowsResoource: TapFlowResource =
+    def tapFlowsResource: TapFlowResource =
         new TapFlowResource(uriInfo, api)
 
     @Path("tap_services")
-    def tapServicesResoource: TapServiceResource =
+    def tapServicesResource: TapServiceResource =
         new TapServiceResource(uriInfo, api)
 
     @Path("firewall_logs")
