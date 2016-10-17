@@ -45,12 +45,13 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.util.concurrent.toFutureOps
+import org.midonet.util.{AwaitRetriable, DefaultRetriable}
 import org.slf4j.{Logger, LoggerFactory}
 
-object HealthMonitor extends Referenceable {
-    val interval: Duration = 10 seconds
-    val maxRetries = 3
+object HealthMonitor extends Referenceable with DefaultRetriable
+                             with AwaitRetriable {
+    override val interval: Duration = 10 seconds
+    override val maxRetries = 3
     override val Name = "HealthMonitor"
 
     case class ConfigUpdated(poolId: UUID, config: PoolConfig, routerId: UUID)
@@ -226,29 +227,6 @@ object HealthMonitor extends Referenceable {
         retry(log, "Commit transaction") {
             zkLock(lockFactory)(executeOperations)
         }
-    }
-
-    @throws[Throwable]
-    def retry[T](log: Logger, message: String)(retriable: => T): T = {
-        retry(maxRetries, log, message)(retriable)
-    }
-
-    @throws[Throwable]
-    @tailrec
-    private def retry[T](retries: Int, log: Logger, message: String)
-                        (retriable: => T): T = {
-        try return retriable
-        catch {
-            case NonFatal(e) if retries > 0 =>
-                log debug s"$message failed. Remaining retries: ${retries - 1}. " +
-                    s"Retrying in ${interval toMillis} ms."
-                Thread.sleep(interval toMillis)
-            case NonFatal(e) =>
-                log debug s"$message failed after $maxRetries attempts. " +
-                          s"Giving up. ${e.getMessage}"
-                throw e
-        }
-        retry(retries - 1, log, message)(retriable)
     }
 }
 
