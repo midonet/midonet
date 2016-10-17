@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9d79cdc7",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T15:15:22Z",
+      "side": 1,
+      "message": "I\u0027m open to suggestions for a better name.",
+      "range": {
+        "startLine": 141,
+        "startChar": 6,
+        "endLine": 141,
+        "endChar": 22
+      },
+      "revId": "199050097e20c41fd3908fb483481ef4393e4498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
