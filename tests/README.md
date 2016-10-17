@@ -43,6 +43,31 @@ on your host so MDTS can access both API servers (Neutron or Midonet) through
 the python API. However, as this package is part of the Midonet packages,
 you need to install it once you compile/generate the packages.
 
+To use the MidoNet sandbox, you must download the source from the github
+repository into your midonet source tree:
+
+From the root midonet directory:
+```
+git clone --recursive http://github.com/midonet/midonet-sandbox
+```
+
+Also, protobufs is a requirement to install the python-midonetclient.
+If protobufs version 2.6.1 is not already installed, run these commands
+to install it:
+
+```
+    wget https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
+    tar -xzf protobuf-2.6.1.tar.gz
+    cd protobuf-2.6.1
+    ./configure
+    make
+    sudo make install
+    sudo ldconfig
+    cd -
+    rm -rf protobuf-2.6.1
+    rm protobuf-2.6.1.tar.gz
+```
+
 Running Sandbox
 ---------------
 
