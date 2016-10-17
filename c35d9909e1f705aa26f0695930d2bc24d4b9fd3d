@@ -1,0 +1,222 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d9640c23",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "aimed?",
+      "range": {
+        "startLine": 9,
+        "startChar": 29,
+        "endLine": 9,
+        "endChar": 35
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f9a2303e",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "this is public repository.\nmaybe just say \"MidoNet developers\"?",
+      "range": {
+        "startLine": 9,
+        "startChar": 42,
+        "endLine": 9,
+        "endChar": 68
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b9670824",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "if you mean latest by \"current\", it\u0027s Newton.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 32
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_996a04ec",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "i\u0027m not sure what you mean by \"Neutron current version\",\nbut afaik Neutron supports IPv6 reasonably.",
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_397418cd",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "different?",
+      "range": {
+        "startLine": 25,
+        "startChar": 50,
+        "endLine": 25,
+        "endChar": 60
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7944e071",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "it\u0027s better to stick with plain us-ascii.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 6
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9938c4ef",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d919ac89",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "so, how does the edge router in the above figure work? it routes ipv6 natively?",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 32
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b91ca877",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "can you mention where the fork can be found?\n\nhttps://github.com/midonet/vpp ?",
+      "range": {
+        "startLine": 99,
+        "startChar": 24,
+        "endLine": 99,
+        "endChar": 42
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_990fa438",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:56:00Z",
+      "side": 1,
+      "message": "you mean our fork here?",
+      "range": {
+        "startLine": 132,
+        "startChar": 21,
+        "endLine": 132,
+        "endChar": 39
+      },
+      "revId": "c35d9909e1f705aa26f0695930d2bc24d4b9fd3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
