@@ -39,6 +39,30 @@
       "revId": "d135ae0147a14f8ea20071f0165885d081348fd1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_94dac949",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/QosPolicyMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T11:52:29Z",
+      "side": 1,
+      "message": "I thought this was less important, but maybe you\u0027re right and we should change it too. I will submit as a different patch so to not resubmit the entire branch.",
+      "parentUuid": "baa041b7_f488f56c",
+      "range": {
+        "startLine": 55,
+        "startChar": 13,
+        "endLine": 55,
+        "endChar": 28
+      },
+      "revId": "d135ae0147a14f8ea20071f0165885d081348fd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
