@@ -17,6 +17,7 @@ package org.midonet.util
 
 import java.io.Closeable
 
+import scala.annotation.tailrec
 import scala.concurrent.duration.Duration
 import scala.util.Random
 import scala.util.control.NonFatal
@@ -27,40 +28,55 @@ import org.slf4j.Logger
 
 trait Retriable {
 
-    /** Max number of attempts before giving up after reaching the max delay */
+    /**
+      * Max number of retries before giving up after reaching the max delay.
+      */
     def maxRetries: Int
 
-    def retry[T](log: Logger, message: String)
-                (retriable: => T): Either[Throwable, T] = {
+    /**
+      * Calls the specified `retriable` function until the function completes
+      * without throwing an exception, or until the function is called a number
+      * of times equal to [[maxRetries]] + 1. The method returns the last
+      * result returned by the `retriable` function or it throws the last
+      * [[Throwable]].
+      */
+    @throws[Throwable]
+    def retry[T](log: Logger, message: String)(retriable: => T): T = {
         retry(maxRetries, log, message)(retriable)
     }
 
-    protected def retry[T](retries: Int, log: Logger, message: String)
-                          (retriable: => T): Either[Throwable, T] = {
-        try {
-            Right(retriable)
-        } catch {
-            case NonFatal(e) if retries > 1 =>
-                handleRetry(retries, log, message)(retriable)
+    @throws[Throwable]
+    @tailrec
+    private def retry[T](retries: Int, log: Logger, message: String)
+                        (retriable: => T): T = {
+        try return retriable
+        catch {
+            case NonFatal(e) if retries > 0 =>
+                handleRetry(e, retries, log, message)
             case NonFatal(e) =>
                 log debug s"$message failed after $maxRetries attempts. " +
                           s"Giving up. ${e.getMessage}"
-                Left(e)
+                throw e
         }
-
+        retry(retries - 1, log, message)(retriable)
     }
 
-    def handleRetry[T](retries: Int, log: Logger, message: String)
-                      (retriable: => T): Either[Throwable, T]
+    /**
+      * When overriden in a derived class, this allows to customize the handling
+      * on the [[Throwable]] thrown by the retriable function.
+      */
+    protected def handleRetry[T](e: Throwable, retries: Int, log: Logger,
+                                 message: String): Unit
 
 }
 
 trait ImmediateRetriable extends Retriable {
 
-    def handleRetry[T](retries: Int, log: Logger, message: String)
-                      (retriable: => T): Either[Throwable, T] = {
+    protected abstract override def handleRetry[T](e: Throwable, retries: Int,
+                                                   log: Logger, message: String)
+    : Unit = {
         log debug s"$message failed. Remaining retries: ${retries - 1}"
-        retry(retries - 1, log, message) (retriable)
+        super.handleRetry(e, retries, log, message)
     }
 }
 
@@ -69,12 +85,13 @@ trait AwaitRetriable extends Retriable {
     /** Time to wait between retries */
     def interval: Duration
 
-    def handleRetry[T](retries: Int, log: Logger, message: String)
-                      (retriable: => T): Either[Throwable, T] = {
+    protected abstract override def handleRetry[T](e: Throwable, retries: Int,
+                                                   log: Logger, message: String)
+    : Unit = {
         log debug s"$message failed. Remaining retries: ${retries - 1}. " +
                   s"Retrying in ${interval toMillis} ms."
+        super.handleRetry(e, retries, log, message)
         await(interval toMillis)
-        retry(retries - 1, log, message) (retriable)
     }
 
     @VisibleForTesting
@@ -89,14 +106,14 @@ trait ExponentialBackoffRetriable extends Retriable {
     /** Maximum waiting time in milliseconds */
     def maxDelay: Duration
 
-    def handleRetry[T](retries: Int, log: Logger, message: String)
-                      (retriable: => T): Either[Throwable, T] = {
-
+    protected abstract override def handleRetry[T](e: Throwable, retries: Int,
+                                                   log: Logger, message: String)
+    : Unit = {
         val backoff = Random.nextInt(backoffTime(maxRetries - retries))
         log debug s"$message failed. Remaining attempts: ${retries -1}. " +
                   s"Retrying in $backoff ms."
+        super.handleRetry(e, retries, log, message)
         await(backoff)
-        retry(retries - 1, log, message)(retriable)
     }
 
     @VisibleForTesting
@@ -112,11 +129,18 @@ trait ClosingRetriable extends Retriable {
 
     def retryClosing[T](log: Logger, message: String)
                        (closeable: Closeable)
-                       (retriable: => T): Either[Throwable, T] = {
+                       (retriable: => T): T = {
         try {
             retry(log, message) { retriable }
         } finally {
             if (closeable ne null) closeable.close()
         }
     }
+}
+
+trait DefaultRetriable extends Retriable {
+
+    protected override def handleRetry[T](e: Throwable, r: Int, log: Logger,
+                                          message: String): Unit = { }
+
 }
