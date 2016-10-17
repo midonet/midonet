@@ -17,9 +17,10 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-import javax.ws.rs._
+import javax.ws.rs.Path
 import javax.ws.rs.core.MediaType._
 
+import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
@@ -27,29 +28,35 @@ import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
-@ApiResource(version = 1, name = "qosPolicies",
-             template = "qosPolicyTemplate")
-@Path("qos_policies")
 @RequestScoped
-@AllowCreate(Array(APPLICATION_QOS_POLICY_JSON,
-                   APPLICATION_JSON))
-@AllowGet(Array(APPLICATION_QOS_POLICY_JSON,
+@ApiResource(version = 1, template = "qosBwLimitRuleTemplate")
+@Path("qos_bw_limit_rules")
+@AllowGet(Array(APPLICATION_QOS_RULE_BW_LIMIT_JSON,
                 APPLICATION_JSON))
-@AllowUpdate(Array(APPLICATION_QOS_POLICY_JSON,
+@AllowUpdate(Array(APPLICATION_QOS_RULE_BW_LIMIT_JSON,
                    APPLICATION_JSON))
-@AllowList(Array(APPLICATION_QOS_POLICY_COLLECTION_JSON,
-                 APPLICATION_JSON))
 @AllowDelete
-class QOSPolicyResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[QOSPolicy](resContext) {
+class QosRuleBandwidthLimitResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[QosRuleBandwidthLimit](resContext) {
+}
 
-    @Path("{id}/qos_bw_limit_rules")
-    def bw_limit_rules(@PathParam("id") id: UUID): QOSPolicyRuleBWLimitResource = {
-        new QOSPolicyRuleBWLimitResource(id, resContext)
+@RequestScoped
+@AllowList(Array(APPLICATION_QOS_RULE_BW_LIMIT_COLLECTION_JSON,
+    APPLICATION_JSON))
+@AllowCreate(Array(APPLICATION_QOS_RULE_BW_LIMIT_JSON,
+    APPLICATION_JSON))
+class QosPolicyRuleBandwidthLimitResource @Inject()(policyId: UUID,
+                                                    resContext: ResourceContext)
+    extends MidonetResource[QosRuleBandwidthLimit](resContext) {
+
+    protected override def listIds: Seq[Any] = {
+        getResource(classOf[QosPolicy], policyId).bandwidthLimitRuleIds.asScala
     }
 
-    @Path("{id}/qos_dscp_rules")
-    def dscp_rules(@PathParam("id") id: UUID): QOSPolicyRuleDSCPResource = {
-        new QOSPolicyRuleDSCPResource(id, resContext)
+    protected override def createFilter(rule: QosRuleBandwidthLimit, tx: ResourceTransaction)
+    : Unit = {
+        rule.policyId = policyId
+        tx.create(rule)
     }
 }
+

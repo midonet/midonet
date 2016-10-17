@@ -29,7 +29,7 @@ import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigur
 import org.midonet.minion.{MinionConfig, ExecutorsConfig}
 import org.midonet.packets.{MAC, IPv4Subnet}
 import org.midonet.services.flowstate.FlowStateService
-import org.midonet.services.rest_api.RestApiService
+import org.midonet.services.rest_api.BindingApiService
 
 object MidolmanConfig {
 
@@ -253,7 +253,7 @@ class FlowStateConfig(val conf: Config, val schema: Config)
 }
 
 class BindingApiConfig(val conf: Config, val schema: Config)
-    extends TypeFailureFallback with MinionConfig[RestApiService] {
+    extends TypeFailureFallback with MinionConfig[BindingApiService] {
     val prefix = "agent.minions.binding_api"
 
     override def isEnabled: Boolean = getBoolean(s"$prefix.enabled")

@@ -16,19 +16,47 @@
 
 package org.midonet.cluster.rest_api.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.MoreObjects;
-import org.midonet.cluster.data.ZoomClass;
-import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.ResourceUris;
-
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-@ZoomClass(clazz = Topology.QOSPolicy.class)
-public class QOSPolicy extends UriResource {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.ResourceUris;
+
+@ZoomClass(clazz = Topology.QosPolicy.class)
+public class QosPolicy extends UriResource {
+
+    @ZoomClass(clazz = Topology.QosPolicy.QosRule.class)
+    public static class QosRule extends ZoomObject {
+
+        public static final String QOS_RULE_TYPE_BW_LIMIT = "bandwidth_limit";
+        public static final String QOS_RULE_TYPE_DSCP = "dscp_marking";
+
+        @ZoomField(name = "id")
+        public UUID id;
+
+        @ZoomField(name = "type")
+        public String type;
+
+        @ZoomField(name = "max_kbps")
+        @JsonProperty("max_kbps")
+        public Integer maxKbps = null;
+
+        @ZoomField(name = "max_burst_kbps")
+        @JsonProperty("max_burst_kbps")
+        public Integer maxBurstKbps = null;
+
+        @ZoomField(name = "dscp_mark")
+        @JsonProperty("dscp_mark")
+        public Integer dscpMark = null;
+    }
 
     @ZoomField(name = "id")
     public UUID id;
@@ -42,6 +70,10 @@ public class QOSPolicy extends UriResource {
     @ZoomField(name = "shared")
     public Boolean shared;
 
+    @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
+    public UUID tenantId;
+
     @JsonIgnore
     @ZoomField(name = "bandwidth_limit_rule_ids")
     public List<UUID> bandwidthLimitRuleIds;
@@ -49,6 +81,8 @@ public class QOSPolicy extends UriResource {
     @JsonIgnore
     @ZoomField(name = "dscp_marking_rule_ids")
     public List<UUID> dscpMarkingRuleIds;
+
+    public List<QosRule> rules = null;
 
     @JsonIgnore
     @ZoomField(name = "port_ids")
@@ -80,7 +114,7 @@ public class QOSPolicy extends UriResource {
     }
 
     @JsonIgnore
-    public void update(QOSPolicy from) {
+    public void update(QosPolicy from) {
         id = from.id;
         bandwidthLimitRuleIds = from.bandwidthLimitRuleIds;
         dscpMarkingRuleIds = from.dscpMarkingRuleIds;

@@ -111,9 +111,9 @@ object MidonetBackend {
              classOf[Port],
              classOf[PortBinding],
              classOf[PortGroup],
-             classOf[QOSPolicy],
-             classOf[QOSRuleBWLimit],
-             classOf[QOSRuleDSCP],
+             classOf[QosPolicy],
+             classOf[QosRuleBandwidthLimit],
+             classOf[QosRuleDscp],
              classOf[RemoteMacEntry],
              classOf[Route],
              classOf[Router],
@@ -287,17 +287,14 @@ object MidonetBackend {
         store.declareBinding(classOf[RemoteMacEntry], "port_ids", CLEAR,
                              classOf[Port], "remote_mac_entry_ids", CLEAR)
 
-        store.declareBinding(classOf[QOSPolicy], "bandwidth_limit_rule_ids", CASCADE,
-                             classOf[QOSRuleBWLimit], "policy_id", CLEAR)
-
-        store.declareBinding(classOf[QOSPolicy], "dscp_marking_rule_ids", CASCADE,
-                             classOf[QOSRuleDSCP], "policy_id", CLEAR)
-
+        store.declareBinding(classOf[QosPolicy], "bandwidth_limit_rule_ids", CASCADE,
+                             classOf[QosRuleBandwidthLimit], "policy_id", CLEAR)
+        store.declareBinding(classOf[QosPolicy], "dscp_marking_rule_ids", CASCADE,
+                             classOf[QosRuleDscp], "policy_id", CLEAR)
         store.declareBinding(classOf[Port], "qos_policy_id", CLEAR,
-                             classOf[QOSPolicy], "port_ids", CLEAR)
-
+                             classOf[QosPolicy], "port_ids", CLEAR)
         store.declareBinding(classOf[Network], "qos_policy_id", CLEAR,
-                             classOf[QOSPolicy], "network_ids", CLEAR)
+                             classOf[QosPolicy], "network_ids", CLEAR)
 
         setup()
         store.build()

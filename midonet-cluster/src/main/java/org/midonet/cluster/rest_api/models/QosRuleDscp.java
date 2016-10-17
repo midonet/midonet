@@ -16,20 +16,21 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.MoreObjects;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 
-import java.net.URI;
-import java.util.UUID;
-
-@ZoomClass(clazz = Topology.QOSRuleDSCP.class)
+@ZoomClass(clazz = Topology.QosRuleDscp.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class QOSRuleDSCP extends UriResource {
+public class QosRuleDscp extends UriResource {
 
     @ZoomField(name = "id")
     public UUID id;

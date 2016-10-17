@@ -82,23 +82,23 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private var peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty
 
     private def buildPort(ignored: AnyRef): SimulationPort = {
-        val infilters = new JArrayList[UUID](1)
-        val outfilters = new JArrayList[UUID](1)
-        traceChainIdOpt.foreach(infilters.add)
+        val inFilters = new JArrayList[UUID](2)
+        val outFilters = new JArrayList[UUID](2)
+        traceChainIdOpt.foreach(inFilters.add)
         if (topologyPort.hasL2InsertionInfilterId) {
-            infilters.add(topologyPort.getL2InsertionInfilterId)
+            inFilters.add(topologyPort.getL2InsertionInfilterId)
         }
         if (topologyPort.hasInboundFilterId) {
-            infilters.add(topologyPort.getInboundFilterId)
+            inFilters.add(topologyPort.getInboundFilterId)
         }
         if (topologyPort.hasOutboundFilterId) {
-            outfilters.add(topologyPort.getOutboundFilterId)
+            outFilters.add(topologyPort.getOutboundFilterId)
         }
         if (topologyPort.hasL2InsertionOutfilterId) {
-            outfilters.add(topologyPort.getL2InsertionOutfilterId)
+            outFilters.add(topologyPort.getL2InsertionOutfilterId)
         }
 
-        SimulationPort(topologyPort, portState, infilters, outfilters,
+        SimulationPort(topologyPort, portState, inFilters, outFilters,
                        makeServicePortList, peeringTable,
                        qosPolicyTracker.currentRefs.values.headOption.orNull)
     }
@@ -117,7 +117,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             .onErrorResumeNext(Observable.empty())
 
     private val refUpdatedAction = makeAction1(refUpdated)
-    override val observable: Observable[SimulationPort] = Observable
+
+    override lazy val observable: Observable[SimulationPort] = Observable
         .merge(chainsTracker.refsObservable.doOnNext(refUpdatedAction),
                l2insertionsTracker.refsObservable.doOnNext(refUpdatedAction),
                mirrorsTracker.refsObservable.doOnNext(refUpdatedAction),
@@ -153,10 +154,11 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             peeringTable.start()
         }
 
-        mirrorsTracker.requestRefs(port.getInboundMirrorIdsList :_*)
-        mirrorsTracker.requestRefs(port.getOutboundMirrorIdsList :_*)
-        mirrorsTracker.requestRefs(port.getPostInFilterMirrorIdsList :_*)
-        mirrorsTracker.requestRefs(port.getPreOutFilterMirrorIdsList :_*)
+        mirrorsTracker.requestRefs(
+            port.getInboundMirrorIdsList.asScala.map(_.asJava) ++
+            port.getOutboundMirrorIdsList.asScala.map(_.asJava) ++
+            port.getPostInFilterMirrorIdsList.asScala.map(_.asJava) ++
+            port.getPreOutFilterMirrorIdsList.asScala.map(_.asJava) :_*)
 
         if (port.hasQosPolicyId) {
             qosPolicyTracker.requestRefs(port.getQosPolicyId)

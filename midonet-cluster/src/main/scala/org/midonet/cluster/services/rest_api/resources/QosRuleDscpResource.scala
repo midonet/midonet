@@ -23,41 +23,39 @@ import javax.ws.rs.core.MediaType._
 import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
-@ApiResource(version = 1, template = "qosBwLimitRuleTemplate")
-@Path("qos_bw_limit_rules")
-@AllowGet(Array(APPLICATION_QOS_RULE_BW_LIMIT_JSON,
+@ApiResource(version = 1, template = "qosDscpRuleTemplate")
+@Path("qos_dscp_rules")
+@AllowGet(Array(APPLICATION_QOS_RULE_DSCP_JSON,
                 APPLICATION_JSON))
-@AllowUpdate(Array(APPLICATION_QOS_RULE_BW_LIMIT_JSON,
+@AllowUpdate(Array(APPLICATION_QOS_RULE_DSCP_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class QOSRuleBWLimitResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[QOSRuleBWLimit](resContext) {
+class QOSRuleDSCPResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[QosRuleDscp](resContext) {
 }
 
 @RequestScoped
-@AllowList(Array(APPLICATION_QOS_RULE_BW_LIMIT_COLLECTION_JSON,
-    APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_QOS_RULE_BW_LIMIT_JSON,
-    APPLICATION_JSON))
-class QOSPolicyRuleBWLimitResource @Inject()(policyId: UUID,
-                                             resContext: ResourceContext)
-    extends MidonetResource[QOSRuleBWLimit](resContext) {
+@AllowList(Array(APPLICATION_QOS_RULE_DSCP_COLLECTION_JSON,
+                 APPLICATION_JSON))
+@AllowCreate(Array(APPLICATION_QOS_RULE_DSCP_JSON,
+                   APPLICATION_JSON))
+class QOSPolicyRuleDSCPResource @Inject()(policyId: UUID,
+                                          resContext: ResourceContext)
+    extends MidonetResource[QosRuleDscp](resContext) {
 
     protected override def listIds: Seq[Any] = {
-        getResource(classOf[QOSPolicy], policyId).bandwidthLimitRuleIds.asScala
+        getResource(classOf[QosPolicy], policyId).dscpMarkingRuleIds.asScala
     }
 
-    protected override def createFilter(rule: QOSRuleBWLimit, tx: ResourceTransaction)
+    protected override def createFilter(rule: QosRuleDscp, tx: ResourceTransaction)
     : Unit = {
         rule.policyId = policyId
         tx.create(rule)
     }
 }
-

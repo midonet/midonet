@@ -125,6 +125,13 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
                     + " " + ip4fip64
                     + " " + ip4fixed)
 
+    def setup_fip64(self, container, ip6ext, ip6fip, ip4fip64, ip4fixed):
+        cont = service.get_container_by_hostname(container)
+        cont.vppctl("fip64 add %s %s %s %s" % (ip6ext,
+                                               ip6fip,
+                                               ip4fip64,
+                                               ip4fixed))
+
     def cleanup_remote_host(self, container, interface):
         cont = service.get_container_by_hostname(container)
         cont.exec_command('ip r del 100.0.0.0/8')
@@ -193,6 +200,11 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         return str(uuid.UUID(int=uuid.UUID(uplink_port['id']).int ^
                                  0x9c30300ec91f4f1988449d37e61b60f0L))
 
+    def flush_neighbours(self, container, interface):
+        cont_services = service.get_container_by_hostname(container)
+        cont_services.try_command_blocking('ip neigh flush dev %s' % interface)
+
+
 class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
     def __init__(self):
@@ -213,6 +225,9 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
         # setup quagga1
         self.setup_remote_host('quagga1', 'bgp1')
+
+        self.flush_neighbours('quagga1', 'bgp1')
+        self.flush_neighbours('midolman1', 'bgp0')
 
 
 
@@ -315,7 +330,6 @@ def test_uplink_ipv6():
     Title: ping ipv6 uplink of midolman1 from quagga1. VPP must respond
 
     """
-    time.sleep(10)
     ping_from_inet('quagga1', '2001::1', 10)
 
 
@@ -326,5 +340,4 @@ def test_ping_vm_ipv6():
     """
     Title: ping a VM in a IPv4 neutron topology from a remote IPv6 endpoint
     """
-    time.sleep(10)
     ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')

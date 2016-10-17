@@ -37,6 +37,7 @@ import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.VppApi
+import org.midonet.util.concurrent.SingleThreadExecutionContextProvider
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.process.MonitoredDaemonProcess
@@ -64,18 +65,21 @@ object VppController extends Referenceable {
 class VppController @Inject()(config: MidolmanConfig,
                               upcallConnManager: UpcallDatapathConnectionManager,
                               datapathState: DatapathState)
-    extends ReactiveActor[AnyRef] with ActorLogWithoutPath {
+    extends ReactiveActor[AnyRef] with ActorLogWithoutPath
+        with SingleThreadExecutionContextProvider {
 
     import org.midonet.midolman.VppController._
 
     override def logSource = "org.midonet.vpp-controller"
 
-    private implicit val ec: ExecutionContext = context.system.dispatcher
+    private implicit val ec: ExecutionContext = singleThreadExecutionContext
 
     private var vppProcess: MonitoredDaemonProcess = _
     private var vppApi: VppApi = _
     private var vppOvs: VppOvs = new VppOvs(datapathState.datapath)
-    private val belt = new ConveyorBelt(_ => {})
+    private val belt = new ConveyorBelt(t => {
+                                            log.error("Error on conveyor belt", t)
+                                        })
 
     private val portsSubscription = new CompositeSubscription()
     private val watchedPorts = mutable.Map.empty[UUID, BoundPort]
@@ -106,8 +110,7 @@ class VppController @Inject()(config: MidolmanConfig,
         super.postStop()
     }
 
-
-    override def receive: Receive = {
+    override def receive: Receive = super.receive orElse {
         case LocalPortActive(portId, portNumber, true) =>
             handlePortActive(portId)
         case LocalPortActive(portId, portNumber, false) =>
@@ -142,16 +145,30 @@ class VppController @Inject()(config: MidolmanConfig,
         }
 
         def setupPort(): Future[_] = {
-            val setup = new VppSetup(port,
+            val setup = new VppSetup(port.id,
                                      datapathState.getDpPortNumberForVport(portId),
                                      vppApi,
                                      vppOvs)
-            setup.execute() andThen {
-                case Success(_) => watchedPorts += portId -> BoundPort(port, setup)
-                case Failure(err) => setup.rollback()
+            val boundPort = BoundPort(port, setup)
+
+            val unbindF = watchedPorts.put(portId, boundPort) match {
+                case Some(previousBinding) =>
+                    previousBinding.setup.rollback()
+                case None => Future.successful(Unit)
+            }
+            unbindF andThen {
+                case _ => setup.execute()
+            } andThen {
+                case Failure(err) => {
+                    setup.rollback()
+                    watchedPorts.get(portId) match {
+                        case Some(p) if p == boundPort =>
+                            watchedPorts.remove(portId)
+                        case _ =>
+                    }
+                }
             }
         }
-
         belt.handle(setupPort)
     }
 
