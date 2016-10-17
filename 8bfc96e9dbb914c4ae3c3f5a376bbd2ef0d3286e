@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bd1a516d",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-10-17T12:49:00Z",
+      "side": 1,
+      "message": "Increase schema version or it is enough with the bump in the previous patch?",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 21
+      },
+      "revId": "8bfc96e9dbb914c4ae3c3f5a376bbd2ef0d3286e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
