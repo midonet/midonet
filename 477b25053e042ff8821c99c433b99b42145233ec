@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_34dadd78",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T07:59:58Z",
+      "side": 1,
+      "message": "it isn\u0027t duplicate, just unused.",
+      "range": {
+        "startLine": 7,
+        "startChar": 7,
+        "endLine": 7,
+        "endChar": 16
+      },
+      "revId": "477b25053e042ff8821c99c433b99b42145233ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
