@@ -16,6 +16,24 @@
       "revId": "882627659776dcbc914e39065c34d8a14cb0e8b7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_34ac1dec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 423,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T07:42:48Z",
+      "side": 1,
+      "message": "this is because the ServicePort as a case class doesn\u0027t inherit BridgePort anymore, so this copies the BridgePort.egressCommon. It duplicates this bit of code, but the alternative is to override equals/hashCode in both, which it would be more error prone.",
+      "parentUuid": "baa041b7_99e564a5",
+      "revId": "882627659776dcbc914e39065c34d8a14cb0e8b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
