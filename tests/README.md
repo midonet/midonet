@@ -43,6 +43,31 @@ on your host so MDTS can access both API servers (Neutron or Midonet) through
 the python API. However, as this package is part of the Midonet packages,
 you need to install it once you compile/generate the packages.
 
+To use the MidoNet sandbox, you must download the source from the github
+repository into your midonet source tree:
+
+From the root midonet directory:
+```
+git clone --recursive http://github.com/midonet/midonet-sandbox
+```
+
+Also, if the python-midonetclient package will be built from source, the
+protobufs 2.6.1 compiler will also need to be installed.  If protobufs version 
+2.6.1 is not already installed, run these commands to install it:
+
+```
+wget https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
+tar -xzf protobuf-2.6.1.tar.gz
+cd protobuf-2.6.1
+./configure
+make
+sudo make install
+sudo ldconfig
+cd -
+rm -rf protobuf-2.6.1
+rm protobuf-2.6.1.tar.gz
+```
+
 Running Sandbox
 ---------------
 
@@ -73,6 +98,9 @@ pushd tests && pip install -r mdts.dependencies && popd
 pushd midonet-sandbox && python setup.py install && popd
 pushd python-midonetclient && python setup.py install && popd
 ```
+
+If the protobufs compiler is not installed, the last command may fail.  If so, 
+please install the protobufs compiler as documented above.
 
 Midonet Sandbox already use a predefined set of docker images to ease the task
 of spawning different Midonet components. To start using sandbox and build the
