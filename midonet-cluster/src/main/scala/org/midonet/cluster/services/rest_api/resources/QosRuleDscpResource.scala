@@ -37,7 +37,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
                    APPLICATION_JSON))
 @AllowDelete
 class QOSRuleDSCPResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[QOSRuleDSCP](resContext) {
+    extends MidonetResource[QosRuleDscp](resContext) {
 }
 
 @RequestScoped
@@ -47,13 +47,13 @@ class QOSRuleDSCPResource @Inject()(resContext: ResourceContext)
                    APPLICATION_JSON))
 class QOSPolicyRuleDSCPResource @Inject()(policyId: UUID,
                                           resContext: ResourceContext)
-    extends MidonetResource[QOSRuleDSCP](resContext) {
+    extends MidonetResource[QosRuleDscp](resContext) {
 
     protected override def listIds: Seq[Any] = {
-        getResource(classOf[QOSPolicy], policyId).dscpMarkingRuleIds.asScala
+        getResource(classOf[QosPolicy], policyId).dscpMarkingRuleIds.asScala
     }
 
-    protected override def createFilter(rule: QOSRuleDSCP, tx: ResourceTransaction)
+    protected override def createFilter(rule: QosRuleDscp, tx: ResourceTransaction)
     : Unit = {
         rule.policyId = policyId
         tx.create(rule)

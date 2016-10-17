@@ -28,26 +28,28 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 
-@ZoomClass(clazz = Topology.QosRuleDscp.class)
+@ZoomClass(clazz = Topology.QosRuleBandwidthLimit.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class QOSRuleDSCP extends UriResource {
+public class QosRuleBandwidthLimit extends UriResource {
 
     @ZoomField(name = "id")
     public UUID id;
 
-    @ZoomField(name = "dscp_mark")
-    public int dscpMark;
+    @ZoomField(name = "max_kbps")
+    public int maxKbps;
+
+    @ZoomField(name = "max_burst_kbps")
+    public int maxBurstKbps;
 
     @ZoomField(name = "policy_id")
     public UUID policyId;
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.QOS_DSCP_RULES(), id);
+        return absoluteUri(ResourceUris.QOS_BW_LIMIT_RULES(), id);
     }
 
     @JsonIgnore
-    @Override
     public void create() {
         if (null == id) {
             id = UUID.randomUUID();
@@ -60,7 +62,8 @@ public class QOSRuleDSCP extends UriResource {
         return MoreObjects.toStringHelper(this)
                 .omitNullValues()
                 .add("id", id)
-                .add("dscpMark", dscpMark)
+                .add("maxKbps", maxKbps)
+                .add("maxBurstKbps", maxBurstKbps)
                 .add("policyId", policyId)
                 .toString();
     }
