@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_14efd9e9",
+        "filename": "tests/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-17T08:33:18Z",
+      "side": 1,
+      "message": "Is it actually a requirement to install PMC? Or just build the package?",
+      "range": {
+        "startLine": 54,
+        "startChar": 6,
+        "endLine": 54,
+        "endChar": 69
+      },
+      "revId": "d2eb383ab2679ed1bf74fa434e32f4b48d807fa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
