@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_99e564a5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 423,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:10:33Z",
+      "side": 1,
+      "message": "can you explain how this hunk is related?",
+      "revId": "882627659776dcbc914e39065c34d8a14cb0e8b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
