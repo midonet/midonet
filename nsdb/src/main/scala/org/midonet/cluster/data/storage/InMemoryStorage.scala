@@ -851,6 +851,9 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
                    .asInstanceOf[StateTable[K, V]]
     }
 
+    override def getTable[K, V](name: String)
+                               (implicit key: ClassTag[K], value: ClassTag[V]) =
+        ???
     /**
       * @see [[StateTableStorage.tableArguments()]]
       */
