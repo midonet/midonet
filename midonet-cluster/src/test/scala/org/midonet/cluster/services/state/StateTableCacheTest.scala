@@ -124,6 +124,9 @@ class StateTableCacheTest extends FeatureSpec with Matchers with GivenWhenThen
                                     args: Any*)
                                    (implicit key: ClassTag[K],
                                     value: ClassTag[V]): StateTable[K, V] = ???
+        override def getTable[K, V](name: String)
+                                   (implicit key: ClassTag[K],
+                                    value: ClassTag[V]): StateTable[K, V] = ???
         override def tableArguments(clazz: Class[_], id: Any, name: String,
                                     args: Any*): Future[Set[String]] = ???
         override def multi(ops: Seq[PersistenceOp]): Unit = ???
