@@ -45,12 +45,11 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
 
         override def maxRetries = 3
 
-        var calls = 0
+        var retries = 0
 
-        override def retry[T](retries: Int, log: Logger, message: String)
-                             (retriable: => T): Either[Throwable, T] = {
-            calls += 1
-            super.retry(retries, log, message)(retriable)
+        protected override def handleRetry[T](e: Throwable, r: Int, log: Logger,
+                                              message: String): Unit = {
+            retries += 1
         }
     }
 
@@ -67,7 +66,7 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
 
     class TestableExponentialBackoffRetriable extends TestableRetriable
                 with ExponentialBackoffRetriable {
-        override def maxRetries: Int = 7
+        override def maxRetries: Int = 6
         override def interval: Duration = 100 millis
         override def maxDelay: Duration = 2000 millis
 
@@ -84,33 +83,34 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
     feature("Retry on different retriables") {
         scenario("Retrying on a successful function") {
             Given("A Retriable object")
-            val mockedRetriable = new TestableRetriable
-                                      with ImmediateRetriable {}
+            val mockedRetriable = new TestableRetriable with ImmediateRetriable
 
             When("Called on a successful function")
             val expected = "ok"
             val result = mockedRetriable.retry(Log, "ok") { "ok" }
 
             Then("The retriable is called only once")
-            mockedRetriable.calls shouldBe 1
+            mockedRetriable.retries shouldBe 0
             And("The expected result is wrapped in the result")
-            result.right.get shouldBe expected
+            result shouldBe expected
         }
 
         scenario("Retrying on a failing function") {
             Given("A Retriable object")
-            val mockedRetriable = new TestableRetriable
-                                      with ImmediateRetriable {}
+            val mockedRetriable = new TestableRetriable with ImmediateRetriable
 
             When("Called on a failing function")
-            val result = mockedRetriable.retry(Log, "ko") {
-                throw new Exception
+            val e = intercept[Exception] {
+                mockedRetriable.retry(Log, "ko") {
+                    throw new Exception
+                }
             }
 
             Then("The retriable is called all times")
-            mockedRetriable.calls shouldBe mockedRetriable.maxRetries
+            mockedRetriable.retries shouldBe mockedRetriable.maxRetries
+
             And("The result is an error")
-            result.isLeft shouldBe true
+            e should not be null
         }
     }
 
@@ -129,9 +129,11 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
             val result = mockedRetriable.retryClosing(Log, "ok") (closeable) ("ok")
 
             Then("The retriable is called only once")
-            mockedRetriable.calls shouldBe 1
+            mockedRetriable.retries shouldBe 0
+
             And("The expected result is wrapped in the result")
-            result.right.get shouldBe expected
+            result shouldBe expected
+
             And("The closeable was closed")
             closeable.closed shouldBe true
         }
@@ -146,14 +148,18 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
             closeable.closed shouldBe false
 
             When("Called on a failing function")
-            val result = mockedRetriable.retryClosing(Log, "ko")(closeable) {
-                throw new Exception
+            val e = intercept[Exception] {
+                mockedRetriable.retryClosing(Log, "ko")(closeable) {
+                    throw new Exception
+                }
             }
 
             Then("The retriable is called all times")
-            mockedRetriable.calls shouldBe mockedRetriable.maxRetries
+            mockedRetriable.retries shouldBe mockedRetriable.maxRetries
+
             And("The result is an error")
-            result.isLeft shouldBe true
+            e should not be null
+
             And("The closeable was closed")
             closeable.closed shouldBe true
         }
@@ -166,12 +172,15 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
             val mockedRetriable = new TestableAwaitRetriable
 
             When("Called on a failing function")
-            val result = mockedRetriable.retry(Log, "ko") {
-                throw new Exception
+            intercept[Exception]{
+                mockedRetriable.retry(Log, "ko") {
+                    throw new Exception
+                }
             }
 
             Then("The retriable is called all times")
-            mockedRetriable.calls shouldBe mockedRetriable.maxRetries
+            mockedRetriable.retries shouldBe mockedRetriable.maxRetries
+
             And("The await times should be the defined timeout")
             for (await <- mockedRetriable.awaits) {
                 await shouldBe mockedRetriable.interval.toMillis
@@ -185,12 +194,15 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
             val mockedRetriable = new TestableExponentialBackoffRetriable
 
             When("Called on a failing function")
-            val result = mockedRetriable.retry(Log, "ko") {
-                throw new Exception
+            intercept[Exception] {
+                mockedRetriable.retry(Log, "ko") {
+                    throw new Exception
+                }
             }
 
             Then("The retriable is called all times")
-            mockedRetriable.calls shouldBe 7
+            mockedRetriable.retries shouldBe 6
+
             And("The await times should be the exponentially increasing up to a ceiling")
             val expected = Map(
                 0 -> 100, 1 -> 200, 2 -> 400, 3 -> 800, 4 -> 1600, 5 -> 2000)
