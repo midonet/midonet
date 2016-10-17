@@ -96,11 +96,11 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         new BgpPeerResource(uriInfo, api)
 
     @Path("tap_flows")
-    def tapFlowsResoource: TapFlowResource =
+    def tapFlowsResource: TapFlowResource =
         new TapFlowResource(uriInfo, api)
 
     @Path("tap_services")
-    def tapServicesResoource: TapServiceResource =
+    def tapServicesResource: TapServiceResource =
         new TapServiceResource(uriInfo, api)
 
     @Path("firewall_logs")
