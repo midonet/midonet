@@ -16,6 +16,24 @@
       "revId": "ae1312a71166c360ed283040c140335504b343a9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5da585b2",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/vxgw/data/VtepStateStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-17T13:33:23Z",
+      "side": 0,
+      "message": "yes, I should have commented in the commit msg, I didn\u0027t want to add a new patch just for this",
+      "parentUuid": "baa041b7_b4302d9f",
+      "revId": "ae1312a71166c360ed283040c140335504b343a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
