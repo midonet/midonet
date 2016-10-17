@@ -38,6 +38,7 @@ class MidonetBackendConfig(val conf: Config) {
     def bufferSize = conf.getInt("zookeeper.buffer_size")
     def stateClient = new StateProxyClientConfig(conf)
     def lockTimeoutMs = conf.getDuration("zookeeper.lock_timeout", TimeUnit.MILLISECONDS)
+    def transactionAttempts = conf.getInt("zookeeper.transaction_attempts")
 }
 
 class CassandraConfig(val conf: Config) {
