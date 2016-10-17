@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_ddc63548",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-10-17T13:49:55Z",
+      "side": 1,
+      "message": "we should just make the default route go via the uplinkPort.",
+      "range": {
+        "startLine": 263,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 50
+      },
+      "revId": "fee47d65a77afcbf6b6818a494ceaecdd6d4c573",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ddcd155e",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-10-17T13:49:55Z",
+      "side": 1,
+      "message": "I\u0027d get rid of the map argument and break this into two calls.\n\nvrf \u003d self.addTenant(name, private_prefix, pubnet, downlink_port_name, downlink_port_mac)\nself.addFip64(vrf, ip6src, ip6dst, ip4src, ip4dst)\n\nOther parameters, such as the ovs_address and vpp_address can be hardcoded to 10.0.0.x or derived from the tenant name.",
+      "range": {
+        "startLine": 399,
+        "startChar": 13,
+        "endLine": 399,
+        "endChar": 22
+      },
+      "revId": "fee47d65a77afcbf6b6818a494ceaecdd6d4c573",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9d6e6d62",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-10-17T13:49:55Z",
+      "side": 1,
+      "message": "the point of this test should be that both tenants can have the same private IP range (i.e. this should be 20.0.0.0/26 also).",
+      "range": {
+        "startLine": 404,
+        "startChar": 32,
+        "endLine": 404,
+        "endChar": 43
+      },
+      "revId": "fee47d65a77afcbf6b6818a494ceaecdd6d4c573",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
