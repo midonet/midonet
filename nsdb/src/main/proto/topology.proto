@@ -433,7 +433,6 @@ message QosPolicy {
     optional string name = 2;
     optional string description = 3;
     optional bool shared = 4;
-    repeated UUID bandwidth_limit_rules = 5;
 
     message QosRule {
         optional UUID id = 1;
@@ -443,11 +442,11 @@ message QosPolicy {
         optional int32 dscp_mark = 5;
     }
 
-    repeated QosRule rules = 6;
-    repeated UUID bandwidth_limit_rule_ids = 7;
-    repeated UUID dscp_marking_rule_ids = 8;
+    repeated QosRule rules = 5;
+    repeated UUID bandwidth_limit_rule_ids = 6;
+    repeated UUID dscp_marking_rule_ids = 7;
 
-    optional UUID tenant_id = 9;
+    optional UUID tenant_id = 8;
 
     // Backreferences
     repeated UUID port_ids = 101;
