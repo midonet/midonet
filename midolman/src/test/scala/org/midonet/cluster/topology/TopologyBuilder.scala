@@ -1149,8 +1149,8 @@ trait TopologyBuilder {
 
     def createQosPolicy(id: UUID = UUID.randomUUID(),
                         name: Option[String] = None,
-                        description: Option[String] = None): QOSPolicy = {
-        QOSPolicy.newBuilder
+                        description: Option[String] = None): QosPolicy = {
+        QosPolicy.newBuilder
             .setId(id.asProto)
             .setName(name.getOrElse(s"qos-policy-$id"))
             .setDescription(description.getOrElse(s"QOS policy with ID $id"))
@@ -1160,8 +1160,8 @@ trait TopologyBuilder {
     def createQosRuleBWLimit(policyId: UUID,
                              maxKbps: Int,
                              maxBurstKbps: Int,
-                             id: UUID = UUID.randomUUID()): QOSRuleBWLimit = {
-        QOSRuleBWLimit.newBuilder
+                             id: UUID = UUID.randomUUID()): QosRuleBandwidthLimit = {
+        QosRuleBandwidthLimit.newBuilder
             .setId(id.asProto)
             .setPolicyId(policyId.asProto)
             .setMaxKbps(maxKbps)
@@ -1171,8 +1171,8 @@ trait TopologyBuilder {
 
     def createQosRuleDscp(policyId: UUID,
                           dscpMark: Int,
-                          id: UUID = UUID.randomUUID()): QOSRuleDSCP = {
-        QOSRuleDSCP.newBuilder
+                          id: UUID = UUID.randomUUID()): QosRuleDscp = {
+        QosRuleDscp.newBuilder
             .setId(id.asProto)
             .setPolicyId(policyId.asProto)
             .setDscpMark(dscpMark)

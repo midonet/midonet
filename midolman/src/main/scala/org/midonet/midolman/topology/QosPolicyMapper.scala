@@ -23,7 +23,7 @@ import scala.collection.breakOut
 
 import rx.Observable
 
-import org.midonet.cluster.models.Topology.{QOSPolicy, QOSRuleBWLimit, QOSRuleDSCP}
+import org.midonet.cluster.models.Topology.{QosPolicy, QosRuleBandwidthLimit, QosRuleDscp}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.{QosMaxBandwidthRule, QosDscpRule, QosPolicy => SimQosPolicy}
@@ -37,13 +37,13 @@ class QosPolicyMapper(id: UUID, vt: VirtualTopology)
     override def logMark: String = s"qos-policy:$id"
 
     private val bandwidthRuleTracker =
-        new StoreObjectReferenceTracker(vt, classOf[QOSRuleBWLimit], log)
+        new StoreObjectReferenceTracker(vt, classOf[QosRuleBandwidthLimit], log)
     private val dscpRuleTracker =
-        new StoreObjectReferenceTracker(vt, classOf[QOSRuleDSCP], log)
+        new StoreObjectReferenceTracker(vt, classOf[QosRuleDscp], log)
 
-    private var qosPolicy: QOSPolicy = _
+    private var qosPolicy: QosPolicy = _
     private val qosPolicyObservable =
-        vt.store.observable(classOf[QOSPolicy], id)
+        vt.store.observable(classOf[QosPolicy], id)
             .observeOn(vt.vtScheduler)
             .doOnCompleted(makeAction0(qosPolicyDeleted()))
             .doOnNext(makeAction1(qosPolicyUpdated))
@@ -64,14 +64,14 @@ class QosPolicyMapper(id: UUID, vt: VirtualTopology)
 
     private def qosPolicyDeleted(): Unit = {
         assertThread()
-        log.debug(s"QOSPolicy $id deleted")
+        log.debug(s"QoS policy $id deleted")
         bandwidthRuleTracker.completeRefs()
         dscpRuleTracker.completeRefs()
     }
 
-    private def qosPolicyUpdated(p: QOSPolicy): Unit = {
+    private def qosPolicyUpdated(p: QosPolicy): Unit = {
         assertThread()
-        log.debug(s"QOSPolicy $id updated")
+        log.debug(s"QoS policy $id updated")
         val bwRuleIds: Set[UUID] =
             p.getBandwidthLimitRuleIdsList.asScala.map(_.asJava)(breakOut)
         val dscpRuleIds: Set[UUID] =

@@ -16,24 +16,24 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-@ZoomClass(clazz = Topology.QOSPolicy.class)
+@ZoomClass(clazz = Topology.QosPolicy.class)
 public class QOSPolicy extends UriResource {
 
-    @ZoomClass(clazz = Topology.QOSPolicy.QOSRule.class)
+    @ZoomClass(clazz = Topology.QosPolicy.QosRule.class)
     public static class QOSRule extends ZoomObject {
 
         public static final String QOS_RULE_TYPE_BW_LIMIT = "bandwidth_limit";
