@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f9dd90dd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-17T06:01:45Z",
+      "side": 1,
+      "message": "the link on the page (https://google-styleguide.googlecode.com/svn/trunk/javaguide.html) gave me 404.\ncan you provide a better url, or fix the wiki?",
+      "revId": "c593a172b35ca384c6bad09af07f120b1760eff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
