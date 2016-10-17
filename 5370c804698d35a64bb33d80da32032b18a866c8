@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_14c6b967",
+        "filename": "tests/dev-start.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-17T08:35:31Z",
+      "side": 1,
+      "message": "does this need a corresponding popd at the end?",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 8
+      },
+      "revId": "5370c804698d35a64bb33d80da32032b18a866c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
