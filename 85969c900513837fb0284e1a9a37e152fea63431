@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_090fbfe0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-18T11:16:01Z",
+      "side": 1,
+      "message": "This is wrong, I think. If the port has no policy ID, but inherits it from the bridge, and then is updated with a change unrelated to QOS policy, this will clear the QOS policy ID that was inherited from the bridge.\n\nBut since none of the conditions below is true, we won\u0027t get another bridge update, and will never re-request the bridge\u0027s QOS policy.\n\nI need to a) write a test that exposes this error, and b) fix it.",
+      "revId": "85969c900513837fb0284e1a9a37e152fea63431",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
