@@ -54,6 +54,9 @@ sudo pip install --upgrade pip setuptools virtualenv
 virtualenv venv
 . venv/bin/activate
 
+# work around for pycparser issue
+pip install pycparser==v2.16
+
 # We assume all gates/nightlies put the necessary packages in $WORKSPACE
 # so we know where to find them.
 mkdir -p tests/$OVERRIDE/packages
