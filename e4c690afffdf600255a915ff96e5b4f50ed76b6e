@@ -16,6 +16,24 @@
       "revId": "e4c690afffdf600255a915ff96e5b4f50ed76b6e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6eef7187",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T15:48:36Z",
+      "side": 1,
+      "message": "yes, you\u0027re right: i haven\u0027t used strong synchronization for this one because this should only apply to a downgrade.\n\nanyway, better to fix, so added synchronized",
+      "parentUuid": "baa041b7_0e0c6591",
+      "revId": "e4c690afffdf600255a915ff96e5b4f50ed76b6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
