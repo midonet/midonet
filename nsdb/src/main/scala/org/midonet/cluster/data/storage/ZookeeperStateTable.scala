@@ -64,6 +64,9 @@ trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
         }
     }
 
+    override def tablePath(name: String): String =
+        tablesGlobalPath(version.longValue()) + "/" + name
+
     @inline
     private[cluster] def tablesPath(version: Long = version.longValue()): String = {
         s"$zoomPath/$version/tables"
@@ -249,6 +252,12 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
 
         constructor.newInstance(tableKey, directory, stateTables, connection, metrics)
                    .asInstanceOf[StateTable[K, V]]
+    }
+
+    override def getTable[K, V](name: String)
+                      (implicit key: ClassTag[K], value: ClassTag[V])
+    : StateTable[K, V] = {
+        throw new Exception("Not yet implemented")
     }
 
     /**

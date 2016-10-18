@@ -109,12 +109,24 @@ trait StateTableStorage extends Storage {
                       (implicit key: ClassTag[K], value: ClassTag[V]): StateTable[K, V]
 
     /**
+      * Returns a [[StateTable]] instance for the specified global table name
+      */
+    @throws[ServiceUnavailableException]
+    def getTable[K, V](name: String)
+                      (implicit key: ClassTag[K], value: ClassTag[V]): StateTable[K, V]
+
+    /**
       * Returns the storage path for the specified state table. The method
       * is compatible with the legacy paths, and will block while reading from
       * storage whether the legacy path exists.
       */
     @throws[IllegalArgumentException]
     def tablePath(clazz: Class[_], id: ObjId, name: String, args: Any*): String
+
+    /**
+      * Returns the storage path for the specified global state table.
+      */
+    def tablePath(name: String): String
 
     /**
       * Returns the list of arguments for the specified state table and prefixed
