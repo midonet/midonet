@@ -27,10 +27,10 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.models.Topology.{Port, QosPolicy, QosRuleBandwidthLimit, QosRuleDscp}
+import org.midonet.cluster.models.Topology.{Port, QosPolicy, QosRuleBandwidthLimit, QosRuleDscp, _}
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil.{RichJavaUuid, asRichProtoUuid}
-import org.midonet.midolman.simulation.{Bridge => SimBridge, Port => SimPort, QosPolicy => SimQosPolicy}
+import org.midonet.midolman.simulation.{Port => SimPort, QosPolicy => SimQosPolicy}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
@@ -43,6 +43,8 @@ class QosPolicyMapperTest extends MidolmanSpec
                                   with MidonetEventually {
     private val timeout: Duration = 1 second
     private var vt: VirtualTopology = _
+
+    implicit def toOption[T](t: T): Option[T] = Option(t)
 
     /**
       * Override this function to perform a custom set-up needed for the test.
@@ -66,8 +68,8 @@ class QosPolicyMapperTest extends MidolmanSpec
             checkSimPolicy(simPol, Seq(BwData(1000, 10000)), Seq(12))
         }
 
-        scenario("Publishes port update that adds QosPolicy") {
-            val portId = createBridgeAndPort(null)
+        scenario("Publishes port update that adds QOSPolicy") {
+            val portId = createBridgeAndPort()
             val obs = createPortMapperAndObserver(portId)
             obs.awaitOnNext(1, timeout)
 
@@ -118,81 +120,143 @@ class QosPolicyMapperTest extends MidolmanSpec
             obs.getOnNextEvents.get(1).qosPolicy shouldBe null
         }
 
-        scenario("Publishes bridge with existing QosPolicy") {
+        scenario("Port inherits bridge's policy if it doesn't have its own") {
             val polId = createQosPolicyAndRules(Seq(BwData(10, 1000)), Seq(5))
-            val b = createBridge(qosPolicyId = Some(polId))
-            vt.store.create(b)
+            val portId = createBridgeAndPort(bridgePolId = polId)
 
-            val obs = createBridgeMapperAndObserver(b.getId.asJava)
+            val obs = createPortMapperAndObserver(portId)
             obs.awaitOnNext(1, timeout)
 
             val simPol = obs.getOnNextEvents.get(0).qosPolicy
             checkSimPolicy(simPol, Seq(BwData(10, 1000)), Seq(5))
         }
 
-        scenario("Publishes bridge update that adds QOS policy") {
-            val b = createBridge()
-            vt.store.create(b)
+        scenario("Port QOS policy overrides bridge's QOS policy") {
+            val pPolId = createQosPolicyAndRules(Seq(BwData(5, 10)), Seq(5))
+            val bPolId = createQosPolicyAndRules(Seq(BwData(4, 8)), Seq(2))
+            val portId = createBridgeAndPort(pPolId, bPolId)
 
-            val obs = createBridgeMapperAndObserver(b.getId.asJava)
+            val obs = createPortMapperAndObserver(portId)
             obs.awaitOnNext(1, timeout)
-            obs.getOnNextEvents.get(0).qosPolicy shouldBe null
 
-            val polId = createQosPolicyAndRules(Seq(BwData(10, 1000)), Seq(5))
-            vt.store.update(b.toBuilder.setQosPolicyId(polId.asProto).build())
+            val simPol = obs.getOnNextEvents.get(0).qosPolicy
+            checkSimPolicy(simPol, Seq(BwData(5, 10)), Seq(5))
+        }
+
+        scenario("Updating bridge's policy updates port if port has no policy") {
+            val portId = createBridgeAndPort()
+
+            val obs = createPortMapperAndObserver(portId)
+            obs.awaitOnNext(1, timeout)
+
+            val simPort = obs.getOnNextEvents.get(0)
+            simPort.qosPolicy shouldBe null
+
+            // Update bridge to add policy.
+            val bPolId = createQosPolicyAndRules(Seq(BwData(4, 8)), Seq(2))
+            val b = vt.store.get(classOf[Network], simPort.deviceId).await()
+            vt.store.update(b.toBuilder.setQosPolicyId(bPolId.asProto).build())
+
             obs.awaitOnNext(2, timeout)
-
             val simPol = obs.getOnNextEvents.get(1).qosPolicy
-            checkSimPolicy(simPol, Seq(BwData(10, 1000)), Seq(5))
-        }
+            checkSimPolicy(simPol, Seq(BwData(4, 8)), Seq(2))
 
-        scenario("Pushes bridge update on policy update") {
-            val polId = createQosPolicyAndRules(Seq(BwData(10, 1000)), Seq(5))
-            val b = createBridge(qosPolicyId = Some(polId))
-            vt.store.create(b)
+            // Update bridge to new policy ID.
+            val bPolId2 = createQosPolicyAndRules(Seq(BwData(5, 10)), Seq(3))
+            vt.store.update(b.toBuilder.setQosPolicyId(bPolId2.asProto).build())
 
-            val obs = createBridgeMapperAndObserver(b.getId.asJava)
-            obs.awaitOnNext(1, timeout)
-            val simPol = obs.getOnNextEvents.get(0).qosPolicy
-            checkSimPolicy(simPol, Seq(BwData(10, 1000)), Seq(5))
+            obs.awaitOnNext(3, timeout)
+            val simPol2 = obs.getOnNextEvents.get(2).qosPolicy
+            checkSimPolicy(simPol2, Seq(BwData(5, 10)), Seq(3))
 
-            val bwRule2 = createQosRuleBWLimit(polId, 100, 500)
-            vt.store.create(bwRule2)
-            obs.awaitOnNext(2, timeout)
+            // Update policy itself.
+            val tpPolicy = vt.store.get(classOf[QosPolicy], bPolId2).await()
+            vt.store.update(
+                tpPolicy.toBuilder.clearDscpMarkingRuleIds().build())
 
-            val simPol2Bw = obs.getOnNextEvents.get(1).qosPolicy
-            checkSimPolicy(simPol2Bw,
-                           Seq(BwData(10, 1000), BwData(100, 500)), Seq(5))
-        }
+            obs.awaitOnNext(4, timeout)
+            val simPol2NoDscp = obs.getOnNextEvents.get(3).qosPolicy
+            checkSimPolicy(simPol2NoDscp, Seq(BwData(5, 10)), Seq())
 
-        scenario("Publishes bridge update that removes QOS policy") {
-            val polId = createQosPolicyAndRules(Seq(BwData(10, 1000)), Seq(5))
-            val b = createBridge(qosPolicyId = Some(polId))
-            vt.store.create(b)
-
-            val obs = createBridgeMapperAndObserver(b.getId.asJava)
-            obs.awaitOnNext(1, timeout)
-            obs.getOnNextEvents.get(0).qosPolicy should not be null
-
+            // Clear bridge's policy ID
             vt.store.update(b.toBuilder.clearQosPolicyId().build())
-            obs.awaitOnNext(2, timeout)
-
-            obs.getOnNextEvents.get(1).qosPolicy shouldBe null
+            obs.awaitOnNext(5, timeout)
+            obs.getOnNextEvents.get(4).qosPolicy shouldBe null
         }
 
-        scenario("Clears bridge's qosPolicy reference on policy deletion") {
-            val polId = createQosPolicyAndRules(Seq(BwData(10, 1000)), Seq(5))
-            val b = createBridge(qosPolicyId = Some(polId))
-            vt.store.create(b)
+        scenario("Updating bridge's policy has no effect if port has policy") {
+            val pPolId = createQosPolicyAndRules(Seq(BwData(5, 10)), Seq(5))
+            val portId = createBridgeAndPort(portPolId = pPolId)
 
-            val obs = createBridgeMapperAndObserver(b.getId.asJava)
+            val obs = createPortMapperAndObserver(portId)
             obs.awaitOnNext(1, timeout)
-            obs.getOnNextEvents.get(0).qosPolicy should not be null
 
-            vt.store.delete(classOf[QosPolicy], polId)
+            val simPort = obs.getOnNextEvents.get(0)
+            checkSimPolicy(simPort.qosPolicy, Seq(BwData(5, 10)), Seq(5))
+
+            // Update bridge to add policy.
+            val bPolId = createQosPolicyAndRules(Seq(BwData(4, 8)), Seq(2))
+            val b = vt.store.get(classOf[Network], simPort.deviceId).await()
+            vt.store.update(b.toBuilder.setQosPolicyId(bPolId.asProto).build())
+
+            // Update bridge to new policy ID.
+            val bPolId2 = createQosPolicyAndRules(Seq(BwData(5, 10)), Seq(3))
+            vt.store.update(b.toBuilder.setQosPolicyId(bPolId2.asProto).build())
+
+            // Update policy itself.
+            val tpPolicy = vt.store.get(classOf[QosPolicy], bPolId2).await()
+            vt.store.update(
+                tpPolicy.toBuilder.clearDscpMarkingRuleIds().build())
+
+            // Clear bridge's policy ID
+            vt.store.update(b.toBuilder.clearQosPolicyId().build())
+
+            // None of these should have changed anything.
+            // Update an unrelated property of the port to check.
+            val p = vt.store.get(classOf[Port], simPort.id).await()
+            vt.store.update(p.toBuilder.setInterfaceName("ifName").build())
             obs.awaitOnNext(2, timeout)
 
-            obs.getOnNextEvents.get(1).qosPolicy shouldBe null
+            val simPortUpdated = obs.getOnNextEvents.get(1)
+            simPortUpdated.interfaceName shouldBe "ifName"
+            checkSimPolicy(simPortUpdated.qosPolicy, Seq(BwData(5, 10)), Seq(3))
+        }
+
+        scenario("Adding port policy replaces bridge policy") {
+            val bPolId = createQosPolicyAndRules(Seq(BwData(4, 8)), Seq(2))
+            val portId = createBridgeAndPort(bridgePolId = bPolId)
+
+            val obs = createPortMapperAndObserver(portId)
+            obs.awaitOnNext(1, timeout)
+            checkSimPolicy(obs.getOnNextEvents.get(0).qosPolicy,
+                           Seq(BwData(4, 8)), Seq(2))
+
+            val pPolId = createQosPolicyAndRules(Seq(BwData(5, 10)), Seq(5))
+            val tpPort = vt.store.get(classOf[Port], portId).await()
+            vt.store.update(
+                tpPort.toBuilder.setQosPolicyId(pPolId.asProto).build())
+
+            obs.awaitOnNext(2, timeout)
+            checkSimPolicy(obs.getOnNextEvents.get(1).qosPolicy,
+                           Seq(BwData(5, 10)), Seq(5))
+        }
+
+        scenario("Removing port policy reverts to bridge policy") {
+            val bPolId = createQosPolicyAndRules(Seq(BwData(4, 8)), Seq(2))
+            val pPolId = createQosPolicyAndRules(Seq(BwData(5, 10)), Seq(5))
+            val portId = createBridgeAndPort(pPolId, bPolId)
+
+            val obs = createPortMapperAndObserver(portId)
+            obs.awaitOnNext(1, timeout)
+            checkSimPolicy(obs.getOnNextEvents.get(0).qosPolicy,
+                           Seq(BwData(5, 10)), Seq(5))
+
+            val tpPort = vt.store.get(classOf[Port], portId).await()
+            vt.store.update(tpPort.toBuilder.clearQosPolicyId().build())
+
+            obs.awaitOnNext(2, timeout)
+            checkSimPolicy(obs.getOnNextEvents.get(1).qosPolicy,
+                           Seq(BwData(4, 8)), Seq(2))
         }
 
         scenario("Publishes updates that add rules") {
@@ -279,6 +343,26 @@ class QosPolicyMapperTest extends MidolmanSpec
             checkSimPolicy(simPolDscpChanged,
                            Seq(BwData(10, 1000), BwData(50, 500)), Seq(30, 16))
         }
+
+        // This was a problem with the first draft implementation: Updating some
+        // unrelated property of the port would result in the policy it
+        // inherited from the bridge being removed.
+        scenario("Unrelated port updates do not affect inheritance of QOS " +
+                 "policy from bridge") {
+            val polId = createQosPolicyAndRules(Seq(BwData(1, 10)), Seq(2))
+            val portId = createBridgeAndPort(bridgePolId = polId)
+
+            val obs = createPortMapperAndObserver(portId)
+            obs.awaitOnNext(1, timeout)
+            checkSimPolicy(obs.getOnNextEvents.get(0).qosPolicy,
+                           Seq(BwData(1, 10)), Seq(2))
+
+            val tpPort = vt.store.get(classOf[Port], portId).await()
+            vt.store.update(tpPort.toBuilder.setPortMac("MAC").build())
+            obs.awaitOnNext(2, timeout)
+            checkSimPolicy(obs.getOnNextEvents.get(1).qosPolicy,
+                           Seq(BwData(1, 10)), Seq(2))
+        }
     }
 
     case class BwData(maxKbps: Int, maxBurstKbps: Int)
@@ -300,11 +384,12 @@ class QosPolicyMapperTest extends MidolmanSpec
         polId
     }
 
-    private def createBridgeAndPort(polId: UUID): UUID = {
-        val b = createBridge()
+    private def createBridgeAndPort(portPolId: Option[UUID] = None,
+                                    bridgePolId: Option[UUID] = None): UUID = {
+        val b = createBridge(qosPolicyId = bridgePolId)
         vt.store.create(b)
-        val p = createBridgePort(bridgeId = Some(b.getId.asJava),
-                                 qosPolicyId = Option(polId))
+        val p = createBridgePort(bridgeId = b.getId.asJava,
+                                 qosPolicyId = portPolId)
         vt.store.create(p)
         p.getId.asJava
     }
@@ -313,14 +398,6 @@ class QosPolicyMapperTest extends MidolmanSpec
     : TestAwaitableObserver[SimPort] = {
         val mapper = new PortMapper(portId, vt, mutable.Map())
         val obs = new TestAwaitableObserver[SimPort]
-        Observable.create(mapper).subscribe(obs)
-        obs
-    }
-
-    private def createBridgeMapperAndObserver(bridgeId: UUID)
-    : TestAwaitableObserver[SimBridge] = {
-        val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
-        val obs = new TestAwaitableObserver[SimBridge]
         Observable.create(mapper).subscribe(obs)
         obs
     }
