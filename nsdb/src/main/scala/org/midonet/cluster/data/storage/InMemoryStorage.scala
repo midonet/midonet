@@ -852,6 +852,13 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
     }
 
     /**
+      * A getter for global tables
+      */
+    override def getTable[K, V](name: String)
+                               (implicit key: ClassTag[K], value: ClassTag[V]) =
+        ???
+
+    /**
       * @see [[StateTableStorage.tableArguments()]]
       */
     override def tableArguments(clazz: Class[_], id: ObjId, name: String,
