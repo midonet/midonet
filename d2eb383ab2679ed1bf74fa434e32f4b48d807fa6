@@ -22,6 +22,30 @@
       "revId": "d2eb383ab2679ed1bf74fa434e32f4b48d807fa6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_63a54ab3",
+        "filename": "tests/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-18T00:48:07Z",
+      "side": 1,
+      "message": "I guess protobufs would be needed just when building the PMC.  I guess technically, if the package were given to the user, they could just install the PMC directly, without having to build source.  I will update the README to reflect this.",
+      "parentUuid": "baa041b7_14efd9e9",
+      "range": {
+        "startLine": 54,
+        "startChar": 6,
+        "endLine": 54,
+        "endChar": 69
+      },
+      "revId": "d2eb383ab2679ed1bf74fa434e32f4b48d807fa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
