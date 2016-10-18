@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_23b062db",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-18T03:30:41Z",
+      "side": 1,
+      "message": "I refactored a bit so that ifaceNameId is only written to and read from in this function.",
+      "parentUuid": "baa041b7_7a616f38",
+      "range": {
+        "startLine": 80,
+        "startChar": 35,
+        "endLine": 80,
+        "endChar": 47
+      },
+      "revId": "e55518086598d98f2c68d52c99e07bbb98a838f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fa4c5f43",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-10-17T11:06:35Z",
       "side": 1,
       "message": "These multi-line nested functions seem to me to make things harder to read. I\u0027m not sure what the official style recommendations are, but personally I would be inclined to limit nested functions to those which are either simple one-expression functions that can be expressed on one or two lines (including the signature) without braces, or those which have to be nested because they reference the enclosing function\u0027s local variables (especially helpers for recursive functions).\n\nI get that if functions are used only in one function, there\u0027s some benefit to lexically scoping them within that function, but that also has to be weighed against the clutter they add to the enclosing function. In cases like this, where the nested function is something that makes sense outside the context of the enclosing function, even if it\u0027s not actually used outside the enclosing function, it seems better to me to move it out to the class level and make it a private function.\n\nI don\u0027t have a particularly strong opinion on this issue, though, so it\u0027s okay as is.",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 9
+      },
+      "revId": "e55518086598d98f2c68d52c99e07bbb98a838f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_43e486de",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-18T03:30:41Z",
+      "side": 1,
+      "message": "I agree with you, in general, but in this specific case most of these nested functions access global data that I want to be protected by a single lock in this function. I am hoping that by keeping them nested it will keep others from using these functions in places that break the thread safety.",
+      "parentUuid": "baa041b7_fa4c5f43",
       "range": {
         "startLine": 86,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_43ada682",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-18T03:30:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_3422ddb9",
+      "range": {
+        "startLine": 158,
+        "startChar": 16,
+        "endLine": 158,
+        "endChar": 77
+      },
+      "revId": "e55518086598d98f2c68d52c99e07bbb98a838f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5a034b0d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_83de0e0f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-18T03:30:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_5a034b0d",
+      "range": {
+        "startLine": 177,
+        "startChar": 16,
+        "endLine": 177,
+        "endChar": 25
+      },
+      "revId": "e55518086598d98f2c68d52c99e07bbb98a838f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3409bd31",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 3
@@ -105,6 +201,30 @@
       "writtenOn": "2016-10-17T11:06:35Z",
       "side": 1,
       "message": "If you make another patch, could you capitalize this?",
+      "range": {
+        "startLine": 181,
+        "startChar": 51,
+        "endLine": 181,
+        "endChar": 52
+      },
+      "revId": "e55518086598d98f2c68d52c99e07bbb98a838f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_63e1cacf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-18T03:30:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_3409bd31",
       "range": {
         "startLine": 181,
         "startChar": 51,
