@@ -1,0 +1,147 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_23e8627a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-18T07:09:20Z",
+      "side": 1,
+      "message": "why concurrent structure?",
+      "range": {
+        "startLine": 75,
+        "startChar": 30,
+        "endLine": 75,
+        "endChar": 39
+      },
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_03043e47",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-18T07:09:20Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 76,
+        "startChar": 28,
+        "endLine": 76,
+        "endChar": 37
+      },
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_036f9e2b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-18T07:09:20Z",
+      "side": 1,
+      "message": "isn\u0027t it simpler to use an actor to serialize operations like DatapathController, rather than using lock-free structures?\n\nwhy this qos service is completely separated from DatapathController/DatapathPortEntangler?\nit does basically same thing, doesn\u0027t it?\nie. watch zoom and netlink, and configure interfaces accrodingly.",
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c3e2d69f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-18T07:09:20Z",
+      "side": 1,
+      "message": "isn\u0027t it different from \"ifaceNameToId \u003d newInterfaceSet.map(ifd \u003d\u003e (ifd.getName, ifd.getIfIndex)).toMap\" ?",
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a36fd226",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-18T07:09:20Z",
+      "side": 1,
+      "message": "within?",
+      "range": {
+        "startLine": 96,
+        "startChar": 16,
+        "endLine": 96,
+        "endChar": 23
+      },
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_235aa282",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-18T07:09:20Z",
+      "side": 1,
+      "message": "isn\u0027t error too verbose for this?",
+      "range": {
+        "startLine": 190,
+        "startChar": 20,
+        "endLine": 190,
+        "endChar": 29
+      },
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e3fefa36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-18T07:09:20Z",
+      "side": 1,
+      "message": "doesn\u0027t processingThread needs to handle InterruptedException somewhere?",
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
