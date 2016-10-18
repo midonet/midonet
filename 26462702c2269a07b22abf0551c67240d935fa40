@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4fcb871e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:48:18Z",
+      "side": 1,
+      "message": "indent",
+      "range": {
+        "startLine": 269,
+        "startChar": 8,
+        "endLine": 273,
+        "endChar": 62
+      },
+      "revId": "26462702c2269a07b22abf0551c67240d935fa40",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8f462fa5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:48:18Z",
+      "side": 1,
+      "message": "I would set these to null",
+      "range": {
+        "startLine": 275,
+        "startChar": 38,
+        "endLine": 275,
+        "endChar": 69
+      },
+      "revId": "26462702c2269a07b22abf0551c67240d935fa40",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cfd797bd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:48:18Z",
+      "side": 1,
+      "message": "for a next patch: we can\u0027t use the state proxy here, because it cannot service global state tables yet, therefore we must replace this with a mock proxy client that is always disconnected\n\nif we keep global state tables, we can add support to the state proxy later, for now we use zk",
+      "range": {
+        "startLine": 278,
+        "startChar": 53,
+        "endLine": 278,
+        "endChar": 64
+      },
+      "revId": "26462702c2269a07b22abf0551c67240d935fa40",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8fdd0fdf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:48:18Z",
+      "side": 1,
+      "message": "nit: braces not needed",
+      "range": {
+        "startLine": 337,
+        "startChar": 28,
+        "endLine": 337,
+        "endChar": 29
+      },
+      "revId": "26462702c2269a07b22abf0551c67240d935fa40",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4fa5c7b2",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperStateTableTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:48:18Z",
+      "side": 1,
+      "message": "why not t.isInstanceOf[ScoreStateTable] shouldBe true\nthen you can remove toString above",
+      "range": {
+        "startLine": 288,
+        "startChar": 12,
+        "endLine": 288,
+        "endChar": 51
+      },
+      "revId": "26462702c2269a07b22abf0551c67240d935fa40",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

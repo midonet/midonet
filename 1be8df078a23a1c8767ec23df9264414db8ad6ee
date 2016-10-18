@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0f833fcc",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperStateTableTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:48:18Z",
+      "side": 0,
+      "message": "why did you remove this?",
+      "range": {
+        "startLine": 385,
+        "startChar": 12,
+        "endLine": 387,
+        "endChar": 41
+      },
+      "revId": "1be8df078a23a1c8767ec23df9264414db8ad6ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
