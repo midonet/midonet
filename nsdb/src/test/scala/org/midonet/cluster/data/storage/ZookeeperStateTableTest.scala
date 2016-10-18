@@ -70,6 +70,7 @@ object ZookeeperStateTableTest {
         override def observable: Observable[Update[Int, String]] = ???
         override def ready: Observable[StateTable.Key] = ???
         override def isReady: Boolean = ???
+        override def toString() = "ScoreStateTable"
     }
 }
 
@@ -234,7 +235,7 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             storage.tablePath(classOf[PojoBridge], id, "name", version, 0, 1) shouldBe
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0/1"
             storage.tablePath("name", version) shouldBe
-            s"$zkRoot/zoom/$version/tables/global/name"
+                s"$zkRoot/zoom/$version/tables/global/name"
 
             And("The legacy paths are correct for a network")
             storage.legacyTablePath(classOf[Network], id, "mac_table") shouldBe
@@ -273,6 +274,18 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
 
             Then("Tables path created with storage")
             curator.checkExists().forPath(path) should not be null
+        }
+
+        scenario("Global table can be retrieved from storage") {
+            Given("A storage")
+            val storage = setupStorage()
+
+            And("A path for global table 'global-table'")
+            val path = storage.tablePath("global-table")
+
+            Then("getTable() does not throw anything")
+            val t = storage.getTable[Int, String]("global-table")
+            t.toString() shouldBe "ScoreStateTable"
         }
 
         scenario("Table path created with object") {
@@ -382,9 +395,7 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
 
             And("The table arguments should not be null")
             val scoreTable = table.asInstanceOf[ScoreStateTable]
-            scoreTable.key shouldBe StateTable.Key(
-                classOf[PojoBridge], obj.id, classOf[Int], classOf[String],
-                "score-table", Seq.empty)
+
             scoreTable.directory should not be null
             scoreTable.proxy should not be null
             scoreTable.connection should not be null

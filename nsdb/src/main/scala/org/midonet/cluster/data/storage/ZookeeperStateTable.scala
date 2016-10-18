@@ -257,7 +257,29 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
     override def getTable[K, V](name: String)
                                (implicit key: ClassTag[K], value: ClassTag[V])
     : StateTable[K, V] = {
-        throw new NotImplementedError("Coming up in the next commit")
+        assertBuilt()
+
+        val path = tablePath(name, version.longValue)
+        // Get the provider for the state table name.
+        val provider = getProvider(key.runtimeClass, value.runtimeClass,
+                                   name)
+        // Create a new directory for the state table path.
+        val directory = new ZkDirectory(curator.getZookeeperClient.getZooKeeper,
+                                        path, reactor)
+
+        // Get the constructor for the provider class and create a new instance.
+        val constructor =
+            provider.clazz.getConstructor(classOf[StateTable.Key],
+                                          classOf[Directory],
+                                          classOf[StateTableClient],
+                                          classOf[Observable[ConnectionState]],
+                                          classOf[StorageMetrics])
+
+        val tableKey = StateTable.Key(null, null, key.runtimeClass,
+                                      value.runtimeClass, name, Seq())
+
+        constructor.newInstance(tableKey, directory, stateTables, connection, metrics)
+            .asInstanceOf[StateTable[K, V]]
     }
 
     /**
@@ -305,6 +327,29 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
             throw new IllegalArgumentException(
                 s"Table $name for class ${clazz.getSimpleName} has different " +
                 s"value class ${provider.value.getSimpleName}")
+        }
+        provider
+    }
+
+    /** Gets the table provider for the given global table,
+      * key and value classes. */
+    @throws[IllegalArgumentException]
+    private def getProvider(key: Class[_], value: Class[_],
+                            name: String): TableProvider = {
+        val provider = tables.getOrElse(name, throw new IllegalArgumentException(
+            s"Global table $name is not registered"))
+
+        if (provider.key != key) {
+            throw new IllegalArgumentException(
+                s"Global table $name has different " +
+                s"key class ${provider.key.getSimpleName} rather than " +
+                s"expected ${key.getSimpleName}")
+        }
+        if (provider.value != value) {
+            throw new IllegalArgumentException(
+                s"Global table $name has different " +
+                s"value class ${provider.value.getSimpleName} rather than " +
+                s"expected ${value.getSimpleName}")
         }
         provider
     }

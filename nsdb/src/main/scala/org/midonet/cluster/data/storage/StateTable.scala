@@ -36,7 +36,11 @@ object StateTable {
         private var string: String = null
         override def toString: String = {
             if (string eq null) {
-                string = s"${objectClass.getSimpleName}:$name:$objectId"
+                if (objectClass eq null) {
+                    string = s"Global:$name"
+                } else {
+                    string = s"${objectClass.getSimpleName}:$name:$objectId"
+                }
             }
             string
         }
