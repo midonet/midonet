@@ -474,7 +474,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         // in a single round trip to Zookeeper.
         var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
         for (table <- tables.keys) {
-            txn = txn.check().forPath(globalTablePath(table)).and()
+            txn = txn.check().forPath(tablePath(table)).and()
         }
         try {
             txn.commit()
@@ -490,7 +490,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         try {
             for (table <- tables.keys) {
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
-                               globalTablePath(table))
+                               tablePath(table))
             }
         } catch {
             case NonFatal(e) => throw new InternalObjectMapperException(e)
