@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0e0c6591",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-18T09:08:38Z",
+      "side": 1,
+      "message": "i have a possibly silly question.\nin what context is this process method is executed?\nif it\u0027s another thread, can it race with the caller\u0027s\nassignment of lockFree var?",
+      "revId": "e4c690afffdf600255a915ff96e5b4f50ed76b6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
