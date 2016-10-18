@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_140c7291",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/Fip64StateTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T14:32:10Z",
+      "side": 1,
+      "message": "I\u0027m not sure whether we should make this a map UUID -\u003e Unit, where the key is the floating IP ID, in order to make the table more lightweight (how many FIPs do we want to support? - these table will contain FIPs for all tenants). However, then we need to monitor each FIP object at the agent, to detect association changes (a Fip6Mapper).\n\nOpinions?",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 61,
+        "endChar": 5
+      },
+      "revId": "f7157edf0be086eba50898ad83882332c34bfe6c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
