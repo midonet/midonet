@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8ec0754b",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T08:34:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ce479d1b",
+      "revId": "199050097e20c41fd3908fb483481ef4393e4498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ae5219dc",
         "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-10-18T08:24:12Z",
       "side": 1,
       "message": "ditto",
+      "revId": "199050097e20c41fd3908fb483481ef4393e4498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6ea2d1af",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T08:34:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ae5219dc",
       "revId": "199050097e20c41fd3908fb483481ef4393e4498",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
