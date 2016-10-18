@@ -252,6 +252,15 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
     }
 
     /**
+      * @see [[StateTableStorage.getTable()]]
+      */
+    override def getTable[K, V](name: String)
+                               (implicit key: ClassTag[K], value: ClassTag[V])
+    : StateTable[K, V] = {
+        throw new NotImplementedError("Coming up in the next commit")
+    }
+
+    /**
       * @see [[StateTableStorage.tableArguments()]]
       */
     @throws[ServiceUnavailableException]
