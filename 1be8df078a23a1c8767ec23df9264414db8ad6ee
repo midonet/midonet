@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2f57235b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:42:25Z",
+      "side": 1,
+      "message": "make commit message title max 50 chars, see:\nhttps://github.com/midonet/midonet/wiki/Developer%27s-Guide#message",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 23
+      },
+      "revId": "1be8df078a23a1c8767ec23df9264414db8ad6ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ef6edb2d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 854,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:42:25Z",
+      "side": 1,
+      "message": "nit: add scaladoc above",
+      "range": {
+        "startLine": 854,
+        "startChar": 4,
+        "endLine": 854,
+        "endChar": 45
+      },
+      "revId": "1be8df078a23a1c8767ec23df9264414db8ad6ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_af7453fd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:42:25Z",
+      "side": 1,
+      "message": "this is the same as below: just rename that method",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 58
+      },
+      "revId": "1be8df078a23a1c8767ec23df9264414db8ad6ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4f64a747",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:42:25Z",
+      "side": 1,
+      "message": "add scaladoc",
+      "range": {
+        "startLine": 257,
+        "startChar": 4,
+        "endLine": 257,
+        "endChar": 45
+      },
+      "revId": "1be8df078a23a1c8767ec23df9264414db8ad6ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8f6f4f27",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:42:25Z",
+      "side": 1,
+      "message": "indent",
+      "range": {
+        "startLine": 258,
+        "startChar": 22,
+        "endLine": 258,
+        "endChar": 69
+      },
+      "revId": "1be8df078a23a1c8767ec23df9264414db8ad6ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6f61ab38",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T16:42:25Z",
+      "side": 1,
+      "message": "NotImplementedError or use ???",
+      "range": {
+        "startLine": 260,
+        "startChar": 18,
+        "endLine": 260,
+        "endChar": 50
+      },
+      "revId": "1be8df078a23a1c8767ec23df9264414db8ad6ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
