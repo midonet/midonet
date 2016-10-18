@@ -24,7 +24,7 @@ import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.data.storage.StateTable
-import org.midonet.cluster.models.Topology.{L2Insertion, Port => TopologyPort}
+import org.midonet.cluster.models.Topology.{L2Insertion, Network, Port => TopologyPort}
 import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{Chain, Mirror, QosPolicy, Port => SimulationPort}
@@ -77,6 +77,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         new ObjectReferenceTracker(vt, classOf[Mirror], log)
     private val qosPolicyTracker =
         new ObjectReferenceTracker(vt, classOf[QosPolicy], log)
+    private val bridgeTracker =
+        new StoreObjectReferenceTracker(vt, classOf[Network], log)
     private val l2insertionsTracker =
         new StoreObjectReferenceTracker(vt, classOf[L2Insertion], log)
     private var peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty
@@ -123,6 +125,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                l2insertionsTracker.refsObservable.doOnNext(refUpdatedAction),
                mirrorsTracker.refsObservable.doOnNext(refUpdatedAction),
                traceChainObservable.doOnNext(makeAction1(traceChainUpdated)),
+               bridgeTracker.refsObservable.doOnNext(makeAction1(bridgeUpdated)),
                qosPolicyTracker.refsObservable.doOnNext(refUpdatedAction),
                portStateObservable, portObservable)
         .filter(makeFunc1(isPortReady))
@@ -160,17 +163,37 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             port.getPostInFilterMirrorIdsList.asScala.map(_.asJava) ++
             port.getPreOutFilterMirrorIdsList.asScala.map(_.asJava) :_*)
 
-        if (port.hasQosPolicyId) {
-            qosPolicyTracker.requestRefs(port.getQosPolicyId)
-        } else {
-            qosPolicyTracker.requestRefs(Set[UUID]())
-        }
-
         requestTraceChain(port.getTraceRequestIdsList)
+
+        handleQosPolicyIdChanges(port)
 
         l2insertionsTracker.requestRefs(port.getInsertionIdsList :_*)
 
         topologyPort = port
+    }
+
+    private def handleQosPolicyIdChanges(port: TopologyPort): Unit = {
+        if (port.hasQosPolicyId) {
+            qosPolicyTracker.requestRefs(port.getQosPolicyId)
+
+            // Don't care about bridge's QOS policy if the port has its own.
+            bridgeTracker.requestRefs(Set[UUID]())
+        } else if (topologyPort == null || topologyPort.hasQosPolicyId) {
+            // Either this is a new port with no policy ID, or an existing port
+            // whose policy ID was cleared. If this was an existing port, we
+            // need to stop tracking its old policy ID.
+            if (topologyPort != null)
+                qosPolicyTracker.requestRefs(Set[UUID]())
+
+            // Either way we need to check the bridge if it has one.
+            if (port.hasNetworkId)
+                bridgeTracker.requestRefs(Set(port.getNetworkId.asJava))
+        } else {
+            // Update to an existing port. Policy ID was and remains null.
+            // Since a port can't be moved to a different device, we know the
+            // bridge ID hasn't changed, so there's nothing to do with respect
+            // to QOS policy.
+        }
     }
 
     private def makeServicePortList: JList[UUID] = {
@@ -204,6 +227,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         portStateSubject.onCompleted()
         completeTraceChain()
         l2insertionsTracker.completeRefs()
+        bridgeTracker.completeRefs()
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
         qosPolicyTracker.completeRefs()
@@ -221,6 +245,16 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         traceChainIdOpt = chainId
     }
 
+    private def bridgeUpdated(network: Network): Unit = {
+        assertThread()
+        log.debug("Port's bridge updated: {}", network)
+        if (network.hasQosPolicyId) {
+            qosPolicyTracker.requestRefs(network.getQosPolicyId)
+        } else {
+            qosPolicyTracker.requestRefs(Set[UUID]())
+        }
+    }
+
     /** Indicates whether the current port is ready. A port is ready when
       * receiving all of the following: port, port active state, and port filter
       * chains. */
@@ -230,6 +264,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         chainsTracker.areRefsReady &&
         l2insertionsTracker.areRefsReady &&
         mirrorsTracker.areRefsReady &&
+        bridgeTracker.areRefsReady &&
         qosPolicyTracker.areRefsReady &&
         isTracingReady
     }
