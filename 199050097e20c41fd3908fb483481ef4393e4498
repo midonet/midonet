@@ -46,6 +46,30 @@
       "revId": "199050097e20c41fd3908fb483481ef4393e4498",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0e57c501",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-18T07:42:10Z",
+      "side": 1,
+      "message": "this is because I want to mix-in multiple implementations of the same method, so only the top trait can provide the implementation while in the remaining the method is abstract override.\n\nalternatively, we could have provided separate methods, one to override in ImmediateRetriable, ... traits, and another to be available to override by the user. But I wanted to keep the interface similar to the original patch.",
+      "parentUuid": "baa041b7_00fb14c2",
+      "range": {
+        "startLine": 141,
+        "startChar": 6,
+        "endLine": 141,
+        "endChar": 22
+      },
+      "revId": "199050097e20c41fd3908fb483481ef4393e4498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
