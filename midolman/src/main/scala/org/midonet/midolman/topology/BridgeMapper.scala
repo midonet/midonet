@@ -284,7 +284,6 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
 
     private val mirrorsTracker = new ObjectReferenceTracker(vt, classOf[Mirror], log)
     private val chainsTracker = new ObjectReferenceTracker(vt, classOf[Chain], log)
-    private val qosPolicyTracker = new ObjectReferenceTracker(vt, classOf[QosPolicy], log)
     private var bridge: TopologyBridge = null
     private val localPorts = new mutable.HashMap[UUID, LocalPortState]
     private val peerPorts = new mutable.HashMap[UUID, PeerPortState]
@@ -378,8 +377,6 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
                                    .map[TopologyBridge](makeFunc1(mirrorUpdated)),
                                chainsTracker.refsObservable
                                    .map[TopologyBridge](makeFunc1(chainUpdated)),
-                               qosPolicyTracker.refsObservable
-                                   .map[TopologyBridge](makeFunc1(qosPolicyUpdated)),
                                bridgeObservable)
         .doOnError(makeAction1(bridgeError))
         .filter(makeFunc1(isBridgeReady))
@@ -400,7 +397,7 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
         val ready: JBoolean =
             localPorts.forall(_._2.isReady) && peerPorts.forall(_._2.isReady) &&
             isTracingReady && chainsTracker.areRefsReady &&
-            mirrorsTracker.areRefsReady && qosPolicyTracker.areRefsReady
+            mirrorsTracker.areRefsReady
 
         log.debug("Topology bridge ready: {}", ready)
         ready
@@ -446,7 +443,6 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
         completeTraceChain()
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
-        qosPolicyTracker.completeRefs()
         macUpdatesSubject.onCompleted()
         stateTableSubject.onCompleted()
         macUpdatesSubscription.unsubscribe()
@@ -531,12 +527,6 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
         mirrorsTracker.requestRefs(
             bridge.getInboundMirrorIdsList.asScala.map(_.asJava) ++
             bridge.getOutboundMirrorIdsList.asScala.map(_.asJava) :_*)
-
-        if (bridge.hasQosPolicyId) {
-            qosPolicyTracker.requestRefs(bridge.getQosPolicyId)
-        } else {
-            qosPolicyTracker.requestRefs(Set[UUID]())
-        }
     }
 
     /**
@@ -601,12 +591,6 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
     private def mirrorUpdated(mirror: Mirror): TopologyBridge = {
         assertThread()
         log.debug("Bridge mirror updated {}", mirror)
-        bridge
-    }
-
-    private def qosPolicyUpdated(qosPolicy: QosPolicy): TopologyBridge = {
-        assertThread()
-        log.debug("QosPolicy updated {}", qosPolicy)
         bridge
     }
 
@@ -866,8 +850,7 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
             exteriorPorts.toList,
             bridge.getDhcpIdsList.asScala.map(_.asJava).toList,
             preInFilterMirrors,
-            postOutFilterMirrors,
-            qosPolicyTracker.currentRefs.values.headOption.orNull
+            postOutFilterMirrors
         )
 
         log.debug("Build bridge: {}", device)
