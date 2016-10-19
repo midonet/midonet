@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d54601bf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-19T15:25:11Z",
+      "side": 1,
+      "message": "nit: add space around it, maybe put it on the next line (no need to resubmit for this)",
+      "range": {
+        "startLine": 274,
+        "startChar": 72,
+        "endLine": 274,
+        "endChar": 73
+      },
+      "revId": "f65201e6577bcf071ec31c1c28b5ecb9e416fe04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
