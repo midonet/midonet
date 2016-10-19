@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9a89c828",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-19T13:32:05Z",
+      "side": 1,
+      "message": "nit: you can also do\n\nstring \u003d if (...) a else b",
+      "range": {
+        "startLine": 39,
+        "startChar": 16,
+        "endLine": 43,
+        "endChar": 17
+      },
+      "revId": "76af2b1baeb0678928c4533a12714b7822c56567",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
