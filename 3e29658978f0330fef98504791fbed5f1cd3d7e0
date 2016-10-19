@@ -22,6 +22,30 @@
       "revId": "3e29658978f0330fef98504791fbed5f1cd3d7e0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_64230d59",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTableStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-19T08:06:17Z",
+      "side": 1,
+      "message": "thx, will fix in a next patch: I will merge this as is to unblock the rest of the patches before the end of the sprint",
+      "parentUuid": "baa041b7_643e6d8c",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 34
+      },
+      "revId": "3e29658978f0330fef98504791fbed5f1cd3d7e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
