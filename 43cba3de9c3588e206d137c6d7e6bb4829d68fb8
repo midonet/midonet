@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e12cafad",
+        "filename": "tests/dev-start.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-19T04:44:58Z",
+      "side": 1,
+      "message": "Is this how people had to live before zsh?",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 41
+      },
+      "revId": "43cba3de9c3588e206d137c6d7e6bb4829d68fb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
