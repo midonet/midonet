@@ -107,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_41b6bb89",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-19T02:55:45Z",
+      "side": 1,
+      "message": "Is this simply improvement or flawed design that we definitively need to do before we release 5.4?  I prefer to leave this decision to Ivan.  If it is something we must change, I\u0027m ok with either doing it now or in a subsequent patch.",
+      "parentUuid": "baa041b7_e174affe",
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c3e2d69f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 6
