@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a405957a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-19T08:37:52Z",
+      "side": 1,
+      "message": "Should this be above the bridgeTracker.requestRefs? If bridgeTracker.requestRefs triggers an immediate notification of the bridge, that would track a certain qosPolicy, this would clear it, isn\u0027t it? Maybe add a unit test to verify this.",
+      "range": {
+        "startLine": 188,
+        "startChar": 12,
+        "endLine": 191,
+        "endChar": 57
+      },
+      "revId": "e4e7115d5a709845f359e13abf3760c596b70fe4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_84ba91be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-19T08:37:52Z",
+      "side": 1,
+      "message": "nit: this is not needed because the port id is prepended to every log message",
+      "range": {
+        "startLine": 251,
+        "startChar": 19,
+        "endLine": 251,
+        "endChar": 28
+      },
+      "revId": "e4e7115d5a709845f359e13abf3760c596b70fe4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
