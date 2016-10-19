@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0448c12b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/QosPolicyMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-19T07:53:20Z",
+      "side": 1,
+      "message": "Why did you bother to change this?",
+      "revId": "fa1b39288833522dac1a11c6b0abd3af195ff012",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
