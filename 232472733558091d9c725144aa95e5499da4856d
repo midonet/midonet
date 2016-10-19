@@ -34,6 +34,24 @@
       "revId": "232472733558091d9c725144aa95e5499da4856d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_44448971",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-19T09:04:14Z",
+      "side": 1,
+      "message": "i thought someone should remove topologyLockPath at some point to enable the lock-free mode.  thus the question.",
+      "parentUuid": "baa041b7_8e6f5527",
+      "revId": "232472733558091d9c725144aa95e5499da4856d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
