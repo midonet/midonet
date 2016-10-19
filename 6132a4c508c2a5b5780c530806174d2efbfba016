@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_eefa61bc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-19T01:44:45Z",
+      "side": 1,
+      "message": "This is so we can do put, add, and keySet in different threads without having to protect the data structure with a lock.",
+      "parentUuid": "baa041b7_23e8627a",
+      "range": {
+        "startLine": 75,
+        "startChar": 30,
+        "endLine": 75,
+        "endChar": 39
+      },
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_03043e47",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 6
@@ -65,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e174affe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-19T01:44:45Z",
+      "side": 1,
+      "message": "Yes I think you might be right. It is not a requirement right now that we sync up the datapath plugging with the TC configuration, but that might change later.\n\nUsing an actor would help to eliminate the locking required here and the lock-free data structures by serializing the processing of the events.\n\nI will open a ticket to track this as an improvement for later. The possible improvements would be:\n\n1) Use an actor here instead of locking.\n2) Just use the DatapathController for all processing, removing this service entirely (needs investigation).",
+      "parentUuid": "baa041b7_036f9e2b",
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c3e2d69f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 6
@@ -82,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e14b8faf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-19T01:44:45Z",
+      "side": 1,
+      "message": "No. Fixed.",
+      "parentUuid": "baa041b7_c3e2d69f",
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a36fd226",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 6
@@ -93,6 +153,30 @@
       "writtenOn": "2016-10-18T07:09:20Z",
       "side": 1,
       "message": "within?",
+      "range": {
+        "startLine": 96,
+        "startChar": 16,
+        "endLine": 96,
+        "endChar": 23
+      },
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c1464ba6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-19T01:44:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a36fd226",
       "range": {
         "startLine": 96,
         "startChar": 16,
@@ -128,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_81cba31d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-19T01:44:45Z",
+      "side": 1,
+      "message": "This should not be too verbose. In general we expect this to only happen 4 or 5 times in a bad case. In the worst case scenario, there will be a 10 minute wait between log messages by the time the 30th log message appears.",
+      "parentUuid": "baa041b7_235aa282",
+      "range": {
+        "startLine": 190,
+        "startChar": 20,
+        "endLine": 190,
+        "endChar": 29
+      },
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e3fefa36",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
         "patchSetId": 6
@@ -139,6 +247,24 @@
       "writtenOn": "2016-10-18T07:09:20Z",
       "side": 1,
       "message": "doesn\u0027t processingThread needs to handle InterruptedException somewhere?",
+      "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c1dd2bde",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-19T01:44:45Z",
+      "side": 1,
+      "message": "Yes it does. I have added code in the \"run\" function to catch the interrupt exception and just return.",
+      "parentUuid": "baa041b7_e3fefa36",
       "revId": "6132a4c508c2a5b5780c530806174d2efbfba016",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
