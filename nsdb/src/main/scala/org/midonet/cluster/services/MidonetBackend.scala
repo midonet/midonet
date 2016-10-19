@@ -56,8 +56,9 @@ object MidonetBackend {
     final val VtepVxgwManager = "vxgw_manager"
 
     final val ArpTable = "arp_table"
-    final val MacTable = "mac_table"
+    final val Fip64Table = "fip64_table"
     final val Ip4MacTable = "ip4_mac_table"
+    final val MacTable = "mac_table"
     final val PeeringTable = "peering_table"
 
     final val NsdbErrorCodeGraceTimeExpired = 7453

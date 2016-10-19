@@ -82,6 +82,9 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
                 storage.registerTable(classOf[Topology.Port], classOf[MAC],
                                       classOf[IPv4Addr], MidonetBackend.PeeringTable,
                                       classOf[MacIp4StateTable])
+                storage.registerTable(classOf[Fip64StateTable.Entry],
+                                      classOf[AnyRef], MidonetBackend.Fip64Table,
+                                      classOf[Fip64StateTable])
             }
         }
     }
