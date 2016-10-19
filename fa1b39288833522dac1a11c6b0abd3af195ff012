@@ -16,6 +16,24 @@
       "revId": "fa1b39288833522dac1a11c6b0abd3af195ff012",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a406b5cb",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/QosPolicyMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-19T07:56:13Z",
+      "side": 1,
+      "message": "Oh I see, it was Qos.  I think the correct one is QoS.",
+      "parentUuid": "baa041b7_0448c12b",
+      "revId": "fa1b39288833522dac1a11c6b0abd3af195ff012",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
