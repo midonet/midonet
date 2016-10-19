@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_643e6d8c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTableStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-19T07:58:07Z",
+      "side": 1,
+      "message": "nit: @throws[IllegalArgumentException]",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 34
+      },
+      "revId": "3e29658978f0330fef98504791fbed5f1cd3d7e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
