@@ -19,6 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
@@ -98,7 +99,9 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
     /* Generates a CreateNode Op for FIP IP and Router GW port. */
     private def addArpEntry(tx: Transaction, fip: FloatingIp,
                             gwPortId: UUID): Unit = {
-        tx.createNode(fipArpEntryPath(tx, fip, gwPortId))
+        if (fip.getFloatingIpAddress.getVersion != Commons.IPVersion.V6) {
+            tx.createNode(fipArpEntryPath(tx, fip, gwPortId))
+        }
     }
 
     /* Generate Create Ops for SNAT and DNAT for the floating IP address. */
@@ -246,7 +249,9 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
     /* Since DeleteNode is idempotent, it is fine if the path does not exist. */
     private def removeArpEntry(tx: Transaction, fip: FloatingIp,
                                gwPortId: UUID): Unit = {
-        tx.deleteNode(fipArpEntryPath(tx, fip, gwPortId))
+        if (fip.getFloatingIpAddress.getVersion != Commons.IPVersion.V6) {
+            tx.deleteNode(fipArpEntryPath(tx, fip, gwPortId))
+        }
     }
 
     /* Since Delete is idempotent, it is fine if those rules don't exist. */
