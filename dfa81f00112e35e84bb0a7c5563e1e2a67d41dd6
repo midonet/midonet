@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_c7277410",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-20T15:35:56Z",
+      "side": 1,
+      "message": "btw, are these changes covered by the unit tests?",
+      "range": {
+        "startLine": 175,
+        "startChar": 3,
+        "endLine": 175,
+        "endChar": 70
+      },
+      "revId": "dfa81f00112e35e84bb0a7c5563e1e2a67d41dd6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_24f29e6f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
         "patchSetId": 6
