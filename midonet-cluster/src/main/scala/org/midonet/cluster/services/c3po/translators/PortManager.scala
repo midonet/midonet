@@ -22,6 +22,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
@@ -270,9 +271,14 @@ object PortManager {
     def isTrustedPort(nPort: NeutronPortOrBuilder) =
         ! (isVifPort(nPort) || isVipPort(nPort))
 
+    def isIPv6Port(nPort: NeutronPortOrBuilder) =
+        nPort.getFixedIpsCount > 0 &&
+        nPort.getFixedIps(0).getIpAddress.getVersion == Commons.IPVersion.V6
+
     def hasMacAndArpTableEntries(nPort: NeutronPortOrBuilder): Boolean =
-        isVifPort(nPort) || isRouterInterfacePort(nPort) ||
-        isRouterGatewayPort(nPort) || isRemoteSitePort(nPort)
+        !isIPv6Port(nPort) &&
+            (isVifPort(nPort) || isRouterInterfacePort(nPort) ||
+            isRouterGatewayPort(nPort) || isRemoteSitePort(nPort))
 
     /** ID of Router Interface port peer. */
     def routerInterfacePortPeerId(portId: UUID): UUID =
