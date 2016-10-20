@@ -55,35 +55,6 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
     val fmask = new FlowMask()
     val actions = new ArrayList[FlowAction]
 
-    var seq = 0
-
-    private def writeRead[T](buf: ByteBuffer, f: ByteBuffer => T): T = {
-        seq += 1
-
-        buf.putInt(NetlinkMessage.NLMSG_SEQ_OFFSET, seq)
-        writer.write(buf)
-
-        // read messages until we find the correct response
-        buf.clear()
-        reader.read(buf)
-        var i = 0
-        while (buf.getInt(i + NetlinkMessage.NLMSG_SEQ_OFFSET) != seq) {
-            i += buf.getInt(i + NetlinkMessage.NLMSG_LEN_OFFSET)
-
-            if (i >= buf.position) {
-                buf.clear()
-                reader.read(buf)
-                i = 0
-            }
-        }
-
-        buf.position(i + NetlinkMessage.GENL_HEADER_SIZE)
-        buf.limit(i + buf.getInt(i + NetlinkMessage.NLMSG_LEN_OFFSET))
-        val deserialized = f(buf)
-        buf.clear()
-        deserialized
-    }
-
     private def createFlow(dp: Datapath,
                            fmatch: FlowMatch,
                            mask: FlowMask,
@@ -91,13 +62,13 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         buf.clear()
         proto.prepareFlowCreate(
             dp.getIndex, fmatch.getKeys, actions, mask, buf, NLFlag.ACK)
-        writeRead(buf, Flow.deserializer.deserializeFrom)
+        writer.writeRead(buf, Flow.deserializer.deserializeFrom, reader)
     }
 
     private def deleteFlow(dp: Datapath, fmatch: FlowMatch): Unit = {
         buf.clear()
         proto.prepareFlowDelete(dp.getIndex, fmatch.getKeys, buf)
-        writeRead(buf, Flow.buildFrom)
+        writer.writeRead(buf, Flow.buildFrom, reader)
     }
 
     private def buildFlowMatch(inputPort: Int) = {
@@ -114,13 +85,13 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         buf.clear()
         val port = new NetDevPort(portName)
         proto.prepareDpPortCreate(dp.getIndex, port, buf)
-        writeRead[DpPort](buf, DpPort.deserializer.deserializeFrom)
+        writer.writeRead(buf, DpPort.deserializer.deserializeFrom, reader)
     }
 
     def deleteDpPort(port: DpPort): Unit = {
         buf.clear()
         proto.prepareDpPortDelete(dp.getIndex, port, buf)
-        writeRead(buf, identity)
+        writer.writeRead(buf, identity, reader)
     }
 
     def addIpv6Flow(inputPort: Int, outputPort: Int): Unit = {

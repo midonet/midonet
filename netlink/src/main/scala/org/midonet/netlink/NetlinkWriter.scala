@@ -41,6 +41,7 @@ class NetlinkBlockingWriter(channel: NetlinkChannel) extends NetlinkWriter(chann
 
     private val timeout = (100 millis).toMillis
     private val selector = channel.selector()
+    private var seq = 0
 
     /**
      * Writes into the underlying channel, blocking regardless of the channel
@@ -62,4 +63,32 @@ class NetlinkBlockingWriter(channel: NetlinkChannel) extends NetlinkWriter(chann
                 selector.selectedKeys().clear()
             true
         }
+
+    def writeRead[T](buf: ByteBuffer, f: ByteBuffer => T,
+                     reader: NetlinkReader): T = {
+        seq += 1
+
+        buf.putInt(NetlinkMessage.NLMSG_SEQ_OFFSET, seq)
+        write(buf)
+
+        // read messages until we find the correct response
+        buf.clear()
+        reader.read(buf)
+        var i = 0
+        while (buf.getInt(i + NetlinkMessage.NLMSG_SEQ_OFFSET) != seq) {
+            i += buf.getInt(i + NetlinkMessage.NLMSG_LEN_OFFSET)
+
+            if (i >= buf.position) {
+                buf.clear()
+                reader.read(buf)
+                i = 0
+            }
+        }
+
+        buf.position(i + NetlinkMessage.GENL_HEADER_SIZE)
+        buf.limit(i + buf.getInt(i + NetlinkMessage.NLMSG_LEN_OFFSET))
+        val deserialized = f(buf)
+        buf.clear()
+        deserialized
+    }
 }
