@@ -20,9 +20,12 @@ import java.util.UUID
 
 import scala.util.control.NonFatal
 
+import org.apache.commons.lang.SerializationException
+
 import org.midonet.cluster.data.storage.StateTableEncoder.PersistentVersion
+import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.rpc.State.KeyValue
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv6Addr, MAC}
 
 object StateTableEncoder {
     final val PersistentVersion = Int.MaxValue
@@ -123,6 +126,40 @@ object StateTableEncoder {
         }
     }
     object MacToIp4Encoder extends MacToIp4Encoder
+
+    object Fip64Encoder extends Fip64Encoder {
+
+        object DefaultValue extends AnyRef
+    }
+
+    trait Fip64Encoder extends StateTableEncoder[Fip64Entry, AnyRef] {
+
+        import Fip64Encoder._
+
+        @inline protected override def encodeKey(entry: Fip64Entry): String = {
+            entry.encode
+        }
+
+        @inline protected override def decodeKey(string: String): Fip64Entry = {
+            Fip64Entry.decode(string)
+        }
+
+        @inline protected override def encodeValue(n: AnyRef): String = {
+            "0"
+        }
+
+        @inline protected override def decodeValue(string: String): AnyRef = {
+            DefaultValue
+        }
+
+        @inline protected override def decodeKey(kv: KeyValue): Fip64Entry = {
+            Fip64Entry.decode(kv.getDataVariable.toStringUtf8)
+        }
+
+        @inline protected override def decodeValue(kv: KeyValue): AnyRef = {
+            DefaultValue
+        }
+    }
 }
 
 /**

@@ -40,6 +40,9 @@ trait LegacyStateTableStorage {
         }),
         (classOf[Router], ArpTable) -> ((id: ObjId, args: Seq[Any]) => {
             s"$rootPath/routers/$id/arp_table"
+        }),
+        (classOf[Unit], Fip64Table) -> ((id: ObjId, args: Seq[Any]) => {
+            s"$rootPath/fip64/fip64_table"
         })
     )
 
