@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2b44b070",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/Transaction.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-20T08:02:42Z",
+      "side": 1,
+      "message": "i guess this should be the same name.",
+      "range": {
+        "startLine": 83,
+        "startChar": 43,
+        "endLine": 83,
+        "endChar": 53
+      },
+      "revId": "c28653d3b1c72dd5da9e7b5da3e7c6d61604599d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_eb2128b5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-20T08:02:42Z",
+      "side": 1,
+      "message": "does this mean, if a transaction creates a node and then delete it, there will be no errors, but the node will be created on commit?\nit seems a confusing api to me.",
+      "revId": "c28653d3b1c72dd5da9e7b5da3e7c6d61604599d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0615613e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-20T08:02:42Z",
+      "side": 1,
+      "message": "i guess it\u0027s better to have idempotent\u003dtrue processing around here instead.",
+      "range": {
+        "startLine": 515,
+        "startChar": 0,
+        "endLine": 515,
+        "endChar": 67
+      },
+      "revId": "c28653d3b1c72dd5da9e7b5da3e7c6d61604599d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
