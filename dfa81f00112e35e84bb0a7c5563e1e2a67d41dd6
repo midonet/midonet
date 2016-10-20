@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_24f29e6f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-20T13:13:27Z",
+      "side": 1,
+      "message": "no need to be explicit.",
+      "range": {
+        "startLine": 190,
+        "startChar": 59,
+        "endLine": 190,
+        "endChar": 66
+      },
+      "revId": "dfa81f00112e35e84bb0a7c5563e1e2a67d41dd6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
