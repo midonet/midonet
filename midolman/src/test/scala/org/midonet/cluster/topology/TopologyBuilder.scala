@@ -30,7 +30,7 @@ import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
+import org.midonet.cluster.models.Topology.Rule.{Type => _, _}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology.LoggingResource.{Type => LRType}
@@ -670,6 +670,20 @@ trait TopologyBuilder {
                 .setMatchReturnFlow(!matchFwdFlow.get)
         }
         builder
+    }
+
+    def createNat64Rule(id: UUID = UUID.randomUUID(),
+                        portAddress: Option[IPSubnet[_]] = None,
+                        natPool: Option[NatTarget] = None): Rule = {
+        val builder = createRuleBuilder(id, None, None)
+            .setType(Rule.Type.NAT64_RULE)
+        val nat64RuleData = Nat64RuleData.newBuilder()
+        if (portAddress.isDefined)
+            nat64RuleData.setPortAddress(portAddress.get.asProto)
+        if (natPool.isDefined)
+            nat64RuleData.setNatPool(natPool.get)
+        builder.setNat64RuleData(nat64RuleData)
+        builder.build()
     }
 
     def createL2TransformRuleBuilder(id: UUID = UUID.randomUUID(),

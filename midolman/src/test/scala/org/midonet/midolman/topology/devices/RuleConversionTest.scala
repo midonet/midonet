@@ -131,6 +131,13 @@ class RuleConversionTest extends FeatureSpec with Matchers
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
             simRule shouldBeDeviceOf rule
         }
+
+        scenario("Test conversion for NAT64 rule") {
+            val rule = createNat64Rule(portAddress = Some(randomIPv4Subnet),
+                                       natPool = Some(createNatTarget()))
+            val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
+            simRule shouldBeDeviceOf rule
+        }
     }
 
     feature("Protocol buffer validation") {
@@ -156,7 +163,7 @@ class RuleConversionTest extends FeatureSpec with Matchers
             }
         }
 
-        scenario("A fwd nat rule with no targets") {
+        scenario("A forward NAT rule with no targets") {
             val rule = createNatRuleBuilder(id = UUID.randomUUID(),
                                             chainId = Some(UUID.randomUUID()),
                                             dnat = Some(true),
@@ -166,6 +173,20 @@ class RuleConversionTest extends FeatureSpec with Matchers
                                   .setMatchForwardFlow(true))
                 .build()
 
+            intercept[ZoomConvert.ConvertException] {
+                ZoomConvert.fromProto(rule, classOf[SimRule])
+            }
+        }
+
+        scenario("A NAT64 rule with no port address") {
+            val rule = createNat64Rule(natPool = Some(createNatTarget()))
+            intercept[ZoomConvert.ConvertException] {
+                ZoomConvert.fromProto(rule, classOf[SimRule])
+            }
+        }
+
+        scenario("A NAT64 rule with no NAT pool") {
+            val rule = createNat64Rule(portAddress = Some(randomIPv4Subnet))
             intercept[ZoomConvert.ConvertException] {
                 ZoomConvert.fromProto(rule, classOf[SimRule])
             }
