@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8b961cee",
+        "filename": "tests/ci-start.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-20T06:53:31Z",
+      "side": 1,
+      "message": "can you please be more specific?\n\nthis? https://github.com/eliben/pycparser/issues/147",
+      "range": {
+        "startLine": 57,
+        "startChar": 28,
+        "endLine": 57,
+        "endChar": 33
+      },
+      "revId": "79741a843b6fb4c0675bd3fc22d844a58a8b3492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
