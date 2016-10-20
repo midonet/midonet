@@ -1,0 +1,144 @@
+# Copyright 2014 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# Virtual Topology
+#
+
+virtual_topology:
+  description: Virtual topology for test_qos
+
+  tenant_name: MMM-TEST-000-001
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: exterior
+          - port:
+              id: 2
+              type: exterior
+          - port:
+              id: 3
+              type: exterior
+
+        dhcps:
+          - dhcp:
+              id: 1
+              ipv4_gw: 172.16.1.254
+              network: 172.16.1.0/24
+              nameservers: 8.8.8.8, 8.8.4.4
+              hosts:
+                - host:
+                    name: host1
+                    ipv4_addr: 172.16.1.100
+                    mac_addr: aa:bb:cc:00:00:55
+                - host:
+                    name: host2
+                    ipv4_addr: 172.16.1.101
+                    mac_addr: aa:bb:cc:00:11:55
+              routes:
+                - route:
+                    dest: 169.254.169.254/32
+                    gw:  172.16.1.253
+                - route:
+                    dest: 1.1.1.0/24
+                    gw: 172.16.1.252
+
+    - bridge:
+        name: bridge-000-002
+        ports:
+          - port:
+              id: 1
+              type: exterior
+          - port:
+              id: 2
+              type: exterior
+
+        dhcps:
+          - dhcp:
+              id: 1
+              ipv4_gw: 172.16.2.254
+              network: 172.16.2.0/24
+              nameservers: 8.8.8.8, 8.8.4.4
+              hosts:
+                - host:
+                    name: host1
+                    ipv4_addr: 172.16.2.100
+                    mac_addr: aa:bb:cc:00:22:55
+                - host:
+                    name: host2
+                    ipv4_addr: 172.16.2.101
+                    mac_addr: aa:bb:cc:00:33:55
+              routes:
+                - route:
+                    dest: 169.254.169.254/32
+                    gw:  172.16.2.253
+                - route:
+                    dest: 1.1.1.0/24
+                    gw: 172.16.2.252
+
+
+  routers:
+    - router:
+        name: router-001-002
+        ports:
+          - port:
+              id: 1
+              type: interior
+              ipv4_addr: 172.16.1.254/24
+              ipv6_addr: null
+              links_to:
+                  device: bridge-000-001
+                  port_id: 1
+
+          - port:
+              id: 2
+              type: interior
+              ipv4_addr: 172.16.2.254/24
+              ipv6_addr: null
+              links_to:
+                  device: bridge-000-002
+                  port_id: 1
+
+        routes:
+          - route:
+              id: 1   # do we need id for route? for sorting?
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 172.16.1.0/24
+              weight: 100
+              next_hop_port: 1
+              next_hop_gw: 0.0.0.0
+          - route:
+              id: 2
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 172.16.2.0/24
+              weight: 100
+              next_hop_port: 2
+              next_hop_gw: 0.0.0.0
+
+  chains:
+    - chain:
+        id: 1
+        name: drop_ipv4
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              dl_type: 0x0800
+              type: drop
