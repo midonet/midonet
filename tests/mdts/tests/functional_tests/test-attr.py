@@ -39,6 +39,7 @@ import test_midolman_and_interfaces
 import test_mirroring
 import test_nat_router
 import test_port_migration
+import test_qos
 import test_router
 import test_router_service
 import test_tracing
