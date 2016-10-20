@@ -27,7 +27,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Topology.{Mirror => TopologyMirror, Port => TopologyPort}
+import org.midonet.cluster.models.Topology.{Rule, Mirror => TopologyMirror, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.cluster.state.PortStateStorage._
@@ -400,7 +400,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
         }
     }
 
-    feature("Test mirror updates") {
+    feature("Test port field updates") {
         scenario("The port receives existing mirrors") {
             Given("A port mapper")
             val id = UUID.randomUUID
@@ -472,6 +472,47 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(3, timeout) shouldBe true
             val device3 = obs.getOnNextEvents.get(2)
             device3 shouldBeDeviceOf port
+        }
+
+        scenario("Test port receives FIP NAT rules") {
+            Given("A port mapper")
+            val id = UUID.randomUUID
+            val mapper = new PortMapper(id, vt, mutable.Map())
+
+            And("A router port")
+            val router = createRouter()
+            val rule1 = createNat64Rule()
+            val port = createRouterPort(id = id,
+                                        routerId = Some(router.getId),
+                                        fipNatRuleIds = Set(rule1.getId))
+            store.multi(Seq(CreateOp(router), CreateOp(rule1), CreateOp(port)))
+
+            And("An observer to the port mapper")
+            val obs = new DeviceObserver[SimPort](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBeDeviceOf port
+
+            When("Adding a new NAT64 rule")
+            val rule2 = createNat64Rule(portId = Some(port.getId))
+            store.create(rule2)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) shouldBeDeviceOf port.toBuilder
+                .addFipNatRuleIds(rule2.getId).build()
+
+            When("Deleting a NAT64 rule")
+            store.delete(classOf[Rule], rule1.getId)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(2) shouldBeDeviceOf port.toBuilder
+                .clearFipNatRuleIds().addFipNatRuleIds(rule2.getId).build()
         }
     }
 }

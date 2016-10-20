@@ -86,6 +86,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private def buildPort(ignored: AnyRef): SimulationPort = {
         val inFilters = new JArrayList[UUID](2)
         val outFilters = new JArrayList[UUID](2)
+        val fipNatRules = new JArrayList[UUID](topologyPort.getFipNatRuleIdsCount)
         traceChainIdOpt.foreach(inFilters.add)
         if (topologyPort.hasL2InsertionInfilterId) {
             inFilters.add(topologyPort.getL2InsertionInfilterId)
@@ -99,9 +100,12 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         if (topologyPort.hasL2InsertionOutfilterId) {
             outFilters.add(topologyPort.getL2InsertionOutfilterId)
         }
+        for (id <- topologyPort.getFipNatRuleIdsList.asScala) {
+            fipNatRules.add(id.asJava)
+        }
 
         SimulationPort(topologyPort, portState, inFilters, outFilters,
-                       makeServicePortList, peeringTable,
+                       makeServicePortList, fipNatRules, peeringTable,
                        qosPolicyTracker.currentRefs.values.headOption.orNull)
     }
 

@@ -45,6 +45,7 @@ object Port {
               inFilters: JList[UUID],
               outFilters: JList[UUID],
               servicePorts: JList[UUID] = emptyList(),
+              fipNatRules: JList[UUID] = emptyList(),
               peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
               qosPolicy: QosPolicy = null): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
@@ -55,7 +56,7 @@ object Port {
             bridgePort(proto, state, inFilters, outFilters,
                        servicePorts, qosPolicy)
         else if (proto.hasRouterId)
-            routerPort(proto, state, inFilters, outFilters,
+            routerPort(proto, state, inFilters, outFilters, fipNatRules,
                        peeringTable, qosPolicy)
         else
             throw new ConvertException("Unknown port type")
@@ -92,6 +93,7 @@ object Port {
                            state: PortState,
                            inFilters: JList[UUID],
                            outFilters: JList[UUID],
+                           fipNatRules: JList[UUID],
                            peeringTable: StateTable[MAC, IPv4Addr],
                            qosPolicy: QosPolicy) = {
 
@@ -134,6 +136,7 @@ object Port {
             preOutFilterMirrors = p.getPreOutFilterMirrorIdsList,
             vni = if (p.hasVni) p.getVni else 0,
             tunnelIp = if (p.hasTunnelIp) toIPv4Addr(p.getTunnelIp) else null,
+            fipNatRules = fipNatRules,
             peeringTable = peeringTable,
             qosPolicy = qosPolicy)
     }
@@ -454,6 +457,7 @@ case class RouterPort(override val id: UUID,
                       override val preOutFilterMirrors: JList[UUID] = emptyList(),
                       vni: Int = 0,
                       tunnelIp: IPv4Addr = null,
+                      fipNatRules: JList[UUID] = emptyList(),
                       peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
                       override val qosPolicy: QosPolicy = null)
     extends Port {
@@ -495,9 +499,11 @@ case class RouterPort(override val id: UUID,
 
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
-        s"portSubnetV4=$portSubnetV4 portAddressV4=$portAddressV4 " +
-        s"portSubnetV6=$portSubnetV6 portAddressV6=$portAddressV6 potMac=$portMac " +
-        s"${if (isL2) s"vni=$vni tunnelIp=$tunnelIp" else ""} routeIds=$routeIds]"
+        s"portSubnet4=$portSubnetV4 portAddress4=$portAddressV4 " +
+        s"portSubnet6=$portSubnetV6 portAddress6=$portAddressV6 " +
+        s"portMac=$portMac " +
+        s"${if (isL2) s"vni=$vni tunnelIp=$tunnelIp" else ""} " +
+        s"routeIds=$routeIds fipNatRules=$fipNatRules]"
 }
 
 case class VxLanPort(override val id: UUID,
