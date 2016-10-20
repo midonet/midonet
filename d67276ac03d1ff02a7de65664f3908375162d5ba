@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_67fe6807",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/LegacyStateTableStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-10-20T16:12:51Z",
+      "side": 1,
+      "message": "Please check",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 42
+      },
+      "revId": "d67276ac03d1ff02a7de65664f3908375162d5ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
