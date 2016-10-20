@@ -81,6 +81,24 @@
       "revId": "7f688edbfa341b28d0b2b96efa1dd666fbaad663",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4496c2f0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-20T13:13:27Z",
+      "side": 1,
+      "message": "oops, you\u0027re right.",
+      "parentUuid": "baa041b7_2403be0e",
+      "revId": "7f688edbfa341b28d0b2b96efa1dd666fbaad663",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
