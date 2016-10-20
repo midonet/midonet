@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c6ee59ec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-20T09:16:37Z",
+      "side": 1,
+      "message": "no need to be a Set.",
+      "range": {
+        "startLine": 190,
+        "startChar": 42,
+        "endLine": 190,
+        "endChar": 45
+      },
+      "revId": "7f688edbfa341b28d0b2b96efa1dd666fbaad663",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a6c0f54a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-20T09:16:37Z",
+      "side": 1,
+      "message": "i guess it\u0027s simpler to let requestRefs handle no-op cases.\nhow about:\n\n  policy \u003d Set()\n  bridge \u003d Set()\n  if (port.hasQosPolicyId) {\n    policy +\u003d port.getQosPolicyId\n  } else if (port.hasNetworkId) {\n    bridge +\u003d port.getNetworkId\n  }\n  qosPolicyTracker.requestRefs(policy)\n  bridgeTracker.requestRefs(bridge)",
+      "revId": "7f688edbfa341b28d0b2b96efa1dd666fbaad663",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
