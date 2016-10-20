@@ -29,6 +29,7 @@ from mdts.lib.mirror import Mirror
 from mdts.lib.tenants import get_or_create_tenant
 from mdts.lib.topology_manager import TopologyManager
 from mdts.lib.tracerequest import TraceRequest
+from mdts.lib.qos_policy import QOSPolicy
 from mdts.lib.vtep import Vtep
 from mdts.tests.utils.utils import clear_virtual_topology_for_tenants
 
@@ -91,12 +92,17 @@ class VirtualTopologyManager(TopologyManager):
 
         self._vteps = {}
 
+        self._qos_policies = {}
+
     def build(self):
         """ Generates virtual topology resources (bridges, routers, chains, etc.
         From the data loaded from the input yaml file.
         """
 
         self._api = self._midonet_api_host.get_midonet_api()
+
+        for qos_policy in self._vt.get('qos_policies') or []:
+            self.add_qos_policy(qos_policy['qos_policy'])
 
         for health_monitor in self._vt.get('health_monitors') or []:
             self.add_health_monitor(health_monitor['health_monitor'])
@@ -210,6 +216,8 @@ class VirtualTopologyManager(TopologyManager):
 
     def destroy(self):
         """ Cleans up the virtual topology resources created by the manager. """
+        for qos_policy in self._qos_policies.values(): qos_policy.destroy()
+        self._qos_policies.clear()
         for load_balancer in self._load_balancers.values(): load_balancer.destroy()
         self._load_balancers.clear()
         for health_monitor in self._health_monitors.values(): health_monitor.destroy()
@@ -286,6 +294,11 @@ class VirtualTopologyManager(TopologyManager):
         router_obj.build()
         self._routers[router['name']] = router_obj
         self._bridge_router[router['name']] = router_obj
+
+    def add_qos_policy(self, qos_policy):
+        qos_policy_obj = QOSPolicy(self._api, self, qos_policy)
+        qos_policy_obj.build()
+        self._qos_policies[qos_policy['name']] = qos_policy_obj
 
     def get_router(self, name):
         return self._routers[name]
