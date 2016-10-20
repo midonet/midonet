@@ -96,6 +96,8 @@ object TopologyMatchers {
                 p.getPortAddress.asIPv4Address else null)
             port.portMac shouldBe (if (p.hasPortMac)
                 MAC.fromString(p.getPortMac) else null)
+            port.fipNatRules shouldBe p.getFipNatRuleIdsList.asScala
+                .map(_.asJava).asJava
         }
     }
 

@@ -105,7 +105,8 @@ trait TopologyBuilder {
                          tunnelIp: Option[IPv4Addr] = None,
                          bgpId: Option[UUID] = None,
                          routeIds: Set[UUID] = Set.empty,
-                         containerId: Option[UUID] = None): Port = {
+                         containerId: Option[UUID] = None,
+                         fipNatRuleIds: Set[UUID] = Set.empty): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds,
@@ -115,6 +116,7 @@ trait TopologyBuilder {
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
             .addAllRouteIds(routeIds.map(_.asProto).asJava)
+            .addAllFipNatRuleIds(fipNatRuleIds.map(_.asProto).asJava)
         tunnelIp map (_.asProto) foreach builder.setTunnelIp
         if (vni != 0)
             builder.setVni(vni)
@@ -673,10 +675,13 @@ trait TopologyBuilder {
     }
 
     def createNat64Rule(id: UUID = UUID.randomUUID(),
+                        portId: Option[UUID] = None,
                         portAddress: Option[IPSubnet[_]] = None,
                         natPool: Option[NatTarget] = None): Rule = {
         val builder = createRuleBuilder(id, None, None)
             .setType(Rule.Type.NAT64_RULE)
+        if (portId.isDefined)
+            builder.setFipPortId(portId.get.asProto)
         val nat64RuleData = Nat64RuleData.newBuilder()
         if (portAddress.isDefined)
             nat64RuleData.setPortAddress(portAddress.get.asProto)
