@@ -54,6 +54,11 @@ class Bridge(ResourceBase):
                 self._context.look_up_resource(
                         self._mn_resource, filter_field, self._data[filter_field])
 
+        if 'qos_policy' in self._data:
+            qp_name = self._data['qos_policy']
+            qp_id = self._context._qos_policies[qp_name].get_id()
+            self._mn_resource.qos_policy_id(qp_id)
+
         self._mn_resource.create()
 
         for port in self._data.get('ports') or []:
@@ -104,3 +109,11 @@ class Bridge(ResourceBase):
 
     def get_outbound_filter(self):
         return self._outbound_filter
+
+    def set_qos_policy(self, qos_policy):
+        self._mn_resource.qos_policy_id(qos_policy.get_id())
+        self.update()
+
+    def clear_qos_policy(self):
+        self._mn_resource.qos_policy_id(None)
+        self.update()

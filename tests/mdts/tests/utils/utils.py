@@ -396,3 +396,17 @@ def await_port_active(vport_id, active=True, timeout=120, sleep_period=5):
             raise Exception("Port {0} did not become {1}."
                             .format(vport_id,
                                     "active" if active else "inactive"))
+
+
+def qos_test_fixture(ptm, vtm):
+    def new_f(func):
+        try:
+            new_f.__name__ = func.__name__
+            ptm.build()
+            vtm.build(ptm=ptm)
+            func()
+        finally:
+            vtm.destroy()
+            ptm.destroy()
+    return new_f
+
