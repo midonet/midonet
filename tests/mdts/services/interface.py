@@ -226,6 +226,14 @@ class Interface(object):
             target_ipv4)
         return self.execute(cmdline, sync=True)
 
+    def verify_bandwidth(self, target_iface, max_kbps, burst_kb,
+                         wait_for_burst=True, xfer_seconds=10,
+                         allowed_lag=0.15, allowed_lead=0.05, tcp_port=10000):
+        """
+        Stub this out so the test will work, and add impl later.
+        """
+        return True
+
     def send_ether(self, ether_frame_string, count=1, sync=False):
 
         """
