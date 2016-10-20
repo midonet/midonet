@@ -24,10 +24,10 @@ import scala.reflect.ClassTag
 
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage.StateTableEncoder.{Ip4ToMacEncoder, MacToIdEncoder, MacToIp4Encoder}
-import org.midonet.cluster.data.storage.model.ArpEntry
+import org.midonet.cluster.data.storage.model.{ArpEntry, Fip64Entry}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv6Addr, MAC}
 
 /**
   * Specifies the properties of a [[StateTable]], which includes the key and
@@ -124,6 +124,14 @@ trait StateTableStorage extends Storage {
     def tablePath(clazz: Class[_], id: ObjId, name: String, args: Any*): String
 
     /**
+      * Returns the storage path for the specified state table. The method
+      * is compatible with the legacy paths, and will block while reading from
+      * storage whether the legacy path exists.
+      */
+    @throws[IllegalArgumentException]
+    def tablePath(name: String): String
+
+    /**
       * Returns the list of arguments for the specified state table and prefixed
       * by the given arguments.
       */
@@ -152,6 +160,8 @@ trait StateTableStorage extends Storage {
     def portPeeringTablePath(id: UUID) =
         tablePath(classOf[Topology.Port], id, MidonetBackend.PeeringTable)
 
+    def fip64TablePath = tablePath(MidonetBackend.Fip64Table)
+
     def bridgeMacEntryPath(bridgeId: UUID, vlanId: Short, mac: MAC,
                            portId: UUID): String = {
         bridgeMacTablePath(bridgeId, vlanId) +
@@ -166,6 +176,10 @@ trait StateTableStorage extends Storage {
     def portPeeringEntryPath(portId: UUID, mac: MAC, address: IPv4Addr): String = {
         portPeeringTablePath(portId) +
             MacToIp4Encoder.encodePersistentPath(mac, address)
+    }
+
+    def fip64EntryPath(entry: Fip64Entry): String = {
+        fip64TablePath + '/' + entry.encode
     }
 
     private def registerTable[K,V](map: TrieMap[String, TableProvider],

@@ -33,12 +33,14 @@ import rx.Observable
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkDirectory}
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
+import org.midonet.cluster.data.storage.StateTableEncoder.Fip64Encoder
+import org.midonet.cluster.data.storage.StateTableEncoder.Fip64Encoder.DefaultValue
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
+import org.midonet.cluster.data.storage.model.{Fip64Entry => Entry}
 import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
-import org.midonet.cluster.storage.Fip64StateTable.{DefaultValue, Entry, Fip64Encoder}
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.packets.{IPv4Addr, IPv6Addr}
 import org.midonet.util.MidonetEventually

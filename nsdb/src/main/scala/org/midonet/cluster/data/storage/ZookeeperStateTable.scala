@@ -107,8 +107,12 @@ trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
     }
 
     @inline
+    override def tablePath(name: String): String =
+        tablePath(name, version.longValue())
+
+    @inline
     private[cluster] def tablePath(name: String,
-                                   version: Long = version.longValue())
+                                   version: Long)
     : String = {
         tablesGlobalPath(version) + "/" + name
     }
