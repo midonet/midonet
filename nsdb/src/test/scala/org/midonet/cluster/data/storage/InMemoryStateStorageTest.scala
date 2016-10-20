@@ -19,10 +19,11 @@ package org.midonet.cluster.data.storage
 import java.util.UUID
 
 import scala.concurrent.duration._
+import scala.reflect.classTag
 
 import org.apache.zookeeper.KeeperException.Code
 import org.junit.runner.RunWith
-import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers, GivenWhenThen}
+import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
@@ -35,6 +36,7 @@ import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.util.reactivex._
 import org.midonet.util.reactivex.AwaitableObserver
+import ZookeeperStateTableTest.ScoreStateTable
 
 @RunWith(classOf[JUnitRunner])
 class InMemoryStateStorageTest extends FeatureSpec with BeforeAndAfter
@@ -51,6 +53,8 @@ class InMemoryStateStorageTest extends FeatureSpec with BeforeAndAfter
         storage.registerKey(classOf[State], "first", SingleFirstWriteWins)
         storage.registerKey(classOf[State], "last", SingleLastWriteWins)
         storage.registerKey(classOf[State], "multi", Multiple)
+        storage.registerTable(classOf[Int], classOf[String], "global-table",
+                              classOf[ScoreStateTable])
 
         storage.build()
     }
@@ -1052,6 +1056,38 @@ class InMemoryStateStorageTest extends FeatureSpec with BeforeAndAfter
             Then("The observer should receive an empty value")
             obs.awaitOnNext(7, timeout)
             obs.getOnNextEvents.get(6) shouldBe MultiValueKey("multi", Set("3"))
+        }
+    }
+
+    feature("Test global state tables") {
+        scenario("Global table getter works") {
+            Given("A storage")
+
+            And("A path for global table 'global-table'")
+            val path = storage.tablePath("global-table")
+
+            Then("getTable() throws nothing when called with correct arguments")
+
+            val t = storage.getTable[Int, String]("global-table")
+            t.isInstanceOf[ScoreStateTable] shouldBe true
+
+            intercept[IllegalArgumentException] {
+                val t = storage.getTable[Int, String]("unknown-global-table")
+            }
+
+            val t1 = storage.getTable("global-table")(classTag[Int],
+                                                     classTag[String])
+            t1.isInstanceOf[ScoreStateTable] shouldBe true
+
+            intercept[IllegalArgumentException] {
+                val t = storage.getTable("global-table")(classTag[Double],
+                                                         classTag[String])
+            }
+
+            intercept[IllegalArgumentException] {
+                val t = storage.getTable("global-table")(classTag[Int],
+                                                         classTag[UUID])
+            }
         }
     }
 }
