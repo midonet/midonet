@@ -511,6 +511,7 @@ message Rule {
         JUMP_RULE = 3;
         TRACE_RULE = 4;
         L2TRANSFORM_RULE = 5;
+        NAT64_RULE = 6;
     }
     optional Type type = 2;
     optional UUID chain_id = 3;
@@ -552,6 +553,10 @@ message Rule {
         // True for reverse NAT rules. Reverse NAT rules have no targets.
         optional bool reverse = 3;
     }
+    message Nat64RuleData {
+        optional IPSubnet port_address = 1;
+        optional NatTarget nat_pool = 2;
+    }
     message TraceRuleData {
         optional UUID trace_request_id = 1;
         optional uint64 limit = 2;
@@ -568,6 +573,7 @@ message Rule {
         NatRuleData nat_rule_data = 101;
         TraceRuleData trace_rule_data = 102;
         L2TransformRuleData transform_rule_data = 103;
+        Nat64RuleData nat64_rule_data = 104;
     }
 }
 
