@@ -82,7 +82,7 @@ public abstract class Rule extends BaseConfig {
         Topology.Rule rule = (Topology.Rule)proto;
         UUID id = UUIDUtil.fromProto(rule.getId());
 
-        if (!rule.hasAction()) {
+        if (!rule.hasNat64RuleData() && !rule.hasAction()) {
             throw new ZoomConvert.ConvertException(
                 "Rule " + id + " has no action set (" + rule + ")");
         }
@@ -116,6 +116,24 @@ public abstract class Rule extends BaseConfig {
                     throw new ZoomConvert.ConvertException(
                         "Rule " + id + " is a forward NAT rule but has no "
                         + "targets set (" + rule + ")");
+                }
+                break;
+
+            case NAT64_RULE:
+                if (!rule.hasNat64RuleData()) {
+                    throw new ZoomConvert.ConvertException(
+                        "Rule " + id + " is a NAT64 rule but it does not have "
+                        + "its NAT64 data set (" + rule + ")");
+                }
+                if (!rule.getNat64RuleData().hasPortAddress()) {
+                    throw new ZoomConvert.ConvertException(
+                        "Rule " + id + " is a NAT64 rule but it does not have "
+                        + "its port address set (" + rule + ")");
+                }
+                if (!rule.getNat64RuleData().hasNatPool()) {
+                    throw new ZoomConvert.ConvertException(
+                        "Rule " + id + " is a NAT64 rule but it does not have "
+                        + "its NAT pool set (" + rule + ")");
                 }
                 break;
 
@@ -247,10 +265,11 @@ public abstract class Rule extends BaseConfig {
                 case LITERAL_RULE: return LiteralRule.class;
                 case TRACE_RULE: return TraceRule.class;
                 case NAT_RULE: return NatRule.class;
+                case NAT64_RULE: return Nat64Rule.class;
                 case L2TRANSFORM_RULE: return L2TransformRule.class;
                 default:
-                    throw new ZoomConvert.ConvertException("Unknown rule " +
-                        "type: " + proto.getType());
+                    throw new ZoomConvert.ConvertException(
+                        "Unknown rule type: " + proto.getType());
             }
         }
     }

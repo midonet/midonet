@@ -16,10 +16,10 @@
 package org.midonet.cluster.topology
 
 import org.midonet.cluster.data.ZoomConvert
-
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
+
 import org.scalatest.Matchers
 
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
@@ -44,10 +44,10 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.{Condition, DynamicForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
+import org.midonet.midolman.rules._
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, Vip}
 import org.midonet.midolman.state.l4lb
-import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, ConditionMatcher, _}
+import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, ConditionMatcher, RouterPortMatcher, _}
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.simulation.{BridgePort, Port, _}
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -194,10 +194,10 @@ object TopologyMatchers {
                                   with TopologyMatchers {
         override def shouldBeDeviceOf(r: TopologyRule): Unit = {
             r.getId.asJava shouldBe rule.id
-            r.getAction.name shouldBe rule.action.name
-            r.getChainId shouldBe rule.chainId.asProto
+            if (r.hasAction) r.getAction.name shouldBe rule.action.name
+            if (r.hasChainId) r.getChainId shouldBe rule.chainId.asProto
 
-            rule.getCondition shouldBeDeviceOf r.getCondition
+            if (r.hasCondition) rule.getCondition shouldBeDeviceOf r.getCondition
         }
     }
 
@@ -223,6 +223,18 @@ object TopologyMatchers {
                                       target.getTpStart, target.getTpEnd)
                 )
             }
+        }
+    }
+
+    class Nat64RuleMatcher(rule: Nat64Rule) extends RuleMatcher(rule) {
+        override def shouldBeDeviceOf(r: TopologyRule): Unit = {
+            super.shouldBeDeviceOf(r)
+            rule.portAddress shouldBe r.getNat64RuleData.getPortAddress.asJava
+            rule.natPool shouldBe new NatTarget(
+                r.getNat64RuleData.getNatPool.getNwStart.asIPv4Address,
+                r.getNat64RuleData.getNatPool.getNwEnd.asIPv4Address,
+                r.getNat64RuleData.getNatPool.getTpStart,
+                r.getNat64RuleData.getNatPool.getTpEnd)
         }
     }
 
