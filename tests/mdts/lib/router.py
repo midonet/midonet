@@ -125,7 +125,7 @@ class Router(ResourceBase):
         """create and add port from dictionary data"""
         port_obj = RouterPort(self._api, self._context, self, port)
         port_obj.build()
-        self._ports[port['id']] = port_obj
+        self._ports[port_obj.get_id()] = port_obj
 
     """
     route helper functions
