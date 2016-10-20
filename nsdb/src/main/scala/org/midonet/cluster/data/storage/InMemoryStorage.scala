@@ -863,7 +863,26 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
       */
     override def getTable[K, V](name: String)
                                (implicit key: ClassTag[K], value: ClassTag[V]) =
-        ???
+    {
+        val path = "/" + tablePath(name).replace('/', '_')
+
+        val provider = getProvider(key.runtimeClass, value.runtimeClass, name)
+        tablesDirectory.ensureHas(path, "".getBytes)
+        val directory = tablesDirectory.getSubDirectory(path)
+        val metrics = new StorageMetrics(new MetricRegistry)
+
+        val constructor = provider.clazz.
+            getConstructor(classOf[StateTable.Key],
+                           classOf[Directory],
+                           classOf[StateTableClient],
+                           classOf[Observable[ConnectionState]],
+                           classOf[StorageMetrics])
+        val tableKey =  StateTable.Key(null, null, key.runtimeClass,
+                                       value.runtimeClass, name, Seq())
+        constructor.newInstance(tableKey, directory, stateTableClient,
+                                Observable.never(), metrics)
+            .asInstanceOf[StateTable[K, V]]
+    }
 
     /**
       * @see [[StateTableStorage.tableArguments()]]
@@ -899,6 +918,29 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
             throw new IllegalArgumentException(
                 s"Table $name for class ${clazz.getSimpleName} has different " +
                     s"value class ${provider.value.getSimpleName}")
+        }
+        provider
+    }
+
+    /** Gets the global table provider for the given key and value classes and
+      * table name */
+    @throws[IllegalArgumentException]
+    private def getProvider(key: Class[_], value: Class[_],
+                            name:String): TableProvider = {
+        val provider = tables.getOrElse(name, throw new IllegalArgumentException(
+            s"Global table $name is not registered"))
+
+        if (provider.key != key) {
+            throw new IllegalArgumentException(
+                s"Global table $name has different " +
+                s"key class ${provider.key.getSimpleName} rather than " +
+                s"expected ${key.getSimpleName}")
+        }
+        if (provider.value != value) {
+            throw new IllegalArgumentException(
+                s"Global table $name has different " +
+                s"value class ${provider.value.getSimpleName} rather than " +
+                s"expected ${value.getSimpleName}")
         }
         provider
     }
