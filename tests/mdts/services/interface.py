@@ -14,6 +14,8 @@
 
 from threading import Semaphore
 from concurrent.futures import ThreadPoolExecutor
+from hamcrest import *
+from math import ceil
 import time
 import logging
 
@@ -225,6 +227,79 @@ class Interface(object):
             src_ipv4,
             target_ipv4)
         return self.execute(cmdline, sync=True)
+
+    def verify_bandwidth(self, target_iface, max_kbps, burst_kb,
+                         wait_for_burst=True, xfer_seconds=10,
+                         allowed_lag=0.15, allowed_lead=0.05, tcp_port=10000):
+        """
+        Verifies bandwidth for traffic to target_iface.
+
+        Sends xfer_seconds * max_kbps + burst_kb bits of data to target_iface
+        over TCP, and verifies that it takes approximately xfer_seconds to
+        complete.
+
+        Args:
+              target_iface: Interface to receive file.
+
+              max_kbps: Sustained bandwidth, in kilobits per second.
+
+              burst_kb: Maximum burst in kilobits (i.e. bucket size).
+
+              wait_for_burst: If true, waits burst_kb / max_kbps seconds for
+                              token bucket to fill.
+
+              xfer_seconds: Expected length of transfer in seconds. Together
+                            with max_kbps and burst_kb, this determines the
+                            amount of data to be sent.
+
+              allowed_lag: Transfer must complete within
+                           (1 + allowed_lag) * xfer_seconds seconds.
+
+              allowed_lead: Transfer may not complete sooner than
+                           (1 - allowed_lead) * xfer_seconds seconds.
+
+              tcp_port: TCP port to use for data transfer.
+        """
+
+        if wait_for_burst:
+            time.sleep(float(burst_kb) / max_kbps)
+
+        data_size = (burst_kb + max_kbps * xfer_seconds) / 8
+        max_time = (1 + allowed_lag) * xfer_seconds
+        min_time = (1 - allowed_lead) * xfer_seconds
+
+        nc_listen_cmd = 'nc -l -p %d' % tcp_port
+        timeout = int(ceil(max_time))
+        listen_ftr = target_iface.execute(nc_listen_cmd, timeout)
+
+        LOG.debug("Sending %d bytes to %s:%d. Should take %s-%s seconds." %
+                  (data_size, target_iface.ipv4_addr, tcp_port, min_time,
+                   max_time))
+
+        nc_send_cmd = 'head -c %d /dev/zero | nc %s %d' % (
+            data_size, target_iface.ipv4_addr, tcp_port)
+        start_time = time.time()
+        send_ftr = self.execute(nc_send_cmd, timeout)
+
+        """ Give the processes a bit more than max_time, so that we can give
+            better error messages in case of a slight time overrun."""
+        listen_result = listen_ftr.result(max_time * 1.2)
+        send_result = send_ftr.result(min_time * 1.2)
+        elapsed_time = time.time() - start_time
+
+        assert_that(listen_result == 0,
+                    "Listening nc process failed with error: %d" %
+                    listen_result)
+        assert_that(send_result == 0,
+                    "Sending nc process failed with error: %d" % send_result)
+
+        assert_that(elapsed_time >= min_time,
+                    "Transfer completed in %f seconds, expected >= %f" %
+                    (elapsed_time, min_time))
+        assert_that(elapsed_time <= max_time,
+                    "Transfer completed in %f seconds, expected <= %f" %
+                    (elapsed_time, max_time))
+
 
     def send_ether(self, ether_frame_string, count=1, sync=False):
 
