@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_84316aef",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-20T10:54:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c6ee59ec",
+      "range": {
+        "startLine": 190,
+        "startChar": 42,
+        "endLine": 190,
+        "endChar": 45
+      },
+      "revId": "7f688edbfa341b28d0b2b96efa1dd666fbaad663",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a6c0f54a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
         "patchSetId": 5
@@ -36,6 +60,24 @@
       "writtenOn": "2016-10-20T09:16:37Z",
       "side": 1,
       "message": "i guess it\u0027s simpler to let requestRefs handle no-op cases.\nhow about:\n\n  policy \u003d Set()\n  bridge \u003d Set()\n  if (port.hasQosPolicyId) {\n    policy +\u003d port.getQosPolicyId\n  } else if (port.hasNetworkId) {\n    bridge +\u003d port.getNetworkId\n  }\n  qosPolicyTracker.requestRefs(policy)\n  bridgeTracker.requestRefs(bridge)",
+      "revId": "7f688edbfa341b28d0b2b96efa1dd666fbaad663",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2403be0e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-20T10:54:51Z",
+      "side": 1,
+      "message": "This re-introduces the bug I fixed in patch 2. Suppose the port\u0027s policy ID is null, and that it\u0027s network\u0027s policy ID is not-null.\n\nNow we update the port with a change to some property other than qos_policy_id. We get to this point and call qosPolicyTracker.requestRefs(). This clears the reference to the bridge\u0027s policy. We call bridgeTracker.requestRefs(bridgeId), but it\u0027s a no-op because it was already tracking that bridge. So we don\u0027t get another onNext event for the bridge, and we don\u0027t re-request the bridge\u0027s policy. Now we build the port with no policy, which isn\u0027t what we want.",
+      "parentUuid": "baa041b7_a6c0f54a",
       "revId": "7f688edbfa341b28d0b2b96efa1dd666fbaad663",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
