@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman
+package org.midonet.midolman.vpp
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 import scala.collection.mutable
-import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import com.google.inject.Inject
@@ -36,10 +36,9 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
-import org.midonet.midolman.vpp.VppApi
-import org.midonet.util.concurrent.SingleThreadExecutionContextProvider
-import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor}
+import org.midonet.midolman.{DatapathState, Midolman, Referenceable}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
+import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.process.MonitoredDaemonProcess
 
 object VppController extends Referenceable {
@@ -52,8 +51,6 @@ object VppController extends Referenceable {
     private val VppConnectionName = "midonet"
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
-    private val VppConnectionTimeoutMs =
-        VppConnectMaxRetries * VppConnectDelayMs * 1.5
 
     private case class BoundPort(port: RouterPort, setup: VppSetup)
 
@@ -65,10 +62,11 @@ object VppController extends Referenceable {
 class VppController @Inject()(config: MidolmanConfig,
                               upcallConnManager: UpcallDatapathConnectionManager,
                               datapathState: DatapathState)
-    extends ReactiveActor[AnyRef] with ActorLogWithoutPath
-        with SingleThreadExecutionContextProvider {
+    extends ReactiveActor[AnyRef]
+    with ActorLogWithoutPath
+    with SingleThreadExecutionContextProvider {
 
-    import org.midonet.midolman.VppController._
+    import VppController._
 
     override def logSource = "org.midonet.vpp-controller"
 
@@ -76,10 +74,10 @@ class VppController @Inject()(config: MidolmanConfig,
 
     private var vppProcess: MonitoredDaemonProcess = _
     private var vppApi: VppApi = _
-    private var vppOvs: VppOvs = new VppOvs(datapathState.datapath)
+    private val vppOvs = new VppOvs(datapathState.datapath)
     private val belt = new ConveyorBelt(t => {
-                                            log.error("Error on conveyor belt", t)
-                                        })
+        log.error("Error on conveyor belt", t)
+    })
 
     private val portsSubscription = new CompositeSubscription()
     private val watchedPorts = mutable.Map.empty[UUID, BoundPort]
@@ -118,8 +116,8 @@ class VppController @Inject()(config: MidolmanConfig,
         case OnCompleted => // ignore
         case OnError(err) => log.error("Exception on active ports observable",
                                        err)
-        case _ =>
-            log warn "Unknown message."
+        case m =>
+            log warn s"Unknown message $m"
     }
 
     private def handlePortActive(portId: UUID): Unit = {
@@ -159,14 +157,13 @@ class VppController @Inject()(config: MidolmanConfig,
             unbindF andThen {
                 case _ => setup.execute()
             } andThen {
-                case Failure(err) => {
+                case Failure(err) =>
                     setup.rollback()
                     watchedPorts.get(portId) match {
                         case Some(p) if p == boundPort =>
                             watchedPorts.remove(portId)
                         case _ =>
                     }
-                }
             }
         }
         belt.handle(setupPort)

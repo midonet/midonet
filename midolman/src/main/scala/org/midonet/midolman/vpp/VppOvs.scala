@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman
-
-import scala.concurrent.duration._
+package org.midonet.midolman.vpp
 
 import java.nio.ByteBuffer
 import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.duration._
+
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.netlink.{BytesUtil, NetlinkChannelFactory, NetlinkMessage}
-import org.midonet.netlink.{NetlinkBlockingWriter, NetlinkTimeoutReader, NLFlag}
-import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.odp.{Datapath, DpPort, Flow}
-import org.midonet.odp.{FlowMask, FlowMatch, OvsNetlinkFamilies, OvsProtocol}
-import org.midonet.odp.flows.{FlowAction, FlowActions}
-import org.midonet.odp.flows.{FlowKeys, FlowKeyEtherType}
+import org.midonet.netlink._
+import org.midonet.odp._
+import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKeys}
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets.IPv6Addr
 

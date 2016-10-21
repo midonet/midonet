@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman
+package org.midonet.midolman.vpp
 
 import java.util.UUID
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Success
 
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.RouterPort
-import org.midonet.midolman.vpp.VppApi
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
 import org.midonet.packets.{IPAddr, IPv6Addr, MAC}

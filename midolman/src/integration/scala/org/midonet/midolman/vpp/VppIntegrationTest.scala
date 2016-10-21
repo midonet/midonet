@@ -27,15 +27,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import org.junit.runner.RunWith
 import org.junit.Assert
-
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FeatureSpec
-
 import org.slf4j.LoggerFactory
 
 import org.midonet.ErrorCode
-import org.midonet.midolman.VppOvs
-import org.midonet.midolman.VppSetup
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{Datapath, OvsNetlinkFamilies, OvsProtocol}

@@ -19,12 +19,12 @@ import java.util.concurrent.TimeoutException
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import akka.pattern.{gracefulStop, ask}
+import akka.pattern.{ask, gracefulStop}
 import akka.util.Timeout
 
 import com.google.common.util.concurrent.AbstractService
@@ -39,6 +39,7 @@ import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService._
+import org.midonet.midolman.vpp.VppController
 
 object MidolmanActorsService {
 
