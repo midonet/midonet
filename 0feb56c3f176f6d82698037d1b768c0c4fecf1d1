@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f8aa1583",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 866,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-21T08:51:29Z",
+      "side": 1,
+      "message": "nit: add to previous line",
+      "range": {
+        "startLine": 866,
+        "startChar": 4,
+        "endLine": 866,
+        "endChar": 5
+      },
+      "revId": "0feb56c3f176f6d82698037d1b768c0c4fecf1d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_58890125",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-21T08:51:29Z",
+      "side": 1,
+      "message": "put import above",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 50
+      },
+      "revId": "0feb56c3f176f6d82698037d1b768c0c4fecf1d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b8912d54",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-21T08:51:29Z",
+      "side": 1,
+      "message": "why this change?",
+      "range": {
+        "startLine": 63,
+        "startChar": 4,
+        "endLine": 65,
+        "endChar": 5
+      },
+      "revId": "0feb56c3f176f6d82698037d1b768c0c4fecf1d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_388cfd33",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1068,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-21T08:51:29Z",
+      "side": 1,
+      "message": "getter",
+      "range": {
+        "startLine": 1068,
+        "startChar": 31,
+        "endLine": 1068,
+        "endChar": 36
+      },
+      "revId": "0feb56c3f176f6d82698037d1b768c0c4fecf1d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_78972545",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1070,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-21T08:51:29Z",
+      "side": 1,
+      "message": "do you need to declare this here? a storage variable is already provided by the class",
+      "range": {
+        "startLine": 1070,
+        "startChar": 12,
+        "endLine": 1070,
+        "endChar": 26
+      },
+      "revId": "0feb56c3f176f6d82698037d1b768c0c4fecf1d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
