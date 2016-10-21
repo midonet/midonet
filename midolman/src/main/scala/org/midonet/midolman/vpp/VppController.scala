@@ -29,6 +29,7 @@ import com.google.inject.Inject
 
 import rx.subscriptions.CompositeSubscription
 
+import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
@@ -61,7 +62,8 @@ object VppController extends Referenceable {
 
 class VppController @Inject()(config: MidolmanConfig,
                               upcallConnManager: UpcallDatapathConnectionManager,
-                              datapathState: DatapathState)
+                              datapathState: DatapathState,
+                              storage: Storage)
     extends ReactiveActor[AnyRef]
     with ActorLogWithoutPath
     with SingleThreadExecutionContextProvider {
@@ -143,10 +145,11 @@ class VppController @Inject()(config: MidolmanConfig,
         }
 
         def setupPort(): Future[_] = {
-            val setup = new VppSetup(port.id,
-                                     datapathState.getDpPortNumberForVport(portId),
-                                     vppApi,
-                                     vppOvs)
+            val setup =
+                new VppUplinkSetup(port.id,
+                                   datapathState.getDpPortNumberForVport(portId),
+                                   vppApi,
+                                   vppOvs)
             val boundPort = BoundPort(port, setup)
 
             val unbindF = watchedPorts.put(portId, boundPort) match {
@@ -179,6 +182,14 @@ class VppController @Inject()(config: MidolmanConfig,
             }
         }
         belt.handle(cleanupPort)
+    }
+
+    private def attachDownlinkPort(portId: UUID, port: RouterPort): Unit = {
+
+    }
+
+    private def detachDownlinkPort(portId: UUID): Unit = {
+
     }
 
     private def createApiConnection(retriesLeft: Int): VppApi = {
