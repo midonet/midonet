@@ -32,7 +32,7 @@ import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.StateTableStorage
-import org.midonet.cluster.data.storage.model.ArpEntry
+import org.midonet.cluster.data.storage.model.{ArpEntry, Fip64Entry}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.{Network, Router}
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
@@ -82,7 +82,7 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
                 storage.registerTable(classOf[Topology.Port], classOf[MAC],
                                       classOf[IPv4Addr], MidonetBackend.PeeringTable,
                                       classOf[MacIp4StateTable])
-                storage.registerTable(classOf[Fip64StateTable.Entry],
+                storage.registerTable(classOf[Fip64Entry],
                                       classOf[AnyRef], MidonetBackend.Fip64Table,
                                       classOf[Fip64StateTable])
             }
