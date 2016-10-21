@@ -30,10 +30,7 @@ object TcRequestOps {
     val REMQDISC = 2
 }
 
-class TcRequest(val op: Int, val ifindex: Int, val rate: Int = 0,
-                val burst: Int = 0) {
-    def isAdd = op == TcRequestOps.ADDFILTER
-}
+case class TcRequest(op: Int, ifindex: Int, rate: Int = 0, burst: Int = 0)
 
 /*
  * This class will start a thread that blocks waiting for requests to be
@@ -42,19 +39,28 @@ class TcRequest(val op: Int, val ifindex: Int, val rate: Int = 0,
  * It will take requests from the q and translate them into equivalent tc
  * netlink messages, which it will then send over to the kernel.
  */
-class TcRequestHandler(channelFactory: NetlinkChannelFactory,
-                       q: LinkedBlockingQueue[TcRequest])
+class TcRequestHandler(channelFactory: NetlinkChannelFactory)
         extends MidolmanLogging {
 
     val EEXIST = 17
 
     val channel = channelFactory.create(blocking = true,
-        NetlinkProtocol.NETLINK_ROUTE)
+                                        NetlinkProtocol.NETLINK_ROUTE)
 
     val reader = new NetlinkReader(channel)
     val writer = new NetlinkBlockingWriter(channel)
 
     val protocol = new RtnetlinkProtocol(channel.getLocalAddress.getPid)
+
+    val q = new LinkedBlockingQueue[TcRequest]()
+
+    def addTcConfig(index: Int, rate: Int = 0, burst: Int = 0): Unit = {
+        q.add(TcRequest(TcRequestOps.ADDFILTER, index, rate, burst))
+    }
+
+    def delTcConfig(index: Int): Unit = {
+        q.add(TcRequest(TcRequestOps.REMQDISC, index))
+    }
 
     def writeRead(buf: ByteBuffer): Unit = {
         writer.write(buf)
@@ -124,20 +130,30 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory,
             }
         }
         override def run(): Unit = {
-            while (true) {
-                val request = q.take()
+            try {
+                while (true) {
+                    val request = q.take()
 
-                request.op match {
-                    case TcRequestOps.ADDFILTER =>
-                        processAdd(ticksPerUsec,
-                                   request.ifindex, request.rate,
-                                   request.burst)
-                    case TcRequestOps.REMQDISC =>
-                        processDelete(request.ifindex)
+                    request.op match {
+                        case TcRequestOps.ADDFILTER =>
+                            processAdd(ticksPerUsec,
+                                       request.ifindex, request.rate,
+                                       request.burst)
+                        case TcRequestOps.REMQDISC =>
+                            processDelete(request.ifindex)
+                    }
                 }
+            } catch {
+                case e: InterruptedException =>
+                    log.info("QOS request handler thread interrupted.")
+                case e: NetlinkException =>
+                    log.error("error communicating with netlink: " +
+                              e.getMessage)
+                    e.printStackTrace()
             }
         }
     }
 
     def start() = processingThread.start()
+    def stop() = processingThread.interrupt()
 }

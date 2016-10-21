@@ -157,7 +157,7 @@ object LinkOps {
         link
     }
 
-    private def readLink(reader: NetlinkReader, buf: ByteBuffer): Link = {
+    def readLink(reader: NetlinkReader, buf: ByteBuffer): Link = {
         buf.clear()
         reader.read(buf)
         buf.flip()
