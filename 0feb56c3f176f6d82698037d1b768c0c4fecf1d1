@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_78dde5db",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-21T09:38:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_58890125",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 50
+      },
+      "revId": "0feb56c3f176f6d82698037d1b768c0c4fecf1d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b8912d54",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
         "patchSetId": 1
