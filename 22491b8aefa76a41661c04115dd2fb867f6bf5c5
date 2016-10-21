@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0d57bd5a",
+        "filename": "tests/mdts/lib/bridge_port.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-21T04:07:15Z",
+      "side": 1,
+      "message": "Could we add a \"set_qos_policy\" function to this class, so we can set the qos policy even after the port has been created?\n\nCould we also add a \"clear_qos_policy\" function to unset the QOS policy from a port?",
+      "revId": "22491b8aefa76a41661c04115dd2fb867f6bf5c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ad50d15e",
+        "filename": "tests/mdts/lib/qos_policy.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-21T04:07:15Z",
+      "side": 1,
+      "message": "Do you need this import?  And was this module created?",
+      "range": {
+        "startLine": 16,
+        "startChar": 39,
+        "endLine": 16,
+        "endChar": 53
+      },
+      "revId": "22491b8aefa76a41661c04115dd2fb867f6bf5c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ed59398e",
+        "filename": "tests/mdts/lib/qos_policy.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-21T04:07:15Z",
+      "side": 1,
+      "message": "There is also a \"shared\" item which is a boolean value.",
+      "revId": "22491b8aefa76a41661c04115dd2fb867f6bf5c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cd555550",
+        "filename": "tests/mdts/lib/qos_policy.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-21T04:07:15Z",
+      "side": 1,
+      "message": "I wonder if this should be \"add_bw_limit_rule\" to make it consistent with the other functions for bw_limit rules.",
+      "range": {
+        "startLine": 41,
+        "startChar": 8,
+        "endLine": 41,
+        "endChar": 19
+      },
+      "revId": "22491b8aefa76a41661c04115dd2fb867f6bf5c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8d4bcdb0",
+        "filename": "tests/mdts/lib/qos_policy.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-21T04:07:15Z",
+      "side": 1,
+      "message": "Could we add a \"clear_bw_limit_rules\" function to remove the bw_limit rules from a QOS policy?",
+      "revId": "22491b8aefa76a41661c04115dd2fb867f6bf5c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
