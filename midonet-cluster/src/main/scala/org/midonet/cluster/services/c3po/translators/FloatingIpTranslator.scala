@@ -18,16 +18,19 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
+import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouteManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
-import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
 
 /** Provides a Neutron model translator for FloatingIp. */
 class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
@@ -37,13 +40,15 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
                 with RouterManager
                 with RuleManager {
 
+    import FloatingIpTranslator._
+
     implicit val storage: ReadOnlyStorage = readOnlyStorage
 
     override protected def translateCreate(tx: Transaction,
                                            fip: FloatingIp): OperationList = {
         // If a port is not assigned, there's nothing to do.
         if (fip.hasPortId) {
-            associateFipOps(tx, fip)
+            associateFip(tx, fip)
         }
         List()
     }
@@ -51,7 +56,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
     override protected def translateDelete(tx: Transaction,
                                            fip: FloatingIp): OperationList = {
         if (fip.hasPortId) {
-            disassociateFipOps(tx, fip)
+            disassociateFip(tx, fip)
         }
         List()
     }
@@ -66,22 +71,29 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             // FIP's portId and routerId are both unchanged. Do nothing.
         } else if (oldFip.hasPortId && !fip.hasPortId) {
             // FIP is un-associated from the port.
-            disassociateFipOps(tx, oldFip)
+            disassociateFip(tx, oldFip)
         } else if (!oldFip.hasPortId && fip.hasPortId) {
             // FIP is newly associated.
-            associateFipOps(tx, fip)
+            associateFip(tx, fip)
         } else {
-            val fipAddrStr = fip.getFloatingIpAddress.getAddress
-            val newPortPair = getFipRtrPortId(tx, fip.getRouterId, fipAddrStr)
-            if (oldFip.getRouterId != fip.getRouterId) {
-                val oldPortPair = getFipRtrPortId(tx, oldFip.getRouterId,
+            if (!isIPv6(oldFip) && !isIPv6(fip)) {
+                val fipAddrStr = fip.getFloatingIpAddress.getAddress
+                val newPortPair = getFipRtrPortId(tx, fip.getRouterId,
                                                   fipAddrStr)
-                removeArpEntry(tx, fip, oldPortPair.nwPortId)
-                addArpEntry(tx, fip, newPortPair.nwPortId)
-            }
+                if (oldFip.getRouterId != fip.getRouterId) {
+                    val oldPortPair = getFipRtrPortId(tx, oldFip.getRouterId,
+                                                      fipAddrStr)
+                    removeArpEntry(tx, fip, oldPortPair.nwPortId)
+                    addArpEntry(tx, fip, newPortPair.nwPortId)
+                }
 
-            removeNatRules(tx, oldFip)
-            addNatRules(tx, fip, newPortPair.rtrPortId, newPortPair.isGwPort)
+                removeNatRules(tx, oldFip)
+                addNatRules(tx, fip, newPortPair.rtrPortId,
+                            newPortPair.isGwPort)
+            } else {
+                disassociateFip(tx, oldFip)
+                associateFip(tx, fip)
+            }
         }
         List()
     }
@@ -259,5 +271,58 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
                   ignoresNeo = true)
         tx.delete(classOf[Rule], fipSkipSnatRuleId(fip.getId),
                   ignoresNeo = true)
+    }
+
+    private def associateFip(tx: Transaction, fip: FloatingIp): Unit = {
+        if (isIPv6(fip)) {
+            associateFip64(tx, fip)
+        } else {
+            associateFipOps(tx, fip)
+        }
+    }
+
+    private def disassociateFip(tx: Transaction, fip: FloatingIp): Unit = {
+        if (isIPv6(fip)) {
+            disassociateFip64(tx, fip)
+        } else {
+            disassociateFipOps(tx, fip)
+        }
+    }
+
+    @throws[IllegalArgumentException]
+    private def associateFip64(tx: Transaction, fip: FloatingIp): Unit = {
+        tx.createNode(stateTableStorage.fip64EntryPath(fipToFip64Entry(fip)))
+    }
+
+    @throws[IllegalArgumentException]
+    private def disassociateFip64(tx: Transaction, fip: FloatingIp): Unit = {
+        tx.deleteNode(stateTableStorage.fip64EntryPath(fipToFip64Entry(fip)))
+    }
+}
+
+object FloatingIpTranslator {
+
+    private def isIPv6(fip: FloatingIp): Boolean =
+        fip.hasFloatingIpAddress &&
+        fip.getFloatingIpAddress.getVersion == Commons.IPVersion.V6
+
+    @throws[IllegalArgumentException]
+    private def fipToFip64Entry(fip: FloatingIp): Fip64Entry = {
+        if (!fip.hasFixedIpAddress
+            || !fip.getFixedIpAddress.hasVersion
+            ||  fip.getFixedIpAddress.getVersion != Commons.IPVersion.V4) {
+            throw new IllegalArgumentException(
+                "Only IPv4 fixed-addresses are supported")
+        }
+
+        // not sure if this is possible but doesn't hurt to check
+        if (!fip.hasRouterId) {
+            throw new IllegalArgumentException("Router ID must be provided")
+        }
+
+        Fip64Entry(IPv4Addr(fip.getFixedIpAddress.getAddress),
+                   IPv6Addr(fip.getFloatingIpAddress.getAddress),
+                   fip.getPortId,
+                   fip.getRouterId)
     }
 }
