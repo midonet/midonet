@@ -48,12 +48,15 @@ final class RtnetlinkProtocol(pid: Int) {
     }
 
     def prepareDeleteIngressQdisc(buf: ByteBuffer, ifindex: Int): Unit = {
-        val flags = NLFlag.REQUEST
+        val flags = NLFlag.REQUEST | NLFlag.ACK
         tcmsgIngressQdisc(buf, ifindex, Rtnetlink.Type.DELQDISC, flags.toShort)
     }
 
     def prepareAddIngressQdisc(buf: ByteBuffer, ifindex: Int): Unit = {
-        val flags = NLFlag.REQUEST | NLFlag.New.CREATE | NLFlag.New.EXCL
+        val flags = NLFlag.REQUEST |
+                    NLFlag.New.CREATE |
+                    NLFlag.New.EXCL |
+                    NLFlag.ACK
         tcmsgIngressQdisc(buf, ifindex, Rtnetlink.Type.NEWQDISC, flags.toShort)
     }
 
