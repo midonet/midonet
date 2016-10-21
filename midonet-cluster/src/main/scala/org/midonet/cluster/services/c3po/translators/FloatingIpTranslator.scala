@@ -20,11 +20,9 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
-import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Commons.{IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouteManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
@@ -239,7 +237,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             s"contains $fipAddrStr")
     }
 
-    private def associateFipOps(tx: Transaction, fip: FloatingIp): Unit = {
+    private def associateFip4(tx: Transaction, fip: FloatingIp): Unit = {
         val routerId = fip.getRouterId
         checkOldRouterTranslation(tx, routerId)
         val pp = getFipRtrPortId(tx, routerId,
@@ -248,7 +246,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         addNatRules(tx, fip, pp.rtrPortId, pp.isGwPort)
     }
 
-    private def disassociateFipOps(tx: Transaction, fip: FloatingIp): Unit = {
+    private def disassociateFip4(tx: Transaction, fip: FloatingIp): Unit = {
         val pp = getFipRtrPortId(tx, fip.getRouterId,
                                  fip.getFloatingIpAddress.getAddress)
         removeArpEntry(tx, fip, pp.nwPortId)
@@ -275,27 +273,27 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
 
     private def associateFip(tx: Transaction, fip: FloatingIp): Unit = {
         if (isIPv6(fip)) {
-            associateFip64(tx, fip)
+            associateFip6(tx, fip)
         } else {
-            associateFipOps(tx, fip)
+            associateFip4(tx, fip)
         }
     }
 
     private def disassociateFip(tx: Transaction, fip: FloatingIp): Unit = {
         if (isIPv6(fip)) {
-            disassociateFip64(tx, fip)
+            disassociateFip6(tx, fip)
         } else {
-            disassociateFipOps(tx, fip)
+            disassociateFip4(tx, fip)
         }
     }
 
     @throws[IllegalArgumentException]
-    private def associateFip64(tx: Transaction, fip: FloatingIp): Unit = {
+    private def associateFip6(tx: Transaction, fip: FloatingIp): Unit = {
         tx.createNode(stateTableStorage.fip64EntryPath(fipToFip64Entry(fip)))
     }
 
     @throws[IllegalArgumentException]
-    private def disassociateFip64(tx: Transaction, fip: FloatingIp): Unit = {
+    private def disassociateFip6(tx: Transaction, fip: FloatingIp): Unit = {
         tx.deleteNode(stateTableStorage.fip64EntryPath(fipToFip64Entry(fip)))
     }
 }
@@ -304,13 +302,13 @@ object FloatingIpTranslator {
 
     private def isIPv6(fip: FloatingIp): Boolean =
         fip.hasFloatingIpAddress &&
-        fip.getFloatingIpAddress.getVersion == Commons.IPVersion.V6
+        fip.getFloatingIpAddress.getVersion == IPVersion.V6
 
     @throws[IllegalArgumentException]
     private def fipToFip64Entry(fip: FloatingIp): Fip64Entry = {
         if (!fip.hasFixedIpAddress
             || !fip.getFixedIpAddress.hasVersion
-            ||  fip.getFixedIpAddress.getVersion != Commons.IPVersion.V4) {
+            ||  fip.getFixedIpAddress.getVersion != IPVersion.V4) {
             throw new IllegalArgumentException(
                 "Only IPv4 fixed-addresses are supported")
         }
