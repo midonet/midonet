@@ -93,6 +93,30 @@
       "revId": "f65201e6577bcf071ec31c1c28b5ecb9e416fe04",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6b1cf876",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-21T07:55:34Z",
+      "side": 1,
+      "message": "OK!",
+      "parentUuid": "baa041b7_d5f9614f",
+      "range": {
+        "startLine": 277,
+        "startChar": 61,
+        "endLine": 277,
+        "endChar": 70
+      },
+      "revId": "f65201e6577bcf071ec31c1c28b5ecb9e416fe04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
