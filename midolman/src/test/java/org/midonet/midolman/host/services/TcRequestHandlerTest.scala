@@ -40,8 +40,8 @@ class TcRequestHandlerTest extends FeatureSpec
     val add = TcRequestOps.ADDFILTER
     val rem = TcRequestOps.REMQDISC
 
-    class TestableTcRequestHandler(q: LinkedBlockingQueue[TcRequest])
-        extends TcRequestHandler(new MockNetlinkChannelFactory(), q) {
+    class TestableTcRequestHandler
+        extends TcRequestHandler(new MockNetlinkChannelFactory()) {
 
         val reqs = new util.ArrayList[Int]()
 
@@ -74,12 +74,10 @@ class TcRequestHandlerTest extends FeatureSpec
         }
     }
 
-
     feature("Handler processes requests") {
         scenario("random requests") {
 
-            val q = new LinkedBlockingQueue[TcRequest]()
-            val handler = new TestableTcRequestHandler(q)
+            val handler = new TestableTcRequestHandler()
 
             handler.start()
 
@@ -88,7 +86,11 @@ class TcRequestHandlerTest extends FeatureSpec
                 TR(rem, 4), TR(add, 100), TR(rem, 2))
 
             reqs foreach { tr =>
-                q.add(new TcRequest(tr.msg, tr.ifi, 300, 200))
+                if (tr.msg == add) {
+                    handler.addTcConfig(tr.ifi, 300, 200)
+                } else {
+                    handler.delTcConfig(tr.ifi)
+                }
             }
 
             eventually {
