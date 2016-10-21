@@ -87,7 +87,14 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory,
                 protocol.prepareDeleteIngressQdisc(buf, ifindex)
                 writeRead(buf)
                 protocol.prepareAddIngressQdisc(buf, ifindex)
-                writeRead(buf)
+                /* 
+                 * TODO: An ACK is requested in the netlink msg
+                 * sent here, however none is returned. We need
+                 * to understand why, but functionally there is
+                 * no problem.
+                 */
+                writer.write(buf)
+                buf.clear()
         }
 
         protocol.prepareAddPoliceFilter(buf, ifindex, rate, burst, mtu, tickInUsec)
