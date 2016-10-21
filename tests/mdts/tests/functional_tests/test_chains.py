@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from nose.tools import nottest
 from nose.plugins.attrib import attr
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
@@ -52,7 +53,7 @@ binding_multihost = {
         ]
     }
 
-
+@nottest # disabling for now
 @attr(version="v1.2.0")
 @bindings(binding_multihost)
 def test_filter_ipv6():
