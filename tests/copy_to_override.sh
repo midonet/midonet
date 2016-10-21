@@ -15,20 +15,57 @@
 
 # Copy the latest packages present on the tree to the override
 # specified by command line.
-# e.g: $ tests/copy_to_override.sh override_v2
+# e.g: $ copy_to_override.sh override_v2
 
 if [ $# -ne 1 ]; then
-    echo "Usage: tests/copy_to_override.sh override_v2"
+    echo "Usage: $0 override_v2"
     exit 1
 fi
+OVERRIDE=$1
 
-MIDOLMAN_PATH=midolman/build/packages
-CLUSTER_PATH=midonet-cluster/build/packages
-TOOLS_PATH=midonet-tools/build/packages
-CLIENT_PATH=python-midonetclient
+cd $(dirname $0)
 
-mkdir -p tests/sandbox/$1/packages
-cp $(ls $MIDOLMAN_PATH/*deb | tail -n1) tests/sandbox/$1/packages
-cp $(ls $CLUSTER_PATH/*deb | tail -n1) tests/sandbox/$1/packages
-cp $(ls $TOOLS_PATH/*deb | tail -n1) tests/sandbox/$1/packages
-cp $(ls $CLIENT_PATH/*deb | tail -n1) tests/sandbox/$1/packages
+REPO_ROOT="$PWD/.."
+
+TARGET="$PWD/sandbox/$OVERRIDE/packages"
+mkdir -p $TARGET
+
+DEB_PATHS="\
+ $REPO_ROOT/midolman/build/packages \
+ $REPO_ROOT/midonet-cluster/build/packages \
+ $REPO_ROOT/midonet-tools/build/packages \
+ $REPO_ROOT/python-midonetclient \
+"
+
+echo "Copying build packages to override:"
+
+for DEB_PATH in $DEB_PATHS;
+do
+    cp --verbose $(ls $DEB_PATH/*deb | tail -n1) $TARGET
+done
+
+DEB_NAMES="\
+ midolman \
+ midonet-cluster \
+ midonet-tools \
+ python-midonetclient \
+"
+
+echo "Copying workspace packages to override:"
+
+RESULT=0
+
+for DEB_NAME in $DEB_NAMES;
+do
+    if ( ls $REPO_ROOT/$DEB_NAME*.deb >& /dev/null ); then
+        cp --verbose $REPO_ROOT/$DEB_NAME*.deb $TARGET
+    fi
+
+    if [ "$(ls -la $TARGET/$DEB_NAME*.deb 2> /dev/null | wc -l)" -ne "1" ]; then
+        echo "WARNING: Too many '$DEB_NAME' packages in override $TARGET:"
+        ls -la $TARGET/$DEB_NAME*.deb
+        RESULT=1
+    fi
+done
+
+exit $RESULT
