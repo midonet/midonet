@@ -42,11 +42,11 @@ import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent._
 
 object ZookeeperStateTableTest {
-    private class ScoreStateTable(val key: StateTable.Key,
-                                  val directory: Directory,
-                                  val proxy: StateTableClient,
-                                  val connection: Observable[ConnectionState],
-                                  val metrics: StorageMetrics)
+    class ScoreStateTable(val key: StateTable.Key,
+                          val directory: Directory,
+                          val proxy: StateTableClient,
+                          val connection: Observable[ConnectionState],
+                          val metrics: StorageMetrics)
         extends StateTable[Int, String] {
 
         override def start(): Unit = ???
