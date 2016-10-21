@@ -239,7 +239,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             s"contains $fipAddrStr")
     }
 
-    private def associateFipOps(tx: Transaction, fip: FloatingIp): Unit = {
+    private def associateFip4(tx: Transaction, fip: FloatingIp): Unit = {
         val routerId = fip.getRouterId
         checkOldRouterTranslation(tx, routerId)
         val pp = getFipRtrPortId(tx, routerId,
@@ -248,7 +248,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         addNatRules(tx, fip, pp.rtrPortId, pp.isGwPort)
     }
 
-    private def disassociateFipOps(tx: Transaction, fip: FloatingIp): Unit = {
+    private def disassociateFip4(tx: Transaction, fip: FloatingIp): Unit = {
         val pp = getFipRtrPortId(tx, fip.getRouterId,
                                  fip.getFloatingIpAddress.getAddress)
         removeArpEntry(tx, fip, pp.nwPortId)
@@ -275,27 +275,27 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
 
     private def associateFip(tx: Transaction, fip: FloatingIp): Unit = {
         if (isIPv6(fip)) {
-            associateFip64(tx, fip)
+            associateFip6(tx, fip)
         } else {
-            associateFipOps(tx, fip)
+            associateFip4(tx, fip)
         }
     }
 
     private def disassociateFip(tx: Transaction, fip: FloatingIp): Unit = {
         if (isIPv6(fip)) {
-            disassociateFip64(tx, fip)
+            disassociateFip6(tx, fip)
         } else {
-            disassociateFipOps(tx, fip)
+            disassociateFip4(tx, fip)
         }
     }
 
     @throws[IllegalArgumentException]
-    private def associateFip64(tx: Transaction, fip: FloatingIp): Unit = {
+    private def associateFip6(tx: Transaction, fip: FloatingIp): Unit = {
         tx.createNode(stateTableStorage.fip64EntryPath(fipToFip64Entry(fip)))
     }
 
     @throws[IllegalArgumentException]
-    private def disassociateFip64(tx: Transaction, fip: FloatingIp): Unit = {
+    private def disassociateFip6(tx: Transaction, fip: FloatingIp): Unit = {
         tx.deleteNode(stateTableStorage.fip64EntryPath(fipToFip64Entry(fip)))
     }
 }
