@@ -403,7 +403,7 @@ class VppIntegrationTest extends FeatureSpec {
         }
     }
 
-    feature("VPP Setup") {
+    feature("VPP uplink Setup") {
         scenario("VPP sets up uplink port") {
             val uplinkns = "uplink2"
 
@@ -415,14 +415,14 @@ class VppIntegrationTest extends FeatureSpec {
 
             log.info("Creating dummy uplink port")
 
-            var setup: Option[VppSetup] = None
+            var setup: Option[VppUplinkSetup] = None
             try {
                 createNamespace(uplinkns)
                 val uplinkDp = ovs.createDpPort(s"${uplinkns}dp")
 
-                setup = Some(new VppSetup(UUID.randomUUID,
-                                          uplinkDp.getPortNo,
-                                          api, ovs))
+                setup = Some(new VppUplinkSetup(UUID.randomUUID,
+                                                uplinkDp.getPortNo,
+                                                api, ovs))
                 assertCmdInNs(uplinkns, s"ip a add 2001::2/64 dev ${uplinkns}ns")
 
                 setup foreach { s => Await.result(s.execute, 1 minute) }
