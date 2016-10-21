@@ -143,10 +143,11 @@ class VppController @Inject()(config: MidolmanConfig,
         }
 
         def setupPort(): Future[_] = {
-            val setup = new VppSetup(port.id,
-                                     datapathState.getDpPortNumberForVport(portId),
-                                     vppApi,
-                                     vppOvs)
+            val setup =
+                new VppUplinkSetup(port.id,
+                                   datapathState.getDpPortNumberForVport(portId),
+                                   vppApi,
+                                   vppOvs)
             val boundPort = BoundPort(port, setup)
 
             val unbindF = watchedPorts.put(portId, boundPort) match {
@@ -179,6 +180,13 @@ class VppController @Inject()(config: MidolmanConfig,
             }
         }
         belt.handle(cleanupPort)
+    }
+    private def attachDownlinkPort(portId: UUID, port: RouterPort): Unit = {
+
+    }
+
+    private def detachDownlinkPort(portId: UUID): Unit = {
+
     }
 
     private def createApiConnection(retriesLeft: Int): VppApi = {
