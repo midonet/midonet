@@ -45,6 +45,30 @@
       "revId": "caa92c075d8de34a947b8b514878ca24ef195ee6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_59ea2310",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-10-21T15:30:54Z",
+      "side": 1,
+      "message": "You\u0027re totally right.",
+      "parentUuid": "baa041b7_f908d728",
+      "range": {
+        "startLine": 280,
+        "startChar": 12,
+        "endLine": 280,
+        "endChar": 27
+      },
+      "revId": "caa92c075d8de34a947b8b514878ca24ef195ee6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
