@@ -29,6 +29,7 @@ import com.google.inject.Inject
 
 import rx.subscriptions.CompositeSubscription
 
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
@@ -61,7 +62,8 @@ object VppController extends Referenceable {
 
 class VppController @Inject()(config: MidolmanConfig,
                               upcallConnManager: UpcallDatapathConnectionManager,
-                              datapathState: DatapathState)
+                              datapathState: DatapathState,
+                              midonetBackend: MidonetBackend)
     extends ReactiveActor[AnyRef]
     with ActorLogWithoutPath
     with SingleThreadExecutionContextProvider {
