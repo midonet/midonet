@@ -20,6 +20,10 @@ import java.util.UUID
 
 import scala.concurrent.{ExecutionContext, Future}
 
+import org.midonet.conf.HostIdGenerator
+import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.util.UUIDUtil.toProto
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
@@ -104,9 +108,9 @@ private object VppSetup extends MidolmanLogging {
                                        address, prefixLen)
     }
 
-    class OvsBind(override val name: String,
-                          vppOvs: VppOvs,
-                          endpointName: String)
+    class OvsBindV6(override val name: String,
+                    vppOvs: VppOvs,
+                    endpointName: String)
             extends FutureTaskWithRollback {
         var dpPort: Option[DpPort] = None
 
@@ -179,6 +183,55 @@ private object VppSetup extends MidolmanLogging {
             }
         }
     }
+
+    class OvsBindV4(override val name: String,
+                    tenantRouterPortId: UUID,
+                    ovsDownlinkPortName: String,
+                    backEnd: MidonetBackend)
+                   (implicit ec: ExecutionContext)
+        extends FutureTaskWithRollback {
+
+        var oldIfName: Option[String] = None
+        @throws[Exception]
+        override def execute(): Future[Any] = {
+            try {
+                backEnd.store.tryTransaction( tx =>  {
+                    val hostId = HostIdGenerator.getHostId()
+                    val oldPort = tx.get(classOf[Port], tenantRouterPortId)
+                    oldIfName = Some(oldPort getInterfaceName)
+                    val newPort = oldPort.toBuilder
+                        .setHostId(toProto(hostId))
+                        .setInterfaceName(ovsDownlinkPortName)
+                        .build()
+                    tx.update(newPort)
+                })
+
+                Future.successful(Unit)
+            } catch {
+                case e: Throwable => Future.failed(e)
+            }
+        }
+
+        @throws[Exception]
+        override def rollback(): Future[Any] = {
+            oldIfName match {
+                case Some(ifName) => try {
+                    backEnd.store.tryTransaction( tx => {
+                        val currentPort = tx.get(classOf[Port], tenantRouterPortId)
+                        val restoredPort = currentPort.toBuilder
+                            .setInterfaceName(ifName)
+                            .build()
+                        tx.update(restoredPort)
+                    })
+                    Future.successful(Unit)
+                } catch {
+                    case e: Throwable => Future.failed(e)
+                }
+                case _ =>
+                    Future.successful(Unit)
+            }
+        }
+    }
 }
 
 
@@ -215,9 +268,9 @@ class VppUplinkSetup(uplinkPortId: UUID,
                                           uplinkVpp,
                                           uplinkVppAddr,
                                           uplinkVppPrefix)
-    private val ovsBind = new OvsBind("ovs bind for vpp uplink veth",
-                                      vppOvs,
-                                      uplinkOvsName)
+    private val ovsBind = new OvsBindV6("ovs bind for vpp uplink veth",
+                                        vppOvs,
+                                        uplinkOvsName)
     private val vppFlows = new FlowInstall("install ipv6 flows",
                                            vppOvs,
                                            () => { ovsBind.getPortNo },
@@ -242,11 +295,11 @@ class VppUplinkSetup(uplinkPortId: UUID,
 class VppDlinkSetup(tenantRouterIp6PortId: UUID,
                     vrf: Int,
                     vppApi: VppApi,
-                    vppOvs: VppOvs)
+                    backEnd: MidonetBackend)
                    (implicit ec: ExecutionContext)
     extends VppSetup("VPP downlink setup")(ec) {
 
-    import VppSetup.{VethPairSetup, VppDevice, VppIpAddr}
+    import VppSetup.{VethPairSetup, VppDevice, VppIpAddr, OvsBindV4}
 
     private val dlinkSuffix = tenantRouterIp6PortId.toString.substring(0, 8)
     private val dlinkVppName = s"vpp-$dlinkSuffix"
@@ -269,10 +322,16 @@ class VppDlinkSetup(tenantRouterIp6PortId: UUID,
                                           dlinkVpp,
                                           dlinkVppAddr,
                                           dlinkVppPrefix)
+
+    private val ovsBind = new OvsBindV4("dlink bind veth pair to the tenant router",
+                                        tenantRouterIp6PortId,
+                                        dlinkOvsName,
+                                        backEnd)
     /*
     * setup the tasks, in execution order
     */
     add(dlinkVeth)
     add(dlinkVpp)
     add(ipAddrVpp)
+    add(ovsBind)
 }
