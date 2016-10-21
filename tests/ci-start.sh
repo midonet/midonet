@@ -2,7 +2,7 @@
 
 SANDBOX_NAME="mdts"
 SANDBOX_FLAVOUR="default_v2_neutron+mitaka"
-OVERRIDE="sandbox/override_v2"
+OVERRIDE="override_v2"
 PROVISIONING="sandbox/provisioning/all-provisioning.sh"
 JENKINS_VERSION="v1"
 
@@ -49,39 +49,54 @@ if [ "$JENKINS_VERSION" == "v1" ]; then
     sudo service docker restart
 fi
 
-# create virtualenv for sandbox and mdts
-sudo pip install --upgrade pip setuptools virtualenv
-virtualenv venv
-. venv/bin/activate
+## create virtualenv for sandbox and mdts
+# sudo pip install --upgrade pip setuptools virtualenv
+if [ -f /opt/midonet-venv/bin/activate ]; then
+    . /opt/midonet-venv/bin/activate
+elif
+    virtualenv venv
+    . venv/bin/activate
+fi
 
 # We assume all gates/nightlies put the necessary packages in $WORKSPACE
 # so we know where to find them.
-mkdir -p tests/$OVERRIDE/packages
-cp midolman*.deb tests/$OVERRIDE/packages
-cp midonet-tools*.deb tests/$OVERRIDE/packages
-cp midonet-cluster*.deb tests/$OVERRIDE/packages
-cp python-midonetclient*.deb tests/$OVERRIDE/packages
+tests/copy_to_override.sh $OVERRIDE
 
 # Necessary software in the host, midonet-cli installed from sources
 cd python-midonetclient
 python setup.py install
 cd -
 
-# Install sandbox, directly from repo (ignoring submodule)
-rm -rf midonet-sandbox
-git clone --depth=1 https://github.com/midonet/midonet-sandbox.git
-cd midonet-sandbox
-python setup.py install
-cd -
+pushd /opt/midonet-sandbox
+UPSTREAM=${1:-'@{u}'}
+LOCAL=$(git rev-parse @)
+REMOTE=$(git rev-parse "$UPSTREAM")
+BASE=$(git merge-base @ "$UPSTREAM")
+popd
+
+if [ $LOCAL = $REMOTE ]; then
+    echo "Sandbox from CI image is up-to-date: reusing available images! time is gold!"
+elif [ $LOCAL = $BASE ]; then
+    echo "Sandbox from CI image need to pull: the CI image should be updated to speed the things up!"
+    rm -rf midonet-sandbox
+    git clone --depth=1 https://github.com/midonet/midonet-sandbox.git
+    cd midonet-sandbox
+    python setup.py install
+    cd -
+    sandbox-manage -c sandbox.conf build-all --force $SANDBOX_FLAVOUR
+elif [ $REMOTE = $BASE ]; then
+    echo "ERROR: Sandbox from CI image need to push: this is very strange, maybe the CI image is not being generated correctly"
+    exit 1
+else
+    echo "ERROR: Sandbox from CI image diverged: this is very weird, maybe the CI image is not being generated correctly"
+    exit 2
+fi
 
 # Install mdts deps, on top of sandbox deps
 pip install -r tests/mdts.dependencies
 
 # Start sandbox
 cd tests/
-echo "docker_registry=artifactory-v2.bcn.midokura.com" >> sandbox.conf
-echo "docker_insecure_registry=True" >> sandbox.conf
-sandbox-manage -c sandbox.conf pull-all $SANDBOX_FLAVOUR
 sandbox-manage -c sandbox.conf \
                     run $SANDBOX_FLAVOUR \
                     --name=$SANDBOX_NAME \
