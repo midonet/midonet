@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0b09e2dc",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyMatchers.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-10-22T00:44:30Z",
+      "side": 1,
+      "message": "this very long line is ok for our style?",
+      "revId": "12a85f6daee66d21bcc7baa3c46155e59e1d9795",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
