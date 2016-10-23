@@ -58,7 +58,7 @@ class TcIntegrationTest extends FeatureSpec
             val devName = "test"
 
             val handler = new TcRequestHandler(factory)
-            handler.start()
+            handler.startAsync().awaitRunning()
 
             try {
                 val veth = LinkOps.createVethPair(devName, s"p$devName")
@@ -73,7 +73,7 @@ class TcIntegrationTest extends FeatureSpec
 
             } finally {
                 LinkOps.deleteLink(devName)
-                handler.stop()
+                handler.doStop()
             }
         }
 
@@ -81,7 +81,7 @@ class TcIntegrationTest extends FeatureSpec
             val devName = "test1"
 
             val handler = new TcRequestHandler(factory)
-            handler.start()
+            handler.startAsync().awaitRunning()
 
             try {
 
@@ -106,7 +106,7 @@ class TcIntegrationTest extends FeatureSpec
 
             } finally {
                 LinkOps.deleteLink(devName)
-                handler.stop()
+                handler.doStop()
             }
         }
 
@@ -114,7 +114,7 @@ class TcIntegrationTest extends FeatureSpec
             val devName = "test2"
 
             val handler = new TcRequestHandler(factory)
-            handler.start()
+            handler.startAsync().awaitRunning()
 
             try {
                 val veth = LinkOps.createVethPair(devName, s"p$devName")
@@ -131,7 +131,7 @@ class TcIntegrationTest extends FeatureSpec
 
             } finally {
                 LinkOps.deleteLink(devName)
-                handler.stop()
+                handler.doStop()
             }
         }
     }
@@ -142,7 +142,7 @@ class TcIntegrationTest extends FeatureSpec
             val devName2 = "test5"
 
             val handler = new TcRequestHandler(factory)
-            handler.start()
+            handler.startAsync().awaitRunning()
             try {
                 val veth1 = LinkOps.createVethPair(devName1, s"p$devName1")
                 val r1 = 300
@@ -169,7 +169,7 @@ class TcIntegrationTest extends FeatureSpec
             } finally {
                 LinkOps.deleteLink(devName1)
                 LinkOps.deleteLink(devName2)
-                handler.stop()
+                handler.doStop()
             }
         }
     }

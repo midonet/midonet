@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.PacketWorkersService;
 import org.midonet.midolman.host.services.HostService;
+import org.midonet.midolman.host.services.TcRequestHandler;
 import org.midonet.midolman.state.PeerResolver;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopology;
@@ -56,6 +57,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject
     SelectLoopService selectLoopService;
+
+    @Inject
+    TcRequestHandler tcRequestHandler;
 
     @Inject
     MetricRegistry metrics;
@@ -163,7 +167,7 @@ public class MidolmanService extends AbstractService {
     }
 
     private List<Service> services() {
-        ArrayList<Service> services = new ArrayList<>(5);
+        ArrayList<Service> services = new ArrayList<>(7);
         services.add(datapathService);
         services.add(selectLoopService);
         if (hostService != null)
@@ -171,6 +175,7 @@ public class MidolmanService extends AbstractService {
         services.add(virtualToPhysicalMapper);
         services.add(actorsService);
         services.add(packetWorkersService);
+        services.add(tcRequestHandler);
         return services;
     }
 }
