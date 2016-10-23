@@ -78,8 +78,7 @@ class TcRequestHandlerTest extends FeatureSpec
         scenario("random requests") {
 
             val handler = new TestableTcRequestHandler()
-
-            handler.start()
+            handler.startAsync().awaitRunning()
 
             val reqs = List(
                 TR(add, 1), TR(add, 2), TR(rem, 1), TR(add, 3), TR(add, 4),
