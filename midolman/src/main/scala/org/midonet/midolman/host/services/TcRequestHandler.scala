@@ -20,6 +20,8 @@ import java.io.FileNotFoundException
 import java.nio.ByteBuffer
 import java.util.concurrent.LinkedBlockingQueue
 
+import com.google.common.util.concurrent.AbstractService
+
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
@@ -28,6 +30,12 @@ import org.midonet.netlink.rtnetlink.RtnetlinkProtocol
 object TcRequestOps {
     val ADDFILTER = 1
     val REMQDISC = 2
+}
+
+object TcRequestHandler {
+    def apply(channelFactory: NetlinkChannelFactory) = {
+        new TcRequestHandler(channelFactory)
+    }
 }
 
 case class TcRequest(op: Int, ifindex: Int, rate: Int = 0, burst: Int = 0)
@@ -40,7 +48,7 @@ case class TcRequest(op: Int, ifindex: Int, rate: Int = 0, burst: Int = 0)
  * netlink messages, which it will then send over to the kernel.
  */
 class TcRequestHandler(channelFactory: NetlinkChannelFactory)
-        extends MidolmanLogging {
+        extends AbstractService with MidolmanLogging {
 
     val EEXIST = 17
 
@@ -154,6 +162,13 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory)
         }
     }
 
-    def start() = processingThread.start()
-    def stop() = processingThread.interrupt()
+    def doStart() = {
+        processingThread.start()
+        notifyStarted()
+    }
+
+    def doStop() = {
+        processingThread.interrupt()
+        notifyStopped()
+    }
 }
