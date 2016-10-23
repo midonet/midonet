@@ -45,6 +45,7 @@ import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.util.MockNetlinkChannelFactory
 import org.midonet.midolman.util.mock._
 import org.midonet.netlink.NetlinkChannelFactory
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
@@ -122,6 +123,9 @@ class MockMidolmanModule(override val hostId: UUID,
             override def doStop(): Unit = notifyStopped()
 
         }
+
+    protected override def netlinkChannelFactory(): NetlinkChannelFactory =
+        new MockNetlinkChannelFactory
 
     protected override def createFlowRecorder(hostId: UUID) =
         NullFlowRecorder
