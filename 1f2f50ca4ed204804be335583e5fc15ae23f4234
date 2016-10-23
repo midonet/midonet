@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2ea274ae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-23T09:47:20Z",
+      "side": 1,
+      "message": "What does this TODO mean?",
+      "revId": "1f2f50ca4ed204804be335583e5fc15ae23f4234",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
