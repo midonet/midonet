@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2113a5b9",
+        "filename": "tests/mdts/services/interface.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-24T07:47:41Z",
+      "side": 1,
+      "message": "This function will also have to verify when there are NO limits (which could be signified with a None, None parameter for max_kbps, burst_kb).  Basically, when I need to test that the limits were removed and the output rate is equal to the input rate.",
+      "range": {
+        "startLine": 231,
+        "startChar": 55,
+        "endLine": 231,
+        "endChar": 63
+      },
+      "revId": "b41c2593f500f7c0bc4b22faac8d0a6be03e303a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
