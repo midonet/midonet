@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f005810f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-24T20:06:06Z",
+      "side": 1,
+      "message": "table $vrfIndex",
+      "range": {
+        "startLine": 256,
+        "startChar": 33,
+        "endLine": 256,
+        "endChar": 51
+      },
+      "revId": "56b9a692a1e912f474efae456ece317479cd5c8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_30008900",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-24T20:06:06Z",
+      "side": 1,
+      "message": "Unused?",
+      "range": {
+        "startLine": 310,
+        "startChar": 4,
+        "endLine": 311,
+        "endChar": 55
+      },
+      "revId": "56b9a692a1e912f474efae456ece317479cd5c8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b0149943",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 408,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-24T20:06:06Z",
+      "side": 1,
+      "message": "We also should add route inside of vpp for fixed ipv4 destination and put vpp-downlink interface to corresponding VRF table",
+      "range": {
+        "startLine": 408,
+        "startChar": 4,
+        "endLine": 408,
+        "endChar": 17
+      },
+      "revId": "56b9a692a1e912f474efae456ece317479cd5c8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
