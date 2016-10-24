@@ -117,7 +117,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private val refUpdatedAction = makeAction1(refUpdated)
     override val observable: Observable[SimulationPort] = Observable
         .merge(chainsTracker.refsObservable.doOnNext(refUpdatedAction),
-               l2insertionsTracker.refsObservable.doOnNext(refUpdatedAction),
+               l2insertionsTracker.refsObservable
+                   .doOnNext(makeAction1(l2InsertionUpdated)),
                mirrorsTracker.refsObservable.doOnNext(refUpdatedAction),
                traceChainObservable.doOnNext(makeAction1(traceChainUpdated)),
                portStateObservable, portObservable)
@@ -201,7 +202,12 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     /** Handles updates to the chains. */
     private def refUpdated(obj: AnyRef): Unit = {
         assertThread()
-        log.debug("Port reference updated {}", obj)
+        log.debug("Port reference updated: {}", obj)
+    }
+
+    private def l2InsertionUpdated(l2Insertion: L2Insertion): Unit = {
+        assertThread()
+        log.debug("L2 insertion updated: {}", l2Insertion.getId.asJava)
     }
 
     private def traceChainUpdated(chainId: Option[UUID]): Unit = {
