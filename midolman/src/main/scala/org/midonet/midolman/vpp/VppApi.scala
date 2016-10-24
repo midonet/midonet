@@ -103,6 +103,19 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext)
     }
 
     /** equivalent to:
+      * vpp# set int ip table <device> <table>
+      */
+    def setDeviceTable(device: Device,
+                       table: Int,
+                       isIpv6: Boolean = false): Future[Any] = {
+        val request = new SwInterfaceSetTable
+        request.swIfIndex = device.swIfIndex
+        request.isIpv6 = if (isIpv6) 1 else 0
+        request.vrfId = table
+        execVppRequest(request, lib.swInterfaceSetTable)
+    }
+
+    /** equivalent to:
      * vpp# set int state <interface> up */
     def setDeviceAdminState(device: Device,
                             isUp: Boolean): Future[Any] = {
