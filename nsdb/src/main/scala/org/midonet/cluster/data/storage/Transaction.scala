@@ -91,7 +91,7 @@ trait Transaction {
     def updateNode(path: String, value: String): Unit
 
     /** Deletes a data node as part of the current transaction. */
-    def deleteNode(path: String): Unit
+    def deleteNode(path: String, idempotent: Boolean = true): Unit
 
     /** Commits the operations from the current transaction to the storage
       * backend. */
