@@ -16,6 +16,24 @@
       "revId": "1f2f50ca4ed204804be335583e5fc15ae23f4234",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c1a4f907",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T02:12:33Z",
+      "side": 1,
+      "message": "For some reason this netlink message has no corresponding ACK message from the kernel, even though the ACK is requested. The ACK comes in other cases, just not this one.",
+      "parentUuid": "baa041b7_2ea274ae",
+      "revId": "1f2f50ca4ed204804be335583e5fc15ae23f4234",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
