@@ -795,6 +795,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
     override def failFastOwnerId = DefaultOwnerId
 
     val tablesDirectory = new MockDirectory()
+
     val stateTableClient = new StateTableClient {
         override def stop(): Boolean = { true }
 
@@ -864,7 +865,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
     override def getTable[K, V](name: String)
                                (implicit key: ClassTag[K], value: ClassTag[V])
     : StateTable[K, V] = {
-        val path = "/" + tablePath(name).replace('/', '_')
+        val path = tablePath(name)
 
         val provider = getProvider(key.runtimeClass, value.runtimeClass, name)
         tablesDirectory.ensureHas(path, "".getBytes)

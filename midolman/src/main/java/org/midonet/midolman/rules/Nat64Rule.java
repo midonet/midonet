@@ -24,14 +24,14 @@ import org.midonet.cluster.data.ZoomOneOf;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.midolman.simulation.PacketContext;
-import org.midonet.packets.IPSubnet;
+import org.midonet.packets.IPv6Subnet;
 
 @ZoomClass(clazz = Topology.Rule.class )
 @ZoomOneOf(name = "nat64_rule_data")
 public class Nat64Rule extends Rule {
 
     @ZoomField(name = "port_address", converter = IPSubnetUtil.Converter.class)
-    public IPSubnet<?> portAddress;
+    public IPv6Subnet portAddress;
 
     @ZoomField(name = "nat_pool")
     public NatTarget natPool;
