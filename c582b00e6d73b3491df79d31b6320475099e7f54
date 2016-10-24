@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_baa47aa5",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/NetlinkUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-24T14:08:52Z",
+      "side": 1,
+      "message": "is this method called concurrently, does this need to be atomic?",
+      "range": {
+        "startLine": 98,
+        "startChar": 12,
+        "endLine": 98,
+        "endChar": 20
+      },
+      "revId": "c582b00e6d73b3491df79d31b6320475099e7f54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
