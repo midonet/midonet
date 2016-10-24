@@ -26,13 +26,29 @@ case class QosPolicy(id: UUID,
                      name: String,
                      bandwidthRules: Seq[QosMaxBandwidthRule],
                      dscpRules: Seq[QosDscpRule]) extends VirtualDevice {
+
     override def deviceTag: FlowTag = FlowTagger.tagForQosPolicy(id)
+
+    override def toString = {
+        s"QosPolicy [id=$id name=$name bandwidthRules=$bandwidthRules " +
+        s"dscpRules=$dscpRules]"
+    }
 }
 
 case class QosMaxBandwidthRule(id: UUID,
                                maxKbps: Int,
-                               maxBurstKbps: Int)
+                               maxBurstKbps: Int) {
 
-case class QosDscpRule(id: UUID,
-                       dscpMark: Byte)
+    override def toString = {
+        s"QosMaxBandwidthRule [id=$id maxKbps=$maxKbps " +
+        s"maxBurstKbps=$maxBurstKbps]"
+    }
+}
+
+case class QosDscpRule(id: UUID, dscpMark: Byte) {
+
+    override def toString = {
+        s"QosDscpRule [id=$id dscpMark=$dscpMark]"
+    }
+}
 
