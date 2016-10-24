@@ -22,6 +22,30 @@
       "revId": "c582b00e6d73b3491df79d31b6320475099e7f54",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7ac1522e",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/NetlinkUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-10-24T14:10:36Z",
+      "side": 1,
+      "message": "hmm, perhaps, yes, I\u0027ll submit an update.",
+      "parentUuid": "baa041b7_baa47aa5",
+      "range": {
+        "startLine": 98,
+        "startChar": 12,
+        "endLine": 98,
+        "endChar": 20
+      },
+      "revId": "c582b00e6d73b3491df79d31b6320475099e7f54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
