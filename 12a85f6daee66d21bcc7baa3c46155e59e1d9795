@@ -16,6 +16,24 @@
       "revId": "12a85f6daee66d21bcc7baa3c46155e59e1d9795",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_21896526",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyMatchers.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-24T07:20:53Z",
+      "side": 1,
+      "message": "I don\u0027t think we\u0027ve been following a max line length rule for imports (see below), but I didn\u0027t intend this change either - was done by the IDE.",
+      "parentUuid": "baa041b7_0b09e2dc",
+      "revId": "12a85f6daee66d21bcc7baa3c46155e59e1d9795",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
