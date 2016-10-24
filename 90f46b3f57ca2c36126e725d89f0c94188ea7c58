@@ -22,6 +22,30 @@
       "revId": "90f46b3f57ca2c36126e725d89f0c94188ea7c58",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5af44e53",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-24T14:29:56Z",
+      "side": 1,
+      "message": "they\u0027re not just for fip64, the field was introduced previously, for IPv4 fips, just not passed to the simulation object. here I\u0027m just leveraging it to add a FIP64 specific rule",
+      "parentUuid": "baa041b7_7a4b92b1",
+      "range": {
+        "startLine": 96,
+        "startChar": 27,
+        "endLine": 96,
+        "endChar": 38
+      },
+      "revId": "90f46b3f57ca2c36126e725d89f0c94188ea7c58",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
