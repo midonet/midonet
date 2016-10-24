@@ -28,7 +28,7 @@ import org.midonet.packets.{IPv4Addr, IPv6Addr}
   */
 case class Fip64Entry(fixedIp: IPv4Addr, floatingIp: IPv6Addr, portId: UUID,
                       routerId: UUID) {
-    override def toString = s"Fip64 [id=$fixedIp floatingIp=$floatingIp " +
+    override def toString = s"Fip64 [fixedIp=$fixedIp floatingIp=$floatingIp " +
                             s"portId=$portId routerId=$routerId]"
 
     def encode: String = s"$fixedIp;$floatingIp;$portId;$routerId"
