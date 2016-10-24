@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_013b019d",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/tc/TcIntegrationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T05:14:28Z",
+      "side": 1,
+      "message": "Good point. Removed the other two.",
+      "parentUuid": "baa041b7_618d2d7b",
+      "revId": "6dfadce6b39b75cf75bd9c4a0679bf18aeedd477",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8192719d",
         "filename": "midolman/src/integration/scala/org/midonet/midolman/tc/TcIntegrationTest.scala",
         "patchSetId": 2
@@ -47,6 +65,24 @@
       "writtenOn": "2016-10-24T03:16:39Z",
       "side": 1,
       "message": "Isn\u0027t this a different scenario, not a feature?",
+      "revId": "6dfadce6b39b75cf75bd9c4a0679bf18aeedd477",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e13dbd8e",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/tc/TcIntegrationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T05:14:28Z",
+      "side": 1,
+      "message": "true. fixed.",
+      "parentUuid": "baa041b7_4188e96a",
       "revId": "6dfadce6b39b75cf75bd9c4a0679bf18aeedd477",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
