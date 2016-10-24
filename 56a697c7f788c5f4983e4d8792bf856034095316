@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4197c944",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T07:54:03Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "baa041b7_974e416d",
+      "range": {
+        "startLine": 67,
+        "startChar": 17,
+        "endLine": 67,
+        "endChar": 55
+      },
+      "revId": "56a697c7f788c5f4983e4d8792bf856034095316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_77517d0d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 9
@@ -36,6 +60,30 @@
       "writtenOn": "2016-10-19T09:33:06Z",
       "side": 1,
       "message": "this should be a member of the request handler, and should be encapsulated by the request handler. RequestHandler should have a single call for adding requests to the queue.",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 35
+      },
+      "revId": "56a697c7f788c5f4983e4d8792bf856034095316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4edff865",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T07:54:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_77517d0d",
       "range": {
         "startLine": 70,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6ee4fc3a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T07:54:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_b72ca593",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 46
+      },
+      "revId": "56a697c7f788c5f4983e4d8792bf856034095316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_17435143",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 9
@@ -82,6 +154,30 @@
       "writtenOn": "2016-10-19T09:33:06Z",
       "side": 1,
       "message": "what happens if request handler fails to add the tc stuff?",
+      "range": {
+        "startLine": 126,
+        "startChar": 10,
+        "endLine": 127,
+        "endChar": 64
+      },
+      "revId": "56a697c7f788c5f4983e4d8792bf856034095316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_81c6f146",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T07:54:03Z",
+      "side": 1,
+      "message": "Right now there is only one failure that is handled: the EEXIST error. If it is a different error, it is bubbled up.",
+      "parentUuid": "baa041b7_17435143",
       "range": {
         "startLine": 126,
         "startChar": 10,
@@ -111,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_61c1ad2e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T07:54:03Z",
+      "side": 1,
+      "message": "Yes: MI-1681",
+      "parentUuid": "baa041b7_5706791c",
+      "revId": "56a697c7f788c5f4983e4d8792bf856034095316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_571d5960",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
         "patchSetId": 9
@@ -122,6 +236,30 @@
       "writtenOn": "2016-10-19T09:33:06Z",
       "side": 1,
       "message": "Use an abstractservice.",
+      "range": {
+        "startLine": 44,
+        "startChar": 16,
+        "endLine": 44,
+        "endChar": 31
+      },
+      "revId": "56a697c7f788c5f4983e4d8792bf856034095316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_41bc69b4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T07:54:03Z",
+      "side": 1,
+      "message": "Addressed here: https://review.gerrithub.io/#/c/299267/\n\nI made a separate review for this because it seemed like an unrelated change to this patch.",
+      "parentUuid": "baa041b7_571d5960",
       "range": {
         "startLine": 44,
         "startChar": 16,
@@ -151,6 +289,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_812271ff",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T07:54:03Z",
+      "side": 1,
+      "message": "Are you OK with deferring this change until we have a common class to support this readWrite?",
+      "parentUuid": "baa041b7_37209599",
+      "revId": "56a697c7f788c5f4983e4d8792bf856034095316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f736ade5",
         "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TcRequestHandlerTest.scala",
         "patchSetId": 9
@@ -162,6 +318,30 @@
       "writtenOn": "2016-10-19T09:33:06Z",
       "side": 1,
       "message": "You should have an integration test for this also. See https://github.com/midonet/midonet/blob/master/midolman/src/integration/scala/org/midonet/midolman/vpp/VppIntegrationTest.scala\n\nWe\u0027re planning to enable integration tests in jenkins in next sprint or 2.",
+      "range": {
+        "startLine": 36,
+        "startChar": 6,
+        "endLine": 36,
+        "endChar": 30
+      },
+      "revId": "56a697c7f788c5f4983e4d8792bf856034095316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_017d41e6",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TcRequestHandlerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T07:54:03Z",
+      "side": 1,
+      "message": "implemented here: https://github.com/midonet/midonet/commit/646879342978126feca3af3e2ad7b405d03c74ab",
+      "parentUuid": "baa041b7_f736ade5",
       "range": {
         "startLine": 36,
         "startChar": 6,
