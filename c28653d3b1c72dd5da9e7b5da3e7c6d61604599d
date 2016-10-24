@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_270980dd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/Transaction.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-24T07:39:16Z",
+      "side": 1,
+      "message": "yes, it should, but maybe I should make this change in a separate patch?",
+      "parentUuid": "baa041b7_2b44b070",
+      "range": {
+        "startLine": 83,
+        "startChar": 43,
+        "endLine": 83,
+        "endChar": 53
+      },
+      "revId": "c28653d3b1c72dd5da9e7b5da3e7c6d61604599d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_eb2128b5",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
         "patchSetId": 3
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a1d215fe",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-24T07:39:16Z",
+      "side": 1,
+      "message": "good catch",
+      "parentUuid": "baa041b7_eb2128b5",
+      "revId": "c28653d3b1c72dd5da9e7b5da3e7c6d61604599d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0615613e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
         "patchSetId": 3
@@ -53,6 +95,30 @@
       "writtenOn": "2016-10-20T08:02:42Z",
       "side": 1,
       "message": "i guess it\u0027s better to have idempotent\u003dtrue processing around here instead.",
+      "range": {
+        "startLine": 515,
+        "startChar": 0,
+        "endLine": 515,
+        "endChar": 67
+      },
+      "revId": "c28653d3b1c72dd5da9e7b5da3e7c6d61604599d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_81cdd15e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-24T07:39:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0615613e",
       "range": {
         "startLine": 515,
         "startChar": 0,
