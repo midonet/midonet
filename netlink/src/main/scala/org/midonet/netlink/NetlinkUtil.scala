@@ -87,6 +87,7 @@ object NetlinkUtil {
             }
         }
 
+    var seq = 0
     def rpc[T](
             buf: ByteBuffer,
             writer: NetlinkWriter,
@@ -94,11 +95,24 @@ object NetlinkUtil {
             f: ByteBuffer => T,
             headerSize: Int = NetlinkMessage.GENL_HEADER_SIZE): T =
         try {
+            seq += 1
+            buf.putInt(NetlinkMessage.NLMSG_SEQ_OFFSET, seq)
             writer.write(buf)
             buf.clear()
             reader.read(buf)
-            buf.position(headerSize)
-            buf.limit(buf.getInt(NetlinkMessage.NLMSG_LEN_OFFSET))
+            var i = 0
+            while (buf.getInt(i + NetlinkMessage.NLMSG_SEQ_OFFSET) != seq) {
+                i += buf.getInt(i + NetlinkMessage.NLMSG_LEN_OFFSET)
+
+                if (i >= buf.position) {
+                    buf.clear()
+                    reader.read(buf)
+                    i = 0
+                }
+            }
+
+            buf.position(i + headerSize)
+            buf.limit(i + buf.getInt(i + NetlinkMessage.NLMSG_LEN_OFFSET))
             f(buf)
         } finally {
             buf.clear()
