@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_70e4d13a",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-24T21:34:36Z",
+      "side": 1,
+      "message": "nit: order (but don\u0027t resubmit just for this)",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 36
+      },
+      "revId": "3c200cfe9eaf0c28ef4ffc5b0bf5b01fa505a60b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
