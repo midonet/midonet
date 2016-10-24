@@ -17,6 +17,7 @@
 package org.midonet.midolman.vpp
 
 import java.util.UUID
+import java.util.concurrent.TimeoutException
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -30,6 +31,9 @@ import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
+import org.midonet.util.process.ProcessHelper
+import org.midonet.util.process.ProcessHelper.OutputStreams.StdError
+import org.midonet.util.process.ProcessHelper.OutputStreams.StdOutput
 
 import org.midonet.util.process.ProcessHelper
 import org.midonet.util.process.ProcessHelper.OutputStreams.{StdError, StdOutput}
@@ -196,10 +200,11 @@ private object VppSetup extends MidolmanLogging {
         extends FutureTaskWithRollback {
 
         var oldIfName: Option[String] = None
+
         @throws[Exception]
         override def execute(): Future[Any] = {
             try {
-                storage.tryTransaction( tx =>  {
+                storage.tryTransaction(tx => {
                     val hostId = HostIdGenerator.getHostId()
                     val oldPort = tx.get(classOf[Port], tenantRouterPortId)
                     oldIfName = Some(oldPort getInterfaceName)
@@ -220,8 +225,9 @@ private object VppSetup extends MidolmanLogging {
         override def rollback(): Future[Any] = {
             oldIfName match {
                 case Some(ifName) => try {
-                    storage.tryTransaction( tx => {
-                        val currentPort = tx.get(classOf[Port], tenantRouterPortId)
+                    storage.tryTransaction(tx => {
+                        val currentPort = tx
+                            .get(classOf[Port], tenantRouterPortId)
                         val restoredPort = currentPort.toBuilder
                             .setInterfaceName(ifName)
                             .build()
@@ -236,8 +242,53 @@ private object VppSetup extends MidolmanLogging {
             }
         }
     }
-}
 
+    class VppFip64Setup(override val name: String,
+                        srcIp4: IPv4Addr,
+                        dstIp4: IPv4Addr,
+                        srcIp6: IPv6Addr,
+                        dstIp6: IPv6Addr,
+                        vrfIndex: Int)
+                       (implicit ec: ExecutionContext)
+        extends FutureTaskWithRollback {
+
+        val setupCmd = s"sudo vppctl fip64 add $srcIp6 $dstIp6 " +
+                       s"$srcIp4 $dstIp4 $vrfIndex"
+        val cleanupCmd = s"sudo vppctl fip64 del $srcIp6 $dstIp6"
+
+        val VppCtlTimeoutMillis = 1 minute
+
+        override def execute(): Future[Any] = {
+            executeCommandWithTimeout(setupCmd)
+        }
+
+        override def rollback(): Future[Any] = {
+            executeCommandWithTimeout(cleanupCmd)
+        }
+
+        private def executeCommandWithTimeout(cmdLine: String): Future[_] = {
+            val process = ProcessHelper.newProcess(cmdLine)
+                .logOutput(log.underlying, "vppctl", StdOutput, StdError)
+                .run()
+
+            val promise = Promise[Unit]
+            Future {
+                if (!process.waitFor(VppCtlTimeoutMillis.toMillis,
+                                     MILLISECONDS)) {
+                    process.destroy()
+                    throw new TimeoutException("Command execution timed out")
+                }
+                if (process.exitValue == 0) {
+                    promise.trySuccess(())
+                } else {
+                    promise.tryFailure(new Exception(
+                        s"Command failed with result ${process.exitValue}"))
+                }
+            }
+            promise.future
+        }
+    }
+}
 
 class VppSetup(setupName: String)
                        (implicit ec: ExecutionContext)
@@ -249,12 +300,15 @@ class VppUplinkSetup(uplinkPortId: UUID,
                      vppOvs: VppOvs)
                      (implicit ec: ExecutionContext)
     extends VppSetup("VPP uplink setup") {
+
     import VppSetup._
 
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
     private val uplinkOvsName = s"ovs-$uplinkSuffix"
     private val uplinkVppAddr = IPv6Addr.fromString("2001::1")
+    private val SrcIp4 = IPv4Addr.fromString("10.0.0.1")
+    private val SrcIp6 = IPv6Addr.fromString("2016::2")
 
     private val uplinkVppPrefix: Byte = 64
 
@@ -272,10 +326,11 @@ class VppUplinkSetup(uplinkPortId: UUID,
                                           uplinkVpp,
                                           uplinkVppAddr,
                                           uplinkVppPrefix)
+
     private val ovsBind = new OvsBindV6("ovs bind for vpp uplink veth",
                                         vppOvs,
                                         uplinkOvsName)
-    private val vppFlows = new FlowInstall("install ipv6 flows",
+    private val ovsFlows = new FlowInstall("install ipv6 flows",
                                            vppOvs,
                                            () => { ovsBind.getPortNo },
                                            () => { uplinkPortDpNo })
@@ -287,7 +342,7 @@ class VppUplinkSetup(uplinkPortId: UUID,
     add(uplinkVpp)
     add(ipAddrVpp)
     add(ovsBind)
-    add(vppFlows)
+    add(ovsFlows)
 }
 
 /**
@@ -298,17 +353,21 @@ class VppUplinkSetup(uplinkPortId: UUID,
   */
 class VppDownlinkSetup(downlinkPortId: UUID,
                        vrf: Int,
+                       fixedIp: IPv4Addr,
+                       floatingIp: IPv6Addr,
                        vppApi: VppApi,
                        storage: Storage)
                        (implicit ec: ExecutionContext)
     extends VppSetup("VPP downlink setup")(ec) {
 
-    import VppSetup.{VethPairSetup, VppDevice, VppIpAddr, OvsBindV4}
+    import VppSetup._
 
     private val dlinkSuffix = downlinkPortId.toString.substring(0, 8)
     private val dlinkVppName = s"vpp-$dlinkSuffix"
     private val dlinkOvsName = s"ovs-$dlinkSuffix"
     private val dlinkVppAddr = IPv4Addr.fromString("10.0.0.2")
+    private val SrcIp4 = IPv4Addr.fromString("10.0.0.1")
+    private val SrcIp6 = IPv6Addr.fromString("2016::2")
 
     private val dlinkVppPrefix: Byte = 24
 
@@ -331,11 +390,20 @@ class VppDownlinkSetup(downlinkPortId: UUID,
                                         downlinkPortId,
                                         dlinkOvsName,
                                         storage)
+
+    private val vppFip64 = new VppFip64Setup("fip64 in vpp",
+                                             SrcIp4,
+                                             fixedIp,
+                                             SrcIp6,
+                                             floatingIp,
+                                             vrf)
     /*
     * setup the tasks, in execution order
     */
+
     add(dlinkVeth)
     add(dlinkVpp)
     add(ipAddrVpp)
     add(ovsBind)
+    add(vppFip64)
 }

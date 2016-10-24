@@ -18,6 +18,7 @@ package org.midonet.midolman.vpp
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
 import scala.collection.mutable
@@ -38,6 +39,7 @@ import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Midolman, Referenceable}
+import org.midonet.packets.{IPv4Addr, IPv6Addr}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.process.MonitoredDaemonProcess
@@ -94,6 +96,8 @@ class VppController @Inject()(config: MidolmanConfig,
         }
     }
 
+    private val vrfCounter = new AtomicInteger(0)
+
     override def preStart(): Unit = {
         super.preStart()
         portsSubscription add VirtualToPhysicalMapper.portsActive.subscribe(this)
@@ -127,7 +131,7 @@ class VppController @Inject()(config: MidolmanConfig,
         VirtualTopology.get(classOf[Port], portId) onComplete {
             case Success(port: RouterPort) if isIPv6(port) =>
                 log debug s"IPv6 router port attached: $port"
-                attachPort(portId, port)
+                attachUplinkPort(portId, port)
             case Success(_) => // ignore
             case Failure(err) =>
                 log warn s"Get port $portId failed: $err"
@@ -138,18 +142,22 @@ class VppController @Inject()(config: MidolmanConfig,
         detachPort(portId)
     }
 
-    private def attachPort(portId: UUID, port: RouterPort): Unit = {
+    private def attachUplinkPort(portId: UUID, port: RouterPort): Unit = {
         if (vppProcess eq null) {
             startVppProcess()
             vppApi = createApiConnection(VppConnectMaxRetries)
         }
 
-        def setupPort(): Future[_] = {
-            val setup =
-                new VppUplinkSetup(port.id,
-                                   datapathState.getDpPortNumberForVport(portId),
-                                   vppApi,
-                                   vppOvs)
+        val dpNumber = datapathState.getDpPortNumberForVport(portId)
+        setupPort(portId, port, new VppUplinkSetup(port.id,
+                                                         dpNumber,
+                                                         vppApi,
+                                                         vppOvs))
+    }
+
+    def setupPort(portId: UUID, port: RouterPort, setup: VppSetup): Unit = {
+
+        def doSetup(): Future[_] = {
             val boundPort = BoundPort(port, setup)
 
             val unbindF = watchedPorts.put(portId, boundPort) match {
@@ -169,14 +177,15 @@ class VppController @Inject()(config: MidolmanConfig,
                     }
             }
         }
-        belt.handle(setupPort)
+
+        belt.handle(doSetup)
     }
 
     private def detachPort(portId: UUID): Unit = {
         def cleanupPort(): Future[_] = {
             watchedPorts remove portId match {
                 case Some(entry) =>
-                    log debug s"IPv6 port $portId detached"
+                    log debug s"FIP64 port $portId detached"
                     entry.setup.rollback()
                 case None => Future.successful(Unit)
             }
@@ -184,12 +193,26 @@ class VppController @Inject()(config: MidolmanConfig,
         belt.handle(cleanupPort)
     }
 
-    private def attachDownlinkPort(portId: UUID, port: RouterPort): Unit = {
+    private def attachDownlinkPort(portId: UUID,
+                                   port: RouterPort,
+                                   fixedIp: IPv4Addr,
+                                   floatingIp: IPv6Addr): Unit = {
+        if (vppProcess eq null) {
+            startVppProcess()
+            vppApi = createApiConnection(VppConnectMaxRetries)
+        }
 
+        val vrfId = vrfCounter.incrementAndGet()
+        setupPort(portId, port, new VppDownlinkSetup(port.id,
+                                                     vrfId,
+                                                     fixedIp,
+                                                     floatingIp,
+                                                     vppApi,
+                                                     storage))
     }
 
     private def detachDownlinkPort(portId: UUID): Unit = {
-
+        detachPort(portId)
     }
 
     private def createApiConnection(retriesLeft: Int): VppApi = {
