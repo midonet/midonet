@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_018c2133",
+        "filename": "tests/mdts/services/interface.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-10-24T07:21:51Z",
+      "side": 1,
+      "message": "You can use booleans in these \"assert_that\" statements (like assert_that(elapsed_time \u003c max_time, \"Reason...\").",
+      "revId": "7d426104c90501ebe0638bdcfc7640720a2592c7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
