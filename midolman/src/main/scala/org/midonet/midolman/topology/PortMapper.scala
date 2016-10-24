@@ -126,7 +126,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
     override lazy val observable: Observable[SimulationPort] = Observable
         .merge(chainsTracker.refsObservable.doOnNext(refUpdatedAction),
-               l2insertionsTracker.refsObservable.doOnNext(refUpdatedAction),
+               l2insertionsTracker.refsObservable
+                   .doOnNext(makeAction1(l2InsertionUpdated)),
                mirrorsTracker.refsObservable.doOnNext(refUpdatedAction),
                traceChainObservable.doOnNext(makeAction1(traceChainUpdated)),
                bridgeTracker.refsObservable.doOnNext(makeAction1(bridgeUpdated)),
@@ -240,7 +241,12 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     /** Handles updates to the chains. */
     private def refUpdated(obj: AnyRef): Unit = {
         assertThread()
-        log.debug("Port reference updated {}", obj)
+        log.debug("Port reference updated: {}", obj)
+    }
+
+    private def l2InsertionUpdated(l2Insertion: L2Insertion): Unit = {
+        assertThread()
+        log.debug("L2 insertion updated: {}", l2Insertion.getId.asJava)
     }
 
     private def traceChainUpdated(chainId: Option[UUID]): Unit = {
@@ -251,10 +257,13 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
     private def bridgeUpdated(network: Network): Unit = {
         assertThread()
-        log.debug("Port's bridge updated: {}", network)
         if (network.hasQosPolicyId) {
+            log.debug("Port bridge {} updated with QoS policy {}",
+                      network.getId.asJava, network.getQosPolicyId.asJava)
             qosPolicyTracker.requestRefs(network.getQosPolicyId)
         } else {
+            log.debug("Port bridge {} updated without QoS policy",
+                      network.getId.asJava)
             qosPolicyTracker.requestRefs(Set[UUID]())
         }
     }
