@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_210605ce",
+        "filename": "tests/mdts/services/interface.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T05:58:15Z",
+      "side": 1,
+      "message": "this results in a circular import error.",
+      "range": {
+        "startLine": 18,
+        "startChar": 35,
+        "endLine": 18,
+        "endChar": 50
+      },
+      "revId": "693a686d079d528dcf370467e0330cc0294823a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_416469b1",
+        "filename": "tests/mdts/services/interface.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-10-24T05:58:15Z",
+      "side": 1,
+      "message": "Aren\u0027t the listen and the send happening on the same interface here?",
+      "range": {
+        "startLine": 283,
+        "startChar": 19,
+        "endLine": 283,
+        "endChar": 53
+      },
+      "revId": "693a686d079d528dcf370467e0330cc0294823a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_01ed4124",
         "filename": "tests/mdts/services/interface.py",
         "patchSetId": 2
