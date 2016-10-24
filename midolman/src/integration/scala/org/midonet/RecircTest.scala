@@ -21,6 +21,7 @@ import java.util.{Arrays, UUID}
 import java.util.concurrent.ThreadLocalRandom
 
 import scala.util.control.NonFatal
+import scala.util.control.Exception._
 
 import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.ConfigFactory
@@ -95,12 +96,15 @@ class RecircTest extends FeatureSpec
 
     override def beforeAll(): Unit = {
         channel = channelFactory.create(blocking = true)
+        writer = new NetlinkWriter(channel)
+        reader = new NetlinkReader(channel)
         families = OvsNetlinkFamilies.discover(channel)
         protocol = new OvsProtocol(channel.getLocalAddress.getPid,
                                    families)
+
+        cleanup()
+
         protocol.prepareDatapathCreate(dpName, buf)
-        writer = new NetlinkWriter(channel)
-        reader = new NetlinkReader(channel)
         datapath = NetlinkUtil.rpc(buf, writer, reader, Datapath.buildFrom)
 
         tapWrapper = try {
@@ -154,7 +158,6 @@ class RecircTest extends FeatureSpec
             override def tunnelRecircOutputAction = vxlanRecircPort.toOutputAction
             override def hostRecircOutputAction = recircPort.toOutputAction
         }
-
         translator = new FlowTranslator {
             override protected val hostId = UUID.randomUUID()
 
@@ -184,15 +187,37 @@ class RecircTest extends FeatureSpec
             index = 0,
             channelFactory,
             new PacketExecutorMetrics(new MetricRegistry, 1))
+
+        flowProcessor.onStart()
+    }
+
+    private def cleanup(): Unit = {
+        buf.clear()
+
+        val channel = channelFactory.create(blocking = true)
+        try {
+            val writer = new NetlinkWriter(channel)
+            val families = OvsNetlinkFamilies.discover(channel)
+            val protocol = new OvsProtocol(channel.getLocalAddress.getPid,
+                                           families)
+            protocol.prepareDatapathDel(if (datapath != null) {
+                                            datapath.getIndex
+                                        } else 0, dpName, buf)
+            writer.write(buf)
+        } finally {
+            channel.close()
+            buf.clear()
+        }
+        ignoring(classOf[Throwable]) {
+            LinkOps.deleteLink(recircConfig.recircHostName) }
+        ignoring(classOf[Throwable]) {
+            LinkOps.deleteLink("injector-input") }
+        ignoring(classOf[Throwable]) {
+            new TapWrapper(tapName).remove() }
     }
 
     override def afterAll(): Unit = {
-        buf.clear()
-        protocol.prepareDatapathDel(datapath.getIndex, null, buf)
-        writer.write(buf)
-        tapWrapper.remove()
-        LinkOps.deleteLink(veth.getName)
-        LinkOps.deleteLink(injector)
+        cleanup()
     }
 
     feature("Packets are recirculated") {
@@ -246,6 +271,7 @@ class RecircTest extends FeatureSpec
         context.wcmatch.setDstPort(80)
         context.calculateActionsFromMatchDiff()
         context.addVirtualAction(ToPortAction(tapVport))
+        context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
 
         translator.translateActions(context)
 
