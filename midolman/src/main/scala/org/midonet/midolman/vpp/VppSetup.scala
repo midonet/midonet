@@ -200,7 +200,7 @@ private object VppSetup extends MidolmanLogging {
     class OvsBindV4(override val name: String,
                     tenantRouterPortId: UUID,
                     ovsDownlinkPortName: String,
-                    backEnd: MidonetBackend)
+                    backend: MidonetBackend)
                    (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
 
@@ -209,8 +209,8 @@ private object VppSetup extends MidolmanLogging {
         @throws[Exception]
         override def execute(): Future[Any] = {
             try {
-                backEnd.store.tryTransaction(tx =>  {
-                    val hostId = HostIdGenerator.getHostId()
+                backend.store.tryTransaction(tx =>  {
+                    val hostId = HostIdGenerator.getHostId
                     val oldPort = tx.get(classOf[Port], tenantRouterPortId)
                     oldIfName = Some(oldPort getInterfaceName)
                     val newPort = oldPort.toBuilder
@@ -230,7 +230,7 @@ private object VppSetup extends MidolmanLogging {
         override def rollback(): Future[Any] = {
             oldIfName match {
                 case Some(ifName) => try {
-                    backEnd.store.tryTransaction(tx => {
+                    backend.store.tryTransaction(tx => {
                         val currentPort = tx.get(classOf[Port], tenantRouterPortId)
                         val restoredPort = currentPort.toBuilder
                             .setInterfaceName(ifName)
