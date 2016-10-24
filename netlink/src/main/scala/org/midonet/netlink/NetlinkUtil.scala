@@ -18,6 +18,7 @@ package org.midonet.netlink
 
 import java.nio.ByteBuffer
 import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException}
+import java.util.concurrent.atomic.AtomicInteger
 
 import rx.Observer
 
@@ -87,7 +88,7 @@ object NetlinkUtil {
             }
         }
 
-    var seq = 0
+    var sequenceGenerator = new AtomicInteger(0)
     def rpc[T](
             buf: ByteBuffer,
             writer: NetlinkWriter,
@@ -95,7 +96,7 @@ object NetlinkUtil {
             f: ByteBuffer => T,
             headerSize: Int = NetlinkMessage.GENL_HEADER_SIZE): T =
         try {
-            seq += 1
+            val seq = sequenceGenerator.incrementAndGet()
             buf.putInt(NetlinkMessage.NLMSG_SEQ_OFFSET, seq)
             writer.write(buf)
             buf.clear()
