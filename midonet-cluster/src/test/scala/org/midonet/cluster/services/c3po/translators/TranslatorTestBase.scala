@@ -98,7 +98,7 @@ abstract class TranslatorTestBase  extends FlatSpec
                 }
             }
         )
-        when(transaction.deleteNode(any())).thenAnswer(
+        when(transaction.deleteNode(any(), any())).thenAnswer(
             new Answer[Unit] {
                 override def answer(invocation: InvocationOnMock): Unit = {
                     midoOps = midoOps :+ DeleteNode(invocation.getArguments.apply(0)
