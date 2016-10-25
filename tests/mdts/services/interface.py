@@ -53,10 +53,11 @@ class Interface(object):
         self._tcpdump_sem = Semaphore(value=0)
         self._tcpdump_output = []
         # TODO: write all tcpdump output to a file for later inspection
-        #self._tcpdump_output = ''
-        #f = self.expect('', store_output=True)
-        #LOG.debug('Scheduled tcpdump matching all on interface %s' % (ifname))
-        #self._tcpdump_sem.acquire()
+        # self._tcpdump_output = ''
+        # f = self.expect('', store_output=True)
+        # LOG.debug(
+        #     'Scheduled tcpdump matching all on interface %s' % (ifname))
+        # self._tcpdump_sem.acquire()
 
     def destroy(self):
         '''
@@ -80,15 +81,19 @@ class Interface(object):
                                should_succeed, stream=not sync)
 
     @handle_sync
-    def expect(self, pcap_filter_string, timeout=None, sync=False, count=1, listen_host_interface=False):
-        return EXECUTOR.submit(self.do_expect, pcap_filter_string, timeout, count, listen_host_interface)
+    def expect(self, pcap_filter_string, timeout=None, sync=False, count=1,
+               listen_host_interface=False):
+        return EXECUTOR.submit(self.do_expect, pcap_filter_string, timeout,
+                               count, listen_host_interface)
 
     @handle_sync
     def clear_arp(self, sync=False):
         return EXECUTOR.submit(self.do_clear_arp)
 
-    # FIXME: the default number of packets to wait for is 1, should be configurable
-    def do_expect(self, pcap_filter_string, timeout=None, count=1, listen_host_interface=False):
+    # FIXME: the default number of packets to wait for is 1, should be
+    # configurable
+    def do_expect(self, pcap_filter_string, timeout=None, count=1,
+                  listen_host_interface=False):
         """
         Expects packet with pcap_filter_string with tcpdump.
         See man pcap-filter for more details as to what you can match.
@@ -110,14 +115,13 @@ class Interface(object):
             listen_ifname,
             '-c %s' % count,
             pcap_filter_string)
-        log_stream, exec_id = self.do_execute(cmdline,
-                                              timeout,
-                                              stream=True,
-                                              on_netns=not listen_host_interface)
+        log_stream, exec_id = self.do_execute(
+                cmdline, timeout, stream=True,
+                on_netns=not listen_host_interface)
         try:
             self.compute_host.ensure_command_running(exec_id)
             LOG.debug('running tcp dump=%s', cmdline)
-        except Exception as e:
+        except Exception:
             LOG.debug('tcpdump failed to start for some reason, '
                       'probably because interface was down.'
                       'We are not going to see any packet! %s', cmdline)
@@ -185,14 +189,14 @@ class Interface(object):
 
     def inject_packet_loss(self, wait_time=0):
         cmdline = "iptables -i %s -A INPUT -j DROP" % self.get_ifname()
-        LOG.debug('[%s] Dropping packets coming from %s' \
+        LOG.debug('[%s] Dropping packets coming from %s'
                   % (self.compute_host.get_hostname(), self.get_ifname()))
         self.execute(cmdline, sync=True)
         time.sleep(wait_time)
 
     def eject_packet_loss(self, wait_time=0):
         cmdline = "iptables -i %s -D INPUT -j DROP" % self.get_ifname()
-        LOG.debug('[%s] Receiving packets coming from %s' \
+        LOG.debug('[%s] Receiving packets coming from %s'
                   % (self.compute_host.get_hostname(), self.get_ifname()))
         self.execute(cmdline, sync=True)
         time.sleep(wait_time)
@@ -243,8 +247,8 @@ class Interface(object):
 
         """
         cmdline = 'mz %s -c %s %s' % (self.get_ifname(),
-                                                   count,
-                                                   ether_frame_string)
+                                      count,
+                                      ether_frame_string)
         LOG.debug("sending ethernet frame(s) with mz:  %s" % cmdline)
 
         LOG.debug("cmdline: %s" % cmdline)
@@ -266,17 +270,16 @@ class Interface(object):
                 payload += '0'
 
         # Remove from headers hex_payload_file
-        cmdline = "mz %s %s -b %s -B %s -t %s \"%s\" -P \"%s\" -d %ss -c %s" % (
-            self.get_ifname(),
-            src_addrs,
-            target_hw,
-            target_ipv4,
-            pkt_type,
-            pkt_parms,
-            payload_size,
-            delay,
-            count
-        )
+        cmdline = ("mz %s %s -b %s -B %s -t %s \"%s\" -P \"%s\" -d %ss -c %s"
+                   % (self.get_ifname(),
+                      src_addrs,
+                      target_hw,
+                      target_ipv4,
+                      pkt_type,
+                      pkt_parms,
+                      payload_size,
+                      delay,
+                      count))
         LOG.debug("cmdline: %s" % cmdline)
         return self.execute(cmdline, sync=sync)
 
@@ -292,18 +295,19 @@ class Interface(object):
         (belongs to the same segment), or the router's incoming port mac if
         the receiver is in a different segment.
 
-        NOTE: Currently the underlying layer uses mz for sending udp packets. mz
-        requires that at least ip packet length to be specified. Ip packet length
-        is computed as  28 + pay load file size where
+        NOTE: Currently the underlying layer uses mz for sending udp packets.
+        mz requires that at least ip packet length to be specified. Ip packet
+        length is computed as  28 + pay load file size where
             - 20 bytes for UDP packet frame
             - 8 bytes for addresses
 
         Args:
             target_hw: The target HW for this UDP message. Either the receiving
-                interface's mac address if it is in the same network segment, or
-                the router's incoming port's mac address
+                interface's mac address if it is in the same network segment,
+                or the router's incoming port's mac address
             target_ipv4: An IP address of the receiver.
-            hex_payload_file: A name of the file containing hexadecimal pay load.
+            hex_payload_file: A name of the file containing hexadecimal pay
+                load.
             iplen: The UDP packet length (see NOTE above for how to compute the
                 length). Passing None will omit the parameter.
             src_port: A UDP source port. Passing None will omit the parameter.
@@ -315,8 +319,9 @@ class Interface(object):
             sync: Whether this call blocks (synchronous call) or not.
         """
         return self.send_protocol('udp', target_hw, target_ipv4, iplen,
-                 payload_size, src_port, dst_port, extra_params,
-                 delay, count, sync, src_hw, src_ipv4)
+                                  payload_size, src_port, dst_port,
+                                  extra_params, delay, count, sync, src_hw,
+                                  src_ipv4)
 
     def send_tcp(self, target_hw, target_ipv4, iplen,
                  payload_size=1,
@@ -324,18 +329,22 @@ class Interface(object):
                  sync=False):
 
         return self.send_protocol('tcp', target_hw, target_ipv4, iplen,
-                 payload_size, src_port, dst_port, extra_params,
-                 delay, count, sync)
+                                  payload_size, src_port, dst_port,
+                                  extra_params, delay, count, sync)
 
     def send_protocol(self, protocol_name, target_hw, target_ipv4, iplen,
-                 payload_size=1,
-                 src_port=9, dst_port=9, extra_params=None, delay=1, count=1,
-                 sync=False, src_hw=None, src_ipv4=None):
+                      payload_size=1,
+                      src_port=9, dst_port=9, extra_params=None, delay=1,
+                      count=1, sync=False, src_hw=None, src_ipv4=None):
         params = []
-        if src_port: params.append('sp=%d' % src_port)
-        if dst_port: params.append('dp=%d' % dst_port)
-        if iplen: params.append('iplen=%d' % iplen)
-        if extra_params: params.append(extra_params)
+        if src_port:
+            params.append('sp=%d' % src_port)
+        if dst_port:
+            params.append('dp=%d' % dst_port)
+        if iplen:
+            params.append('iplen=%d' % iplen)
+        if extra_params:
+            params.append(extra_params)
         protocol_params = ','.join(params)
         return self.send_packet(target_hw=target_hw,
                                 target_ipv4=target_ipv4,
@@ -343,7 +352,7 @@ class Interface(object):
                                 pkt_parms=protocol_params,
                                 payload_size=payload_size,
                                 delay=delay, count=count, sync=sync,
-                                src_hw = src_hw, src_ipv4 = src_ipv4)
+                                src_hw=src_hw, src_ipv4=src_ipv4)
 
     def ping4(self, target_iface, interval=0.5, count=1, sync=False,
               size=56, should_succeed=True, do_arp=False, data=None):
@@ -368,7 +377,7 @@ class Interface(object):
             self.send_arp_request(ipv4_addr)
             time.sleep(1)
 
-        if data == None:
+        if data is None:
             data = "ff"
 
         ping_cmd = 'ping -i %s -c %s -s %s -p %s %s' % (
@@ -380,14 +389,14 @@ class Interface(object):
         )
         return self.execute(ping_cmd, should_succeed=should_succeed, sync=sync)
 
-
     """
     Helper methods to get data from the interface
     """
 
     def update_interface_name(self, new_name):
         self.execute('ip link set dev %s down' % self.ifname, sync=True)
-        self.execute('ip link set dev %s name %s' % (self.ifname, new_name), sync=True)
+        self.execute('ip link set dev %s name %s' % (self.ifname, new_name),
+                     sync=True)
         self.ifname = new_name
         self.execute('ip link set dev %s up' % self.ifname, sync=True)
 
@@ -403,7 +412,8 @@ class Interface(object):
     # TODO this function may not exactly belong here, but to host
     def get_num_routes(self, update=False):
         if not self.num_routes or update:
-            self.num_routes = self.execute('sh -c \"ip route | wc -l\"', sync=True)
+            self.num_routes = self.execute('sh -c \"ip route | wc -l\"',
+                                           sync=True)
             LOG.debug("Infered num_routes = %s" % self.num_routes)
         return int(self.num_routes)
 
