@@ -33,7 +33,7 @@ import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.rules.{Rule => SimRule, _}
-import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC}
+import org.midonet.packets.{IPSubnet, IPv4Subnet, IPv6Subnet, MAC}
 import org.midonet.util.Range
 
 @RunWith(classOf[JUnitRunner])
@@ -133,7 +133,8 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
 
         scenario("Test conversion for NAT64 rule") {
-            val rule = createNat64Rule(portAddress = Some(randomIPv4Subnet),
+            val subnet = IPv6Subnet.fromString("2001::1/64")
+            val rule = createNat64Rule(portAddress = Some(subnet),
                                        natPool = Some(createNatTarget()))
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
             simRule shouldBeDeviceOf rule
