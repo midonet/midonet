@@ -16,7 +16,6 @@
 
 package org.midonet.midolman.vpp
 
-import java.lang.{Process, ProcessBuilder}
 import java.nio.ByteBuffer
 import java.util.UUID
 import java.util.concurrent.{CountDownLatch, TimeUnit}
@@ -30,10 +29,10 @@ import com.typesafe.config.ConfigFactory
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.test.TestingServer
-import org.junit.runner.RunWith
 import org.junit.Assert
+import org.junit.runner.RunWith
+import org.scalatest.FeatureSpec
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec}
 import org.slf4j.LoggerFactory
 
 import org.midonet.ErrorCode
@@ -495,8 +494,8 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
 
             var setup: Option[VppDownlinkSetup] = None
             try {
-                val fixedIp = IPv4Addr.fromString("169.254.0.3")
-                val floatingIp = IPv6Addr.fromString("2001::3")
+                val fixedIp = IPv4Subnet.fromCidr("169.254.0.3/24")
+                val floatingIp = IPv6Subnet.fromString("2001::3/64")
                 setup = Some(new VppDownlinkSetup(routerPortId, 0,
                                                   fixedIp,
                                                   floatingIp,

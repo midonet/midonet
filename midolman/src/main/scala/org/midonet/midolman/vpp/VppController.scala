@@ -36,11 +36,13 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
+import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.{DatapathState, Midolman, Referenceable}
-import org.midonet.packets.{IPv4Addr, IPv6Addr}
+import org.midonet.packets.{IPv4Subnet, IPv6Subnet}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.process.MonitoredDaemonProcess
@@ -56,7 +58,7 @@ object VppController extends Referenceable {
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
 
-    private case class BoundPort(port: RouterPort, setup: VppSetup)
+    private case class BoundPort(setup: VppSetup)
     private type LinksMap = util.Map[UUID, BoundPort]
 
     private def isIPv6(port: RouterPort) = (port.portAddressV6 ne null) &&
@@ -66,10 +68,11 @@ object VppController extends Referenceable {
 
 class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager,
                               datapathState: DatapathState,
-                              backend: MidonetBackend)
+                              protected override val vt: VirtualTopology)
     extends ReactiveActor[AnyRef]
     with ActorLogWithoutPath
-    with SingleThreadExecutionContextProvider {
+    with SingleThreadExecutionContextProvider
+    with VppDownlink {
 
     import VppController._
 
@@ -103,6 +106,19 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             attachUplink(portId)
         case LocalPortActive(portId, portNumber, false) =>
             detachUplink(portId)
+        case CreateDownlink(portId, vrf, ip4Address, ip6Address, natPool) =>
+            attachDownlink(portId, vrf, ip4Address, ip6Address, natPool)
+        case UpdateDownlink(portId, vrf, oldAddress, newAddress) =>
+            // TODO
+            Future.successful(())
+        case DeleteDownlink(portId, vrf) =>
+            detachDownlink(portId)
+        case AssociateFip(portId, vrf, floatingIp, fixedIp) =>
+            // TODO
+            Future.successful(())
+        case DisassociateFip(portId, vrf, floatingIp, fixedIp) =>
+            // TODO
+            Future.successful(())
         case OnCompleted =>
             Future.successful(())
         case OnError(e) =>
@@ -139,9 +155,9 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             log warn s"Unknown message $m"
     }
 
-    private def attachLink(links: LinksMap, portId: UUID, port: RouterPort,
-                           setup: VppSetup): Future[_] = {
-        val boundPort = BoundPort(port, setup)
+    private def attachLink(links: LinksMap, portId: UUID, setup: VppSetup)
+    : Future[Option[BoundPort]] = {
+        val boundPort = BoundPort(setup)
 
         {
             links.put(portId, boundPort) match {
@@ -149,12 +165,13 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
                 case previousBinding: BoundPort =>
                     previousBinding.setup.rollback()
             }
-        } andThen {
-            case _ => setup.execute()
-        } andThen {
-            case Failure(err) =>
-                setup.rollback()
+        } flatMap { _ =>
+            setup.execute() map { _ => Some(boundPort) }
+        } recoverWith { case e =>
+            setup.rollback() map { _ =>
                 links.remove(portId, boundPort)
+                throw e
+            }
         }
     }
 
@@ -168,45 +185,62 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     }
 
     private def attachUplink(portId: UUID): Future[_] = {
-        VirtualTopology.get(classOf[Port], portId) andThen {
-            case Success(port: RouterPort) if isIPv6(port) =>
-                log debug s"IPv6 router port attached: $port"
-                attachUplink(portId, port)
-            case Success(_) => // ignore
+        log debug s"Attaching uplink port $portId"
+
+        val shouldStartDownlink = uplinks.isEmpty
+        VirtualTopology.get(classOf[Port], portId) flatMap {
+            case port: RouterPort if isIPv6(port) =>
+                log debug s"Port $port is an IPv6 port"
+
+                if (vppProcess eq null) {
+                    startVppProcess()
+                    vppApi = createApiConnection(VppConnectMaxRetries)
+                }
+
+                val dpNumber = datapathState.getDpPortNumberForVport(portId)
+                attachLink(uplinks, portId,
+                           new VppUplinkSetup(port.id, dpNumber, vppApi, vppOvs))
+            case _ =>
+                Future.successful(None)
+        } andThen {
+            case Success(Some(_)) =>
+                if (shouldStartDownlink && !uplinks.isEmpty) {
+                    startDownlink()
+                }
+
             case Failure(err) =>
                 log warn s"Get port $portId failed: $err"
+                throw err
         }
-    }
-
-    private def attachUplink(portId: UUID, port: RouterPort): Future[_] = {
-        if (vppProcess eq null) {
-            startVppProcess()
-            vppApi = createApiConnection(VppConnectMaxRetries)
-        }
-
-        val dpNumber = datapathState.getDpPortNumberForVport(portId)
-        attachLink(uplinks, portId, port,
-                   new VppUplinkSetup(port.id, dpNumber, vppApi, vppOvs))
     }
 
     private def detachUplink(portId: UUID): Future[_] = {
-        detachLink(uplinks, portId)
+        log debug s"Detaching uplink port $portId"
+
+        detachLink(uplinks, portId) andThen { case _ =>
+            if (uplinks.isEmpty) {
+                stopDownlink()
+            }
+        }
     }
 
-    private def attachDownlink(portId: UUID, port: RouterPort, vrf: Int,
-                               fixedIp: IPv4Addr, floatingIp: IPv6Addr)
+    private def attachDownlink(portId: UUID, vrf: Int, ip4Address: IPv4Subnet,
+                               ip6Address: IPv6Subnet, natPool: NatTarget)
     : Future[_] = {
+        log debug s"Attach downlink port $portId"
+
         if (vppProcess eq null) {
             startVppProcess()
             vppApi = createApiConnection(VppConnectMaxRetries)
         }
 
-        attachLink(downlinks, portId, port,
-                   new VppDownlinkSetup(port.id, vrf, fixedIp, floatingIp,
-                                        vppApi, backend))
+        attachLink(downlinks, portId,
+                   new VppDownlinkSetup(portId, vrf, ip4Address, ip6Address,
+                                        vppApi, vt.backend))
     }
 
     private def detachDownlink(portId: UUID): Future[_] = {
+        log debug s"Detaching downlink port $portId"
         detachLink(downlinks, portId)
     }
 

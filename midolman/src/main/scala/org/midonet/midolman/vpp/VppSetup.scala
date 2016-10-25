@@ -29,7 +29,7 @@ import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
+import org.midonet.packets._
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
 import org.midonet.util.process.ProcessHelper
 import org.midonet.util.process.ProcessHelper.OutputStreams.{StdError, StdOutput}
@@ -355,8 +355,8 @@ class VppUplinkSetup(uplinkPortId: UUID,
   */
 class VppDownlinkSetup(downlinkPortId: UUID,
                        vrf: Int,
-                       fixedIp: IPv4Addr,
-                       floatingIp: IPv6Addr,
+                       ip4Address: IPv4Subnet,
+                       ip6Address: IPv6Subnet,
                        vppApi: VppApi,
                        backEnd: MidonetBackend)
                        (implicit ec: ExecutionContext)
@@ -367,11 +367,6 @@ class VppDownlinkSetup(downlinkPortId: UUID,
     private val dlinkSuffix = downlinkPortId.toString.substring(0, 8)
     private val dlinkVppName = s"vpp-$dlinkSuffix"
     private val dlinkOvsName = s"ovs-$dlinkSuffix"
-    private val dlinkVppAddr = IPv4Addr.fromString("169.254.0.2")
-    private val SrcIp4 = IPv4Addr.fromString("20.0.0.1")
-    private val SrcIp6 = IPv6Addr.fromString("2001::1")
-
-    private val dlinkVppPrefix: Byte = 24
 
     private val dlinkVeth = new VethPairSetup("dlink veth pair",
                                               dlinkVppName,
@@ -386,20 +381,14 @@ class VppDownlinkSetup(downlinkPortId: UUID,
     private val ipAddrVpp = new VppIpAddr("dlink IP4 address at vpp",
                                           vppApi,
                                           dlinkVpp,
-                                          dlinkVppAddr,
-                                          dlinkVppPrefix)
+                                          ip4Address.getAddress,
+                                          ip4Address.getPrefixLen.toByte)
 
     private val ovsBind = new OvsBindV4("dlink bind veth pair to the tenant router",
                                         downlinkPortId,
                                         dlinkOvsName,
                                         backEnd)
 
-    private val vppFip64 = new VppFip64Setup("fip64 in vpp",
-                                             SrcIp4,
-                                             fixedIp,
-                                             SrcIp6,
-                                             floatingIp,
-                                             vrf)
     /*
     * setup the tasks, in execution order
     */
@@ -408,5 +397,4 @@ class VppDownlinkSetup(downlinkPortId: UUID,
     add(dlinkVpp)
     add(ipAddrVpp)
     add(ovsBind)
-    add(vppFip64)
 }
