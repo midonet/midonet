@@ -16,30 +16,42 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.Transaction
-import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID, _}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.models.Topology.Rule.NatTarget
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.{IPSubnetUtil, SequenceDispenser}
+import org.midonet.containers
 
 object RouterInterfaceTranslator {
 
-    /** Deterministically generate 'same subnet' SNAT rule ID from chain ID
+    val Nat64Pool = IPSubnetUtil.toProto("20.0.0.1/32")
+
+    /**
+      * Deterministically generate 'same subnet' SNAT rule ID from chain ID
       * and port ID.  'Same subnet' SNAT is a rule applied to traffic that
       * ingresses in from and egresses out of the same tenant router port,
       * without ever going to the uplink.
-      * */
+      */
     def sameSubnetSnatRuleId(chainId: UUID, portId: UUID) =
         chainId.xorWith(portId.getMsb, portId.getLsb)
             .xorWith(0x3bcf2eb64be211e5L, 0x84ae0242ac110003L)
+
+    /**
+      * Deterministically generate the NAT64 rule ID from the router port ID.
+      */
+    def nat64RuleId(portId: UUID) =
+        portId.xorWith(0xc91ba547c2a6019fL, 0x39d255685b595dffL)
 }
 
 class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
@@ -68,19 +80,31 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
         // then there is no corresponding Midonet network, and the router port
         // is bound to a host interface.
         val isUplink = isOnUplinkNetwork(tx, nPort)
+        val nSubnet = tx.get(classOf[NeutronSubnet], ri.getSubnetId)
 
-        val ns = tx.get(classOf[NeutronSubnet], ri.getSubnetId)
+        // Router ID is given as the router interface's id.
+        val routerId = ri.getId
 
-        val rtrPort = buildRouterPort(tx, nPort, isUplink, ri, ns)
-
-        // Add a route to the Interface subnet.
+        val routerPortId = routerInterfacePortPeerId(nPort.getId)
         val routerInterfaceRouteId =
-            RouteManager.routerInterfaceRouteId(rtrPort.getId)
-        val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPort.getId,
-                                           id = routerInterfaceRouteId,
-                                           srcSubnet = univSubnet4,
-                                           dstSubnet = ns.getCidr)
-        val localRoute = newLocalRoute(rtrPort.getId, rtrPort.getPortAddress)
+            RouteManager.routerInterfaceRouteId(routerPortId)
+        val routerPortBuilder = newRouterPortBuilder(routerPortId, routerId)
+
+        routerPortBuilder.setPortMac(nPort.getMacAddress)
+
+        // Set the router port address. The port should have at most one IP
+        // address. If it has none, use the subnet's default gateway.
+        val portAddress = if (nPort.getFixedIpsCount > 0) {
+            if (nPort.getFixedIpsCount > 1) {
+                throw new IllegalArgumentException (
+                    s"Neutron router ${routerId.asJava} assigned to port " +
+                    s"${nPort.getId.asJava} with more than one fixed IP " +
+                    s"address")
+            }
+            nPort.getFixedIps(0).getIpAddress
+        } else nSubnet.getGatewayIp
+
+        val isV6 = portAddress.getVersion == IPVersion.V6
 
         // Convert Neutron/network port to router interface port if it isn't
         // already one.
@@ -90,40 +114,115 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
         if (nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
             convertPortOps(tx, nPort, isUplink, ri.getId)
 
-        tx.create(rtrPort)
+        if (isUplink) {
+            // Uplink ports use the Neutron port address, either V4 or V6.
+            routerPortBuilder.setPortAddress(portAddress)
+            routerPortBuilder.setPortSubnet(nSubnet.getCidr)
+
+            // The port will be bound to a host rather than connected to a
+            // network port. Add it to the edge router's port group.
+            routerPortBuilder
+                .addPortGroupIds(PortManager.portGroupId(routerId))
+            assignTunnelKey(routerPortBuilder, sequenceDispenser)
+        } else if (isV6) {
+            val router = tx.get(classOf[Router], routerId)
+            val routerPorts = tx.getAll(classOf[Port],
+                                        router.getPortIdsList.asScala)
+            val localSubnet = containers.findLocalSubnet(routerPorts)
+            val localAddress = containers.routerPortAddress(localSubnet)
+
+            routerPortBuilder.setPortAddress(localAddress)
+            routerPortBuilder.setPortSubnet(localSubnet)
+
+            assignTunnelKey(routerPortBuilder, sequenceDispenser)
+
+        } else {
+            routerPortBuilder.setPortAddress(portAddress)
+            routerPortBuilder.setPortSubnet(nSubnet.getCidr)
+
+            val pgId = ensureRouterInterfacePortGroup(tx, routerId)
+            routerPortBuilder.addPortGroupIds(pgId)
+
+            // Connect the router port to the network port, which has the same
+            // ID as nPort.
+            routerPortBuilder.setPeerId(nPort.getId)
+
+            // If this router port is the subnet's gateway, set the dhcp_id
+            // field. There's a field binding that will cause Zoom to set the
+            // Dhcp's router_if_port_id field to the router port's ID, which
+            // allows us to find the Dhcp's gateway port easily when creating
+            // a Dhcp port.
+            if (nSubnet.getGatewayIp == routerPortBuilder.getPortAddress)
+                routerPortBuilder.setDhcpId(ri.getSubnetId)
+        }
+
+        val routerPort = routerPortBuilder.build()
+        tx.create(routerPort)
 
         if (isUplink) {
-            bindPort(tx, rtrPort,
-                     getHostIdByName(tx, nPort.getHostId),
+            bindPort(tx, routerPort, getHostIdByName(tx, nPort.getHostId),
                      nPort.getProfile.getInterfaceName)
+        } else if (isV6) {
+            // Create the NAT64 rule containing the port IPv6 address and the
+            // NAT64 pool.
+            val portSubnet = IPSubnet.newBuilder()
+                .setAddress(portAddress.getAddress)
+                .setPrefixLength(128)
+                .setVersion(IPVersion.V6)
+            val natPoolAddress = IPAddress.newBuilder()
+                .setAddress(Nat64Pool.getAddress)
+                .setVersion(IPVersion.V4)
+            val nat64Rule = Rule.newBuilder()
+                .setId(nat64RuleId(routerPortId))
+                .setFipPortId(routerPortId)
+                .setType(Rule.Type.NAT64_RULE)
+                .setNat64RuleData(Rule.Nat64RuleData.newBuilder()
+                                      .setPortAddress(portSubnet)
+                                      .setNatPool(NatTarget.newBuilder()
+                                          .setNwStart(natPoolAddress)
+                                          .setNwEnd(natPoolAddress)
+                                          .setTpStart(0)
+                                          .setTpEnd(0)))
+                .build()
+            tx.create(nat64Rule)
         } else {
             // Only create the metadata service route if this router interface
             // port has the DHCP's gateway IP.
-            if (rtrPort.getPortAddress == ns.getGatewayIp) {
-                createMetadataServiceRoute(tx, rtrPort.getId,
-                                           ri.getSubnetId, ns.getCidr)
+            if (routerPort.getPortAddress == nSubnet.getGatewayIp) {
+                createMetadataServiceRoute(tx, routerPortId,
+                                           ri.getSubnetId, nSubnet.getCidr)
             }
 
             // Add dynamic SNAT rules and the reverse SNAT on the router chains
             // so that for any traffic that was DNATed back to the same network
             // would still work by forcing it to come back to the router.  One
             // such case is VIP.
-            val rtr = tx.get(classOf[Router], rtrPort.getRouterId)
-            tx.create(sameSubnetSnatRule(rtr.getOutboundFilterId, rtrPort))
-            tx.create(sameSubnetRevSnatRule(rtr.getInboundFilterId, rtrPort))
+            val router = tx.get(classOf[Router], routerId)
+            tx.create(sameSubnetSnatRule(router.getOutboundFilterId, routerPort))
+            tx.create(sameSubnetRevSnatRule(router.getInboundFilterId, routerPort))
 
             // Add a BgpNetwork if the router has a BGP container.
-            if (tx.exists(classOf[Port], quaggaPortId(rtr.getId))) {
-                tx.create(BgpPeerTranslator.makeBgpNetwork(rtr.getId,
-                                                           ns.getCidr,
+            if (tx.exists(classOf[Port], quaggaPortId(router.getId))) {
+                tx.create(BgpPeerTranslator.makeBgpNetwork(router.getId,
+                                                           nSubnet.getCidr,
                                                            nPort.getId))
             }
         }
 
+        // For IPv4 ports, the port route is the subnet CIDR, for IPv6 ports
+        // is the NAT64 pool.
+        val portRouteSubnet = if (isV6) Nat64Pool else nSubnet.getCidr
+
+        val localRoute = newLocalRoute(routerPortId, routerPort.getPortAddress)
+        val portRoute = newNextHopPortRoute(nextHopPortId = routerPortId,
+                                            id = routerInterfaceRouteId,
+                                            srcSubnet = univSubnet4,
+                                            dstSubnet = portRouteSubnet)
+
         // Need to do these after the update returned by bindPortOps(), since
         // these creates add route IDs to the port's routeIds list, which would
         // be overwritten by the update.
-        tx.create(rifRoute)
+        tx.create(portRoute)
         tx.create(localRoute)
     }
 
@@ -170,7 +269,7 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
 
         tx.update(nPort.toBuilder
                       .setDeviceOwner(DeviceOwner.ROUTER_INTERFACE)
-                      .setDeviceId(fromProto(routerId).toString)
+                      .setDeviceId(routerId.asJava.toString)
                       .build())
 
         // If it's a VIF port, remove chains from the Midonet port. Unless it's
@@ -181,58 +280,10 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
 
             // Delete DHCP hosts.
             val dhcps = mutable.Map[UUID, Dhcp.Builder]()
-            updateDhcpEntries(tx, nPort, dhcps, delDhcpHost, false)
+            updateDhcpEntries(tx, nPort, dhcps, delDhcpHost,
+                              ignoreNonExistingDhcp = false)
             dhcps.values.map(_.build()).foreach(tx.update(_))
         }
-    }
-
-    private def buildRouterPort(tx: Transaction,
-                                nPort: NeutronPort,
-                                isUplink: Boolean,
-                                ri: NeutronRouterInterface,
-                                ns: NeutronSubnet): Port = {
-        // Router ID is given as the router interface's id.
-        val routerId = ri.getId
-
-        val routerPortId = routerInterfacePortPeerId(nPort.getId)
-        val routerPortBldr = newRouterPortBldr(routerPortId, routerId)
-
-        // Set the router port address. The port should have at most one IP
-        // address. If it has none, use the subnet's default gateway.
-        val gatewayIp = if (nPort.getFixedIpsCount > 0) {
-            if (nPort.getFixedIpsCount > 1)
-                log.error("More than 1 fixed IP assigned to a Neutron Port " +
-                          s"${fromProto(nPort.getId)}")
-            nPort.getFixedIps(0).getIpAddress
-        } else ns.getGatewayIp
-        routerPortBldr.setPortAddress(gatewayIp)
-        routerPortBldr.setPortMac(nPort.getMacAddress)
-
-        if (isUplink) {
-            // The port will be bound to a host rather than connected to a
-            // network port. Add it to the edge router's port group.
-            routerPortBldr.addPortGroupIds(PortManager.portGroupId(routerId))
-            assignTunnelKey(routerPortBldr, sequenceDispenser)
-        } else {
-            val pgId = ensureRouterInterfacePortGroup(tx, routerId)
-            routerPortBldr.addPortGroupIds(pgId)
-
-            // Connect the router port to the network port, which has the same
-            // ID as nPort.
-            routerPortBldr.setPeerId(nPort.getId)
-
-            // If this router port is the subnet's gateway, set the dhcp_id
-            // field. There's a field binding that will cause Zoom to set the
-            // Dhcp's router_if_port_id field to the router port's ID, which
-            // allows us to find the Dhcp's gateway port easily when creating
-            // a Dhcp port.
-            if (ns.getGatewayIp == routerPortBldr.getPortAddress)
-                routerPortBldr.setDhcpId(ri.getSubnetId)
-        }
-
-        routerPortBldr.setPortSubnet(ns.getCidr)
-
-        routerPortBldr.build()
     }
 
     private def createMetadataServiceRoute(tx: Transaction,

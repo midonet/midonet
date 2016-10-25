@@ -403,6 +403,70 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
         eventually(checkDhcpAndMetadataRoute(rtr2IfPortId))
     }
 
+    it should "handle translation for IPv6 neutron ports" in {
+        createTenantNetwork(10, tenantNetworkId)
+        createSubnet(20, tenantNetworkId, "2001::/64", subnetId, "2001::1")
+
+        createRouter(30, routerId)
+        createRouterInterfacePort(40, tenantNetworkId, subnetId, routerId,
+                                  "2001::2", "01:02:03:04:05:06",
+                                  id = rifPortId)
+        createRouterInterface(50, routerId, rifPortId, subnetId)
+
+        // Verify that NAT64 routes and rules are created correctly.
+        val routerPortId = routerInterfacePortPeerId(rifPortId.asProto)
+
+        eventually {
+            val routerPort = storage.get(classOf[Port], routerPortId).await()
+
+            routerPort.getTunnelKey should not be 0
+            routerPort.getPortSubnet.getAddress shouldBe "169.254.0.0"
+            routerPort.getPortSubnet.getPrefixLength shouldBe 30
+            routerPort.getPortAddress.getAddress shouldBe "169.254.0.1"
+            routerPort.getFipNatRuleIdsCount should not be 0
+
+            val routes = storage.getAll(classOf[Route],
+                                        routerPort.getRouteIdsList.asScala)
+                                .await()
+            routes should have size 2
+
+            routes.head.getSrcSubnet.getAddress shouldBe "0.0.0.0"
+            routes.head.getDstSubnet.getAddress shouldBe "20.0.0.1"
+            routes.head.getNextHopPortId shouldBe routerPort.getId
+            routes.head.getNextHop shouldBe NextHop.PORT
+
+            routes(1).getSrcSubnet.getAddress shouldBe "0.0.0.0"
+            routes(1).getDstSubnet.getAddress shouldBe "169.254.0.1"
+            routes(1).getNextHopPortId shouldBe routerPort.getId
+            routes(1).getNextHop shouldBe NextHop.LOCAL
+
+            val rules = storage.getAll(classOf[Rule],
+                                       routerPort.getFipNatRuleIdsList.asScala)
+                               .await()
+            rules should have size 1
+
+            rules.head.getType shouldBe Rule.Type.NAT64_RULE
+            rules.head.getNat64RuleData.getPortAddress
+                .getAddress shouldBe "2001:0:0:0:0:0:0:2"
+            rules.head.getNat64RuleData.getPortAddress
+                .getPrefixLength shouldBe 128
+            rules.head.getNat64RuleData.getNatPool.getNwStart
+                .getAddress shouldBe "20.0.0.1"
+            rules.head.getNat64RuleData.getNatPool.getNwEnd
+                .getAddress shouldBe "20.0.0.1"
+            rules.head.getNat64RuleData.getNatPool.getTpStart shouldBe 0
+            rules.head.getNat64RuleData.getNatPool.getTpEnd shouldBe 0
+        }
+
+        insertDeleteTask(60, PortType, rifPortId)
+
+        eventually {
+            val nat64RuleId = RouterInterfaceTranslator.nat64RuleId(routerPortId)
+            storage.exists(classOf[Port], routerPortId).await() shouldBe false
+            storage.exists(classOf[Rule], nat64RuleId).await() shouldBe false
+        }
+    }
+
     private def checkRouterAndPeerPort(nwPortId: UUID, ipAddr: String,
                                        macAddr: String): Port = {
         val rPortId = routerInterfacePortPeerId(nwPortId.asProto)
