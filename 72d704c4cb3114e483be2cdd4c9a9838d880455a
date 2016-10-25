@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_709cd169",
+        "filename": "tests/mdts/tox.ini",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-10-25T04:39:29Z",
+      "side": 1,
+      "message": "You may want to ignore some checks:\n\nhttps://github.com/openstack/networking-midonet/blob/master/tox.ini",
+      "revId": "72d704c4cb3114e483be2cdd4c9a9838d880455a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
