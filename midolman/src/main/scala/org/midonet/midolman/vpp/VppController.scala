@@ -18,13 +18,13 @@ package org.midonet.midolman.vpp
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import java.util.function.Consumer
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
@@ -42,10 +42,11 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.{DatapathState, Midolman, Referenceable}
-import org.midonet.packets.{IPv4Subnet, IPv6Subnet}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
-import org.midonet.util.process.MonitoredDaemonProcess
+import org.midonet.util.process.ProcessHelper.OutputStreams._
+import org.midonet.util.process.{MonitoredDaemonProcess, ProcessHelper}
 
 object VppController extends Referenceable {
 
@@ -53,6 +54,7 @@ object VppController extends Referenceable {
     val VppProcessMaximumStarts = 3
     val VppProcessFailingPeriod = 30000
     val VppRollbackTimeout = 30000
+    val VppCtlTimeout = 1 minute
 
     private val VppConnectionName = "midonet"
     private val VppConnectMaxRetries = 10
@@ -114,10 +116,10 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         case DeleteDownlink(portId, vrf) =>
             detachDownlink(portId)
         case AssociateFip(portId, vrf, floatingIp, fixedIp) =>
-            // TODO
+            associateFip(portId, vrf, floatingIp, fixedIp)
             Future.successful(())
         case DisassociateFip(portId, vrf, floatingIp, fixedIp) =>
-            // TODO
+            disassociateFip(portId, vrf, floatingIp, fixedIp)
             Future.successful(())
         case OnCompleted =>
             Future.successful(())
@@ -228,7 +230,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     private def attachDownlink(portId: UUID, vrf: Int, ip4Address: IPv4Subnet,
                                ip6Address: IPv6Subnet, natPool: NatTarget)
     : Future[_] = {
-        log debug s"Attach downlink port $portId"
+        log debug s"Attach downlink port $portId (VRF $vrf): network=$ip6Address " +
+                  s"link-local=$ip4Address pool=$natPool"
 
         if (vppProcess eq null) {
             startVppProcess()
@@ -277,6 +280,49 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         vppProcess.stopAsync()
             .awaitTerminated(VppProcessFailingPeriod, TimeUnit.MILLISECONDS)
         vppProcess = null
+    }
+
+    private def associateFip(portId: UUID, vrf: Int, floatingIp: IPv6Addr,
+                             fixedIp: IPv4Addr): Future[_] = {
+        log debug s"Associating FIP at port $portId (VRF $vrf): " +
+                  s"$floatingIp -> $fixedIp"
+
+        // TODO: Remove hardcoded addresses.
+        val srcIp6 = "2001::1"
+        val srcIp4 = "20.0.0.1"
+        executeCommandWithTimeout(s"sudo vppctl fip64 add $srcIp6 $floatingIp " +
+                                  s"$srcIp4 $fixedIp $vrf")
+    }
+
+    private def disassociateFip(portId: UUID, vrf: Int, floatingIp: IPv6Addr,
+                                fixedIp: IPv4Addr): Future[_] ={
+        log debug s"Disassociating FIP at port $portId (VRF $vrf): " +
+                  s"$floatingIp -> $fixedIp"
+
+        // TODO: Remove hardcoded addresses.
+        val srcIp6 = "2001::1"
+        executeCommandWithTimeout(s"sudo vppctl fip64 del $srcIp6 $floatingIp")
+    }
+
+    private def executeCommandWithTimeout(cmdLine: String): Future[_] = {
+        val process = ProcessHelper.newProcess(cmdLine)
+            .logOutput(log.underlying, "vppctl", StdOutput, StdError)
+            .run()
+
+        val promise = Promise[Unit]
+        Future {
+            if (!process.waitFor(VppCtlTimeout.toMillis, MILLISECONDS)) {
+                process.destroy()
+                throw new TimeoutException("Command execution timed out")
+            }
+            if (process.exitValue == 0) {
+                promise.trySuccess(())
+            } else {
+                promise.tryFailure(new Exception(
+                    s"Command failed with result ${process.exitValue}"))
+            }
+        }
+        promise.future
     }
 }
 
