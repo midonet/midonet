@@ -225,28 +225,11 @@ trait PortManager extends ChainManager with RouteManager {
             // of translation doesn't have the port group.
             val router = tx.get(classOf[Router], routerId)
             val pg = newRouterInterfacePortGroup(routerId, router.getTenantId)
-            getRouterInterfacePorts(tx, router).foreach(pg.addPortIds)
+            PortManager.getRouterInterfacePorts(tx, router).foreach(pg.addPortIds)
             tx.create(pg.build())
         }
 
         pgId
-    }
-
-    private def getRouterInterfacePorts(tx: Transaction, router: Router): Seq[UUID] = {
-        val ports = router.getPortIdsList.asScala
-
-        ports.filter(isRouterInterfacePeer(tx, _))
-    }
-
-    private def isRouterInterfacePeer(tx: Transaction, portId: UUID): Boolean = {
-        // Using routerInterfacePortPeerId in the opposite way.
-        val nPortId = PortManager.routerInterfacePortPeerId(portId)
-        if (tx.exists(classOf[NeutronPort], nPortId)) {
-            val nPort = tx.get(classOf[NeutronPort], nPortId)
-            PortManager.isRouterInterfacePort(nPort)
-        } else {
-            false
-        }
     }
 }
 
@@ -295,4 +278,22 @@ object PortManager {
 
     def routerInterfacePortGroupName(id: UUID) =
         "OS_PORT_GROUP_ROUTER_INTF_" + id.asJava
+
+
+    def getRouterInterfacePorts(tx: Transaction, router: Router): Seq[UUID] = {
+        val ports = router.getPortIdsList.asScala
+
+        ports.filter(isRouterInterfacePeer(tx, _))
+    }
+
+    def isRouterInterfacePeer(tx: Transaction, portId: UUID): Boolean = {
+        // Using routerInterfacePortPeerId in the opposite way.
+        val nPortId = PortManager.routerInterfacePortPeerId(portId)
+        if (tx.exists(classOf[NeutronPort], nPortId)) {
+            val nPort = tx.get(classOf[NeutronPort], nPortId)
+            PortManager.isRouterInterfacePort(nPort)
+        } else {
+            false
+        }
+    }
 }

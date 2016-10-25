@@ -20,15 +20,17 @@ import scala.collection.mutable
 
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
-import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{Condition, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.util.{IPSubnetUtil, SequenceDispenser}
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
+import org.midonet.containers
+import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.toFutureOps
 
 object RouterInterfaceTranslator {
@@ -73,19 +75,39 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         // then there is no corresponding Midonet network, and the router port
         // is bound to a host interface.
         val isUplink = isOnUplinkNetwork(tx, nPort)
-
+        val isIpv6 = PortManager.isIPv6Port(nPort)
         val ns = tx.get(classOf[NeutronSubnet], ri.getSubnetId)
 
-        val rtrPort = buildRouterPort(tx, nPort, isUplink, ri, ns)
+        val rtrPort = buildRouterPort(tx, nPort, isUplink, isIpv6, ri, ns)
 
         // Add a route to the Interface subnet.
         val routerInterfaceRouteId =
             RouteManager.routerInterfaceRouteId(rtrPort.getId)
+
+        if (isIpv6) {
+            val poolSubnet = IPSubnetUtil.toProto("20.0.0.0/24")
+            val nat64route = newNextHopPortRoute(nextHopPortId = rtrPort.getId,
+                                                 id = routerInterfaceRouteId, // check
+                                                 srcSubnet = univSubnet4,
+                                                 dstSubnet = poolSubnet)
+            tx.create(nat64route)
+
+            val vppAddr = containers.containerPortAddress(rtrPort.getPortSubnet)
+
+            nat64 = createNat64Rule(portId = Some(ri.getPortId),
+                                    portAddress = Some(nPort.getFixedIps(0)),
+                                    natPool = Some(poolSubnet))
+            tx.create(rtrPort)
+            return List()
+
+        }
+
         val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPort.getId,
                                            id = routerInterfaceRouteId,
                                            srcSubnet = univSubnet4,
                                            dstSubnet = ns.getCidr)
-        val localRoute = newLocalRoute(rtrPort.getId, rtrPort.getPortAddress)
+        val localRoute = newLocalRoute(rtrPort.getId,
+                                       rtrPort.getPortAddress)
 
         // Convert Neutron/network port to router interface port if it isn't
         // already one.
@@ -196,6 +218,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
     private def buildRouterPort(tx: Transaction,
                                 nPort: NeutronPort,
                                 isUplink: Boolean,
+                                isIpv6: Boolean,
                                 ri: NeutronRouterInterface,
                                 ns: NeutronSubnet): Port = {
         // Router ID is given as the router interface's id.
@@ -203,6 +226,8 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
 
         val routerPortId = routerInterfacePortPeerId(nPort.getId)
         val routerPortBldr = newRouterPortBldr(routerPortId, routerId)
+
+        routerPortBldr.setPortMac(nPort.getMacAddress)
 
         // Set the router port address. The port should have at most one IP
         // address. If it has none, use the subnet's default gateway.
@@ -212,32 +237,50 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
                           s"${fromProto(nPort.getId)}")
             nPort.getFixedIps(0).getIpAddress
         } else ns.getGatewayIp
-        routerPortBldr.setPortAddress(gatewayIp)
-        routerPortBldr.setPortMac(nPort.getMacAddress)
 
-        if (isUplink) {
-            // The port will be bound to a host rather than connected to a
-            // network port. Add it to the edge router's port group.
-            routerPortBldr.addPortGroupIds(PortManager.portGroupId(routerId))
-            assignTunnelKey(routerPortBldr, sequenceDispenser)
+        if (isIpv6) {
+
+            val router = tx.get(classOf[Router], routerId)
+            val currentPorts = tx.getAll(classOf[Port],
+                                         router.getPortIdsList.asScala)
+            val localsubnet = containers.findLocalSubnet(ports)
+
+            val portAddr = containers.routerPortAddress(localsubnet)
+
+            routerPortBldr.setPortAddress(portAddr)
+            routerPortBldr.setPortSubnet(localsubnet)
+
+            // TODO: save gatewayIp (v6) ?
+
         } else {
-            val pgId = ensureRouterInterfacePortGroup(tx, routerId)
-            routerPortBldr.addPortGroupIds(pgId)
 
-            // Connect the router port to the network port, which has the same
-            // ID as nPort.
-            routerPortBldr.setPeerId(nPort.getId)
+            routerPortBldr.setPortAddress(gatewayIp)
 
-            // If this router port is the subnet's gateway, set the dhcp_id
-            // field. There's a field binding that will cause Zoom to set the
-            // Dhcp's router_if_port_id field to the router port's ID, which
-            // allows us to find the Dhcp's gateway port easily when creating
-            // a Dhcp port.
-            if (ns.getGatewayIp == routerPortBldr.getPortAddress)
-                routerPortBldr.setDhcpId(ri.getSubnetId)
+            if (isUplink) {
+                // The port will be bound to a host rather than connected to a
+                // network port. Add it to the edge router's port group.
+                routerPortBldr
+                    .addPortGroupIds(PortManager.portGroupId(routerId))
+                assignTunnelKey(routerPortBldr, sequenceDispenser)
+            } else {
+                val pgId = ensureRouterInterfacePortGroup(tx, routerId)
+                routerPortBldr.addPortGroupIds(pgId)
+
+                // Connect the router port to the network port, which has the same
+                // ID as nPort.
+                routerPortBldr.setPeerId(nPort.getId)
+
+                // If this router port is the subnet's gateway, set the dhcp_id
+                // field. There's a field binding that will cause Zoom to set the
+                // Dhcp's router_if_port_id field to the router port's ID, which
+                // allows us to find the Dhcp's gateway port easily when creating
+                // a Dhcp port.
+                if (ns.getGatewayIp == routerPortBldr.getPortAddress)
+                    routerPortBldr.setDhcpId(ri.getSubnetId)
+            }
+
+            routerPortBldr.setPortSubnet(ns.getCidr)
         }
-
-        routerPortBldr.setPortSubnet(ns.getCidr)
 
         routerPortBldr.build()
     }
