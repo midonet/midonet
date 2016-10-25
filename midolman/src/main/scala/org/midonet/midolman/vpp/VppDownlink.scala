@@ -464,6 +464,8 @@ private[vpp] trait VppDownlink { this: Actor =>
       * Starts monitoring the downlink ports.
       */
     protected def startDownlink(): Unit = {
+        log debug s"Start monitoring VPP downlinks"
+
         if (started.compareAndSet(false, true)) {
             log debug s"Subscribing to FIP64 table"
             // Submit a start task on the VT thread (needed for synchronization).
@@ -488,6 +490,8 @@ private[vpp] trait VppDownlink { this: Actor =>
       * Stops monitoring the downlink ports.
       */
     protected def stopDownlink(): Unit = {
+        log debug s"Stop monitoring VPP downlinks"
+
         if (started.compareAndSet(true, false)) {
             // Submit a stop task on the VT thread (needed for synchronization).
             val stopFuture = vt.vtExecutor.submit(stopRunnable)
