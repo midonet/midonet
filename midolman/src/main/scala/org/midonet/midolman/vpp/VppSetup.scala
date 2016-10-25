@@ -17,10 +17,9 @@
 package org.midonet.midolman.vpp
 
 import java.util.UUID
-import java.util.concurrent.TimeoutException
 
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
@@ -31,12 +30,10 @@ import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
 import org.midonet.packets._
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
-import org.midonet.util.process.ProcessHelper
-import org.midonet.util.process.ProcessHelper.OutputStreams.{StdError, StdOutput}
 
 private object VppSetup extends MidolmanLogging {
 
-    override def logSource = s"org.midonet.vpp-setup"
+    override def logSource = s"org.midonet.vpp-controller"
 
     trait MacAddressProvider {
         def macAddress: Option[MAC]
@@ -49,7 +46,7 @@ private object VppSetup extends MidolmanLogging {
     class VethPairSetup(override val name: String,
                         devName: String,
                         peerName: String)
-                        (implicit ec: ExecutionContext)
+                       (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback with MacAddressProvider {
 
         var macAddress: Option[MAC] = None
@@ -70,9 +67,8 @@ private object VppSetup extends MidolmanLogging {
                     deviceName: String,
                     vppApi: VppApi,
                     macSource: MacAddressProvider,
-                    vrf: Int = 0,
-                    isIpv6: Boolean = false)
-                    (implicit ec: ExecutionContext)
+                    vrf: Int = 0)
+                   (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback with VppInterfaceProvider {
 
         var vppInterface: Option[VppApi.Device] = None
@@ -80,23 +76,25 @@ private object VppSetup extends MidolmanLogging {
         @throws[Exception]
         override def execute(): Future[Any] = {
             val future = vppApi.createDevice(deviceName, macSource.macAddress)
-                .flatMap { device => {
-                              vppInterface = Some(device)
-                              vppApi.setDeviceAdminState(device, isUp = true)
-                          }}
+                .flatMap { device =>
+                    vppInterface = Some(device)
+                    vppApi.setDeviceAdminState(device, isUp = true)
+                }
             if (vrf == 0) {
                 future
             } else {
-                future.flatMap( _ => vppApi.setDeviceTable(vppInterface.get,
-                                                           vrf,
-                                                           isIpv6 = false))
+                future.flatMap { _ =>
+                    vppApi.setDeviceTable(vppInterface.get, vrf, isIpv6 = false)
+                }
             }
         }
 
         @throws[Exception]
         override def rollback(): Future[Any] = {
             if (vppInterface.isDefined) {
-                vppApi.deleteDevice(vppInterface.get)
+                vppApi.deleteDevice(vppInterface.get) andThen { case _ =>
+                    vppInterface = None
+                }
             } else {
                 Future.successful(Unit)
             }
@@ -124,8 +122,9 @@ private object VppSetup extends MidolmanLogging {
     class OvsBindV6(override val name: String,
                     vppOvs: VppOvs,
                     endpointName: String)
-            extends FutureTaskWithRollback {
-        var dpPort: Option[DpPort] = None
+        extends FutureTaskWithRollback {
+
+        private var dpPort: Option[DpPort] = None
 
         @throws[Exception]
         override def execute(): Future[Any] = {
@@ -133,7 +132,7 @@ private object VppSetup extends MidolmanLogging {
                 dpPort = Some(vppOvs.createDpPort(endpointName))
                 Future.successful(Unit)
             } catch {
-                case e: Throwable => Future.failed(e)
+                case NonFatal(e) => Future.failed(e)
             }
         }
 
@@ -144,7 +143,7 @@ private object VppSetup extends MidolmanLogging {
                     vppOvs.deleteDpPort(port)
                     Future.successful(Unit)
                 } catch {
-                    case e: Throwable => Future.failed(e)
+                    case NonFatal(e) => Future.failed(e)
                 }
                 case _ =>
                     Future.successful(Unit)
@@ -164,6 +163,7 @@ private object VppSetup extends MidolmanLogging {
                       ep1fn: () => Int,
                       ep2fn: () => Int)
         extends FutureTaskWithRollback {
+
         @throws[Exception]
         override def execute(): Future[Any] = {
             try {
@@ -171,7 +171,7 @@ private object VppSetup extends MidolmanLogging {
                 vppOvs.addIpv6Flow(ep2fn(), ep1fn())
                 Future.successful(Unit)
             } catch {
-                case e: Throwable => Future.failed(e)
+                case NonFatal(e) => Future.failed(e)
             }
         }
 
@@ -181,12 +181,12 @@ private object VppSetup extends MidolmanLogging {
             try {
                 vppOvs.clearIpv6Flow(ep1fn(), ep2fn())
             } catch {
-                case e: Throwable => firstException = Some(e)
+                case NonFatal(e) => firstException = Some(e)
             }
             try {
                 vppOvs.clearIpv6Flow(ep2fn(), ep1fn())
             } catch {
-                case e: Throwable => if (firstException.isEmpty) {
+                case NonFatal(e) => if (firstException.isEmpty) {
                     firstException = Some(e)
                 }
             }
@@ -204,7 +204,7 @@ private object VppSetup extends MidolmanLogging {
                    (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
 
-        var oldIfName: Option[String] = None
+        private var oldIfName: Option[String] = None
 
         @throws[Exception]
         override def execute(): Future[Any] = {
@@ -212,7 +212,7 @@ private object VppSetup extends MidolmanLogging {
                 backend.store.tryTransaction(tx =>  {
                     val hostId = HostIdGenerator.getHostId
                     val oldPort = tx.get(classOf[Port], tenantRouterPortId)
-                    oldIfName = Some(oldPort getInterfaceName)
+                    oldIfName = Some(oldPort.getInterfaceName)
                     val newPort = oldPort.toBuilder
                         .setHostId(toProto(hostId))
                         .setInterfaceName(ovsDownlinkPortName)
@@ -222,7 +222,7 @@ private object VppSetup extends MidolmanLogging {
 
                 Future.successful(Unit)
             } catch {
-                case e: Throwable => Future.failed(e)
+                case NonFatal(e) => Future.failed(e)
             }
         }
 
@@ -239,7 +239,7 @@ private object VppSetup extends MidolmanLogging {
                     })
                     Future.successful(Unit)
                 } catch {
-                    case e: Throwable => Future.failed(e)
+                    case NonFatal(e) => Future.failed(e)
                 }
                 case _ =>
                     Future.successful(Unit)
@@ -247,55 +247,10 @@ private object VppSetup extends MidolmanLogging {
         }
     }
 
-    class VppFip64Setup(override val name: String,
-                        srcIp4: IPv4Addr,
-                        dstIp4: IPv4Addr,
-                        srcIp6: IPv6Addr,
-                        dstIp6: IPv6Addr,
-                        vrfIndex: Int)
-                       (implicit ec: ExecutionContext)
-        extends FutureTaskWithRollback {
-
-        val setupCmd = s"sudo vppctl fip64 add $srcIp6 $dstIp6 " +
-                       s"$srcIp4 $dstIp4 table $vrfIndex"
-        val cleanupCmd = s"sudo vppctl fip64 del $srcIp6 $dstIp6"
-
-        val VppCtlTimeoutMillis = 1 minute
-
-        override def execute(): Future[Any] = {
-            executeCommandWithTimeout(setupCmd)
-        }
-
-        override def rollback(): Future[Any] = {
-            executeCommandWithTimeout(cleanupCmd)
-        }
-
-        private def executeCommandWithTimeout(cmdLine: String): Future[_] = {
-            val process = ProcessHelper.newProcess(cmdLine)
-                .logOutput(log.underlying, "vppctl", StdOutput, StdError)
-                .run()
-
-            val promise = Promise[Unit]
-            Future {
-                if (!process.waitFor(VppCtlTimeoutMillis.toMillis,
-                                     MILLISECONDS)) {
-                    process.destroy()
-                    throw new TimeoutException("Command execution timed out")
-                }
-                if (process.exitValue == 0) {
-                    promise.trySuccess(())
-                } else {
-                    promise.tryFailure(new Exception(
-                        s"Command failed with result ${process.exitValue}"))
-                }
-            }
-            promise.future
-        }
-    }
 }
 
 class VppSetup(setupName: String)
-                       (implicit ec: ExecutionContext)
+              (implicit ec: ExecutionContext)
     extends FutureSequenceWithRollback(setupName)(ec)
 
 class VppUplinkSetup(uplinkPortId: UUID,
@@ -390,9 +345,8 @@ class VppDownlinkSetup(downlinkPortId: UUID,
                                         backEnd)
 
     /*
-    * setup the tasks, in execution order
-    */
-
+     * setup the tasks, in execution order
+     */
     add(dlinkVeth)
     add(dlinkVpp)
     add(ipAddrVpp)
