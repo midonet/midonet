@@ -99,7 +99,7 @@ public class FlowMatch {
         },
         TunnelTTL {
             public String toString(FlowMatch  wcmatch) {
-                return toString() + "=" + wcmatch.tunnelTTL;
+                return toString() + "=" + (wcmatch.tunnelTTL & 0xff);
             }
             public int hashCode(FlowMatch  wcmatch) {
                 return wcmatch.tunnelTTL;
@@ -219,7 +219,7 @@ public class FlowMatch {
         },
         NetworkTTL {
             public String toString(FlowMatch wcmatch) {
-                return toString() + "=" + wcmatch.networkTTL;
+                return toString() + "=" + (wcmatch.networkTTL & 0xff);
             }
             public int hashCode(FlowMatch wcmatch) {
                 return wcmatch.networkTTL;
