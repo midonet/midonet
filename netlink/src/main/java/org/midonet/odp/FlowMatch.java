@@ -99,7 +99,8 @@ public class FlowMatch {
         },
         TunnelTTL {
             public String toString(FlowMatch  wcmatch) {
-                return toString() + "=" + wcmatch.tunnelTTL;
+                int unsigned_val = wcmatch.tunnelTTL & 0xff;
+                return toString() + "=" + unsigned_val;
             }
             public int hashCode(FlowMatch  wcmatch) {
                 return wcmatch.tunnelTTL;
@@ -133,7 +134,8 @@ public class FlowMatch {
         },
         EtherType {
             public String toString(FlowMatch wcmatch) {
-                return toString() + "=" +  String.format("%04X", wcmatch.etherType);
+                int unsigned_val = wcmatch.etherType & 0xffff;
+                return toString() + "=" +  String.format("%04X", unsigned_val);
             }
             public int hashCode(FlowMatch wcmatch) {
                 return wcmatch.etherType;
@@ -219,7 +221,8 @@ public class FlowMatch {
         },
         NetworkTTL {
             public String toString(FlowMatch wcmatch) {
-                return toString() + "=" + wcmatch.networkTTL;
+                int unsigned_val = wcmatch.networkTTL & 0xff;
+                return toString() + "=" + unsigned_val;
             }
             public int hashCode(FlowMatch wcmatch) {
                 return wcmatch.networkTTL;
