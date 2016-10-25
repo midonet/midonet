@@ -46,7 +46,9 @@ class TcIntegrationTest extends FeatureSpec
         eventually {
             val filters = s"tc filter ls dev $dev parent ffff:".!!
             val rateStr = s"rate ${rate}000bit burst ${burst}Kb"
+            val protocolStr = "filter protocol all"
             (filters contains rateStr) shouldBe true
+            (filters contains protocolStr) shouldBe true
         }
     }
 
