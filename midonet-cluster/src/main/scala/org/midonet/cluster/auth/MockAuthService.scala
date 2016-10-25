@@ -36,10 +36,15 @@ class MockAuthService @Inject()(conf: Config) extends AuthService {
     val adminToken = "00000000"
 
     private val tenants = new util.HashMap[String, Tenant]()
+    tenants.put(mockAdminTenant.id, mockAdminTenant)
 
     // Allow tests to manipulate it
     def addTenant(id: String, name: String): Unit = {
         tenants.put(id, new Tenant(id, name, name, true))
+    }
+
+    def clearTenants(): Unit = {
+        tenants.clear()
     }
 
     override def authenticate(username: String, password: String,
@@ -55,7 +60,7 @@ class MockAuthService @Inject()(conf: Config) extends AuthService {
     }
 
     override def tenant(token: String, id: String): Tenant = {
-        new Tenant(id, id, id, true)
+        if (id == "admin") mockAdminTenant else new Tenant(id, id, id, true)
     }
 
     override def tenants(token: String, marker: Option[String], limit: Option[Int])
