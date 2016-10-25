@@ -32,15 +32,13 @@ import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil.{RichJavaUuid, asRichProtoUuid}
 import org.midonet.midolman.simulation.{Port => SimPort, QosPolicy => SimQosPolicy}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class QosPolicyMapperTest extends MidolmanSpec
                                   with TopologyBuilder
-                                  with TopologyMatchers
-                                  with MidonetEventually {
+                                  with TopologyMatchers {
     private val timeout: Duration = 1 second
     private var vt: VirtualTopology = _
 
@@ -54,7 +52,7 @@ class QosPolicyMapperTest extends MidolmanSpec
         vt = injector.getInstance(classOf[VirtualTopology])
     }
 
-    feature("QOSPolicyMapper") {
+    feature("QosPolicyMapper") {
         scenario("Publishes port with existing QosPolicy") {
             val polId = createQosPolicyAndRules(Seq(BwData(1000, 10000)),
                                                 Seq(12))
@@ -358,7 +356,7 @@ class QosPolicyMapperTest extends MidolmanSpec
                            Seq(BwData(1, 10)), Seq(2))
 
             val tpPort = vt.store.get(classOf[Port], portId).await()
-            vt.store.update(tpPort.toBuilder.setPortMac("MAC").build())
+            vt.store.update(tpPort.toBuilder.setTunnelKey(10L).build())
             obs.awaitOnNext(2, timeout)
             checkSimPolicy(obs.getOnNextEvents.get(1).qosPolicy,
                            Seq(BwData(1, 10)), Seq(2))

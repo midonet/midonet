@@ -213,7 +213,7 @@ class StorageErrorMetricsTest extends FlatSpec
 
         When("Deleting the path")
         intercept[StorageNodeNotFoundException] {
-            storage.multi(Seq(DeleteNodeOp(path)))
+            storage.multi(Seq(UpdateNodeOp(path, "foo")))
         }
 
         Then("The storage node not found exception counter should be incremented")
