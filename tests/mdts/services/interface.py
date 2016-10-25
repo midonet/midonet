@@ -234,6 +234,13 @@ class Interface(object):
         """
         return True
 
+    def verify_packet_field(self, target_iface, field,
+                            value=None, tcp_port=10000):
+        """
+        Stub this out so the test will work, and add impl later.
+        """
+        return True
+
     def send_ether(self, ether_frame_string, count=1, sync=False):
 
         """

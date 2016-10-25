@@ -31,6 +31,9 @@ class QOSPolicy(ResourceBase):
         for bw_rule in self._data.get('bw_limit_rules') or []:
             self.add_bw_limit_rule(bw_rule['bw__limit_rule'])
 
+        for dscp_rule in self._data.get('dscp_rules') or []:
+            self.add_dscp_rule(dscp_rule['dscp_rule'])
+
     def description(self, desc):
         self._data["description"] = desc
         self._mn_resource.description(desc).update()
@@ -57,4 +60,17 @@ class QOSPolicy(ResourceBase):
 
     def clear_bw_limit_rules(self):
         for rule in self.get_bw_limit_rules():
+            rule.delete()
+
+    def add_dscp_rule(self, rule):
+        qos_rule = self._mn_resource.add_dscp_rule()
+        qos_rule.dscp_mark(rule['dscp_mark'])
+        qos_rule.create()
+        return qos_rule
+
+    def get_dscp_rules(self):
+        return self._mn_resource.get_dscp_rules()
+
+    def clear_dscp_rules(self):
+        for rule in self.get_dscp_rules():
             rule.delete()
