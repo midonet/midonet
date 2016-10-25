@@ -98,7 +98,7 @@ abstract class TranslatorTestBase  extends FlatSpec
                 }
             }
         )
-        when(transaction.deleteNode(any())).thenAnswer(
+        when(transaction.deleteNode(any(), any())).thenAnswer(
             new Answer[Unit] {
                 override def answer(invocation: InvocationOnMock): Unit = {
                     midoOps = midoOps :+ DeleteNode(invocation.getArguments.apply(0)
@@ -276,6 +276,6 @@ abstract class TranslatorTestBase  extends FlatSpec
         verify(transaction, never()).delete(any(), any(), any())
         verify(transaction, never()).createNode(any(), any())
         verify(transaction, never()).updateNode(any(), any())
-        verify(transaction, never()).deleteNode(any())
+        verify(transaction, never()).deleteNode(any(), any())
     }
 }

@@ -104,13 +104,6 @@ class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
     }
 
     @Test
-    def testDeleteNonExistingNode(): Unit = {
-        val ex = the [StorageNodeNotFoundException] thrownBy
-                 zom.multi(List(DeleteNodeOp(Bridge1Path + "/key")))
-        ex.path shouldBe Bridge1Path + "/key"
-    }
-
-    @Test
     def testBridgeMaps(): Unit = {
         createNodes(Map(Bridge1Path + "/ARP/1.2.3.4,mac1" -> null,
                         Bridge1Path + "/ARP/1.2.3.5,mac2" -> null,
