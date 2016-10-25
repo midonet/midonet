@@ -47,7 +47,7 @@ class TcmsgTest extends FeatureSpec
                 2, 0, 0, 0,
                 0, 0, 0, 0,
                 0, 0, 255, 255,
-                3, 0, 5, 0).toList
+                0, 3, 5, 0).toList
 
             val basic = Array(
                 10, 0, 1, 0, 98, 97,115, 105, 99, 0, 0, 0).toList

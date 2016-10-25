@@ -75,7 +75,8 @@ object Tcmsg {
     // time units is microseconds
     val TIME_UNITS_PER_SEC = 1000000
 
-    val ETH_P_ALL = 3
+    // '3' as a short, in network byte order
+    val ETH_P_ALL = 768
 
     def makeInfo(prio: Int) = prio << 16 | ETH_P_ALL
 
