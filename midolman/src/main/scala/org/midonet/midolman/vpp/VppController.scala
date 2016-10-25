@@ -16,12 +16,13 @@
 
 package org.midonet.midolman.vpp
 
+import java.util
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 import scala.annotation.tailrec
-import scala.collection.mutable
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -56,6 +57,7 @@ object VppController extends Referenceable {
     private val VppConnectDelayMs = 1000
 
     private case class BoundPort(port: RouterPort, setup: VppSetup)
+    private type LinksMap = util.Map[UUID, BoundPort]
 
     private def isIPv6(port: RouterPort) = (port.portAddressV6 ne null) &&
                                            (port.portSubnetV6 ne null)
@@ -83,7 +85,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     })
 
     private val portsSubscription = new CompositeSubscription()
-    private val watchedPorts = mutable.Map.empty[UUID, BoundPort]
+    private val uplinks: LinksMap = new util.HashMap[UUID, BoundPort]
+    private val downlinks: LinksMap = new util.HashMap[UUID, BoundPort]
 
     private var vppExiting = false
     private val vppExitAction = new Consumer[Exception] {
@@ -109,17 +112,23 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
     override def preStart(): Unit = {
         super.preStart()
+        log debug s"Starting VPP controller"
         portsSubscription add VirtualToPhysicalMapper.portsActive.subscribe(this)
     }
 
     override def postStop(): Unit = {
-        val cleanupFutures = watchedPorts.map(_._2.setup.rollback())
+        log debug s"Stopping VPP controller"
+        val cleanupFutures =
+            uplinks.values().asScala.map(_.setup.rollback()) ++
+            downlinks.values().asScala.map(_.setup.rollback())
+
         Await.ready(Future.sequence(cleanupFutures), VppRollbackTimeout millis)
         if ((vppProcess ne null) && vppProcess.isRunning) {
             stopVppProcess()
         }
         portsSubscription.unsubscribe()
-        watchedPorts.clear()
+        uplinks.clear()
+        downlinks.clear()
         super.postStop()
     }
 
@@ -130,35 +139,31 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             log warn s"Unknown message $m"
     }
 
-    private def attachLink(portId: UUID, port: RouterPort, setup: VppSetup)
-    : Future[_] = {
+    private def attachLink(links: LinksMap, portId: UUID, port: RouterPort,
+                           setup: VppSetup): Future[_] = {
         val boundPort = BoundPort(port, setup)
 
         {
-            watchedPorts.put(portId, boundPort) match {
-                case Some(previousBinding) =>
+            links.put(portId, boundPort) match {
+                case null => Future.successful(Unit)
+                case previousBinding: BoundPort =>
                     previousBinding.setup.rollback()
-                case None => Future.successful(Unit)
             }
         } andThen {
             case _ => setup.execute()
         } andThen {
             case Failure(err) =>
                 setup.rollback()
-                watchedPorts.get(portId) match {
-                    case Some(p) if p == boundPort =>
-                        watchedPorts.remove(portId)
-                    case _ =>
-                }
+                links.remove(portId, boundPort)
         }
     }
 
-    private def detachLink(portId: UUID): Future[_] = {
-        watchedPorts remove portId match {
-            case Some(entry) =>
+    private def detachLink(links: LinksMap, portId: UUID): Future[_] = {
+        links remove portId match {
+            case boundPort: BoundPort =>
                 log debug s"FIP64 port $portId detached"
-                entry.setup.rollback()
-            case None => Future.successful(Unit)
+                boundPort.setup.rollback()
+            case null => Future.successful(Unit)
         }
     }
 
@@ -180,12 +185,12 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
 
         val dpNumber = datapathState.getDpPortNumberForVport(portId)
-        attachLink(portId, port, new VppUplinkSetup(port.id, dpNumber, vppApi,
-                                                    vppOvs))
+        attachLink(uplinks, portId, port,
+                   new VppUplinkSetup(port.id, dpNumber, vppApi, vppOvs))
     }
 
     private def detachUplink(portId: UUID): Future[_] = {
-        detachLink(portId)
+        detachLink(uplinks, portId)
     }
 
     private def attachDownlink(portId: UUID, port: RouterPort, vrf: Int,
@@ -196,13 +201,13 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             vppApi = createApiConnection(VppConnectMaxRetries)
         }
 
-        attachLink(portId, port,
+        attachLink(downlinks, portId, port,
                    new VppDownlinkSetup(port.id, vrf, fixedIp, floatingIp,
                                         vppApi, backend))
     }
 
     private def detachDownlink(portId: UUID): Future[_] = {
-        detachLink(portId)
+        detachLink(downlinks, portId)
     }
 
     @tailrec
