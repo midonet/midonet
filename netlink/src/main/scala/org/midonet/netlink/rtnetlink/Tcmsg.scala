@@ -73,7 +73,7 @@ object Tcmsg {
     val TC_POLICE_SHOT = 2
 
     // time units is microseconds
-    val TIME_UNITS_PER_SEC = 1000000
+    val TIME_UNITS_PER_SEC = 1000000L
 
     // '3' as a short, in network byte order
     val ETH_P_ALL = 768
@@ -90,8 +90,8 @@ object Tcmsg {
         cellLog
     }
 
-    def usecPerBurst(burst: Int, rate: Double): Double = {
-        TIME_UNITS_PER_SEC * ((burst*1024).toDouble/rate)
+    def usecPerBurst(buffer: Int, rate: Double): Double = {
+        TIME_UNITS_PER_SEC * buffer.toDouble/rate
     }
 
     def addIngressFilter(buf: ByteBuffer, ifindex: Int, prio: Int = 5) =
@@ -132,12 +132,13 @@ class TcPolice(rate: Int, burst: Int, mtu: Int, ticksPerUsec: Double)
     def serializeInto(buf: ByteBuffer): Int = {
 
         val prate = kilobitsToBytes(rate)
-        val pburst = usecPerBurst(burst, prate)
+        val buffer = burst * 1024
+        val pburst = usecPerBurst(buffer, prate)
         val start = buf.position()
         buf.putInt(0) // index
         buf.putInt(Tcmsg.TC_POLICE_SHOT) // action
         buf.putInt(0) // limit
-        buf.putInt((pburst*ticksPerUsec).toInt)
+        buf.putInt((pburst*ticksPerUsec/8).toInt)
         buf.putInt(mtu)
 
         // rate: tc_ratespec
