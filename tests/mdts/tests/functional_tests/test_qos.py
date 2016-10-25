@@ -204,3 +204,161 @@ def test_qos_bw_limit_on_port_with_network_policy():
     finally:
         VTM.destroy()
         PTM.destroy()
+
+
+def test_qos_dscp_mark_on_port():
+    """
+    1) Test that setting a DSCP rule on a port will transform all
+    default packets that ingress the cloud network through that port
+    to set the IP DS header to the given DSCP mark, and reset the IP
+    DS header to the given DSCP mark, if already present.
+
+    2) Test that clearing a DSCP rule on a port will no longer set
+    the IP DS header on default packets, nor change the IP DS header
+    on packets with DS header already set.
+    """
+
+    try:
+        PTM.build()
+        VTM.build(ptm=PTM)
+        VTM.vm1_port.set_qos_policy(VTM.qos_pol1)
+
+        VTM.vm1.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=None)
+
+        VTM.qos_pol1.add_dscp_rule({'dscp_mark': 22})
+
+        VTM.vm1.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=22)
+
+        rule1 = VTM.qos_pol1.get_dscp_rules()[0]
+        rule1.dscp_mark = 44
+        rule1.update()
+
+        VTM.vm1.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=44)
+
+        VTM.qos_pol1.clear_dscp_rules()
+
+        VTM.vm1.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=None)
+
+        VTM.vm1_port.clear_qos_policy()
+    finally:
+        VTM.destroy()
+        PTM.destroy()
+
+
+def test_qos_dscp_mark_on_network():
+    """
+    1) Test that setting a DSCP rule on a network will transform all
+    default packets that ingress the cloud on the network to set the IP
+    DS headers to the given DSCP mark, or reset the IP DS headers to the
+    given DSCP mark, if already set.
+
+    2) Test that clearing a DSCP rule on a network will no longer set
+    the IP DS header on default, and will no longer change the IP DS
+    header on packets with DS header already set.
+
+    3) Test that setting and clearing the DSCP rule on a network will also
+    affect any traffic on any new ports created on that network.
+    """
+
+    try:
+        PTM.build()
+        VTM.build(ptm=PTM)
+        VTM.qos_pol1.add_dscp_rule({'dscp_mark': 11})
+
+        VTM.main_bridge.set_qos_policy(VTM.qos_pol1)
+
+        VTM.vm1.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=11)
+
+        VTM.main_bridge.add_port({'id': 3, 'type': 'exterior'})
+        vm3_port = VTM.main_bridge.get_port(3)
+        host1 = service.get_container_by_hostname('midolman1')
+        vm3data = {'hw_addr': 'aa:bb:cc:00:00:11',
+                   'ipv4_addr': ['172.16.1.4/24'],
+                   'ipv4_gw': '172.16.1.1'}
+        vm3 = host1.create_vmguest(**vm3data)
+        port3_real_id = vm3_port.get_real_id()
+        host1.bind_port(vm3, port3_real_id)
+        utils.await_port_active(port3_real_id, active=True)
+
+        vm3.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=11)
+
+        VTM.main_bridge.clear_qos_policy()
+
+        VTM.vm1.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=None)
+
+        vm3.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=None)
+
+        VTM.qos_pol2.clear_dscp_rules()
+        VTM.qos_pol1.clear_dscp_rules()
+
+        host1.destroy_vmguest(vm3)
+    finally:
+        VTM.destroy()
+        PTM.destroy()
+
+
+def test_qos_dscp_mark_on_port_with_network_policy():
+    """
+    1) Test that setting a DSCP rule on a network with ports that have
+    specific DSCP rules set will apply the network's rules to other ports
+    with no specific policy, but those ports with specific policy rules
+    set, the traffic on those ports would be unaffected.
+
+    2) Test that clearing the DSCP rule on a network with ports that
+    have specific DSCP rules set will no longer apply rules to other
+    ports with no specific policy, but those ports with specific policy
+    rules set, the traffic on those ports would be unaffected.
+    """
+
+    try:
+        PTM.build()
+        VTM.build(ptm=PTM)
+        VTM.qos_pol2.add_dscp_rule({'dscp_mark': 66})
+
+        # This should override pol2's settings, meaning portA, which uses
+        # pol1, should act according to pol1's settings, NOT the pol2 on the
+        # network
+        VTM.qos_pol1.add_dscp_rule({'dscp_mark': 88})
+
+        VTM.main_bridge.set_qos_policy(VTM.qos_pol2)
+        VTM.vm1_port.set_qos_policy(VTM.qos_pol1)
+
+        VTM.vm1.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=88)
+
+        # But if we remove portA's association to pol1, the behavior should
+        # then fall back to the network's policy: pol2
+        VTM.vm1_port.clear_qos_policy()
+
+        VTM.vm1.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=66)
+
+        VTM.main_bridge.clear_qos_policy()
+
+        VTM.vm1.verify_packet_field(
+            target_iface=VTM.vm2,
+            field='tos', value=None)
+
+        VTM.qos_pol2.clear_dscp_rules()
+        VTM.qos_pol1.clear_dscp_rules()
+    finally:
+        VTM.destroy()
+        PTM.destroy()
