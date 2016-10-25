@@ -56,13 +56,16 @@ public class TestTenant extends RestApiTestBase {
     private void createActualTenants(int count) {
         Topology.Builder builder = new Topology.Builder(dtoResource);
 
+        MockAuthService as =
+            (MockAuthService) _injector.getInstance(AuthService.class);
+        as.clearTenants();
+
         for (int i = 0 ; i < count ; i++) {
             String tenantId = Integer.toString(i);
             // In the new storage stack we don't store tenants in MidoNet
             // and instead fetch them directly from the AuthService, so
             // let's add them there.
-            AuthService as = _injector.getInstance(AuthService.class);
-            ((MockAuthService)as).addTenant(tenantId, tenantId);
+            as.addTenant(tenantId, tenantId);
         }
 
         topology = builder.build();
