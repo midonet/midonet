@@ -42,10 +42,19 @@ class TcIntegrationTest extends FeatureSpec
         }
     }
 
+    def getDisplayBurst(burstInKBits: Int) = {
+        val burst = burstInKBits * 1000 / 8
+        if (burst % 1000 == 0) {
+            s"${burst/1000}Kb"
+        } else {
+            s"${burst}b"
+        }
+    }
+
     def verifyIngressFilter(dev: String, rate: Int, burst: Int): Unit = {
         eventually {
             val filters = s"tc filter ls dev $dev parent ffff:".!!
-            val rateStr = s"rate ${rate}000bit burst ${burst}Kb"
+            val rateStr = s"rate ${rate*1000}bit burst ${getDisplayBurst(burst)}"
             val protocolStr = "filter protocol all"
             (filters contains rateStr) shouldBe true
             (filters contains protocolStr) shouldBe true
@@ -64,15 +73,15 @@ class TcIntegrationTest extends FeatureSpec
             try {
 
                 val veth = LinkOps.createVethPair(devName, s"p$devName")
-                var r = 300
-                var b = 200
+                var r = 400
+                var b = 800
                 handler.addTcConfig(veth.dev.ifi.index, r, b)
 
                 verifyIngressQdisc(devName)
                 verifyIngressFilter(devName, r, b)
 
-                r = 400
-                b = 100
+                r = 200
+                b = 1000
                 handler.addTcConfig(veth.dev.ifi.index, r, b)
 
                 verifyIngressQdisc(devName)
@@ -96,7 +105,7 @@ class TcIntegrationTest extends FeatureSpec
             handler.startAsync().awaitRunning()
             try {
                 val veth1 = LinkOps.createVethPair(devName1, s"p$devName1")
-                val r1 = 300
+                val r1 = 400
                 val b1 = 200
                 handler.addTcConfig(veth1.dev.ifi.index, r1, b1)
 
@@ -104,7 +113,7 @@ class TcIntegrationTest extends FeatureSpec
                 verifyIngressFilter(devName1, r1, b1)
 
                 val veth2 = LinkOps.createVethPair(devName2, s"p$devName2")
-                val r2 = 300
+                val r2 = 400
                 val b2 = 200
                 handler.addTcConfig(veth2.dev.ifi.index, r2, b2)
 
