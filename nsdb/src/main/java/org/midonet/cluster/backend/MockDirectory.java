@@ -27,6 +27,7 @@ import java.util.Set;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
+import org.apache.curator.utils.ZKPaths;
 import org.apache.jute.Record;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -257,6 +258,10 @@ public class MockDirectory implements Directory {
     @Override
     public void ensureHas(String relativePath, byte[] data)
         throws NoNodeException, NoChildrenForEphemeralsException {
+        String parent = ZKPaths.getPathAndNode(relativePath).getPath();
+        if (!"/".equals(parent)) {
+            ensureHas(parent, data);
+        }
         try {
             add(relativePath, data, CreateMode.PERSISTENT, false);
         } catch (KeeperException.NodeExistsException e) { /* node was there */ }
@@ -352,7 +357,8 @@ public class MockDirectory implements Directory {
                             DirectoryCallback<Boolean> callback,
                             Object context) {
         try {
-            callback.onSuccess(getNode(relativePath).exists(null), null, context);
+            callback.onSuccess(getNode(relativePath).exists(null), new Stat(),
+                               context);
         } catch (NoNodeException e) {
             callback.onSuccess(false, null, context);
         }

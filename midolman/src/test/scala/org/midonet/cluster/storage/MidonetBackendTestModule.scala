@@ -26,7 +26,7 @@ import org.mockito.Mockito._
 
 import rx.subjects.BehaviorSubject
 
-import org.midonet.cluster.data.storage.model.ArpEntry
+import org.midonet.cluster.data.storage.model.{ArpEntry, Fip64Entry}
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Router
@@ -55,6 +55,9 @@ class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend
     inMemoryZoom.registerTable(classOf[Topology.Port], classOf[MAC],
                                classOf[IPv4Addr], MidonetBackend.PeeringTable,
                                classOf[MacIp4StateTable])
+    inMemoryZoom.registerTable(classOf[Fip64Entry],
+                               classOf[AnyRef], MidonetBackend.Fip64Table,
+                               classOf[Fip64StateTable])
     val connectionState =
         BehaviorSubject.create[ConnectionState](ConnectionState.CONNECTED)
 
