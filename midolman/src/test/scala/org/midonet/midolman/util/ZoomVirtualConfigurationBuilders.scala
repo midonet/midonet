@@ -314,12 +314,14 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
     override def newBridgePort(bridge: UUID,
                                host: Option[UUID] = None,
                                interface: Option[String] = None,
-                               vlanId: Option[Int] = None): UUID = {
+                               vlanId: Option[Int] = None,
+                               qosPolicyId: Option[UUID] = None): UUID = {
         val id = UUID.randomUUID
         store.create(createBridgePort(id, bridgeId=Some(bridge),
                                       tunnelKey=tunnelKeys.incrementAndGet(),
                                       hostId=host, interfaceName=interface,
-                                      adminStateUp=true, vlanId = vlanId))
+                                      adminStateUp=true, vlanId = vlanId,
+                                      qosPolicyId = qosPolicyId))
         id
     }
 
@@ -790,6 +792,35 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
 
     override def isTraceRequestEnabled(tr: UUID): Boolean = {
         Await.result(store.get(classOf[TraceRequest], tr), awaitTimeout).getEnabled
+    }
+
+    override def newQosPolicy(): UUID = {
+        val id = UUID.randomUUID
+        store.create(createQosPolicy(id = id))
+        Await.result(store.get(classOf[QosPolicy], id), awaitTimeout)
+        id
+    }
+
+    override def newQosBWLimitRule(policyId: UUID,
+                          maxKbps: Int,
+                          maxBurstKbps: Option[Int]): UUID = {
+        val id = UUID.randomUUID
+        store.create(createQosRuleBWLimit(policyId = policyId,
+                                          maxKbps = maxKbps,
+                                          maxBurstKbps = maxBurstKbps,
+                                          id = id))
+        Await.result(store.get(classOf[QosRuleBandwidthLimit], id), awaitTimeout)
+        id
+    }
+
+    override def newQosDscpRule(policyId: UUID,
+                                dscpMark: Int): UUID = {
+        val id = UUID.randomUUID
+        store.create(createQosRuleDscp(policyId = policyId,
+                                       dscpMark = dscpMark,
+                                       id = id))
+        Await.result(store.get(classOf[QosRuleDscp], id), awaitTimeout)
+        id
     }
 
     override def newServiceContainer(): UUID = {

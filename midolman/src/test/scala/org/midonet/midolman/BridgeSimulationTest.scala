@@ -18,17 +18,18 @@ package org.midonet.midolman
 import java.lang.{Short => JShort}
 import java.util.UUID
 
-import scala.collection.JavaConversions._
+import org.midonet.odp.FlowMatch
 
+import scala.collection.JavaConversions._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.odp.flows.{FlowActionSetKey, FlowKey, FlowKeyIPv4}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.util.concurrent._
@@ -44,6 +45,11 @@ class BridgeSimulationTest extends MidolmanSpec {
     private var port3OnHost1: UUID = _
     private var portOnHost2: UUID = _
     private var portOnHost3: UUID = _
+
+
+    private var qosPolicy1: UUID = _
+    private var dscpRule1: UUID = _
+    private var port4OnHost1WithQos: UUID = _
 
     private var bridge: UUID = _
     private var bridgeDevice: Bridge = _
@@ -67,17 +73,23 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         bridge = newBridge("bridge")
 
+        qosPolicy1 = newQosPolicy()
+        dscpRule1 = newQosDscpRule(qosPolicy1, dscpMark = 22)
+
         port1OnHost1 = newBridgePort(bridge)
         port2OnHost1 = newBridgePort(bridge)
         port3OnHost1 = newBridgePort(bridge)
         portOnHost2 = newBridgePort(bridge)
         portOnHost3 = newBridgePort(bridge)
+        port4OnHost1WithQos = newBridgePort(bridge,
+                                            qosPolicyId = Some(qosPolicy1))
 
         materializePort(port1OnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")
         materializePort(portOnHost3, host3, "port3")
         materializePort(port2OnHost1, host1, "port4")
         materializePort(port3OnHost1, host1, "port5")
+        materializePort(port4OnHost1WithQos, host1, "port6")
 
         List(host1, host2, host3).zip(List(host1Ip, host2Ip, host3Ip)).foreach{
             case (host, ip) =>
@@ -85,9 +97,10 @@ class BridgeSimulationTest extends MidolmanSpec {
         }
 
         fetchPorts(port1OnHost1, portOnHost2, portOnHost3,
-                   port2OnHost1, port3OnHost1)
+                   port2OnHost1, port3OnHost1, port4OnHost1WithQos)
 
         bridgeDevice = fetchDevice[Bridge](bridge)
+
     }
 
     /**
@@ -332,6 +345,47 @@ class BridgeSimulationTest extends MidolmanSpec {
         verifyMacLearned(srcMac, port3OnHost1)
     }
 
+    scenario("dscp mark is added to IPv4 packets") {
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+            { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 0 } <<
+            { udp src 10 dst 11 } << payload("My UDP packet")
+        ethPkt.setVlanIDs(networkVlans)
+        ethPkt.setEtherType(IPv4.ETHERTYPE)
+        val ctx = packetContextFor(ethPkt, port4OnHost1WithQos)
+        ctx.origMatch.setEtherType(IPv4.ETHERTYPE)
+
+        val (result, ctxOut) = simulate(ctx)
+
+        verifyDSCP(ctxOut, 22)
+    }
+
+    scenario("dscp mark is kept on IPv4 packets when ToS is same as DSCP mark") {
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+            { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 22 } <<
+            { udp src 10 dst 11 } << payload("My UDP packet")
+        ethPkt.setVlanIDs(networkVlans)
+        val ctx = packetContextFor(ethPkt, port4OnHost1WithQos)
+        ctx.origMatch.setEtherType(IPv4.ETHERTYPE)
+
+        val (result, ctxOut) = simulate(ctx)
+
+        verifyDSCP(ctxOut, 22, requireSetKeyAction = false)
+    }
+
+    scenario("dscp mark is not added to non-IPv4 packets") {
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst eth_bcast } <<
+            { arp.req.mac(srcMac -> eth_bcast)
+                .ip("10.10.10.11" --> "10.11.11.10") }
+        val ctx = packetContextFor(ethPkt, port4OnHost1WithQos)
+        ctx.origMatch.setEtherType(ARP.ETHERTYPE)
+
+        val (result, ctxOut) = simulate(ctx)
+
+        verifyNoDSCP(ctxOut)
+    }
     /*
      * In this test, always assume input port is port2OnHost1 (keep src mac
      * consistent), dst mac is variable
@@ -377,6 +431,37 @@ class BridgeSimulationTest extends MidolmanSpec {
         generatedArp.getTargetProtocolAddress shouldBe dstIp.toBytes
 
         action shouldBe NoOp
+    }
+
+    private def verifyDSCP(ctx: PacketContext, dscpMark: Int,
+                           requireSetKeyAction: Boolean = true) : Unit = {
+        ctx.calculateActionsFromMatchDiff()
+
+        ctx.wcmatch.isSeen(FlowMatch.Field.NetworkTOS) shouldBe true
+        ctx.wcmatch.getNetworkTOS shouldBe dscpMark
+
+        if (requireSetKeyAction) {
+            val flowActions: Set[FlowKey] = ctx.virtualFlowActions filter
+                (_.isInstanceOf[FlowActionSetKey]) filter
+                (_.asInstanceOf[FlowActionSetKey].getFlowKey.isInstanceOf[FlowKeyIPv4]) map
+                (_.asInstanceOf[FlowActionSetKey].getFlowKey) toSet
+
+            flowActions should not be empty
+
+            val tosActions = flowActions filter
+                (_.asInstanceOf[FlowKeyIPv4].ipv4_tos == dscpMark.toByte)
+
+            tosActions should not be empty
+        }
+    }
+
+    private def verifyNoDSCP(ctx: PacketContext) : Unit = {
+        ctx.calculateActionsFromMatchDiff()
+        ctx.wcmatch.isSeen(FlowMatch.Field.NetworkTOS) shouldBe false
+        ctx.virtualFlowActions filter
+            (_.isInstanceOf[FlowActionSetKey]) filter
+            (_.asInstanceOf[FlowActionSetKey].getFlowKey.isInstanceOf[FlowKeyIPv4]) map
+            (_.asInstanceOf[FlowActionSetKey].getFlowKey) shouldBe empty
     }
 }
 
