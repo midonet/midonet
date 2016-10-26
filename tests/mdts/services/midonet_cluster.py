@@ -67,6 +67,6 @@ class MidonetClusterHost(Service):
 
     def get_jmx_monitor(self):
         monitor = JMXMonitor()
-        monitor.connect(self.get_ip_address(),7201)
+        monitor.connect(self.get_ip_address(), 7201)
         return monitor
 

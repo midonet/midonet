@@ -121,7 +121,7 @@ class SshClient(object):
                 return {'Name': container['Name'],
                         'Config': container,
                         'State': container['State'],
-                        'NetworkSettings': container['NetworkSettings'] }
+                        'NetworkSettings': container['NetworkSettings']}
         return None
 
     def containers(self, all=None):
@@ -164,11 +164,11 @@ class SshClient(object):
             running = True
             exit_code = "N/A"
 
-        return { 'Running': running,
-                 'ProcessConfig': {
-                     'entrypoint': cmd.split(' ')[0],
-                     'arguments': cmd.split(' ')[1:] },
-                 'ExitCode': exit_code }
+        return {'Running': running,
+                'ProcessConfig': {
+                    'entrypoint': cmd.split(' ')[0],
+                    'arguments': cmd.split(' ')[1:]},
+                'ExitCode': exit_code}
 
     def _get_option(self, container_config, option, paramiko_option, default):
         return container_config.get(option,

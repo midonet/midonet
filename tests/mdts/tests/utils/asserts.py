@@ -35,7 +35,7 @@ class InterfaceExpects(BaseMatcher):
         self._expected = expected
         self._filter = pcap_filter_string
         self._timeout = timeout  # in sec
-        self._listen_host_interface=listen_host_interface
+        self._listen_host_interface = listen_host_interface
         self._iface = None
         self._count = count
 

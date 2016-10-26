@@ -35,54 +35,54 @@ BM = BindingManager(PTM, VTM)
 bindings_single_mm_single_bridge = {
     'description': 'on single MM',
     'bindings': [
-        { 'binding':
-              { 'device_name': 'bridge-000-001', 'port_id': 1,
-                'host_id': 1, 'interface_id': 1 } },
-        { 'binding':
-              { 'device_name': 'bridge-000-001', 'port_id': 2,
-                'host_id': 1, 'interface_id': 2 } }
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}}
     ]
 }
 
 bindings_single_mm_multi_bridge_same_subnet = {
     'description': 'on single MM',
     'bindings': [
-        { 'binding':
-              { 'device_name': 'bridge-000-001', 'port_id': 1,
-                'host_id': 1, 'interface_id': 1 } },
-        { 'binding':
-              { 'device_name': 'bridge-000-002', 'port_id': 1,
-                'host_id': 1, 'interface_id': 2 } }
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 1, 'interface_id': 2}}
     ]
 }
 
 bindings_single_mm_multi_bridge_diff_subnet = {
     'description': 'on single MM',
     'bindings': [
-        { 'binding':
-              { 'device_name': 'bridge-000-001', 'port_id': 2,
-                'host_id': 2, 'interface_id': 1 } },
-        { 'binding':
-              { 'device_name': 'bridge-000-002', 'port_id': 2,
-                'host_id': 2, 'interface_id': 2 } }
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'bridge-000-002', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}}
     ]
 }
 
 bindings_multi_mm = {
     'description': 'on multiple MMs',
     'bindings': [
-        { 'binding':
-              { 'device_name': 'bridge-000-001', 'port_id': 1,
-                'host_id': 1, 'interface_id': 1 } },
-        { 'binding':
-              { 'device_name': 'bridge-000-001', 'port_id': 2,
-                'host_id': 2, 'interface_id': 1 } },
-        { 'binding':
-              { 'device_name': 'bridge-000-002', 'port_id': 1,
-                'host_id': 3, 'interface_id': 1 } },
-        { 'binding':
-              { 'device_name': 'bridge-000-002', 'port_id': 2,
-                'host_id': 3, 'interface_id': 2 } }
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 3, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'bridge-000-002', 'port_id': 2,
+             'host_id': 3, 'interface_id': 2}}
     ]
 }
 
@@ -140,7 +140,7 @@ bindings_multi_mm = {
 #                disabled because the emulator bounces broadcast L2 traffic back
 #                to MN (to the flooding proxy)
 
-_tunnel_zones = { }
+_tunnel_zones = {}
 
 def add_tzone(tzone_name):
     """ Adds a new VTEP tunnel zone with for the specified name. """
@@ -176,7 +176,7 @@ def add_vtep(vtep_name, tzone_name):
 def add_binding(vtep_name, port_name, bridge_name, vlan):
     bridge = VTM.get_bridge(bridge_name)
     binding = VTM.get_vtep(vtep_name).add_binding({
-        'port' : port_name,
+        'port': port_name,
         'vlan': vlan,
         'network': bridge.get_id()
     })
@@ -219,7 +219,8 @@ def ping_to_vtep(bridge_name, port_index, dest_ip,
                                                                      port_index,
                                                                      dest_ip))
 
-        ping_to_vtep(bridge_name, port_index, dest_ip, count, interval, retries-1)
+        ping_to_vtep(bridge_name, port_index, dest_ip, count, interval,
+                     retries - 1)
 
 def setup_single_vtep():
     add_tzone("tz1")

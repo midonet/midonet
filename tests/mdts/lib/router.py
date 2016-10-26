@@ -59,7 +59,7 @@ class Router(ResourceBase):
         # chain data via Virtual Topology Manager, and set their chain IDs to
         # Router DTO. Raise an exception if no corresponding chain is found.
         # TODO(tomohiko) Also updates _inbound_filter and _outbound_filter
-        for filter_field in ['inbound_filter_id','outbound_filter_id', 'local_redirect_chain']:
+        for filter_field in ['inbound_filter_id', 'outbound_filter_id', 'local_redirect_chain']:
             if filter_field in self._data:
                 self._context.look_up_resource(
                         self._mn_resource, filter_field, self._data[filter_field])
