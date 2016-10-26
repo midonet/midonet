@@ -19,10 +19,8 @@ import java.lang.{Short => JShort}
 import java.util.UUID
 
 import scala.collection.JavaConversions._
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
@@ -47,7 +45,6 @@ class BridgeSimulationTest extends MidolmanSpec {
 
     private var bridge: UUID = _
     private var bridgeDevice: Bridge = _
-
 
     val host1Ip = IPv4Addr("192.168.100.1")
     val host2Ip = IPv4Addr("192.168.125.1")
@@ -88,6 +85,7 @@ class BridgeSimulationTest extends MidolmanSpec {
                    port2OnHost1, port3OnHost1)
 
         bridgeDevice = fetchDevice[Bridge](bridge)
+
     }
 
     /**
