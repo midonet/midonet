@@ -245,8 +245,8 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
                                         '20.0.0.0/26')
         self.add_router_interface(tenantrtr, subnet=privsubnet)
 
-        port1 = self.create_port(port_name, privnet)
-        self.create_sg_rule(port1['security_groups'][0])
+        self.port1 = self.create_port(port_name, privnet)
+        self.create_sg_rule(self.port1['security_groups'][0])
 
         # wire up downlink
         self.create_veth_pair('midolman1', dlink_vpp_name, dlink_ovs_name,
@@ -311,6 +311,53 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
                          ip4fixed = "20.0.0.2",
                          tableId=vrf)
 
+class SingleTenantWithNeutronIPv6FIP(SingleTenantAndUplinkWithVPP):
+
+    def build(self, binding_data=None):
+        super(SingleTenantAndUplinkWithVPP, self).build(binding_data)
+
+        self.pubnet = self.create_network("public", external=True)
+        pubsubnet = self.create_subnet("publicsubnet",
+                                            self.pubnet,
+                                            "100.0.0.0/8",
+                                            version=4)
+
+        pubsubnet6 = self.create_subnet("publicsubnet6",
+                                            self.pubnet,
+                                            "cccc:bbbb::/32",
+                                            version=6)
+
+        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
+        uplink_port_name = 'vpp-' + uplink_port_id[0:8]
+
+        # add to the edge router
+        self.add_router_interface(self._edgertr, subnet=pubsubnet)
+
+        global DOWNLINK_VETH_MAC
+
+        self.vrf = self.addTenant('tenant', self.pubnet, pubsubnet, uplink_port_name, DOWNLINK_VETH_MAC, 'port1')
+
+        self.addAndAssociateIPv6Fip('cccc:bbbb::3', self.port1)
+
+    def addAndAssociateIPv6Fip(self, fip_address, port):
+        fip = self.create_resource(
+                self.api.create_floatingip(
+                    {'floatingip':
+                        {'floating_network_id': self.pubnet['id'],
+                         'floating_ip_address': fip_address,
+                         'port_id': port['id'],
+                         'tenant_id': 'admin'
+                        }}
+                )
+            )
+        self.setup_fip64("midolman1",
+                         ip6ext = 'bbbb::2',
+                         ip6fip = fip_address,
+                         ip4fip64 = "20.0.0.65",
+                         ip4fixed = "20.0.0.2",
+                         tableId = self.vrf)
+
+        return fip['floatingip']
 
 # Neutron topology with a 3 tenants and uplink
 # configured
@@ -420,7 +467,6 @@ def ping_from_inet(container, ipv6 = '2001::1', count=4, namespace=None):
 def test_uplink_ipv6():
     """
     Title: ping ipv6 uplink of midolman1 from quagga1. VPP must respond
-
     """
     ping_from_inet('quagga1', '2001::1', 10)
 
@@ -444,3 +490,12 @@ def test_ping_multi_vms_ipv6():
     """
     ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')
     ping_from_inet('quagga1', 'cccc:cccc::2', 10, namespace='ip6')
+
+@attr(version="v1.2.0")
+@bindings(binding_empty,
+          binding_manager=BindingManager(vtm=SingleTenantWithNeutronIPv6FIP()))
+def test_neutron_fip():
+    """
+    Title: create and associates a IPv6 FIP in neutron checking connectivity
+    """
+    ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
