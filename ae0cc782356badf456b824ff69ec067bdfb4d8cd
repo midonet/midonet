@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_339c0969",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-10-26T15:27:06Z",
+      "side": 1,
+      "message": "Space!",
+      "range": {
+        "startLine": 381,
+        "startChar": 43,
+        "endLine": 381,
+        "endChar": 44
+      },
+      "revId": "ae0cc782356badf456b824ff69ec067bdfb4d8cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
