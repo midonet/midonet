@@ -354,6 +354,7 @@ public class FlowMatch {
     private byte networkProto = 0;
     private byte networkTTL = 0;
     private byte networkTOS = 0;
+    private boolean networkTOSKeySet = false;
     private IPFragmentType ipFragmentType = IPFragmentType.None;
     private int srcPort = 0;
     private int dstPort = 0;
@@ -520,6 +521,7 @@ public class FlowMatch {
         networkProto = that.networkProto;
         networkTTL = that.networkTTL;
         networkTOS = that.networkTOS;
+        networkTOSKeySet = that.networkTOSKeySet;
         ipFragmentType = that.ipFragmentType;
         srcPort = that.srcPort;
         dstPort = that.dstPort;
@@ -725,9 +727,18 @@ public class FlowMatch {
         return this;
     }
 
+    public FlowMatch setNetworkTOSKeySet(boolean keySet) {
+        this.networkTOSKeySet = keySet;
+        return this;
+    }
+
     public byte getNetworkTOS() {
         fieldSeen(Field.NetworkTOS);
         return networkTOS;
+    }
+
+    public boolean getNetworkTOSKeySet() {
+        return networkTOSKeySet;
     }
 
     @Nonnull
