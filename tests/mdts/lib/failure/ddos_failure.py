@@ -19,6 +19,7 @@ from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)
 
+
 class DDoSFailure(FailureBase):
     """Emulate DDoS attach using bonesi
 

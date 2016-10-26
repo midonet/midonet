@@ -34,6 +34,7 @@ class DhcpHost(ResourceBase):
                                       .name(name)\
                                       .ip_addr(ipaddr)\
                                       .mac_addr(hwaddr).create()
+
     def destroy(self):
         # This is cascade deleted by the parent
         pass

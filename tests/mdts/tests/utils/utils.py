@@ -57,6 +57,7 @@ def get_neutron_api():
     """
     return service.get_container_by_hostname('neutron').get_neutron_api()
 
+
 def get_keystone_api():
     """
     :rtype: keystoneclient.
@@ -137,6 +138,7 @@ def failures(*args):
         return test_wrapped
     return test_method_wrapper
 
+
 def update_with_setup(func, setup, teardown):
     """
     In case a test function defined setup and teardown methods with the
@@ -214,6 +216,7 @@ def update_with_setup(func, setup, teardown):
 
     return func
 
+
 # list -> (() -> ()) -> () -> generator (() -> ())
 def bindings(*args, **kwargs):
 
@@ -254,6 +257,7 @@ def bindings(*args, **kwargs):
         return test_wrapped
     return test_method_wrapper
 
+
 def with_mn_conf(switch_flag, switch_id, config):
     """
     Decorator to execute_mn_conf with custom parameters before a test.
@@ -282,6 +286,7 @@ def with_mn_conf(switch_flag, switch_id, config):
         return wrapped
     return decorated
 
+
 def execute_mn_conf(switch_flag, switch_id, config):
     host = service.get_container_by_hostname("midolman1")
     conf_file = tempfile.NamedTemporaryFile()
@@ -293,6 +298,7 @@ def execute_mn_conf(switch_flag, switch_id, config):
                                       conf_file.name)
     host.exec_command(cmd, stream=False)
     conf_file.close()
+
 
 def clear_virtual_topology_for_tenants(tenant_name_prefix):
     """
@@ -385,6 +391,7 @@ def ipv4_int(ipv4_str):
             raise Exception('Incorrect IPv4 address format: %s' % ipv4_str)
         addr_int = addr_int * 256 + part_int
     return addr_int
+
 
 def await_port_active(vport_id, active=True, timeout=120, sleep_period=5):
     midonet_api = get_midonet_api()

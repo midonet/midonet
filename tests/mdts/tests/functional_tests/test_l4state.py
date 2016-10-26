@@ -201,6 +201,7 @@ def expect_return_dropped(dst_port_no):
 # unnecessary delays. Agents already take their time to restart so if we wait
 # too much we risk expiring keys on cassandra.
 
+
 def stop_midolman_agents():
     agents = [service.get_container_by_hostname('midolman1'),
               service.get_container_by_hostname('midolman2')]

@@ -20,6 +20,7 @@ from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)
 
+
 class CombinedFailure(FailureBase):
     """Emulate multiple failures that happen simultaneously
 

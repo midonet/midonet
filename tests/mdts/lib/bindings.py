@@ -25,9 +25,11 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class BindingType:
     API = 1
     MMCTL = 2
+
 
 class BindingManager(fixtures.Fixture):
 

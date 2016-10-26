@@ -146,6 +146,7 @@ def test_icmp_from_mn():
     # make sure Midonet has recovered from a transient loop.
     _test_resiliency_from_transient_loop(_ping_from_mn, midoVmIface, exHostIface)
 
+
 @attr(version="v1.2.0")
 @bindings(binding1)
 def test_icmp_to_mn():
@@ -177,6 +178,7 @@ FAILOVER_WAIT_SEC = 50 + 5
 # but actually we need to wait 2 minutes for the flow to expire
 FAILBACK_WAIT_SEC = 30 + 5
 
+
 @nottest
 def _test_failover(ping, failover, restore):
 
@@ -198,6 +200,7 @@ def _test_failover(ping, failover, restore):
     finally:
         restore(trunk0)
 
+
 # FIXME: coalesce duplicated methods
 @nottest
 def _test_failover_on_ifdown_with_icmp_from_mn():
@@ -209,6 +212,7 @@ def _test_failover_on_ifdown_with_icmp_from_mn():
         trunk.set_up()
 
     _test_failover(_ping_from_mn, failover, restore)
+
 
 @attr(version="v1.2.0")
 @bindings(binding1)
@@ -225,6 +229,7 @@ def test_failover_on_ifdown_with_icmp_from_mn():
     setup_wait()
     _test_failover_on_ifdown_with_icmp_from_mn()
 
+
 @nottest
 def _test_failover_on_ifdown_with_icmp_to_mn():
 
@@ -235,6 +240,7 @@ def _test_failover_on_ifdown_with_icmp_to_mn():
         trunk.set_up()
 
     _test_failover(_ping_to_mn, failover, restore)
+
 
 @attr(version="v1.2.0")
 @bindings(binding1)
@@ -250,6 +256,7 @@ def test_failover_on_ifdown_with_icmp_to_mn():
     setup_wait()
     _test_failover_on_ifdown_with_icmp_to_mn()
 
+
 @nottest
 def _test_failover_on_generic_failure_with_icmp_from_mn():
 
@@ -260,6 +267,7 @@ def _test_failover_on_generic_failure_with_icmp_from_mn():
         trunk.eject_packet_loss(wait_time=5)
 
     _test_failover(_ping_from_mn, failover, restore)
+
 
 @attr(version="v1.2.0")
 @bindings(binding1)
@@ -275,6 +283,7 @@ def test_failover_on_generic_failure_with_icmp_from_mn():
     setup_wait()
     _test_failover_on_generic_failure_with_icmp_from_mn()
 
+
 @nottest
 def _test_failover_on_generic_failure_with_icmp_to_mn():
 
@@ -285,6 +294,7 @@ def _test_failover_on_generic_failure_with_icmp_to_mn():
         trunk.eject_packet_loss(wait_time=5)
 
     _test_failover(_ping_to_mn, failover, restore)
+
 
 @attr(version="v1.2.0")
 @bindings(binding1)
@@ -299,6 +309,7 @@ def test_failover_on_generic_failure_with_icmp_to_mn():
     """
     setup_wait()
     _test_failover_on_generic_failure_with_icmp_to_mn()
+
 
 @nottest
 def _test_failback(test_failover, ping, migrate=None):
@@ -320,6 +331,7 @@ def _test_failback(test_failover, ping, migrate=None):
 
     ping(midoVmIface, exHostIface)
 
+
 @attr(version="v1.2.0")
 @bindings(binding1)
 def test_failback_on_ifdown_with_icmp_from_mn():
@@ -330,6 +342,7 @@ def test_failback_on_ifdown_with_icmp_from_mn():
     setup_wait()
     _test_failback(_test_failover_on_ifdown_with_icmp_from_mn,
                    _ping_from_mn, _send_random_udp_to_mn)
+
 
 @attr(version="v1.2.0")
 @bindings(binding1)
@@ -342,6 +355,7 @@ def test_failback_on_ifdown_with_icmp_to_mn():
     _test_failback(_test_failover_on_ifdown_with_icmp_to_mn,
                    _ping_to_mn, _send_random_udp_to_mn)
 
+
 @attr(version="v1.2.0")
 @bindings(binding1)
 def test_failback_on_generic_failure_with_icmp_from_mn():
@@ -352,6 +366,7 @@ def test_failback_on_generic_failure_with_icmp_from_mn():
     setup_wait()
     _test_failback(_test_failover_on_generic_failure_with_icmp_from_mn,
                    _ping_from_mn, _send_random_udp_to_mn)
+
 
 @attr(version="v1.2.0")
 @bindings(binding1)

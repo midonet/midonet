@@ -26,6 +26,7 @@ from mdts.lib.bindings import BindingType
 
 LOG = logging.getLogger(__name__)
 
+
 class MidonetAgentHost(Service):
 
     def __init__(self, container_id):

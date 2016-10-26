@@ -247,6 +247,7 @@ def test_routing_prefixlen_weight():
     """
     pass
 
+
 @nottest
 @bindings(binding_multihost)
 def test_routing_balancing():

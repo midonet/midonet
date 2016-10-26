@@ -21,6 +21,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class NeutronTopologyManager(TopologyManager):
     """
     This is the topology manager for Neutron based APIs. It contains helper
@@ -164,5 +165,3 @@ class NeutronTopologyManager(TopologyManager):
                 }))
         except:
             pass
-
-

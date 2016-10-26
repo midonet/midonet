@@ -30,6 +30,7 @@ import pdb
 
 LOG = logging.getLogger(__name__)
 
+
 # Two private networks (net_1 & net_2) and a public network
 # Each network has one vm. The vm on net_2 has a floating ip.
 # The default security group allows all ingress udp traffic.
@@ -184,11 +185,14 @@ def stop_metric_capture(name):
     stop_jfr('midolman1', name)
     stop_jfr('midolman2', name)
 
+
 def start_metric_capture_flow_state():
     start_metric_capture("perf_flow_state")
 
+
 def stop_metric_capture_flow_state():
     stop_metric_capture("perf_flow_state")
+
 
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_multihost,
@@ -220,5 +224,3 @@ def perf_flowstate():
             time.sleep(60)
     finally:
         sender.execute("pkill hping3")
-
-

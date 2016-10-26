@@ -48,13 +48,16 @@ orphaned after the test.
 PTM = TopologyManager()
 VTM = NeutronTopologyManager()
 
+
 def setup_1():
     PTM.build()
     VTM.build()
 
+
 def destroy_1():
     VTM.destroy()
     PTM.destroy()
+
 
 @nottest
 @with_setup(setup_1, destroy_1)
@@ -151,6 +154,7 @@ different scenarios by binding the virtual ports to different vms on different
 hosts.
 """
 
+
 class VT_one_net_two_ports(NeutronTopologyManager):
 
     def build(self, data=None):
@@ -192,6 +196,7 @@ class VT_one_net_two_ports(NeutronTopologyManager):
         port2 = self.create_resource(self.api.create_port(port2json))
         LOG.debug(port2)
 
+
 class PT_two_vms_on_separate_hosts(TopologyManager):
 
     def build(self, data=None):
@@ -222,13 +227,16 @@ class PT_two_vms_on_separate_hosts(TopologyManager):
 PTM2 = PT_two_vms_on_separate_hosts()
 VTM2 = VT_one_net_two_ports()
 
+
 def setup_2():
     PTM2.build()
     VTM2.build()
 
+
 def destroy_2():
     VTM2.destroy()
     PTM2.destroy()
+
 
 @nottest
 @with_setup(setup_2, destroy_2)
@@ -251,6 +259,7 @@ def test_icmp_topology_out_test_single_compute():
     f2 = vm1.ping4(vm2)
 
     wait_on_futures([f1, f2])
+
 
 @nottest
 @with_setup(setup_2, destroy_2)
@@ -306,6 +315,7 @@ binding_multihost = {
 }
 
 BM = BindingManager(PTM2, VTM2)
+
 
 @nottest
 @bindings(binding_singlehost,
@@ -386,6 +396,7 @@ binding_multihost_inbinding = {
 
 
 BM2 = BindingManager(None, VTM2)
+
 
 @nottest
 @bindings(binding_singlehost_inbinding,

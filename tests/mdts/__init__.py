@@ -24,6 +24,7 @@ logging.basicConfig(filename='nosetests.log',
                     format='%(asctime)-s:%(levelname)-s:%(name)-s:%(message)s')
 LOG = logging.getLogger(__name__)
 
+
 def build_simple_topology():
     api = service.get_container_by_hostname('cluster1').get_midonet_api()
     host = service.get_container_by_hostname('midolman1')
@@ -62,6 +63,7 @@ def build_simple_topology():
 
     return host, interface, tz, bridge, port
 
+
 def destroy_simple_topology(topology):
     host, interface, tz, bridge, port = topology
     host.unbind_port(interface)
@@ -69,6 +71,7 @@ def destroy_simple_topology(topology):
     port.delete()
     bridge.delete()
     tz.delete()
+
 
 def setup_package():
     """
@@ -98,5 +101,3 @@ def setup_package():
                       current_attempts)
 
     raise RuntimeError("MDTS was unable to bind a single port... Exiting.")
-
-

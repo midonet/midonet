@@ -126,8 +126,10 @@ def async_assert_that(*args):
     LOG.debug('Assert ready on interface %s' % (ifname))
     return f
 
+
 def within_sec(sec):
     return sec
+
 
 def on_host_interface(bool_flag):
     return bool_flag

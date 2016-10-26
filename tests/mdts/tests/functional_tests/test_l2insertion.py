@@ -218,6 +218,7 @@ def test_basic_l2insertion():
     finally:
         fakesnort.kill()
 
+
 @attr(version="v1.2.0")
 @failures(NoFailure())
 @bindings(bindings_split, bindings_spread)
@@ -344,6 +345,7 @@ def test_multi_l2insertion():
         fakesnort1.kill()
         fakesnort2.kill()
 
+
 @attr(version="v1.2.0")
 @failures(NoFailure())
 @bindings(bindings_split, bindings_spread3)
@@ -448,6 +450,7 @@ def test_l2insertion_with_flowstate():
     finally:
         fakesnort1.kill()
         fakesnort2.kill()
+
 
 @attr(version="v1.2.0")
 @failures(NoFailure())
@@ -703,6 +706,7 @@ def test_l2insertion_fail_open():
         fakesnort2.kill()
         fakesnort1.kill()
 
+
 def ping_port(source_port, dest_port, data,
               count=1, should_succeed=True):
     f = source_port.ping4(dest_port, size=100, data=data, count=count)
@@ -715,9 +719,11 @@ def ping_port(source_port, dest_port, data,
     else:
         assert_that(exit_status, is_not(equal_to(0)), "Ping should have failed")
 
+
 def set_interface_admin_down(interface):
     interface.compute_host.exec_command(
         "ip link set down dev %s" % interface.get_binding_ifname(), stream=True)
+
 
 class FakeSnort(object):
     def __init__(self, port, pattern):

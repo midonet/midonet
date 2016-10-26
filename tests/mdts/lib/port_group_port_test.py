@@ -57,7 +57,7 @@ class PortGroupPortTest(unittest.TestCase):
 
     def test_load_port_group_port_no_device_port(self):
         """ Tests adding a port group port raise an exception.
-        
+
         When there is no corresponding device port is found, adding port group
         port should raise an exception.
         """
@@ -71,7 +71,7 @@ class PortGroupPortTest(unittest.TestCase):
         mock_device_port._mn_resource.get_id.return_value = 'port_id0'
         self.load_port_group_port_data()
         self._port_group_port.destroy()
-        
+
         self._port_group_port_resource.delete.assert_called_with()
 
 

@@ -38,6 +38,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class VT_vpn_three_sites(NeutronTopologyManager):
 
     # The topology builder creates the network virtual topology.
@@ -202,6 +203,7 @@ class VT_vpn_three_sites(NeutronTopologyManager):
             cnxn = self.create_resource(cnxn)
         return cnxn
 
+
 def pairwise_ping(port_names):
     for src, dst in itertools.permutations(port_names, 2):
         ping(src, dst, retries=2)
@@ -293,13 +295,13 @@ binding_multihost_inter_tenant.update({
 VTM = VT_vpn_three_sites()
 BM = BindingManager(None, VTM)
 
+
 # TODO: add @skip_if decorator (or use the one from testtools)
 # so we skip under certain conditions. E.g.:
 # - neutron version does not support this test
 # - an extension is not loaded
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
-
 def test_ping_between_three_sites():
 
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
@@ -358,6 +360,7 @@ def test_ping_between_three_sites():
     # Ping from right to up and viceversa
     ping('port_right', 'port_up')
     ping('port_up', 'port_right')
+
 
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
@@ -443,6 +446,7 @@ def test_ping_two_sites_two_subnets():
     ping(new_vm, 'port_right')
     ping('port_right', new_vm)
 
+
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
 def test_vpn_recreation():
@@ -492,6 +496,7 @@ def test_vpn_recreation():
     # Ping from left to right and viceversa works again
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
+
 
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
@@ -570,6 +575,7 @@ def test_admin_state_up_changes():
 
     # Check pairwise ping wors between all vms
     pairwise_ping(['port_left', 'port_right', 'port_up'])
+
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
@@ -669,6 +675,7 @@ def test_ipsec_container_failover():
     midolman3.eject_packet_loss('eth0')
     midolman3.wait_for_status('up')
 
+
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
 def test_non_vpn_subnet():
@@ -735,6 +742,7 @@ def test_non_vpn_subnet():
     ping(new_vm, 'port_right', expected_failure=True)
     ping('port_right', new_vm, expected_failure=True)
 
+
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
 def test_security_groups():
@@ -778,6 +786,7 @@ def test_security_groups():
     # Ping from left to right and viceversa
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
+
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
@@ -855,6 +864,7 @@ def test_container_migration():
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
 
+
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
 def test_container_restored_on_agent_restart():
@@ -930,6 +940,7 @@ def test_container_restored_on_agent_restart():
     # Ping from left to right and viceversa
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
+
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
@@ -1026,6 +1037,7 @@ def test_container_maintained_on_cluster_restart():
     # Ping from left to right and viceversa
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
+
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)

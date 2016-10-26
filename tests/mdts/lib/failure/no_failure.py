@@ -14,6 +14,7 @@
 
 from mdts.lib.failure.failure_base import FailureBase
 
+
 class NoFailure(FailureBase):
     """Pesudo faliure to show no failure has occured."""
 

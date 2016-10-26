@@ -16,15 +16,18 @@
 Defines common exception classes for MDTS.
 """
 
+
 class MdtsException(Exception):
     """A base exception class for MDTS."""
     pass
+
 
 class TestSetupException(MdtsException):
     def __init__(self, testname, exception):
         super(TestSetupException, self).__init__(
             "Setup failed on %s..." % testname,
             exception)
+
 
 class TestTeardownException(MdtsException):
     def __init__(self, testname, exception):

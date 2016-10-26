@@ -23,6 +23,7 @@ import uuid
 import unittest
 import yaml
 
+
 class TraceRequestTest(unittest.TestCase):
     def setUp(self):
         self._api = MagicMock()

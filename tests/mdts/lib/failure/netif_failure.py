@@ -21,6 +21,7 @@ from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)
 
+
 class NetifFailure(FailureBase):
     """Emulate network interface failure setting the interface down
 

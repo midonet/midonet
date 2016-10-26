@@ -45,6 +45,7 @@ CONDFIELDS = [
     'fragment_policy',
 ]
 
+
 class TraceRequest(ResourceBase):
     def __init__(self, api, context, data):
         super(TraceRequest, self).__init__(api, context, data)
@@ -88,4 +89,3 @@ class TraceRequest(ResourceBase):
 
     def get_id(self):
         return self._mn_resource.get_id()
-

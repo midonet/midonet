@@ -71,7 +71,7 @@ class Link(ResourceBase):
 
     def destroy(self):
         """Cleans up virtual topology data for link.
-        
+
         No need to do anything because the clean-up should be done by the
         destroy method of the corresponding bridge / router port.
         """

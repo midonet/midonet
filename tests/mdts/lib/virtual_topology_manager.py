@@ -56,6 +56,7 @@ class DevicePortLinkingException(MdtsException):
     def __init__(self, link, original_exception=None):
         self._link = link
         self._original_exception = original_exception
+
     def __str__(self):
         return 'Failed to build device port link: %s %s' % (
                 str(self._link), str(self._original_exception))
@@ -394,4 +395,3 @@ class VirtualTopologyManager(TopologyManager):
 
     def delete_vtep(self, name):
         self._vteps.pop(name).destroy()
-

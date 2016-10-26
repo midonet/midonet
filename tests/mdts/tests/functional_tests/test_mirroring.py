@@ -55,6 +55,7 @@ mirroring_bindings = {
     ]
 }
 
+
 def add_mirror_inbound(mirror_name, device):
     mirror = VTM.get_mirror(mirror_name)
     LOG.info("fetched mirror to port " + mirror._mn_resource.get_to_port())
@@ -73,14 +74,17 @@ def add_mirror_outbound(mirror_name, device):
     device._mn_resource.outbound_mirrors(mirrors)
     device._mn_resource.update()
 
+
 def get_source_port_number():
     return random.randint(50000, 60000)
+
 
 def warmup(sender, receiver):
     tries = 15
     ip_dst = receiver.get_ip()
     return sender.ping_ipv4_addr(ip_dst, count = tries, interval = 1,
                                  sync = True, should_succeed = True)
+
 
 def send_udp(sender, receiver, hw_dst, dst_p, src_p, mirror = None):
     sender.get_mac_addr()
@@ -120,6 +124,7 @@ def test_mirroring_router_in():
     send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port, mirror_port)
     send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80, mirror_port)
 
+
 @attr(version="v2.0.0")
 @failures(NoFailure())
 @bindings(mirroring_bindings)
@@ -139,6 +144,7 @@ def test_mirroring_bridge_in():
     send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port, mirror_port)
     send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80, mirror_port)
 
+
 @attr(version="v2.0.0")
 @failures(NoFailure())
 @bindings(mirroring_bindings)
@@ -157,6 +163,7 @@ def test_mirroring_bridge_out():
     src_port = get_source_port_number()
     send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port, mirror_port)
     send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80, mirror_port)
+
 
 @attr(version="v2.0.0")
 @failures(NoFailure())

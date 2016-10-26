@@ -33,6 +33,7 @@ LOG = logging.getLogger(__name__)
 virtual_ip = '192.168.0.100'
 virtual_mac = '00:ff:00:11:22:33'
 
+
 # Two networks (one external, one internal)
 # There is a vip port on the internal network, which is backed
 # by two other ports. A floating ip is mapped onto the vip.
@@ -179,6 +180,7 @@ binding_multinode = {
     ]
 }
 
+
 def enable_vip_novmac(port):
     global virtual_ip
     port.execute('ip address add %s/32 dev %s' % (virtual_ip, port.get_ifname()),
@@ -195,6 +197,7 @@ def disable_vip_novmac(port):
     port.execute('ip address del %s/32 dev %s' % (virtual_ip, port.get_ifname()),
                  sync=True)
 
+
 def enable_vip_vmac(port):
     global virtual_ip, virtual_mac
     port.execute('ip l add link %s address %s vmac0 type macvlan' % (port.get_ifname(), virtual_mac),
@@ -205,8 +208,10 @@ def enable_vip_vmac(port):
     port.execute('arping -c 1 -A -I vmac0 %s' % (virtual_ip), sync=True)
     port.execute('arping -c 1 -U -I vmac0 %s' % (virtual_ip), sync=True)
 
+
 def disable_vip_vmac(port):
     port.execute('ip l del dev vmac0', sync=True)
+
 
 def run_garp_scenario(BM, sender_port, target_ip, enable_vip, disable_vip):
     vip1 = BM.get_interface_on_vport('port_int1')
@@ -248,6 +253,7 @@ def run_garp_scenario(BM, sender_port, target_ip, enable_vip, disable_vip):
     f3 = sender.ping_ipv4_addr(target_ip, count=5)
     wait_on_futures([f1, f2, f3])
 
+
 @attr(version="v1.2.0")
 @bindings(binding_multinode,
           binding_manager=BM_vip)
@@ -282,6 +288,7 @@ def test_vmac_garp_over_bridge():
     run_garp_scenario(BM_vmac, 'port_int0', virtual_ip,
                       enable_vip_vmac, disable_vip_vmac)
 
+
 @attr(version="v1.2.0")
 @bindings(binding_multinode,
           binding_manager=BM_vmac)
@@ -291,6 +298,3 @@ def test_vmac_garp_over_router():
     """
     run_garp_scenario(BM_vmac, 'port_ext0', VTM_vmac.get_fip_ip(),
                       enable_vip_vmac, disable_vip_vmac)
-
-
-

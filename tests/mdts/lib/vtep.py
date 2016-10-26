@@ -15,6 +15,7 @@
 from mdts.lib.resource_base import ResourceBase
 from mdts.lib.vtep_binding import VtepBinding
 
+
 class Vtep(ResourceBase):
 
     def __init__(self, api, context, data):

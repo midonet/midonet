@@ -14,6 +14,7 @@
 
 import uuid
 
+
 class Tenant:
 
     def __init__(self, id, name):
@@ -22,6 +23,7 @@ class Tenant:
 
 TENANTS_LIST = []
 TENANTS_TABLE = {}
+
 
 def get_or_create_tenant(name):
     if TENANTS_TABLE.has_key(name):
@@ -33,8 +35,10 @@ def get_or_create_tenant(name):
     TENANTS_TABLE[tenant.name] = tenant
     return tenant
 
+
 def get_tenant(name):
     return TENANTS_TABLE[name]
+
 
 def list_tenants():
     return TENANTS_LIST

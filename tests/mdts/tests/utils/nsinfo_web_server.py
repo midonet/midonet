@@ -26,6 +26,7 @@ nsinfo (namespace info) web server
 Web server which returns the ip:port on which it is running.
 """
 
+
 class NsInfoServer:
     def __init__(self, num):
         self.port_num = num
@@ -37,6 +38,7 @@ class NsInfoServer:
         start_response('200 OK', [])
         yield self.to_return
 
+
 class MyHandler(WSGIRequestHandler):
     # Disable logging DNS lookups - DNS doesn't work in MMM
     def address_string(self):
@@ -44,7 +46,10 @@ class MyHandler(WSGIRequestHandler):
 
     def log_request(*args, **kw): pass
 
+
 from SocketServer import ThreadingMixIn
+
+
 class DevServer(ThreadingMixIn, WSGIServer):
     pass
 

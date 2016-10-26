@@ -19,6 +19,7 @@ Base class for virtual topology resource data such as bridges and routers.
 from webob.exc import HTTPServiceUnavailable
 import time
 
+
 def retryloop(attempts, delay):
     """ decorator used to retry in case of service unavailable.
     TODO: The retry time should be in the HTTPServiceUnavailable exception.
@@ -35,6 +36,7 @@ def retryloop(attempts, delay):
             return func(*args, **kwargs)
         return retry
     return internal_wrapper
+
 
 class ResourceBase(object):
 
