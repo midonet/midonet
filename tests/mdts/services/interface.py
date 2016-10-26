@@ -380,7 +380,6 @@ class Interface(object):
         )
         return self.execute(ping_cmd, should_succeed=should_succeed, sync=sync)
 
-
     """
     Helper methods to get data from the interface
     """

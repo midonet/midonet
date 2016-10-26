@@ -41,7 +41,6 @@ class DhcpSubnet(ResourceBase):
                  'gatewayAddr': route['gw']}
             )
 
-
         mn_bridge = self._bridge.get_mn_resource()
         self._mn_resource = mn_bridge.add_dhcp_subnet()\
                                      .default_gateway(gw_ipv4_addr)\
@@ -54,7 +53,6 @@ class DhcpSubnet(ResourceBase):
         hosts = self._data.get('hosts') or []
         for host in hosts:
             DhcpHost(self._api, self._context, self, host['host']).build()
-
 
     def destroy(self):
         # This is cascade deleted by the parent
