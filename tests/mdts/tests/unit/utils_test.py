@@ -45,7 +45,6 @@ class UtilsTest(unittest.TestCase):
             os.path.dirname(__file__) + '../../../')
         self.assertEquals(top_dir, get_top_dir())
 
-
     def test_get_midolman_script_dir(self):
         mm_script_dir = os.path.realpath(
             os.path.dirname(__file__) + '/../../../mmm/scripts/midolman')

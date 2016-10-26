@@ -72,7 +72,6 @@ class ChainTest(unittest.TestCase):
         self._mock_chain.add_rule.return_value = self._mock_rule
         self._mock_chain.get_id.return_value = 'chain_0'
 
-        
     def _load_chain_data(self, virtual_topology_data):
         """ Load a chain data with a single rule """
         # Load chain and rule virtual topology data from file.
@@ -81,7 +80,6 @@ class ChainTest(unittest.TestCase):
         self._chain._get_tenant_id = MagicMock(return_value = 'tenant_0')
         self._chain.build()
         
-
     def test_load_empty_chain(self):
         """ Tests if empty rule chain data can be correctly loaded. """
         self._load_chain_data(self._empty_chain)
@@ -90,7 +88,6 @@ class ChainTest(unittest.TestCase):
         self._mock_chain.name.assert_called_with('in_filter_001')
         self._mock_chain.create.assert_called_with()
         
-
     def test_load_rule_chain(self):
         """ Tests if rule chain data can be correctly loaded from the yaml
             file and corresponding resource creation / update operations are
