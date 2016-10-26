@@ -17,6 +17,7 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
+import org.midonet.cluster.models.Topology.{QosPolicy, QosRuleBandwidthLimit, QosRuleDscp}
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, FragmentPolicy, NatTarget}
@@ -110,7 +111,8 @@ trait VirtualConfigurationBuilders {
     def newBridgePort(bridge: UUID,
                       host: Option[UUID] = None,
                       interface: Option[String] = None,
-                      vlanId: Option[Int] = None): UUID
+                      vlanId: Option[Int] = None,
+                      qosPolicyId: Option[UUID] = None): UUID
 
     def setPortAdminStateUp(port: UUID, state: Boolean): Unit
     def deletePort(port: UUID): Unit
@@ -251,6 +253,13 @@ trait VirtualConfigurationBuilders {
     def disableTraceRequest(tr: UUID): Unit
     def isTraceRequestEnabled(tr: UUID): Boolean
 
+    def newQosPolicy(): UUID
+    def newQosBWLimitRule(policyId: UUID,
+                          maxKbps: Int,
+                          maxBurstKbps: Option[Int]): UUID
+    def newQosDscpRule(policyId: UUID,
+                       dscpMark: Int): UUID
+
     def newServiceContainer(): UUID
 }
 
@@ -329,8 +338,10 @@ trait ForwardingVirtualConfigurationBuilders
     override def newBridgePort(bridge: UUID,
                                host: Option[UUID] = None,
                                interface: Option[String] = None,
-                               vlanId: Option[Int] = None): UUID =
-        virtConfBuilderImpl.newBridgePort(bridge, host, interface, vlanId)
+                               vlanId: Option[Int] = None,
+                               qosPolicyId: Option[UUID] = None): UUID =
+        virtConfBuilderImpl.newBridgePort(bridge, host, interface, vlanId,
+                                          qosPolicyId)
 
     override def setPortAdminStateUp(port: UUID, state: Boolean): Unit =
         virtConfBuilderImpl.setPortAdminStateUp(port, state)
@@ -484,6 +495,16 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.disableTraceRequest(tr)
     override def isTraceRequestEnabled(tr: UUID): Boolean =
         virtConfBuilderImpl.isTraceRequestEnabled(tr)
+
+    override def newQosPolicy(): UUID =
+        virtConfBuilderImpl.newQosPolicy()
+    override def newQosBWLimitRule(policyId: UUID,
+                                   maxKbps: Int,
+                                   maxBurstKbps: Option[Int]): UUID =
+        virtConfBuilderImpl.newQosBWLimitRule(policyId, maxKbps, maxBurstKbps)
+    override def newQosDscpRule(policyId: UUID,
+                                dscpMark: Int): UUID =
+        virtConfBuilderImpl.newQosDscpRule(policyId, dscpMark)
 
     override def newServiceContainer(): UUID =
         virtConfBuilderImpl.newServiceContainer()
