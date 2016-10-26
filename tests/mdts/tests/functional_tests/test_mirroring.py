@@ -83,8 +83,8 @@ def warmup(sender, receiver):
                                  sync = True, should_succeed = True)
 
 def send_udp(sender, receiver, hw_dst, dst_p, src_p, mirror = None):
-    hw_src = sender.get_mac_addr()
-    ip_src = sender.get_ip()
+    sender.get_mac_addr()
+    sender.get_ip()
     ip_dst = receiver.get_ip()
 
     udp_filter = "dst host %s and dst port %d" % (ip_dst, dst_p)

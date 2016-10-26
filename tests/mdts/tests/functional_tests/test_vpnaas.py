@@ -59,15 +59,13 @@ class VT_vpn_three_sites(NeutronTopologyManager):
         right_subnet_cidr = '20.0.0.0/24'
         up_gw_ip = '30.0.0.1'
         up_subnet_cidr = '30.0.0.0/24'
-        down_gw_ip = '40.0.0.1'
-        down_subnet_cidr = '40.0.0.0/24'
 
         # Create public network
         public_network = self.create_resource(
             self.api.create_network({'network': {'name': 'public',
                                                  'admin_state_up': True,
                                                  'router:external': True}}))
-        public_subnet = self.create_resource(
+        self.create_resource(
             self.api.create_subnet(
                 {'subnet':
                     {'name': public_network['network']['name']+'_subnet',
@@ -114,8 +112,9 @@ class VT_vpn_three_sites(NeutronTopologyManager):
                                     'network_id': public_net['network']['id']
                                 }}}))
 
-        router_if = self.api.add_interface_router(
-            router['router']['id'], {'subnet_id': subnet['subnet']['id']})
+        self.api.add_interface_router(router['router']['id'],
+                                      {'subnet_id': subnet['subnet']['id']})
+
         self.addCleanup(self.api.remove_interface_router,
                         router['router']['id'],
                         {'subnet_id': subnet['subnet']['id']})
@@ -128,7 +127,7 @@ class VT_vpn_three_sites(NeutronTopologyManager):
                                            'tenant_id': tenant}}))
         # Necessary for inter-tenant communication (if doesn't exist already)
         try:
-            sg_rule = self.create_resource(
+            self.create_resource(
                 self.api.create_security_group_rule({
                     'security_group_rule': {
                     'direction': 'ingress',
@@ -137,13 +136,13 @@ class VT_vpn_three_sites(NeutronTopologyManager):
             LOG.debug('Security group already created... continuing.')
 
         if not self.get_resource('ikepolicy_' + tag):
-            ike = self.create_resource(
+            self.create_resource(
                 self.api.create_ikepolicy(
                         {'ikepolicy': {'name': 'ikepolicy_' + tag,
                                        'tenant_id': tenant}}))
 
         if not self.get_resource('ipsecpolicy_' + tag):
-            ipsec = self.create_resource(
+            self.create_resource(
                 self.api.create_ipsecpolicy(
                         {'ipsecpolicy': {'name': 'ipsecpolicy_' + tag,
                                          'tenant_id': tenant}}))
@@ -162,7 +161,6 @@ class VT_vpn_three_sites(NeutronTopologyManager):
                         schedule_delete=True):
         # subnet_id can be None in liberty so we specify endpoint groups on
         # the ipsec site connection
-        subnet_id = None if subnet is None else subnet['subnet']['id']
         base_vpn_def = {'name': 'vpn_' + tag,
                         'tenant_id': tenant,
                         'router_id': router['router']['id']}
@@ -465,9 +463,10 @@ def test_vpn_recreation():
             'left', 'left_to_right', left_tenant, right_peer_address,
             vpn=left_vpn, peer_cidrs=[right_subnet['subnet']['cidr']],
             schedule_delete=False)
-    right_to_left = VTM.add_ipsec_site_connection(
-            'right', 'right_to_left', right_tenant, left_peer_address,
-            vpn=right_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
+
+    VTM.add_ipsec_site_connection('right', 'right_to_left', right_tenant,
+                                  left_peer_address, vpn=right_vpn,
+                                  peer_cidrs=[left_subnet['subnet']['cidr']])
 
     # Ping from left to right and viceversa
     ping('port_left', 'port_right')
@@ -514,23 +513,25 @@ def test_admin_state_up_changes():
     left_to_right = VTM.add_ipsec_site_connection(
             'left', 'left_to_right', left_tenant, right_peer_address,
             vpn=left_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
-    left_to_up = VTM.add_ipsec_site_connection(
-            'left', 'left_to_up', left_tenant, up_peer_address,
-            vpn=left_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection('left', 'left_to_up', left_tenant,
+                                  up_peer_address, vpn=left_vpn,
+                                  peer_cidrs=[up_subnet['subnet']['cidr']])
 
-    right_to_left = VTM.add_ipsec_site_connection(
-            'right', 'right_to_left', right_tenant, left_peer_address,
-            vpn=right_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
-    right_to_up = VTM.add_ipsec_site_connection(
-            'right', 'right_to_up', right_tenant, up_peer_address,
-            vpn=right_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection('right', 'right_to_left', right_tenant,
+                                  left_peer_address, vpn=right_vpn,
+                                  peer_cidrs=[left_subnet['subnet']['cidr']])
 
-    up_to_left = VTM.add_ipsec_site_connection(
-            'up', 'up_to_left', up_tenant, left_peer_address,
-            vpn=up_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
-    up_to_right = VTM.add_ipsec_site_connection(
-            'up', 'up_to_right', up_tenant, right_peer_address,
-            vpn=up_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection('right', 'right_to_up', right_tenant,
+                                  up_peer_address, vpn=right_vpn,
+                                  peer_cidrs=[up_subnet['subnet']['cidr']])
+
+    VTM.add_ipsec_site_connection('up', 'up_to_left', up_tenant,
+                                  left_peer_address, vpn=up_vpn,
+                                  peer_cidrs=[left_subnet['subnet']['cidr']])
+
+    VTM.add_ipsec_site_connection('up', 'up_to_right', up_tenant,
+                                  right_peer_address, vpn=up_vpn,
+                                  peer_cidrs=[right_subnet['subnet']['cidr']])
 
     # Check pairwise ping works between all vms
     pairwise_ping(['port_left', 'port_right', 'port_up'])
@@ -597,27 +598,29 @@ def test_ipsec_container_failover():
     up_vpn = VTM.add_vpn_service('up', 'up_vpn', up_tenant, up_router,
                                  up_subnet)
 
-    left_to_right = VTM.add_ipsec_site_connection(
-            'left', 'left_to_right', left_tenant, right_peer_address,
-            vpn=left_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
-    left_to_up = VTM.add_ipsec_site_connection(
-            'left', 'left_to_up', left_tenant, up_peer_address,
-            vpn=left_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection('left', 'left_to_right', left_tenant,
+                                  right_peer_address, vpn=left_vpn,
+                                  peer_cidrs=[right_subnet['subnet']['cidr']])
 
-    right_to_left = VTM.add_ipsec_site_connection(
-            'right', 'right_to_left', right_tenant, left_peer_address,
-            vpn=right_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
-    right_to_up = VTM.add_ipsec_site_connection(
-            'right', 'right_to_up', right_tenant, up_peer_address,
-            vpn=right_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection('left', 'left_to_up', left_tenant,
+                                  up_peer_address, vpn=left_vpn,
+                                  peer_cidrs=[up_subnet['subnet']['cidr']])
 
-    up_to_left = VTM.add_ipsec_site_connection(
-            'up', 'up_to_left', up_tenant, left_peer_address,
-            vpn=up_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection('right', 'right_to_left', right_tenant,
+                                  left_peer_address, vpn=right_vpn,
+                                  peer_cidrs=[left_subnet['subnet']['cidr']])
 
-    up_to_right = VTM.add_ipsec_site_connection(
-            'up', 'up_to_right', up_tenant, right_peer_address,
-            vpn=up_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection('right', 'right_to_up', right_tenant,
+                                  up_peer_address, vpn=right_vpn,
+                                  peer_cidrs=[up_subnet['subnet']['cidr']])
+
+    VTM.add_ipsec_site_connection('up', 'up_to_left', up_tenant,
+                                  left_peer_address, vpn=up_vpn,
+                                  peer_cidrs=[left_subnet['subnet']['cidr']])
+
+    VTM.add_ipsec_site_connection('up', 'up_to_right', up_tenant,
+                                  right_peer_address, vpn=up_vpn,
+                                  peer_cidrs=[right_subnet['subnet']['cidr']])
 
     # Wait for container status to be RUNNING?
     time.sleep(10)

@@ -44,7 +44,6 @@ class Mdts(Plugin):
         """
         Register commandline options.
         """
-        timestamp = time.strftime("%y%m%d%H%M%S")
         parser.add_option(
             "--mdts-logs-dir", action="store",
             dest="mdts_logs_dir",

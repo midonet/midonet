@@ -51,12 +51,12 @@ class VT_Networks_with_SG(NeutronTopologyManager):
             'public', '1.0.0.0/24', '1.0.0.1', external=True)
         (private_net, private_subnet) = self.add_network(
             'private', '192.168.0.0/24', '192.168.0.1')
-        ext0 = self.add_port('port_ext0', public_net['network']['id'])
-        int0 = self.add_port('port_int0', private_net['network']['id'])
-        int1 = self.add_port('port_int1', private_net['network']['id'],
-                             vip=self.virtual_ip, vmac=self.virtual_mac)
-        int2 = self.add_port('port_int2', private_net['network']['id'],
-                             vip=self.virtual_ip, vmac=self.virtual_mac)
+        self.add_port('port_ext0', public_net['network']['id'])
+        self.add_port('port_int0', private_net['network']['id'])
+        self.add_port('port_int1', private_net['network']['id'],
+                      vip=self.virtual_ip, vmac=self.virtual_mac)
+        self.add_port('port_int2', private_net['network']['id'],
+                      vip=self.virtual_ip, vmac=self.virtual_mac)
         vip0 = self.add_port('port_vip0', private_net['network']['id'],
                              subnet_id=private_subnet['subnet']['id'],
                              real_ip=self.virtual_ip)
@@ -118,8 +118,9 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                     'network_id': external_net
                                 }}}))
 
-        router_if = self.api.add_interface_router(
-            router['router']['id'], {'subnet_id': internal_subnet})
+        self.api.add_interface_router(router['router']['id'],
+                                      {'subnet_id': internal_subnet})
+
         self.addCleanup(self.api.remove_interface_router,
                         router['router']['id'],
                         {'subnet_id': internal_subnet})

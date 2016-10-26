@@ -243,8 +243,8 @@ def test_icmp_remove_uplink_1():
     Then: ICMP echo RR should work to a pseudo public IP address
 
     """
-    (p1, p2) = (add_bgp([uplink1_session1], route_direct),
-                add_bgp([uplink2_session1], route_direct))
+    p1 = add_bgp([uplink1_session1], route_direct)
+    add_bgp([uplink2_session1], route_direct)
     ping_to_inet() # BGP #1 and #2 are working
 
     clear_bgp_peer(p1, 5)
