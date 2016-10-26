@@ -41,17 +41,17 @@ mirroring_bindings = {
     'description': 'mirroring bindings',
     'bindings': [
         {'binding':
-             {'device_name': 'left-vm-bridge', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'left-vm-bridge', 'port_id': 2,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'right-vm-bridge', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
+            {'device_name': 'right-vm-bridge', 'port_id': 2,
+             'host_id': 2, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'mirroring-bridge', 'port_id': 1,
-              'host_id': 1, 'interface_id': 2}},
+            {'device_name': 'mirroring-bridge', 'port_id': 1,
+             'host_id': 1, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'mirroring-bridge', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}}
+            {'device_name': 'mirroring-bridge', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}}
     ]
 }
 

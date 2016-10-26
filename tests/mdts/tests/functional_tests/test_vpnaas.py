@@ -45,8 +45,8 @@ class VT_vpn_three_sites(NeutronTopologyManager):
     # for the specific test case. Helper methods are provided here though.
     def build(self, binding_data=None):
         if not (binding_data and
-                    'config' in binding_data and
-                    'tenants' in binding_data['config']):
+                'config' in binding_data and
+                'tenants' in binding_data['config']):
             raise RuntimeError("This topology should be used in a binding "
                                "with a 'config' key. This config should contain "
                                "a 'tenants' key specifying the tenants to use "
@@ -130,8 +130,8 @@ class VT_vpn_three_sites(NeutronTopologyManager):
             self.create_resource(
                 self.api.create_security_group_rule({
                     'security_group_rule': {
-                    'direction': 'ingress',
-                    'security_group_id': port['port']['security_groups'][0]}}))
+                        'direction': 'ingress',
+                        'security_group_id': port['port']['security_groups'][0]}}))
         except:
             LOG.debug('Security group already created... continuing.')
 
@@ -217,8 +217,8 @@ def ping(src, dst, expected_failure=False, retries=3):
         dst_vm = dst if not isinstance(dst, str) \
             else BM.get_interface_on_vport(dst)
         f1 = src_vm.ping_ipv4_addr(dst_vm.get_ip(update=True),
-                                      interval=1,
-                                      count=5)
+                                   interval=1, count=5)
+
         wait_on_futures([f1])
         output_stream, exec_id = f1.result()
         exit_status = src_vm.compute_host.check_exit_status(exec_id,
@@ -288,8 +288,7 @@ binding_multihost_inter_tenant.update({
         'description': 'on multiple MM (inter tenant)',
         'config': {
             'tenants': ('tenant_left', 'tenant_right', 'tenant_up')
-        }
-    })
+        }})
 
 VTM = VT_vpn_three_sites()
 BM = BindingManager(None, VTM)
@@ -434,7 +433,7 @@ def test_ping_two_sites_two_subnets():
     VTM.api.update_ipsec_site_connection(
         right_to_left['ipsec_site_connection']['id'],
         body={'ipsec_site_connection':
-                  {'peer_cidrs': ['10.0.0.0/24', '10.1.0.0/24']}})
+              {'peer_cidrs': ['10.0.0.0/24', '10.1.0.0/24']}})
 
     # Check that old connections work
     ping('port_left', 'port_right')

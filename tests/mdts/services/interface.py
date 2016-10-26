@@ -325,8 +325,8 @@ class Interface(object):
 
         """
         cmdline = 'mz %s -c %s %s' % (self.get_ifname(),
-                                                   count,
-                                                   ether_frame_string)
+                                      count,
+                                      ether_frame_string)
         LOG.debug("sending ethernet frame(s) with mz:  %s" % cmdline)
 
         LOG.debug("cmdline: %s" % cmdline)

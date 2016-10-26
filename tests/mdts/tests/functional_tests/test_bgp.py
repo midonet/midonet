@@ -47,14 +47,14 @@ binding_unisession = {
     'description': 'vm not connected to uplink',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 3, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 3, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
+            {'device_name': 'router-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 3,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'router-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 2}},
     ]
 }
 
@@ -62,26 +62,26 @@ binding_snat = {
     'description': 'one connected to uplink #1 and another not connected',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 2, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        ]
-    }
+            {'device_name': 'router-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}},
+    ]
+}
 
 binding_multisession = {
     'description': 'two sessions in uplink #1 and one vm not in uplink',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}}
+            {'device_name': 'router-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}}
     ]
 }
 

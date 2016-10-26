@@ -100,7 +100,7 @@ class SshClient(object):
                     'type': container_config['Type']
                 },
                 'State': {
-                   'Running': 'running'
+                    'Running': 'running'
                 },
                 'NetworkSettings': {
                     'IPAddress': ip_address,
@@ -194,11 +194,11 @@ class SshClient(object):
 
     def _get_strict_host_key_checking_option(self, container_config):
         return self._get_option(container_config, 'StrictHostKeyChecking',
-                                               'stricthostkeychecking', 'yes')
+                                'stricthostkeychecking', 'yes')
 
     def _get_user_known_hosts_file(self, container_config):
         return self._get_option(container_config, 'UserKnownHostsFile',
-                                            'userknownhostsfile', '/dev/null')
+                                'userknownhostsfile', '/dev/null')
 
     def _get_ssh_connection(self, container_name):
         if container_name in self.ssh_connections:

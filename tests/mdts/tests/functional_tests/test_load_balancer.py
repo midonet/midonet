@@ -39,17 +39,17 @@ binding_multihost = {
     'description': 'spanning across multiple MMs (equal weight, sender on different subnet)',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 4}},
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 1, 'interface_id': 4}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'bridge-000-002', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 3,
-              'host_id': 3, 'interface_id': 2}},
+            {'device_name': 'bridge-000-002', 'port_id': 3,
+             'host_id': 3, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-003', 'port_id': 1,
-              'host_id': 1, 'interface_id': 7}}
+            {'device_name': 'bridge-000-003', 'port_id': 1,
+             'host_id': 1, 'interface_id': 7}}
     ],
     'vips': {
         'non_sticky_vip': '100.100.2.8',
@@ -63,17 +63,17 @@ binding_multihost_same_subnet = {
     'description': 'spanning across multiple MMs (equal weight, sender on same subnet)',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 4}},
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 1, 'interface_id': 4}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'bridge-000-002', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 3,
-              'host_id': 3, 'interface_id': 2}},
+            {'device_name': 'bridge-000-002', 'port_id': 3,
+             'host_id': 3, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 4,
-              'host_id': 1, 'interface_id': 8}}
+            {'device_name': 'bridge-000-002', 'port_id': 4,
+             'host_id': 1, 'interface_id': 8}}
     ],
     'vips': {
         'non_sticky_vip': '100.100.2.8',
@@ -87,17 +87,17 @@ binding_multihost_weighted = {
     'description': 'spanning across multiple MMs (different weights)',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 3, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 3, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-003', 'port_id': 1,
-              'host_id': 1, 'interface_id': 7}}
+            {'device_name': 'bridge-000-003', 'port_id': 1,
+             'host_id': 1, 'interface_id': 7}}
     ],
     'vips': {
         'non_sticky_vip': '100.100.1.8',

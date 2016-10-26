@@ -192,7 +192,7 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
 
     def get_mn_uplink_port_id(self, uplink_port):
         return str(uuid.UUID(int=uuid.UUID(uplink_port['id']).int ^
-                                 0x9c30300ec91f4f1988449d37e61b60f0L))
+                             0x9c30300ec91f4f1988449d37e61b60f0L))
 
     def flush_neighbours(self, container, interface):
         cont_services = service.get_container_by_hostname(container)
@@ -287,8 +287,8 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
 
         pubnet = self.create_network("public", external=True)
         pubsubnet = self.create_subnet("publicsubnet",
-                                            pubnet,
-                                            "100.0.0.0/8")
+                                       pubnet,
+                                       "100.0.0.0/8")
 
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
@@ -314,8 +314,8 @@ class MultiTenantAndUplinkWithVPP(UplinkWithVPP):
 
         pubnet = self.create_network("public", external=True)
         pubsubnet = self.create_subnet("publicsubnet",
-                                            pubnet,
-                                            "100.0.0.0/8")
+                                       pubnet,
+                                       "100.0.0.0/8")
 
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]

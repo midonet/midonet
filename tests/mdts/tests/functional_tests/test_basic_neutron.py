@@ -89,20 +89,20 @@ def test_icmp_topology_in_test():
     network = VTM.create_resource(
         api.create_network(
             {'network':
-                 {'name': 'demo',
-                  'admin_state_up': 'True',
-                  'tenant_id': 'admin'}}
+                {'name': 'demo',
+                 'admin_state_up': 'True',
+                 'tenant_id': 'admin'}}
         )
     )
 
     VTM.create_resource(
         api.create_subnet(
             {'subnet':
-                 {'name': 'demo_subnet',
-                  'network_id': network['network']['id'],
-                  'ip_version': 4,
-                  'cidr': '172.16.1.0/24',
-                  'enable_dhcp': False}}
+                {'name': 'demo_subnet',
+                 'network_id': network['network']['id'],
+                 'ip_version': 4,
+                 'cidr': '172.16.1.0/24',
+                 'enable_dhcp': False}}
         )
     )
 
@@ -240,7 +240,7 @@ def test_icmp_topology_out_test_single_compute():
     port1 = VTM2.get_resource('port1')
     port2 = VTM2.get_resource('port2')
 
-     # Bind virtual and physical topology
+    # Bind virtual and physical topology
     vm1.compute_host.bind_port(vm1, port1['port']['id'])
     vm2.compute_host.bind_port(vm2, port2['port']['id'])
 
@@ -262,7 +262,7 @@ def test_icmp_topology_out_test_two_computes():
     port1 = VTM2.get_resource('port1')
     port2 = VTM2.get_resource('port2')
 
-     # Bind virtual and physical topology
+    # Bind virtual and physical topology
     vm1.compute_host.bind_port(vm1, port1['port']['id'])
     vm2.compute_host.bind_port(vm2, port2['port']['id'])
 
@@ -292,8 +292,8 @@ binding_singlehost = {
          'interface': 'vm1_host1'},
         {'vport': 'port2',
          'interface': 'vm2_host1'}
-        ]
-    }
+    ]
+}
 
 binding_multihost = {
     'description': 'two vms on different MMs',
@@ -302,8 +302,8 @@ binding_multihost = {
          'interface': 'vm1_host1'},
         {'vport': 'port2',
          'interface': 'vm2_host2'}
-        ]
-    }
+    ]
+}
 
 BM = BindingManager(PTM2, VTM2)
 

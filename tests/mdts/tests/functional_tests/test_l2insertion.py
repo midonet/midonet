@@ -40,20 +40,20 @@ bindings_single = {
     'description': 'on single MM',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 1, 'interface_id': 3}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 1, 'interface_id': 3}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 4,
-              'host_id': 1, 'interface_id': 4}},
+            {'device_name': 'bridge-000-001', 'port_id': 4,
+             'host_id': 1, 'interface_id': 4}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 5}},
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 1, 'interface_id': 5}},
     ]
 }
 
@@ -61,20 +61,20 @@ bindings_split = {
     'description': 'on 2 MM, one port and one service on each',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 1, 'interface_id': 3}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 1, 'interface_id': 3}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 4,
-              'host_id': 2, 'interface_id': 4}},
+            {'device_name': 'bridge-000-001', 'port_id': 4,
+             'host_id': 2, 'interface_id': 4}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 5}},
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 1, 'interface_id': 5}},
     ]
 }
 
@@ -82,20 +82,20 @@ bindings_spread = {
     'description': 'on 3 MM, services on separate host',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 2, 'interface_id': 3}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 3}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 4,
-              'host_id': 3, 'interface_id': 4}},
+            {'device_name': 'bridge-000-001', 'port_id': 4,
+             'host_id': 3, 'interface_id': 4}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 3, 'interface_id': 5}},
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 3, 'interface_id': 5}},
     ]
 }
 
@@ -103,20 +103,20 @@ bindings_spread2 = {
     'description': 'on 3 MM, complicated config for flow state',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 3, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 3, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 3, 'interface_id': 3}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 3, 'interface_id': 3}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 4,
-              'host_id': 3, 'interface_id': 4}},
+            {'device_name': 'bridge-000-001', 'port_id': 4,
+             'host_id': 3, 'interface_id': 4}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 5}},
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 1, 'interface_id': 5}},
     ]
 }
 
@@ -124,20 +124,20 @@ bindings_spread3 = {
     'description': 'on 3 MM, super complicated config for flow state',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 2, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 2, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 3, 'interface_id': 3}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 3, 'interface_id': 3}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 4,
-              'host_id': 3, 'interface_id': 4}},
+            {'device_name': 'bridge-000-001', 'port_id': 4,
+             'host_id': 3, 'interface_id': 4}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 5}},
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 1, 'interface_id': 5}},
     ]
 }
 

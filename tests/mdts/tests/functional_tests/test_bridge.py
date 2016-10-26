@@ -42,14 +42,14 @@ bindings1 = {
     'description': 'spanning across two MM',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 2, 'interface_id': 3}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 3}},
     ]
 }
 
@@ -57,11 +57,11 @@ binding_dhcp = {
     'description': 'binding for dhcp test',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 5}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 5}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 1, 'interface_id': 5}}
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 1, 'interface_id': 5}}
     ]
 }
 
@@ -69,11 +69,11 @@ binding_two_isolated_bridges = {
     'description': 'two isolated bridges',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 2}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 2, 'interface_id': 2}}
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 2, 'interface_id': 2}}
     ]
 }
 

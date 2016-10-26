@@ -107,8 +107,8 @@ class MidonetAgentHost(Service):
 
     def is_haproxy_running(self, pool_id):
         result = self.exec_command("sh -c \"pgrep -a haproxy | grep %s\"" %
-            pool_id
-        )
+                                   pool_id)
+
         return result != ""
 
     def hm_namespace_exists(self, pool_id):

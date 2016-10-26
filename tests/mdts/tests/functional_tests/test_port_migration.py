@@ -71,8 +71,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                         'protocol': 'udp',
                         'security_group_id': public_port['port']['security_groups'][0]
                     }
-                })
-            )
+                }))
 
         self.create_resource(
             self.api.create_floatingip({
@@ -84,10 +83,8 @@ class VT_Networks_with_SG(NeutronTopologyManager):
             }), name='public_port_fip')
 
     def add_router(self, name, external_net, internal_subnets):
-        router_def = {'router':
-                          {'name': name,
-                           'tenant_id': 'admin',
-                           }}
+        router_def = {'router': {'name': name, 'tenant_id': 'admin'}}
+
         if external_net:
             router_def['router']['external_gateway_info'] = \
                 {'network_id': external_net}
@@ -116,12 +113,12 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                                  'tenant_id': 'admin'}}))
 
         subnet_def = {'subnet':
-                         {'name': network['network']['name'] + '_subnet',
-                          'network_id': network['network']['id'],
-                          'ip_version': 4,
-                          'cidr': cidr,
-                          'gateway_ip': gateway,
-                          'enable_dhcp': True}}
+                      {'name': network['network']['name'] + '_subnet',
+                       'network_id': network['network']['id'],
+                       'ip_version': 4,
+                       'cidr': cidr,
+                       'gateway_ip': gateway,
+                       'enable_dhcp': True}}
 
         subnet = self.create_resource(self.api.create_subnet(subnet_def))
         return network, subnet

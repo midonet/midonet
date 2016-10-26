@@ -39,13 +39,13 @@ binding_multihost = {
     'description': 'spanning across multiple MMs',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
-        ]
-    }
+            {'device_name': 'bridge-000-002', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
+    ]
+}
 
 
 def set_filters(router_name, inbound_filter_name, outbound_filter_name):
@@ -77,7 +77,7 @@ def feed_receiver_mac(receiver):
         router_ip = router_port.get_mn_resource().get_port_address()
         receiver_ip = receiver.get_ip()
         f1 = async_assert_that(receiver, receives('dst host %s' % receiver_ip,
-                                                        within_sec(10)))
+                                                  within_sec(10)))
         receiver.send_arp_request(router_ip)
         wait_on_futures([f1])
     except:
