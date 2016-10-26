@@ -27,7 +27,6 @@ import yaml
 
 class PortGroupTest(unittest.TestCase):
 
-
     def setUp(self):
         self._mock_port_group = MagicMock()
         self._mock_port_group_port = MagicMock()

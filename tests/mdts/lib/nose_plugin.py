@@ -155,7 +155,6 @@ class Mdts(Plugin):
                 output, err = p.communicate()
                 f.write(output)
 
-
     def _write_per_test_debug_info(self, test, result):
         test_id = test.id()
         #test_id = "%s.%s" % (test_case.get('classname'),
@@ -174,7 +173,6 @@ class Mdts(Plugin):
                 'zkdump -z zookeeper1:2181 -d -p')
             with open("%s/zkdump_output.log" % dump_dir, 'w') as f:
                 f.write(zkdump_output)
-
 
         for midolman in midolmans:
             mmdpctl_show = midolman.exec_command(
