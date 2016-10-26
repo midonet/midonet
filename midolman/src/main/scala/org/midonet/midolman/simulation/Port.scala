@@ -20,7 +20,6 @@ import java.util.Collections.emptyList
 import java.util.{UUID, List => JList}
 
 import scala.collection.JavaConverters._
-
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Topology
@@ -29,6 +28,7 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.simulation.Simulator.{ContinueWith, SimHook, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
+import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4, FlowKeys}
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 
@@ -356,6 +356,18 @@ case class BridgePort(override val id: UUID,
 
     override def toString =
         s"BridgePort [${super.toString} networkId=$networkId]"
+
+    override def ingress(context: PacketContext): SimulationResult = {
+        // DSCP rules array can only have one member for now, although
+        // filters and qualifiers might be added on later to allow for
+        // multiple DSCP rules, each of which would affect a different
+        // type of packet.  But for now, just get the 'head' of the array
+        if (qosPolicy != null && qosPolicy.dscpRules.nonEmpty) {
+            val marker = qosPolicy.dscpRules.head.dscpMark
+            context.virtualFlowActions.add(setKey(FlowKeys.ipv4))
+        }
+        super.ingress(context)
+    }
 
 }
 
