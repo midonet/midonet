@@ -352,13 +352,15 @@ integration.dependsOn testShell
 task testCassandra(type:Test, dependsOn: testClasses) {
     include 'org/midonet/midolman/logging/FlowTracingAppenderTest.class',
             'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
-            'org/midonet/midolman/state/FlowStateStorageTest.class'
+            'org/midonet/midolman/state/FlowStateStorageTest.class',
+    	    'org/midonet/midolman/management/MeteringTest.class'
 }
 
 test {
     exclude 'org/midonet/midolman/logging/FlowTracingAppenderTest.class',
             'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
-            'org/midonet/midolman/state/FlowStateStorageTest.class'
+            'org/midonet/midolman/state/FlowStateStorageTest.class',
+	    'org/midonet/midolman/management/MeteringTest.class'
 }
 
 task testReport(type: TestReport, dependsOn: test) {
