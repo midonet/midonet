@@ -95,7 +95,7 @@ def test_icmp_topology_in_test():
         )
     )
 
-    subnet = VTM.create_resource(
+    VTM.create_resource(
         api.create_subnet(
             {'subnet':
                  {'name': 'demo_subnet',
@@ -164,7 +164,7 @@ class VT_one_net_two_ports(NeutronTopologyManager):
             )
         )
 
-        subnet = self.create_resource(
+        self.create_resource(
             self.api.create_subnet(
                 {'subnet':
                      {'name': 'demo_subnet',

@@ -315,11 +315,11 @@ class Service(object):
     def inject_interface_failure(self, iface_name, wait_time=0):
         # put iptables rule or just set the interface down
         cmdline = "ip link set dev %s down" % iface_name
-        result = self.exec_command(cmdline, stream=False)
+        self.exec_command(cmdline, stream=False)
 
     def eject_interface_failure(self, iface_name, wait_time=0):
         cmdline = "ip link set dev %s up" % iface_name
-        result = self.exec_command(cmdline, stream=False)
+        self.exec_command(cmdline, stream=False)
 
     def inject_packet_loss(self, iface_name, wait_time=0):
         cmdline = "iptables -i %s -A INPUT -j DROP" % iface_name

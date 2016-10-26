@@ -34,7 +34,7 @@ def build_simple_topology():
     tz = api.add_gre_tunnel_zone() \
         .name('tz-testing') \
         .create()
-    tz_host = tz.add_tunnel_zone_host() \
+    tz.add_tunnel_zone_host() \
         .ip_address(host.get_ip_address()) \
         .host_id(host_id) \
         .create()
