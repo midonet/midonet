@@ -74,6 +74,9 @@ cd midonet-sandbox
 python setup.py install
 cd -
 
+# install this early due to https://datastax-oss.atlassian.net/browse/PYTHON-656
+pip install Cython==0.24.1
+
 # Install mdts deps, on top of sandbox deps
 pip install -r tests/mdts.dependencies
 
