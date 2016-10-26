@@ -88,7 +88,6 @@ class SshClient(object):
                 continue
 
             container_host = container_config['Host']
-            ssh_host_config = self._ssh_config.lookup(container_host)
 
             ip_address = self._get_hostname_option(container_config)
 

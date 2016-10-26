@@ -50,7 +50,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         (net3, subnet3) = self.add_network('net_3', '10.0.2.0/24', '10.0.2.1')
         # public_port -> external port (associated to fip) on net x
         # private_port -> internal port on net x (for dynamic nat)
-        private_port = self.add_port('private_port', net1['network']['id'])
+        self.add_port('private_port', net1['network']['id'])
         public_port = self.add_port('public_port', net2['network']['id'])
 
         self.add_router('router_1',

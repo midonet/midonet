@@ -43,7 +43,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                                       '1.1.1.1', True)
         (net1, subnet1) = self.add_network('net_1', '10.0.0.0/24', '10.0.0.1')
         (net2, subnet2) = self.add_network('net_2', '10.0.1.0/24', '10.0.1.1')
-        port1 = self.add_port('port_1', net1['network']['id'])
+        self.add_port('port_1', net1['network']['id'])
         port2 = self.add_port('port_2', net2['network']['id'])
 
         self.add_router('router_1',
@@ -90,8 +90,8 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                     'network_id': external_net
                                 }}}))
 
-        router_if = self.api.add_interface_router(
-            router['router']['id'], {'subnet_id': internal_subnet})
+        self.api.add_interface_router(router['router']['id'],
+                                      {'subnet_id': internal_subnet})
         self.addCleanup(self.api.remove_interface_router,
                         router['router']['id'],
                         {'subnet_id': internal_subnet})

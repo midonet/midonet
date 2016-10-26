@@ -174,7 +174,6 @@ def test_basic_l2insertion():
         other_port = BM.get_iface_for_port('bridge-000-001', 3)
 
         rcv_filter = 'ether dst %s and icmp[icmptype] == 8' % insertion_port.get_mac_addr()
-        rcv_filter_ret = 'ether src %s and icmp[icmptype] == 8' % insertion_port.get_mac_addr()
         LOG.info("Sending good packet")
         f1 = async_assert_that(service_port,
                                receives(rcv_filter, within_sec(10)))
@@ -404,7 +403,6 @@ def test_l2insertion_with_flowstate():
         time.sleep(5)
 
         rcv_filter = 'ip dst %s and icmp[icmptype] == 8' % insertion_port.get_ip()
-        rcv_filter_ret = 'ip src %s and icmp[icmptype] == 8' % insertion_port.get_ip()
 
         LOG.info("Sending good packet")
         f1 = async_assert_that(service_port1,
@@ -519,7 +517,6 @@ def test_l2insertion_both_ends_protected():
         time.sleep(5)
 
         rcv_filter = 'ip dst %s and icmp[icmptype] == 8' % insertion_port2.get_ip()
-        rcv_filter_ret = 'ip src %s and icmp[icmptype] == 8' % insertion_port2.get_ip()
 
         LOG.info("Sending good packet")
         f1 = async_assert_that(service_port1,

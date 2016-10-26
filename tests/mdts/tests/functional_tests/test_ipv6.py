@@ -209,9 +209,9 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
     def build(self, binding_data=None):
         self._edgertr = self.create_router("edge")
         uplinknet = self.create_network("uplink", uplink=True)
-        uplinksubnet6 = self.create_subnet("uplinksubnet6", uplinknet,
-                                           "2001::/64", enable_dhcp=False,
-                                           version=6)
+        self.create_subnet("uplinksubnet6", uplinknet, "2001::/64",
+                           enable_dhcp=False, version=6)
+
         self.uplink_port = self.create_port("uplinkport", uplinknet,
                                             host_id="midolman1",
                                             interface="bgp0",

@@ -117,8 +117,9 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                     'network_id': external_net
                                 }}}))
 
-        router_if = self.api.add_interface_router(
-            router['router']['id'], {'subnet_id': internal_subnet})
+        self.api.add_interface_router(router['router']['id'],
+                                      {'subnet_id': internal_subnet})
+
         self.addCleanup(self.api.remove_interface_router,
                         router['router']['id'],
                         {'subnet_id': internal_subnet})
@@ -179,7 +180,6 @@ def test_traceroute():
     Run a traceroute between two VMs. All hops should resolve correctly.
     """
     sender = BM.get_interface_on_vport('port_left')
-    receiver = BM.get_interface_on_vport('port_right')
 
     output = sender.execute("traceroute -n -N 1 -m 5 %s" % VTM.get_fip_right(),
                             sync=True)
