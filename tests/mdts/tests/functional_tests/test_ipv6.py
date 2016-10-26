@@ -342,6 +342,52 @@ class MultiTenantAndUplinkWithVPP(UplinkWithVPP):
                          ip4fixed = "20.0.0.2",
                          tableId = vrf)
 
+class JustExternalIPv6Subnet(NeutronTopologyManager):
+    def build(self, data=None):
+
+        self.network = self.create_resource(
+            self.api.create_network(
+                {
+                    'network': {
+                        'name': 'ext-net-ip6',
+                        'router:external': True
+                    }
+                }
+            )
+        )
+
+        subnet = self.create_resource(
+            self.api.create_subnet(
+                {'subnet':
+                     {'name': 'ext-subnet-ip6',
+                      'network_id': self.network['network']['id'],
+                      'ip_version': 6,
+                      'cidr': '2002::/64',
+                      'allocation_pools':
+                          [
+                              {
+                                  'start': '2002::2',
+                                  'end': '2002::128'
+                              }
+                          ],
+                      'enable_dhcp': False
+                     }
+                }
+            )
+        )
+
+    def addIPv6Fip(self):
+        fip = self.create_resource(
+                self.api.create_floatingip( 
+                    {'floatingip':
+                        {'floating_network_id': self.network['network']['id'] }}
+                )
+            )
+        return fip['floatingip']
+
+
+VTM_just_external_ipv6_subnet = JustExternalIPv6Subnet()
+
 binding_empty = {
     'description': 'nothing bound',
     'bindings': []
@@ -412,7 +458,6 @@ def ping_from_inet(container, ipv6 = '2001::1', count=4, namespace=None):
 def test_uplink_ipv6():
     """
     Title: ping ipv6 uplink of midolman1 from quagga1. VPP must respond
-
     """
     ping_from_inet('quagga1', '2001::1', 10)
 
@@ -435,3 +480,14 @@ def test_ping_multi_vms_ipv6():
     """
     ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')
     ping_from_inet('quagga1', 'cccc:cccc::2', 10, namespace='ip6')
+
+@attr(version="v1.2.0")
+@bindings(binding_empty,
+          binding_manager=BindingManager(vtm=VTM_just_external_ipv6_subnet))
+def test_fip_creation():
+    """
+    Title: create a IPv6 FIP in neutron
+    """
+    vtm = VTM_just_external_ipv6_subnet
+    fip = vtm.addIPv6Fip()
+    fip_address = fip['floating_ip_address']
