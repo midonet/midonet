@@ -141,7 +141,6 @@ class VirtualTopologyManager(TopologyManager):
         for mirror in self._vt.get('mirrors') or []:
             self.add_mirror(mirror['mirror'])
 
-
     def look_up_resource(self, referrer, setter, reference_spec):
         """Looks up a resource referred by referrer.
 

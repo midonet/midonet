@@ -85,7 +85,6 @@ class JMXMonitor(object):
         composite = self._get("java.lang", "Memory", "HeapMemoryUsage")
         return self._transform_memory_usage_composite(composite)
 
-
     def get_non_heap_memory_usage(self):
         composite = self._get("java.lang", "Memory", "NonHeapMemoryUsage")
         return self._transform_memory_usage_composite(composite)
