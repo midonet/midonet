@@ -44,16 +44,16 @@ class JmxTransHost(Service):
                 "alias": h,
                 "queries": queries
             })
-        return { "servers": servers }
+        return {"servers": servers}
 
     def _add_query(self, objects, alias, jobname):
         return {
-            "obj" : objects,
+            "obj": objects,
             "resultAlias": alias,
-            "outputWriters" : [{
-                "@class" : "com.googlecode.jmxtrans.model.output.KeyOutWriter",
-                "outputFile" : "/data/%s.txt" % jobname,
-                "typeNames" : ["name"]
+            "outputWriters": [{
+                "@class": "com.googlecode.jmxtrans.model.output.KeyOutWriter",
+                "outputFile": "/data/%s.txt" % jobname,
+                "typeNames": ["name"]
             }]
         }
 

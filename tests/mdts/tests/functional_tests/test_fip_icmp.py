@@ -134,7 +134,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         subnet = self.create_resource(
             self.api.create_subnet(
                 {'subnet':
-                    {'name': network['network']['name']+'_subnet',
+                    {'name': network['network']['name'] + '_subnet',
                      'network_id': network['network']['id'],
                      'ip_version': 4,
                      'cidr': cidr,
@@ -157,13 +157,13 @@ binding_multihost = {
     'bindings': [
         {'vport': 'port_left',
          'interface': {
-             'definition': { 'ipv4_gw': '10.0.0.1' },
+             'definition': {'ipv4_gw': '10.0.0.1'},
              'hostname': 'midolman1',
              'type': 'vmguest'
          }},
         {'vport': 'port_right',
          'interface': {
-             'definition': { 'ipv4_gw': '20.0.0.1' },
+             'definition': {'ipv4_gw': '20.0.0.1'},
              'hostname': 'midolman2',
              'type': 'vmguest'
          }}

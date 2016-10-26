@@ -36,7 +36,7 @@ class DhcpSubnet(ResourceBase):
 
             dest_prefix, dest_length = route['dest'].split('/')
             opt121_routes.append(
-                {'destinationPrefix':dest_prefix,
+                {'destinationPrefix': dest_prefix,
                  'destinationLength': dest_length,
                  'gatewayAddr': route['gw']}
             )

@@ -170,7 +170,7 @@ def await_internal_route_exported(localAs, peerAs):
         time.sleep(2)
         timeout -= 2
     raise Exception("Timed out while waiting for quagga0 to learn the internal "
-                    "network through AS %s " %(peerAs))
+                    "network through AS %s " % (peerAs))
 
 # routes BGP advertises:
 route_direct = [{'nwPrefix': '172.16.0.0', 'prefixLength': 16}]
@@ -203,7 +203,7 @@ def ping_to_inet(count=5, interval=1, port=2, retries=3):
         if retries == 0:
             raise RuntimeError("Ping did not return any data and returned -1")
         LOG.debug("BGP: failed ping to inet... (%d retries left)" % retries)
-        ping_to_inet(count, interval, port, retries-1)
+        ping_to_inet(count, interval, port, retries - 1)
 
 @attr(version="v1.2.0")
 @bindings(binding_unisession)

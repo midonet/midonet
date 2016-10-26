@@ -194,7 +194,7 @@ def await_member_status(backend_num, status, timeout=30, sleep_time=2):
         LOG.debug("L4LB: pool member %s not %s yet." % (pm_id, status))
         elapsed += sleep_time
         time.sleep(sleep_time)
-    raise RuntimeError("L4LB: Pool member did not become %s after %d s." %(
+    raise RuntimeError("L4LB: Pool member did not become %s after %d s." % (
         status,
         timeout
     ))
@@ -521,7 +521,7 @@ def test_haproxy_failback():
 
     failbacks = 6
     leaders_elected = set()
-    while failbacks > 0 and len(leaders_elected) < 3 :
+    while failbacks > 0 and len(leaders_elected) < 3:
         # Induce failure on the haproxy leader
         leader = get_current_leader(lb_pools)
         LOG.debug("L4LB: leader is %s" % leader.get_hostname())

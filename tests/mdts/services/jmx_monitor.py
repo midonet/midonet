@@ -39,7 +39,7 @@ class JMXMonitor(object):
         if user and passwd:
             environment = java.util.HashMap()
             credentials = jpype.JArray(java.lang.String)([user, passwd])
-            environment.put (javax.management.remote.JMXConnector.CREDENTIALS, credentials)
+            environment.put(javax.management.remote.JMXConnector.CREDENTIALS, credentials)
             self._jmx_connector = javax.management.remote.JMXConnectorFactory.\
                 connect(jmxurl, environment)
         elif user or passwd:
@@ -54,7 +54,7 @@ class JMXMonitor(object):
         if name:
             object_name = "%s:type=%s,name=%s" % (domain, type, name)
         else:
-            object_name = "%s:type=%s" % (domain,type)
+            object_name = "%s:type=%s" % (domain, type)
 
         return self._connection.getAttribute(javax.management.ObjectName(object_name), attribute)
 
