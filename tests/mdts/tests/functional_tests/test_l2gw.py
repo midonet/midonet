@@ -22,7 +22,7 @@ from mdts.tests.utils.utils import wait_on_futures
 from mdts.tests.utils.utils import bindings
 
 from hamcrest import *
-from nose.tools import nottest 
+from nose.tools import nottest
 
 import logging
 import time
@@ -48,12 +48,12 @@ BM = BindingManager(PTM, VTM)
 binding1 = {
     'description': 'VM connected to MM without trunk',
     'bindings': [
-        {'binding':{'device_name': 'bridge-000-001-0001', 'port_id': 1,
-                    'host_id': 3, 'interface_id': 1}},
-        {'binding':{'device_name': 'bridge-000-001', 'port_id': 3,
-                    'host_id': 1, 'interface_id': 2}},
-        {'binding':{'device_name': 'bridge-000-001', 'port_id': 4,
-                    'host_id': 2, 'interface_id': 2}}]}
+        {'binding': {'device_name': 'bridge-000-001-0001', 'port_id': 1,
+                     'host_id': 3, 'interface_id': 1}},
+        {'binding': {'device_name': 'bridge-000-001', 'port_id': 3,
+                     'host_id': 1, 'interface_id': 2}},
+        {'binding': {'device_name': 'bridge-000-001', 'port_id': 4,
+                     'host_id': 2, 'interface_id': 2}}]}
 
 
 def setup_wait():
@@ -161,7 +161,7 @@ def test_icmp_to_mn():
     """
     setup_wait()
     midoVmIface = BM.get_iface_for_port('bridge-000-001-0001', 1)
-    exHostIface = BM.get_iface(4,1)
+    exHostIface = BM.get_iface(4, 1)
 
     # Wait for the peer bridge to block one of the trunks and
     # make sure Midonet has recovered from a transient loop.
@@ -181,7 +181,7 @@ FAILBACK_WAIT_SEC = 30 + 5
 def _test_failover(ping, failover, restore):
 
     midoVmIface = BM.get_iface_for_port('bridge-000-001-0001', 1)
-    exHostIface = BM.get_iface(4,1)
+    exHostIface = BM.get_iface(4, 1)
 
     # Wait for the peer bridge to block one of the trunks and
     # make sure Midonet has recovered from a transient loop.
@@ -309,7 +309,7 @@ def _test_failback(test_failover, ping, migrate=None):
     time.sleep(FAILBACK_WAIT_SEC)
 
     midoVmIface = BM.get_iface_for_port('bridge-000-001-0001', 1)
-    exHostIface = BM.get_iface(4,1)
+    exHostIface = BM.get_iface(4, 1)
 
     # Emit a random UDP expecting it to migrate the MAC back to trunk0
     if migrate:

@@ -67,7 +67,7 @@ class MidonetAgentHost(Service):
     def get_jmx_monitor(self):
         LOG.debug("Creating JMX Monitor for agent")
         monitor = JMXMonitor()
-        monitor.connect(self.get_ip_address(),7201)
+        monitor.connect(self.get_ip_address(), 7201)
         return monitor
 
     def get_midonet_host_id(self):

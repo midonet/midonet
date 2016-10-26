@@ -38,7 +38,7 @@ class Bridge(ResourceBase):
         """ Builds a bridge MidoNet resource.
 
         On building, if filter names are specified, it looks up Chain data via
-        VirtualTopologyManager and assign them to this bridge. 
+        VirtualTopologyManager and assign them to this bridge.
         """
         tenant_id = self._get_tenant_id()
         self._mn_resource = self._api.add_bridge()
@@ -49,7 +49,7 @@ class Bridge(ResourceBase):
         # chain data via Virtual Topology Manager, and set their chain IDs to
         # Bridge DTO. Raise an exception if no corresponding chain is found.
         # TODO(tomohiko) Also updates _inbound_filter and _outbound_filter
-        for filter_field in ['inbound_filter_id','outbound_filter_id']:
+        for filter_field in ['inbound_filter_id', 'outbound_filter_id']:
             if filter_field in self._data:
                 self._context.look_up_resource(
                         self._mn_resource, filter_field, self._data[filter_field])

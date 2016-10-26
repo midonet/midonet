@@ -21,7 +21,7 @@ class Chain(ResourceBase):
     """
 
     def __init__(self, api, context, data):
-        """ Initializes a rule. 
+        """ Initializes a rule.
 
         Args:
             api: MidoNet API client object
@@ -63,5 +63,5 @@ class Chain(ResourceBase):
         return self._rules[rule_id]
         
     def get_id(self):
-        """ Returns the chain ID.""" 
+        """ Returns the chain ID."""
         return self._data.get('id')

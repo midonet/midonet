@@ -51,7 +51,7 @@ binding_l4state = {
 
 def get_random_port_num():
     '''Returns a random port number from a free port range.
-    
+
     NOTE: Using a random number may cause test indeterminacy on a rare occasion.
     '''
     return random.randint(49152, 65535)
@@ -59,7 +59,7 @@ def get_random_port_num():
 
 ##############################################################################
 #
-# Scenario: 
+# Scenario:
 #
 #          host-2                                 host-3
 #            |                                      |
@@ -71,7 +71,7 @@ def get_random_port_num():
 #                                | 1 - 192.168.0.254/24
 #                                |
 #                                |
-#                              host-1 
+#                              host-1
 #
 #   * 2 & 3 form a port group.
 #   * This chain will apply to all traffic:

@@ -75,7 +75,7 @@ def unset_bridge_port_filters(bridge_name, port_id):
 
 def get_random_port_num():
     '''Returns a random port number from a free port range.
-    
+
     NOTE: Using a random number may cause test indeterminacy on a rare occasion.
     '''
     return random.randint(49152, 65535)
@@ -89,7 +89,7 @@ def test_filtering_by_network_address():
 
     Scenario:
     When: A VM sends UDP packets to another host on the same bridge.
-    Then: The UDP packets reaches the receiver. 
+    Then: The UDP packets reaches the receiver.
     Then: Filtering rule chains based on network address (IP address) are set on
           the bridge port that the receiver host is connected to.
     And: The UDP packets from the same sender do NOT reach the receiver.
@@ -97,7 +97,7 @@ def test_filtering_by_network_address():
     sender = BM.get_iface_for_port('bridge-000-001', 2)
     receiver = BM.get_iface_for_port('bridge-000-001', 3)
 
-    # Reset in/out-bound filters. 
+    # Reset in/out-bound filters.
     unset_bridge_port_filters('bridge-000-001', 3)
 
     port_num = get_random_port_num()
@@ -134,7 +134,7 @@ def test_connection_tracking_by_network_addres():
           supposedly outside the FS, on the same bridge.
     And: The host outside the FW receives the UDP packets.
     Then: A connection-tracking-based peep hole is established.
-    And: The outside host now can send UDP packets to the inside host. 
+    And: The outside host now can send UDP packets to the inside host.
     '''
     outside = BM.get_iface_for_port('bridge-000-001', 2)
     inside = BM.get_iface_for_port('bridge-000-001', 3)
@@ -180,7 +180,7 @@ def test_filtering_by_dl():
     outside = BM.get_iface_for_port('bridge-000-001', 2)
     inside = BM.get_iface_for_port('bridge-000-001', 3)
 
-    # Reset an in-bound filter. 
+    # Reset an in-bound filter.
     unset_bridge_port_filters('bridge-000-001', 3)
 
     port_num = get_random_port_num()
@@ -217,8 +217,8 @@ def test_connection_tracking_with_drop_by_dl():
     When: A VM inside a FW sends UDP packets to a VM outside.
     And: The outside receives the UDP packets.
     Then: A connection-tracking-based peep hole is established.
-    And: The outside now can send UDP packets to the inside. 
-    ''' 
+    And: The outside now can send UDP packets to the inside.
+    '''
     outside = BM.get_iface_for_port('bridge-000-001', 2)
     inside = BM.get_iface_for_port('bridge-000-001', 3)
 

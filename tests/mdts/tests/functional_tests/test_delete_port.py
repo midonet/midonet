@@ -47,7 +47,7 @@ def test_ping_delete_port():
     """
     Title: L3 connectivity over bridge and router, then deletes a port
     and verifies that there is no connectivity. Implemented to cover the
-    old DeletePortTest. 
+    old DeletePortTest.
 
     Scenario 1:
     When: a VM sends ICMP echo request with ping command to a different subnet
