@@ -357,6 +357,17 @@ case class BridgePort(override val id: UUID,
     override def toString =
         s"BridgePort [${super.toString} networkId=$networkId]"
 
+    override def ingress(context: PacketContext): SimulationResult = {
+        // DSCP rules array can only have one member for now, although
+        // filters and qualifiers might be added on later to allow for
+        // multiple DSCP rules, each of which would affect a different
+        // type of packet.  But for now, just get the 'head' of the array
+        if (qosPolicy != null && qosPolicy.dscpRules.nonEmpty) {
+            context.wcmatch.setNetworkTOS(qosPolicy.dscpRules.head.dscpMark)
+        }
+        super.ingress(context)
+    }
+
 }
 
 case class ServicePort(override val id: UUID,
