@@ -15,6 +15,7 @@
 import string
 import sys
 
+import logging
 from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)

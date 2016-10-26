@@ -221,6 +221,6 @@ class SshClient(object):
         except paramiko.ssh_exception.AuthenticationException:
             raise Exception("AuthenticationException while trying to " +
                             ("connect to %s container: %s with config %s" %
-                            (container_name, ssh_host_config)))
+                            (container_name, container_name, config)))
         self.ssh_connections[container_name] = ssh_connection
         return self.ssh_connections[container_name]
