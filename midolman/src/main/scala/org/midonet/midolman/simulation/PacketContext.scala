@@ -218,7 +218,8 @@ trait FlowContext extends Clearable { this: PacketContext =>
     private def diffIp(): Unit =
         if (diffBaseMatch.getNetworkSrcIP != wcmatch.getNetworkSrcIP ||
             diffBaseMatch.getNetworkDstIP != wcmatch.getNetworkDstIP ||
-            diffBaseMatch.getNetworkTTL != wcmatch.getNetworkTTL) {
+            diffBaseMatch.getNetworkTTL != wcmatch.getNetworkTTL ||
+            diffBaseMatch.getNetworkTOS != wcmatch.getNetworkTOS) {
 
             virtualFlowActions.add(setKey(
                 wcmatch.getNetworkSrcIP match {
