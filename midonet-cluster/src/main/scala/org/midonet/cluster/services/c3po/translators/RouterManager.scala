@@ -35,7 +35,7 @@ trait RouterManager extends ChainManager {
 
         if (!tx.exists(classOf[Chain], chainId)) {
             throw new UnsupportedOperationException(
-                "Router ${routerId} has an old incompatible translation")
+                s"Router $routerId has an old incompatible translation")
         }
     }
 }
