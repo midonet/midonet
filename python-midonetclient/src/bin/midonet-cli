@@ -3001,10 +3001,10 @@ class QOSPolicy(ObjectType):
                                  value_type = StringType(),
                                  setter = 'description',
                                  getter = 'get_description'))
-        self.put_attr(SingleAttr(name = 'shared',
-                                 value_type = BooleanType(),
-                                 setter = 'shared',
-                                 getter = 'get_shared'))
+        self.put_attr(BooleanAttr(name = 'shared',
+                                  setter = 'shared',
+                                  getter = 'get_shared',
+                                  optional = True))
     def type_name(self):
         return "qos-policy"
 
