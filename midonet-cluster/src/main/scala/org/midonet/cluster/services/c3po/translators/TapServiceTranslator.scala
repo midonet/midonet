@@ -16,14 +16,13 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
-import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.Condition
+import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Neutron.TapService
 import org.midonet.cluster.models.Topology.Mirror
 
-class TapServiceTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[TapService] {
+class TapServiceTranslator extends Translator[TapService] {
 
     override protected def translateCreate(tx: Transaction,
                                            ts: TapService): OperationList = {
