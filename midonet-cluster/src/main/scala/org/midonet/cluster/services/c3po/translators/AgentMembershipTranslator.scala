@@ -18,15 +18,16 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Neutron.AgentMembership
 import org.midonet.cluster.util.UUIDUtil.fromProto
 
 /**
  * Translator for Neutron's Tunnel Zone Host.
  */
-class AgentMembershipTranslator(protected val storage: ReadOnlyStorage)
+class AgentMembershipTranslator
     extends Translator[AgentMembership] with TunnelZoneManager {
+
     /**
      * Translates a Create operation on Neutron's AgentMembership. Agent
      * Membership is translated into a mapping, HostToIp, under the default

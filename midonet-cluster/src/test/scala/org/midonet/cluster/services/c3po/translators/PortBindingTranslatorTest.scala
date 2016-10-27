@@ -101,7 +101,7 @@ class PortBindingTranslatorTest extends TranslatorTestBase {
 
     before {
         initMockStorage()
-        translator = new PortBindingTranslator(storage)
+        translator = new PortBindingTranslator()
 
         bind(host1NoBindingsId, host1)
         bind(host2With2BindingsId,host2With2Bindings)

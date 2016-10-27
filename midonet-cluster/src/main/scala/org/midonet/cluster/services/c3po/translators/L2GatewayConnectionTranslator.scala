@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConversions._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
+import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLAN, ROUTER_VTEP}
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection, RemoteMacEntry}
@@ -27,8 +27,7 @@ import org.midonet.cluster.rest_api.validation.MessageProperty.{ONLY_ONE_GW_DEV_
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.{IPv4Addr, MAC}
 
-class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
-                                    protected val stateTableStorage: StateTableStorage)
+class L2GatewayConnectionTranslator(stateTableStorage: StateTableStorage)
     extends Translator[L2GatewayConnection] {
 
     import L2GatewayConnectionTranslator._

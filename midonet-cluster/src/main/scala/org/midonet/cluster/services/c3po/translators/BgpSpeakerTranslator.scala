@@ -16,15 +16,14 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
+import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{NeutronBgpPeer, NeutronBgpSpeaker}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.util.UUIDUtil._
 
-class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
-                           protected val stateTableStorage: StateTableStorage)
+class BgpSpeakerTranslator(stateTableStorage: StateTableStorage)
     extends Translator[NeutronBgpSpeaker] with PortManager with RuleManager {
     import BgpPeerTranslator._
 

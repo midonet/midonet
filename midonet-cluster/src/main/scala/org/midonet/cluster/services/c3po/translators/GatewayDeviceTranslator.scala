@@ -18,14 +18,13 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
+import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLAN, ROUTER_VTEP}
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.rest_api.validation.MessageProperty.UNSUPPORTED_GATEWAY_DEVICE
 
-class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
-                              protected val stateTableStorage: StateTableStorage)
+class GatewayDeviceTranslator(stateTableStorage: StateTableStorage)
     extends Translator[GatewayDevice] {
     import L2GatewayConnectionTranslator._
 
