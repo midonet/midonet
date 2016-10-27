@@ -2974,7 +2974,8 @@ class QOSRuleBWLimit(ObjectType):
                                  value_type = StringType(),
                                  optional=True,
                                  getter = 'get_max_burst_kbps',
-                                 setter = 'max_burst_kbps'))
+                                 setter = 'max_burst_kbps',
+                                 unsetter = 'max_burst_kbps'))
 
     def type_name(self):
         return "qos-bw-limit-rule"
@@ -2996,10 +2997,12 @@ class QOSPolicy(ObjectType):
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
                                  setter = 'name',
+                                 unsetter = 'name',
                                  getter = 'get_name'))
         self.put_attr(SingleAttr(name = 'description',
                                  value_type = StringType(),
                                  setter = 'description',
+                                 unsetter = 'description',
                                  getter = 'get_description'))
         self.put_attr(BooleanAttr(name = 'shared',
                                   setter = 'shared',
