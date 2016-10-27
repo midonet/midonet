@@ -41,7 +41,7 @@ import test_nat_router
 import test_port_migration
 import test_router
 import test_router_service
-import test_tracing
+#import test_tracing
 import test_vpnaas
 import test_vxlangw
 
@@ -91,9 +91,9 @@ test_nat_router.test_floating_ip.gate=1
 test_nat_router.test_snat.gate=1
 test_nat_router.test_snat_for_udp.gate=1
 test_port_migration.test_simple_port_migration.gate=1
-test_tracing.test_tracing_egress_matching.gate=1
-test_tracing.test_tracing_egress_matching_over_nat.gate=1
-test_tracing.test_tracing_with_limit.gate=1
+#test_tracing.test_tracing_egress_matching.gate=1
+#test_tracing.test_tracing_egress_matching_over_nat.gate=1
+#test_tracing.test_tracing_with_limit.gate=1
 test_vpnaas.test_ping_between_three_sites.gate=1
 test_vpnaas.test_ping_between_three_sites.flaky=1
 test_vxlangw.test_to_multi_vtep_multi_tz.gate=1
