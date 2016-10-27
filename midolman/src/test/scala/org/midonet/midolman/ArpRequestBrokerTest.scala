@@ -421,4 +421,13 @@ class ArpRequestBrokerTest extends Suite
         }
         arps should be ('empty)
     }
+
+    def testMultipleMacForSameIPExpiry(): Unit = {
+        arpBroker.set(THEIR_IP, THEIR_MAC, router)
+        arpBroker.set(THEIR_IP, MY_MAC, router)
+
+        clock.time += ARP_EXPIRATION
+
+        arpBroker.process()
+    }
 }

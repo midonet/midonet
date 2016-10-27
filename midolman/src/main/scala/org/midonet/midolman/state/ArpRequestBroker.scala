@@ -338,7 +338,7 @@ class SingleRouterArpRequestBroker(id: UUID,
              * that MidoNet would have to ARP again, and in this case the race
              * would not be possible because there would be no expirer to
              * race with the writer. */
-            if (entry.expiry <= clock.time)
+            if (entry != null && entry.expiry <= clock.time)
                 arpCache.remove(ip)
         }
     }
