@@ -2015,6 +2015,7 @@ class Bridge(ObjectType):
                                  value_type = ObjectRef('qos-policy'),
                                  getter = 'get_qos_policy_id',
                                  setter = 'qos_policy_id',
+                                 unsetter = 'qos_policy_id',
                                  optional = True))
         self.put_attr(ListAttr(name = 'in-mirrors',
                                  element_type = MirrorRef(),
@@ -2411,6 +2412,7 @@ class BridgePort(ObjectType):
                                  value_type = ObjectRef('qos-policy'),
                                  getter = 'get_qos_policy_id',
                                  setter = 'qos_policy_id',
+                                 unsetter = 'qos_policy_id',
                                  optional = True))
         self.put_attr(ListAttr(name = 'in-mirrors',
                                  element_type = MirrorRef(),
