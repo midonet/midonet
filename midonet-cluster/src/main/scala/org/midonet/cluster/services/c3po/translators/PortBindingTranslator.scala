@@ -31,17 +31,16 @@ class PortBindingTranslator extends Translator[PortBinding] with PortManager {
      */
     @throws[IllegalStateException]
     override protected def translateCreate(tx: Transaction,
-                                           binding: PortBinding): OperationList = {
+                                           binding: PortBinding): Unit = {
         val port = tx.get(classOf[Port], binding.getPortId)
         bindPort(tx, port, binding.getHostId, binding.getInterfaceName)
-        List()
     }
 
     /**
       * Update is not allowed for port binding.
       */
     override protected def translateUpdate(tx: Transaction,
-                                           binding: PortBinding): OperationList = {
+                                           binding: PortBinding): Unit = {
         throw new UnsupportedOperationException(
             "Updating a port binding is not allowed")
     }
@@ -53,9 +52,8 @@ class PortBindingTranslator extends Translator[PortBinding] with PortManager {
       */
     override protected def translateDelete(tx: Transaction,
                                            binding: PortBinding)
-    : OperationList = {
+    : Unit = {
         val port = tx.get(classOf[Port], binding.getPortId)
         tx.update(port.toBuilder.clearHostId().clearInterfaceName().build())
-        List()
     }
 }

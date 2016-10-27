@@ -30,19 +30,16 @@ class SecurityGroupRuleTranslator
      * group chain that it is assigned to.
      */
     protected override def translateCreate(tx: Transaction,
-                                           sgr: SecurityGroupRule)
-    : OperationList = {
+                                           sgr: SecurityGroupRule): Unit = {
         tx.create(sgr)
         val sg = tx.get(classOf[SecurityGroup], sgr.getSecurityGroupId)
         val updatedSg = sg.toBuilder.addSecurityGroupRules(sgr).build()
         SecurityGroupRuleManager.translate(sgr).foreach(tx.create)
         tx.update(updatedSg)
-        List()
     }
 
     protected override def translateUpdate(tx: Transaction,
-                                           newSgr: SecurityGroupRule)
-    : OperationList = {
+                                           newSgr: SecurityGroupRule): Unit = {
         throw new IllegalArgumentException(
             "SecurityGroupRule update not supported.")
     }
@@ -56,7 +53,7 @@ class SecurityGroupRuleTranslator
     // doesn't exist as a top-level SGR in ZK, but we still need to delete the
     // corresponding Midonet rules.
     protected override def translateDelete(tx: Transaction,
-                                           sgrId: UUID): OperationList = {
+                                           sgrId: UUID): Unit = {
         if (tx.exists(classOf[SecurityGroupRule], sgrId)) {
             val sgr = tx.get(classOf[SecurityGroupRule], sgrId)
             val sg = tx.get(classOf[SecurityGroup], sgr.getSecurityGroupId)
@@ -69,7 +66,6 @@ class SecurityGroupRuleTranslator
         tx.delete(classOf[Rule], SecurityGroupRuleManager.nonHeaderRuleId(sgrId),
                   ignoresNeo = true)
         tx.delete(classOf[SecurityGroupRule], sgrId, ignoresNeo = true)
-        List()
     }
 
     protected override def retainHighLevelModel(tx: Transaction,

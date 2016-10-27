@@ -26,7 +26,7 @@ class LoadBalancerPoolTranslator
 
     override protected def translateCreate(tx: Transaction,
                                            nPool: NeutronLoadBalancerPool)
-    : OperationList = {
+    : Unit = {
         if (!nPool.hasRouterId)
             throw new IllegalArgumentException("No router ID is specified.")
         if (nPool.getHealthMonitorsCount > 0)
@@ -45,14 +45,16 @@ class LoadBalancerPoolTranslator
             tx.create(lb)
         }
 
-        // Create a MidoNet Pool.
-        tx.create(translatePool(nPool))
-        List()
+        tx.create(Pool.newBuilder
+                      .setId(nPool.getId)
+                      .setLoadBalancerId(loadBalancerId(nPool.getRouterId))
+                      .setAdminStateUp(nPool.getAdminStateUp)
+                      .build())
     }
 
     override protected def translateDelete(tx: Transaction,
                                            npool: NeutronLoadBalancerPool)
-    : OperationList = {
+    : Unit = {
         val pool = tx.get(classOf[Pool], npool.getId)
         val lbId = pool.getLoadBalancerId // if !hasLoadBalancerId it's a bug
         val lb = tx.get(classOf[LoadBalancer], lbId)
@@ -60,25 +62,16 @@ class LoadBalancerPoolTranslator
         if (lb.getPoolIdsCount == 1) {
             tx.delete(classOf[LoadBalancer], lbId, ignoresNeo = true)
         }
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            nPool: NeutronLoadBalancerPool)
-    : OperationList = {
+    : Unit = {
         val oldPool = tx.get(classOf[Pool], nPool.getId)
         val updatedPool = oldPool.toBuilder
             .setAdminStateUp(nPool.getAdminStateUp)
             .build()
         tx.update(updatedPool)
-        List()
     }
 
-    private def translatePool(nPool: NeutronLoadBalancerPool): Pool = {
-        Pool.newBuilder
-            .setId(nPool.getId)
-            .setLoadBalancerId(loadBalancerId(nPool.getRouterId))
-            .setAdminStateUp(nPool.getAdminStateUp)
-            .build()
-    }
 }

@@ -26,29 +26,24 @@ class ConfigTranslator
     extends Translator[NeutronConfig] with TunnelZoneManager {
 
     override protected def translateCreate(tx: Transaction,
-                                           config: NeutronConfig)
-    : OperationList = {
+                                           config: NeutronConfig): Unit = {
 
         if (tx.exists(classOf[TunnelZone], config.getId)) {
-            return List()
+            return
         }
 
         // Create the singleton Tunnel Zone
         tx.create(neutronDefaultTunnelZone(config))
-
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           config: NeutronConfig)
-    : OperationList = {
+                                           config: NeutronConfig): Unit = {
         throw new UnsupportedOperationException(
             "Config Update is not supported.")
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           config: NeutronConfig)
-    : OperationList = {
+                                           config: NeutronConfig): Unit = {
         throw new UnsupportedOperationException(
             "Config Delete is not supported.")
     }
