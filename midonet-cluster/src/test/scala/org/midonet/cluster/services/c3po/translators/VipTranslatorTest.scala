@@ -132,7 +132,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
                               with LoadBalancerManager {
     before {
         initMockStorage()
-        translator = new VipTranslator(storage, stateTableStorage)
+        translator = new VipTranslator(stateTableStorage)
     }
 
     private def bindVipNetwork(external: Boolean = false) {
@@ -218,7 +218,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
 class VipTranslatorUpdateTest extends VipTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new VipTranslator(storage, stateTableStorage)
+        translator = new VipTranslator(stateTableStorage)
         bind(pool2Id, midoPool(pool2Id, lb2Id))
         bind(vipId, neutronVip(poolId = poolId))
         bind(vipId, midoVip(sourceIpSessionPersistence = true,
@@ -281,7 +281,7 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
 class VipTranslatorDeleteTest extends VipTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new VipTranslator(storage, stateTableStorage)
+        translator = new VipTranslator(stateTableStorage)
     }
 
     "Neutron VIP Delete" should "delete a Midonet VIP." in {

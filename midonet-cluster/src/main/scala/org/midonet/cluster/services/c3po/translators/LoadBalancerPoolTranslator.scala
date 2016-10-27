@@ -16,14 +16,13 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPool. */
-class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
-        extends Translator[NeutronLoadBalancerPool]
-                with LoadBalancerManager {
+class LoadBalancerPoolTranslator
+    extends Translator[NeutronLoadBalancerPool] with LoadBalancerManager {
 
     override protected def translateCreate(tx: Transaction,
                                            nPool: NeutronLoadBalancerPool)

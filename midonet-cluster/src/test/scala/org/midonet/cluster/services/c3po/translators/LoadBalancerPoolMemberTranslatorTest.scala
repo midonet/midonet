@@ -30,7 +30,7 @@ class LoadBalancerPoolMemberTranslatorTest extends TranslatorTestBase {
     private var translator: LoadBalancerPoolMemberTranslator = _
     before {
         initMockStorage()
-        translator = new LoadBalancerPoolMemberTranslator(storage)
+        translator = new LoadBalancerPoolMemberTranslator()
     }
 
     private val memberId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")

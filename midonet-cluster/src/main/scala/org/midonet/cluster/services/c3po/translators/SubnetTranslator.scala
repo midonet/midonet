@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
@@ -28,8 +28,7 @@ import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 
 // TODO: add code to handle connection to provider router.
-class SubnetTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[NeutronSubnet] with RouteManager {
+class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
 
     override protected def translateCreate(tx: Transaction,
                                            ns: NeutronSubnet): OperationList = {

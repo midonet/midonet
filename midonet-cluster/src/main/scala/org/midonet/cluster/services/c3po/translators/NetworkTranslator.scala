@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
 import org.midonet.cluster.models.Topology.Network
@@ -24,8 +24,7 @@ import org.midonet.cluster.models.Topology.Network
 /**
   * Provides a Neutron model translator for Network.
   */
-class NetworkTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[NeutronNetwork] {
+class NetworkTranslator extends Translator[NeutronNetwork] {
     import NetworkTranslator._
 
     override protected def translateCreate(tx: Transaction,

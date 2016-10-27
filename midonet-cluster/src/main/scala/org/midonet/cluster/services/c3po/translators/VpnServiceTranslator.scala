@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.{UUID => JUUID}
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, VpnService}
 import org.midonet.cluster.models.Topology._
@@ -28,13 +28,9 @@ import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
 import org.midonet.containers
 import org.midonet.packets.MAC
 
-class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
-                           sequenceDispenser: SequenceDispenser)
-    extends Translator[VpnService]
-        with ChainManager
-        with PortManager
-        with RouteManager
-        with RuleManager {
+class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
+    extends Translator[VpnService] with ChainManager with PortManager
+            with RouteManager with RuleManager {
     import VpnServiceTranslator._
 
     override protected def translateCreate(tx: Transaction,
