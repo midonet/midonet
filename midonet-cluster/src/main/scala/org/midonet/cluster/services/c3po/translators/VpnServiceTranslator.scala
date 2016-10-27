@@ -34,7 +34,7 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
     import VpnServiceTranslator._
 
     override protected def translateCreate(tx: Transaction,
-                                           vpn: VpnService): OperationList = {
+                                           vpn: VpnService): Unit = {
         val routerId = vpn.getRouterId
         val router = tx.get(classOf[Router], routerId)
 
@@ -47,7 +47,7 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
                               .setContainerId(existingVpnService.getContainerId)
                               .setExternalIp(existingVpnService.getExternalIp)
                               .build())
-                return List()
+                return
             case None =>
         }
 
@@ -127,11 +127,10 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
         tx.create(scg)
         tx.create(sc)
         tx.create(modifiedVpnService)
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           vpn: VpnService): OperationList = {
+                                           vpn: VpnService): Unit = {
         val router = tx.get(classOf[Router], vpn.getRouterId)
 
         val otherServices = tx.getAll(classOf[VpnService],
@@ -166,14 +165,12 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
             tx.delete(classOf[ServiceContainerGroup], container.getServiceGroupId,
                       ignoresNeo = true)
         }
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           vpn: VpnService): OperationList = {
+                                           vpn: VpnService): Unit = {
         // No Midonet-specific changes, but changes to the VPNService are
         // handled in retainHighLevelModel().
-        List()
     }
 
     override protected def retainHighLevelModel(tx: Transaction,

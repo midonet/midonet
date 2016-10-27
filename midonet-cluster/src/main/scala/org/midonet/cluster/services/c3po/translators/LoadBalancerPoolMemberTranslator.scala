@@ -45,27 +45,24 @@ class LoadBalancerPoolMemberTranslator
 
     override protected def translateCreate(tx: Transaction,
                                            poolMember: NeutronLoadBalancerPoolMember)
-    : OperationList = {
+    : Unit = {
         tx.create(translate(poolMember))
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            poolMember: NeutronLoadBalancerPoolMember)
-    : OperationList = {
+    : Unit = {
         tx.delete(classOf[PoolMember], poolMember.getId)
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            poolMember: NeutronLoadBalancerPoolMember)
-    : OperationList = {
+    : Unit = {
         // Load Balancer Pool status is set to ACTIVE upon creation by default,
         // and it is to be updated only by Health Monitor. Therefore when we
         // update Pool, we need to look up the current status and explicitly
         // restore it.
         val status = tx.get(classOf[PoolMember], poolMember.getId).getStatus
         tx.update(translate(poolMember, status = status))
-        List()
     }
 }

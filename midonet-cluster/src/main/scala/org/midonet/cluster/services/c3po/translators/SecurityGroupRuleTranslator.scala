@@ -29,19 +29,16 @@ class SecurityGroupRuleTranslator
      * group chain that it is assigned to.
      */
     protected override def translateCreate(tx: Transaction,
-                                           sgr: SecurityGroupRule)
-    : OperationList = {
+                                           sgr: SecurityGroupRule): Unit = {
         val sgId = sgr.getSecurityGroupId
         val sg = tx.get(classOf[SecurityGroup], sgId)
         val updatedSg = sg.toBuilder.addSecurityGroupRules(sgr).build()
         SecurityGroupRuleManager.translate(sgr).foreach(tx.update(_, null))
         tx.update(updatedSg)
-        List()
     }
 
     protected override def translateUpdate(tx: Transaction,
-                                           newSgr: SecurityGroupRule)
-    : OperationList = {
+                                           newSgr: SecurityGroupRule): Unit = {
         throw new IllegalArgumentException(
             "SecurityGroupRule update not supported.")
     }
@@ -55,7 +52,7 @@ class SecurityGroupRuleTranslator
     // doesn't exist as a top-level SGR in ZK, but we still need to delete the
     // corresponding Midonet rules.
     protected override def translateDelete(tx: Transaction,
-                                           sgrId: UUID): OperationList = {
+                                           sgrId: UUID): Unit = {
         if (tx.exists(classOf[SecurityGroupRule], sgrId)) {
             val sgr = tx.get(classOf[SecurityGroupRule], sgrId)
             val sgId = sgr.getSecurityGroupId
@@ -67,6 +64,5 @@ class SecurityGroupRuleTranslator
         }
         tx.delete(classOf[Rule], sgrId)
         tx.delete(classOf[Rule], SecurityGroupRuleManager.nonHeaderRuleId(sgrId))
-        List()
     }
 }

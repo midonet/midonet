@@ -36,8 +36,7 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
     import BgpPeerTranslator._
 
     override protected def translateCreate(tx: Transaction,
-                                           bgpPeer: NeutronBgpPeer)
-    : OperationList = {
+                                           bgpPeer: NeutronBgpPeer): Unit = {
         val speaker = bgpPeer.getBgpSpeaker
         val router = tx.get(classOf[Router], speaker.getLogicalRouter)
 
@@ -52,24 +51,20 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
         createPeerRedirectRule(tx,  inverseRedirectRuleId(bgpPeer.getId),
                                quaggaPortId(router.getId), chainId, bgpPeer,
                                inverse = true)
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           newPeer: NeutronBgpPeer)
-    : OperationList = {
+                                           newPeer: NeutronBgpPeer): Unit = {
         val oldPeer = tx.get(classOf[BgpPeer], newPeer.getId)
 
         // Can only update password.
         if (oldPeer.getPassword != newPeer.getPassword) {
             tx.update(oldPeer.toBuilder.setPassword(newPeer.getPassword).build())
         }
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           bgpPeer: NeutronBgpPeer)
-    : OperationList = {
+                                           bgpPeer: NeutronBgpPeer): Unit = {
          val router = tx.get(classOf[Router],
                              bgpPeer.getBgpSpeaker.getLogicalRouter)
 
@@ -78,7 +73,6 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
         }
         deleteBgpPeer(tx, router, bgpPeer.getId)
         cleanUpBgpNetworkExtraRoutes(tx, router.getId)
-        List()
     }
 
     private def createBgpPeer(tx: Transaction, routerId: UUID,

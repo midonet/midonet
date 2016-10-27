@@ -38,24 +38,22 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
     import FloatingIpTranslator._
 
     override protected def translateCreate(tx: Transaction,
-                                           fip: FloatingIp): OperationList = {
+                                           fip: FloatingIp): Unit = {
         // If a port is not assigned, there's nothing to do.
         if (fip.hasPortId) {
             associateFip(tx, fip)
         }
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           fip: FloatingIp): OperationList = {
+                                           fip: FloatingIp): Unit = {
         if (fip.hasPortId) {
             disassociateFip(tx, fip)
         }
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           fip: FloatingIp): OperationList = {
+                                           fip: FloatingIp): Unit = {
         val oldFip = tx.get(classOf[FloatingIp], fip.getId)
         if ((!oldFip.hasPortId && !fip.hasPortId) ||
             (oldFip.hasPortId && fip.hasPortId &&
@@ -88,7 +86,6 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
                 associateFip(tx, fip)
             }
         }
-        List()
     }
 
     private def fipArpEntryPath(tx: Transaction, fip: FloatingIp,

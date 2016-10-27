@@ -30,26 +30,24 @@ class GatewayDeviceTranslator(stateTableStorage: StateTableStorage)
 
     override protected def translateCreate(tx: Transaction,
                                            gatewayDevice: GatewayDevice)
-    : OperationList = {
+    : Unit = {
         // Only router VTEP and network VLAN are supported.
         if (gatewayDevice.getType != ROUTER_VTEP &&
             gatewayDevice.getType != NETWORK_VLAN)
             throw new IllegalArgumentException(UNSUPPORTED_GATEWAY_DEVICE)
 
         // Nothing to do other than pass the Neutron data through to ZK.
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            gatewayDevice: GatewayDevice)
-    : OperationList = {
+    : Unit = {
         // Nothing to do but delete the Neutron data.
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            gatewayDevice: GatewayDevice)
-    : OperationList = {
+    : Unit = {
 
         def hasThisGateway(connection: L2GatewayConnection) = {
             val devices = connection.getL2Gateway.getDevicesList.asScala
@@ -72,6 +70,5 @@ class GatewayDeviceTranslator(stateTableStorage: StateTableStorage)
                 .build()
             tx.update(updatedPort)
         }
-        List()
     }
 }

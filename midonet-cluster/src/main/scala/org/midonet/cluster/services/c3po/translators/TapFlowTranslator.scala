@@ -24,7 +24,7 @@ import org.midonet.cluster.models.Topology.Port
 class TapFlowTranslator extends Translator[TapFlow] {
 
     override protected def translateCreate(tx: Transaction,
-                                           tapFlow: TapFlow): OperationList = {
+                                           tapFlow: TapFlow): Unit = {
         val builder = tx.get(classOf[Port], tapFlow.getSourcePort).toBuilder
         val mirrorId = tapFlow.getTapServiceId
 
@@ -36,11 +36,10 @@ class TapFlowTranslator extends Translator[TapFlow] {
             builder.addPostInFilterMirrorIds(mirrorId)
         }
         tx.update(builder.build())
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           tapFlow: TapFlow): OperationList = {
+                                           tapFlow: TapFlow): Unit = {
         val builder = tx.get(classOf[Port], tapFlow.getSourcePort).toBuilder
         val mirrorId = tapFlow.getTapServiceId
 
@@ -54,12 +53,10 @@ class TapFlowTranslator extends Translator[TapFlow] {
             builder.removePostInFilterMirrorIds(idx)
         }
         tx.update(builder.build())
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           tapFlow: TapFlow): OperationList =
-        List()
+                                           tapFlow: TapFlow): Unit = { }
 
     private def tapIn(tapFlow: TapFlow): Boolean = {
         tapFlow.getDirection == TapFlow.TapFlowDirection.BOTH ||
