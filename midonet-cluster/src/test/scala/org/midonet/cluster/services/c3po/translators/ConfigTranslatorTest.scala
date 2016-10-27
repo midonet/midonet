@@ -36,7 +36,7 @@ class ConfigTranslatorTest extends TranslatorTestBase with GivenWhenThen
         initMockStorage()
 
         And("A configuration translator")
-        val translator = new ConfigTranslator(storage)
+        val translator = new ConfigTranslator()
 
         And("A configuration")
         val id = UUIDUtil.randomUuidProto
@@ -61,7 +61,7 @@ class ConfigTranslatorTest extends TranslatorTestBase with GivenWhenThen
         initMockStorage()
 
         And("A configuration translator")
-        val translator = new ConfigTranslator(storage)
+        val translator = new ConfigTranslator()
 
         And("A configuration")
         val id = UUIDUtil.randomUuidProto
@@ -86,7 +86,7 @@ class ConfigTranslatorTest extends TranslatorTestBase with GivenWhenThen
         initMockStorage()
 
         And("A config translator")
-        val translator = new ConfigTranslator(storage)
+        val translator = new ConfigTranslator()
 
         And("A config")
         val id = UUIDUtil.randomUuidProto
@@ -106,7 +106,7 @@ class ConfigTranslatorTest extends TranslatorTestBase with GivenWhenThen
         initMockStorage()
 
         And("A configuration translator")
-        val translator = new ConfigTranslator(storage)
+        val translator = new ConfigTranslator()
 
         And("A configuration identifier")
         val id = UUIDUtil.randomUuidProto

@@ -245,7 +245,7 @@ class PortTranslationTest extends PortTranslatorTest {
     before {
         initMockStorage()
 
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
         bind(portIdThatDoesNotExist, null, classOf[NeutronPort])
     }
 
@@ -452,7 +452,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
     before {
 
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(nIpv4Subnet1Id, nIpv4Subnet1)
@@ -858,7 +858,7 @@ class VifPortBindingTranslationTest extends VifPortTranslationTest {
 
     before {
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
 
         bind(inboundChainId, inboundChain)
         bind(outboundChainId, outboundChain)
@@ -887,7 +887,7 @@ class VifPortBindingTranslationTest extends VifPortTranslationTest {
 class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     before {
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(nIpv4Subnet1Id, nIpv4Subnet1)
@@ -1231,7 +1231,7 @@ class DhcpPortTranslationTest extends PortTranslatorTest {
 class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
     before {
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(networkId, mNetworkWithDhcpPort)
@@ -1305,7 +1305,7 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
 
     before {
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(portId, midoPortBaseUp)
@@ -1357,7 +1357,7 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
 class FloatingIpPortTranslationTest extends PortTranslatorTest {
     before {
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(portId, null, classOf[Port])
@@ -1389,7 +1389,7 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
 class VipPortTranslationTest extends PortTranslatorTest {
     before {
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(networkId, midoNetwork)
@@ -1472,7 +1472,7 @@ class RouterInterfacePortCreateTranslationTest
         extends RouterInterfacePortTranslationTest {
     before {
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
         bind(nIpv4Subnet1Id, mIpv4Dhcp)
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
@@ -1497,7 +1497,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
 
     before {
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(nIpv4Subnet1Id, mIpv4Dhcp)
@@ -1541,7 +1541,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
 class RouterGatewayPortTranslationTest extends PortTranslatorTest {
     before {
         initMockStorage()
-        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+        translator = new PortTranslator(pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(portId, midoPortBaseUp)

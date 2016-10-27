@@ -233,7 +233,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
 class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new FloatingIpTranslator(storage, pathBldr)
+        translator = new FloatingIpTranslator(pathBldr)
 
         bind(tntRouterId, nTntRouter)
         bind(tntRouterId, mTntRouter)
@@ -371,7 +371,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bindAll(Seq(tntRouterId, tntRouterId), Seq(nTntRouter, nTntRouter))
         bindAll(Seq(tntRouterInternalPortId), Seq(mTntRouterInternalPort))
 
-        translator = new FloatingIpTranslator(storage, pathBldr)
+        translator = new FloatingIpTranslator(pathBldr)
     }
 
     "FIP UPDATE that keeps the floating IP unbound" should "do nothing" in {
@@ -495,7 +495,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new FloatingIpTranslator(storage, pathBldr)
+        translator = new FloatingIpTranslator(pathBldr)
 
         bind(fipIdThatDoesNotExist, null, classOf[FloatingIp])
     }

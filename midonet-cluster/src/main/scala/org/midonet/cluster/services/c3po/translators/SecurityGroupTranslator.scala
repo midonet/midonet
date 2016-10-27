@@ -30,7 +30,7 @@ import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.StringUtil.indent
 
-class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
+class SecurityGroupTranslator
     extends Translator[SecurityGroup] with ChainManager with RuleManager {
 
     protected override def translateCreate(tx: Transaction,

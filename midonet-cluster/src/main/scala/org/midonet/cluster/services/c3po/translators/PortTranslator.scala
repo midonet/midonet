@@ -54,8 +54,7 @@ object PortTranslator {
         portId.xorWith(0x4bcef582eeae45acL, 0xb0304fc7e7b3ba0dL)
 }
 
-class PortTranslator(protected val storage: ReadOnlyStorage,
-                     protected val pathBldr: PathBuilder,
+class PortTranslator(protected val pathBldr: PathBuilder,
                      sequenceDispenser: SequenceDispenser)
         extends Translator[NeutronPort]
         with ChainManager with PortManager with RouteManager with RuleManager

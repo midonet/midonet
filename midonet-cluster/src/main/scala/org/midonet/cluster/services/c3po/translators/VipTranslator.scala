@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction, UpdateValidator}
+import org.midonet.cluster.data.storage.{StateTableStorage, Transaction, UpdateValidator}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology.Vip
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -24,8 +24,7 @@ import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.midolman.state.PathBuilder
 
 /** Provides a Neutron model translator for VIP. */
-class VipTranslator(protected val storage: ReadOnlyStorage,
-                    override val pathBldr: PathBuilder)
+class VipTranslator(override val pathBldr: PathBuilder)
         extends Translator[NeutronVIP]
                 with BridgeStateTableManager {
 

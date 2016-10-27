@@ -34,7 +34,7 @@ class NetworkTranslatorTest extends TranslatorTestBase {
 
     def genId() = UUIDUtil.randomUuidProto
 
-    val translator: NetworkTranslator = new NetworkTranslator(storage, pathBldr)
+    val translator: NetworkTranslator = new NetworkTranslator(pathBldr)
 
     val sampleNeutronNetwork = NeutronNetwork.newBuilder()
                                        .setId(genId())

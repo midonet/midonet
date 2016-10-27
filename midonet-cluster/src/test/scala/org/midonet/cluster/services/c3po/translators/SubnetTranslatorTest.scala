@@ -37,7 +37,7 @@ class SubnetTranslatorTest extends TranslatorTestBase {
 
     before {
         initMockStorage()
-        translator = new SubnetTranslator(storage)
+        translator = new SubnetTranslator
     }
 
     private val subnetId = randomUuidProto

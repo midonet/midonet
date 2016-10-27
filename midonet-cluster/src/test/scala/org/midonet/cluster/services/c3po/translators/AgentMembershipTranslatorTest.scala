@@ -35,7 +35,7 @@ class AgentMembershipTranslatorTest extends TranslatorTestBase {
 
     before {
         initMockStorage()
-        translator = new AgentMembershipTranslator(storage)
+        translator = new AgentMembershipTranslator()
         when(transaction.getAll(classOf[NeutronConfig])).thenReturn(Seq(nConfig))
     }
 

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.c3poNeutronTranslatorLog
 import org.midonet.cluster.data._
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 
@@ -38,8 +38,6 @@ abstract class Translator[HighLevelModel <: Message](
 
     protected val log =
         LoggerFactory.getLogger(c3poNeutronTranslatorLog(getClass))
-
-    protected def storage: ReadOnlyStorage
 
     /**
       * Translates the operation on a high level model to a list of operations

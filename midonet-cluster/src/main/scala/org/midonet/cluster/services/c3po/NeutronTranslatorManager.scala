@@ -105,22 +105,22 @@ class NeutronTranslatorManager(config: ClusterConfig,
                                paths: PathBuilder) {
 
     private val translators = Map[Class[_], Translator[_]](
-        classOf[AgentMembership] -> new AgentMembershipTranslator(store),
-        classOf[FloatingIp] -> new FloatingIpTranslator(store, paths),
-        classOf[NeutronConfig] -> new ConfigTranslator(store),
-        classOf[NeutronFirewall] -> new FirewallTranslator(store),
-        classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator(store),
-        classOf[NeutronLoadBalancerPool] -> new LoadBalancerPoolTranslator(store),
-        classOf[NeutronLoadBalancerPoolMember] -> new LoadBalancerPoolMemberTranslator(store),
-        classOf[NeutronNetwork] -> new NetworkTranslator(store, paths),
-        classOf[NeutronRouter] -> new RouterTranslator(store, paths, config),
-        classOf[NeutronRouterInterface] -> new RouterInterfaceTranslator(store, sequenceDispenser, config),
-        classOf[NeutronSubnet] -> new SubnetTranslator(store),
-        classOf[NeutronPort] -> new PortTranslator(store, paths, sequenceDispenser),
-        classOf[NeutronVIP] -> new VipTranslator(store, paths),
-        classOf[PortBinding] -> new PortBindingTranslator(store),
-        classOf[SecurityGroup] -> new SecurityGroupTranslator(store),
-        classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(store)
+        classOf[AgentMembership] -> new AgentMembershipTranslator,
+        classOf[FloatingIp] -> new FloatingIpTranslator(paths),
+        classOf[NeutronConfig] -> new ConfigTranslator,
+        classOf[NeutronFirewall] -> new FirewallTranslator,
+        classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
+        classOf[NeutronLoadBalancerPool] -> new LoadBalancerPoolTranslator,
+        classOf[NeutronLoadBalancerPoolMember] -> new LoadBalancerPoolMemberTranslator,
+        classOf[NeutronNetwork] -> new NetworkTranslator(paths),
+        classOf[NeutronRouter] -> new RouterTranslator(paths, config),
+        classOf[NeutronRouterInterface] -> new RouterInterfaceTranslator(sequenceDispenser, config),
+        classOf[NeutronSubnet] -> new SubnetTranslator,
+        classOf[NeutronPort] -> new PortTranslator(paths, sequenceDispenser),
+        classOf[NeutronVIP] -> new VipTranslator(paths),
+        classOf[PortBinding] -> new PortBindingTranslator,
+        classOf[SecurityGroup] -> new SecurityGroupTranslator,
+        classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator
     )
 
     private def store: Storage = backend.store

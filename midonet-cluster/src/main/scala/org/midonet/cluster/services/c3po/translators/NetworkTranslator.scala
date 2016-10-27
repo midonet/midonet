@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
@@ -25,8 +25,7 @@ import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
 
 /** Provides a Neutron model translator for Network. */
-class NetworkTranslator(protected val storage: ReadOnlyStorage,
-                        pathBldr: PathBuilder)
+class NetworkTranslator(pathBldr: PathBuilder)
     extends Translator[NeutronNetwork] {
     import NetworkTranslator._
 
