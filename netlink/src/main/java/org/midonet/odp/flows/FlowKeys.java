@@ -335,6 +335,17 @@ public class FlowKeys {
         return keys;
     }
 
+    public static boolean needsUserspaceKeyUpdate(List<FlowKey> keys) {
+        for (int i = 0; i < keys.size(); ++i) {
+            if (keys.get(i) instanceof FlowKeyICMP) {
+                return true;
+            } else if (keys.get(i) instanceof FlowKeyEncap) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static void addUserspaceKeys(Ethernet ethPkt, List<FlowKey> keys) {
         FlowKey icmpUserSpace = null;
         if (ethPkt.getPayload() != null &&

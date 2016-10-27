@@ -279,7 +279,7 @@ class Bridge(val id: UUID,
             return tryGet(classOf[Port], toPort).action
         }
 
-        val vlanInFrame: Option[JShort] = context.ethernet.getVlanIDs match {
+        val vlanInFrame: Option[JShort] = context.wcmatch.getVlanIds match {
             case l: java.util.List[_] if !l.isEmpty => Some(l.get(0))
             case _ => None
         }
@@ -352,7 +352,7 @@ class Bridge(val id: UUID,
 
         case p: BridgePort if p.isExterior =>
             // multicast from trunk, goes only to designated log. port
-            val vlanIds = context.ethernet.getVlanIDs
+            val vlanIds = context.wcmatch.getVlanIds
             val vlanId = if (vlanIds.isEmpty) null else vlanIds.get(0)
             // get interior port tagged with frame's vlan id
             vlanToPort.getPort(vlanId) match {

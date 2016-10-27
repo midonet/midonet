@@ -435,7 +435,7 @@ class PacketWorkflow(
                                             TimeUnit.NANOSECONDS)
         }
 
-        meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
+        meters.recordPacket(pktCtx.packet.getPacketLength, pktCtx.flowTags)
         flowRecorder.record(pktCtx, simRes)
     }
 

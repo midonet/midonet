@@ -48,6 +48,7 @@ import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeys;
 import org.midonet.packets.Ethernet;
+import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.BatchCollector;
 
 /**
@@ -75,21 +76,28 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     static class PacketBuilder implements AttributeHandler {
         private ArrayList<FlowKey> keys = new ArrayList<>(16);
-        private Ethernet eth;
+        private ByteBuffer ethBuf;
         private Long userData;
         private int packetLen = 0;
 
         public Packet buildFrom(ByteBuffer buf) {
             int datapathIndex = buf.getInt(); // ignored
             NetlinkMessage.scanAttributes(buf, this);
-            if (eth == null) {
+            if (ethBuf == null) {
                 keys.clear();
                 return null;
             }
-            FlowKeys.addUserspaceKeys(eth, keys);
-            Packet p = new Packet(eth, new FlowMatch(keys), packetLen);
+            Packet p = null;
+            if (FlowKeys.needsUserspaceKeyUpdate(keys)) {
+                Ethernet eth = new Ethernet();
+                eth.serialize(ethBuf);
+                FlowKeys.addUserspaceKeys(eth, keys);
+                p = new Packet(eth, new FlowMatch(keys), packetLen);
+            } else {
+                p = new Packet(ethBuf, new FlowMatch(keys), packetLen);
+            }
             p.setUserData(userData);
-            eth = null;
+            ethBuf = null;
             keys.clear();
             userData = null;
             return p;
@@ -101,12 +109,17 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 case OpenVSwitch.Packet.Attr.Packet:
                     ByteOrder originalOrder = buffer.order();
                     try {
-                        eth = new Ethernet();
                         packetLen = buffer.remaining();
-                        eth.deserialize(buffer);
+                        if (buffer.remaining() < Ethernet.MIN_HEADER_LEN) {
+                            throw new MalformedPacketException(
+                                    "Invalid ethernet frame size: "
+                                    + buffer.remaining());
+                        }
+                        ethBuf = ByteBuffer.allocate(packetLen);
+                        ethBuf.put(buffer);
                     } catch (Exception e) {
                         log.warn("Dropping malformed packet", e);
-                        this.eth = null;
+                        this.ethBuf = null;
                     } finally {
                         buffer.order(originalOrder);
                     }
