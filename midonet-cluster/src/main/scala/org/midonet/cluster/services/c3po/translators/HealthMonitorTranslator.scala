@@ -18,17 +18,14 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction, UpdateValidator}
+import org.midonet.cluster.data.storage.{Transaction, UpdateValidator}
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus.PENDING_CREATE
 import org.midonet.cluster.models.Topology.{HealthMonitor, Pool}
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
-import org.midonet.util.concurrent.toFutureOps
 
 
 /** Provides a Neutron model translator for NeutronHealthMonitor. */
-class HealthMonitorTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[NeutronHealthMonitor]{
+class HealthMonitorTranslator extends Translator[NeutronHealthMonitor]{
 
     private def translate(nhm: NeutronHealthMonitor, setPoolId: Boolean = false)
     : HealthMonitor = {

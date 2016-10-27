@@ -18,23 +18,20 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
+import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Delete
 import org.midonet.cluster.services.c3po.translators.RouteManager.extraRouteId
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
 import org.midonet.containers
 import org.midonet.packets.{MAC, TCP}
 
-class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
-                        protected val stateTableStorage: StateTableStorage,
+class BgpPeerTranslator(stateTableStorage: StateTableStorage,
                         sequenceDispenser: SequenceDispenser)
-    extends Translator[NeutronBgpPeer] with RuleManager
-                                       with PortManager
-                                       with ChainManager {
+    extends Translator[NeutronBgpPeer] with RuleManager with PortManager
+            with ChainManager {
 
     import BgpPeerTranslator._
 

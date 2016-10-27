@@ -79,7 +79,7 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
 
     before {
         initMockStorage()
-        translator = new SecurityGroupRuleTranslator(storage)
+        translator = new SecurityGroupRuleTranslator()
         bind(sgId, defaultSg)
         bind(sgrId, midoSshRule)
         bind(sgrId, nSshRule)

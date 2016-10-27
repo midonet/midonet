@@ -29,7 +29,7 @@ import org.midonet.cluster.util.UUIDUtil
 @RunWith(classOf[JUnitRunner])
 class LoggingResourceTranslatorTest extends TranslatorTestBase with GivenWhenThen {
 
-    val translator = new LoggingResourceTranslator(storage)
+    val translator = new LoggingResourceTranslator()
 
     "Logging resource create" should "throw an exception" in {
         Given("A mock storage")
