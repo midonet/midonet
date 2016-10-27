@@ -331,7 +331,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             Then("Packet size of the flowstate packet should be less than MTU.")
             recipient.conntrackTable.get(
                 connTrackKeys.head) should equal (ConnTrackState.RETURN_FLOW)
-            val ethernetFrame = packet.getData
+            val ethernetFrame = packet.getEthernet.serialize
             ethernetFrame.length should be < (FlowStateEthernet.MTU -
                 FlowStateEthernet.VXLAN_ENCAPUSULATION_OVERHEAD)
         }

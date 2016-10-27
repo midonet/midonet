@@ -15,12 +15,14 @@
  */
 package org.midonet.odp;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.packets.Ethernet;
+import org.midonet.packets.MalformedPacketException;
 
 /**
  * An abstraction over the Ovs kernel datapath Packet entity. Contains an
@@ -41,33 +43,63 @@ public class Packet {
     private FlowMatch match;
     private Long userData;
     private Reason reason;
-    private Ethernet eth;
-    public final int packetLen;
+    private ByteBuffer ethBuf;
+    private Ethernet ethRef = null;
+    public int packetLen;
 
     // user field used by midolman packet pipeline to track time statistics,
     // ignored in equals() and hashCode()
     public long startTimeNanos = 0;
 
-    public Packet(Ethernet eth, FlowMatch match, int len) {
-        this.eth = eth;
-        this.match = match;
-        this.packetLen = len;
-    }
-
     public Packet(Ethernet eth, FlowMatch match) {
         this(eth, match, (eth != null) ? eth.length() : 0);
     }
 
-    public Ethernet getEthernet() {
-        return eth;
+    public Packet(Ethernet eth, FlowMatch match, int packetLen) {
+        setEthernet(eth);
+        this.match = match;
+        this.packetLen = packetLen;
+    }
+
+    public Packet(ByteBuffer ethBuf, FlowMatch match, int packetLen) {
+        this.ethBuf = ethBuf;
+        this.match = match;
+        this.packetLen = packetLen;
+    }
+
+    public ByteBuffer getEthernetBuffer() {
+        return ethBuf;
+    }
+
+    public Ethernet getEthernet() throws MalformedPacketException {
+        if (ethRef == null) {
+            ethRef = new Ethernet();
+            ethBuf.position(0);
+            ethBuf.limit(packetLen);
+            ethRef.deserialize(ethBuf);
+            ethBuf.flip();
+        }
+        return ethRef;
     }
 
     public void setEthernet(Ethernet eth) {
-        this.eth = eth;
+        if (eth == null) {
+            ethRef = null;
+            packetLen = 0;
+        } else {
+            ethRef = eth;
+            packetLen = eth.length();
+            if (ethBuf == null || packetLen > ethBuf.capacity()) {
+                ethBuf = ByteBuffer.allocate(packetLen);
+            }
+            ethBuf.clear();
+            ethRef.serialize(ethBuf);
+            ethBuf.flip();
+        }
     }
 
-    public byte[] getData() {
-        return eth.serialize();
+    public int getPacketLength() {
+        return packetLen;
     }
 
     public FlowMatch getMatch() {
@@ -99,7 +131,7 @@ public class Packet {
         @SuppressWarnings("unchecked")
         Packet that = (Packet) o;
 
-        return Objects.equals(this.eth, that.eth)
+        return Objects.equals(this.ethBuf, that.ethBuf)
             && Objects.equals(this.match, that.match)
             && Objects.equals(this.userData, that.userData)
             && (this.reason == that.reason);
@@ -107,7 +139,7 @@ public class Packet {
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(eth);
+        int result = Objects.hashCode(ethBuf);
         result = 31 * result + Objects.hashCode(match);
         result = 31 * result + Objects.hashCode(userData);
         result = 31 * result + Objects.hashCode(reason);
@@ -116,6 +148,10 @@ public class Packet {
 
     @Override
     public String toString() {
+        String eth = "[unparsed]";
+        if (ethRef != null) {
+            eth = ethRef.toString();
+        }
         return "Packet{" +
             "data=" + eth +
             ", match=" + match +
