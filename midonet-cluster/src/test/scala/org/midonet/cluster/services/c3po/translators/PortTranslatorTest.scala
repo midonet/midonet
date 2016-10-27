@@ -25,7 +25,7 @@ import com.google.protobuf.Message
 import com.typesafe.config.ConfigFactory
 
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{when, verify}
+import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.{MatchResult, Matcher}
 
@@ -1573,7 +1573,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
 
     "Router gateway port UPDATE" should "not update Port " +
     "CREATE" in {
-        val midoOps = translator.translate(transaction, UpdateOp(nGatewayPort))
+        translator.translate(transaction, UpdateOp(nGatewayPort))
         midoOps shouldBe empty
     }
 

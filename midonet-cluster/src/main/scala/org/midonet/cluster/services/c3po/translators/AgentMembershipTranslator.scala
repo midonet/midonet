@@ -34,8 +34,7 @@ class AgentMembershipTranslator
      * TunnelZone in MidoNet.
      */
     override protected def translateCreate(tx: Transaction,
-                                           membership: AgentMembership)
-    : OperationList = {
+                                           membership: AgentMembership): Unit = {
         val tunnelZone = getNeutronDefaultTunnelZone(tx)
         val tunnelZoneWithHost = tunnelZone.toBuilder
         tunnelZoneWithHost.addHostsBuilder()
@@ -46,17 +45,16 @@ class AgentMembershipTranslator
         // better if the framework take care of as much work as possible.
         tunnelZoneWithHost.addHostIds(membership.getId)
         tx.update(tunnelZoneWithHost.build())
-
-        List()
     }
 
     /**
      * Update is not supported for AgentMembership.
      */
     override protected def translateUpdate(tx: Transaction,
-                                           tzHost: AgentMembership) =
+                                           tzHost: AgentMembership): Unit = {
         throw new UnsupportedOperationException(
-                "Agent membership update is not supported")
+            "Agent membership update is not supported")
+    }
 
     /**
      * Translates a Delete operation on Neutron's AgentMembership. Looks up a
@@ -64,8 +62,7 @@ class AgentMembershipTranslator
      * corresponding HostToIp mapping with the Host ID and deletes it,
      */
     override protected def translateDelete(tx: Transaction,
-                                           membership: AgentMembership)
-    : OperationList = {
+                                           membership: AgentMembership): Unit = {
         val tunnelZone = getNeutronDefaultTunnelZone(tx)
         val hostId = membership.getId
 
@@ -79,7 +76,5 @@ class AgentMembershipTranslator
         val hostIdIndex = tunnelZone.getHostIdsList.indexOf(hostId)
         tx.update(tunnelZone.toBuilder.removeHosts(hostIndex)
                                       .removeHostIds(hostIdIndex).build())
-
-        List()
     }
 }

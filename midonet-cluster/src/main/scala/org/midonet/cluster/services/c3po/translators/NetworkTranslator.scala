@@ -31,23 +31,22 @@ class NetworkTranslator(pathBldr: PathBuilder)
 
     override protected def translateCreate(tx: Transaction,
                                            network: NeutronNetwork)
-    : OperationList = {
+    : Unit = {
         // Uplink networks do not exist in MidoNet.
         if (isUplinkNetwork(network)) {
-            return List()
+            return
         }
 
         tx.create(translate(network))
         replMapPaths(network.getId).map(tx.createNode(_, null))
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            nNetwork: NeutronNetwork)
-    : OperationList = {
+    : Unit = {
         // Uplink networks do not exist in MidoNet.
         if (isUplinkNetwork(nNetwork)) {
-            return List()
+            return
         }
 
         val mNetwork = tx.get(classOf[Network], nNetwork.getId)
@@ -56,20 +55,18 @@ class NetworkTranslator(pathBldr: PathBuilder)
             .setAdminStateUp(nNetwork.getAdminStateUp)
 
         tx.update(builder.build())
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            nNetwork: NeutronNetwork)
-    : OperationList = {
+    : Unit = {
         // Uplink networks do not exist in MidoNet.
         if (isUplinkNetwork(nNetwork)) {
-            return List()
+            return
         }
 
         tx.delete(classOf[Network], nNetwork.getId)
         replMapPaths(nNetwork.getId).map(tx.deleteNode(_))
-        List()
     }
 
     @inline

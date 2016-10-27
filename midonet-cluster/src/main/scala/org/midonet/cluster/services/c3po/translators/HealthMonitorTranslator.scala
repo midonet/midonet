@@ -46,8 +46,7 @@ class HealthMonitorTranslator extends Translator[NeutronHealthMonitor]{
     }
 
     override protected def translateCreate(tx: Transaction,
-                                           nhm: NeutronHealthMonitor)
-    : OperationList = {
+                                           nhm: NeutronHealthMonitor): Unit = {
         val hm = translate(nhm)
         tx.create(hm)
         for (pool <- nhm.getPoolsList.asScala)  {
@@ -56,22 +55,19 @@ class HealthMonitorTranslator extends Translator[NeutronHealthMonitor]{
                 .setHealthMonitorId(hm.getId)
             tx.update(pb.build())
         }
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            nhm: NeutronHealthMonitor)
-    : OperationList = {
+    : Unit = {
         tx.delete(classOf[HealthMonitor], nhm.getId, ignoresNeo = true)
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            nhm: NeutronHealthMonitor)
-    : OperationList = {
+    : Unit = {
         tx.update(translate(nhm, setPoolId = true),
-            HealthMonitorUpdateValidator.asInstanceOf[UpdateValidator[Object]])
-        List()
+                  HealthMonitorUpdateValidator.asInstanceOf[UpdateValidator[Object]])
     }
 }
 

@@ -31,9 +31,11 @@ import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
 
     override protected def translateCreate(tx: Transaction,
-                                           ns: NeutronSubnet): OperationList = {
+                                           ns: NeutronSubnet): Unit = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
-        if (isOnUplinkNetwork(tx, ns)) return List()
+        if (isOnUplinkNetwork(tx, ns)) {
+            return
+        }
 
         if (ns.isIpv6)
             throw new IllegalArgumentException(
@@ -57,21 +59,18 @@ class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
         addHostRoutes(dhcp, ns.getHostRoutesList.asScala)
 
         tx.create(dhcp.build())
-
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           ns: NeutronSubnet): OperationList = {
+                                           ns: NeutronSubnet): Unit = {
         tx.delete(classOf[Dhcp], ns.getId, ignoresNeo = true)
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           ns: NeutronSubnet): OperationList = {
+                                           ns: NeutronSubnet): Unit = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
         if (isOnUplinkNetwork(tx, ns)) {
-            return List()
+            return
         }
 
         if (ns.isIpv6)
@@ -106,7 +105,6 @@ class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
             oldDhcp.getGatewayRouteIdsList.asScala)
 
         // TODO: connect to provider router if external
-        List()
     }
 
     private def addHostRoutes(dhcp: Dhcp.Builder,

@@ -46,13 +46,13 @@ class VipTranslator(override val pathBldr: PathBuilder)
     }
 
     override protected def translateCreate(tx: Transaction,
-                                           nVip: NeutronVIP) : OperationList = {
+                                           nVip: NeutronVIP): Unit = {
         val mVip = translate(nVip)
 
         // VIP is not associated with LB. Don't add an ARP entry yet.
         if (!nVip.hasPoolId) {
             tx.create(mVip.build())
-            return List()
+            return
         }
 
         val subnet = tx.get(classOf[NeutronSubnet], nVip.getSubnetId)
@@ -61,7 +61,7 @@ class VipTranslator(override val pathBldr: PathBuilder)
         // If the VIP's DHCP is not on external, no need to add an ARP entry.
         if (!network.getExternal) {
             tx.create(mVip.build())
-            return List()
+            return
         }
 
         val pool = tx.get(classOf[NeutronLoadBalancerPool], mVip.getPoolId)
@@ -84,11 +84,10 @@ class VipTranslator(override val pathBldr: PathBuilder)
         }
 
         tx.create(mVip.build())
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           nv: NeutronVIP) : OperationList = {
+                                           nv: NeutronVIP): Unit = {
         val vip = tx.get(classOf[Vip], nv.getId)
         tx.delete(classOf[Vip], nv.getId, ignoresNeo = true)
 
@@ -100,12 +99,10 @@ class VipTranslator(override val pathBldr: PathBuilder)
                                        gwPort.getMacAddress)
             tx.deleteNode(arpPath)
         }
-
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           nVip: NeutronVIP) : OperationList = {
+                                           nVip: NeutronVIP): Unit = {
         // The specs don't allow the IP address of the VIP to change, and that
         // the MAC address of a port also does not change on the port update.
         // If the gateway port of the Router may be somehow changed, the ARP
@@ -125,7 +122,6 @@ class VipTranslator(override val pathBldr: PathBuilder)
         // So we only need to worry about a Pool in the same LB.
         tx.update(translate(nVip).build(),
                   VipUpdateValidator.asInstanceOf[UpdateValidator[Object]])
-        List()
     }
 }
 

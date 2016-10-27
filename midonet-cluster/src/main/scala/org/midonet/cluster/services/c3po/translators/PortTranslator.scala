@@ -78,11 +78,11 @@ class PortTranslator(protected val pathBldr: PathBuilder,
       * @see [[Translator.translateCreate()]]
       */
     override protected def translateCreate(tx: Transaction, nPort: NeutronPort)
-    : OperationList = {
+    : Unit = {
         // Floating IPs and ports on uplink networks have no
         // corresponding Midonet port.
         if (isFloatingIpPort(nPort) || isOnUplinkNetwork(tx, nPort)) {
-            return List()
+            return
         }
 
         if (hasMacAndArpTableEntries(nPort)) {
@@ -115,18 +115,17 @@ class PortTranslator(protected val pathBldr: PathBuilder,
 
         addContextOps(tx, portContext)
         tx.create(midoPortBldr.build)
-        List()
     }
 
     /**
       * @see [[Translator.translateDelete()]]
       */
     override protected def translateDelete(tx: Transaction, nPort: NeutronPort)
-    : OperationList = {
+    : Unit = {
         // Nothing to do for floating IPs, since we didn't create
         // anything.
         if (isFloatingIpPort(nPort)) {
-            return List()
+            return
         }
 
         // No corresponding Midonet port for ports on uplink networks.
@@ -137,9 +136,9 @@ class PortTranslator(protected val pathBldr: PathBuilder,
             if (isRouterInterfacePort(nPort)) {
                 tx.delete(classOf[Port], routerInterfacePortPeerId(nPort.getId),
                           ignoresNeo = true)
-                return List()
+                return
             } else {
-                return List()
+                return
             }
         }
 
@@ -193,8 +192,6 @@ class PortTranslator(protected val pathBldr: PathBuilder,
             deleteMetaDataServiceRoute(tx, nPort)
         }
         addContextOps(tx, portContext)
-
-        List()
     }
 
     private def macAndArpTableEntryPaths(nPort: NeutronPort)
@@ -212,12 +209,14 @@ class PortTranslator(protected val pathBldr: PathBuilder,
       * @see [[Translator.translateUpdate()]]
       */
     override protected def translateUpdate(tx: Transaction, nPort: NeutronPort)
-    : OperationList = {
+    : Unit = {
         // If the equivalent Midonet port doesn't exist, then it's either a
         // floating IP or port on an uplink network. In either case, we
         // don't create anything in the Midonet topology for this Neutron port,
         // so there's nothing to update.
-        if(!tx.exists(classOf[Port], nPort.getId)) return List()
+        if(!tx.exists(classOf[Port], nPort.getId)) {
+            return
+        }
 
         var mPortOp: Option[Operation[Port]] = None
 
@@ -303,8 +302,6 @@ class PortTranslator(protected val pathBldr: PathBuilder,
         fipArpTableUpdateOps(tx, oldMPort, oldNPort, nPort)
 
         // TODO if a DHCP port, assert that the fixed IPs haven't changed.
-
-        List()
     }
 
     /* A container class holding context associated with a Neutron Port CRUD. */

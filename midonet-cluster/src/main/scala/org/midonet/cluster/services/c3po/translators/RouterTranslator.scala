@@ -39,7 +39,7 @@ class RouterTranslator(override val pathBldr: PathBuilder,
     import RouteManager._
 
     override protected def translateCreate(tx: Transaction,
-                                           nr: NeutronRouter): OperationList = {
+                                           nr: NeutronRouter): Unit = {
         val r = translate(nr)
         val inChain = newChain(r.getInboundFilterId,
                                preRouteChainName(nr.getId))
@@ -62,12 +62,10 @@ class RouterTranslator(override val pathBldr: PathBuilder,
 
         List(inChain, outChain, fwdChain, r, portGroup).foreach(tx.create)
         gatewayPortCreates(tx, nr, r)
-
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           nr: NeutronRouter): OperationList = {
+                                           nr: NeutronRouter): Unit = {
         // ServiceContainerGroup may not exist, but delete is idempotent.
         tx.delete(classOf[Chain], inChainId(nr.getId), ignoresNeo = true)
         tx.delete(classOf[Chain], outChainId(nr.getId), ignoresNeo = true)
@@ -75,11 +73,10 @@ class RouterTranslator(override val pathBldr: PathBuilder,
         tx.delete(classOf[PortGroup], PortManager.portGroupId(nr.getId),
                   ignoresNeo = true)
         tx.delete(classOf[Router], nr.getId, ignoresNeo = true)
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           nr: NeutronRouter): OperationList = {
+                                           nr: NeutronRouter): Unit = {
         val router = tx.get(classOf[Router], nr.getId).toBuilder
         router.setAdminStateUp(nr.getAdminStateUp)
         router.setName(nr.getName)
@@ -88,7 +85,6 @@ class RouterTranslator(override val pathBldr: PathBuilder,
         tx.update(router.build())
         gatewayPortUpdates(tx, nr, router)
         extraRoutesUpdates(tx, nr)
-        List()
     }
 
     private def translate(nr: NeutronRouter): Router = {

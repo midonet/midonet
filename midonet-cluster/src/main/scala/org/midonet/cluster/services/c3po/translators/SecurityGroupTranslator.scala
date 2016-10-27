@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 
 import com.google.protobuf.Message
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
@@ -35,7 +35,7 @@ class SecurityGroupTranslator
 
     protected override def translateCreate(tx: Transaction,
                                            securityGroup: SecurityGroup)
-    : OperationList = {
+    : Unit = {
 
         // Get Neutron rules and divide into egress and ingress rules.
         val neutronRules = securityGroup.getSecurityGroupRulesList.asScala.toList
@@ -82,13 +82,11 @@ class SecurityGroupTranslator
                       s"outboundChain: \n${indent(outboundChain, 4)}\n" +
                       s"outboundRules: \n${toString(outboundRules)}\n")
         }
-
-        List()
     }
 
     protected override def translateUpdate(tx: Transaction,
                                            newSecurityGroup: SecurityGroup)
-    : OperationList = {
+    : Unit = {
         // Neutron doesn't modify rules via SecurityGroup update, but instead
         // always passes in an empty list of rules. The only property modifiable
         // via a Neutron SecurityGroup update that gets copied to a Midonet
@@ -103,8 +101,6 @@ class SecurityGroupTranslator
                       .setName(newSecurityGroup.getName)
                       .setDescription(newSecurityGroup.getDescription)
                       .build())
-
-        List()
     }
 
 
@@ -118,7 +114,7 @@ class SecurityGroupTranslator
 
     protected override def translateDelete(tx: Transaction,
                                            securityGroup: SecurityGroup)
-    : List[Operation[_ <: Message]] = {
+    : Unit = {
         // Delete associated SecurityGroupRules.
         securityGroup.getSecurityGroupRulesList.asScala.foreach { rule =>
             tx.delete(classOf[SecurityGroupRule], rule.getId, ignoresNeo = true)
@@ -127,7 +123,6 @@ class SecurityGroupTranslator
         tx.delete(classOf[Chain], outChainId(securityGroup.getId), ignoresNeo = true)
         tx.delete(classOf[IPAddrGroup], securityGroup.getId, ignoresNeo = true)
         tx.delete(classOf[SecurityGroup], securityGroup.getId, ignoresNeo = true)
-        List()
     }
 
 }
