@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Commons.LBStatus.ACTIVE
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
@@ -25,8 +25,8 @@ import org.midonet.cluster.models.Topology.PoolMember
 /**
   * Provides a Neutron model translator for NeutronLoadBalancerPoolMember.
   */
-class LoadBalancerPoolMemberTranslator(protected val storage: ReadOnlyStorage)
-        extends Translator[NeutronLoadBalancerPoolMember] {
+class LoadBalancerPoolMemberTranslator
+    extends Translator[NeutronLoadBalancerPoolMember] {
 
     private def translate(poolMember: NeutronLoadBalancerPoolMember,
                           status: LBStatus = ACTIVE)

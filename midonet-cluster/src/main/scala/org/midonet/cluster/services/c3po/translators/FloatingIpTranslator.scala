@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.model.Fip64Entry
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
+import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
@@ -31,16 +31,11 @@ import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
 
 /** Provides a Neutron model translator for FloatingIp. */
-class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
-                           protected val stateTableStorage: StateTableStorage)
-        extends Translator[FloatingIp] with ChainManager
-                with RouteManager
-                with RouterManager
-                with RuleManager {
+class FloatingIpTranslator(stateTableStorage: StateTableStorage)
+    extends Translator[FloatingIp] with ChainManager with RouteManager
+            with RouterManager with RuleManager {
 
     import FloatingIpTranslator._
-
-    implicit val storage: ReadOnlyStorage = readOnlyStorage
 
     override protected def translateCreate(tx: Transaction,
                                            fip: FloatingIp): OperationList = {

@@ -32,7 +32,7 @@ class HealthMonitorTranslatorTestBase extends TranslatorTestBase {
 
     before {
         initMockStorage()
-        translator = new HealthMonitorTranslator(storage)
+        translator = new HealthMonitorTranslator()
     }
 
     protected val hmId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")

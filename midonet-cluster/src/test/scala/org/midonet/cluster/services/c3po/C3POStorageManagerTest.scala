@@ -140,7 +140,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     "NeutronNetwork CREATE" should "call ZOOM.multi with CreateOp on " +
     "Mido Network" in {
-        buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator(storage)))
+        buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator()))
 
         storageManager.interpretAndExecTxn(
             txn("txn1", c3poCreate(2, neutronNetwork)))
@@ -161,7 +161,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     "NeutronNetwork Update" should "call ZOOM.multi with UpdateOp on " +
     "Mido Network" in {
-        buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator(storage)))
+        buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator()))
 
         val newNetworkName = "neutron update test"
         val updatedNetwork = neutronNetwork.toBuilder
@@ -181,7 +181,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     "NeutronNetwork Delete" should "call ZOOM.multi with DeleteOp on " +
     "Mido Network" in {
-        buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator(storage)))
+        buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator()))
 
         when(transaction.get(classOf[NeutronNetwork], networkId))
             .thenReturn(NeutronNetwork.getDefaultInstance)

@@ -16,15 +16,14 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoggingResource
 import org.midonet.cluster.models.Topology.LoggingResource
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.util.UUIDUtil._
 
-class LoggingResourceTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[NeutronLoggingResource] {
+class LoggingResourceTranslator extends Translator[NeutronLoggingResource] {
 
     override protected def translateCreate(tx: Transaction,
                                            loggingResource: NeutronLoggingResource)

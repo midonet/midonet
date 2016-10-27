@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.{Condition, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronFirewallRule.FirewallRuleAction
 import org.midonet.cluster.models.Neutron.{NeutronFirewall, NeutronFirewallRule}
@@ -29,9 +29,9 @@ import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Operation, Up
 import org.midonet.cluster.util.RangeUtil
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 
-class FirewallTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[NeutronFirewall]
-            with ChainManager with RuleManager with PortManager {
+class FirewallTranslator
+    extends Translator[NeutronFirewall] with ChainManager with RuleManager
+            with PortManager {
     import FirewallTranslator._
 
     private def firewallChain(fwId: UUID): Chain = {
