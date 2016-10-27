@@ -20,8 +20,7 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
 import org.midonet.cluster.models.Topology.Rule
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
-import org.midonet.util.concurrent.toFutureOps
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 
 class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[SecurityGroupRule] with ChainManager {
@@ -33,11 +32,12 @@ class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
     protected override def translateCreate(tx: Transaction,
                                            sgr: SecurityGroupRule)
     : OperationList = {
-        val sgId = sgr.getSecurityGroupId
-        val sg = storage.get(classOf[SecurityGroup], sgId).await()
+        tx.create(sgr)
+        val sg = tx.get(classOf[SecurityGroup], sgr.getSecurityGroupId)
         val updatedSg = sg.toBuilder.addSecurityGroupRules(sgr).build()
-        SecurityGroupRuleManager.translate(sgr).map(Create(_)) :+
-            Update(updatedSg)
+        SecurityGroupRuleManager.translate(sgr).foreach(tx.create)
+        tx.update(updatedSg)
+        List()
     }
 
     protected override def translateUpdate(tx: Transaction,
@@ -57,19 +57,24 @@ class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
     // corresponding Midonet rules.
     protected override def translateDelete(tx: Transaction,
                                            sgrId: UUID): OperationList = {
-        val ops = new OperationListBuffer
-        if (storage.exists(classOf[SecurityGroupRule], sgrId).await()) {
-            val sgr = storage.get(classOf[SecurityGroupRule], sgrId).await()
-            val sgId = sgr.getSecurityGroupId
-            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+        if (tx.exists(classOf[SecurityGroupRule], sgrId)) {
+            val sgr = tx.get(classOf[SecurityGroupRule], sgrId)
+            val sg = tx.get(classOf[SecurityGroup], sgr.getSecurityGroupId)
             val i = sg.getSecurityGroupRulesList.indexOf(sgr)
             if (i >= 0) {
-                ops += Update(sg.toBuilder.removeSecurityGroupRules(i).build())
+                tx.update(sg.toBuilder.removeSecurityGroupRules(i).build())
             }
         }
-        ops += Delete(classOf[Rule], sgrId)
-        ops += Delete(classOf[Rule],
-                      SecurityGroupRuleManager.nonHeaderRuleId(sgrId))
-        ops.toList
+        tx.delete(classOf[Rule], sgrId, ignoresNeo = true)
+        tx.delete(classOf[Rule], SecurityGroupRuleManager.nonHeaderRuleId(sgrId),
+                  ignoresNeo = true)
+        tx.delete(classOf[SecurityGroupRule], sgrId, ignoresNeo = true)
+        List()
+    }
+
+    protected override def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[SecurityGroupRule])
+    : List[Operation[SecurityGroupRule]] = {
+        List()
     }
 }
