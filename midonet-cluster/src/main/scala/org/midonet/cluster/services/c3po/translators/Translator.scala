@@ -49,7 +49,9 @@ abstract class Translator[HighLevelModel <: Message](
     @throws[TranslationException]
     def translateOp(tx: Transaction,
                     op: Operation[HighLevelModel]): OperationList = {
-        retainHighLevelModel(tx, op) ++ translate(tx, op)
+        val ops = retainHighLevelModel(tx, op)
+        translate(tx, op)
+        ops
     }
 
     /**
@@ -59,7 +61,7 @@ abstract class Translator[HighLevelModel <: Message](
       */
     @throws[TranslationException]
     def translate(tx: Transaction,
-                  op: Operation[HighLevelModel]): OperationList = {
+                  op: Operation[HighLevelModel]): Unit = {
         try {
             op match {
                 case Create(nm) => translateCreate(tx, nm)
@@ -89,29 +91,26 @@ abstract class Translator[HighLevelModel <: Message](
     /**
       * Translates a [[Create]] operation on the high-level model.
       */
-    protected def translateCreate(tx: Transaction,
-                                  nm: HighLevelModel): OperationList
+    protected def translateCreate(tx: Transaction, nm: HighLevelModel): Unit
 
     /**
       * Translates an [[Update]] operation on the high-level model.
       */
-    protected def translateUpdate(tx: Transaction,
-                                  nm: HighLevelModel): OperationList
+    protected def translateUpdate(tx: Transaction, nm: HighLevelModel): Unit
 
     /**
       * Translates a [[Delete]] operation on the high-level model, with a given
       * object identifier. The default implementation uses idempotent deletion,
       * where the operation is ignored if the object does not exist.
       */
-    protected def translateDelete(tx: Transaction,
-                                  id: UUID): OperationList = {
+    protected def translateDelete(tx: Transaction, id: UUID): Unit = {
         val nm = try tx.get(ct.runtimeClass, id) catch {
             case ex: NotFoundException =>
                 log.warn("Received request to delete " +
                          s"${ct.runtimeClass.getSimpleName} " +
                          s"${getIdString(id)}, which " +
                          s"does not exist, ignoring")
-                return List()
+                return
         }
         translateDelete(tx, nm.asInstanceOf[HighLevelModel])
     }
@@ -119,8 +118,8 @@ abstract class Translator[HighLevelModel <: Message](
     /**
       * Translates a [[Delete]] operation on the high-level model.
       */
-    protected def translateDelete(tx: Transaction,
-                                  nm: HighLevelModel): OperationList = List()
+    protected def translateDelete(tx: Transaction, nm: HighLevelModel): Unit = {
+    }
 }
 
 /** Thrown by by implementations when they fail to perform the requested

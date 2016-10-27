@@ -85,8 +85,7 @@ class L2GatewayConnectionTranslator(stateTableStorage: StateTableStorage)
     }
 
     override protected def translateCreate(tx: Transaction,
-                                           cnxn: L2GatewayConnection)
-    : OperationList = {
+                                           cnxn: L2GatewayConnection): Unit = {
         if (cnxn.getL2Gateway.getDevicesCount != 1) {
             throw new IllegalArgumentException(ONLY_ONE_GW_DEV_SUPPORTED)
         }
@@ -103,12 +102,10 @@ class L2GatewayConnectionTranslator(stateTableStorage: StateTableStorage)
                 throw new IllegalArgumentException(UNSUPPORTED_GATEWAY_DEVICE)
         }
 
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           cnxn: L2GatewayConnection)
-    : OperationList = {
+                                           cnxn: L2GatewayConnection): Unit = {
         val gwPortId = l2gwGatewayPortId(cnxn.getNetworkId)
         val gwPort = tx.get(classOf[Port], gwPortId)
 
@@ -127,15 +124,12 @@ class L2GatewayConnectionTranslator(stateTableStorage: StateTableStorage)
         tx.delete(classOf[Port], l2gwNetworkPortId(cnxn.getNetworkId),
                   ignoresNeo = true)
         tx.delete(classOf[Port], gwPortId, ignoresNeo = true)
-
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            cnxn: L2GatewayConnection)
-    : OperationList = {
+    : Unit = {
         // TODO: Implement.
-        List()
     }
 
 }

@@ -155,13 +155,10 @@ class FirewallTranslator
     }
 
     override protected def translateCreate(tx: Transaction,
-                                           fw: NeutronFirewall):
-    OperationList = {
+                                           fw: NeutronFirewall): Unit = {
         tx.create(firewallChain(fw.getId))
         fwdRules(fw).foreach(tx.create(_))
         translateRouterAssocs(tx, fw)
-
-        List()
     }
 
     private def translateFwJumpRuleDel(tx: Transaction,
@@ -176,16 +173,14 @@ class FirewallTranslator
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           nfw: NeutronFirewall):
-    OperationList = {
+                                           nfw: NeutronFirewall): Unit = {
         translateFwJumpRuleDel(tx, nfw)
         tx.delete(classOf[Chain], firewallChain(nfw.getId).getId,
                   ignoresNeo = true)
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           fw: NeutronFirewall) = {
+                                           fw: NeutronFirewall): Unit = {
         // Note: We need to update the high level model by ourselves
         // because it might not be an Update.
         if (fw.hasLastRouter && fw.getLastRouter) {
@@ -196,7 +191,6 @@ class FirewallTranslator
                       "no routers are associated")
             translateDelete(tx, fwId)
             tx.delete(classOf[NeutronFirewall], fwId, ignoresNeo = true)
-            List()
         } else {
             val chainId = fwdChainId(fw.getId)
 

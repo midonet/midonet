@@ -27,14 +27,14 @@ class LoggingResourceTranslator extends Translator[NeutronLoggingResource] {
 
     override protected def translateCreate(tx: Transaction,
                                            loggingResource: NeutronLoggingResource)
-    : OperationList = {
+    : Unit = {
         throw new UnsupportedOperationException(
             "Creating a LoggingResource is not supported.")
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            loggingResource: NeutronLoggingResource)
-    : OperationList = {
+    : Unit = {
         if (tx.exists(classOf[LoggingResource], loggingResource.getId)) {
             val oldLoggingResource =
                 tx.get(classOf[LoggingResource], loggingResource.getId)
@@ -44,14 +44,12 @@ class LoggingResourceTranslator extends Translator[NeutronLoggingResource] {
             log.warn(s"LoggingResource ${loggingResource.getId.asJava} does " +
                      s"not exist")
         }
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            loggingResourceId: UUID)
-    : OperationList = {
+    : Unit = {
         tx.delete(classOf[LoggingResource], loggingResourceId, ignoresNeo = true)
-        List()
     }
 
     override protected def retainHighLevelModel(tx: Transaction,

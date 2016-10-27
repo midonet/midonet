@@ -32,11 +32,10 @@ class FirewallLogTranslator extends Translator[FirewallLog] with ChainManager {
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,
-                                           fl: FirewallLog): OperationList = {
+                                           fl: FirewallLog): Unit = {
         ensureLoggerResource(tx, fl.getLoggingResource)
         createRuleLogger(tx, fl)
         ensureMetaData(tx, fl.getFirewallId, fl.getTenantId, fl.getId)
-        List()
     }
 
     private def createRuleLogger(tx: Transaction, fl: FirewallLog): Unit = {
@@ -78,15 +77,14 @@ class FirewallLogTranslator extends Translator[FirewallLog] with ChainManager {
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           fl: FirewallLog): OperationList = {
+                                           fl: FirewallLog): Unit = {
         val oldLogger = tx.get(classOf[RuleLogger], fl.getId)
         val newLogger = oldLogger.toBuilder.setEvent(fl.getFwEvent).build()
         tx.update(newLogger)
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           flId: UUID): OperationList = {
+                                           flId: UUID): Unit = {
         val rl = tx.get(classOf[RuleLogger], flId)
         tx.delete(classOf[RuleLogger], flId, ignoresNeo = true)
 
@@ -94,7 +92,6 @@ class FirewallLogTranslator extends Translator[FirewallLog] with ChainManager {
         if (lr.getLoggerIdsCount == 0) {
             tx.delete(classOf[LoggingResource], lr.getId, ignoresNeo = true)
         }
-        List()
     }
 
     override protected def retainHighLevelModel(tx: Transaction,

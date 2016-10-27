@@ -25,11 +25,11 @@ import com.google.protobuf.Message
 import com.typesafe.config.ConfigFactory
 
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{when, verify}
+import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.{MatchResult, Matcher}
 
-import org.midonet.cluster.models.Commons.{Condition, UUID}
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronBgpSpeaker, NeutronPort}
 import org.midonet.cluster.models.Topology._
@@ -1807,8 +1807,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest{
     }
 
     "Router gateway port UPDATE" should "not update Port without VPN service" in {
-        val midoOps = translator.translate(transaction,
-                                           UpdateOp(nGatewayPortWithoutVPN))
+        translator.translate(transaction, UpdateOp(nGatewayPortWithoutVPN))
         midoOps shouldBe empty
     }
 

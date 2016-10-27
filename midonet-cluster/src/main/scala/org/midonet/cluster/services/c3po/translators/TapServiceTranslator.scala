@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Topology.Mirror
 class TapServiceTranslator extends Translator[TapService] {
 
     override protected def translateCreate(tx: Transaction,
-                                           ts: TapService): OperationList = {
+                                           ts: TapService): Unit = {
         val condition = Condition.newBuilder
             .setFragmentPolicy(FragmentPolicy.ANY)
         val mirror = Mirror.newBuilder
@@ -35,16 +35,13 @@ class TapServiceTranslator extends Translator[TapService] {
             .build
 
         tx.create(mirror)
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           ts: TapService): OperationList = {
+                                           ts: TapService): Unit = {
         tx.delete(classOf[Mirror], ts.getId, ignoresNeo = true)
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           ts: TapService): OperationList =
-        List()
+                                           ts: TapService): Unit = { }
 }

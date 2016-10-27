@@ -30,8 +30,7 @@ class RemoteMacEntryTranslator(stateTableStorage: StateTableStorage)
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,
-                                           rm: RemoteMacEntry)
-    : OperationList = {
+                                           rm: RemoteMacEntry): Unit = {
         // Get the ports on the gateway device's router.
         val gwDev  = tx.get(classOf[GatewayDevice], rm.getDeviceId)
         val router = tx.get(classOf[Router], gwDev.getResourceId)
@@ -48,24 +47,20 @@ class RemoteMacEntryTranslator(stateTableStorage: StateTableStorage)
         }
 
         tx.create(rmBldr.build())
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           rm: RemoteMacEntry)
-    : OperationList = {
+                                           rm: RemoteMacEntry): Unit = {
         val ports = tx.getAll(classOf[Port], rm.getPortIdsList)
         for (p <- ports.toList) {
             tx.deleteNode(stateTableStorage.portPeeringEntryPath(
                 p.getId.asJava, MAC.fromString(rm.getMacAddress),
                 IPv4Addr(rm.getVtepAddress.getAddress)))
         }
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           rm: RemoteMacEntry)
-    : OperationList = {
+                                           rm: RemoteMacEntry): Unit = {
         throw new NotImplementedError("RemoteMacEntry update not supported.")
     }
 

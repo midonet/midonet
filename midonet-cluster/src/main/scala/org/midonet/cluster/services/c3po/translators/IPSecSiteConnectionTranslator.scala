@@ -35,24 +35,19 @@ class IPSecSiteConnectionTranslator
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,
-                                           cnxn: IPSecSiteConnection)
-    : OperationList = {
+                                           cnxn: IPSecSiteConnection): Unit = {
         val vpn = tx.get(classOf[VpnService], cnxn.getVpnserviceId)
         tx.create(cnxn)
         createRemoteRoutes(tx, cnxn, vpn).foreach(r => tx.create(r))
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           cnxn: IPSecSiteConnection)
-    : OperationList = {
+                                           cnxn: IPSecSiteConnection): Unit = {
         tx.delete(classOf[IPSecSiteConnection], cnxn.getId, ignoresNeo = true)
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           cnxn: IPSecSiteConnection)
-    : OperationList = {
+                                           cnxn: IPSecSiteConnection): Unit = {
         val vpn = tx.get(classOf[VpnService], cnxn.getVpnserviceId)
         val (delRoutes, addRoutes, currentRoutes) = updateRemoteRoutes(tx, cnxn, vpn)
 
@@ -62,7 +57,6 @@ class IPSecSiteConnectionTranslator
         delRoutes.foreach(r => tx.delete(classOf[Route], r.getId, ignoresNeo = true))
         addRoutes.foreach(r => tx.create(r))
         tx.update(newCnxn)
-        List()
 
     }
 

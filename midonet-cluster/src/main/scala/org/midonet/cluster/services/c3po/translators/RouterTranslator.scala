@@ -39,7 +39,7 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
     import org.midonet.cluster.services.c3po.translators.RouteManager._
 
     override protected def translateCreate(tx: Transaction,
-                                           nr: NeutronRouter): OperationList = {
+                                           nr: NeutronRouter): Unit = {
         val r = translate(nr)
         val inChain = newChain(r.getInboundFilterId,
                                preRouteChainName(nr.getId))
@@ -65,12 +65,10 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         List(inChain, outChain, fwdChain, r, portGroup,
              routerInterfacePortGroup).foreach(tx.create)
         gatewayPortCreates(tx, nr, r)
-
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           nr: NeutronRouter): OperationList = {
+                                           nr: NeutronRouter): Unit = {
         // ServiceContainerGroup may not exist, but delete is idempotent.
         tx.delete(classOf[Chain], inChainId(nr.getId), ignoresNeo = true)
         tx.delete(classOf[Chain], outChainId(nr.getId), ignoresNeo = true)
@@ -83,11 +81,10 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         tx.delete(classOf[ServiceContainerGroup],
                   quaggaContainerGroupId(nr.getId), ignoresNeo = true)
         tx.delete(classOf[Router], nr.getId, ignoresNeo = true)
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           nr: NeutronRouter): OperationList = {
+                                           nr: NeutronRouter): Unit = {
         val router = tx.get(classOf[Router], nr.getId).toBuilder
         router.setAdminStateUp(nr.getAdminStateUp)
         router.setName(nr.getName)
@@ -96,7 +93,6 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         tx.update(router.build())
         gatewayPortUpdates(tx, nr, router)
         extraRoutesUpdates(tx, nr)
-        List()
     }
 
     private def translate(nr: NeutronRouter): Router = {

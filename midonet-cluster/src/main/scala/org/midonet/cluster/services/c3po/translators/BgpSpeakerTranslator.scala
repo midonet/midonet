@@ -29,16 +29,16 @@ class BgpSpeakerTranslator(stateTableStorage: StateTableStorage)
 
     override protected def translateCreate(tx: Transaction,
                                            bgpSpeaker: NeutronBgpSpeaker)
-    : OperationList = {
+    : Unit = {
         throw new UnsupportedOperationException(
             "Create NeutronBgpSpeaker not supported.")
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            bgpSpeaker: NeutronBgpSpeaker)
-    : OperationList = {
+    : Unit = {
         if (bgpSpeaker.getDelBgpPeerIdsCount == 0) {
-            return List()
+            return
         }
 
         val router = tx.get(classOf[Router], bgpSpeaker.getLogicalRouter)
@@ -48,12 +48,10 @@ class BgpSpeakerTranslator(stateTableStorage: StateTableStorage)
             deleteBgpPeer(tx, router, bgpPeerId)
             tx.delete(classOf[NeutronBgpPeer], bgpPeerId, ignoresNeo = true)
         }
-
-        List()
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           bgpSpeakerId: UUID): OperationList = {
+                                           bgpSpeakerId: UUID): Unit = {
         throw new UnsupportedOperationException(
             "Delete NeutronBgpSpeaker not supported.")
     }
