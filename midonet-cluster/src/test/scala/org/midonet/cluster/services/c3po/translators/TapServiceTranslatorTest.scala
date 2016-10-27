@@ -60,7 +60,7 @@ class TapServiceTranslatorCreateTest extends TapServiceTranslatorTestBase {
 
     before {
         initMockStorage()
-        translator = new TapServiceTranslator(storage)
+        translator = new TapServiceTranslator()
     }
 
     "Neutron Tap Service Create" should "create a Midonet Mirror." in {
@@ -77,7 +77,7 @@ class TapServiceTranslatorDeleteTest extends TapServiceTranslatorTestBase {
 
     before {
         initMockStorage()
-        translator = new TapServiceTranslator(storage)
+        translator = new TapServiceTranslator()
     }
 
     "Neutron Tap Service Delete" should "delete a Midonet Mirror." in {
@@ -100,7 +100,7 @@ class TapServiceTranslatorUpdateTest extends TapServiceTranslatorTestBase {
 
     before {
         initMockStorage()
-        translator = new TapServiceTranslator(storage)
+        translator = new TapServiceTranslator()
     }
 
     "Neutron Tap Service Update" should "do nothing" in {

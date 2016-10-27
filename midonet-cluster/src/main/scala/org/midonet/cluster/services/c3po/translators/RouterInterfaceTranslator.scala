@@ -19,17 +19,16 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.mutable
 
 import org.midonet.cluster.ClusterConfig
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
-import org.midonet.util.concurrent.toFutureOps
 
 object RouterInterfaceTranslator {
 
@@ -43,13 +42,10 @@ object RouterInterfaceTranslator {
             .xorWith(0x3bcf2eb64be211e5L, 0x84ae0242ac110003L)
 }
 
-class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
-                                sequenceDispenser: SequenceDispenser,
+class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
                                 config: ClusterConfig)
-    extends Translator[NeutronRouterInterface]
-            with ChainManager
-            with PortManager
-            with RuleManager {
+    extends Translator[NeutronRouterInterface] with ChainManager
+            with PortManager with RuleManager {
 
     import BgpPeerTranslator._
     import RouterInterfaceTranslator._

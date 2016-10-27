@@ -16,13 +16,12 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Neutron.TapFlow
 import org.midonet.cluster.models.Topology.Port
 
 
-class TapFlowTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[TapFlow] {
+class TapFlowTranslator extends Translator[TapFlow] {
 
     override protected def translateCreate(tx: Transaction,
                                            tapFlow: TapFlow): OperationList = {

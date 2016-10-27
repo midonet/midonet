@@ -15,14 +15,14 @@
  */
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Neutron.NeutronConfig
 import org.midonet.cluster.models.Topology.TunnelZone
 
 /**
   * Provides a translator for Neutron Config.
   */
-class ConfigTranslator(protected val storage: ReadOnlyStorage)
+class ConfigTranslator
     extends Translator[NeutronConfig] with TunnelZoneManager {
 
     override protected def translateCreate(tx: Transaction,
