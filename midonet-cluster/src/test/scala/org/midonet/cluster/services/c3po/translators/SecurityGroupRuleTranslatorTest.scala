@@ -95,7 +95,7 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         val nSshInRule = nSecurityGroupRuleFromTxt(sshInRuleText)
         val mSshInRule = SecurityGroupRuleManager.translate(nSshInRule)
 
-        val midoOps = translator.translate(transaction, Create(nSshInRule))
+        translator.translate(transaction, Create(nSshInRule))
 
         val inChain = findChainOp(midoOps, OpType.Update,
                                   inChainId(defaultSg.getId))
@@ -106,9 +106,8 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
     }
 
     "SSH rule" should "be deleted when deleting the rule" in {
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[SecurityGroupRule],
-                                                  sgrId))
+        translator.translate(transaction, Delete(classOf[SecurityGroupRule],
+                                                 sgrId))
 
         val chain = findChainOp(midoOps, OpType.Update, mChainId)
         chain shouldBe null
