@@ -23,25 +23,25 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
-import org.midonet.packets.{IPAddr, IPv6Addr, MAC}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
 
-object VppSetup extends MidolmanLogging {
+private object VppSetup extends MidolmanLogging {
 
     override def logSource = s"org.midonet.vpp-setup"
 
-    private trait MacAddressProvider {
+    trait MacAddressProvider {
         def macAddress: Option[MAC]
     }
 
-    private trait VppInterfaceProvider {
+    trait VppInterfaceProvider {
         def vppInterface: Option[VppApi.Device]
     }
 
-    private class VethPairSetup(override val name: String,
-                                devName: String,
-                                peerName: String)
-                               (implicit ec: ExecutionContext)
+    class VethPairSetup(override val name: String,
+                        devName: String,
+                        peerName: String)
+                        (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback with MacAddressProvider {
 
         var macAddress: Option[MAC] = None
@@ -58,11 +58,11 @@ object VppSetup extends MidolmanLogging {
         }
     }
 
-    private class VppDevice(override val name: String,
-                            deviceName: String,
-                            vppApi: VppApi,
-                            macSource: MacAddressProvider)
-                           (implicit ec: ExecutionContext)
+    class VppDevice(override val name: String,
+                    deviceName: String,
+                    vppApi: VppApi,
+                    macSource: MacAddressProvider)
+                   (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback with VppInterfaceProvider {
 
         var vppInterface: Option[VppApi.Device] = None
@@ -86,12 +86,12 @@ object VppSetup extends MidolmanLogging {
         }
     }
 
-    private class VppIpAddr(override val name: String,
-                            vppApi: VppApi,
-                            device: VppInterfaceProvider,
-                            address: IPAddr,
-                            prefixLen: Byte)
-                           (implicit ec: ExecutionContext)
+    class VppIpAddr(override val name: String,
+                    vppApi: VppApi,
+                    device: VppInterfaceProvider,
+                    address: IPAddr,
+                    prefixLen: Byte)
+                   (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
 
         @throws[Exception]
@@ -104,9 +104,9 @@ object VppSetup extends MidolmanLogging {
                                        address, prefixLen)
     }
 
-    private class OvsBind(override val name: String,
-                          vppOvs: VppOvs,
-                          endpointName: String)
+    class OvsBind(override val name: String,
+                  vppOvs: VppOvs,
+                  endpointName: String)
             extends FutureTaskWithRollback {
         var dpPort: Option[DpPort] = None
 
@@ -142,11 +142,11 @@ object VppSetup extends MidolmanLogging {
         }
     }
 
-    private class FlowInstall(override val name: String,
-                              vppOvs: VppOvs,
-                              ep1fn: () => Int,
-                              ep2fn: () => Int)
-            extends FutureTaskWithRollback {
+    class FlowInstall(override val name: String,
+                      vppOvs: VppOvs,
+                      ep1fn: () => Int,
+                      ep2fn: () => Int)
+        extends FutureTaskWithRollback {
         @throws[Exception]
         override def execute(): Future[Any] = {
             try {
@@ -181,15 +181,19 @@ object VppSetup extends MidolmanLogging {
     }
 }
 
-class VppSetup(uplinkPortId: UUID,
-               uplinkPortDpNo: Int,
-               vppApi: VppApi,
-               vppOvs: VppOvs)
-              (implicit ec: ExecutionContext)
-    extends FutureSequenceWithRollback("VPP setup") {
+import VppSetup._
 
-    import VppSetup._
+class VppSetup(setupName: String)
+                       (implicit ec: ExecutionContext)
+    extends FutureSequenceWithRollback(setupName)(ec)
 
+class VppUplinkSetup(uplinkPortId: UUID,
+                     uplinkPortDpNo: Int,
+                     vppApi: VppApi,
+                     vppOvs: VppOvs)
+                     (implicit ec: ExecutionContext)
+    extends VppSetup("VPP uplink setup") {
+    
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
     private val uplinkOvsName = s"ovs-$uplinkSuffix"
@@ -227,4 +231,46 @@ class VppSetup(uplinkPortId: UUID,
     add(ipAddrVpp)
     add(ovsBind)
     add(vppFlows)
+}
+
+/**
+  * @param tenantRouterIp6PortId port id of the tenant router port that has IP6
+  *                              address associated
+  * @param vppApi handler for the JVPP
+  * @param ec Execution context for futures
+  */
+class VppDownlinkSetup(tenantRouterIp6PortId: UUID,
+                       vrf: Int,
+                       vppApi: VppApi,
+                       vppOvs: VppOvs)
+                      (implicit ec: ExecutionContext)
+    extends VppSetup("VPP downlink setup")(ec) {
+
+    private val dlinkSuffix = tenantRouterIp6PortId.toString.substring(0, 8)
+    private val dlinkVppName = s"vpp-$dlinkSuffix"
+    private val dlinkOvsName = s"ovs-$dlinkSuffix"
+    private val dlinkVppAddr = IPv4Addr.fromString("10.0.0.2")
+
+    private val dlinkVppPrefix: Byte = 24
+
+    private val dlinkVeth = new VethPairSetup("dlink veth pair",
+                                              dlinkVppName,
+                                              dlinkOvsName)
+
+    private val dlinkVpp = new VppDevice("dlink device at vpp",
+                                          dlinkVppName,
+                                          vppApi,
+                                          dlinkVeth)
+
+    private val ipAddrVpp = new VppIpAddr("dlink IP4 address at vpp",
+                                          vppApi,
+                                          dlinkVpp,
+                                          dlinkVppAddr,
+                                          dlinkVppPrefix)
+    /*
+    * setup the tasks, in execution order
+    */
+    add(dlinkVeth)
+    add(dlinkVpp)
+    add(ipAddrVpp)
 }
