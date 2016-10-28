@@ -22,7 +22,7 @@ import java.util
 import javax.servlet.DispatcherType
 import javax.validation.Validator
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
@@ -61,13 +61,15 @@ import org.midonet.minion.{Context, Minion, MinionService}
 
 object RestApi {
 
-    final val ContainerResponseFiltersClass =
-        "com.sun.jersey.spi.container.ContainerResponseFilters"
     final val ContainerRequestFiltersClass =
         "com.sun.jersey.spi.container.ContainerRequestFilters"
+    final val ContainerResponseFiltersClass =
+        "com.sun.jersey.spi.container.ContainerResponseFilters"
     final val LoggingFilterClass =
         "com.sun.jersey.api.container.filter.LoggingFilter"
-    final val POJOMappingFeatureClass =
+    final val GzipFilterClass =
+        "com.sun.jersey.api.container.filter.GZIPContentEncodingFilter"
+    final val PojoMappingFeatureClass =
         "com.sun.jersey.api.json.POJOMappingFeature"
 
     def servletModule(backend: MidonetBackend, ec: ExecutionContext,
@@ -115,11 +117,13 @@ object RestApi {
             filter("/*").through(classOf[AdminOnlyAuthFilter])
 
             val initParams = Map(
-                ContainerRequestFiltersClass -> LoggingFilterClass,
-                ContainerResponseFiltersClass -> LoggingFilterClass,
-                POJOMappingFeatureClass -> "true"
+                ContainerRequestFiltersClass ->
+                    s"$GzipFilterClass;$LoggingFilterClass",
+                ContainerResponseFiltersClass ->
+                    s"$GzipFilterClass;$LoggingFilterClass",
+                PojoMappingFeatureClass -> "true"
             )
-            serve("/*").`with`(classOf[GuiceContainer], initParams)
+            serve("/*").`with`(classOf[GuiceContainer], initParams.asJava)
         }
     }
 }
