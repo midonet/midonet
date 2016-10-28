@@ -47,9 +47,9 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         # public_x -> external port (associated to fip) on net x
         # private_x -> internal port on net x (for dynamic nat)
         public_1 = self.add_port('public_1', net1['network']['id'])
-        private_1 = self.add_port('private_1', net1['network']['id'])
+        self.add_port('private_1', net1['network']['id'])
         public_2 = self.add_port('public_2', net2['network']['id'])
-        private_2 = self.add_port('private_2', net2['network']['id'])
+        self.add_port('private_2', net2['network']['id'])
 
         self.add_router('router_1',
                         public['network']['id'],
@@ -104,10 +104,10 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         for internal_subnet in internal_subnets:
             router_if = self.api.add_interface_router(
                 router['router']['id'], {'subnet_id': internal_subnet})
-            self.set_resource(name+"_internal_if", router_if)
+            self.set_resource(name + "_internal_if", router_if)
             router_if_port = self.api.show_port(router_if['port_id'])
             router_if_ip = router_if_port['port']['fixed_ips'][0]['ip_address']
-            self.set_resource(name+"_internal_ip", router_if_ip)
+            self.set_resource(name + "_internal_ip", router_if_ip)
             self.addCleanup(self.api.remove_interface_router,
                             router['router']['id'],
                             {'subnet_id': internal_subnet})
@@ -122,7 +122,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                                  'tenant_id': 'admin'}}))
 
         subnet_def = {'subnet':
-                          {'name': network['network']['name']+'_subnet',
+                          {'name': network['network']['name'] + '_subnet',
                            'network_id': network['network']['id'],
                            'ip_version': 4,
                            'cidr': cidr,

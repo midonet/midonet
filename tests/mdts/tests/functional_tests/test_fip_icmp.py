@@ -117,8 +117,9 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                     'network_id': external_net
                                 }}}))
 
-        router_if = self.api.add_interface_router(
-            router['router']['id'], {'subnet_id': internal_subnet})
+        self.api.add_interface_router(router['router']['id'],
+                                      {'subnet_id': internal_subnet})
+
         self.addCleanup(self.api.remove_interface_router,
                         router['router']['id'],
                         {'subnet_id': internal_subnet})
@@ -133,7 +134,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         subnet = self.create_resource(
             self.api.create_subnet(
                 {'subnet':
-                    {'name': network['network']['name']+'_subnet',
+                    {'name': network['network']['name'] + '_subnet',
                      'network_id': network['network']['id'],
                      'ip_version': 4,
                      'cidr': cidr,
@@ -156,13 +157,13 @@ binding_multihost = {
     'bindings': [
         {'vport': 'port_left',
          'interface': {
-             'definition': { 'ipv4_gw': '10.0.0.1' },
+             'definition': {'ipv4_gw': '10.0.0.1'},
              'hostname': 'midolman1',
              'type': 'vmguest'
          }},
         {'vport': 'port_right',
          'interface': {
-             'definition': { 'ipv4_gw': '20.0.0.1' },
+             'definition': {'ipv4_gw': '20.0.0.1'},
              'hostname': 'midolman2',
              'type': 'vmguest'
          }}
@@ -179,7 +180,6 @@ def test_traceroute():
     Run a traceroute between two VMs. All hops should resolve correctly.
     """
     sender = BM.get_interface_on_vport('port_left')
-    receiver = BM.get_interface_on_vport('port_right')
 
     output = sender.execute("traceroute -n -N 1 -m 5 %s" % VTM.get_fip_right(),
                             sync=True)

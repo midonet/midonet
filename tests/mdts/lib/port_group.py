@@ -23,7 +23,7 @@ class PortGroup(ResourceBase):
     bool_val = {'true': True, 'false': False}
 
     def __init__(self, api, context, data):
-        """ Initializes a port group. 
+        """ Initializes a port group.
 
         Args:
             api: MidoNet API client object

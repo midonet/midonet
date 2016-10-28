@@ -26,4 +26,4 @@ def initjvm():
         LOG.debug("Starting JVM...")
         startJVM(getDefaultJVMPath(), "-ea")
         java.lang.System.out.println("JVM Running")
-        _jvm_initialized=True
+        _jvm_initialized = True

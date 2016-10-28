@@ -32,7 +32,7 @@ class ZookeeperHost(Service):
 
     def get_jmx_monitor(self):
         monitor = JMXMonitor()
-        monitor.connect(self.get_ip_address(),7200)
+        monitor.connect(self.get_ip_address(), 7200)
         return monitor
 
     def get_service_logs(self):

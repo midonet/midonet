@@ -1,12 +1,12 @@
 #
 # Copyright 2015 Midokura SARL
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -315,11 +315,11 @@ class Service(object):
     def inject_interface_failure(self, iface_name, wait_time=0):
         # put iptables rule or just set the interface down
         cmdline = "ip link set dev %s down" % iface_name
-        result = self.exec_command(cmdline, stream=False)
+        self.exec_command(cmdline, stream=False)
 
     def eject_interface_failure(self, iface_name, wait_time=0):
         cmdline = "ip link set dev %s up" % iface_name
-        result = self.exec_command(cmdline, stream=False)
+        self.exec_command(cmdline, stream=False)
 
     def inject_packet_loss(self, iface_name, wait_time=0):
         cmdline = "iptables -i %s -A INPUT -j DROP" % iface_name

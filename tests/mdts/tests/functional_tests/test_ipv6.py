@@ -209,9 +209,9 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
     def build(self, binding_data=None):
         self._edgertr = self.create_router("edge")
         uplinknet = self.create_network("uplink", uplink=True)
-        uplinksubnet6 = self.create_subnet("uplinksubnet6", uplinknet,
-                                           "2001::/64", enable_dhcp=False,
-                                           version=6)
+        self.create_subnet("uplinksubnet6", uplinknet, "2001::/64",
+                           enable_dhcp=False, version=6)
+
         self.uplink_port = self.create_port("uplinkport", uplinknet,
                                             host_id="midolman1",
                                             interface="bgp0",
@@ -352,13 +352,13 @@ binding_multihost_singletenant = {
     'bindings': [
          {'vport': 'port1',
          'interface': {
-             'definition': { "ipv4_gw": "20.0.0.1" },
+             'definition': {"ipv4_gw": "20.0.0.1"},
              'hostname': 'midolman2',
              'type': 'vmguest'
          }},
          {'vport': 'tenant',
          'interface': {
-             'definition': { 'ifname': 'tenant-do' },
+             'definition': {'ifname': 'tenant-do'},
              'hostname': 'midolman1',
              'type': 'provided'
          }}
@@ -370,25 +370,25 @@ binding_multihost_multitenant = {
     'bindings': [
          {'vport': 'port1',
          'interface': {
-             'definition': { "ipv4_gw": "20.0.0.1" },
+             'definition': {"ipv4_gw": "20.0.0.1"},
              'hostname': 'midolman2',
              'type': 'vmguest'
          }},
          {'vport': 'tenant1',
          'interface': {
-             'definition': { 'ifname': 'tenant1-do' },
+             'definition': {'ifname': 'tenant1-do'},
              'hostname': 'midolman1',
              'type': 'provided'
          }},
          {'vport': 'port2',
          'interface': {
-             'definition': { "ipv4_gw": "20.0.0.1" },
+             'definition': {"ipv4_gw": "20.0.0.1"},
              'hostname': 'midolman3',
              'type': 'vmguest'
          }},
          {'vport': 'tenant2',
          'interface': {
-             'definition': { 'ifname': 'tenant2-do' },
+             'definition': {'ifname': 'tenant2-do'},
              'hostname': 'midolman1',
              'type': 'provided'
          }}

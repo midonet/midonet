@@ -51,12 +51,12 @@ class VT_Networks_with_SG(NeutronTopologyManager):
             'public', '1.0.0.0/24', '1.0.0.1', external=True)
         (private_net, private_subnet) = self.add_network(
             'private', '192.168.0.0/24', '192.168.0.1')
-        ext0 = self.add_port('port_ext0', public_net['network']['id'])
-        int0 = self.add_port('port_int0', private_net['network']['id'])
-        int1 = self.add_port('port_int1', private_net['network']['id'],
-                             vip=self.virtual_ip, vmac=self.virtual_mac)
-        int2 = self.add_port('port_int2', private_net['network']['id'],
-                             vip=self.virtual_ip, vmac=self.virtual_mac)
+        self.add_port('port_ext0', public_net['network']['id'])
+        self.add_port('port_int0', private_net['network']['id'])
+        self.add_port('port_int1', private_net['network']['id'],
+                      vip=self.virtual_ip, vmac=self.virtual_mac)
+        self.add_port('port_int2', private_net['network']['id'],
+                      vip=self.virtual_ip, vmac=self.virtual_mac)
         vip0 = self.add_port('port_vip0', private_net['network']['id'],
                              subnet_id=private_subnet['subnet']['id'],
                              real_ip=self.virtual_ip)
@@ -101,7 +101,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         subnet = self.create_resource(
             self.api.create_subnet(
                 {'subnet':
-                    {'name': network['network']['name']+'_subnet',
+                    {'name': network['network']['name'] + '_subnet',
                      'network_id': network['network']['id'],
                      'ip_version': 4,
                      'cidr': cidr,
@@ -118,8 +118,9 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                     'network_id': external_net
                                 }}}))
 
-        router_if = self.api.add_interface_router(
-            router['router']['id'], {'subnet_id': internal_subnet})
+        self.api.add_interface_router(router['router']['id'],
+                                      {'subnet_id': internal_subnet})
+
         self.addCleanup(self.api.remove_interface_router,
                         router['router']['id'],
                         {'subnet_id': internal_subnet})
@@ -130,16 +131,16 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         port_spec = {'name': name,
                      'network_id': network_id,
                      'admin_state_up': True,
-                     'tenant_id': 'admin' }
+                     'tenant_id': 'admin'}
 
         if real_ip != None and subnet_id != None:
             port_spec['fixed_ips'] = [{'ip_address': real_ip,
-                                       'subnet_id': subnet_id }]
+                                       'subnet_id': subnet_id}]
         if vip != None and vmac != None:
-            port_spec['allowed_address_pairs'] = [ { 'ip_address'  : vip,
-                                                     'mac_address' : vmac } ]
+            port_spec['allowed_address_pairs'] = [{'ip_address': vip,
+                                                   'mac_address': vmac}]
         elif vip != None:
-            port_spec['allowed_address_pairs'] = [ { 'ip_address' : vip } ]
+            port_spec['allowed_address_pairs'] = [{'ip_address': vip}]
         return self.create_resource(self.api.create_port({'port': port_spec}))
 
 VTM_vip = VT_Networks_with_SG(virtual_ip)
@@ -153,25 +154,25 @@ binding_multinode = {
     'bindings': [
         {'vport': 'port_ext0',
          'interface': {
-             'definition': { 'ipv4_gw': '1.0.0.1' },
+             'definition': {'ipv4_gw': '1.0.0.1'},
              'hostname': 'midolman1',
              'type': 'vmguest'
          }},
         {'vport': 'port_int0',
          'interface': {
-             'definition': { 'ipv4_gw': '192.168.0.1' },
+             'definition': {'ipv4_gw': '192.168.0.1'},
              'hostname': 'midolman2',
              'type': 'vmguest'
          }},
         {'vport': 'port_int1',
          'interface': {
-             'definition': { 'ipv4_gw': '192.168.0.1' },
+             'definition': {'ipv4_gw': '192.168.0.1'},
              'hostname': 'midolman3',
              'type': 'vmguest'
          }},
         {'vport': 'port_int2',
          'interface': {
-             'definition': { 'ipv4_gw': '192.168.0.1' },
+             'definition': {'ipv4_gw': '192.168.0.1'},
              'hostname': 'midolman1',
              'type': 'vmguest'
          }}

@@ -119,7 +119,7 @@ class Interface(object):
         try:
             self.compute_host.ensure_command_running(exec_id)
             LOG.debug('running tcp dump=%s', cmdline)
-        except Exception as e:
+        except Exception:
             LOG.debug('tcpdump failed to start for some reason, '
                       'probably because interface was down.'
                       'We are not going to see any packet! %s', cmdline)

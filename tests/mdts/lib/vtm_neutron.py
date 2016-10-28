@@ -86,7 +86,7 @@ class NeutronTopologyManager(TopologyManager):
         if uplink:
             network_params['provider:network_type'] = 'uplink'
         network = self.create_resource(
-            self.api.create_network({'network': network_params }))
+            self.api.create_network({'network': network_params}))
         return network['network']
 
     def create_subnet(self, name, network, cidr, enable_dhcp=True, version=4):
@@ -104,7 +104,7 @@ class NeutronTopologyManager(TopologyManager):
         router = self.create_resource(
             self.api.create_router(
                     {'router': {'name': name,
-                                'tenant_id': 'admin' }}))
+                                'tenant_id': 'admin'}}))
         return router['router']
 
     def set_router_gateway(self, router, network):
@@ -138,13 +138,13 @@ class NeutronTopologyManager(TopologyManager):
         if host_id:
             port_params['binding:host_id'] = host_id
         if interface:
-            port_params['binding:profile'] = { 'type': 'dict',
-                                               'interface_name': interface }
+            port_params['binding:profile'] = {'type': 'dict',
+                                              'interface_name': interface}
         for f in fixed_ips:
             if not port_params.has_key('fixed_ips'):
                 port_params['fixed_ips'] = []
             port_params['fixed_ips'] = port_params['fixed_ips'] \
-                                       + [{ "ip_address": f }]
+                                       + [{"ip_address": f}]
 
         port = self.create_resource(
             self.api.create_port({'port': port_params}))

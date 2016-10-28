@@ -43,7 +43,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                                       '1.1.1.1', True)
         (net1, subnet1) = self.add_network('net_1', '10.0.0.0/24', '10.0.0.1')
         (net2, subnet2) = self.add_network('net_2', '10.0.1.0/24', '10.0.1.1')
-        port1 = self.add_port('port_1', net1['network']['id'])
+        self.add_port('port_1', net1['network']['id'])
         port2 = self.add_port('port_2', net2['network']['id'])
 
         self.add_router('router_1',
@@ -90,8 +90,8 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                     'network_id': external_net
                                 }}}))
 
-        router_if = self.api.add_interface_router(
-            router['router']['id'], {'subnet_id': internal_subnet})
+        self.api.add_interface_router(router['router']['id'],
+                                      {'subnet_id': internal_subnet})
         self.addCleanup(self.api.remove_interface_router,
                         router['router']['id'],
                         {'subnet_id': internal_subnet})
@@ -106,7 +106,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         subnet = self.create_resource(
             self.api.create_subnet(
                 {'subnet':
-                    {'name': network['network']['name']+'_subnet',
+                    {'name': network['network']['name'] + '_subnet',
                      'network_id': network['network']['id'],
                      'ip_version': 4,
                      'cidr': cidr,
@@ -124,21 +124,21 @@ class VT_Networks_with_SG(NeutronTopologyManager):
 VTM = VT_Networks_with_SG()
 BM = BindingManager(None, VTM)
 
-PARAMETER_MINUTES=int(os.getenv('PERF_FLOWSTATE_MINUTES', 30))
-PARAMETER_FPS=int(os.getenv('PERF_FLOWSTATE_FPS', 100))
+PARAMETER_MINUTES = int(os.getenv('PERF_FLOWSTATE_MINUTES', 30))
+PARAMETER_FPS = int(os.getenv('PERF_FLOWSTATE_FPS', 100))
 
 binding_multihost = {
     'description': 'spanning across 2 midolman',
     'bindings': [
         {'vport': 'port_1',
          'interface': {
-             'definition': { 'ipv4_gw': '10.0.0.1' },
+             'definition': {'ipv4_gw': '10.0.0.1'},
              'hostname': 'midolman1',
              'type': 'vmguest'
          }},
         {'vport': 'port_2',
          'interface': {
-             'definition': { 'ipv4_gw': '10.0.1.1' },
+             'definition': {'ipv4_gw': '10.0.1.1'},
              'hostname': 'midolman2',
              'type': 'vmguest'
          }}
@@ -208,7 +208,7 @@ def perf_flowstate():
     receiver = BM.get_interface_on_vport('port_2')
 
     messages_per_second = PARAMETER_FPS
-    delay = 1000000/messages_per_second
+    delay = 1000000 / messages_per_second
     try:
         sender.execute("hping3 -q -2 -i u%d --destport ++0 %s"
                        % (delay, VTM.get_fip_ip()))

@@ -89,13 +89,13 @@ def test_icmp_topology_in_test():
     network = VTM.create_resource(
         api.create_network(
             {'network':
-                 {'name':'demo',
+                 {'name': 'demo',
                   'admin_state_up': 'True',
                   'tenant_id': 'admin'}}
         )
     )
 
-    subnet = VTM.create_resource(
+    VTM.create_resource(
         api.create_subnet(
             {'subnet':
                  {'name': 'demo_subnet',
@@ -111,7 +111,7 @@ def test_icmp_topology_in_test():
                           'network_id': network['network']['id'],
                           'admin_state_up': True,
                           'mac_address': 'aa:bb:cc:00:00:11',
-                          'fixed_ips': [{ 'ip_address': '172.16.1.2'}]}}
+                          'fixed_ips': [{'ip_address': '172.16.1.2'}]}}
     port1 = VTM.create_resource(api.create_port(port1json))
     LOG.debug(port1)
 
@@ -119,7 +119,7 @@ def test_icmp_topology_in_test():
                           'network_id': network['network']['id'],
                           'admin_state_up': True,
                           'mac_address': 'aa:bb:cc:00:00:22',
-                          'fixed_ips': [{ 'ip_address': '172.16.1.3'}]}}
+                          'fixed_ips': [{'ip_address': '172.16.1.3'}]}}
     port2 = VTM.create_resource(api.create_port(port2json))
     LOG.debug(port2)
 
@@ -158,20 +158,20 @@ class VT_one_net_two_ports(NeutronTopologyManager):
         network = self.create_resource(
             self.api.create_network(
                 {'network':
-                     {'name':'demo',
-                      'admin_state_up': 'True',
-                      'tenant_id': 'admin'}}
+                    {'name': 'demo',
+                     'admin_state_up': 'True',
+                     'tenant_id': 'admin'}}
             )
         )
 
-        subnet = self.create_resource(
+        self.create_resource(
             self.api.create_subnet(
                 {'subnet':
-                     {'name': 'demo_subnet',
-                      'network_id': network['network']['id'],
-                      'ip_version': 4,
-                      'cidr': '172.16.1.0/24',
-                      'enable_dhcp': False}}
+                    {'name': 'demo_subnet',
+                     'network_id': network['network']['id'],
+                     'ip_version': 4,
+                     'cidr': '172.16.1.0/24',
+                     'enable_dhcp': False}}
             )
         )
 
@@ -180,7 +180,7 @@ class VT_one_net_two_ports(NeutronTopologyManager):
                               'network_id': network['network']['id'],
                               'admin_state_up': True,
                               'mac_address': 'aa:bb:cc:00:00:11',
-                              'fixed_ips': [{ 'ip_address': '172.16.1.2'}]}}
+                              'fixed_ips': [{'ip_address': '172.16.1.2'}]}}
         port1 = self.create_resource(self.api.create_port(port1json))
         LOG.debug(port1)
 
@@ -188,7 +188,7 @@ class VT_one_net_two_ports(NeutronTopologyManager):
                               'network_id': network['network']['id'],
                               'admin_state_up': True,
                               'mac_address': 'aa:bb:cc:00:00:22',
-                              'fixed_ips': [{ 'ip_address': '172.16.1.3'}]}}
+                              'fixed_ips': [{'ip_address': '172.16.1.3'}]}}
         port2 = self.create_resource(self.api.create_port(port2json))
         LOG.debug(port2)
 

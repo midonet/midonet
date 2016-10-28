@@ -50,7 +50,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         (net3, subnet3) = self.add_network('net_3', '10.0.2.0/24', '10.0.2.1')
         # public_port -> external port (associated to fip) on net x
         # private_port -> internal port on net x (for dynamic nat)
-        private_port = self.add_port('private_port', net1['network']['id'])
+        self.add_port('private_port', net1['network']['id'])
         public_port = self.add_port('public_port', net2['network']['id'])
 
         self.add_router('router_1',
@@ -98,10 +98,10 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         for internal_subnet in internal_subnets:
             router_if = self.api.add_interface_router(
                 router['router']['id'], {'subnet_id': internal_subnet})
-            self.set_resource(name+"_internal_if", router_if)
+            self.set_resource(name + "_internal_if", router_if)
             router_if_port = self.api.show_port(router_if['port_id'])
             router_if_ip = router_if_port['port']['fixed_ips'][0]['ip_address']
-            self.set_resource(name+"_internal_ip", router_if_ip)
+            self.set_resource(name + "_internal_ip", router_if_ip)
             self.addCleanup(self.api.remove_interface_router,
                             router['router']['id'],
                             {'subnet_id': internal_subnet})
@@ -116,12 +116,12 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                                  'tenant_id': 'admin'}}))
 
         subnet_def = {'subnet':
-                          {'name': network['network']['name']+'_subnet',
-                           'network_id': network['network']['id'],
-                           'ip_version': 4,
-                           'cidr': cidr,
-                           'gateway_ip': gateway,
-                           'enable_dhcp': True}}
+                         {'name': network['network']['name'] + '_subnet',
+                          'network_id': network['network']['id'],
+                          'ip_version': 4,
+                          'cidr': cidr,
+                          'gateway_ip': gateway,
+                          'enable_dhcp': True}}
 
         subnet = self.create_resource(self.api.create_subnet(subnet_def))
         return network, subnet
@@ -220,7 +220,7 @@ def test_simple_port_migration():
 
     # new free vm on midolman3
     free_interface_vm_data = {
-        'hw_addr' : public_port['mac_address'],
+        'hw_addr': public_port['mac_address'],
         'ipv4_addr': [public_port['fixed_ips'][0]['ip_address'] + '/24'],
         'ipv4_gw': '10.0.1.1'}
     free_interface_vm = agent3.create_vmguest(**free_interface_vm_data)
