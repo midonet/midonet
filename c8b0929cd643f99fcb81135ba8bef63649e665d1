@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_743b90c9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T09:36:47Z",
+      "side": 1,
+      "message": "This seems to be unused, so it\u0027s not clear to me how you\u0027re actually setting the DSCP mark.",
+      "range": {
+        "startLine": 366,
+        "startChar": 12,
+        "endLine": 366,
+        "endChar": 58
+      },
+      "revId": "c8b0929cd643f99fcb81135ba8bef63649e665d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
