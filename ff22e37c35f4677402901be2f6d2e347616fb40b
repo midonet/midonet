@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c91c0969",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "boundPortSubs?",
+      "range": {
+        "startLine": 66,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 23
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4948f95c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "Hm?",
+      "range": {
+        "startLine": 76,
+        "startChar": 16,
+        "endLine": 76,
+        "endChar": 79
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_693bbdc9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "It seems like it might be better to declare ifaceNameToId as a var reference to an immutable map, and replace these two lines with:\n\n  ifaceNameToId \u003d data.map(d \u003d\u003e (d.getName, d.getIfIndex))(breakOut)",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 83
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_69d73d50",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "Why \"InterfaceScanner?\" This subscribes to a Port observable.",
+      "range": {
+        "startLine": 210,
+        "startChar": 28,
+        "endLine": 210,
+        "endChar": 44
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_89da8178",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "Should we add the port\u0027s ID to this message, or is it in e.getMessage?",
+      "range": {
+        "startLine": 210,
+        "startChar": 26,
+        "endLine": 211,
+        "endChar": 64
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_49e4793b",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TcRequestHandlerTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "TcReq would be a clearer name, while still fairly short.",
+      "range": {
+        "startLine": 32,
+        "startChar": 11,
+        "endLine": 32,
+        "endChar": 13
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2966d5bb",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "These should be moved to a companion object, and renamed to Add and Rem. Or just import ADDFILTER and REMFILTER and use those without the \"TcRequestOps.\"",
+      "range": {
+        "startLine": 52,
+        "startChar": 8,
+        "endLine": 52,
+        "endChar": 11
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a910a501",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "Move to companion object and rename to DefaultRate and DefaultBurst, which is the preferred style for constants in Scala.",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 27
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_89f601d7",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "Why not just define verifyRequests as\n\n  verifyRequests(trs: TR*)\n\nand then call verifyRequests(TR(add, 1), TR(rem, 1), ...)?\n\nThis \"req\" doesn\u0027t seem to be used to share data across function calls, so there\u0027s no need to make it an instance variable.",
+      "range": {
+        "startLine": 144,
+        "startChar": 12,
+        "endLine": 144,
+        "endChar": 29
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4900f9ab",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-10-28T07:21:24Z",
+      "side": 1,
+      "message": "burst",
+      "range": {
+        "startLine": 305,
+        "startChar": 29,
+        "endLine": 305,
+        "endChar": 33
+      },
+      "revId": "ff22e37c35f4677402901be2f6d2e347616fb40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
