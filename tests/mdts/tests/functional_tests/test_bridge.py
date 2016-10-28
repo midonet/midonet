@@ -191,9 +191,6 @@ def test_dhcp():
         # Cleanup lease file
         iface.execute('rm -rf /override/shared-%s.lease' % iface.get_ifname())
 
-
-
-
 @attr(version="v1.2.0")
 @failures(NoFailure(),
           ServiceFailure('zookeeper1'),

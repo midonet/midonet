@@ -280,8 +280,6 @@ def assert_request_fails_to(sender, dest, timeout=10):
     result = make_request_to(sender, dest, timeout)
     assert_that(result, equal_to(''))
 
-
-
 # TODO: this function is replicated in several tests
 # Move to the utils package in a refactor patch
 def set_filters(router_name, inbound_filter_name, outbound_filter_name):
@@ -503,7 +501,6 @@ def test_haproxy_failback():
     :return:
     """
 
-
     def check_haproxy_down(agent, lb_pools, timeout=60, wait_time=5):
         while timeout > 0:
             is_running = False
@@ -636,7 +633,6 @@ def test_long_connection_loadbalancing():
     # Disable all but one backend
     pool_member_2.disable()
     pool_member_3.disable()
-
 
     # Should point to the only enabled backend 10.0.2.1
     result = make_request_to(sender,
