@@ -164,35 +164,35 @@ trait MidolmanSpec extends FeatureSpecLike
         override def translateActions(pktCtx: PacketContext): Unit =
             super.translateActions(pktCtx)
     }
+}
 
-    class TestDatapathState extends DatapathState {
-        var version: Long = 0
-        var dpPortNumberForVport = mutable.Map[UUID, Integer]()
-        var peerTunnels = mutable.Map[UUID,Route]()
-        var grePort: Int = _
-        var vxlanPortNumber: Int = _
+class TestDatapathState extends DatapathState {
+    var version: Long = 0
+    var dpPortNumberForVport = mutable.Map[UUID, Integer]()
+    var peerTunnels = mutable.Map[UUID,Route]()
+    var grePort: Int = _
+    var vxlanPortNumber: Int = _
 
-        def getDpPortNumberForVport(vportId: UUID): Integer =
-            dpPortNumberForVport get vportId orNull
+    def getDpPortNumberForVport(vportId: UUID): Integer =
+        dpPortNumberForVport get vportId orNull
 
-        def overlayTunnellingOutputAction: FlowActionOutput =
-            FlowActions.output(grePort)
-        var vtepTunnellingOutputAction: FlowActionOutput = null
+    def overlayTunnellingOutputAction: FlowActionOutput =
+        FlowActions.output(grePort)
+    var vtepTunnellingOutputAction: FlowActionOutput = null
 
-        def peerTunnelInfo(peer: UUID) = peerTunnels get peer
-        def getVportForDpPortNumber(portNum: Integer): UUID = null
-        def dpPortForTunnelKey(tunnelKey: Long): DpPort = null
-        def getDpPortName(num: Integer): Option[String] = None
-        def isVtepTunnellingPort(portNumber: Integer): Boolean =
-            portNumber == vxlanPortNumber
-        def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+    def peerTunnelInfo(peer: UUID) = peerTunnels get peer
+    def getVportForDpPortNumber(portNum: Integer): UUID = null
+    def dpPortForTunnelKey(tunnelKey: Long): DpPort = null
+    def getDpPortName(num: Integer): Option[String] = None
+    def isVtepTunnellingPort(portNumber: Integer): Boolean =
+        portNumber == vxlanPortNumber
+    def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
 
-        def datapath: Datapath = new Datapath(0, "midonet")
+    def datapath: Datapath = new Datapath(0, "midonet")
 
-        val tunnelRecircVxLanPort: VxLanTunnelPort =
-            new VxLanTunnelPort("tnvxlan-overlay", VXLAN_DEFAULT_DST_PORT, 100)
-        val hostRecircPort: NetDevPort = new NetDevPort("host-recirc", 101)
-        def tunnelRecircOutputAction: FlowActionOutput = null
-        def hostRecircOutputAction: FlowActionOutput = null
-    }
+    val tunnelRecircVxLanPort: VxLanTunnelPort =
+        new VxLanTunnelPort("tnvxlan-overlay", VXLAN_DEFAULT_DST_PORT, 100)
+    val hostRecircPort: NetDevPort = new NetDevPort("host-recirc", 101)
+    def tunnelRecircOutputAction: FlowActionOutput = null
+    def hostRecircOutputAction: FlowActionOutput = null
 }
