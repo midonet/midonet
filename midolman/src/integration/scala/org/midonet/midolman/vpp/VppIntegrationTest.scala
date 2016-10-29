@@ -49,7 +49,9 @@ import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKey
 import org.midonet.packets._
 
 @RunWith(classOf[JUnitRunner])
-class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
+class VppIntegrationTest extends FeatureSpec with TopologyBuilder
+    with OvsDatapathHelper {
+
     private final val rootPath = "/midonet/test"
     private var zkServer: TestingServer = _
     private var backend: MidonetBackend = _
@@ -134,65 +136,6 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
     def deleteVethPair(name: String): Unit = {
         log.info(s"Deleting veth pair $name")
         cmd(s"ip l del dev ${name}-left")
-    }
-
-    private def doDatapathOp(opBuf: (OvsProtocol) => ByteBuffer): Unit = {
-        val factory = new NetlinkChannelFactory()
-        val famchannel = factory.create(blocking = true,
-                                        NetlinkProtocol.NETLINK_GENERIC,
-                                        NetlinkUtil.NO_NOTIFICATION)
-        val families = OvsNetlinkFamilies.discover(famchannel)
-        famchannel.close()
-
-        val channel = factory.create(blocking = false)
-        val writer = new NetlinkBlockingWriter(channel)
-        val reader = new NetlinkTimeoutReader(channel, 1 minute)
-        val protocol = new OvsProtocol(channel.getLocalAddress.getPid, families)
-
-        try {
-            val buf = opBuf(protocol)
-            writer.write(buf)
-            buf.clear()
-            reader.read(buf)
-            buf.flip()
-        } finally {
-            channel.close()
-        }
-    }
-
-    def createDatapath(name: String): Datapath =  {
-        val buf = BytesUtil.instance.allocate(2 * 1024)
-        try {
-            doDatapathOp((protocol) => {
-                             protocol.prepareDatapathDel(0, name, buf)
-                             buf
-                         })
-        } catch {
-            case t: NetlinkException
-                    if (t.getErrorCodeEnum == ErrorCode.ENODEV ||
-                            t.getErrorCodeEnum == ErrorCode.ENOENT ||
-                            t.getErrorCodeEnum == ErrorCode.ENXIO) =>
-        }
-        buf.clear()
-        doDatapathOp((protocol) => {
-                         protocol.prepareDatapathCreate(name, buf)
-                         buf
-                     })
-        buf.position(NetlinkMessage.GENL_HEADER_SIZE)
-        Datapath.buildFrom(buf)
-    }
-
-    def deleteDatapath(datapath: Datapath): Unit = {
-        val buf = BytesUtil.instance.allocate(2 * 1024)
-        try {
-            doDatapathOp((protocol) => {
-                             protocol.prepareDatapathDel(
-                                 0, datapath.getName, buf)
-                             buf
-                         })
-        } catch {
-            case t: Throwable => log.warn("Error deleting datapath $name", t)
-        }
     }
 
     feature("VPP Api") {
@@ -485,7 +428,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
             } finally {
                 setup foreach { s => Await.result(s.rollback(), 1 minute) }
                 deleteNamespace(uplinkns)
-                deleteDatapath(datapath)
+                deleteDatapath(datapath, log)
                 api.close()
                 proc.destroy()
             }
@@ -629,7 +572,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 cleanupNs foreach deleteNamespace
                 deleteNamespace(nsIPv6)
 
-                deleteDatapath(datapath)
+                deleteDatapath(datapath, log)
             }
         }
 
@@ -639,7 +582,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 val ovs = new VppOvs(datapath)
                 ovs.createVxlanDpPort("vxlan_test_port", 5321)
             } finally {
-                deleteDatapath(datapath)
+                deleteDatapath(datapath, log)
             }
         }
 
