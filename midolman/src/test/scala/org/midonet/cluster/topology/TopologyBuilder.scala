@@ -112,7 +112,8 @@ trait TopologyBuilder {
             inboundMirrorIds, outboundMirrorIds, postInFilterMirrorIds,
             preOutFilterMirrorIds)
             .addPortSubnet(portSubnet.asProto)
-            .setPortAddress(portSubnet.asInstanceOf[IPv4Subnet].getAddress.asProto)
+            .setPortAddress(IPAddressUtil.toProto(portSubnet.getAddress.
+                asInstanceOf[IPAddr]))
             .setPortMac(portMac.toString)
             .addAllRouteIds(routeIds.map(_.asProto).asJava)
             .addAllFipNatRuleIds(fipNatRuleIds.map(_.asProto).asJava)
