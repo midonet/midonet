@@ -164,33 +164,4 @@ trait MidolmanSpec extends FeatureSpecLike
         override def translateActions(pktCtx: PacketContext): Unit =
             super.translateActions(pktCtx)
     }
-
-    class TestDatapathState extends DatapathState {
-        var version: Long = 0
-        var dpPortNumberForVport = mutable.Map[UUID, Integer]()
-        var peerTunnels = mutable.Map[UUID,Route]()
-        var grePort: Int = _
-        var vxlanPortNumber: Int = _
-
-        override def getDpPortNumberForVport(vportId: UUID): Integer =
-            dpPortNumberForVport get vportId orNull
-
-        var vtepTunnellingOutputAction: FlowActionOutput = null
-
-        override def peerTunnelInfo(peer: UUID) = peerTunnels get peer
-        override def getVportForDpPortNumber(portNum: Integer): UUID = null
-        override def dpPortForTunnelKey(tunnelKey: Long): DpPort = null
-        override def isVtepTunnellingPort(portNumber: Int): Boolean =
-            portNumber == vxlanPortNumber
-        override def isOverlayTunnellingPort(portNumber: Int): Boolean = false
-        override def isVppTunnellingPort(portNumber: Int): Boolean = false
-
-        override def datapath: Datapath = new Datapath(0, "midonet")
-
-        override val tunnelRecircVxLanPort: VxLanTunnelPort =
-            new VxLanTunnelPort("tnvxlan-overlay", VXLAN_DEFAULT_DST_PORT, 100)
-        override val hostRecircPort: NetDevPort = new NetDevPort("host-recirc", 101)
-        override def tunnelRecircOutputAction: FlowActionOutput = null
-        override def hostRecircOutputAction: FlowActionOutput = null
-    }
 }
