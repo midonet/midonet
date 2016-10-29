@@ -46,6 +46,69 @@ import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{Datapath, OvsNetlinkFamilies, OvsProtocol}
 import org.midonet.packets._
 
+private[vpp] object OvsDataPath {
+
+    def createDatapath(name: String): Datapath =  {
+        val buf = BytesUtil.instance.allocate(2 * 1024)
+        try {
+            doDatapathOp((protocol) => {
+                protocol.prepareDatapathDel(0, name, buf)
+                buf
+            })
+        } catch {
+            case t: NetlinkException
+                if (t.getErrorCodeEnum == ErrorCode.ENODEV ||
+                    t.getErrorCodeEnum == ErrorCode.ENOENT ||
+                    t.getErrorCodeEnum == ErrorCode.ENXIO) =>
+        }
+        buf.clear()
+        doDatapathOp((protocol) => {
+            protocol.prepareDatapathCreate(name, buf)
+            buf
+        })
+        buf.position(NetlinkMessage.GENL_HEADER_SIZE)
+        Datapath.buildFrom(buf)
+    }
+
+    def deleteDatapath(datapath: Datapath, log: Logger): Unit = {
+        val buf = BytesUtil.instance.allocate(2 * 1024)
+        try {
+            doDatapathOp((protocol) => {
+                protocol.prepareDatapathDel(
+                    0, datapath.getName, buf)
+                buf
+            })
+        } catch {
+            case t: Throwable => log.warn("Error deleting datapath $name", t)
+        }
+    }
+
+    private def doDatapathOp(opBuf: (OvsProtocol) => ByteBuffer): Unit = {
+        val factory = new NetlinkChannelFactory()
+        val famchannel = factory.create(blocking = true,
+                                        NetlinkProtocol.NETLINK_GENERIC,
+                                        NetlinkUtil.NO_NOTIFICATION)
+        val families = OvsNetlinkFamilies.discover(famchannel)
+        famchannel.close()
+
+        val channel = factory.create(blocking = false)
+        val writer = new NetlinkBlockingWriter(channel)
+        val reader = new NetlinkTimeoutReader(channel, 1 minute)
+        val protocol = new OvsProtocol(channel.getLocalAddress.getPid, families)
+
+        try {
+            val buf = opBuf(protocol)
+            writer.write(buf)
+            buf.clear()
+            reader.read(buf)
+            buf.flip()
+        } finally {
+            channel.close()
+        }
+    }
+
+}
+
 @RunWith(classOf[JUnitRunner])
 class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
     private final val rootPath = "/midonet/test"
@@ -121,65 +184,6 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
         log.info(s"Deleting namespace $name")
         cmd(s"ip netns del ${name}")
         cmd(s"ip l del dev ${name}dp")
-    }
-
-    private def doDatapathOp(opBuf: (OvsProtocol) => ByteBuffer): Unit = {
-        val factory = new NetlinkChannelFactory()
-        val famchannel = factory.create(blocking = true,
-                                        NetlinkProtocol.NETLINK_GENERIC,
-                                        NetlinkUtil.NO_NOTIFICATION)
-        val families = OvsNetlinkFamilies.discover(famchannel)
-        famchannel.close()
-
-        val channel = factory.create(blocking = false)
-        val writer = new NetlinkBlockingWriter(channel)
-        val reader = new NetlinkTimeoutReader(channel, 1 minute)
-        val protocol = new OvsProtocol(channel.getLocalAddress.getPid, families)
-
-        try {
-            val buf = opBuf(protocol)
-            writer.write(buf)
-            buf.clear()
-            reader.read(buf)
-            buf.flip()
-        } finally {
-            channel.close()
-        }
-    }
-
-    def createDatapath(name: String): Datapath =  {
-        val buf = BytesUtil.instance.allocate(2 * 1024)
-        try {
-            doDatapathOp((protocol) => {
-                             protocol.prepareDatapathDel(0, name, buf)
-                             buf
-                         })
-        } catch {
-            case t: NetlinkException
-                    if (t.getErrorCodeEnum == ErrorCode.ENODEV ||
-                            t.getErrorCodeEnum == ErrorCode.ENOENT ||
-                            t.getErrorCodeEnum == ErrorCode.ENXIO) =>
-        }
-        buf.clear()
-        doDatapathOp((protocol) => {
-                         protocol.prepareDatapathCreate(name, buf)
-                         buf
-                     })
-        buf.position(NetlinkMessage.GENL_HEADER_SIZE)
-        Datapath.buildFrom(buf)
-    }
-
-    def deleteDatapath(datapath: Datapath): Unit = {
-        val buf = BytesUtil.instance.allocate(2 * 1024)
-        try {
-            doDatapathOp((protocol) => {
-                             protocol.prepareDatapathDel(
-                                 0, datapath.getName, buf)
-                             buf
-                         })
-        } catch {
-            case t: Throwable => log.warn("Error deleting datapath $name", t)
-        }
     }
 
     feature("VPP Api") {
@@ -451,7 +455,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
             val proc = startVpp()
             Thread.sleep(1000) // only needed while first testcase is failing
             val api = new VppApi("test")
-            val datapath = createDatapath("foobar")
+            val datapath = OvsDataPath.createDatapath("foobar")
             val ovs = new VppOvs(datapath)
 
             log.info("Creating dummy uplink port")
@@ -472,7 +476,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
             } finally {
                 setup foreach { s => Await.result(s.rollback(), 1 minute) }
                 deleteNamespace(uplinkns)
-                deleteDatapath(datapath)
+                OvsDataPath.deleteDatapath(datapath, log)
                 api.close()
                 proc.destroy()
             }
@@ -604,7 +608,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
         }
 
         scenario("Can create Vxlan ovs port") {
-            val datapath = createDatapath("foobar")
+            val datapath = OvsDataPath.createDatapath("foobar")
             val ovs = new VppOvs(datapath)
             ovs.createVxlanDpPort("vxlan_test_port", 5321)
         }

@@ -26,13 +26,13 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.PacketWorkflow.{ShortDrop, AddVirtualWildcardFlow}
-import org.midonet.midolman.rules.{RuleResult, Condition}
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, ShortDrop}
+import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.{MidolmanSpec, TestDatapathState}
 import org.midonet.odp.OpenVSwitch
-import org.midonet.odp.flows.{FlowActionPushVLAN, FlowActionPopVLAN, FlowKeyEthernet, FlowActionSetKey}
+import org.midonet.odp.flows.{FlowActionPopVLAN, FlowActionPushVLAN, FlowActionSetKey, FlowKeyEthernet}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.VirtualAction.{Decap, Encap}
