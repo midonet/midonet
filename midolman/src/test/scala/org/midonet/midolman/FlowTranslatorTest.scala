@@ -20,7 +20,7 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.immutable.List
-import scala.collection.{Set => ROSet, mutable}
+import scala.collection.{mutable, Set => ROSet}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -31,7 +31,7 @@ import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.simulation.{Bridge, BridgePort, PacketContext, VxLanPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.{MidolmanSpec, TestDatapathState}
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowKeys}
 import org.midonet.odp.{FlowMatch, Packet}
