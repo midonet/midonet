@@ -32,7 +32,6 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget, TraceRuleData}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.services.MidonetBackend
-
 import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil._
@@ -44,7 +43,7 @@ import org.midonet.midolman.rules
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
-import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.packets._
 import org.midonet.util.concurrent._
 
 class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
@@ -385,7 +384,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
                                vni: Int, tunnelIp: Option[IPv4Addr],
                                containerId: Option[UUID]): UUID = {
         val id = UUID.randomUUID
-        val addr = IPv4Addr.fromString(portAddr)
+        val addr = IPAddr.fromString(portAddr)
+        val isIpv6 = addr.isInstanceOf[IPv6Addr]
+
         store.create(createRouterPort(id, routerId=Some(router),
                                       tunnelKey=tunnelKeys.incrementAndGet(),
                                       portMac=mac,
@@ -396,8 +397,14 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
                                       tunnelIp = tunnelIp,
                                       containerId = containerId))
 
-        store.create(createRoute(srcNetwork=new IPv4Subnet(0,0),
-                                 dstNetwork=new IPv4Subnet(addr, 32),
+        val (srcNetwork, dstNetwork) = if (isIpv6)
+            (new IPv6Subnet(new IPv6Addr(0L, 0L), 0),
+                new IPv6Subnet(addr.asInstanceOf[IPv6Addr], 128))
+        else
+            (new IPv4Subnet(0,0),
+                new IPv4Subnet(addr.asInstanceOf[IPv4Addr], 32))
+        store.create(createRoute(srcNetwork=srcNetwork,
+                                 dstNetwork=dstNetwork,
                                  nextHop=NextHop.LOCAL,
                                  nextHopPortId=Some(id),
                                  nextHopGateway=None,
