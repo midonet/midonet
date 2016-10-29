@@ -33,7 +33,7 @@ import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Simulator.{Nat64Action, ToPortAction}
 import org.midonet.midolman.simulation.{Bridge, BridgePort, PacketContext, VxLanPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.{MidolmanSpec, TestDatapathState}
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowKeys}
 import org.midonet.odp.{FlowMatch, Packet}
