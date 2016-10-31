@@ -57,8 +57,7 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
     : List[Operation[NeutronRouterInterface]] = List()
 
     override protected def translateCreate(tx: Transaction,
-                                           ri: NeutronRouterInterface)
-    : OperationList = {
+                                           ri: NeutronRouterInterface): Unit = {
         // At this point, we will already have translated the task to create
         // the NeutronPort with id ri.getPortId.
         val nPort = tx.get(classOf[NeutronPort], ri.getPortId)
@@ -126,8 +125,6 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
         // be overwritten by the update.
         tx.create(rifRoute)
         tx.create(localRoute)
-
-        List()
     }
 
     private def sameSubnetSnatRule(chainId: UUID, port: Port): Rule = {
@@ -257,18 +254,15 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           ri: NeutronRouterInterface)
-    : OperationList = {
+                                           ri: NeutronRouterInterface): Unit = {
         // The id field of a router interface is the router ID. Since a router
         // can have multiple interfaces, this doesn't uniquely identify it.
         // We need to handle router interface deletion when we delete the peer
         // port on the network, so there's nothing to do here.
-        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
-                                           nm: NeutronRouterInterface)
-    : OperationList = {
+                                           nm: NeutronRouterInterface): Unit = {
         throw new IllegalArgumentException(
             "NeutronRouterInterface update not supported.")
     }
