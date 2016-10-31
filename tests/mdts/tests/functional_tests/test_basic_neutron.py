@@ -48,13 +48,16 @@ orphaned after the test.
 PTM = TopologyManager()
 VTM = NeutronTopologyManager()
 
+
 def setup_1():
     PTM.build()
     VTM.build()
 
+
 def destroy_1():
     VTM.destroy()
     PTM.destroy()
+
 
 @nottest
 @with_setup(setup_1, destroy_1)
@@ -89,20 +92,20 @@ def test_icmp_topology_in_test():
     network = VTM.create_resource(
         api.create_network(
             {'network':
-                 {'name': 'demo',
-                  'admin_state_up': 'True',
-                  'tenant_id': 'admin'}}
+                {'name': 'demo',
+                 'admin_state_up': 'True',
+                 'tenant_id': 'admin'}}
         )
     )
 
     VTM.create_resource(
         api.create_subnet(
             {'subnet':
-                 {'name': 'demo_subnet',
-                  'network_id': network['network']['id'],
-                  'ip_version': 4,
-                  'cidr': '172.16.1.0/24',
-                  'enable_dhcp': False}}
+                {'name': 'demo_subnet',
+                 'network_id': network['network']['id'],
+                 'ip_version': 4,
+                 'cidr': '172.16.1.0/24',
+                 'enable_dhcp': False}}
         )
     )
 
@@ -151,6 +154,7 @@ different scenarios by binding the virtual ports to different vms on different
 hosts.
 """
 
+
 class VT_one_net_two_ports(NeutronTopologyManager):
 
     def build(self, data=None):
@@ -192,6 +196,7 @@ class VT_one_net_two_ports(NeutronTopologyManager):
         port2 = self.create_resource(self.api.create_port(port2json))
         LOG.debug(port2)
 
+
 class PT_two_vms_on_separate_hosts(TopologyManager):
 
     def build(self, data=None):
@@ -222,13 +227,16 @@ class PT_two_vms_on_separate_hosts(TopologyManager):
 PTM2 = PT_two_vms_on_separate_hosts()
 VTM2 = VT_one_net_two_ports()
 
+
 def setup_2():
     PTM2.build()
     VTM2.build()
 
+
 def destroy_2():
     VTM2.destroy()
     PTM2.destroy()
+
 
 @nottest
 @with_setup(setup_2, destroy_2)
@@ -240,7 +248,7 @@ def test_icmp_topology_out_test_single_compute():
     port1 = VTM2.get_resource('port1')
     port2 = VTM2.get_resource('port2')
 
-     # Bind virtual and physical topology
+    # Bind virtual and physical topology
     vm1.compute_host.bind_port(vm1, port1['port']['id'])
     vm2.compute_host.bind_port(vm2, port2['port']['id'])
 
@@ -252,6 +260,7 @@ def test_icmp_topology_out_test_single_compute():
 
     wait_on_futures([f1, f2])
 
+
 @nottest
 @with_setup(setup_2, destroy_2)
 def test_icmp_topology_out_test_two_computes():
@@ -262,7 +271,7 @@ def test_icmp_topology_out_test_two_computes():
     port1 = VTM2.get_resource('port1')
     port2 = VTM2.get_resource('port2')
 
-     # Bind virtual and physical topology
+    # Bind virtual and physical topology
     vm1.compute_host.bind_port(vm1, port1['port']['id'])
     vm2.compute_host.bind_port(vm2, port2['port']['id'])
 
@@ -292,8 +301,8 @@ binding_singlehost = {
          'interface': 'vm1_host1'},
         {'vport': 'port2',
          'interface': 'vm2_host1'}
-        ]
-    }
+    ]
+}
 
 binding_multihost = {
     'description': 'two vms on different MMs',
@@ -302,10 +311,11 @@ binding_multihost = {
          'interface': 'vm1_host1'},
         {'vport': 'port2',
          'interface': 'vm2_host2'}
-        ]
-    }
+    ]
+}
 
 BM = BindingManager(PTM2, VTM2)
+
 
 @nottest
 @bindings(binding_singlehost,
@@ -386,6 +396,7 @@ binding_multihost_inbinding = {
 
 
 BM2 = BindingManager(None, VTM2)
+
 
 @nottest
 @bindings(binding_singlehost_inbinding,

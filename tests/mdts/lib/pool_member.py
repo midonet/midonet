@@ -17,6 +17,7 @@ from mdts.lib.admin_state_up_mixin import AdminStateUpMixin
 
 FIELDS = ['address', 'admin_state_up', 'protocol_port', 'weight']
 
+
 class PoolMember(ResourceBase, AdminStateUpMixin):
     def __init__(self, api, context, data, pool):
         """
@@ -48,4 +49,3 @@ class PoolMember(ResourceBase, AdminStateUpMixin):
 
     def get_weight(self):
         return self._data.get('weight')
-

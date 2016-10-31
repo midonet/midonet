@@ -16,6 +16,7 @@ from mdts.lib.resource_base import ResourceBase
 
 FIELDS = ['admin_state_up', 'delay', 'max_retries', 'timeout', 'type']
 
+
 class HealthMonitor(ResourceBase):
     def __init__(self, api, context, data):
         """

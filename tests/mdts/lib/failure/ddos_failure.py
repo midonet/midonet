@@ -19,6 +19,7 @@ from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)
 
+
 class DDoSFailure(FailureBase):
     """Emulate DDoS attach using bonesi
 
@@ -36,7 +37,7 @@ class DDoSFailure(FailureBase):
 
     def __init__(self, netns, interface, target, rate=1):
         super(DDoSFailure, self).__init__("ddos_failure %s %s %s" \
-                                              % (netns, interface, target))
+                                          % (netns, interface, target))
         self._netns = netns
         self._interface = interface
         self._target = target

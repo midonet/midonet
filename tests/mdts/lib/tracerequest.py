@@ -45,6 +45,7 @@ CONDFIELDS = [
     'fragment_policy',
 ]
 
+
 class TraceRequest(ResourceBase):
     def __init__(self, api, context, data):
         super(TraceRequest, self).__init__(api, context, data)
@@ -57,7 +58,7 @@ class TraceRequest(ResourceBase):
         if self._data.has_key('enabled'):
             self._mn_resource.set_enabled(self._data['enabled'])
         else:
-            self._mn_resource.set_enabled(false)
+            self._mn_resource.set_enabled(False)
 
         if self._data.has_key('port'):
             port = self._data['port']
@@ -88,4 +89,3 @@ class TraceRequest(ResourceBase):
 
     def get_id(self):
         return self._mn_resource.get_id()
-

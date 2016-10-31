@@ -38,6 +38,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class VT_vpn_three_sites(NeutronTopologyManager):
 
     # The topology builder creates the network virtual topology.
@@ -45,8 +46,8 @@ class VT_vpn_three_sites(NeutronTopologyManager):
     # for the specific test case. Helper methods are provided here though.
     def build(self, binding_data=None):
         if not (binding_data and
-                    'config' in binding_data and
-                    'tenants' in binding_data['config']):
+                'config' in binding_data and
+                'tenants' in binding_data['config']):
             raise RuntimeError("This topology should be used in a binding "
                                "with a 'config' key. This config should contain "
                                "a 'tenants' key specifying the tenants to use "
@@ -130,8 +131,8 @@ class VT_vpn_three_sites(NeutronTopologyManager):
             self.create_resource(
                 self.api.create_security_group_rule({
                     'security_group_rule': {
-                    'direction': 'ingress',
-                    'security_group_id': port['port']['security_groups'][0]}}))
+                        'direction': 'ingress',
+                        'security_group_id': port['port']['security_groups'][0]}}))
         except:
             LOG.debug('Security group already created... continuing.')
 
@@ -202,6 +203,7 @@ class VT_vpn_three_sites(NeutronTopologyManager):
             cnxn = self.create_resource(cnxn)
         return cnxn
 
+
 def pairwise_ping(port_names):
     for src, dst in itertools.permutations(port_names, 2):
         ping(src, dst, retries=2)
@@ -217,8 +219,8 @@ def ping(src, dst, expected_failure=False, retries=3):
         dst_vm = dst if not isinstance(dst, str) \
             else BM.get_interface_on_vport(dst)
         f1 = src_vm.ping_ipv4_addr(dst_vm.get_ip(update=True),
-                                      interval=1,
-                                      count=5)
+                                   interval=1, count=5)
+
         wait_on_futures([f1])
         output_stream, exec_id = f1.result()
         exit_status = src_vm.compute_host.check_exit_status(exec_id,
@@ -288,11 +290,11 @@ binding_multihost_inter_tenant.update({
         'description': 'on multiple MM (inter tenant)',
         'config': {
             'tenants': ('tenant_left', 'tenant_right', 'tenant_up')
-        }
-    })
+        }})
 
 VTM = VT_vpn_three_sites()
 BM = BindingManager(None, VTM)
+
 
 # TODO: add @skip_if decorator (or use the one from testtools)
 # so we skip under certain conditions. E.g.:
@@ -300,7 +302,6 @@ BM = BindingManager(None, VTM)
 # - an extension is not loaded
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
-
 def test_ping_between_three_sites():
 
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
@@ -359,6 +360,7 @@ def test_ping_between_three_sites():
     # Ping from right to up and viceversa
     ping('port_right', 'port_up')
     ping('port_up', 'port_right')
+
 
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
@@ -434,7 +436,7 @@ def test_ping_two_sites_two_subnets():
     VTM.api.update_ipsec_site_connection(
         right_to_left['ipsec_site_connection']['id'],
         body={'ipsec_site_connection':
-                  {'peer_cidrs': ['10.0.0.0/24', '10.1.0.0/24']}})
+              {'peer_cidrs': ['10.0.0.0/24', '10.1.0.0/24']}})
 
     # Check that old connections work
     ping('port_left', 'port_right')
@@ -443,6 +445,7 @@ def test_ping_two_sites_two_subnets():
     # Check that new connections work
     ping(new_vm, 'port_right')
     ping('port_right', new_vm)
+
 
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
@@ -493,6 +496,7 @@ def test_vpn_recreation():
     # Ping from left to right and viceversa works again
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
+
 
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
@@ -571,6 +575,7 @@ def test_admin_state_up_changes():
 
     # Check pairwise ping wors between all vms
     pairwise_ping(['port_left', 'port_right', 'port_up'])
+
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
@@ -670,6 +675,7 @@ def test_ipsec_container_failover():
     midolman3.eject_packet_loss('eth0')
     midolman3.wait_for_status('up')
 
+
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
 def test_non_vpn_subnet():
@@ -736,6 +742,7 @@ def test_non_vpn_subnet():
     ping(new_vm, 'port_right', expected_failure=True)
     ping('port_right', new_vm, expected_failure=True)
 
+
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
 def test_security_groups():
@@ -779,6 +786,7 @@ def test_security_groups():
     # Ping from left to right and viceversa
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
+
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
@@ -856,6 +864,7 @@ def test_container_migration():
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
 
+
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
 def test_container_restored_on_agent_restart():
@@ -931,6 +940,7 @@ def test_container_restored_on_agent_restart():
     # Ping from left to right and viceversa
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
+
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
@@ -1027,6 +1037,7 @@ def test_container_maintained_on_cluster_restart():
     # Ping from left to right and viceversa
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
+
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)

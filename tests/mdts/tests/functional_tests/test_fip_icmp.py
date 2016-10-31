@@ -26,6 +26,7 @@ import logging, pdb, re, time
 
 LOG = logging.getLogger(__name__)
 
+
 # Two private networks (net_1 & net_2) and a public network
 # Each network has one vm. Both vms have a floating ip.
 # The default security group allows all ingress udp traffic
@@ -170,6 +171,7 @@ binding_multihost = {
     ]
 }
 
+
 @attr(version="v1.2.0")
 @bindings(binding_multihost,
           binding_manager=BM)
@@ -199,6 +201,3 @@ def test_traceroute():
     for h in hops:
         assert_that(h, is_not(equal_to("*")),
                     "A traceroute probe failed %s" % output)
-
-
-

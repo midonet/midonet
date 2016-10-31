@@ -24,6 +24,7 @@ from time import sleep
 
 LOG = logging.getLogger(__name__)
 
+
 class BindingManager(TopologyManager):
 
     def __init__(self, ptm, vtm):

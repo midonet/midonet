@@ -31,6 +31,7 @@ from mdts.tests.utils import conf
 
 LOG = logging.getLogger(__name__)
 
+
 # This class is intended as a drop-in replacement for the docker.Client
 # class to allow executing commands through SSH instead of using Docker
 # API.
@@ -61,6 +62,7 @@ LOG = logging.getLogger(__name__)
 # options defined there in case no other value has been passed (note: not all
 # options are used by SSH client, only the previous ones listed)
 #
+
 class SshClient(object):
 
     def __init__(self, containers_file, extra_ssh_config_file):
@@ -100,7 +102,7 @@ class SshClient(object):
                     'type': container_config['Type']
                 },
                 'State': {
-                   'Running': 'running'
+                    'Running': 'running'
                 },
                 'NetworkSettings': {
                     'IPAddress': ip_address,
@@ -194,11 +196,11 @@ class SshClient(object):
 
     def _get_strict_host_key_checking_option(self, container_config):
         return self._get_option(container_config, 'StrictHostKeyChecking',
-                                               'stricthostkeychecking', 'yes')
+                                'stricthostkeychecking', 'yes')
 
     def _get_user_known_hosts_file(self, container_config):
         return self._get_option(container_config, 'UserKnownHostsFile',
-                                            'userknownhostsfile', '/dev/null')
+                                'userknownhostsfile', '/dev/null')
 
     def _get_ssh_connection(self, container_name):
         if container_name in self.ssh_connections:
@@ -221,6 +223,6 @@ class SshClient(object):
         except paramiko.ssh_exception.AuthenticationException:
             raise Exception("AuthenticationException while trying to " +
                             ("connect to %s container: %s with config %s" %
-                            (container_name, ssh_host_config)))
+                            (container_name, container_name, config)))
         self.ssh_connections[container_name] = ssh_connection
         return self.ssh_connections[container_name]

@@ -17,6 +17,7 @@ Virtual topology data class for a port group port.
 """
 from mdts.lib.resource_base import ResourceBase
 
+
 class PortGroupPort(ResourceBase):
 
     def __init__(self, api, context, parent_port_group, data):

@@ -20,6 +20,7 @@ from mdts.tests.utils import conf
 
 import neutronclient.neutron.client as neutron
 
+
 class NeutronHost(Service):
 
     def __init__(self, container_id):

@@ -18,6 +18,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class Mirror(ResourceBase):
 
     def __init__(self, api, context, data):

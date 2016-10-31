@@ -37,16 +37,16 @@ binding_l4state = {
     'description': 'on 3 MMs',
     'bindings': [
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'router-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
+            {'device_name': 'router-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 3,
-              'host_id': 3, 'interface_id': 1}},
-        ]
-    }
+            {'device_name': 'router-000-001', 'port_id': 3,
+             'host_id': 3, 'interface_id': 1}},
+    ]
+}
 
 
 def get_random_port_num():
@@ -200,6 +200,7 @@ def expect_return_dropped(dst_port_no):
 # Start/stop/wait for active ports only on the relevant agents to not introduce
 # unnecessary delays. Agents already take their time to restart so if we wait
 # too much we risk expiring keys on cassandra.
+
 
 def stop_midolman_agents():
     agents = [service.get_container_by_hostname('midolman1'),

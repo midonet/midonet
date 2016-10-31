@@ -19,6 +19,7 @@ from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)
 
+
 class ScanPortFailure(FailureBase):
     """Emulate port scan using mz
 
@@ -36,7 +37,7 @@ class ScanPortFailure(FailureBase):
     def __init__(self, netns, interface, src, dst, delay = '0', count = 0):
         super(ScanPortFailure, self)\
             .__init__("scan_port_failure %s %s %s %s %s %d" \
-                          % (netns, interface, src, dst, delay, count))
+                      % (netns, interface, src, dst, delay, count))
         self._netns = netns
         self._interface = interface
         self._proto = 'udp'

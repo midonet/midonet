@@ -179,8 +179,8 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         """
         mock_method.return_value = self._mock_ks_tenant
         self.load_topology_data({
-                'virtual_topology': {'tenant_name': 'MMM-TEST-000-001'}
-                })
+                'virtual_topology': {'tenant_name': 'MMM-TEST-000-001'}})
+
         self.assertEqual('08605861-3582-5365-915c-efcc7a589f33',
                          self._vtm.get_tenant_id())
         mock_method.assert_calledd_with('MMM-TEST-000-001')
@@ -194,8 +194,8 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         the given input data.
         """
         self.load_topology_data({
-                'virtual_topology': {'tenant_id': 'tenant_id_x'}
-                })
+                'virtual_topology': {'tenant_id': 'tenant_id_x'}})
+
         self.assertEqual('tenant_id_x', self._vtm.get_tenant_id())
 
     @patch('mdts.lib.tenants.get_or_create_tenant')
@@ -316,7 +316,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         self._vtm.look_up_resource(mock_referrer,
                 'out_ports',
                 [{'device_name': 'bridge-000-001', 'port_id': 1},
-                  '01e436f4-d6be-4218-8fca-415207da604d'])
+                 '01e436f4-d6be-4218-8fca-415207da604d'])
 
         self._vtm.get_device_port.assert_called_with('bridge-000-001', 1)
         mock_referrer.out_ports.assert_called_with(
@@ -327,10 +327,10 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         """Tests if lookup failure registers a resource reference."""
         self.mock_vtm_lookup_on_empty_topology('get_device_port', None)
         mock_referrer = MagicMock()
-        self._vtm.look_up_resource(mock_referrer,
-                'out_ports',
-                [{'device_name': 'bridge-000-001', 'port_id': 1},
-                 '01e436f4-d6be-4218-8fca-415207da604d'])
+        self._vtm.look_up_resource(
+            mock_referrer, 'out_ports',
+            [{'device_name': 'bridge-000-001', 'port_id': 1},
+             '01e436f4-d6be-4218-8fca-415207da604d'])
 
         self._vtm.get_device_port.assert_called_with('bridge-000-001', 1)
         self.assertIn(ResourceReference(
@@ -346,7 +346,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         mock_rule = self.register_mock_resource_reference(
                 'out_ports',
                 [{'device_name': 'bridge-000-001', 'port_id': 1},
-                  '01e436f4-d6be-4218-8fca-415207da604d'])
+                 '01e436f4-d6be-4218-8fca-415207da604d'])
         self._vtm.build()
 
         self._vtm.get_device_port.assert_called_with('bridge-000-001', 1)

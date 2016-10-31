@@ -37,16 +37,16 @@ binding_multihost = {
     'description': 'spanning across multiple MMs',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
+            {'device_name': 'router-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 3,
-              'host_id': 2, 'interface_id': 3}},
-        ]
-    }
+            {'device_name': 'router-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 3}},
+    ]
+}
 
 
 @attr(version="v1.2.0")

@@ -42,6 +42,7 @@ else:
           conf.containers_file())
     cli = SshClient(conf.containers_file(), conf.extra_ssh_config_file())
 
+
 class Service(object):
 
     def __init__(self, container_id):
@@ -347,6 +348,7 @@ class Service(object):
     def delete_file(self, filename):
         self.exec_command("rm -f %s" % filename)
 
+
 def load_from_id(container_id):
     container_info = cli.inspect_container(container_id)
     fqn = container_info['Config']['Labels']['interface']
@@ -357,6 +359,7 @@ def load_from_id(container_id):
 
 loaded_containers = None
 
+
 def get_container_by_hostname(container_hostname):
     global loaded_containers
     if not loaded_containers:
@@ -366,6 +369,7 @@ def get_container_by_hostname(container_hostname):
             if container.get_hostname() == container_hostname:
                 return container
     raise RuntimeError('Container %s not found or loaded' % container_hostname)
+
 
 # FIXME: this factory is not the best option
 def get_all_containers(container_type=None, include_failed=False):

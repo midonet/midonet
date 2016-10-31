@@ -21,6 +21,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class NeutronTopologyManager(TopologyManager):
     """
     This is the topology manager for Neutron based APIs. It contains helper
@@ -144,7 +145,7 @@ class NeutronTopologyManager(TopologyManager):
             if not port_params.has_key('fixed_ips'):
                 port_params['fixed_ips'] = []
             port_params['fixed_ips'] = port_params['fixed_ips'] \
-                                       + [{"ip_address": f}]
+                + [{"ip_address": f}]
 
         port = self.create_resource(
             self.api.create_port({'port': port_params}))
@@ -164,5 +165,3 @@ class NeutronTopologyManager(TopologyManager):
                 }))
         except:
             pass
-
-

@@ -33,25 +33,26 @@ binding_onehost = {
     'description': 'on single MM',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        ]
-    }
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}},
+    ]
+}
 
 binding_multihost = {
     'description': 'spanning across multiple MMs',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
-        ]
-    }
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 1}},
+    ]
+}
+
 
 @nottest # disabling for now
 @attr(version="v1.2.0")
@@ -85,8 +86,9 @@ def test_filter_ipv6():
                  "87:00:32:26:00:00:00:00:fe:80:00:00:00:00:00:00:1a:03:73:ff:"
                  "fe:29:a9:b2:01:01:18:03:73:29:a9:b1")
 
-    packet = '%s-%s-%s-%s' % (iface2_hw_addr, iface1_hw_addr,
-                                ipv6_proto, ipv6_icmp)
+    packet = '%s-%s-%s-%s' % (iface2_hw_addr, iface1_hw_addr, ipv6_proto,
+                              ipv6_icmp)
+
     rcv_filter = 'ether dst %s' % iface2_hw_addr
 
     # Sceneario 1:

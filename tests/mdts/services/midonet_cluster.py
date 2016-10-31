@@ -21,6 +21,7 @@ import logging, time
 
 LOG = logging.getLogger(__name__)
 
+
 class MidonetClusterHost(Service):
     def __init__(self, container_id):
         super(MidonetClusterHost, self).__init__(container_id)
@@ -69,4 +70,3 @@ class MidonetClusterHost(Service):
         monitor = JMXMonitor()
         monitor.connect(self.get_ip_address(), 7201)
         return monitor
-

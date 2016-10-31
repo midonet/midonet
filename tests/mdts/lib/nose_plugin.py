@@ -30,6 +30,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class Mdts(Plugin):
     """
     Mdts nose plugin to collect logs upon failure.

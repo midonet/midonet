@@ -14,6 +14,7 @@
 
 import subprocess
 
+
 # mostly copy from Lib/subprocess.py, Python 2.7.3
 def check_output(*popenargs, **kwargs):
     if 'stdout' in kwargs:

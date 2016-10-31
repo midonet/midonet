@@ -39,17 +39,17 @@ binding_multihost = {
     'description': 'spanning across multiple MMs (equal weight, sender on different subnet)',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 4}},
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 1, 'interface_id': 4}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'bridge-000-002', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 3,
-              'host_id': 3, 'interface_id': 2}},
+            {'device_name': 'bridge-000-002', 'port_id': 3,
+             'host_id': 3, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-003', 'port_id': 1,
-              'host_id': 1, 'interface_id': 7}}
+            {'device_name': 'bridge-000-003', 'port_id': 1,
+             'host_id': 1, 'interface_id': 7}}
     ],
     'vips': {
         'non_sticky_vip': '100.100.2.8',
@@ -63,17 +63,17 @@ binding_multihost_same_subnet = {
     'description': 'spanning across multiple MMs (equal weight, sender on same subnet)',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 4}},
+            {'device_name': 'bridge-000-002', 'port_id': 1,
+             'host_id': 1, 'interface_id': 4}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'bridge-000-002', 'port_id': 2,
+             'host_id': 2, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 3,
-              'host_id': 3, 'interface_id': 2}},
+            {'device_name': 'bridge-000-002', 'port_id': 3,
+             'host_id': 3, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 4,
-              'host_id': 1, 'interface_id': 8}}
+            {'device_name': 'bridge-000-002', 'port_id': 4,
+             'host_id': 1, 'interface_id': 8}}
     ],
     'vips': {
         'non_sticky_vip': '100.100.2.8',
@@ -87,17 +87,17 @@ binding_multihost_weighted = {
     'description': 'spanning across multiple MMs (different weights)',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 1,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 3, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 3, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-003', 'port_id': 1,
-              'host_id': 1, 'interface_id': 7}}
+            {'device_name': 'bridge-000-003', 'port_id': 1,
+             'host_id': 1, 'interface_id': 7}}
     ],
     'vips': {
         'non_sticky_vip': '100.100.1.8',
@@ -212,6 +212,7 @@ def start_server(backend_num):
     backend_if.compute_host.ensure_command_running(exec_id)
     SERVERS.setdefault(backend_num, backend_if)
 
+
 def stop_server(backend_num):
     global SERVERS
     backend_if = SERVERS[backend_num]
@@ -225,6 +226,7 @@ def stop_server(backend_num):
     ))
     del SERVERS[backend_num]
 
+
 def start_servers():
     for backend_num in range(1, NUM_BACKENDS + 1):
         start_server(backend_num)
@@ -232,12 +234,14 @@ def start_servers():
     lb_pools = VTM.get_load_balancer('lb-000-001').get_pools()
     get_current_leader(lb_pools)
 
+
 def stop_servers():
     global SERVERS
     for backend_num in range(1, NUM_BACKENDS + 1):
         stop_server(backend_num)
     SERVERS = dict()
     unset_filters('router-000-001')
+
 
 def make_request_to(sender, dest, timeout=10, src_port=None):
     global SRC_PORT
@@ -255,6 +259,7 @@ def make_request_to(sender, dest, timeout=10, src_port=None):
     LOG.debug("L4LB: request to %s. Response: %s" % (sender, result))
     return result
 
+
 def make_n_requests_to(sender, num_reqs, dest, timeout=30, src_port=None):
     # Executing a command on docker takes a non-trivial amount of time. Instead
     # of executing n command, execute only one with a loop to save that setup
@@ -271,6 +276,7 @@ def make_n_requests_to(sender, num_reqs, dest, timeout=30, src_port=None):
         SRC_PORT += num_reqs # to account for the loop in the cmd above
     return result.split('\n')
 
+
 def assert_request_succeeds_to(sender, dest, timeout=10):
     result = make_request_to(sender, dest, timeout)
     assert_that(result, is_not(equal_to('')))
@@ -279,6 +285,7 @@ def assert_request_succeeds_to(sender, dest, timeout=10):
 def assert_request_fails_to(sender, dest, timeout=10):
     result = make_request_to(sender, dest, timeout)
     assert_that(result, equal_to(''))
+
 
 # TODO: this function is replicated in several tests
 # Move to the utils package in a refactor patch
@@ -298,9 +305,11 @@ def set_filters(router_name, inbound_filter_name, outbound_filter_name):
     # Sleep here to make sure that the settings have been propagated.
     time.sleep(5)
 
+
 def unset_filters(router_name):
     """Unsets in-/out-bound filters from a router."""
     set_filters(router_name, None, None)
+
 
 def check_weighted_results(results):
     # check that the # of requests is higher according to the backend weight
@@ -315,11 +324,13 @@ def check_weighted_results(results):
               (ordered_results, ordered_weights))
     return zip(*ordered_results)[0] == zip(*ordered_weights)[0]
 
+
 def check_num_backends_hit(results, num_backends):
     LOG.debug("L4LB: checking %s contains %s backends",
               results,
               num_backends)
     return len(set(results)) == num_backends
+
 
 def get_current_leader(lb_pools, timeout = 60, wait_time=5):
     agents = service.get_all_containers('midolman')
@@ -354,6 +365,7 @@ def get_current_leader(lb_pools, timeout = 60, wait_time=5):
 
     raise RuntimeError('Not all haproxy instances found! '
                        'Only pools %s have an haproxy instance.' % haproxies)
+
 
 @attr(version="v1.3.0")
 @bindings(binding_multihost,
@@ -484,6 +496,7 @@ def test_disabling_topology_loadbalancing():
     disable_and_assert_traffic_fails(sender, action_loadbalancer, vips=vips)
     enable_and_assert_traffic_succeeds(sender, action_loadbalancer, vips=vips)
 
+
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_haproxy_failback():
@@ -536,6 +549,7 @@ def test_haproxy_failback():
                 True,
                 'L4LB: not all agents were elected as leaders %s' %
                 leaders_elected)
+
 
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
@@ -608,6 +622,7 @@ def test_health_monitoring_backend_failback():
     # Check that the three backends are alive
     assert_that(check_num_backends_hit(non_sticky_results, 3), True)
 
+
 @nottest
 @attr(version="v1.3.0")
 @bindings(binding_multihost)
@@ -675,4 +690,3 @@ def test_long_connection_loadbalancing():
     assert_request_fails_to(sender, vips['non_sticky_vip'])
 
     action_loadbalancer("enable")
-

@@ -34,6 +34,7 @@ UPLINK_VETH_MAC = '2e:0e:2f:68:00:11'
 DOWNLINK_VETH_MAC = '2e:0e:2f:68:00:22'
 DOWNLINK_VETH_MAC_2 = '2e:0e:2f:68:00:33'
 
+
 class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
     def cleanup_veth(self, container, name):
         cont = service.get_container_by_hostname(container)
@@ -166,8 +167,10 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         port.port_address(port_address)\
             .network_address(network_addr)\
             .network_length(network_len).create()
+
         def delete_mn_port(portid):
             self._midonet_api.delete_port(portid)
+
         self.addCleanup(delete_mn_port, port.get_id())
         self.set_resource(name, port)
         return port
@@ -186,13 +189,14 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         if port:
             route.next_hop_port(port)
         route.create()
+
         def delete_mn_route(routeid):
             self._midonet_api.delete_route(routeid)
         self.addCleanup(delete_mn_route, route.get_id())
 
     def get_mn_uplink_port_id(self, uplink_port):
         return str(uuid.UUID(int=uuid.UUID(uplink_port['id']).int ^
-                                 0x9c30300ec91f4f1988449d37e61b60f0L))
+                             0x9c30300ec91f4f1988449d37e61b60f0L))
 
     def flush_neighbours(self, container, interface):
         cont_services = service.get_container_by_hostname(container)
@@ -279,6 +283,7 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
                           port=mn_tenant_downlink.get_id())
         return self.vrf
 
+
 # Neutron topology with a single tenant and uplink
 # configured
 class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
@@ -287,8 +292,8 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
 
         pubnet = self.create_network("public", external=True)
         pubsubnet = self.create_subnet("publicsubnet",
-                                            pubnet,
-                                            "100.0.0.0/8")
+                                       pubnet,
+                                       "100.0.0.0/8")
 
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
@@ -306,6 +311,7 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
                          ip4fixed = "20.0.0.2",
                          tableId=vrf)
 
+
 # Neutron topology with a 3 tenants and uplink
 # configured
 class MultiTenantAndUplinkWithVPP(UplinkWithVPP):
@@ -314,8 +320,8 @@ class MultiTenantAndUplinkWithVPP(UplinkWithVPP):
 
         pubnet = self.create_network("public", external=True)
         pubsubnet = self.create_subnet("publicsubnet",
-                                            pubnet,
-                                            "100.0.0.0/8")
+                                       pubnet,
+                                       "100.0.0.0/8")
 
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
@@ -395,6 +401,7 @@ binding_multihost_multitenant = {
     ]
 }
 
+
 # Runs ping6 command with given ip6 address from given containter
 # Count provides the number of packets ping will send.
 # The number must be positive
@@ -405,6 +412,7 @@ def ping_from_inet(container, ipv6 = '2001::1', count=4, namespace=None):
         ipv6, count)
     cont_services = service.get_container_by_hostname(container)
     cont_services.try_command_blocking(cmd)
+
 
 @attr(version="v1.2.0")
 @bindings(binding_empty,
@@ -425,6 +433,7 @@ def test_ping_vm_ipv6():
     Title: ping a VM in a IPv4 neutron topology from a remote IPv6 endpoint
     """
     ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')
+
 
 @attr(version="v1.2.0")
 @bindings(binding_multihost_multitenant,

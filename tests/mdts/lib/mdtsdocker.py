@@ -16,6 +16,7 @@
 
 from docker import Client
 
+
 class DockerClient(Client):
     def __init__(self, base_url, timeout, sandbox_prefix, sandbox_name):
         super(DockerClient, self).__init__(base_url=base_url,
@@ -33,5 +34,3 @@ class DockerClient(Client):
         convert_name = lambda n: n.replace('/', '')[prefix_len:].split('_')[0]
         container_sandbox_names = map(convert_name, container['Names'])
         return self.sandbox_name in container_sandbox_names
-
-

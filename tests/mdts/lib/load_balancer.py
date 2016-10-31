@@ -18,6 +18,7 @@ from mdts.lib.resource_base import ResourceBase
 from mdts.lib.admin_state_up_mixin import AdminStateUpMixin
 from mdts.lib.router import Router
 
+
 class LoadBalancer(ResourceBase, AdminStateUpMixin):
     def __init__(self, api, context, data):
         """
@@ -73,4 +74,3 @@ class LoadBalancer(ResourceBase, AdminStateUpMixin):
         """
         self._router = router
         self._mn_resource.router_id(router._mn_resource.get_id())
-

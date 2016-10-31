@@ -52,8 +52,8 @@ binding_multihost = {
         {'binding':
             {'device_name': 'bridge-000-002', 'port_id': 2,
              'host_id': 2, 'interface_id': 2}},
-        ]
-    }
+    ]
+}
 
 
 def set_filters(router_name, inbound_filter_name, outbound_filter_name):
@@ -73,9 +73,11 @@ def set_filters(router_name, inbound_filter_name, outbound_filter_name):
     # Sleep here to make sure that the settings have been propagated.
     time.sleep(5)
 
+
 def unset_filters(router_name):
     """Unsets in-/out-bound filters from a router."""
     set_filters(router_name, None, None)
+
 
 def get_flow_traces(tr):
     rows = cassandra.execute(
@@ -83,6 +85,7 @@ def get_flow_traces(tr):
            WHERE tracerequestid = %s""",
         [UUID(tr)])
     return [str(r.flowtraceid) for r in rows]
+
 
 def get_hosts(tr, flowtraceid):
     rows = cassandra.execute(
@@ -94,6 +97,7 @@ def get_hosts(tr, flowtraceid):
         hosts.add(r.host)
     return hosts
 
+
 def feed_receiver_mac(receiver):
     """Feeds the receiver's mac address to the MidoNet router."""
     try:
@@ -101,11 +105,12 @@ def feed_receiver_mac(receiver):
         router_ip = router_port.get_mn_resource().get_port_address()
         receiver_ip = receiver.get_ip()
         f1 = async_assert_that(receiver, receives('dst host %s' % receiver_ip,
-                                                        within_sec(10)))
+                                                  within_sec(10)))
         receiver.send_arp_request(router_ip)
         wait_on_futures([f1])
     except:
         LOG.warn('Oops, sending ARP from the receiver VM failed.')
+
 
 @attr(version="v1.2.0")
 @bindings(binding_multihost)
@@ -147,6 +152,7 @@ def test_tracing_egress_matching():
         assert(len(get_hosts(tracerequest.get_id(), flowtraces[1])) == 2)
     finally:
         tracerequest.set_enabled(False)
+
 
 @attr(version="v1.2.0")
 @bindings(binding_multihost)
@@ -192,6 +198,7 @@ def test_tracing_egress_matching_over_nat():
     finally:
         tracerequest.set_enabled(False)
         unset_filters('router-000-001')
+
 
 @attr(version="v1.2.0")
 @bindings(binding_multihost)
@@ -255,4 +262,3 @@ def test_tracing_with_limit():
     finally:
         unset_filters('router-000-001')
         tracerequest.set_enabled(False)
-

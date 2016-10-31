@@ -21,6 +21,7 @@ from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)
 
+
 class NetifFailure(FailureBase):
     """Emulate network interface failure setting the interface down
 
@@ -39,7 +40,7 @@ class NetifFailure(FailureBase):
         cmdline =  "ip netns exec %s ip link set dev %s down"  \
             % (self._netns, self._interface)
         LOG.debug('set dev %s down in %s' \
-                      % (self._interface, self._netns))
+                  % (self._interface, self._netns))
         subprocess_compat.check_output(cmdline.split())
         time.sleep(self._wait)
 
@@ -47,6 +48,6 @@ class NetifFailure(FailureBase):
         cmdline =  "ip netns exec %s ip link set dev %s up"  \
             % (self._netns, self._interface)
         LOG.debug('set dev %s up in %s' \
-                      % (self._interface, self._netns))
+                  % (self._interface, self._netns))
         subprocess_compat.check_output(cmdline.split())
         time.sleep(self._wait)

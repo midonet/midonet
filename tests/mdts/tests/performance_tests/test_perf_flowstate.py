@@ -30,6 +30,7 @@ import pdb
 
 LOG = logging.getLogger(__name__)
 
+
 # Two private networks (net_1 & net_2) and a public network
 # Each network has one vm. The vm on net_2 has a floating ip.
 # The default security group allows all ingress udp traffic.
@@ -40,7 +41,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
 
     def build(self, binding_data=None):
         (public, public_subnet) = self.add_network('public', '1.0.0.0/8',
-                                                      '1.1.1.1', True)
+                                                   '1.1.1.1', True)
         (net1, subnet1) = self.add_network('net_1', '10.0.0.0/24', '10.0.0.1')
         (net2, subnet2) = self.add_network('net_2', '10.0.1.0/24', '10.0.1.1')
         self.add_port('port_1', net1['network']['id'])
@@ -184,11 +185,14 @@ def stop_metric_capture(name):
     stop_jfr('midolman1', name)
     stop_jfr('midolman2', name)
 
+
 def start_metric_capture_flow_state():
     start_metric_capture("perf_flow_state")
 
+
 def stop_metric_capture_flow_state():
     stop_metric_capture("perf_flow_state")
+
 
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_multihost,
@@ -220,5 +224,3 @@ def perf_flowstate():
             time.sleep(60)
     finally:
         sender.execute("pkill hping3")
-
-

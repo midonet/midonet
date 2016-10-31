@@ -47,14 +47,14 @@ binding_unisession = {
     'description': 'vm not connected to uplink',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 3, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 3, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
+            {'device_name': 'router-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 3,
-              'host_id': 2, 'interface_id': 2}},
+            {'device_name': 'router-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 2}},
     ]
 }
 
@@ -62,28 +62,29 @@ binding_snat = {
     'description': 'one connected to uplink #1 and another not connected',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 2, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        ]
-    }
+            {'device_name': 'router-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}},
+    ]
+}
 
 binding_multisession = {
     'description': 'two sessions in uplink #1 and one vm not in uplink',
     'bindings': [
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 2, 'interface_id': 1}},
         {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}}
+            {'device_name': 'router-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}}
     ]
 }
+
 
 # Even though quickly copied from test_nat_router for now, utilities below
 # should probably be moved to somewhere shared among tests
@@ -103,9 +104,11 @@ def set_filters(router_name, inbound_filter_name, outbound_filter_name):
     # Sleep here to make sure that the settings have been propagated.
     time.sleep(5)
 
+
 def unset_filters(router_name):
     """Unsets in-/out-bound filters from a router."""
     set_filters(router_name, None, None)
+
 
 def add_bgp(bgp_peers, networks):
     router = VTM.get_router('router-000-001')
@@ -125,9 +128,11 @@ def add_bgp(bgp_peers, networks):
 
     return peers[0] if len(peers) == 1 else peers
 
+
 def add_bgp_peer(peer):
     router = VTM.get_router('router-000-001')
     return router.add_bgp_peer(peer['peerAs'], peer['peerAddr'])
+
 
 def clear_bgp():
     router = VTM.get_router('router-000-001')
@@ -135,10 +140,12 @@ def clear_bgp():
     router.clear_bgp_peers()
     router.clear_asn()
 
+
 def clear_bgp_peer(peer, wait=0):
     peer.delete()
     if wait > 0:
         time.sleep(wait)
+
 
 def await_default_route(router, port, peerAddr):
     port_id = router.get_port(port)._mn_resource.get_id()
@@ -156,6 +163,7 @@ def await_default_route(router, port, peerAddr):
         timeout -= 1
     raise Exception("Timed out while waiting for BGP to be set up on router "
                     "{0} port {1} to peer {2}".format(router_id, port_id, peerAddr))
+
 
 def await_internal_route_exported(localAs, peerAs):
     quagga = service.get_container_by_hostname('quagga0')
@@ -204,6 +212,7 @@ def ping_to_inet(count=5, interval=1, port=2, retries=3):
             raise RuntimeError("Ping did not return any data and returned -1")
         LOG.debug("BGP: failed ping to inet... (%d retries left)" % retries)
         ping_to_inet(count, interval, port, retries - 1)
+
 
 @attr(version="v1.2.0")
 @bindings(binding_unisession)
@@ -311,6 +320,7 @@ def test_icmp_failback():
     await_internal_route_exported(64513, 64512)
     ping_to_inet()  # BGP #2 is back
 
+
 @attr(version="v1.2.0")
 @bindings(binding_unisession)
 @with_setup(None, clear_bgp)
@@ -363,6 +373,7 @@ def test_mn_1172():
     finally:
         unset_filters('router-000-001')
 
+
 @bindings(binding_multisession)
 @with_setup(None, clear_bgp)
 def test_multisession_icmp_add_session():
@@ -381,6 +392,7 @@ def test_multisession_icmp_add_session():
     add_bgp_peer(uplink1_session2) # peerAS 2
 
     ping_to_inet() # BGP session #1 is still working and nothing breaks
+
 
 @bindings(binding_multisession)
 @with_setup(None, clear_bgp)
@@ -409,6 +421,7 @@ def test_multisession_icmp_remove_session():
     clear_bgp_peer(peers[1], 5)
 
     ping_to_inet()
+
 
 # FIXME: see issue MI-685
 @attr(version="v1.2.0")
@@ -464,6 +477,7 @@ def test_multisession_icmp_failback():
         failure.eject()
 
     ping_to_inet()  # BGP #2 is back
+
 
 # FIXME: see issue MI-186
 @attr(version="v1.2.0")
@@ -525,4 +539,3 @@ def test_multisession_icmp_with_redundancy():
 
     for failure in failures:
         failure.eject()
-

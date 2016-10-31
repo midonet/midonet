@@ -20,6 +20,7 @@ LOG = logging.getLogger(__name__)
 
 _jvm_initialized = False
 
+
 def initjvm():
     global _jvm_initialized
     if (not _jvm_initialized):

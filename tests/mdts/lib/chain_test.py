@@ -79,7 +79,7 @@ class ChainTest(unittest.TestCase):
         self._chain = Chain(self._api, self._context, self._chain_data)
         self._chain._get_tenant_id = MagicMock(return_value = 'tenant_0')
         self._chain.build()
-        
+
     def test_load_empty_chain(self):
         """ Tests if empty rule chain data can be correctly loaded. """
         self._load_chain_data(self._empty_chain)
@@ -87,7 +87,7 @@ class ChainTest(unittest.TestCase):
         self._mock_chain.tenant_id.assert_called_with('tenant_0')
         self._mock_chain.name.assert_called_with('in_filter_001')
         self._mock_chain.create.assert_called_with()
-        
+
     def test_load_rule_chain(self):
         """ Tests if rule chain data can be correctly loaded from the yaml
             file and corresponding resource creation / update operations are
