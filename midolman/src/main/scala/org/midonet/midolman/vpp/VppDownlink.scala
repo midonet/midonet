@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.vpp
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{TimeUnit, TimeoutException}
 import java.util.{UUID, BitSet => JBitSet}
 
@@ -28,7 +29,7 @@ import akka.actor.Actor
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
-import rx.{Observable, Observer, Subscriber}
+import rx.{Observable, Observer, Subscriber, Subscription}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.StateTable.Update
@@ -37,7 +38,7 @@ import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.models.Topology.{Rule => TopologyRule}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.rules.{Nat64Rule, NatTarget, Rule}
-import org.midonet.midolman.services.MidolmanActorsService.ChildActorStopTimeout
+import org.midonet.midolman.services.MidolmanActorsService.{ChildActorStartTimeout, ChildActorStopTimeout}
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.{StoreObjectReferenceTracker, VirtualTopology}
 import org.midonet.midolman.vpp.VppDownlink.{DownlinkState, Notification}
@@ -386,13 +387,14 @@ private[vpp] trait VppDownlink { this: Actor =>
 
     protected def log: Logger
 
+    private val started = new AtomicBoolean(false)
     private val downlinks = new mutable.HashMap[UUID, DownlinkState]
     private val scheduler = Schedulers.from(vt.vtExecutor)
 
     // We pre-allocate the VRF bit set with for up to 16,384 downlink ports.
     private val vrfs = new JBitSet(0x4000)
 
-    private val tableSubscriber = new Subscriber[Update[Fip64Entry, AnyRef]] {
+    private val tableObserver = new Observer[Update[Fip64Entry, AnyRef]] {
         override def onNext(update: Update[Fip64Entry, AnyRef]): Unit = {
             update match {
                 case Update(entry, null, DefaultValue) =>
@@ -416,6 +418,19 @@ private[vpp] trait VppDownlink { this: Actor =>
             complete()
         }
     }
+    private var tableSubscription: Subscription = _
+
+    private val fip64Table = vt.backend.stateTableStore
+        .getTable[Fip64Entry, AnyRef](MidonetBackend.Fip64Table)
+
+    private val startRunnable = makeRunnable {
+        if (tableSubscription ne null) {
+            tableSubscription.unsubscribe()
+        }
+        tableSubscription = fip64Table.observable.observeOn(scheduler)
+                                      .subscribe(tableObserver)
+    }
+    private val stopRunnable = makeRunnable { complete() }
 
     /**
       * Creates a new downlink observer for the specified downlink port.
@@ -446,30 +461,48 @@ private[vpp] trait VppDownlink { this: Actor =>
     }
 
     /**
-      * @see [[Actor.preStart()]]
+      * Starts monitoring the downlink ports.
       */
-    override def preStart(): Unit = {
-        log debug s"Subscribing to FIP64 table"
-        val table = vt.backend.stateTableStore
-            .getTable[Fip64Entry, AnyRef](MidonetBackend.Fip64Table)
-        table.observable.observeOn(scheduler).subscribe(tableSubscriber)
+    protected def startDownlink(): Unit = {
+        if (started.compareAndSet(false, true)) {
+            log debug s"Subscribing to FIP64 table"
+            // Submit a start task on the VT thread (needed for synchronization).
+            val startFuture = vt.vtExecutor.submit(startRunnable)
+
+            // Wait on the start to complete.
+            // Wait on the stop to complete.
+            try startFuture.get(ChildActorStartTimeout.toMillis,
+                                TimeUnit.MILLISECONDS)
+            catch {
+                case e: TimeoutException =>
+                    startFuture.cancel(false)
+                    log warn "Starting FIP64 downlinks timed out"
+                case NonFatal(e) =>
+                    log.warn("Unhandled exception when starting FIP64 " +
+                             "downlinks", e)
+            }
+        }
     }
 
     /**
-      * @see [[Actor.postStop()]]
+      * Stops monitoring the downlink ports.
       */
-    override def postStop(): Unit = {
-        // Submit a completion task on the VT thread (needed for synchronization).
-        val cleanupFuture = vt.vtExecutor.submit(makeRunnable { complete() })
+    protected def stopDownlink(): Unit = {
+        if (started.compareAndSet(true, false)) {
+            // Submit a stop task on the VT thread (needed for synchronization).
+            val stopFuture = vt.vtExecutor.submit(stopRunnable)
 
-        // Wait on the cleanup to complete.
-        try cleanupFuture.get(ChildActorStopTimeout.toMillis,
-                              TimeUnit.MILLISECONDS)
-        catch {
-            case e: TimeoutException =>
-                log warn s"Stopping FIP64 downlinks timed out"
-            case NonFatal(e) =>
-                log.warn(s"Unhandled exception when stopping FIP64 downlinks", e)
+            // Wait on the stop to complete.
+            try stopFuture.get(ChildActorStopTimeout.toMillis,
+                               TimeUnit.MILLISECONDS)
+            catch {
+                case e: TimeoutException =>
+                    stopFuture.cancel(false)
+                    log warn "Stopping FIP64 downlinks timed out"
+                case NonFatal(e) =>
+                    log.warn("Unhandled exception when stopping FIP64 " +
+                             "downlinks", e)
+            }
         }
     }
 
@@ -529,11 +562,15 @@ private[vpp] trait VppDownlink { this: Actor =>
       * will emit the necessary cleanup notifications.
       */
     private def complete(): Unit = {
-        tableSubscriber.unsubscribe()
+        if (tableSubscription ne null) {
+            tableSubscription.unsubscribe()
+            tableSubscription = null
+        }
 
         for (state <- downlinks.values) {
             state.complete()
         }
+        downlinks.clear()
     }
 
 }

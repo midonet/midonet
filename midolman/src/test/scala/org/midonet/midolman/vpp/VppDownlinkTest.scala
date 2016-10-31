@@ -59,8 +59,23 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
     private class TestableVppDownlink extends Actor with VppDownlink {
         override def vt = VppDownlinkTest.this.vt
         override val log = Logger(LoggerFactory.getLogger("vpp-downlink"))
+
         override def receive: Receive = {
             case m => log debug s"Received message $m"
+        }
+
+        def start(): Unit = startDownlink()
+
+        def stop(): Unit = stopDownlink()
+
+        override def preStart(): Unit = {
+            super.preStart()
+            startDownlink()
+        }
+
+        override def postStop(): Unit = {
+            stopDownlink()
+            super.postStop()
         }
     }
 
@@ -657,6 +672,104 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             actor.messages should have size 4
             actor.messages(2) shouldBe disassociateFip(port, entry, 0)
             actor.messages(3) shouldBe DeleteDownlink(port.getId, 0)
+        }
+    }
+
+    feature("VPP downlink lifecycle") {
+        scenario("Messages are not received after stop") {
+            Given("A VPP downlink actor")
+            val (actor, ref) = createVppDownlink()
+
+            And("A port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId))
+            val rule = createNat64Rule(portId = Some(port.getId),
+                                       portAddress = Some(randomSubnet6()),
+                                       natPool = Some(createNatTarget()))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
+                                    CreateOp(rule)))
+
+            When("Stopping the downlink")
+            actor.stop()
+
+            And("Adding a new port to the downlink table")
+            addEntry(port.getId, router.getId)
+
+            Then("The VPP downlink should not receive any notification")
+            actor.messages shouldBe empty
+        }
+
+        scenario("Messages are received after restart") {
+            Given("A VPP downlink actor")
+            val (actor, ref) = createVppDownlink()
+
+            And("A port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId))
+            val rule = createNat64Rule(portId = Some(port.getId),
+                                       portAddress = Some(randomSubnet6()),
+                                       natPool = Some(createNatTarget()))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
+                                    CreateOp(rule)))
+
+            When("Stopping the downlink")
+            actor.stop()
+
+            And("Adding a new port to the downlink table")
+            val entry = addEntry(port.getId, router.getId)
+
+            And("Starting the downlink again")
+            actor.start()
+
+            Then("The actor should not receive a Create notification")
+            actor.messages should have size 2
+            actor.messages.head shouldBe createDownlink(port, rule, 0)
+            actor.messages(1) shouldBe associateFip(port, entry, 0)
+
+            gracefulStop(ref, 5 seconds)
+        }
+
+        scenario("State is cleaned at stop") {
+            Given("A VPP downlink actor")
+            val (actor, ref) = createVppDownlink()
+
+            And("A port")
+            val router = createRouter()
+            val port1 = createRouterPort(routerId = Some(router.getId))
+            val rule1 = createNat64Rule(portId = Some(port1.getId),
+                                        portAddress = Some(randomSubnet6()),
+                                        natPool = Some(createNatTarget()))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port1),
+                                    CreateOp(rule1)))
+
+            When("Adding a new port to the downlink table")
+            val entry1 = addEntry(port1.getId, router.getId)
+
+            And("Stopping the downlink")
+            actor.stop()
+
+            And("Removing the first entry")
+            removeEntry(entry1)
+
+            And("Creating a new port")
+            val port2 = createRouterPort(routerId = Some(router.getId))
+            val rule2 = createNat64Rule(portId = Some(port2.getId),
+                                        portAddress = Some(randomSubnet6()),
+                                        natPool = Some(createNatTarget()))
+            backend.store.multi(Seq(CreateOp(port2), CreateOp(rule2)))
+
+            And("Adding the second port to the downlink table")
+            val entry2 = addEntry(port2.getId, router.getId)
+
+            And("Starting the downlink")
+            actor.start()
+
+            Then("The actor should only receive the second port")
+            actor.messages should have size 6
+            actor.messages(4) shouldBe createDownlink(port2, rule2, 0)
+            actor.messages(5) shouldBe associateFip(port2, entry2, 0)
+
+            gracefulStop(ref, 5 seconds)
         }
     }
 }
