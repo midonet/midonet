@@ -332,6 +332,73 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         extNw2ArpTable.stop()
     }
 
+    it should "create a FIP on a second subnet in an ext net" in {
+        // Create external network with 2 subnets
+        val extNw1Id = createTenantNetwork(10, external = true)
+        val extSnId1 = createSubnet(20, extNw1Id, "200.0.0.0/24",
+            gatewayIp = "200.0.0.1")
+        val extSnId2 = createSubnet(30, extNw1Id, "200.0.1.0/24",
+            gatewayIp = "200.0.1.1")
+        // Create the private network
+        val prvNwId = createTenantNetwork(40)
+        val prvNwSnId = createSubnet(50, prvNwId, "10.0.0.0/24",
+            gatewayIp = "10.0.0.1")
+        // Create the private port
+        val vifIp1 = "10.0.0.3"
+        val vifPort1Id = createVifPort(70, prvNwId,
+            fixedIps = Seq(IPAlloc(vifIp1, prvNwSnId)))
+
+        // Create the second private port
+        val vifIp2 = "10.0.0.4"
+        val vifPort2Id = createVifPort(71, prvNwId,
+            fixedIps = Seq(IPAlloc(vifIp2, prvNwSnId)))
+
+        // Hook router up to ext net
+        val rGwMac = "10:00:00:00:00:02"
+        val rGwPortId = createRouterGatewayPort(90, extNw1Id, "200.0.0.2",
+            rGwMac, extSnId1)
+        val rtrId = createRouter(100, gwPortId = rGwPortId)
+        eventually(storage.exists(classOf[Router], rtrId).await() shouldBe true)
+        // Hook private net up to router
+        val prvNwRifPortId = createRouterInterfacePort(
+            130, prvNwId, prvNwSnId, rtrId, "10.0.0.2", "30:00:00:00:00:02")
+        createRouterInterface(140, rtrId, prvNwRifPortId, prvNwSnId)
+        eventually {
+            val prvNwRifPeerPortId =
+                routerInterfacePortPeerId(toProto(prvNwRifPortId))
+            storage.exists(classOf[Port], prvNwRifPeerPortId)
+              .await() shouldBe true
+        }
+
+        val extNw1ArpTable = stateTableStorage.bridgeArpTable(extNw1Id)
+        eventually(extNw1ArpTable.start())
+
+        // First FIP
+        val extNw1FipIp = "200.0.1.3"
+        val extNw1FipId = createFip(
+            160, extNw1Id, extNw1FipIp, fixedIp = vifIp1,
+            rtrId = rtrId, portId = vifPort1Id)
+
+        // Second FIP
+        val extNw2FipIp = "200.0.0.3"
+        val extNw2FipId = createFip(
+            161, extNw1Id, extNw2FipIp, fixedIp = vifIp2,
+            rtrId = rtrId, portId = vifPort2Id)
+
+        eventually {
+            checkFipAssociated(extNw1ArpTable, extNw1FipIp, extNw1FipId,
+                vifIp1, vifPort1Id, rtrId, rGwMac,
+                tenantGwPortId(toProto(rGwPortId)))
+            checkNeutronPortFipBackref(vifPort1Id, extNw1FipId)
+
+            checkFipAssociated(extNw1ArpTable, extNw2FipIp, extNw2FipId,
+                vifIp2, vifPort2Id, rtrId, rGwMac,
+                tenantGwPortId(toProto(rGwPortId)))
+            checkNeutronPortFipBackref(vifPort2Id, extNw2FipId)
+        }
+        extNw1ArpTable.stop()
+    }
+
     private def checkFipAssociated(arpTable: StateTable[IPv4Addr, MAC],
                                    fipAddr: String, fipId: UUID,
                                    fixedIp: String, vifPortId: UUID,
