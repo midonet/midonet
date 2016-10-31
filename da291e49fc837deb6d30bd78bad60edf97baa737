@@ -22,6 +22,30 @@
       "revId": "da291e49fc837deb6d30bd78bad60edf97baa737",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_96905198",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-31T15:49:48Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand, so the future of the previous operation is not used here\n\nthe idea here was to execute this block sequentially, after the initialization of the uplink, i.e. we only start monitoring the downlinks after the vpp controller completes the initialization of at least one uplink port",
+      "parentUuid": "baa041b7_7b7ed8b0",
+      "range": {
+        "startLine": 210,
+        "startChar": 40,
+        "endLine": 210,
+        "endChar": 47
+      },
+      "revId": "da291e49fc837deb6d30bd78bad60edf97baa737",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
