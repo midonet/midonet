@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_5bb8b411",
+        "filename": "docs/ip6-vxlan-model-change.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-31T14:07:31Z",
+      "side": 1,
+      "message": "should be this be done by the agent running at the gateway? in this way, the table would only contain the live uplink",
+      "range": {
+        "startLine": 128,
+        "startChar": 3,
+        "endLine": 128,
+        "endChar": 47
+      },
+      "revId": "351f1dc0051a0ce5933cd9caf074ab048ff6afe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fb0b08d4",
+        "filename": "docs/ip6-vxlan-model-change.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-31T14:07:31Z",
+      "side": 1,
+      "message": "maybe make this a VirtualFlowAction rather than simulation result",
+      "range": {
+        "startLine": 129,
+        "startChar": 30,
+        "endLine": 129,
+        "endChar": 47
+      },
+      "revId": "351f1dc0051a0ce5933cd9caf074ab048ff6afe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5beb14dd",
+        "filename": "docs/ip6-vxlan-model-change.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-10-31T14:07:31Z",
+      "side": 1,
+      "message": "the IPv6 port type could be optional perhaps (but not really sure), this could just modify the RouterPort.egressCommon, such that if the port has an ipv6 address we add the IPv6 flow action using the port\u0027s tunnel key and loading the uplinks from global map\n\nnote: a port\u0027s default action is a field in the Port trait\n\n  val action \u003d ToPortAction(id)\n\nI guess an IPv6 should just modify this, and ensure the action is applied in Port.emit",
+      "range": {
+        "startLine": 148,
+        "startChar": 0,
+        "endLine": 149,
+        "endChar": 70
+      },
+      "revId": "351f1dc0051a0ce5933cd9caf074ab048ff6afe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
