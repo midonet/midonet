@@ -230,7 +230,7 @@ class Interface(object):
 
     def verify_bandwidth(self, target_iface, max_kbps, burst_kb,
                          wait_for_burst=True, xfer_seconds=10,
-                         allowed_lag=0.15, allowed_lead=0.05, tcp_port=10000):
+                         allowed_lag=0.2, allowed_lead=0.05, tcp_port=10000):
         """
         Verifies bandwidth for traffic to target_iface.
 
@@ -265,7 +265,7 @@ class Interface(object):
             time.sleep(float(burst_kb) / max_kbps)
 
         data_size = (burst_kb + max_kbps * xfer_seconds) * 1000 / 8
-        max_time = (1 + allowed_lag) * xfer_seconds
+        max_time = (1 + allowed_lag) * xfer_seconds + 1
         min_time = (1 - allowed_lead) * xfer_seconds
 
         tmp_file = '/tmp/test_qos_data.txt'
