@@ -25,21 +25,54 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
+import com.google.inject.Guice
+import com.typesafe.config.ConfigFactory
+
+import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
 import org.junit.Assert
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.FeatureSpec
+import org.scalatest.{FeatureSpec}
 import org.slf4j.LoggerFactory
 
 import org.midonet.ErrorCode
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.storage.{MidonetBackendTestModule, MidonetTestBackend}
+import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.conf.HostIdGenerator
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{Datapath, OvsNetlinkFamilies, OvsProtocol}
-import org.midonet.packets.{IPAddr, IPSubnet, MAC}
+import org.midonet.packets._
 
 @RunWith(classOf[JUnitRunner])
-class VppIntegrationTest extends FeatureSpec {
-    val log = LoggerFactory.getLogger(classOf[VppIntegrationTest])
+class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
+    private final val rootPath = "/midonet/test"
+    private var zkServer: TestingServer = _
+    private var backEnd: MidonetBackend = _
+    private val log = LoggerFactory.getLogger(classOf[VppIntegrationTest])
+
+    def setupStorage(): Unit = {
+        zkServer = new TestingServer
+        zkServer.start()
+
+        val config = ConfigFactory.parseString(
+            s"""
+           |zookeeper.zookeeper_hosts : "${zkServer.getConnectString}"
+           |zookeeper.buffer_size : 524288
+           |zookeeper.base_retry : 1s
+           |zookeeper.max_retries : 10
+           |zookeeper.root_key : "$rootPath"
+            """.stripMargin)
+
+        val
+        injector = Guice.createInjector(new MidonetBackendTestModule(
+            config))
+        val  curator = injector.getInstance(classOf[CuratorFramework])
+        backEnd = new  MidonetTestBackend(curator)
+        backEnd.startAsync().awaitRunning()
+    }
 
     def startVpp(): Process = {
         log.info("Start VPP")
@@ -431,6 +464,51 @@ class VppIntegrationTest extends FeatureSpec {
                 setup foreach { s => Await.result(s.rollback, 1 minute) }
                 deleteNamespace(uplinkns)
                 deleteDatapath(datapath)
+                api.close()
+                proc.destroy()
+            }
+        }
+    }
+
+    feature("VPP downlink Setup") {
+
+        scenario("VPP sets up downlink port") {
+            setupStorage()
+            log.info("Creating dummy tenant router with one port")
+            val routerId: Option[UUID] = Some(UUID.randomUUID())
+            val router = this.createRouter(routerId.get, None, Some("tenant1"))
+            backEnd.store.create(router)
+
+            val routerPortId = UUID.randomUUID()
+            val port = this.createRouterPort(routerPortId, routerId)
+            backEnd.store.create(port)
+            val vpp_downlink = "ovs-"+ routerPortId.toString().substring(0, 8)
+
+            val currentHostId = HostIdGenerator.getHostId()
+            log info "Adding current host to the storage"
+            val host = this.createHost(currentHostId)
+            backEnd.store.create(host)
+
+            val proc = startVpp()
+            Thread.sleep(1000)
+            val api = new VppApi("test")
+
+            var setup: Option[VppDownlinkSetup] = None
+            try {
+                val fixedIp = IPv4Addr.fromString("169.254.0.3")
+                val floatingIp = IPv6Addr.fromString("2001::3")
+                setup = Some(new VppDownlinkSetup(routerPortId, 0,
+                                                  fixedIp,
+                                                  floatingIp,
+                                                  api,
+                                                  backEnd))
+                setup foreach { s => Await.result(s.execute, 1 minute) }
+                assertCmd(s"ip a add 169.254.0.4/24 " +
+                          s"dev ${vpp_downlink}")
+                log info "Pinging vpp interface"
+                assertCmd(s"ping -c 5 169.254.0.2")
+            } finally {
+                setup foreach { s => Await.result(s.rollback, 1 minute) }
                 api.close()
                 proc.destroy()
             }
