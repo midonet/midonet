@@ -55,8 +55,8 @@ import org.midonet.util.reactivex._
 
 object MidonetResource {
 
-    final val OkResponse = Response.ok().build()
-    final val OkNoContentResponse = Response.noContent().build()
+    final def OkResponse = Response.ok().build()
+    final def OkNoContentResponse = Response.noContent().build()
     final def OkCreated(uri: URI) = Response.created(uri).build()
     final def OkCreated(uri: URI, entity: UriResource) = {
         Response.created(uri).entity(entity).build()
