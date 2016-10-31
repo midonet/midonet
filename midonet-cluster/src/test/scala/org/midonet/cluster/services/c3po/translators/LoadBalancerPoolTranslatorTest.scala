@@ -95,7 +95,7 @@ class LoadBalancerPoolTranslatorCreateTest
         extends LoadBalancerPoolTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new LoadBalancerPoolTranslator(storage)
+        translator = new LoadBalancerPoolTranslator()
     }
 
     "Creation of a Pool" should "create an LB if it does not exists." in {
@@ -142,7 +142,7 @@ class LoadBalancerPoolTranslatorUpdateTest
         extends LoadBalancerPoolTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new LoadBalancerPoolTranslator(storage)
+        translator = new LoadBalancerPoolTranslator()
     }
 
     "UPDATE of a Pool with no Health Monitor ID" should "not add a Health " +

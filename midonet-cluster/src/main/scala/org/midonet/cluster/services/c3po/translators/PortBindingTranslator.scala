@@ -16,15 +16,14 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.Port
 
 /**
  * Translate port binding.
  */
-class PortBindingTranslator(protected val storage: ReadOnlyStorage)
-        extends Translator[PortBinding] with PortManager {
+class PortBindingTranslator extends Translator[PortBinding] with PortManager {
     /**
      * Creates a new port binding of a port to a host / interface, producing
      * an UPDATE operation on the port. Updates to the host are handled by

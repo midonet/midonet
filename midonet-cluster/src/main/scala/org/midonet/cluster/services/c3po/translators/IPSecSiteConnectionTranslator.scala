@@ -21,7 +21,7 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeSet
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.Topology.{Port, Route, ServiceContainer}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
@@ -30,9 +30,8 @@ import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers
 
-class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
-        extends Translator[IPSecSiteConnection]
-        with RouteManager {
+class IPSecSiteConnectionTranslator
+    extends Translator[IPSecSiteConnection] with RouteManager {
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,

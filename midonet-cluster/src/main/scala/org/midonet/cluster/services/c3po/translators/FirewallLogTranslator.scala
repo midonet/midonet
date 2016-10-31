@@ -18,16 +18,15 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FirewallLog, NeutronLoggingResource}
 import org.midonet.cluster.models.Topology.LoggingResource.Type
 import org.midonet.cluster.models.Topology.{Chain, LoggingResource, RuleLogger}
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.util.UUIDUtil.fromProto
 
-class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[FirewallLog] with ChainManager {
+class FirewallLogTranslator extends Translator[FirewallLog] with ChainManager {
 
     import FirewallLogTranslator._
 

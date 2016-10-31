@@ -18,15 +18,14 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConversions._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
+import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Neutron.{GatewayDevice, RemoteMacEntry}
 import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.{IPv4Addr, MAC}
 
-class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
-                               protected val stateTableStorage: StateTableStorage)
+class RemoteMacEntryTranslator(stateTableStorage: StateTableStorage)
     extends Translator[RemoteMacEntry] {
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
