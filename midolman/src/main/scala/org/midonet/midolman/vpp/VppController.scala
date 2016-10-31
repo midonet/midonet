@@ -18,12 +18,13 @@ package org.midonet.midolman.vpp
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import com.google.inject.Inject
@@ -32,7 +33,6 @@ import rx.subscriptions.CompositeSubscription
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.{Port, RouterPort}
@@ -62,10 +62,9 @@ object VppController extends Referenceable {
 }
 
 
-class VppController @Inject()(config: MidolmanConfig,
-                              upcallConnManager: UpcallDatapathConnectionManager,
+class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager,
                               datapathState: DatapathState,
-                              backEnd: MidonetBackend)
+                              backend: MidonetBackend)
     extends ReactiveActor[AnyRef]
     with ActorLogWithoutPath
     with SingleThreadExecutionContextProvider {
@@ -96,7 +95,17 @@ class VppController @Inject()(config: MidolmanConfig,
         }
     }
 
-    private val vrfCounter = new AtomicInteger(0)
+    private val eventHandler: PartialFunction[Any, Future[_]] = {
+        case LocalPortActive(portId, portNumber, true) =>
+            attachUplink(portId)
+        case LocalPortActive(portId, portNumber, false) =>
+            detachUplink(portId)
+        case OnCompleted =>
+            Future.successful(())
+        case OnError(e) =>
+            log.error("Exception on active ports observable", e)
+            Future.failed(e)
+    }
 
     override def preStart(): Unit = {
         super.preStart()
@@ -115,118 +124,99 @@ class VppController @Inject()(config: MidolmanConfig,
     }
 
     override def receive: Receive = super.receive orElse {
-        case LocalPortActive(portId, portNumber, true) =>
-            handlePortActive(portId)
-        case LocalPortActive(portId, portNumber, false) =>
-            handlePortInactive(portId)
-        case OnCompleted => // ignore
-        case OnError(err) => log.error("Exception on active ports observable",
-                                       err)
+        case m if eventHandler.isDefinedAt(m) =>
+            belt.handle(() => eventHandler(m))
         case m =>
             log warn s"Unknown message $m"
     }
 
-    private def handlePortActive(portId: UUID): Unit = {
+    private def attachLink(portId: UUID, port: RouterPort, setup: VppSetup)
+    : Future[_] = {
+        val boundPort = BoundPort(port, setup)
 
-        VirtualTopology.get(classOf[Port], portId) onComplete {
+        {
+            watchedPorts.put(portId, boundPort) match {
+                case Some(previousBinding) =>
+                    previousBinding.setup.rollback()
+                case None => Future.successful(Unit)
+            }
+        } andThen {
+            case _ => setup.execute()
+        } andThen {
+            case Failure(err) =>
+                setup.rollback()
+                watchedPorts.get(portId) match {
+                    case Some(p) if p == boundPort =>
+                        watchedPorts.remove(portId)
+                    case _ =>
+                }
+        }
+    }
+
+    private def detachLink(portId: UUID): Future[_] = {
+        watchedPorts remove portId match {
+            case Some(entry) =>
+                log debug s"FIP64 port $portId detached"
+                entry.setup.rollback()
+            case None => Future.successful(Unit)
+        }
+    }
+
+    private def attachUplink(portId: UUID): Future[_] = {
+        VirtualTopology.get(classOf[Port], portId) andThen {
             case Success(port: RouterPort) if isIPv6(port) =>
                 log debug s"IPv6 router port attached: $port"
-                attachUplinkPort(portId, port)
+                attachUplink(portId, port)
             case Success(_) => // ignore
             case Failure(err) =>
                 log warn s"Get port $portId failed: $err"
         }
     }
 
-    private def handlePortInactive(portId: UUID) {
-        detachPort(portId)
-    }
-
-    private def attachUplinkPort(portId: UUID, port: RouterPort): Unit = {
+    private def attachUplink(portId: UUID, port: RouterPort): Future[_] = {
         if (vppProcess eq null) {
             startVppProcess()
             vppApi = createApiConnection(VppConnectMaxRetries)
         }
 
         val dpNumber = datapathState.getDpPortNumberForVport(portId)
-        setupPort(portId, port, new VppUplinkSetup(port.id,
-                                                         dpNumber,
-                                                         vppApi,
-                                                         vppOvs))
+        attachLink(portId, port, new VppUplinkSetup(port.id, dpNumber, vppApi,
+                                                    vppOvs))
     }
 
-    def setupPort(portId: UUID, port: RouterPort, setup: VppSetup): Unit = {
-
-        def doSetup(): Future[_] = {
-            val boundPort = BoundPort(port, setup)
-
-            val unbindF = watchedPorts.put(portId, boundPort) match {
-                case Some(previousBinding) =>
-                    previousBinding.setup.rollback()
-                case None => Future.successful(Unit)
-            }
-            unbindF andThen {
-                case _ => setup.execute()
-            } andThen {
-                case Failure(err) =>
-                    setup.rollback()
-                    watchedPorts.get(portId) match {
-                        case Some(p) if p == boundPort =>
-                            watchedPorts.remove(portId)
-                        case _ =>
-                    }
-            }
-        }
-
-        belt.handle(doSetup)
+    private def detachUplink(portId: UUID): Future[_] = {
+        detachLink(portId)
     }
 
-    private def detachPort(portId: UUID): Unit = {
-        def cleanupPort(): Future[_] = {
-            watchedPorts remove portId match {
-                case Some(entry) =>
-                    log debug s"FIP64 port $portId detached"
-                    entry.setup.rollback()
-                case None => Future.successful(Unit)
-            }
-        }
-        belt.handle(cleanupPort)
-    }
-
-    private def attachDownlinkPort(portId: UUID,
-                                   port: RouterPort,
-                                   fixedIp: IPv4Addr,
-                                   floatingIp: IPv6Addr): Unit = {
+    private def attachDownlink(portId: UUID, port: RouterPort, vrf: Int,
+                               fixedIp: IPv4Addr, floatingIp: IPv6Addr)
+    : Future[_] = {
         if (vppProcess eq null) {
             startVppProcess()
             vppApi = createApiConnection(VppConnectMaxRetries)
         }
 
-        val vrfId = vrfCounter.incrementAndGet()
-        setupPort(portId, port, new VppDownlinkSetup(port.id,
-                                                     vrfId,
-                                                     fixedIp,
-                                                     floatingIp,
-                                                     vppApi,
-                                                     backEnd))
+        attachLink(portId, port,
+                   new VppDownlinkSetup(port.id, vrf, fixedIp, floatingIp,
+                                        vppApi, backend))
     }
 
-    private def detachDownlinkPort(portId: UUID): Unit = {
-        detachPort(portId)
+    private def detachDownlink(portId: UUID): Future[_] = {
+        detachLink(portId)
     }
 
+    @tailrec
     private def createApiConnection(retriesLeft: Int): VppApi = {
         try {
             // sleep before trying api, because otherwise it hangs when
             // trying to connect to vpp
             Thread.sleep(VppConnectDelayMs)
-            new VppApi(VppConnectionName)
+            return new VppApi(VppConnectionName)
         } catch {
-            case err: Throwable if retriesLeft > 0 =>
-                Thread.sleep(VppConnectDelayMs)
-                createApiConnection(retriesLeft - 1)
-            case err: Throwable => throw err
+            case NonFatal(e) if retriesLeft > 0 =>
+            case NonFatal(e) => throw e
         }
+        createApiConnection(retriesLeft - 1)
     }
 
     private def startVppProcess(): Unit = {
