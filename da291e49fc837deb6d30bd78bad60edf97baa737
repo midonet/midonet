@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7b7ed8b0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-10-31T15:14:24Z",
+      "side": 1,
+      "message": "i don\u0027t like the implicit link between the attachLink completing and the bound port showing up here, which only seems to exist because you need a way to work around the case that the port has no ipv6 address. why not make the second success(_) case give a future failed? Or make attachLink return a Future[Option[BoundPort]] and make the non-ipv6 return a Future.successful(None)?",
+      "range": {
+        "startLine": 210,
+        "startChar": 40,
+        "endLine": 210,
+        "endChar": 47
+      },
+      "revId": "da291e49fc837deb6d30bd78bad60edf97baa737",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
