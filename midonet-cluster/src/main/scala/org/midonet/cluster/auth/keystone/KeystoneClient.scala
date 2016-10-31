@@ -27,6 +27,7 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.UriBuilder
 
+import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.util.Try
 
@@ -183,7 +184,7 @@ class KeystoneClient(config: KeystoneConfig) {
         var params = Seq.empty[(String, String)]
         if (tenantScope.nonEmpty)
             params = params :+ ("belongsTo", tenantScope.get)
-        withAdminToken { adminToken =>
+        withAdminToken() { adminToken =>
             withVersion {
                 case 2 =>
                     val access = get(classOf[v2.KeystoneAccess], Some(adminToken),
@@ -426,7 +427,9 @@ class KeystoneClient(config: KeystoneConfig) {
     /**
       * Calls a function with a current administrative token.
       */
-    private def withAdminToken[R](f: (String) => R): R = {
+    @tailrec
+    private def withAdminToken[R](authenticateOnUnauthorized: Boolean = true)
+                                 (f: (String) => R): R = {
         // If there exists a current administrative token.
         var currentToken = adminToken
         // If there is no token or if the token has or is about to expire, renew
@@ -457,7 +460,12 @@ class KeystoneClient(config: KeystoneConfig) {
                 expirationTime = parseExpiresAt(auth.token.expiresAt))
             adminToken = currentToken
         }
-        f(currentToken.id)
+        try return f(currentToken.id)
+        catch {
+            case _: KeystoneUnauthorizedException if authenticateOnUnauthorized =>
+                adminToken = null
+        }
+        withAdminToken(authenticateOnUnauthorized = false)(f)
     }
 
     /**
