@@ -29,9 +29,15 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.{QosMaxBandwidthRule, QosDscpRule, QosPolicy => SimQosPolicy}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
+object QosPolicyMapper {
+    // If burst is not provided by user, default to this proportion of rate.
+    val DefaultBurstRatio = 0.8
+}
+
 class QosPolicyMapper(id: UUID, vt: VirtualTopology)
     extends VirtualDeviceMapper(classOf[SimQosPolicy], id, vt)
             with MidolmanLogging {
+    import QosPolicyMapper._
 
     override def logSource: String = "org.midonet.devices.qos-policy"
     override def logMark: String = s"qos-policy:$id"
@@ -84,15 +90,25 @@ class QosPolicyMapper(id: UUID, vt: VirtualTopology)
     private def buildQosPolicy(ignored: Any): SimQosPolicy = {
         assertThread()
 
-        val bandwidthRules = bandwidthRuleTracker.currentRefs.map(
-            e => QosMaxBandwidthRule(e._1, e._2.getMaxKbps,
-                                     e._2.getMaxBurstKbps))
-        val dscpRules = dscpRuleTracker.currentRefs.map(
-            e => QosDscpRule(e._1, e._2.getDscpMark.toByte))
+        val bwRules = for ((id, r) <- bandwidthRuleTracker.currentRefs) yield {
+            val burst = if (r.hasMaxBurstKbps) {
+                r.getMaxBurstKbps
+            } else {
+                // Neutron reference implementation uses float for burst size,
+                // but it seems unlikely that precision beyond kilobits per
+                // second will matter.
+                (r.getMaxKbps * DefaultBurstRatio).round.toInt
+            }
+            QosMaxBandwidthRule(id, r.getMaxKbps, burst)
+        }
+
+        val dscpRules = for ((id, r) <- dscpRuleTracker.currentRefs) yield {
+            QosDscpRule(id, r.getDscpMark.toByte)
+        }
 
         val simQosPolicy = SimQosPolicy(qosPolicy.getId.asJava,
                                         qosPolicy.getName,
-                                        bandwidthRules.toSeq,
+                                        bwRules.toSeq,
                                         dscpRules.toSeq)
 
         log.debug(s"Emitting $simQosPolicy")

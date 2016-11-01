@@ -361,9 +361,39 @@ class QosPolicyMapperTest extends MidolmanSpec
             checkSimPolicy(obs.getOnNextEvents.get(1).qosPolicy,
                            Seq(BwData(1, 10)), Seq(2))
         }
+
+        scenario("Burst defaults to 80% of rate if not specified") {
+            val polId = createQosPolicyAndRules(Seq(BwData(1000, None)),
+                                                Seq(12))
+            val portId = createBridgeAndPort(polId)
+
+            val obs = createPortMapperAndObserver(portId)
+            obs.awaitOnNext(1, timeout)
+
+            val simPol = obs.getOnNextEvents.get(0).qosPolicy
+            checkSimPolicy(simPol, Seq(BwData(1000, 800)), Seq(12))
+
+            // Update rule to set burst explicitly.
+            val bwRuleId = simPol.bandwidthRules.head.id
+            val tpBwRule =
+                vt.store.get(classOf[QosRuleBandwidthLimit], bwRuleId).await()
+            vt.store.update(tpBwRule.toBuilder.setMaxBurstKbps(2000).build())
+            obs.awaitOnNext(2, timeout)
+
+            val simPolBurstSet = obs.getOnNextEvents.get(1).qosPolicy
+            checkSimPolicy(simPolBurstSet, Seq(BwData(1000, 2000)), Seq(12))
+
+            // Update rule to clear burst and let default take over again.
+            tpBwRule.hasMaxBurstKbps shouldBe false
+            vt.store.update(tpBwRule)
+            obs.awaitOnNext(3, timeout)
+
+            val simPolBurstCleared = obs.getOnNextEvents.get(2).qosPolicy
+            checkSimPolicy(simPolBurstCleared, Seq(BwData(1000, 800)), Seq(12))
+        }
     }
 
-    case class BwData(maxKbps: Int, maxBurstKbps: Int)
+    case class BwData(maxKbps: Int, maxBurstKbps: Option[Int])
     private def createQosPolicyAndRules(bwData: Seq[BwData],
                                         dscpMarks: Seq[Int]): UUID = {
         val pol = createQosPolicy()
