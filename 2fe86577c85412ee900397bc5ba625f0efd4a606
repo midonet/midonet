@@ -1,0 +1,191 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f19b2716",
+        "filename": "tests/mdts/lib/bridge_port.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "Does not have to be part of this patch but looking at the usage of \u0027get_id\u0027 in mdts, it looks like that needs to be changed to \u0027self._mn_resource.get_id()\u0027.  Do you agree?  This assumes \u0027build()\u0027 is called before \u0027get_id()\u0027 is called, but that seems to be the assumption in other classes, like bridge and router.  Does that break existing tests?",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b1d8fff1",
+        "filename": "tests/mdts/lib/bridge_port.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "remove this blank line",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_91d5fbb8",
+        "filename": "tests/mdts/lib/qos_policy.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "Add one more blank line",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d1d263d1",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_71e277a2",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "align args",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_51df73d6",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "align args",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_31ebcf7d",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "align args",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_11f0cb65",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "align args",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f1e447a9",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "align args",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d1e94381",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "align args",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b1ffdf34",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "align args",
+      "revId": "2fe86577c85412ee900397bc5ba625f0efd4a606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
