@@ -1178,14 +1178,14 @@ trait TopologyBuilder {
 
     def createQosRuleBWLimit(policyId: UUID,
                              maxKbps: Int,
-                             maxBurstKbps: Int,
+                             maxBurstKbps: Option[Int],
                              id: UUID = UUID.randomUUID()): QosRuleBandwidthLimit = {
-        QosRuleBandwidthLimit.newBuilder
+        val bldr = QosRuleBandwidthLimit.newBuilder
             .setId(id.asProto)
             .setPolicyId(policyId.asProto)
             .setMaxKbps(maxKbps)
-            .setMaxBurstKbps(maxBurstKbps)
-            .build()
+        maxBurstKbps.foreach(bldr.setMaxBurstKbps)
+        bldr.build()
     }
 
     def createQosRuleDscp(policyId: UUID,
