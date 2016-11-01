@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4443573f",
+        "filename": "tests/mdts/lib/qos_policy.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "Add an extra line here for pep8",
+      "revId": "eaf75face112b569202cb8e23839023f2602edaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_049f8fb4",
+        "filename": "tests/mdts/lib/router.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "is this change related to this patch?",
+      "revId": "eaf75face112b569202cb8e23839023f2602edaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8464bfe4",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-01T02:54:29Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "eaf75face112b569202cb8e23839023f2602edaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
