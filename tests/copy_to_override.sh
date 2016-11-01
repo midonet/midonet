@@ -18,9 +18,11 @@
 # e.g: $ tests/copy_to_override.sh override_v2
 
 if [ $# -ne 1 ]; then
-    echo "Usage: tests/copy_to_override.sh override_v2"
+    echo "Usage: $0 override_v2"
     exit 1
 fi
+
+cd $(dirname "$(readlink -f $0)")/..
 
 MIDOLMAN_PATH=midolman/build/packages
 CLUSTER_PATH=midonet-cluster/build/packages
