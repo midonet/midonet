@@ -14,6 +14,7 @@
 
 from mdts.lib.resource_base import ResourceBase
 
+
 class QOSPolicy(ResourceBase):
 
     def __init__(self, api, context, data):

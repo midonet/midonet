@@ -1,4 +1,4 @@
-# Copyright 2014 Midokura SARL
+# Copyright 2016 Midokura SARL
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -126,12 +126,13 @@ def test_qos_bw_limit_on_port_with_burst():
         VTM.vm1_port.set_qos_policy(VTM.qos_pol1)
 
         VTM.vm1.verify_bandwidth(target_iface=VTM.vm2,
-                                             max_kbps=1000, burst_kb=5000,
-                                             allowed_lead=1.0)
+                                 max_kbps=1000, burst_kb=5000,
+                                 allowed_lead=1.0)
 
-        VTM.qos_pol1.add_bw_limit_rule({'max_kbps': 100, 'max_burst_kbps': 1000})
+        VTM.qos_pol1.add_bw_limit_rule({'max_kbps': 100,
+                                        'max_burst_kbps': 1000})
         VTM.vm1.verify_bandwidth(target_iface=VTM.vm2,
-                                             max_kbps=100, burst_kb=1000)
+                                 max_kbps=100, burst_kb=1000)
 
         rule1 = VTM.qos_pol1.get_bw_limit_rules()[0]
         rule1.max_kbps(400)
@@ -139,12 +140,12 @@ def test_qos_bw_limit_on_port_with_burst():
         rule1.update()
 
         VTM.vm1.verify_bandwidth(target_iface=VTM.vm2,
-                                             max_kbps=400, burst_kb=2000)
+                                 max_kbps=400, burst_kb=2000)
 
         VTM.qos_pol1.clear_bw_limit_rules()
         VTM.vm1.verify_bandwidth(target_iface=VTM.vm2,
-                                             max_kbps=1000, burst_kb=5000,
-                                             allowed_lead=1.0)
+                                 max_kbps=1000, burst_kb=5000,
+                                 allowed_lead=1.0)
 
         VTM.vm1_port.clear_qos_policy()
     finally:
@@ -169,31 +170,33 @@ def test_qos_bw_limit_on_port_with_network_policy():
         PTM.build()
         VTM.build(ptm=PTM)
 
-        VTM.qos_pol2.add_bw_limit_rule({'max_kbps': 200, 'max_burst_kbps': 2000})
+        VTM.qos_pol2.add_bw_limit_rule({'max_kbps': 200,
+                                        'max_burst_kbps': 2000})
 
         # This should override pol2's settings, meaning portA, which uses
         # pol1, should act according to pol1's settings, NOT the pol2 on the
         # network
-        VTM.qos_pol1.add_bw_limit_rule({'max_kbps': 100, 'max_burst_kbps': 1000})
+        VTM.qos_pol1.add_bw_limit_rule({'max_kbps': 100,
+                                        'max_burst_kbps': 1000})
 
         VTM.main_bridge.set_qos_policy(VTM.qos_pol2)
         VTM.vm1_port.set_qos_policy(VTM.qos_pol1)
 
         VTM.vm1.verify_bandwidth(target_iface=VTM.vm2,
-                                             max_kbps=100, burst_kb=1000)
+                                 max_kbps=100, burst_kb=1000)
 
         # But if we remove portA's association to pol1, the behavior should
         # then fall back to the network's policy: pol2
         VTM.vm1_port.clear_qos_policy()
 
         VTM.vm1.verify_bandwidth(target_iface=VTM.vm2,
-                                             max_kbps=200, burst_kb=2000)
+                                 max_kbps=200, burst_kb=2000)
 
         VTM.main_bridge.clear_qos_policy()
 
         VTM.vm1.verify_bandwidth(target_iface=VTM.vm2,
-                                             max_kbps=1000, burst_kb=5000,
-                                             allowed_lead=1.0)
+                                 max_kbps=1000, burst_kb=5000,
+                                 allowed_lead=1.0)
 
         VTM.qos_pol2.clear_bw_limit_rules()
         VTM.qos_pol1.clear_bw_limit_rules()

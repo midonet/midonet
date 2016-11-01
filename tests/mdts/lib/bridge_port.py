@@ -106,4 +106,3 @@ class BridgePort(ResourceBase):
     def clear_qos_policy(self):
         self._mn_resource.qos_policy_id(None)
         self.update()
-
