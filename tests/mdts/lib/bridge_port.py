@@ -77,9 +77,6 @@ class BridgePort(ResourceBase):
         self._mn_resource.link(peer_device_port._mn_resource.get_id())
 
     def get_id(self):
-        return self._data.get('id')
-
-    def get_real_id(self):
         return self._mn_resource.get_id()
 
     def get_device_name(self):

@@ -65,8 +65,8 @@ class QosTopology(VirtualTopologyManager):
         ptm.addCleanup(host1.destroy_vmguest, self.vm1)
         ptm.addCleanup(host2.destroy_vmguest, self.vm2)
 
-        port1_real_id = self.vm1_port.get_real_id()
-        port2_real_id = self.vm2_port.get_real_id()
+        port1_real_id = self.vm1_port.get_id()
+        port2_real_id = self.vm2_port.get_id()
 
         host1.bind_port(self.vm1, port1_real_id)
         host2.bind_port(self.vm2, port2_real_id)
