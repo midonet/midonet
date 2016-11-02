@@ -52,7 +52,7 @@ class LoadBalancerPoolMemberTranslator
     override protected def translateDelete(tx: Transaction,
                                            poolMember: NeutronLoadBalancerPoolMember)
     : Unit = {
-        tx.delete(classOf[PoolMember], poolMember.getId)
+        tx.delete(classOf[PoolMember], poolMember.getId, ignoresNeo = true)
     }
 
     override protected def translateUpdate(tx: Transaction,

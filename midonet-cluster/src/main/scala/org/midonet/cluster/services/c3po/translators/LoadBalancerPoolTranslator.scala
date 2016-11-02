@@ -53,12 +53,15 @@ class LoadBalancerPoolTranslator
     }
 
     override protected def translateDelete(tx: Transaction,
-                                           npool: NeutronLoadBalancerPool)
+                                           nPool: NeutronLoadBalancerPool)
     : Unit = {
-        val pool = tx.get(classOf[Pool], npool.getId)
+        if (!tx.exists(classOf[Pool], nPool.getId)) {
+            return
+        }
+        val pool = tx.get(classOf[Pool], nPool.getId)
         val lbId = pool.getLoadBalancerId // if !hasLoadBalancerId it's a bug
         val lb = tx.get(classOf[LoadBalancer], lbId)
-        tx.delete(classOf[Pool], npool.getId, ignoresNeo = true)
+        tx.delete(classOf[Pool], nPool.getId, ignoresNeo = true)
         if (lb.getPoolIdsCount == 1) {
             tx.delete(classOf[LoadBalancer], lbId, ignoresNeo = true)
         }

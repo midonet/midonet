@@ -17,8 +17,11 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.junit.runner.RunWith
+import org.mockito.Matchers.any
+import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Topology.PoolMember
@@ -123,5 +126,26 @@ class LoadBalancerPoolMemberTranslatorTest extends TranslatorTestBase {
         translator.translate(transaction, Delete(classOf[NeutronLoadBalancerPoolMember],
                                                  memberId))
         midoOps should contain only Delete(classOf[PoolMember], memberId)
+    }
+
+    "Deletion of a member" should "succeed for non-existing Neutron pool" in {
+        val memberId = UUIDUtil.randomUuidProto
+        when(transaction.get(any(), any()))
+            .thenThrow(new NotFoundException(classOf[NeutronLoadBalancerPoolMember],
+                                             memberId))
+        translator.translate(transaction, Delete(classOf[NeutronLoadBalancerPoolMember],
+                                                 memberId))
+    }
+
+    "Delete of a member" should "succeed for non-existing MidoNet pool" in {
+        val memberId = UUIDUtil.randomUuidProto
+        val member =
+            NeutronLoadBalancerPoolMember.newBuilder().setId(memberId).build()
+        when(transaction.get(classOf[NeutronLoadBalancerPoolMember], memberId))
+            .thenReturn(member)
+        when(transaction.get(classOf[PoolMember], memberId))
+            .thenThrow(new NotFoundException(classOf[PoolMember], memberId))
+        translator.translate(transaction, Delete(classOf[NeutronLoadBalancerPoolMember],
+                                                 memberId))
     }
 }
