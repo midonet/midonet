@@ -18,13 +18,17 @@ package org.midonet.midolman
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-import org.midonet.midolman.simulation.{Pool, CustomMatchers}
+
+import org.midonet.midolman.simulation.{CustomMatchers, Pool}
 import org.midonet.midolman.state.l4lb.PoolLBMethod
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{InvalidateFlowsByTag, PoolRequest}
 import java.util.UUID
+
 import akka.testkit.{ImplicitSender, TestKit}
 import akka.actor.ActorSystem
+
+import org.midonet.cluster.data.l4lb.PoolMember
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.sdn.flows.FlowTagger
 
@@ -145,6 +149,19 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
 
             And("the VTA should receive a flow invalidation")
             vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
+        }
+        scenario("PooMember delete is idempotent") {
+            val loadBalancer = createLoadBalancer()
+            val poolId = new UUID(0x1234L, 0x4321L)
+            createPool(loadBalancer, poolId)
+            val nonExistingId = new UUID(0x1, 0x2)
+            val poolMember = new PoolMember()
+            poolMember.setId(nonExistingId)
+            try {
+                deletePoolMember(poolMember)
+            } catch {
+                case _: Throwable => assert(false)
+            }
         }
     }
 

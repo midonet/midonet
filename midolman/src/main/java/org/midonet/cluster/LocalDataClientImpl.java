@@ -2208,6 +2208,9 @@ public class LocalDataClientImpl implements DataClient {
     public void poolMemberDelete(UUID id)
         throws MappingStatusException, StateAccessException,
                SerializationException {
+        if (!poolMemberZkManager.exists(id)) {
+            return;
+        }
         List<Op> ops = new ArrayList<>();
 
         PoolMemberZkManager.PoolMemberConfig
@@ -2416,9 +2419,11 @@ public class LocalDataClientImpl implements DataClient {
     public void poolDelete(UUID id)
         throws MappingStatusException, StateAccessException,
                SerializationException {
-        List<Op> ops = new ArrayList<>();
-        buildPoolMapDeleteOps(ops, id);
-        zkManager.multi(ops);
+        if (poolZkManager.exists(id)) {
+            List<Op> ops = new ArrayList<>();
+            buildPoolMapDeleteOps(ops, id);
+            zkManager.multi(ops);
+        }
     }
 
     @Override

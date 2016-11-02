@@ -16,7 +16,6 @@
 package org.midonet.cluster.data.neutron;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -128,8 +127,6 @@ public class LBZkManager extends BaseZkManager {
         throws StateAccessException, SerializationException {
         List<UUID> pools = poolZkManager.getAll();
 
-        checkState(pools.size() > 0, "There should be at least one pool " +
-                                     "associated with this load balancer");
         for (UUID pool : pools) {
             PoolZkManager.PoolConfig poolConfig = poolZkManager.get(pool);
             if (Objects.equals(loadBalancerId, poolConfig.loadBalancerId) &&
@@ -144,7 +141,7 @@ public class LBZkManager extends BaseZkManager {
         Pool pool = getNeutronPool(poolId);
         checkNotNull(pool.routerId, "No router associated with pool");
         ops.addAll(routerZkManager.prepareClearRefsToLoadBalancer(
-                       pool.routerId, loadBalancerId));
+            pool.routerId, loadBalancerId));
         ops.addAll(loadBalancerZkManager.prepareDelete(loadBalancerId));
     }
 
@@ -420,8 +417,15 @@ public class LBZkManager extends BaseZkManager {
 
     public void prepareDeletePool(List<Op> ops, UUID id)
         throws StateAccessException, SerializationException {
+        if (!neutronPoolExist(id)) {
+            return;
+        }
         Pool pool = getNeutronPool(id);
+
         prepareDeleteNeutronPool(ops, id);
+        if (!poolZkManager.exists(id)) {
+            return;
+        }
         PoolConfig poolConfig = poolZkManager.get(id);
 
         if (pool.hasHealthMonitorAssociated()) {
@@ -551,9 +555,13 @@ public class LBZkManager extends BaseZkManager {
     public void prepareDeleteMember(List<Op> ops, UUID id)
         throws StateAccessException, SerializationException {
 
+        if (!neutronMemberExists(id)) {
+            return;
+        }
         Member member = getNeutronMember(id);
+
         prepareDeleteNeutronMember(ops, id);
-        if (member.poolId != null) {
+        if (member.poolId != null && neutronPoolExist(member.poolId)) {
             Pool pool = getNeutronPool(member.poolId);
             pool.removeMember(member.id);
             prepareUpdateNeutronPool(ops, pool);
@@ -565,7 +573,9 @@ public class LBZkManager extends BaseZkManager {
                 preparePoolHealthMonitorRemoveMember(ops, pmConf);
             }
         }
-        ops.addAll(poolMemberZkManager.prepareDelete(id));
+        if (memberExists(id)) {
+            ops.addAll(poolMemberZkManager.prepareDelete(id));
+        }
     }
 
     // Vips
@@ -592,6 +602,16 @@ public class LBZkManager extends BaseZkManager {
         return serializer.deserialize(zk.get(path), Pool.class);
     }
 
+    private boolean neutronPoolExist(UUID id) throws StateAccessException {
+        String path = paths.getNeutronPoolPath(id);
+        return zk.exists(path);
+    }
+
+    private boolean poolExists(UUID id) throws StateAccessException {
+        String path = paths.getPoolPath(id);
+        return zk.exists(path);
+    }
+
     public List<Pool> getNeutronPools()
         throws StateAccessException, SerializationException {
         String path = paths.getNeutronPoolsPath();
@@ -609,6 +629,18 @@ public class LBZkManager extends BaseZkManager {
                          "with NULL id");
         String path = paths.getNeutronMemberPath(id);
         return serializer.deserialize(zk.get(path), Member.class);
+    }
+
+    private boolean neutronMemberExists(UUID id)
+        throws StateAccessException {
+        String path = paths.getNeutronMemberPath(id);
+        return zk.exists(path);
+    }
+
+    private boolean memberExists(UUID id)
+        throws StateAccessException {
+        String path = paths.getPoolMemberPath(id);
+        return zk.exists(path);
     }
 
     public List<Member> getNeutronMembers()

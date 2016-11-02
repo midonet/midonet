@@ -593,6 +593,10 @@ trait VirtualConfigurationBuilders {
         pool
     }
 
+    def deletePool(poolId: UUID): Unit = {
+        clusterDataClient().poolDelete(poolId)
+    }
+
     def setPoolHealthMonitor(pool: Pool, hmId: UUID) = {
         pool.setHealthMonitorId(hmId)
         clusterDataClient().poolUpdate(pool)

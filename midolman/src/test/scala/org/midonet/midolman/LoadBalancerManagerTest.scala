@@ -222,6 +222,19 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
         }
     }
 
+    feature("Loadbalancer pool delete is idempotent") {
+        scenario("Deletion of a pool should succeed for non-existing" +
+                 "Midonet pool") {
+            val loadBalancer = createLoadBalancer()
+            val poolId = new UUID(0x1234L, 0x4321L)
+            try {
+                deletePool(poolId)
+            } catch {
+                case _: Throwable => assert(false)
+            }
+        }
+    }
+
     def poolReqMsg(id: UUID) =
         PoolRequest(id)
 
