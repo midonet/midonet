@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_41d0be2b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-02T06:40:02Z",
+      "side": 1,
+      "message": "Ive moved this block to the beginning.",
+      "parentUuid": "baa041b7_a1454a16",
+      "revId": "4ee77b9206c8b7bfde39e141468910d234019f10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_815246dd",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 15
@@ -30,6 +48,30 @@
       "writtenOn": "2016-11-02T05:01:52Z",
       "side": 1,
       "message": "subnets",
+      "range": {
+        "startLine": 235,
+        "startChar": 64,
+        "endLine": 235,
+        "endChar": 70
+      },
+      "revId": "4ee77b9206c8b7bfde39e141468910d234019f10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_21d5ba1a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-02T06:40:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_815246dd",
       "range": {
         "startLine": 235,
         "startChar": 64,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_61df42d7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-02T06:40:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_2107faca",
+      "range": {
+        "startLine": 239,
+        "startChar": 35,
+        "endLine": 239,
+        "endChar": 49
+      },
+      "revId": "4ee77b9206c8b7bfde39e141468910d234019f10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_810006ad",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 15
@@ -76,6 +142,30 @@
       "writtenOn": "2016-11-02T05:01:52Z",
       "side": 1,
       "message": "given hasSubWithAddr only handles neutron ports, i guess these neutron checks are redundant.",
+      "range": {
+        "startLine": 245,
+        "startChar": 0,
+        "endLine": 255,
+        "endChar": 68
+      },
+      "revId": "4ee77b9206c8b7bfde39e141468910d234019f10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_81e2469f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-02T06:40:02Z",
+      "side": 1,
+      "message": "I left in the check for the router interface port. because that check is not included in hasSubWithAddr",
+      "parentUuid": "baa041b7_810006ad",
       "range": {
         "startLine": 245,
         "startChar": 0,
