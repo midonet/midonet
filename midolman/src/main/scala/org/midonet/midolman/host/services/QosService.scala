@@ -134,30 +134,33 @@ class QosService(scanner: InterfaceScanner,
     def start(): Unit = {
         scanner.subscribe(new Observer[Set[InterfaceDescription]] {
             override def onCompleted(): Unit = {
-                //TODO: handle this error. This is not expected
-                log.error(s"InterfaceScanner for $hostId has stopped")
+                // Expected when Midolman shuts down, but otherwise indicates
+                // an error.
+                log.info(s"InterfaceScanner completed.")
             }
 
             override def onError(t: Throwable): Unit = {
-                //TODO: handle this error. This is not expected
-                log.error(s"InterfaceScanner has thrown an error: " +
-                          s"${t.getMessage}, ${t.getStackTrace}")
+                log.error(s"InterfaceScanner raised error: ${t.getMessage}", t)
             }
 
             override def onNext(data: Set[InterfaceDescription]): Unit = {
-
                 ifaceNameToId = data.map { d =>
                     (d.getName, d.getIfindex)}(breakOut)
                 generateRequests()
             }
         }, Some(scheduler))
 
-        var sleep = 1000
-
         val observer: Observer[Host] = new Observer[Host] {
+            // Retry with exponential backoff.
+            var sleep = 1000
+
             override def onCompleted(): Unit = {
-                //TODO: This should never happen. How do we handle?
-                log.error(s"Host $hostId observer completed.")
+                // Host was deleted, possibly because of loss of connection to
+                // Zookeeper. Retry.
+                log.error(s"Host $hostId observer completed, possibly due to " +
+                          "loss of connection to Zookeeper. Attempting to " +
+                          "resubscribe.")
+                retrySubscribe()
             }
 
             override def onError(e: Throwable) = e match {
@@ -166,13 +169,9 @@ class QosService(scanner: InterfaceScanner,
                  * to be registered.
                  */
                 case e: NotFoundException =>
-                    sleep = (sleep * 1.25).toInt
                     log.warn(s"Error subscribing to $hostId " +
                              s"notifications. Retrying in $sleep ms.")
-                    VTPM.hosts(hostId)
-                        .delaySubscription(sleep, TimeUnit.MILLISECONDS)
-                        .observeOn(scheduler)
-                        .subscribe(this)
+                    retrySubscribe()
                 case _ =>
                     log.error(s"Error subscribing to host $hostId")
                     throw e
@@ -180,7 +179,16 @@ class QosService(scanner: InterfaceScanner,
 
             override def onNext(h: Host): Unit = {
                 log.debug(s"received update for host: $h")
+                sleep = 1000 // Reset exponential backoff.
                 processHost(h)
+            }
+
+            private def retrySubscribe(): Unit = {
+                VTPM.hosts(hostId)
+                    .delaySubscription(sleep, TimeUnit.MILLISECONDS)
+                    .observeOn(scheduler)
+                    .subscribe(this)
+                sleep = (sleep * 1.25).toInt
             }
         }
 
