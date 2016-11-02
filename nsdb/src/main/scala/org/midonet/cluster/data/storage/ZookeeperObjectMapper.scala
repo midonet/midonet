@@ -39,6 +39,7 @@ import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException._
 import org.apache.zookeeper.OpResult.ErrorResult
+import org.apache.zookeeper.Watcher.Event.EventType
 import org.apache.zookeeper._
 import org.apache.zookeeper.data.Stat
 import org.slf4j.{Logger, LoggerFactory}
@@ -127,7 +128,6 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     private[storage] val topologyLockPath = s"$basePath/locks/zoom-topology"
     private[storage] val transactionLocksPath = basePath + s"/zoomlocks/lock"
     private[storage] val modelPath = basePath + s"/models"
-    private val lock = new InterProcessSemaphoreMutex(curator, topologyLockPath)
     @volatile private var lockFree = false
 
     private val executor = newSingleThreadExecutor(
@@ -139,6 +139,31 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     private val simpleNameToClass = new mutable.HashMap[String, Class[_]]()
     private val objectObservables = new TrieMap[Key, ObjectObservable]
     private val classObservables = new TrieMap[Class[_], ClassObservable]
+
+    private val topologyLockWatcher = new Watcher {
+        override def process(event: WatchedEvent): Unit = {
+            if (event.getType == EventType.NodeCreated ||
+                event.getType == EventType.NodeDataChanged ||
+                event.getType == EventType.NodeChildrenChanged) {
+                // If the lock node exist, the backend is no longer lock free
+                // and stop watching.
+                ZookeeperObjectMapper.this.synchronized {
+                    lockFree = false
+                }
+            } else {
+                // Else, use exists to update the lock free and reinstall the
+                // lock watcher.
+                lockFreeAndWatch(async = true)
+            }
+        }
+    }
+
+    private val topologyLockCallback = new BackgroundCallback {
+        override def processResult(client: CuratorFramework,
+                                   event: CuratorEvent): Unit = {
+            synchronized { lockFree = lockFree && (event.getStat eq null) }
+        }
+    }
 
     /* Functions and variables to expose metrics using JMX in class
        ZoomMetrics. */
@@ -449,7 +474,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     override def build(): Unit = {
         ensureClassNodes()
         ensureStateTableNodes()
-        lockFreeAndWatch()
+        lockFreeAndWatch(async = false)
         metrics.build(this)
         super.build()
     }
@@ -788,15 +813,18 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     @throws[ReferenceConflictException]
     @throws[StorageException]
     override def tryTransaction[R](f: (Transaction) => R): R = {
-        val lf = lockFree
-        if (lf || lock.acquire(config.lockTimeoutMs, TimeUnit.MILLISECONDS)) {
+        val lock =
+            if (!lockFree) new InterProcessSemaphoreMutex(curator, topologyLockPath)
+            else null
+        if ((lock eq null) ||
+            lock.acquire(config.lockTimeoutMs, TimeUnit.MILLISECONDS)) {
             try TransactionRetriable.retry(Log, "Transaction") {
                 val tx = transaction()
                 val result = f(tx)
                 tx.commit()
                 result
             } finally {
-                if (!lf) {
+                if ((lock ne null) && lock.isAcquiredInThisProcess) {
                     lock.release()
                 }
             }
@@ -837,12 +865,16 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
 
     protected[cluster] def isLockFree = lockFree
 
-    private def lockFreeAndWatch(): Unit = synchronized {
-        lockFree = curator.checkExists().usingWatcher(new Watcher {
-            override def process(event: WatchedEvent): Unit = {
-                ZookeeperObjectMapper.this.synchronized { lockFree = false }
+    private def lockFreeAndWatch(async: Boolean): Unit = {
+        if (async) {
+            curator.checkExists().usingWatcher(topologyLockWatcher)
+                   .inBackground(topologyLockCallback).forPath(topologyLockPath)
+        } else {
+            synchronized {
+                lockFree = curator.checkExists().usingWatcher(topologyLockWatcher)
+                                  .forPath(topologyLockPath) eq null
             }
-        }).forPath(topologyLockPath) eq null
+        }
     }
 
 }
