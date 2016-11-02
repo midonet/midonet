@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_994f5a34",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-02T13:25:58Z",
+      "side": 1,
+      "message": "Ok, I will upload the version that test association and connectivity also.",
+      "parentUuid": "baa041b7_c7097e34",
+      "range": {
+        "startLine": 345,
+        "startChar": 6,
+        "endLine": 345,
+        "endChar": 28
+      },
+      "revId": "ae0cc782356badf456b824ff69ec067bdfb4d8cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_339c0969",
         "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
         "patchSetId": 2
@@ -59,6 +83,30 @@
       "writtenOn": "2016-11-02T12:45:57Z",
       "side": 1,
       "message": "There\u0027s no need to create as a global like this. JustExternalIPv6Subnet() can be called from the @bindings annotation.",
+      "range": {
+        "startLine": 389,
+        "startChar": 0,
+        "endLine": 389,
+        "endChar": 29
+      },
+      "revId": "ae0cc782356badf456b824ff69ec067bdfb4d8cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b9521edd",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-02T13:25:58Z",
+      "side": 1,
+      "message": "Ok. I did this to make the call to addIPv6Fip() from the test itself instead from the build() method of the VTM and I thought that the global variable was needed, but I will change it.",
+      "parentUuid": "baa041b7_79fc960c",
       "range": {
         "startLine": 389,
         "startChar": 0,
