@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_c73cde32",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T12:11:37Z",
+      "side": 1,
+      "message": "typo, explains",
+      "range": {
+        "startLine": 9,
+        "startChar": 65,
+        "endLine": 9,
+        "endChar": 72
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e7cb62a3",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -48,6 +71,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0757665b",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T12:11:37Z",
+      "side": 1,
+      "message": "the rationale for using VPP is more that OVS isn\u0027t able to strip off IPv6 headers and add IPv4 headers and vice versa. So even if we wanted to do simulation in midonet, there would be no OVS actions to do what we want.",
+      "range": {
+        "startLine": 71,
+        "startChar": 30,
+        "endLine": 71,
+        "endChar": 33
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a7e1dafe",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -64,6 +110,52 @@
         "startChar": 0,
         "endLine": 72,
         "endChar": 48
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e75b6285",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T12:11:37Z",
+      "side": 1,
+      "message": "uplink",
+      "range": {
+        "startLine": 77,
+        "startChar": 3,
+        "endLine": 77,
+        "endChar": 9
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a74e7ac0",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T12:11:37Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 78,
+        "startChar": 12,
+        "endLine": 78,
+        "endChar": 15
       },
       "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -110,6 +202,46 @@
         "startChar": 2,
         "endLine": 113,
         "endChar": 59
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c7d85ef3",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T12:11:37Z",
+      "side": 1,
+      "message": "indent should be 2 spaces",
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a7d55ab8",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T12:11:37Z",
+      "side": 1,
+      "message": "I\u0027d remove this line, as it\u0027s redundant with the next mostly, and the next bullet covers the \"carry the packets\" part.",
+      "range": {
+        "startLine": 116,
+        "startChar": 1,
+        "endLine": 117,
+        "endChar": 37
       },
       "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
