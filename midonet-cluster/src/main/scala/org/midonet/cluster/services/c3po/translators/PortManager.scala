@@ -48,7 +48,7 @@ trait PortManager extends ChainManager with RouteManager {
                                         gwIpAddr: IPAddress,
                                         mac: Option[String] = None,
                                         adminStateUp: Boolean = true): Port = {
-        newRouterPortBldr(id, routerId, adminStateUp = adminStateUp)
+        newRouterPortBuilder(id, routerId, adminStateUp = adminStateUp)
             .setPortSubnet(cidr)
             .setPortAddress(gwIpAddr)
             .setPortMac(mac.getOrElse(MAC.random().toString)).build()
@@ -60,8 +60,8 @@ trait PortManager extends ChainManager with RouteManager {
                 s"Port ${port.getId} already connected to ${port.getPeerId}.")
     }
 
-    protected def newRouterPortBldr(id: UUID, routerId: UUID,
-                                    adminStateUp: Boolean = true)
+    protected def newRouterPortBuilder(id: UUID, routerId: UUID,
+                                       adminStateUp: Boolean = true)
     : Port.Builder = Port.newBuilder.setId(id)
                                     .setRouterId(routerId)
                                     .setAdminStateUp(adminStateUp)
@@ -216,8 +216,8 @@ trait PortManager extends ChainManager with RouteManager {
         portGroup
     }
 
-    def ensureRouterInterfacePortGroup(tx: Transaction,
-                                       routerId: UUID): UUID = {
+    protected def ensureRouterInterfacePortGroup(tx: Transaction,
+                                                 routerId: UUID): UUID = {
         val pgId = PortManager.routerInterfacePortGroupId(routerId)
 
         if (!tx.exists(classOf[PortGroup], pgId)) {
@@ -232,13 +232,15 @@ trait PortManager extends ChainManager with RouteManager {
         pgId
     }
 
-    private def getRouterInterfacePorts(tx: Transaction, router: Router): Seq[UUID] = {
+    protected def getRouterInterfacePorts(tx: Transaction, router: Router)
+    : Seq[UUID] = {
         val ports = router.getPortIdsList.asScala
 
         ports.filter(isRouterInterfacePeer(tx, _))
     }
 
-    private def isRouterInterfacePeer(tx: Transaction, portId: UUID): Boolean = {
+    protected def isRouterInterfacePeer(tx: Transaction, portId: UUID)
+    : Boolean = {
         // Using routerInterfacePortPeerId in the opposite way.
         val nPortId = PortManager.routerInterfacePortPeerId(portId)
         if (tx.exists(classOf[NeutronPort], nPortId)) {
@@ -271,14 +273,14 @@ object PortManager {
     def isTrustedPort(nPort: NeutronPortOrBuilder) =
         ! (isVifPort(nPort) || isVipPort(nPort))
 
-    def isIPv6Port(nPort: NeutronPortOrBuilder) =
+    def isIpv6Port(nPort: NeutronPortOrBuilder) =
         nPort.getFixedIpsCount > 0 &&
         nPort.getFixedIps(0).getIpAddress.getVersion == Commons.IPVersion.V6
 
     def hasMacAndArpTableEntries(nPort: NeutronPortOrBuilder): Boolean =
-        !isIPv6Port(nPort) &&
-            (isVifPort(nPort) || isRouterInterfacePort(nPort) ||
-            isRouterGatewayPort(nPort) || isRemoteSitePort(nPort))
+        !isIpv6Port(nPort) &&
+        (isVifPort(nPort) || isRouterInterfacePort(nPort) ||
+         isRouterGatewayPort(nPort) || isRemoteSitePort(nPort))
 
     /** ID of Router Interface port peer. */
     def routerInterfacePortPeerId(portId: UUID): UUID =
