@@ -36,6 +36,21 @@ trait StateTableClient {
 
 object StateTableClient {
 
+    object DisabledStateTableClient extends StateTableClient {
+
+        override def start(): Unit = { }
+
+        override def stop(): Boolean = true
+
+        override def observable(table: StateSubscriptionKey): Observable[Update] = {
+            Observable.empty()
+        }
+
+        override def connection: Observable[ConnectionState] = {
+            Observable.just(ConnectionState.Disconnected)
+        }
+    }
+
     object ConnectionState extends Enumeration {
         class ConnectionState(val isConnected: Boolean) extends Val
         final val Connected = new ConnectionState(isConnected = true)
