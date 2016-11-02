@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_6cdf39d7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-02T10:32:03Z",
+      "side": 1,
+      "message": "also removed this here and below",
+      "range": {
+        "startLine": 120,
+        "startChar": 11,
+        "endLine": 120,
+        "endChar": 33
+      },
+      "revId": "ade36f83157f7a9b9e149c653dfe4df9d8c41b8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_db45e46f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 1
@@ -13,6 +36,30 @@
       "writtenOn": "2016-10-31T15:17:10Z",
       "side": 1,
       "message": "sudo isn\u0027t needed. midolman always runs as root.",
+      "range": {
+        "startLine": 293,
+        "startChar": 36,
+        "endLine": 293,
+        "endChar": 40
+      },
+      "revId": "ade36f83157f7a9b9e149c653dfe4df9d8c41b8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8ce27d9f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-02T10:32:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_db45e46f",
       "range": {
         "startLine": 293,
         "startChar": 36,
