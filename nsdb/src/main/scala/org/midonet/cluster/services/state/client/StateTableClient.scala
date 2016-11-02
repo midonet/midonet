@@ -16,7 +16,8 @@
 
 package org.midonet.cluster.services.state.client
 
-import rx.Observable
+import rx.{Observable, Subscriber}
+import rx.Observable.OnSubscribe
 
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.ConnectionState
@@ -35,6 +36,25 @@ trait StateTableClient {
 }
 
 object StateTableClient {
+
+    object DisabledStateTableClient extends StateTableClient {
+
+        override def start(): Unit = { }
+
+        override def stop(): Boolean = true
+
+        override def observable(table: StateSubscriptionKey): Observable[Update] = {
+            Observable.empty()
+        }
+
+        override val connection: Observable[ConnectionState] = {
+            Observable.create(new OnSubscribe[ConnectionState] {
+                override def call(child: Subscriber[_ >: ConnectionState]): Unit = {
+                    child onNext ConnectionState.Disconnected
+                }
+            })
+        }
+    }
 
     object ConnectionState extends Enumeration {
         class ConnectionState(val isConnected: Boolean) extends Val

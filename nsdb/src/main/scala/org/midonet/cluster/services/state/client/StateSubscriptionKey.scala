@@ -16,8 +16,6 @@
 
 package org.midonet.cluster.services.state.client
 
-import java.util.UUID
-
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.rpc.State.ProxyRequest
 import org.midonet.cluster.models.Commons
