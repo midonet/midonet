@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_47856e08",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-02T12:05:42Z",
+      "side": 1,
+      "message": "then it could be a debug",
+      "range": {
+        "startLine": 139,
+        "startChar": 20,
+        "endLine": 139,
+        "endChar": 24
+      },
+      "revId": "a81d6875d5e91f853d4c3ecb006853bb53d8941f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_67a752a8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-02T12:05:42Z",
+      "side": 1,
+      "message": "could you use an onErrorResumeNext here? something like (it\u0027s pseudocode):\n\n  def hostsObservable(sleep: Int \u003d 1000): Observable[Hosts] \u003d {\n    VTPM.hosts(hostId)\n              .delaySubscription(sleep, TimeUnit.MILLISECONDS)\n              .observeOn(scheduler)\n              .onErrorResumeNext(makeFunc1 { _ match {\n                 case _: NotFoundException \u003d\u003e hostsObservable(sleep * 1.25)\n                 case _ \u003d\u003e Observable.error(e)\n              }})\n  }\n\n  subscription \u003d hostsObservable().subscribe(observer)\n\nIf it doesn\u0027t work, especially to reset the sleep, then leave it as is.",
+      "range": {
+        "startLine": 195,
+        "startChar": 47,
+        "endLine": 195,
+        "endChar": 67
+      },
+      "revId": "a81d6875d5e91f853d4c3ecb006853bb53d8941f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
