@@ -46,6 +46,30 @@
       "revId": "da291e49fc837deb6d30bd78bad60edf97baa737",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_acf301e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T09:31:48Z",
+      "side": 1,
+      "message": "whether you can start monitoring depends on whether attachLink return a Future that succeeds, no? But you\u0027re looking indirectly at uplinks which attachLinks should modify. This is code smell.",
+      "parentUuid": "baa041b7_96905198",
+      "range": {
+        "startLine": 210,
+        "startChar": 40,
+        "endLine": 210,
+        "endChar": 47
+      },
+      "revId": "da291e49fc837deb6d30bd78bad60edf97baa737",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
