@@ -46,6 +46,30 @@
       "revId": "9a686cd43d51976fc597321ca55feb0bce1c589b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0157565b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/QosPolicyMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-02T06:21:22Z",
+      "side": 1,
+      "message": "then please add a comment to explain the reason why we differ from the reference implementation.",
+      "parentUuid": "baa041b7_c1484e31",
+      "range": {
+        "startLine": 97,
+        "startChar": 51,
+        "endLine": 97,
+        "endChar": 55
+      },
+      "revId": "9a686cd43d51976fc597321ca55feb0bce1c589b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
