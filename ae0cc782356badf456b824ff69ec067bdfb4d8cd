@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_c7097e34",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T12:45:57Z",
+      "side": 1,
+      "message": "the test should be end to end, not just to create a fip, but to assign it to a port and then ping the port. i.e. it should be modifying the existing test.",
+      "range": {
+        "startLine": 345,
+        "startChar": 6,
+        "endLine": 345,
+        "endChar": 28
+      },
+      "revId": "ae0cc782356badf456b824ff69ec067bdfb4d8cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_339c0969",
         "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
         "patchSetId": 2
@@ -18,6 +41,29 @@
         "startChar": 43,
         "endLine": 381,
         "endChar": 44
+      },
+      "revId": "ae0cc782356badf456b824ff69ec067bdfb4d8cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_79fc960c",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T12:45:57Z",
+      "side": 1,
+      "message": "There\u0027s no need to create as a global like this. JustExternalIPv6Subnet() can be called from the @bindings annotation.",
+      "range": {
+        "startLine": 389,
+        "startChar": 0,
+        "endLine": 389,
+        "endChar": 29
       },
       "revId": "ae0cc782356badf456b824ff69ec067bdfb4d8cd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
