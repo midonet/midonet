@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a762fad7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-02T11:25:32Z",
+      "side": 1,
+      "message": "doesn\u0027t this need to update hostsSubscription?",
+      "revId": "d638c280a30d08e59cbd74018a3c5e7180158c87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
