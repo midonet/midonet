@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c7adfe33",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-02T12:25:52Z",
+      "side": 1,
+      "message": "this is 3 methods in one. It would be better to break this into translateUplink, translateIPv6 and translateIPv4. The common code is much much less than the different, and the branching makes the logic harder to follow.",
+      "revId": "33a47f82dbe02b55d084d83c4d8856be5a6b9ecb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
