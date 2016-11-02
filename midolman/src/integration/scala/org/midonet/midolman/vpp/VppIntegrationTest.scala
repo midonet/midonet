@@ -16,7 +16,6 @@
 
 package org.midonet.midolman.vpp
 
-import java.lang.{Process, ProcessBuilder}
 import java.nio.ByteBuffer
 import java.util.UUID
 import java.util.concurrent.{CountDownLatch, TimeUnit}
@@ -30,10 +29,10 @@ import com.typesafe.config.ConfigFactory
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.test.TestingServer
-import org.junit.runner.RunWith
 import org.junit.Assert
+import org.junit.runner.RunWith
+import org.scalatest.FeatureSpec
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec}
 import org.slf4j.LoggerFactory
 
 import org.midonet.ErrorCode
@@ -50,7 +49,7 @@ import org.midonet.packets._
 class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
     private final val rootPath = "/midonet/test"
     private var zkServer: TestingServer = _
-    private var backEnd: MidonetBackend = _
+    private var backend: MidonetBackend = _
     private val log = LoggerFactory.getLogger(classOf[VppIntegrationTest])
 
     def setupStorage(): Unit = {
@@ -70,8 +69,8 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
         injector = Guice.createInjector(new MidonetBackendTestModule(
             config))
         val  curator = injector.getInstance(classOf[CuratorFramework])
-        backEnd = new  MidonetTestBackend(curator)
-        backEnd.startAsync().awaitRunning()
+        backend = new  MidonetTestBackend(curator)
+        backend.startAsync().awaitRunning()
     }
 
     def startVpp(): Process = {
@@ -458,10 +457,10 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                                                 api, ovs))
                 assertCmdInNs(uplinkns, s"ip a add 2001::2/64 dev ${uplinkns}ns")
 
-                setup foreach { s => Await.result(s.execute, 1 minute) }
+                setup foreach { s => Await.result(s.execute(), 1 minute) }
                 assertCmdInNs(uplinkns, s"ping6 -c 5 2001::1")
             } finally {
-                setup foreach { s => Await.result(s.rollback, 1 minute) }
+                setup foreach { s => Await.result(s.rollback(), 1 minute) }
                 deleteNamespace(uplinkns)
                 deleteDatapath(datapath)
                 api.close()
@@ -471,23 +470,22 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
     }
 
     feature("VPP downlink Setup") {
-
         scenario("VPP sets up downlink port") {
             setupStorage()
             log.info("Creating dummy tenant router with one port")
             val routerId: Option[UUID] = Some(UUID.randomUUID())
             val router = this.createRouter(routerId.get, None, Some("tenant1"))
-            backEnd.store.create(router)
+            backend.store.create(router)
 
             val routerPortId = UUID.randomUUID()
             val port = this.createRouterPort(routerPortId, routerId)
-            backEnd.store.create(port)
-            val vpp_downlink = "ovs-"+ routerPortId.toString().substring(0, 8)
+            backend.store.create(port)
+            val ovsDownlink = "ovs-"+ routerPortId.toString.substring(0, 8)
 
-            val currentHostId = HostIdGenerator.getHostId()
+            val currentHostId = HostIdGenerator.getHostId
             log info "Adding current host to the storage"
             val host = this.createHost(currentHostId)
-            backEnd.store.create(host)
+            backend.store.create(host)
 
             val proc = startVpp()
             Thread.sleep(1000)
@@ -495,20 +493,16 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
 
             var setup: Option[VppDownlinkSetup] = None
             try {
-                val fixedIp = IPv4Addr.fromString("169.254.0.3")
-                val floatingIp = IPv6Addr.fromString("2001::3")
+                val ip4 = IPv4Subnet.fromCidr("169.254.0.1/30")
+                val ip6 = IPv6Subnet.fromString("2001::3/64")
                 setup = Some(new VppDownlinkSetup(routerPortId, 0,
-                                                  fixedIp,
-                                                  floatingIp,
-                                                  api,
-                                                  backEnd))
-                setup foreach { s => Await.result(s.execute, 1 minute) }
-                assertCmd(s"ip a add 169.254.0.4/24 " +
-                          s"dev ${vpp_downlink}")
+                                                  ip4, ip6, api, backend))
+                setup foreach { s => Await.result(s.execute(), 1 minute) }
+                assertCmd(s"ip a add 169.254.0.2/30 dev $ovsDownlink")
                 log info "Pinging vpp interface"
-                assertCmd(s"ping -c 5 169.254.0.2")
+                assertCmd(s"ping -c 5 ${ip4.getAddress}")
             } finally {
-                setup foreach { s => Await.result(s.rollback, 1 minute) }
+                setup foreach { s => Await.result(s.rollback(), 1 minute) }
                 api.close()
                 proc.destroy()
             }
