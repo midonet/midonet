@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2cd2515c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-02T09:12:35Z",
+      "side": 1,
+      "message": "it\u0027s better to exclude the gw port here.",
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_acbe61fe",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-02T09:12:35Z",
+      "side": 1,
+      "message": "is this necessary?",
+      "range": {
+        "startLine": 252,
+        "startChar": 32,
+        "endLine": 252,
+        "endChar": 51
+      },
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4c3475ab",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-02T09:12:35Z",
+      "side": 1,
+      "message": "i guess it\u0027s better to filter with this condition in L227.",
+      "range": {
+        "startLine": 252,
+        "startChar": 55,
+        "endLine": 252,
+        "endChar": 70
+      },
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_eccb49a3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-02T09:12:35Z",
+      "side": 1,
+      "message": "redundant",
+      "range": {
+        "startLine": 253,
+        "startChar": 16,
+        "endLine": 253,
+        "endChar": 31
+      },
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0cc78d99",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-02T09:12:35Z",
+      "side": 1,
+      "message": "probably it\u0027s more consistent to use getPeerId?",
+      "range": {
+        "startLine": 257,
+        "startChar": 31,
+        "endLine": 257,
+        "endChar": 56
+      },
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
