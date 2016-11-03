@@ -137,8 +137,6 @@ trait MidolmanSpec extends FeatureSpecLike
         val defaults = """cassandra.servers = "localhost:9171""""
 
         config.withFallback(ConfigFactory.parseString(defaults))
-              .withValue("zookeeper.use_new_stack",
-                       ConfigValueFactory.fromAnyRef(true))
     }
 
     protected def getModules(conf: Config) =

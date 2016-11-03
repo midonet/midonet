@@ -125,7 +125,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
           |cluster.neutron_importer.password : ""
           |cluster.neutron_importer.jdbc_driver_class : "org.sqlite.JDBC"
           |zookeeper.root_key : "$rootPath"
-          |zookeeper.use_new_stack : true
           |# The following is for legacy Data Client
           |zookeeper.zookeeper_hosts : "$ZK_HOST"
           |state_proxy.enabled : false

@@ -64,9 +64,8 @@ EOF
 
 # Wait for the cluster to update zookeeper to
 # instruct agents to use the new v2 stack
-echo "Setting up the use_new_stack property plus other configs..."
+echo "Setting up mn-conf..."
 mn-conf set -t default <<EOF
-zookeeper.use_new_stack=true
 zookeeper.zookeeper_hosts="$MIDO_ZOOKEEPER_HOSTS"
 cassandra.servers="$CASS_SERVERS"
 cassandra.replication_factor=$CASS_FACTOR
