@@ -52,7 +52,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         router_id { $tntRouterId }
         """)
 
-    protected val unboundFipv6 = nFloatingIpFromTxt(s"""
+    protected val unboundFip6 = nFloatingIpFromTxt(s"""
         id { $fipId }
         floating_ip_address { $fipIpv6Addr }
         router_id { $tntRouterId }
@@ -67,9 +67,9 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             port_id { $portId }
             fixed_ip_address { $fixedIp }
         """)
-    protected def fipv6(routerId: UUID = tntRouterId,
-                        portId: UUID = fipPortId,
-                        fixedIp: IPAddress = fipFixedIpAddr) =
+    protected def fip6(routerId: UUID = tntRouterId,
+                       portId: UUID = fipPortId,
+                       fixedIp: IPAddress = fipFixedIpAddr) =
         nFloatingIpFromTxt(s"""
             id { $fipId }
             floating_ip_address { $fipIpv6Addr }
@@ -137,11 +137,11 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             externalNetworkId, IPv4Addr(fipIpAddr.getAddress),
             MAC.fromString(tntRouterGatewayPortMac))
 
-    protected def fip64Path(fip: FloatingIp) =
+    protected def fip64Path(fip: FloatingIp, portId: UUID) =
         stateTableStorage.fip64EntryPath(Fip64Entry(
             IPv4Addr(fip.getFixedIpAddress.getAddress),
             IPv6Addr(fip.getFloatingIpAddress.getAddress),
-            fip.getPortId,
+            portId,
             fip.getRouterId))
 
     protected val snatExactRuleId = RouteManager.fipSnatExactRuleId(fipId)
@@ -315,7 +315,7 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
         verifyNoOp(transaction)
     }
 
-    "Associated floating IP" should "create ARP entry and NAT rules" in {
+    "Associated floating IPv4" should "create ARP entry and NAT rules" in {
         translator.translate(transaction, Create(boundFip))
 
         verify(transaction).createNode(fipArpEntryPath, null)
@@ -325,6 +325,20 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
         verify(transaction).update(inChainWithDnat, null)
         verify(transaction).update(floatSnatExactChainWithFipRule, null)
         verify(transaction).update(floatSnatChainWithFipRuleForGwPort, null)
+    }
+
+    "Unassociated IPv6 FIP" should "do nothing" in {
+        translator.translate(transaction, Create(unboundFip6))
+
+        verifyNoOp(transaction)
+    }
+
+    "Associated floating IPv6" should "add an entry to the FIP64 table" in {
+        val entry = fip6()
+        translator.translate(transaction, Create(entry))
+
+        val path = fip64Path(entry, mTntRouterGatewayPortId)
+        verify(transaction).createNode(path, null)
     }
 
     "Tenant router for floating IP" should "throw an exception if it doesn't " +
@@ -596,6 +610,27 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         verify(transaction).update(tntRouter2FloatSnatExactChainWithFipRule, null)
         verify(transaction).update(tntRouter2FloatSnatChainWithFipRuleForGwPort, null)
     }
+
+    "Associating unbound floating IPv6" should "add the entry to the FIP64 table" in {
+        bind(fipId, unboundFip6)
+        translator.translate(transaction, Update(fip6()))
+
+        verify(transaction).createNode(fip64Path(fip6(), mTntRouterGatewayPortId),
+                                       null)
+    }
+
+    "Re-associating a floating IPv6" should "remove the old entry and create " +
+                                            "a new one" in {
+        val oldFip = fip6()
+        val newFip = fip6(portId = randomUuidProto)
+        bind(fipId, oldFip)
+        translator.translate(transaction, Update(newFip))
+
+        verify(transaction).deleteNode(fip64Path(oldFip, mTntRouterGatewayPortId),
+                                       idempotent = true)
+        verify(transaction).createNode(fip64Path(newFip, mTntRouterGatewayPortId),
+                                       null)
+    }
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -638,50 +673,22 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
         verifyNoOp(transaction)
     }
 
-    "Creating an associated IPv6 FIP" should "add an entry to the FIP64 table" in {
-        val entry = fipv6()
-        translator.translate(transaction, Create(entry))
-
-        verify(transaction).createNode(fip64Path(entry))
-    }
-
-    "Creating an unassociated IPv6 FIP" should "do nothing" in {
-        translator.translate(transaction, Create(unboundFipv6))
-
-        verifyNoOp(transaction)
-    }
-
     "Deleting an associated IPv6 FIP" should "remove the entry from the FIP64 table" in {
-        val entry = fipv6()
-        bind(entry.getId, entry)
+        val fip = fip6()
+        bind(tntRouterId, nTntRouter)
+        bind(fip.getId, fip)
         translator.translate(transaction, Delete(classOf[FloatingIp],
-                                                 entry.getId))
+                                                 fip.getId))
 
-        verify(transaction).deleteNode(fip64Path(entry))
-    }
-
-    "Associating an IPv6 FIP" should "add the entry from the FIP64 table" in {
-        bind(fipId, unboundFipv6)
-        translator.translate(transaction, Update(fipv6()))
-
-        verify(transaction).createNode(fip64Path(fipv6()))
+        verify(transaction).deleteNode(fip64Path(fip, mTntRouterGatewayPortId),
+                                       idempotent = true)
     }
 
     "Deleting an unassociated floating IPv6" should "not create anything" in {
-        bind(fipId, unboundFipv6)
+        bind(tntRouterId, nTntRouter)
+        bind(fipId, unboundFip6)
         translator.translate(transaction, Delete(classOf[FloatingIp], fipId))
 
         verifyNoOp(transaction)
-    }
-
-    "Re-associating an IPv6 FIP" should
-        "remove the old entry and create the new one" in {
-        val oldEntry = fipv6()
-        val newEntry = fipv6(portId = randomUuidProto)
-        bind(fipId, oldEntry)
-        translator.translate(transaction, Update(newEntry))
-
-        verify(transaction).deleteNode(fip64Path(oldEntry))
-        verify(transaction).createNode(fip64Path(newEntry))
     }
 }
