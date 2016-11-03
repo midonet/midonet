@@ -18,10 +18,8 @@ package org.midonet.midolman.l4lb
 import java.io.File
 import java.util
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import akka.actor.{Actor, ActorRef, Props}
 import akka.testkit.TestActorRef
@@ -44,9 +42,8 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.SequenceDispenser.SequenceType
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, SequenceDispenser}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.{HealthMonitor => HMSystem}
 import org.midonet.midolman.layer3.Route.NextHop
@@ -160,10 +157,8 @@ class HaproxyTest extends MidolmanSpec
     }
 
     class TestableHaproxy(config: PoolConfig, hm: ActorRef, routerId: UUID,
-                          store: Storage, hostId: UUID,
-                          seqDispenser: SequenceDispenser)
-        extends HaproxyHealthMonitor(config, hm, routerId, store, hostId,
-                                     seqDispenser) {
+                          store: Storage, hostId: UUID)
+        extends HaproxyHealthMonitor(config, hm, routerId, store, hostId) {
 
             var shouldWriteConf = false
 
@@ -191,18 +186,6 @@ class HaproxyTest extends MidolmanSpec
     class TestableHealthMonitor extends HMSystem(conf, backend, curator = null,
                                                  backendCfg) {
 
-        override val seqDispenser = new SequenceDispenser(null, backendCfg) {
-            private val mockCounter = new AtomicInteger(100)
-            def reset(): Unit = mockCounter.set(100)
-            override def next(which: SequenceType): Future[Int] = {
-                Future.successful(mockCounter.incrementAndGet())
-            }
-
-            override def current(which: SequenceType): Future[Int] = {
-                Future.successful(mockCounter.get())
-            }
-        }
-
         override def getHostId = hostId
 
         override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
@@ -211,7 +194,7 @@ class HaproxyTest extends MidolmanSpec
             context.actorOf(
                 Props({
                     haProxy = new TestableHaproxy(config, self, routerId,
-                                                  store, hostId, seqDispenser)
+                                                  store, hostId)
                     haProxy
                 }).withDispatcher(context.props.dispatcher),
                 config.id.toString)

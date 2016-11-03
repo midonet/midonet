@@ -28,9 +28,9 @@ import org.midonet.cluster.models.Topology.Rule.NatTarget
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, SequenceDispenser}
 import org.midonet.containers
 
 object RouterInterfaceTranslator {
@@ -54,8 +54,7 @@ object RouterInterfaceTranslator {
         portId.xorWith(0xc91ba547c2a6019fL, 0x39d255685b595dffL)
 }
 
-class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
-                                config: ClusterConfig)
+class RouterInterfaceTranslator(config: ClusterConfig)
     extends Translator[NeutronRouterInterface] with ChainManager
             with PortManager with RuleManager {
 
@@ -123,7 +122,6 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
             // network port. Add it to the edge router's port group.
             routerPortBuilder
                 .addPortGroupIds(PortManager.portGroupId(routerId))
-            assignTunnelKey(routerPortBuilder, sequenceDispenser)
         } else if (isV6) {
             val router = tx.get(classOf[Router], routerId)
             val routerPorts = tx.getAll(classOf[Port],
@@ -133,9 +131,6 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
 
             routerPortBuilder.setPortAddress(localAddress)
             routerPortBuilder.setPortSubnet(localSubnet)
-
-            assignTunnelKey(routerPortBuilder, sequenceDispenser)
-
         } else {
             routerPortBuilder.setPortAddress(portAddress)
             routerPortBuilder.setPortSubnet(nSubnet.getCidr)

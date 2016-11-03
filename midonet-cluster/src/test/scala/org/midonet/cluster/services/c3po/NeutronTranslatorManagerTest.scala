@@ -33,7 +33,6 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.services.c3po.translators._
-import org.midonet.cluster.util.SequenceDispenser
 
 @RunWith(classOf[JUnitRunner])
 class NeutronTranslatorManagerTest extends FlatSpec
@@ -45,14 +44,12 @@ class NeutronTranslatorManagerTest extends FlatSpec
     private var backend: MidonetBackend = _
     private var storage: Storage = _
     private var transaction: Transaction = _
-    private var sequenceDispenser: SequenceDispenser = _
 
     before {
         config = new ClusterConfig(ConfigFactory.parseString(""))
         backend = Mockito.mock(classOf[MidonetBackend])
         storage = Mockito.mock(classOf[Storage])
         transaction = Mockito.mock(classOf[Transaction])
-        sequenceDispenser = Mockito.mock(classOf[SequenceDispenser])
 
         Mockito.when(backend.store).thenReturn(storage)
         Mockito.when(storage.transaction()).thenReturn(transaction)
@@ -60,8 +57,7 @@ class NeutronTranslatorManagerTest extends FlatSpec
 
     "Manager" should "register default translators" in {
         Given("A translator manager")
-        val manager = new NeutronTranslatorManager(config, backend,
-                                                   sequenceDispenser) {
+        val manager = new NeutronTranslatorManager(config, backend) {
             def get(clazz: Class[_]): Option[Translator[_]] = {
                 translatorOf(clazz)
             }
@@ -113,8 +109,7 @@ class NeutronTranslatorManagerTest extends FlatSpec
                })
 
         And("A translator manager")
-        val manager = new NeutronTranslatorManager(config, backend,
-                                                   sequenceDispenser) {
+        val manager = new NeutronTranslatorManager(config, backend) {
             protected override def translatorOf(clazz: Class[_])
             : Option[Translator[_]] = {
                 Some(translator)
@@ -166,8 +161,7 @@ class NeutronTranslatorManagerTest extends FlatSpec
             })
 
         And("A translator manager")
-        val manager = new NeutronTranslatorManager(config, backend,
-                                                   sequenceDispenser) {
+        val manager = new NeutronTranslatorManager(config, backend) {
             protected override def translatorOf(clazz: Class[_])
             : Option[Translator[_]] = {
                 Some(translator)
@@ -188,8 +182,7 @@ class NeutronTranslatorManagerTest extends FlatSpec
 
     "Manager" should "throw an exception if class unknown" in {
         Given("A translator manager")
-        val manager = new NeutronTranslatorManager(config, backend,
-                                                   sequenceDispenser)
+        val manager = new NeutronTranslatorManager(config, backend)
 
         When("Translating an operation for an unknown object class")
         val message = Commons.UUID.newBuilder().setMsb(0L).setLsb(0L).build()

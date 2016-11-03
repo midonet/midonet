@@ -39,7 +39,6 @@ import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure}
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
@@ -439,8 +438,6 @@ class HealthMonitorTest extends MidolmanSpec
     class HealthMonitorUT(config: MidolmanConfig, backend: MidonetBackend,
                           curator: CuratorFramework)
         extends HealthMonitor(config, backend, curator, backendCfg) {
-
-        override val seqDispenser = new SequenceDispenser(null, backendCfg)
 
         override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
                                               routerId: UUID) = {

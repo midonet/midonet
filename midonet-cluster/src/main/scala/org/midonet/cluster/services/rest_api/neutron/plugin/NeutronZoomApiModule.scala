@@ -19,7 +19,6 @@ package org.midonet.cluster.services.rest_api.neutron.plugin
 import com.google.inject.PrivateModule
 
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
-import org.midonet.cluster.util.SequenceDispenser
 
 /** Injects an implementation of the Neutron Backend API that implements
   * all the methods required by the Neutron REST API based on a ZOOM storage.
@@ -29,7 +28,6 @@ class NeutronZoomApiModule extends PrivateModule {
     override protected def configure() {
         binder.requireExplicitBindings()
 
-        bind(classOf[SequenceDispenser]).asEagerSingleton()
         bind(classOf[ResourceContext])
 
         List (

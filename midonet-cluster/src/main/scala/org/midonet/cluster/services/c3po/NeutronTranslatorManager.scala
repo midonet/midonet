@@ -25,7 +25,6 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.services.c3po.translators._
-import org.midonet.cluster.util.SequenceDispenser
 
 object NeutronTranslatorManager {
 
@@ -99,8 +98,7 @@ object NeutronTranslatorManager {
   * translators.
   */
 class NeutronTranslatorManager(config: ClusterConfig,
-                               backend: MidonetBackend,
-                               sequenceDispenser: SequenceDispenser) {
+                               backend: MidonetBackend) {
 
     private val translators = Map[Class[_], Translator[_]](
         classOf[AgentMembership] -> new AgentMembershipTranslator(),
@@ -109,7 +107,7 @@ class NeutronTranslatorManager(config: ClusterConfig,
         classOf[GatewayDevice] -> new GatewayDeviceTranslator(stateTableStore),
         classOf[IPSecSiteConnection] -> new IPSecSiteConnectionTranslator(),
         classOf[L2GatewayConnection] -> new L2GatewayConnectionTranslator(stateTableStore),
-        classOf[NeutronBgpPeer] -> new BgpPeerTranslator(stateTableStore, sequenceDispenser),
+        classOf[NeutronBgpPeer] -> new BgpPeerTranslator(stateTableStore),
         classOf[NeutronBgpSpeaker] -> new BgpSpeakerTranslator(stateTableStore),
         classOf[NeutronConfig] -> new ConfigTranslator(),
         classOf[NeutronFirewall] -> new FirewallTranslator(),
@@ -119,9 +117,9 @@ class NeutronTranslatorManager(config: ClusterConfig,
         classOf[NeutronLoadBalancerPoolMember] -> new LoadBalancerPoolMemberTranslator(),
         classOf[NeutronNetwork] -> new NetworkTranslator(),
         classOf[NeutronRouter] -> new RouterTranslator(stateTableStore, config),
-        classOf[NeutronRouterInterface] -> new RouterInterfaceTranslator(sequenceDispenser, config),
+        classOf[NeutronRouterInterface] -> new RouterInterfaceTranslator(config),
         classOf[NeutronSubnet] -> new SubnetTranslator(),
-        classOf[NeutronPort] -> new PortTranslator(stateTableStore, sequenceDispenser),
+        classOf[NeutronPort] -> new PortTranslator(stateTableStore),
         classOf[NeutronVIP] -> new VipTranslator(stateTableStore),
         classOf[PortBinding] -> new PortBindingTranslator(),
         classOf[RemoteMacEntry] -> new RemoteMacEntryTranslator(stateTableStore),
@@ -129,7 +127,7 @@ class NeutronTranslatorManager(config: ClusterConfig,
         classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(),
         classOf[TapService] -> new TapServiceTranslator(),
         classOf[TapFlow] -> new TapFlowTranslator(),
-        classOf[VpnService] -> new VpnServiceTranslator(sequenceDispenser)
+        classOf[VpnService] -> new VpnServiceTranslator()
     )
 
     private def store: Storage = backend.store

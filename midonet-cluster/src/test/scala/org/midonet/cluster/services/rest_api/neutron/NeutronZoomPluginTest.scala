@@ -40,7 +40,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
-import org.midonet.cluster.util.{CuratorTestFramework, IPSubnetUtil, SequenceDispenser}
+import org.midonet.cluster.util.{CuratorTestFramework, IPSubnetUtil}
 import org.midonet.cluster.{ClusterConfig, RestApiConfig}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
@@ -80,11 +80,9 @@ class NeutronZoomPluginTest extends FeatureSpec
                                          executionContext = null,
                                          uriInfo = null,
                                          validator = null,
-                                         seqDispenser = null)
-        val sequenceDispenser = new SequenceDispenser(curator, backendConfig)
+                                         sequenceDispenser = null)
         val manager = new NeutronTranslatorManager(clusterConfig,
-                                                   backend,
-                                                   sequenceDispenser)
+                                                   backend)
         plugin = new NeutronZoomPlugin(resContext, manager)
     }
 

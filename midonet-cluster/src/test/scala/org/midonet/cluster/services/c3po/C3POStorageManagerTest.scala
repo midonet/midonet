@@ -35,7 +35,6 @@ import org.midonet.cluster.models.Topology.{Network, Port}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.translators.{NetworkTranslator, TranslationException, Translator}
-import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 object C3POStorageManagerTest {
@@ -104,12 +103,10 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     def buildManager(translatorMap: TranslatorMap = Map.empty): Unit = {
         val config = mock(classOf[ClusterConfig])
-        val sequenceDispenser = mock(classOf[SequenceDispenser])
         val backend = mock(classOf[MidonetBackend])
         when(backend.store).thenReturn(storage)
 
-        storageManager = new C3POStorageManager(config, backend,
-                                                sequenceDispenser) {
+        storageManager = new C3POStorageManager(config, backend) {
             override def translatorOf(clazz: Class[_]): Option[Translator[_]] = {
                 translatorMap.get(clazz)
             }

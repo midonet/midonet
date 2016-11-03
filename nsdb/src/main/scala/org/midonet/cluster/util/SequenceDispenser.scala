@@ -31,11 +31,9 @@ import org.midonet.cluster.util.SequenceDispenser.SequenceType
 object SequenceDispenser {
     abstract class SequenceType(val tag: String, val seed: Int)
 
-    case object OverlayTunnelKey extends SequenceType("OVERLAY_TUNNEL_KEY", 1)
     case object VxgwVni extends SequenceType("VXGW_TUNNEL_KEY", 10000)
 
     val Sequences = Seq (
-        OverlayTunnelKey,
         VxgwVni
     )
 }

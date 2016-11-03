@@ -47,8 +47,6 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                                     cnxnProvider: OvsdbVtepConnectionProvider)
     extends MidonetResource[VtepBinding](resContext) {
 
-    private val seqDispenser = resContext.seqDispenser
-
     @GET
     @Path("{portName}/{vlanId}")
     @Produces(Array(APPLICATION_VTEP_BINDING_JSON_V2,
@@ -155,7 +153,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                     tx.tx.update(newVtep)
                 case None =>
                     val vni = if (!network.hasVni) {
-                        seqDispenser.next(VxgwVni).getOrThrow
+                        resContext.sequenceDispenser.next(VxgwVni).getOrThrow
                     } else {
                         network.getVni
                     }

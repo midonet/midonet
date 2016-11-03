@@ -130,7 +130,7 @@ object MidonetResource {
                                           executionContext: ExecutionContext,
                                           uriInfo: UriInfo,
                                           validator: Validator,
-                                          seqDispenser: SequenceDispenser)
+                                          sequenceDispenser: SequenceDispenser)
 
 }
 
