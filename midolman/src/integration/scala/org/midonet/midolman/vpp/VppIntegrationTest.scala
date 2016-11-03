@@ -79,7 +79,11 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
     }
 
     def cmd(line: String): Int = {
-        new ProcessBuilder(line.split("\\s+"):_*).start().waitFor()
+        log.info(s"Executing : $line")
+        new ProcessBuilder(line.split("\\s+"):_*)
+            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            .redirectError(ProcessBuilder.Redirect.INHERIT)
+            .start().waitFor()
     }
 
     def assertCmd(line: String): Unit = {
@@ -93,6 +97,10 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
     def assertCmdInNs(name: String, line: String): Unit = {
         Assert.assertEquals(s"cmd($line) in namespace($name) failed", 0,
                             cmdInNs(name, line))
+    }
+
+    def assertVppCtl(line: String): Unit = {
+        assertCmd(s"vppctl $line")
     }
 
     def createNamespace(name: String): Unit = {
@@ -505,6 +513,99 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 setup foreach { s => Await.result(s.rollback(), 1 minute) }
                 api.close()
                 proc.destroy()
+            }
+        }
+    }
+
+    feature("VXLan downlink") {
+        scenario("ping6 through vxlan") {
+            val nsIPv6 = "ip6"
+            val nsVxLan = "vxlan"
+            val proc = startVpp()
+            Thread.sleep(1000) // only needed while first testcase is failing
+            val api = new VppApi("test")
+
+            try {
+                createNamespace(nsIPv6)
+                createNamespace(nsVxLan)
+
+                // fix vxlan udp port (this is ugly)
+                // this is only needed for ubuntu 14.04 which
+                // has an old iproute2 without the ability to set the
+                // vxlan port using the command
+                cmd("rmmod openvswitch vxlan")
+                assertCmd("modprobe vxlan udp_port=4789")
+                assertCmd("modprobe openvswitch")
+
+                assertCmdInNs(nsIPv6,
+                              "ip l set address de:ad:be:ef:00:01 dev ip6ns")
+                assertCmdInNs(nsIPv6, "ip a add 2001::1/64 dev ip6ns")
+                assertCmdInNs(nsIPv6, "ip a add 4001::1/64 dev lo")
+                assertCmdInNs(nsIPv6,
+                              "ip -6 r add 3001::/64 via 2001::2 src 4001::1")
+
+                assertCmdInNs(nsVxLan,
+                              "ip l set address de:ad:be:ef:00:02 dev vxlanns")
+                assertCmdInNs(nsVxLan,
+                              "ip a add 169.254.0.2/24 dev vxlanns")
+                assertCmdInNs(nsVxLan,
+                              "ip a add 192.168.0.1/24 dev lo")
+                assertCmdInNs(nsVxLan,
+                              "ip l add tun type vxlan id 139 dev vxlanns"
+                                  + " remote 169.254.0.1 local 169.254.0.2"
+                                  + " port 4789 4789")
+                assertCmdInNs(nsVxLan,
+                              "ip l set address de:ad:be:ef:00:03 dev tun")
+                assertCmdInNs(nsVxLan, "ip l set up dev tun")
+                assertCmdInNs(nsVxLan,
+                              "ip r add default dev tun src 192.168.0.1")
+                assertCmdInNs(nsVxLan,
+                              "ip neigh add 10.0.0.235"
+                                  + " lladdr de:ad:be:ef:00:05 dev tun")
+
+                val ip6Dev = Await.result(api.createDevice("ip6dp", None),
+                                          1 minute)
+                Await.result(api.setDeviceAdminState(ip6Dev, isUp=true),
+                             1 minute)
+                Await.result(api.addDeviceAddress(
+                                 ip6Dev, IPv6Addr.fromString("2001::2"), 64),
+                             1 minute)
+                Await.result(api.addRoute(
+                                 IPv6Subnet.fromString("4001::/64"),
+                                 nextHop=Some(IPv6Addr.fromString("2001::1")),
+                                 device=Some(ip6Dev)), 1 minute)
+
+
+                val vxlanDev = Await.result(api.createDevice("vxlandp", None),
+                                            1 minute)
+                Await.result(api.setDeviceAdminState(vxlanDev, isUp=true),
+                             1 minute)
+                Await.result(api.addDeviceAddress(
+                                 vxlanDev,
+                                 IPv4Addr.fromString("169.254.0.1"), 24),
+                             1 minute)
+
+                assertVppCtl("fip64 add 4001::1 3001::1"
+                                 + " 10.0.0.1 192.168.0.1 table 1")
+
+                assertVppCtl("create vxlan tunnel src 169.254.0.1"
+                                 + " dst 169.254.0.2 vni 139")
+                assertVppCtl("loopback create mac de:ad:be:ef:00:05")
+                assertVppCtl("set int state loop0 up")
+                assertVppCtl("set int l2 bridge vxlan_tunnel0 13 1")
+                assertVppCtl("set int l2 bridge loop0 13  bvi")
+                assertVppCtl("set int ip table loop0 1")
+                assertVppCtl(
+                    "set ip arp fib-id 1 loop0 172.16.0.1 dead.beef.0003")
+                assertVppCtl("ip route add table 1 0.0.0.0/0 via 172.16.0.1")
+
+                assertCmdInNs(nsIPv6, "ping6 -c 5 3001::1")
+            } finally {
+                proc.destroy()
+                api.close()
+
+                deleteNamespace(nsVxLan)
+                deleteNamespace(nsIPv6)
             }
         }
     }
