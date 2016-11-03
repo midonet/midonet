@@ -185,8 +185,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive a Create and AssociateFip notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createDownlink(port, rule, 0)
-            actor.messages(1) shouldBe associateFip(port, entry, 0)
+            actor.messages.head shouldBe createDownlink(port, rule, 1)
+            actor.messages(1) shouldBe associateFip(port, entry, 1)
 
             gracefulStop(ref, 5 seconds)
         }
@@ -224,8 +224,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive a Delete notification")
             actor.messages should have size 4
-            actor.messages(2) shouldBe disassociateFip(port, entry, 0)
-            actor.messages(3) shouldBe DeleteDownlink(port.getId, 0)
+            actor.messages(2) shouldBe disassociateFip(port, entry, 1)
+            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1)
         }
 
         scenario("Port deleted for non-existing downlink") {
@@ -265,8 +265,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive a Create and AssociateFip notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createDownlink(port1, rule1, 0)
-            actor.messages(1) shouldBe associateFip(port1, entry1, 0)
+            actor.messages.head shouldBe createDownlink(port1, rule1, 1)
+            actor.messages(1) shouldBe associateFip(port1, entry1, 1)
 
             When("Adding a new port")
             val port2 = createRouterPort(routerId = Some(router.getId))
@@ -278,16 +278,16 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive a Create and AssociateFip notification")
             actor.messages should have size 4
-            actor.messages(2) shouldBe createDownlink(port2, rule2, 1)
-            actor.messages(3) shouldBe associateFip(port2, entry2, 1)
+            actor.messages(2) shouldBe createDownlink(port2, rule2, 2)
+            actor.messages(3) shouldBe associateFip(port2, entry2, 2)
 
             When("The first port is deleted")
             backend.store.delete(classOf[Port], port1.getId)
 
             Then("The actor should receive a Delete notification")
             actor.messages should have size 6
-            actor.messages(4) shouldBe disassociateFip(port1, entry1, 0)
-            actor.messages(5) shouldBe DeleteDownlink(port1.getId, 0)
+            actor.messages(4) shouldBe disassociateFip(port1, entry1, 1)
+            actor.messages(5) shouldBe DeleteDownlink(port1.getId, 1)
 
             When("Adding a new port")
             val port3 = createRouterPort(routerId = Some(router.getId))
@@ -297,10 +297,10 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             backend.store.multi(Seq(CreateOp(port3), CreateOp(rule3)))
             val entry3 = addEntry(port3.getId, router.getId)
 
-            Then("The actor should receive a Create notification with 0 VRF")
+            Then("The actor should receive a Create notification with 1 VRF")
             actor.messages should have size 8
-            actor.messages(6) shouldBe createDownlink(port3, rule3, 0)
-            actor.messages(7) shouldBe associateFip(port3, entry3, 0)
+            actor.messages(6) shouldBe createDownlink(port3, rule3, 1)
+            actor.messages(7) shouldBe associateFip(port3, entry3, 1)
 
             gracefulStop(ref, 5 seconds)
         }
@@ -326,8 +326,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive a DisassociateFip and Delete notification")
             actor.messages should have size 4
-            actor.messages(2) shouldBe disassociateFip(port, entry, 0)
-            actor.messages(3) shouldBe DeleteDownlink(port.getId, 0)
+            actor.messages(2) shouldBe disassociateFip(port, entry, 1)
+            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1)
         }
 
         scenario("Deleted downlink frees VRF numbers") {
@@ -354,8 +354,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive 0 VRF")
             actor.messages should have size 6
-            actor.messages(4) shouldBe createDownlink(port, rule, 0)
-            actor.messages(5) shouldBe associateFip(port, entry, 0)
+            actor.messages(4) shouldBe createDownlink(port, rule, 1)
+            actor.messages(5) shouldBe associateFip(port, entry, 1)
 
             gracefulStop(ref, 5 seconds)
         }
@@ -414,8 +414,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive a Create notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createDownlink(port, rule, 0)
-            actor.messages(1) shouldBe associateFip(port, entry, 0)
+            actor.messages.head shouldBe createDownlink(port, rule, 1)
+            actor.messages(1) shouldBe associateFip(port, entry, 1)
 
             gracefulStop(ref, 5 seconds)
         }
@@ -470,7 +470,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive an Update notification")
             actor.messages should have size 3
-            actor.messages(2) shouldBe updateDownlink(port, rule1, rule2, 0)
+            actor.messages(2) shouldBe updateDownlink(port, rule1, rule2, 1)
 
             gracefulStop(ref, 5 seconds)
         }
@@ -586,22 +586,22 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive AssociateFip notification")
             actor.messages should have size 3
-            actor.messages(2) shouldBe associateFip(port, entry2, 0)
+            actor.messages(2) shouldBe associateFip(port, entry2, 1)
 
             When("Deleting the first entry")
             removeEntry(entry1)
 
             Then("The actor should receive DisassociateFip notification")
             actor.messages should have size 4
-            actor.messages(3) shouldBe disassociateFip(port, entry1, 0)
+            actor.messages(3) shouldBe disassociateFip(port, entry1, 1)
 
             When("Deleting the second entry")
             removeEntry(entry2)
 
             Then("The actor should receive DownlinkDeleted")
             actor.messages should have size 6
-            actor.messages(4) shouldBe disassociateFip(port, entry2, 0)
-            actor.messages(5) shouldBe DeleteDownlink(port.getId, 0)
+            actor.messages(4) shouldBe disassociateFip(port, entry2, 1)
+            actor.messages(5) shouldBe DeleteDownlink(port.getId, 1)
         }
 
         scenario("All FIP entries are cleared when port deleted") {
@@ -632,10 +632,10 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("All FIPs are disassociated")
             actor.messages should have size 8
             actor.messages.slice(4, 7) should contain allOf(
-                disassociateFip(port, entry1, 0),
-                disassociateFip(port, entry2, 0),
-                disassociateFip(port, entry3, 0))
-            actor.messages(7) shouldBe DeleteDownlink(port.getId, 0)
+                disassociateFip(port, entry1, 1),
+                disassociateFip(port, entry2, 1),
+                disassociateFip(port, entry3, 1))
+            actor.messages(7) shouldBe DeleteDownlink(port.getId, 1)
         }
     }
 
@@ -670,8 +670,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The VPP downlink should cleanup")
             actor.messages should have size 4
-            actor.messages(2) shouldBe disassociateFip(port, entry, 0)
-            actor.messages(3) shouldBe DeleteDownlink(port.getId, 0)
+            actor.messages(2) shouldBe disassociateFip(port, entry, 1)
+            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1)
         }
     }
 
@@ -723,8 +723,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive a Create notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createDownlink(port, rule, 0)
-            actor.messages(1) shouldBe associateFip(port, entry, 0)
+            actor.messages.head shouldBe createDownlink(port, rule, 1)
+            actor.messages(1) shouldBe associateFip(port, entry, 1)
 
             gracefulStop(ref, 5 seconds)
         }
@@ -766,8 +766,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should only receive the second port")
             actor.messages should have size 6
-            actor.messages(4) shouldBe createDownlink(port2, rule2, 0)
-            actor.messages(5) shouldBe associateFip(port2, entry2, 0)
+            actor.messages(4) shouldBe createDownlink(port2, rule2, 1)
+            actor.messages(5) shouldBe associateFip(port2, entry2, 1)
 
             gracefulStop(ref, 5 seconds)
         }
