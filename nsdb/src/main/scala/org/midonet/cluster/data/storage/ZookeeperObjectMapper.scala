@@ -451,7 +451,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         stateInfo(clazz) = new StateInfo
     }
 
-    override def isRegistered(clazz: Class[_]) = {
+    override def isRegistered(clazz: Class[_]): Boolean = {
         val registered = classInfo.contains(clazz)
         if (!registered)
             Log.warn(s"Class ${clazz.getSimpleName} is not registered.")
@@ -465,6 +465,13 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         ensureClassNodes()
         lockFreeAndWatch()
         super.build()
+    }
+
+    /**
+      * Enables the topology lock.
+      */
+    def enableLock(): Unit = {
+        ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, topologyLockPath)
     }
 
     /**
