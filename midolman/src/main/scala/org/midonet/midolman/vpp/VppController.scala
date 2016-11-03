@@ -209,7 +209,6 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
             case Failure(err) =>
                 log warn s"Get port $portId failed: $err"
-                throw err
         }
     }
 
