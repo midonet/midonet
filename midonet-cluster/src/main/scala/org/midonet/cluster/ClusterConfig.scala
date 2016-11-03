@@ -169,8 +169,6 @@ class RestApiConfig(val conf: Config) extends MinionConfig[RestApi] {
         conf.getDuration(s"$prefix.http_idle_timeout", TimeUnit.MILLISECONDS)
     def httpsIdleTimeoutMs =
         conf.getDuration(s"$prefix.https_idle_timeout", TimeUnit.MILLISECONDS)
-    def nsdbLockTimeoutMs =
-        conf.getDuration(s"$prefix.nsdb_lock_timeout", TimeUnit.MILLISECONDS)
 }
 
 class ContainersConfig(val conf: Config) extends MinionConfig[ContainerService] {
