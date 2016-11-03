@@ -299,6 +299,9 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
             MidonetBackend.setupBindings(zoom, zoom, () => {
                 setupFromClasspath(zoom, zoom, reflections)
             })
+
+            zoom.enableLock()
+
             notifyStarted()
         } catch {
             case NonFatal(e) =>
