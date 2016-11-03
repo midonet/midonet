@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3e282c85",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppControllerIntegrationTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-03T20:38:12Z",
+      "side": 1,
+      "message": "is it possible to use eventually for this?",
+      "range": {
+        "startLine": 161,
+        "startChar": 12,
+        "endLine": 162,
+        "endChar": 47
+      },
+      "revId": "0da06065a2bb61a4e04530219e83c152ddf6cd6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_de102052",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppIntegrationTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-03T20:38:12Z",
+      "side": 1,
+      "message": "maybe put this in a different file, you can also make it a trait so it could be mixed in",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 31
+      },
+      "revId": "0da06065a2bb61a4e04530219e83c152ddf6cd6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_be0d5c37",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-03T20:38:12Z",
+      "side": 1,
+      "message": "this one too",
+      "range": {
+        "startLine": 171,
+        "startChar": 0,
+        "endLine": 171,
+        "endChar": 45
+      },
+      "revId": "0da06065a2bb61a4e04530219e83c152ddf6cd6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
