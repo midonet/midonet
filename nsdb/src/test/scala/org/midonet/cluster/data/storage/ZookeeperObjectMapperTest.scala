@@ -837,6 +837,17 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             val b = await(storage.get(classOf[PojoBridge], bridge.id))
             b.name shouldBe "10"
         }
+
+        scenario("Storate creates the lock path") {
+            Given("Storage does not have the lock path")
+            curator.checkExists().forPath(zoom.topologyLockPath) shouldBe null
+
+            When("Calling the enableLock method")
+            zoom.enableLock()
+
+            Then("The topology lock should exist")
+            curator.checkExists().forPath(zoom.topologyLockPath) should not be null
+        }
     }
 
     feature("Test Zookeeper") {
