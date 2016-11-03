@@ -35,7 +35,7 @@ import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.{C3POConfig, C3poLog, ClusterConfig}
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.ScheduledMinion.checkConfigParamDefined
@@ -65,10 +65,7 @@ class C3POMinion @Inject()(nodeContext: Context,
     private val neutronImporter = new SqlNeutronImporter(dataSrc)
     private val dataStateUpdater = new DataStateUpdater(dataSrc)
 
-    private val seqDispenser = new SequenceDispenser(curator, backendCfg)
-    private val dataMgr = C3POMinion.initDataManager(config,
-                                                     backend,
-                                                     seqDispenser)
+    private val dataMgr = C3POMinion.initDataManager(config, backend)
 
     private val LEADER_LATCH_PATH = backendCfg.rootKey + "/leader-latch"
     private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
@@ -186,9 +183,8 @@ object C3POMinion {
     }
 
     def initDataManager(config: ClusterConfig,
-                        backend: MidonetBackend,
-                        sequenceDispenser: SequenceDispenser): C3POStorageManager = {
-        val manager = new C3POStorageManager(config, backend, sequenceDispenser)
+                        backend: MidonetBackend): C3POStorageManager = {
+        val manager = new C3POStorageManager(config, backend)
         manager.init()
         manager
     }

@@ -56,8 +56,7 @@ object PortTranslator {
         portId.xorWith(0x4bcef582eeae45acL, 0xb0304fc7e7b3ba0dL)
 }
 
-class PortTranslator(stateTableStorage: StateTableStorage,
-                     sequenceDispenser: SequenceDispenser)
+class PortTranslator(stateTableStorage: StateTableStorage)
     extends Translator[NeutronPort]
         with ChainManager with PortManager with RouteManager with RuleManager {
 
@@ -97,8 +96,6 @@ class PortTranslator(stateTableStorage: StateTableStorage,
 
         // All other ports have a corresponding Midonet network (bridge) port.
         val midoPortBldr = translateNeutronPort(tx, nPort)
-
-        assignTunnelKey(midoPortBldr, sequenceDispenser)
 
         val portId = nPort.getId
         val portContext = initPortContext

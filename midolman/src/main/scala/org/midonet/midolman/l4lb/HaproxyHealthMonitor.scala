@@ -33,15 +33,13 @@ import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, SequenceDispenser}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{CheckHealth, ConfigUpdate, _}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.AfUnix
-import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.process.ProcessHelper
 
 /**
@@ -61,9 +59,9 @@ import org.midonet.util.process.ProcessHelper
 */
 object HaproxyHealthMonitor {
     def props(config: PoolConfig, manager: ActorRef, routerId: UUID,
-              store: Storage, hostId: UUID, sequenceDispenser: SequenceDispenser):
+              store: Storage, hostId: UUID):
         Props = Props(new HaproxyHealthMonitor(config, manager, routerId,
-                                               store, hostId, sequenceDispenser))
+                                               store, hostId))
 
     sealed trait HHMMessage
     // This is a way of alerting the manager that setup has failed
@@ -102,8 +100,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                            val manager: ActorRef,
                            var routerId: UUID,
                            val store: Storage,
-                           val hostId: UUID,
-                           val seqDispenser: SequenceDispenser)
+                           val hostId: UUID)
     extends Actor with ActorLogWithoutPath with Stash {
 
 
@@ -484,8 +481,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 tx.delete(classOf[Port], p.getId, ignoresNeo = false)
             }
 
-            val tk = seqDispenser.next(OverlayTunnelKey).await()
-
             val hmPort = Port.newBuilder()
                 .setId(randomUuidProto)
                 .setRouterId(toProto(routerId))
@@ -493,7 +488,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 .setPortSubnet(IPSubnetUtil.toProto(NetSubnet))
                 .setPortMac(RouterMAC.toString)
                 .setHostId(toProto(hostId))
-                .setTunnelKey(tk)
                 .setInterfaceName(namespaceName).build
             tx.create(hmPort)
 

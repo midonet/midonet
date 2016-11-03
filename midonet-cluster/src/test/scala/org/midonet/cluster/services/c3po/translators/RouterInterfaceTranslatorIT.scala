@@ -419,7 +419,6 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
         eventually {
             val routerPort = storage.get(classOf[Port], routerPortId).await()
 
-            routerPort.getTunnelKey should not be 0
             routerPort.getPortSubnet.getAddress shouldBe "169.254.0.0"
             routerPort.getPortSubnet.getPrefixLength shouldBe 30
             routerPort.getPortAddress.getAddress shouldBe "169.254.0.1"

@@ -24,12 +24,11 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouteManager.extraRouteId
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.containers
 import org.midonet.packets.{MAC, TCP}
 
-class BgpPeerTranslator(stateTableStorage: StateTableStorage,
-                        sequenceDispenser: SequenceDispenser)
+class BgpPeerTranslator(stateTableStorage: StateTableStorage)
     extends Translator[NeutronBgpPeer] with RuleManager with PortManager
             with ChainManager {
 
@@ -174,7 +173,6 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
             .setPortAddress(routerAddress)
             .setPortMac(MAC.random().toString)
 
-        assignTunnelKey(builder, sequenceDispenser)
         tx.create(builder.build())
     }
 

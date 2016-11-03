@@ -24,11 +24,11 @@ import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, VpnServic
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.containers
 import org.midonet.packets.MAC
 
-class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
+class VpnServiceTranslator
     extends Translator[VpnService] with ChainManager with PortManager
             with RouteManager with RuleManager {
     import VpnServiceTranslator._
@@ -202,15 +202,14 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
 
         val portId = JUUID.randomUUID
         val interfaceName = s"vpn-${portId.toString.substring(0, 8)}"
-        val builder = Port.newBuilder
+        Port.newBuilder
             .setId(portId)
             .setRouterId(router.getId)
             .setPortSubnet(subnet)
             .setPortAddress(routerAddr)
             .setPortMac(MAC.random().toString)
             .setInterfaceName(interfaceName)
-        assignTunnelKey(builder, sequenceDispenser)
-        builder.build()
+            .build()
     }
 
     private def makeRedirectRules(chainId: UUID,

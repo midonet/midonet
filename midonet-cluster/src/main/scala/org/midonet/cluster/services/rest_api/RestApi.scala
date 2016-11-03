@@ -103,8 +103,7 @@ object RestApi {
                 curator.usingNamespace(config.backend.rootKey.stripPrefix("/")),
                 None))
             bind(classOf[NeutronTranslatorManager])
-                .toInstance(new NeutronTranslatorManager(config, backend,
-                                                         sequenceDispenser))
+                .toInstance(new NeutronTranslatorManager(config, backend))
             bind(classOf[ResourceProvider]).toInstance(resProvider)
             bind(classOf[ApplicationResource])
             bind(classOf[Validator])

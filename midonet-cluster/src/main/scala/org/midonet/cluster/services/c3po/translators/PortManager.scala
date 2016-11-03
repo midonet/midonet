@@ -28,11 +28,8 @@ import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpt
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Delete, Operation, Update}
-import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.MAC
-import org.midonet.util.concurrent.toFutureOps
 
 /**
  * Contains port-related operations shared by multiple translator classes.
@@ -65,12 +62,6 @@ trait PortManager extends ChainManager with RouteManager {
     : Port.Builder = Port.newBuilder.setId(id)
                                     .setRouterId(routerId)
                                     .setAdminStateUp(adminStateUp)
-
-    protected def assignTunnelKey(port: Port.Builder,
-                                  sequenceDispenser: SequenceDispenser): Unit = {
-        val tk = sequenceDispenser.next(OverlayTunnelKey).await()
-        port.setTunnelKey(tk)
-    }
 
     /**
      * Modifies port to set its peerId to peer's ID, and returns list of

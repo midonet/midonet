@@ -30,7 +30,6 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.TranslationException
-import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.{C3poStorageManagerLog, ClusterConfig}
 
 object C3POStorageManager {
@@ -74,10 +73,8 @@ object OpType extends Enumeration {
 /** C3PO that translates an operation on an external model into corresponding
   * storage operations on internal Mido models.
   */
-class C3POStorageManager(config: ClusterConfig,
-                         backend: MidonetBackend,
-                         sequenceDispenser: SequenceDispenser)
-    extends NeutronTranslatorManager(config, backend, sequenceDispenser) {
+class C3POStorageManager(config: ClusterConfig, backend: MidonetBackend)
+    extends NeutronTranslatorManager(config, backend) {
     import org.midonet.cluster.services.c3po.C3POStorageManager._
 
     private val log = LoggerFactory.getLogger(C3poStorageManagerLog)

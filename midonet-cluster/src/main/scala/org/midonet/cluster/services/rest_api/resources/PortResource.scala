@@ -43,7 +43,6 @@ import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.MidonetBackend.{ActiveKey, BgpKey}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
-import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.packets.{IPv4Addr, MAC}
 
@@ -83,17 +82,6 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                 }
             case _ =>
         }
-    }
-
-    protected def ensureTunnelKey(port: P): P = {
-        resContext.seqDispenser.next(OverlayTunnelKey) map { key =>
-            port.tunnelKey = key
-            port
-        } recover { case NonFatal(t) =>
-            log.error("Failed to generate tunnel key", t)
-            throw new InternalServerErrorHttpException(
-                s"Unable to generate new tunnel key: ${t.getMessage}")
-        } getOrThrow
     }
 
 }
@@ -185,7 +173,6 @@ class BridgePortResource @Inject()(bridgeId: UUID,
             case _ =>
                 throw new BadRequestHttpException("Not a bridge port.")
         }
-        ensureTunnelKey(port)
         bridgePort.create(bridgeId)
         tx.create(bridgePort)
     }
@@ -235,7 +222,6 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
 
     protected override def createFilter(port:RouterPort,
                                         tx: ResourceTransaction): Unit = {
-        ensureTunnelKey(port)
         port.create(routerId)
         port.setBaseUri(resContext.uriInfo.getBaseUri)
         tx.create(port)

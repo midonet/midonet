@@ -37,7 +37,6 @@ import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
@@ -208,8 +207,6 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
     private var hostId: UUID = null
     val store = backend.store
 
-    val seqDispenser = new SequenceDispenser(curator, backendCfg)
-
     private var watcher: ActorRef = null
 
     val ipCom = HealthMonitor.ipCommand
@@ -344,8 +341,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
                                  routerId: UUID) = {
         context.actorOf(
             Props(
-                new HaproxyHealthMonitor(config, self, routerId, store, hostId,
-                                         seqDispenser)
+                new HaproxyHealthMonitor(config, self, routerId, store, hostId)
             ).withDispatcher(context.props.dispatcher),
             config.id.toString)
     }
