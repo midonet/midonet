@@ -43,6 +43,7 @@ import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.services.state.client.StateTableClient
+import org.midonet.cluster.services.state.client.StateTableClient.DisabledStateTableClient
 import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.collection.PathMap
@@ -282,8 +283,9 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
         val tableKey = StateTable.Key(null, null, key.runtimeClass,
                                       value.runtimeClass, name, Seq())
 
-        constructor.newInstance(tableKey, directory, stateTables, connection, metrics)
-            .asInstanceOf[StateTable[K, V]]
+        constructor.newInstance(tableKey, directory, DisabledStateTableClient,
+                                connection, metrics)
+                   .asInstanceOf[StateTable[K, V]]
     }
 
     /**
