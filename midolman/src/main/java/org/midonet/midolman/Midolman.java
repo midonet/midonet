@@ -284,7 +284,7 @@ public class Midolman {
 
         try {
             minionProcess.stopAsync()
-                .awaitRunning(MINION_PROCESS_WAIT_TIMEOUT, TimeUnit.SECONDS);
+                .awaitTerminated(MINION_PROCESS_WAIT_TIMEOUT, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.error("Minion process failed while stopping.", e);
         }
