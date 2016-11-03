@@ -165,7 +165,6 @@ object Migrator extends App {
         val conf = ConfigFactory.parseString(
             s"""
               |zookeeper {
-              |    curator_enabled = true
               |    zookeeper_hosts = "${opts.zkHost()}"
               |    session_timeout = ${opts.timeout()}s
               |    session_timeout_type: "duration"

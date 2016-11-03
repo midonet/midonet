@@ -46,7 +46,6 @@ class SequenceDispenserTest extends FeatureSpecLike
     private val conf = new MidonetBackendConfig(ConfigFactory.parseString(
         s"""
           |zookeeper {
-          |    curator_enabled = false
           |    root_key = $zkRoot
           |}
         """.stripMargin))
