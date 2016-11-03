@@ -166,7 +166,6 @@ object Migrator extends App {
             s"""
               |zookeeper {
               |    use_new_stack = true
-              |    curator_enabled = true
               |    zookeeper_hosts = "${opts.zkHost()}"
               |    session_timeout = ${opts.timeout()}s
               |    session_timeout_type: "duration"

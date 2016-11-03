@@ -47,7 +47,6 @@ class SequenceDispenserTest extends FeatureSpecLike
         s"""
           |zookeeper {
           |    use_new_stack = false
-          |    curator_enabled = false
           |    root_key = $zkRoot
           |}
         """.stripMargin))
