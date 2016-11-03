@@ -22,8 +22,6 @@ import scala.util.{Failure, Success}
 
 import com.typesafe.scalalogging.Logger
 
-import org.slf4j.LoggerFactory
-
 /**
   * FutureTaskWithRollback
   *
@@ -109,13 +107,12 @@ object FutureSequenceWithRollback {
   * @param name Description for this sequence (used in logs)
   * @param ec Execution context
   */
-class FutureSequenceWithRollback(val name: String)
+class FutureSequenceWithRollback(val name: String, log: Logger)
                                 (implicit ec: ExecutionContext)
     extends FutureTaskWithRollback {
 
     import FutureSequenceWithRollback._
 
-    protected val log = Logger(LoggerFactory.getLogger(this.getClass))
     private val steps = ArrayBuffer.empty[FutureTaskWithRollback]
     private var position = 0
 
