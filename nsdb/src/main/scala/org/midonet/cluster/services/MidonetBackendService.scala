@@ -177,6 +177,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
                     setupFromClasspath(zoom, zoom, reflections.get)
                 }
             })
+            zoom.enableLock()
 
             log.info("Start observing backend connection")
             connectionState subscribe connectionSubscriber
