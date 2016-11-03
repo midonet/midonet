@@ -23,11 +23,11 @@ import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 import org.midonet.cluster.data.ObjId
-import org.midonet.cluster.data.storage.StateTableEncoder.{Ip4ToMacEncoder, MacToIdEncoder, MacToIp4Encoder}
+import org.midonet.cluster.data.storage.StateTableEncoder.{Fip64Encoder, Ip4ToMacEncoder, MacToIdEncoder, MacToIp4Encoder}
 import org.midonet.cluster.data.storage.model.{ArpEntry, Fip64Entry}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.packets.{IPv4Addr, IPv6Addr, MAC}
+import org.midonet.packets.{IPv4Addr, MAC}
 
 /**
   * Specifies the properties of a [[StateTable]], which includes the key and
@@ -179,7 +179,7 @@ trait StateTableStorage extends Storage {
     }
 
     def fip64EntryPath(entry: Fip64Entry): String = {
-        fip64TablePath + '/' + entry.encode
+        fip64TablePath + Fip64Encoder.encodePersistentPath(entry, null)
     }
 
     private def registerTable[K,V](map: TrieMap[String, TableProvider],
