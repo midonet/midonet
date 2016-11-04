@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5eb3f0ec",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-04T01:35:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_2cd2515c",
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_acbe61fe",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 16
@@ -65,6 +83,54 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1ead6884",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-04T01:35:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4c3475ab",
+      "range": {
+        "startLine": 252,
+        "startChar": 55,
+        "endLine": 252,
+        "endChar": 70
+      },
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dec70045",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-04T01:35:42Z",
+      "side": 1,
+      "message": "Its not necessary if the filters are in the map-building part of the code. removed.\n\nAlso, since the gwportid is not part of those maps, ive removed that check as well.",
+      "parentUuid": "baa041b7_acbe61fe",
+      "range": {
+        "startLine": 252,
+        "startChar": 32,
+        "endLine": 252,
+        "endChar": 51
+      },
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_eccb49a3",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 16
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bec43c41",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-04T01:35:42Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "baa041b7_eccb49a3",
+      "range": {
+        "startLine": 253,
+        "startChar": 16,
+        "endLine": 253,
+        "endChar": 31
+      },
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0cc78d99",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 16
@@ -99,6 +189,30 @@
       "writtenOn": "2016-11-02T09:12:35Z",
       "side": 1,
       "message": "probably it\u0027s more consistent to use getPeerId?",
+      "range": {
+        "startLine": 257,
+        "startChar": 31,
+        "endLine": 257,
+        "endChar": 56
+      },
+      "revId": "5c57de50cf1fc908d9d4b675a2bdf4d66173f013",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9ec17832",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-04T01:35:42Z",
+      "side": 1,
+      "message": "yes. I also don\u0027t need to check if it exists because the case where it doesn\u0027t exist is in hasSubWithAddr.",
+      "parentUuid": "baa041b7_0cc78d99",
       "range": {
         "startLine": 257,
         "startChar": 31,
