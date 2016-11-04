@@ -204,15 +204,12 @@ private object VppSetup extends MidolmanLogging {
                    (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
 
-        private var oldIfName: Option[String] = None
-
         @throws[Exception]
         override def execute(): Future[Any] = {
             try {
                 backend.store.tryTransaction(tx =>  {
                     val hostId = HostIdGenerator.getHostId
                     val oldPort = tx.get(classOf[Port], tenantRouterPortId)
-                    oldIfName = Some(oldPort.getInterfaceName)
                     val newPort = oldPort.toBuilder
                         .setHostId(toProto(hostId))
                         .setInterfaceName(ovsDownlinkPortName)
@@ -228,21 +225,18 @@ private object VppSetup extends MidolmanLogging {
 
         @throws[Exception]
         override def rollback(): Future[Any] = {
-            oldIfName match {
-                case Some(ifName) => try {
-                    backend.store.tryTransaction(tx => {
-                        val currentPort = tx.get(classOf[Port], tenantRouterPortId)
-                        val restoredPort = currentPort.toBuilder
-                            .setInterfaceName(ifName)
-                            .build()
-                        tx.update(restoredPort)
-                    })
-                    Future.successful(Unit)
-                } catch {
-                    case NonFatal(e) => Future.failed(e)
-                }
-                case _ =>
-                    Future.successful(Unit)
+            try {
+                backend.store.tryTransaction(tx => {
+                    val currentPort = tx.get(classOf[Port], tenantRouterPortId)
+                    val restoredPort = currentPort.toBuilder
+                        .clearHostId()
+                        .clearInterfaceName()
+                        .build()
+                    tx.update(restoredPort)
+                })
+                Future.successful(Unit)
+            } catch {
+                case NonFatal(e) => Future.failed(e)
             }
         }
     }
