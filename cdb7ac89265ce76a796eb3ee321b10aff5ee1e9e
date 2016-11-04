@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_02abca1f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-04T15:10:40Z",
+      "side": 1,
+      "message": "nat and downlink parts will follow?",
+      "range": {
+        "startLine": 9,
+        "startChar": 37,
+        "endLine": 9,
+        "endChar": 48
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c73cde32",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -186,6 +209,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_02d62ac3",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-04T15:10:40Z",
+      "side": 1,
+      "message": "do you mean to assume that an ipv6 address is used only for this purpose?",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 13
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c7c73e45",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -266,6 +312,23 @@
         "endLine": 119,
         "endChar": 20
       },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8297daea",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-04T15:10:40Z",
+      "side": 1,
+      "message": "this diagram seems upside-down compared with the above ones.",
       "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
