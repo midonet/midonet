@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_221ece0d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-04T14:46:03Z",
+      "side": 1,
+      "message": "i wonder why this lacks tclass.",
+      "revId": "4aa89b32d165ab8c16cdcd1e274ffb378f7a7c3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_62e4d6df",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-04T14:46:03Z",
+      "side": 1,
+      "message": "this coding would wildcarding the field.\nif the original value happened to be same, it ends up with installing a wrong flow, doesn\u0027t it?",
+      "revId": "4aa89b32d165ab8c16cdcd1e274ffb378f7a7c3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
