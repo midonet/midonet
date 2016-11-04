@@ -56,7 +56,8 @@ object KeystoneClient {
     private case class AdminToken(id: String,
                                   serverIssueTime: Long,
                                   clientIssueTime: Long,
-                                  expirationTime: Long)
+                                  expirationTime: Long,
+                                  isStatic: Boolean)
 
     /**
       * Parses the given timestamp from the ISO8601 date format to a Unix
@@ -110,7 +111,7 @@ class KeystoneClient(config: KeystoneConfig) {
 
     @volatile private var adminToken =
         if (isNotBlank(config.adminToken))
-            AdminToken(config.adminToken, 0L, 0L, Long.MaxValue)
+            AdminToken(config.adminToken, 0L, 0L, Long.MaxValue, isStatic = true)
         else null
 
     /**
@@ -463,12 +464,14 @@ class KeystoneClient(config: KeystoneConfig) {
                 id = auth.tokenId,
                 serverIssueTime = parseTimestamp(auth.token.issuedAt),
                 clientIssueTime = System.currentTimeMillis(),
-                expirationTime = parseExpiresAt(auth.token.expiresAt))
+                expirationTime = parseExpiresAt(auth.token.expiresAt),
+                isStatic = false)
             adminToken = currentToken
         }
         try return f(currentToken.id)
         catch {
-            case _: KeystoneUnauthorizedException if authenticateOnUnauthorized =>
+            case _: KeystoneUnauthorizedException
+                if authenticateOnUnauthorized && !adminToken.isStatic =>
                 adminToken = null
         }
         withAdminToken(authenticateOnUnauthorized = false)(f)
