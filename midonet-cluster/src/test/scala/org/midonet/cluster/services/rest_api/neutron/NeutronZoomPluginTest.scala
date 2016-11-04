@@ -62,6 +62,7 @@ class NeutronZoomPluginTest extends FeatureSpec
            |zookeeper.zookeeper_hosts : "${zk.getConnectString}"
            |zookeeper.root_key : "$zkRoot"
            |zookeeper.transaction_attempts : 5
+           |zookeeper.lock_timeout : 30s
            |state_proxy.enabled : false
         """.stripMargin)
         )
