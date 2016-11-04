@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_dc4b89b0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-04T10:30:12Z",
+      "side": 1,
+      "message": "it might be simpler to make this take floating_network_id of the fip.\nhow do you think?",
+      "range": {
+        "startLine": 183,
+        "startChar": 16,
+        "endLine": 183,
+        "endChar": 31
+      },
+      "revId": "e5b4fc279e2d38540a0422f1d43ce40654d00d33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
