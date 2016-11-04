@@ -17,12 +17,16 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.junit.runner.RunWith
+import org.mockito.Matchers.any
+import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Topology.LoadBalancer
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => MappingStatus}
+import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil
 
@@ -164,5 +168,40 @@ class LoadBalancerPoolTranslatorUpdateTest
         translator.translate(transaction, Update(poolDown))
 
         midoOps should contain only Update(mPoolDown)
+    }
+}
+
+/**
+  * Tests a Neutron Load Balancer Pool DELETE translation.
+  */
+@RunWith(classOf[JUnitRunner])
+class LoadBalancerPoolTranslatorDeleteTest
+        extends LoadBalancerPoolTranslatorTestBase {
+
+    before {
+        initMockStorage()
+        translator = new LoadBalancerPoolTranslator()
+    }
+
+    "DELETE of a Pool" should "succeed for non-existing Neutron pool" in {
+        val poolId = UUIDUtil.randomUuidProto
+        when(transaction.get(any(), any()))
+            .thenThrow(new NotFoundException(classOf[NeutronLoadBalancerPool],
+                                             poolId))
+        translator.translate(transaction,
+                             Delete(classOf[NeutronLoadBalancerPool], poolId))
+
+    }
+
+    "DELETE of a Pool" should "succeed for non-existing MidoNet pool" in {
+        val poolId = UUIDUtil.randomUuidProto
+        val pool = NeutronLoadBalancerPool.newBuilder().setId(poolId).build()
+        when(transaction.get(classOf[NeutronLoadBalancerPool], poolId))
+            .thenReturn(pool)
+        when(transaction.get(classOf[Pool], poolId))
+            .thenThrow(new NotFoundException(classOf[Pool], poolId))
+        translator.translate(transaction,
+                             Delete(classOf[NeutronLoadBalancerPool], poolId))
+
     }
 }
