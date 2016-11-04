@@ -16,6 +16,24 @@
       "revId": "d4b3004a9a157d4861fa4b907bbda5e6ff6e73d4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bc456544",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-04T08:46:07Z",
+      "side": 1,
+      "message": "because when the lock is enabled, the tryTransaction will lookup this configuration field",
+      "parentUuid": "baa041b7_3c595536",
+      "revId": "d4b3004a9a157d4861fa4b907bbda5e6ff6e73d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
