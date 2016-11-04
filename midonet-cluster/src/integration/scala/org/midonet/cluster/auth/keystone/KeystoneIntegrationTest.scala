@@ -292,6 +292,54 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
         }
     }
 
+    "Keystone v2 client" should "succeed validate a good token after bad " +
+                                "with admin token" in {
+        Given("A client")
+        val client = clientWithToken(2)
+
+        When("Authenticating a good client")
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+
+        Then("Validating a bad token fails")
+        intercept[KeystoneException] {
+            client.validate("invalid-token", tenantScope = None)
+        }
+
+        And("Validating a good token succeeds")
+        val tokenId = auth.tokenId
+        auth = client.validate(tokenId, tenantScope = None)
+        auth.tokenId shouldBe tokenId
+        auth.token should not be null
+        auth.token.issuedAt should not be null
+        auth.token.expiresAt should not be null
+        auth.user.name shouldBe keystoneUser
+    }
+
+    "Keystone v2 client" should "succeed validate a good token after bad " +
+                                "admin password" in {
+        Given("A client")
+        val client = clientWithPassword(2)
+
+        When("Authenticating a good client")
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+
+        Then("Validating a bad token fails")
+        intercept[KeystoneException] {
+            client.validate("invalid-token", tenantScope = None)
+        }
+
+        And("Validating a good token succeeds")
+        val tokenId = auth.tokenId
+        auth = client.validate(tokenId, tenantScope = None)
+        auth.tokenId shouldBe tokenId
+        auth.token should not be null
+        auth.token.issuedAt should not be null
+        auth.token.expiresAt should not be null
+        auth.user.name shouldBe keystoneUser
+    }
+
     "Keystone v2 client" should "list users" in {
         Given("A valid token")
         val client = clientWithoutAdmin(2)
@@ -609,4 +657,51 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
         }
     }
 
+    "Keystone v3 client" should "succeed validate a good token after bad " +
+                                "with admin token" in {
+        Given("A client")
+        val client = clientWithToken(3)
+
+        When("Authenticating a good client")
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+
+        Then("Validating a bad token fails")
+        intercept[KeystoneException] {
+            client.validate("invalid-token", tenantScope = None)
+        }
+
+        And("Validating a good token succeeds")
+        val tokenId = auth.tokenId
+        auth = client.validate(tokenId, tenantScope = None)
+        auth.tokenId shouldBe tokenId
+        auth.token should not be null
+        auth.token.issuedAt should not be null
+        auth.token.expiresAt should not be null
+        auth.user.name shouldBe keystoneUser
+    }
+
+    "Keystone v3 client" should "succeed validate a good token after bad " +
+                                "admin password" in {
+        Given("A client")
+        val client = clientWithPassword(3)
+
+        When("Authenticating a good client")
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+
+        Then("Validating a bad token fails")
+        intercept[KeystoneException] {
+            client.validate("invalid-token", tenantScope = None)
+        }
+
+        And("Validating a good token succeeds")
+        val tokenId = auth.tokenId
+        auth = client.validate(tokenId, tenantScope = None)
+        auth.tokenId shouldBe tokenId
+        auth.token should not be null
+        auth.token.issuedAt should not be null
+        auth.token.expiresAt should not be null
+        auth.user.name shouldBe keystoneUser
+    }
 }
