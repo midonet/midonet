@@ -164,7 +164,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
             val rPortId = RouterTranslator.tenantGwPortId(nPort.getId)
 
             // Delete the SNAT rules if they exist.
-            deleteRouterSnatRulesOps(tx, rPortId)
+            deleteRouterSnatRules(tx, rPortId)
 
             // Delete the router port.
             tx.delete(classOf[Port], rPortId, ignoresNeo = true)
@@ -907,7 +907,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         }
     }
 
-    private def deleteRouterSnatRulesOps(tx: Transaction, rPortId: UUID): Unit = {
+    private def deleteRouterSnatRules(tx: Transaction, rPortId: UUID): Unit = {
         import RouterTranslator._
         val rPort = tx.get(classOf[Port], rPortId)
         val rtrId = rPort.getRouterId
