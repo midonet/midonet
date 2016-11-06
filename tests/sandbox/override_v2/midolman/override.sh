@@ -3,7 +3,7 @@
 # Install the latest packages from the local repository
 LOCAL_REPO_FILE=/etc/apt/sources.list.d/midonet-local.list
 echo "deb file:/packages /" > $LOCAL_REPO_FILE
-apt-get update -o Dir::Etc::sourcelist=$LOCAL_REPO_FILE
+apt-get update
 
 # We need to create the vpp init script because the vpp package
 # will fail otherwise if the upstart process is not running.
