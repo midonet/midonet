@@ -27,10 +27,10 @@ import org.midonet.cluster.data.neutron.NeutronResourceType.{Pool => PoolType, P
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
-import org.midonet.cluster.models.Neutron.NeutronRoute
+import org.midonet.cluster.models.Neutron.{NeutronRoute, NeutronRouter}
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
@@ -243,15 +243,16 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         // Delete gateway.
         insertDeleteTask(16, PortType, extNwGwPortId)
         eventually {
-            val trF = storage.get(classOf[Router], tntRtrId)
-            val extNwF = storage.get(classOf[Network], extNwId)
-            val (tr, extNw) = (trF.await(), extNwF.await())
+            val tr = storage.get(classOf[Router], tntRtrId).await()
+            val extNw = storage.get(classOf[Network], extNwId).await()
+            val nRouter = storage.get(classOf[NeutronRouter], tntRtrId).await()
             tr.getPortIdsCount shouldBe 0
             extNw.getPortIdsList.asScala should contain only (
                 UUIDUtil.toProto(edgeRtrExtNwIfPortId),
                 UUIDUtil.toProto(extNwDhcpPortId))
             extNwArpTable.containsLocal(IPv4Addr("10.0.1.3")) shouldBe false
             validateNatRulesDeleted(tntRtrId)
+            nRouter.hasGwPortId shouldBe false
         }
 
         // Re-add gateway.
