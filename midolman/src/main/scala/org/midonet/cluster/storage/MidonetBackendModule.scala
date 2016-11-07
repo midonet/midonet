@@ -18,6 +18,7 @@ package org.midonet.cluster.storage
 
 import java.lang.reflect.{Field, Modifier}
 import java.util.UUID
+import java.util.concurrent.Executors
 
 import scala.util.control.NonFatal
 
@@ -35,8 +36,10 @@ import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.data.storage.model.{ArpEntry, Fip64Entry}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.{Network, Router}
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryImpl}
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.util.concurrent.NamedThreadFactory
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
   * are exposed to MidoNet components that need to access the various storage
@@ -57,15 +60,18 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
     override def configure(): Unit = {
         val curator =  bindCuratorFramework()
         val failFastCurator = failFastCuratorFramework()
-        val storage = backend(curator, failFastCurator)
+        val discovery = bindDiscovery(curator)
+        val storage = backend(curator, failFastCurator, discovery)
         bind(classOf[MidonetBackend]).toInstance(storage)
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
     }
 
     protected def backend(curatorFramework: CuratorFramework,
-                          failFastCurator: CuratorFramework): MidonetBackend = {
+                          failFastCurator: CuratorFramework,
+                          discovery: MidonetDiscovery): MidonetBackend = {
         new MidonetBackendService(conf, curatorFramework, failFastCurator,
-                                  metricRegistry, reflections) {
+                                  metricRegistry, reflections,
+                                  Option(discovery)) {
             protected override def setup(storage: StateTableStorage): Unit = {
                 // Setup state tables (note: we do this here because the tables
                 // backed by the replicated maps are not available to the nsdb
@@ -105,6 +111,16 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
             conf.failFastSessionTimeout,
             new ExponentialBackoffRetry(
                 conf.retryMs.toInt, conf.maxRetries))
+    }
+
+    protected def bindDiscovery(curator: CuratorFramework): MidonetDiscovery = {
+        val discoveryExecutor = Executors.newSingleThreadExecutor(
+            new NamedThreadFactory("discovery", true))
+        val discovery = new MidonetDiscoveryImpl(curator, discoveryExecutor,
+                                                 conf)
+        bind(classOf[MidonetDiscovery]).toInstance(discovery)
+
+        discovery
     }
 
     private def configureClientBuffer(): Unit = {

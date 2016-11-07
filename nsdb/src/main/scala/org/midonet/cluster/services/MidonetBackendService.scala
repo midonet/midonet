@@ -56,7 +56,8 @@ class MidonetBackendService(config: MidonetBackendConfig,
                             override val curator: CuratorFramework,
                             override val failFastCurator: CuratorFramework,
                             metricRegistry: MetricRegistry,
-                            reflections: Option[Reflections])
+                            reflections: Option[Reflections],
+                            customDiscovery: Option[MidonetDiscovery] = None)
     extends MidonetBackend {
 
     private val log = Logger(LoggerFactory.getLogger("org.midonet.nsdb"))
@@ -145,11 +146,12 @@ class MidonetBackendService(config: MidonetBackendConfig,
                 failFastCurator.start()
             }
 
-            discoveryServiceExecutor = Executors.singleThreadScheduledExecutor(
-                "discovery-service", isDaemon = true, Executors.CallerRunsPolicy)
-            discoveryService = new MidonetDiscoveryImpl(curator,
-                                                        discoveryServiceExecutor,
-                                                        config)
+            discoveryService = customDiscovery.getOrElse {
+                discoveryServiceExecutor = Executors.singleThreadScheduledExecutor(
+                    "discovery-service", isDaemon = true, Executors.CallerRunsPolicy)
+                new MidonetDiscoveryImpl(curator, discoveryServiceExecutor,
+                                         config)
+            }
 
             if (config.stateClient.enabled) {
                 stateProxyClientExecutor = Executors
@@ -211,8 +213,12 @@ class MidonetBackendService(config: MidonetBackendConfig,
             stateProxyClientExecutor.shutdown()
         }
 
-        discoveryService.stop()
-        discoveryServiceExecutor.shutdown()
+        // If we have our own discovery, shut it down. If it's a custom one
+        // that was provided to us, don't touch it.
+        if (discoveryServiceExecutor != null) {
+            discoveryService.stop()
+            discoveryServiceExecutor.shutdown()
+        }
 
         notifyStopped()
     }
