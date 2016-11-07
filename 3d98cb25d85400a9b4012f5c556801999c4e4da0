@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_91060284",
+        "filename": "midolman/src/main/scala/org/midonet/services/FakeAgent.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T09:44:28Z",
+      "side": 1,
+      "message": "I think you could have used `object FakeAgent extends App`",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 33
+      },
+      "revId": "3d98cb25d85400a9b4012f5c556801999c4e4da0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d1eb6adb",
         "filename": "midolman/src/main/scala/org/midonet/services/FakeAgent.scala",
         "patchSetId": 2
