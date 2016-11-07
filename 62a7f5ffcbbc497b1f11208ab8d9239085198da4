@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e3e105fe",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/FakeDiscovery.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T11:29:48Z",
+      "side": 1,
+      "message": "add apache license",
+      "range": {
+        "startLine": 2,
+        "startChar": 4,
+        "endLine": 2,
+        "endChar": 36
+      },
+      "revId": "62a7f5ffcbbc497b1f11208ab8d9239085198da4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
