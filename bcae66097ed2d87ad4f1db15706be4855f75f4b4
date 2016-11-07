@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_06c2b786",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T12:19:19Z",
+      "side": 1,
+      "message": "too many allocations, use an if instead\n\nalso, instead of Array.empty[Byte] use Array.emptyByteArray",
+      "range": {
+        "startLine": 130,
+        "startChar": 24,
+        "endLine": 131,
+        "endChar": 57
+      },
+      "revId": "bcae66097ed2d87ad4f1db15706be4855f75f4b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
