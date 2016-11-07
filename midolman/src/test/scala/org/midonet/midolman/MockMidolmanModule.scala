@@ -32,6 +32,7 @@ import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.reflections.Reflections
 
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{FakeDiscovery, MidonetDiscovery}
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
@@ -127,7 +128,11 @@ class MockMidolmanModule(override val hostId: UUID,
     protected override def netlinkChannelFactory(): NetlinkChannelFactory =
         new MockNetlinkChannelFactory
 
-    protected override def createFlowRecorder(hostId: UUID) =
+    override protected def createDiscovery(): MidonetDiscovery =
+        new FakeDiscovery
+
+    protected override def createFlowRecorder(hostId: UUID,
+                                              discovery: MidonetDiscovery) =
         NullFlowRecorder
 
     protected override def upcallDatapathConnectionManager(

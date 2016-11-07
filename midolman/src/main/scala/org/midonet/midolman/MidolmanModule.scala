@@ -37,6 +37,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.midonet.Util
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryImpl}
 import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.MidolmanConfig
@@ -136,7 +137,11 @@ class MidolmanModule(injector: Injector,
         bind(classOf[TcRequestHandler]).toInstance(tcRequestHandler)
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
-        val flowRecorder = createFlowRecorder(host)
+
+        val discovery = createDiscovery()
+        bind(classOf[MidonetDiscovery]).toInstance(discovery)
+
+        val flowRecorder = createFlowRecorder(host, discovery)
         bind(classOf[FlowRecorder]).toInstance(flowRecorder)
 
         val allocator = natAllocator()
@@ -380,8 +385,18 @@ class MidolmanModule(injector: Injector,
     protected def bindActorService(): Unit =
         bind(classOf[MidolmanActorsService]).asEagerSingleton()
 
-    protected def createFlowRecorder(hostId: UUID): FlowRecorder =
-        FlowRecorder(config, hostId)
+    protected def createDiscovery(): MidonetDiscovery = {
+        val backendConfig = injector.getInstance(classOf[MidonetBackendConfig])
+        val backend = injector.getInstance(classOf[MidonetBackend])
+        val discoveryExecutor = Executors.singleThreadScheduledExecutor(
+            "midolman-discovery", isDaemon = true, Executors.CallerRunsPolicy)
+        new MidonetDiscoveryImpl(backend.curator, discoveryExecutor,
+                                 backendConfig)
+    }
+
+    protected def createFlowRecorder(hostId: UUID,
+                                     discovery: MidonetDiscovery): FlowRecorder =
+        FlowRecorder(config, hostId, discovery)
 
     protected def flowTracingAppender() = {
         val cass = new CassandraClient(
