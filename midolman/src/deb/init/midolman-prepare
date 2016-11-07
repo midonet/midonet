@@ -91,12 +91,12 @@ cleanup_bgps() {
         kill -9 $PID
     done
 
-    for NAMESPACE in `ip netns list | grep ^mbgp` ; do
+    for NAMESPACE in `ip netns list | awk '/^mbgp/ {print $1}'` ; do
         PREFIX=`echo $NAMESPACE | sed -e 's/_ns//'`
         cleanup_legacy_bgp_space $PREFIX
     done
 
-    for NAMESPACE in `ip netns list | grep ^bgp` ; do
+    for NAMESPACE in `ip netns list | awk '/^bgp/ {print $1}'` ; do
         cleanup_bgp_space $NAMESPACE
     done
 }
