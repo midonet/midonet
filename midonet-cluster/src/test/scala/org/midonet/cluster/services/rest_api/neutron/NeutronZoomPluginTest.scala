@@ -66,10 +66,7 @@ class NeutronZoomPluginTest extends FeatureSpec
            |state_proxy.enabled : false
         """.stripMargin)
         )
-        val apiConfig = new RestApiConfig(ConfigFactory.parseString(s"""
-            |cluster.rest_api.nsdb_lock_timeout : 30s
-        """.stripMargin)
-        )
+        val apiConfig = new RestApiConfig(ConfigFactory.empty())
         val clusterConfig = ClusterConfig.forTests(ConfigFactory.empty())
         MidonetBackend.isCluster = true
         backend = new MidonetBackendService(backendConfig, curator, curator,
