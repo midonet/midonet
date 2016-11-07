@@ -33,6 +33,24 @@ if [ ! -d $QUAGGA_DIR ] ; then
     chown quagga:quagga $QUAGGA_DIR
 fi
 
+cleanup_legacy_bgp_space() {
+    set +e
+
+    PREFIX=$1
+    NAMESPACE="${PREFIX}_ns"
+    BRIDGE_NAME="${PREFIX}_br"
+    echo "Cleaning up BGP bridge: $BRIDGE_NAME"
+    ip link set "${PREFIX}_vty" nomaster
+    ip link set $BRIDGE_NAME down
+    ip link del $BRIDGE_NAME
+
+    echo "Cleaning up BGP namespace: $NAMESPACE"
+    ip netns exec $NAMESPACE ip link delete "${PREFIX}_m"
+    ip netns exec $NAMESPACE ip link delete "${PREFIX}_vtym"
+    ip netns delete $NAMESPACE
+    set -e
+}
+
 cleanup_bgp_space() {
     set +e
     prefix=$1
@@ -53,14 +71,16 @@ cleanup_bgp_space() {
 cleanup_bgps() {
     ps aux | grep -- '--socket /var/run/quagga/zserv' | grep -v grep | \
     while read i ; do
-        pid=`echo $i | awk '{print $2}'`
-        kill -9 $pid
+        PID=`echo $i | awk '{print $2}'`
+        kill -9 $PID
     done
 
-    for i in `ip netns list | grep ^mbgp` ; do
-        prefix=`echo $i | sed -e 's/_ns//'`
-        cleanup_bgp_space $prefix
+    for NAMESPACE in `ip netns list | awk '/^mbgp/ {print $1}'` ; do
+        PREFIX=`echo $NAMESPACE | sed -e 's/_ns//'`
+        cleanup_legacy_bgp_space $PREFIX
+    done
+
+    for NAMESPACE in `ip netns list | awk '/^bgp/ {print $1}'` ; do
+        cleanup_bgp_space $NAMESPACE
     done
 }
-
-cleanup_bgps
