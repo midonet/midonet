@@ -85,6 +85,9 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
                 storage.registerTable(classOf[Fip64Entry],
                                       classOf[AnyRef], MidonetBackend.Fip64Table,
                                       classOf[Fip64StateTable])
+                storage.registerTable(classOf[UUID], classOf[AnyRef],
+                                      MidonetBackend.GatewayTable,
+                                      classOf[GatewayHostStateTable])
             }
         }
     }
