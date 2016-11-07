@@ -123,15 +123,43 @@ object FlowRecordBuilder {
     }
 
     private def buildFlowRecordMatch(fmatch: FlowMatch): FlowRecordMatch = {
-        FlowRecordMatch(fmatch.getInputPortNumber, fmatch.getTunnelKey,
-                        fmatch.getTunnelSrc, fmatch.getTunnelDst,
-                        fmatch.getEthSrc.getAddress, fmatch.getEthDst.getAddress,
-                        fmatch.getEtherType, fmatch.getNetworkSrcIP.toBytes,
-                        fmatch.getNetworkDstIP.toBytes, fmatch.getNetworkProto,
-                        fmatch.getNetworkTTL, fmatch.getNetworkTOS,
-                        fmatch.getIpFragmentType.value,
-                        fmatch.getSrcPort, fmatch.getDstPort,
-                        fmatch.getIcmpIdentifier.toShort, fmatch.getIcmpData,
+        FlowRecordMatch(fmatch.getInputPortNumber,
+                        fmatch.getTunnelKey,
+                        fmatch.getTunnelSrc,
+                        fmatch.getTunnelDst,
+                        if(fmatch.getEthSrc == null) {
+                            Array.emptyByteArray
+                        } else {
+                            fmatch.getEthSrc.getAddress
+                        },
+                        if(fmatch.getEthDst == null) {
+                            Array.emptyByteArray
+                        } else {
+                            fmatch.getEthDst.getAddress
+                        },
+                        fmatch.getEtherType,
+                        if(fmatch.getNetworkSrcIP == null) {
+                            Array.emptyByteArray
+                        } else {
+                            fmatch.getNetworkSrcIP.toBytes
+                        },
+                        if (fmatch.getNetworkDstIP == null) {
+                            Array.emptyByteArray
+                        } else {
+                            fmatch.getNetworkDstIP.toBytes
+                        },
+                        fmatch.getNetworkProto,
+                        fmatch.getNetworkTTL,
+                        fmatch.getNetworkTOS,
+                        if (fmatch.getIpFragmentType == null) {
+                            null
+                        } else {
+                            fmatch.getIpFragmentType.value
+                        },
+                        fmatch.getSrcPort,
+                        fmatch.getDstPort,
+                        fmatch.getIcmpIdentifier.toShort,
+                        fmatch.getIcmpData,
                         fmatch.getVlanIds)
     }
 
