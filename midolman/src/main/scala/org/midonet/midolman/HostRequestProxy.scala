@@ -96,8 +96,8 @@ class HostRequestProxy(hostId: UUID,
 
     case object ReSync
 
-    var lastPorts: Set[UUID] = Set.empty
-    val belt = new ConveyorBelt(_ => {})
+    private var lastPorts: Set[UUID] = Set.empty
+    private val belt = new ConveyorBelt(_ => {})
     private var subscription: Subscription = null
 
     private val tcpClientExecutionContext =
@@ -171,7 +171,7 @@ class HostRequestProxy(hostId: UUID,
                 case Success(stateBatch) =>
                     log.debug(s"Fetched ${stateBatch.size()} pieces of " +
                               s"flow state for ports ${bindings.keySet} " +
-                              s"from $source.")
+                              s"from $source")
                     backChannel tell stateBatch
                 case Failure(e) =>
                     log.warn(s"Failed to fetch state from $source", e)
@@ -220,9 +220,9 @@ class HostRequestProxy(hostId: UUID,
                 lastPorts = host.portBindings.keySet
                 Future.sequence(Seq(
                     stateForPorts(ports, requestLegacyStateForPort,
-                                  "legacy storage (Cassandra)."),
+                                  "legacy storage (Cassandra)"),
                     stateForPorts(ports, requestStateForPort,
-                                  "local storage.")))
+                                  "local storage")))
             })
 
         case OnCompleted =>
