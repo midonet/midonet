@@ -263,6 +263,13 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
         idToUse
     }
 
+    override def vxlanTunnelZone(name: String, id: Option[UUID] = None): UUID = {
+        val idToUse = id.getOrElse(UUID.randomUUID)
+        store.create(createTunnelZone(idToUse, TunnelZone.Type.VXLAN,
+                                      Some(name), Map()))
+        idToUse
+    }
+
     override def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit = {
         val tzone = Await.result(store.get(classOf[TunnelZone], tz), awaitTimeout)
         store.update(tzone.toBuilder

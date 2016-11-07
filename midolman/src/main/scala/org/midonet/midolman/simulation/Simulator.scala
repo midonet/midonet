@@ -40,7 +40,7 @@ object Simulator {
       * processing in a VPP pipeline. The action includes the identifier of the
       * VPP host and the VNI of the VXLAN tunnel.
       */
-    case class ToVppAction(hostId: UUID, vni: Int)
+    case class ToVppAction(hostId: UUID, vni: Long)
         extends ForwardAction with VirtualFlowAction
 
     /**

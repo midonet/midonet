@@ -20,8 +20,8 @@ import java.lang.{Integer => JInteger}
 import java.util.UUID
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.simulation.{VxLanPort, PacketContext}
-import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.midonet.midolman.simulation.{PacketContext, VxLanPort}
+import org.midonet.midolman.simulation.Simulator.{ToPortAction, ToVppAction}
 import org.midonet.midolman.topology.{VirtualTopology, VxLanPortMappingService}
 import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.simulation.Port
@@ -68,6 +68,9 @@ trait FlowTranslator {
             virtualActions.get(i) match {
                 case ToPortAction(port) =>
                     expandPortAction(port, context, addFlowAndPacketAction)
+                case ToVppAction(gatewayId, vni) =>
+                    expandVppAction(gatewayId, vni, context,
+                                    addFlowAndPacketAction)
                 case a: FlowActionSetKey =>
                     a.getFlowKey match {
                         case k: FlowKeyICMPError =>
@@ -228,10 +231,9 @@ trait FlowTranslator {
         addFlowAndPacketAction(context, dpState.vtepTunnellingOutputAction)
     }
 
-    private def expandPortAction(
-            port: UUID,
-            context: PacketContext,
-            addFlowAndPacketAction: AddFlowAction): Unit =
+    private def expandPortAction(port: UUID,
+                                 context: PacketContext,
+                                 addFlowAndPacketAction: AddFlowAction): Unit = {
         dpState.getDpPortNumberForVport(port) match {
             case null => // Translate to a remote port or a vtep peer.
                 vt.tryGet(classOf[Port], port) match {
@@ -241,7 +243,8 @@ trait FlowTranslator {
                     case p: Port if p.isExterior =>
                         context.outPorts.add(port)
                         outputActionsToPeer(
-                            p.tunnelKey, p.hostId, context, addFlowAndPacketAction)
+                            p.tunnelKey, p.hostId, context,
+                            addFlowAndPacketAction)
                     case p =>
                         context.log.warn("Port is not exterior: {}", p)
                 }
@@ -251,6 +254,13 @@ trait FlowTranslator {
                 outputActionsForLocalPort(
                     portNum, context, addFlowAndPacketAction)
         }
+    }
+
+    private def expandVppAction(gatewayId: UUID, vni: Long,
+                                context: PacketContext,
+                                addFlowAndPacketAction: AddFlowAction): Unit = {
+        outputActionsToPeer(vni, gatewayId, context, addFlowAndPacketAction)
+    }
 
     private def recircInnerPacket(
             vni: Int,

@@ -20,7 +20,7 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.immutable.List
-import scala.collection.{Set => ROSet, mutable}
+import scala.collection.{mutable, Set => ROSet}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -28,7 +28,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.{ToPortAction, ToVppAction}
 import org.midonet.midolman.simulation.{Bridge, BridgePort, PacketContext, VxLanPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.util.MidolmanSpec
@@ -126,6 +126,24 @@ class FlowTranslatorTest extends MidolmanSpec {
         chain
     }
 
+    def makeGreHost(bindings: Map[UUID, String] = Map(),
+                    hostIp: IPv4Addr = IPv4Addr("102.32.2.2"),
+                    zones: Map[UUID, IPv4Addr] = Map()): Unit = {
+        (Map(UUID.randomUUID() -> hostIp) ++ zones) foreach { case (id, ip) =>
+            greTunnelZone(ip.toString, id=Some(id))
+            addTunnelZoneMember(id, hostId, ip)
+        }
+        bindings foreach { case (id, name) => materializePort(id, hostId, name) }
+    }
+
+    def makeVxlanHost(hostIp: IPv4Addr = IPv4Addr("102.32.2.3"),
+                      zones: Map[UUID, IPv4Addr] = Map()): Unit = {
+        (Map(UUID.randomUUID() -> hostIp) ++ zones) foreach { case (id, ip) =>
+            vxlanTunnelZone(ip.toString, id=Some(id))
+            addTunnelZoneMember(id, hostId, ip)
+        }
+    }
+
     feature("ToPortAction is translated") {
         translationScenario("The port is local") { ctx =>
             val port = UUID.randomUUID()
@@ -170,14 +188,17 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
     }
 
-    def makeHost(bindings: Map[UUID, String] = Map(),
-                 hostIp: IPv4Addr = IPv4Addr("102.32.2.2"),
-                 zones: Map[UUID, IPv4Addr] = Map()) = {
-        (Map(UUID.randomUUID() -> hostIp) ++ zones) foreach { case (id, ip) =>
-            greTunnelZone(ip.toString, id=Some(id))
-            addTunnelZoneMember(id, hostId, ip)
+    feature("ToVppAction is translated") {
+        translationScenario("To gateway host") { ctx =>
+            val remoteHost = newHost("remoteHost")
+            val vni = 20001
+            ctx vxlanPort 1343
+            ctx peer remoteHost -> (1, 2)
+
+            ctx translate ToVppAction(remoteHost, vni)
+            ctx verify (List(setKey(FlowKeys.tunnel(vni, 1, 2, 0)), output(0)),
+                        Set(FlowTagger.tagForTunnelRoute(1, 2)))
         }
-        bindings foreach { case (id, name) => materializePort(id, hostId, name) }
     }
 
     feature("FlowActionUserspace goes through untouched") {
@@ -235,7 +256,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             val port1 = makePort(hostId, bridge=Some(bridge)) // code assumes it's exterior
             activatePorts(List(port1.id))
 
-            makeHost(Map(port1.id -> "port1"))
+            makeGreHost(Map(port1.id -> "port1"))
             ctx local port0 -> 2
             ctx local port1.id -> 3
 
