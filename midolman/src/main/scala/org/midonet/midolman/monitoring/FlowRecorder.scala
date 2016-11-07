@@ -123,15 +123,27 @@ object FlowRecordBuilder {
     }
 
     private def buildFlowRecordMatch(fmatch: FlowMatch): FlowRecordMatch = {
-        FlowRecordMatch(fmatch.getInputPortNumber, fmatch.getTunnelKey,
-                        fmatch.getTunnelSrc, fmatch.getTunnelDst,
-                        fmatch.getEthSrc.getAddress, fmatch.getEthDst.getAddress,
-                        fmatch.getEtherType, fmatch.getNetworkSrcIP.toBytes,
-                        fmatch.getNetworkDstIP.toBytes, fmatch.getNetworkProto,
-                        fmatch.getNetworkTTL, fmatch.getNetworkTOS,
-                        fmatch.getIpFragmentType.value,
-                        fmatch.getSrcPort, fmatch.getDstPort,
-                        fmatch.getIcmpIdentifier.toShort, fmatch.getIcmpData,
+        FlowRecordMatch(fmatch.getInputPortNumber,
+                        fmatch.getTunnelKey,
+                        fmatch.getTunnelSrc,
+                        fmatch.getTunnelDst,
+                        Option(fmatch.getEthSrc).map(_.getAddress)
+                            .getOrElse(Array.empty[Byte]),
+                        Option(fmatch.getEthDst).map(_.getAddress)
+                            .getOrElse(Array.empty[Byte]),
+                        fmatch.getEtherType,
+                        Option(fmatch.getNetworkSrcIP).map(_.toBytes)
+                            .getOrElse(Array.empty[Byte]),
+                        Option(fmatch.getNetworkDstIP).map(_.toBytes)
+                            .getOrElse(Array.empty[Byte]),
+                        fmatch.getNetworkProto,
+                        fmatch.getNetworkTTL,
+                        fmatch.getNetworkTOS,
+                        Option(fmatch.getIpFragmentType).map(_.value).orNull,
+                        fmatch.getSrcPort,
+                        fmatch.getDstPort,
+                        Option(fmatch.getIcmpIdentifier).map(_.toShort).orNull,
+                        fmatch.getIcmpData,
                         fmatch.getVlanIds)
     }
 
