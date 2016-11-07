@@ -37,7 +37,7 @@ import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
-import org.midonet.sdn.flows.VirtualActions.{Decap, Encap}
+import org.midonet.sdn.flows.VirtualAction.{Decap, Encap}
 import org.midonet.util.Clearable
 import org.midonet.util.collection.ArrayListUtil
 import org.midonet.util.functors.Callback0

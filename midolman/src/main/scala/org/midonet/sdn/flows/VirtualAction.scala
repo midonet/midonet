@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@
 package org.midonet.sdn.flows
 
 import java.nio.ByteBuffer
-import java.util.UUID
 
 import org.midonet.odp.flows.FlowAction
-import org.midonet.packets.{Ethernet, MAC, IPv4Addr}
 
 /** This objects holds various classes representing "virtual" flow actions
  *  returned as part of a Simulation. These objects are then translated by
  *  the trait FlowTranslator into "real" odp.flows.FlowAction objects that
  *  can be understood by the datapath module. */
-object VirtualActions {
+object VirtualAction {
     /** impedance matching trait to make Virtual Action subclasses of FlowAction
      *  and make them fit into collections of FlowAction. */
     trait VirtualFlowAction extends FlowAction {
