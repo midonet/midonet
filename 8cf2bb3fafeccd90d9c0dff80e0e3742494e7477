@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_52b19500",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-07T19:18:27Z",
+      "side": 1,
+      "message": "latest format is\nfip64 add \u003cfip6\u003e \u003cfixed4\u003e [ pool \u003cstart\u003e \u003cend\u003e ] [ table N ]\nfip64 del fip6 [ fip6 ... ]",
+      "range": {
+        "startLine": 288,
+        "startChar": 36,
+        "endLine": 289,
+        "endChar": 64
+      },
+      "revId": "8cf2bb3fafeccd90d9c0dff80e0e3742494e7477",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
