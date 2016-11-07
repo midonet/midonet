@@ -199,7 +199,7 @@ class MetadataConfig(val conf: Config, val schema: Config)
 class FlowHistoryConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
     def enabled = getBoolean("agent.flow_history.enabled")
     def encoding = getString("agent.flow_history.encoding")
-    def udpEndpoint = getString("agent.flow_history.udp_endpoint")
+    def endpointService = getString("agent.flow_history.endpoint_service")
 }
 
 class ContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
