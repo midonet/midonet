@@ -31,13 +31,26 @@ object Simulator {
     final val MaxDevicesTraversed = 12
 
     sealed trait ForwardAction extends Result
-    case class ToPortAction(outPort: UUID) extends ForwardAction with VirtualFlowAction
 
-    // This action is used when one simulation has to return N forward actions
-    // A good example is when a bridge that has a vlan id set receives a
-    // broadcast from the virtual network. It will output it to all its
-    // materialized ports and to the logical port that connects it to the VAB
-    case class ForkAction(var first: Result, var second: Result) extends ForwardAction
+    case class ToPortAction(outPort: UUID)
+        extends ForwardAction with VirtualFlowAction
+
+    /**
+      * This action is used has to be forwarded to a VPP-controller host for
+      * processing in a VPP pipeline. The action includes the identifier of the
+      * VPP host and the VNI of the VXLAN tunnel.
+      */
+    case class ToVppAction(hostId: UUID, vni: Int)
+        extends ForwardAction with VirtualFlowAction
+
+    /**
+      * This action is used when one simulation has to return N forward actions
+      * A good example is when a bridge that has a VLAN id set receives a
+      * broadcast from the virtual network. It will output it to all its
+      * materialized ports and to the logical port that connects it to the VAB.
+      */
+    case class ForkAction(var first: Result, var second: Result)
+        extends ForwardAction
 
     case class ContinueWith(var step: SimStep) extends ForwardAction
 
