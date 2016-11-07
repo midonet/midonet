@@ -278,12 +278,11 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
                               port=dlink_vpp_name)
 
         # hook up downlink to topology
-        mn_tenant_downlink = self.add_mn_router_port(
-                                                name,
-                                                tenantrtr['id'],
-                                                "10.0.0.2",
-                                                "10.0.0.0",
-                                                24)
+        mn_tenant_downlink = self.add_mn_router_port(name,
+                                                     tenantrtr['id'],
+                                                     "10.0.0.2",
+                                                     "10.0.0.0",
+                                                     24)
         self.add_mn_route(tenantrtr['id'],
                           src_prefix = "0.0.0.0/0",
                           dst_prefix = "10.0.0.0/24",
@@ -328,53 +327,47 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
                          ip4PoolEnd = "20.0.0.66",
                          tableId=vrf)
 
-class SingleTenantWithNeutronIPv6FIP(SingleTenantAndUplinkWithVPP):
+class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
 
     def build(self, binding_data=None):
-        super(SingleTenantAndUplinkWithVPP, self).build(binding_data)
+        super(SingleTenantWithNeutronIPv6FIP, self).build(binding_data)
 
         self.pubnet = self.create_network("public", external=True)
-        pubsubnet = self.create_subnet("publicsubnet",
-                                            self.pubnet,
-                                            "100.0.0.0/8",
-                                            version=4)
 
         pubsubnet6 = self.create_subnet("publicsubnet6",
-                                            self.pubnet,
-                                            "cccc:bbbb::/32",
-                                            version=6)
+                                        self.pubnet,
+                                        "cccc:bbbb::/32",
+                                        version=6)
 
-        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
-        uplink_port_name = 'vpp-' + uplink_port_id[0:8]
+        # add public net to the edge router
+        self.add_router_interface(self._edgertr, subnet=pubsubnet6)
 
-        # add to the edge router
-        self.add_router_interface(self._edgertr, subnet=pubsubnet)
+        #build tenant router
+        tenant_name = 'tenant'
+        tenantrtr = self.create_router(tenant_name)
+        self.set_router_gateway(tenantrtr, self.pubnet)
 
-        global DOWNLINK_VETH_MAC
+        # build private network
+        privnet = self.create_network("private-" + tenant_name)
+        privsubnet = self.create_subnet("privatesubnet-" + tenant_name,
+                                        privnet,
+                                        '20.0.0.0/26')
+        self.add_router_interface(tenantrtr, subnet=privsubnet)
 
-        self.vrf = self.addTenant('tenant', self.pubnet, pubsubnet, uplink_port_name, DOWNLINK_VETH_MAC, 'port1')
+        #IP 20.0.0.2 is auto assigned to port1
+        self.port1 = self.create_port('port1', privnet)
+        self.create_sg_rule(self.port1['security_groups'][0])
 
-        self.addAndAssociateIPv6Fip('cccc:bbbb::3', self.port1)
-
-    def addAndAssociateIPv6Fip(self, fip_address, port):
-        fip = self.create_resource(
-                self.api.create_floatingip(
-                    {'floatingip':
-                        {'floating_network_id': self.pubnet['id'],
-                         'floating_ip_address': fip_address,
-                         'port_id': port['id'],
-                         'tenant_id': 'admin'
-                        }}
-                )
+        self.create_resource(
+            self.api.create_floatingip(
+                {'floatingip':
+                    {'floating_network_id': self.pubnet['id'],
+                     'floating_ip_address': 'cccc:bbbb::3',
+                     'port_id': self.port1['id'],
+                     'tenant_id': 'admin'
+                    }}
             )
-        self.setup_fip64("midolman1",
-                         ip6ext = 'bbbb::2',
-                         ip6fip = fip_address,
-                         ip4fip64 = "20.0.0.65",
-                         ip4fixed = "20.0.0.2",
-                         tableId = self.vrf)
-
-        return fip['floatingip']
+        )
 
 # Neutron topology with a 3 tenants and uplink
 # configured
@@ -434,6 +427,18 @@ binding_multihost_singletenant = {
              'definition': {'ifname': 'tenant-do'},
              'hostname': 'midolman1',
              'type': 'provided'
+         }}
+    ]
+}
+
+binding_multihost_singletenant_neutronfip6 = {
+    'description': 'spanning across 2 midolman no tenant binding',
+    'bindings': [
+         {'vport': 'port1',
+         'interface': {
+             'definition': {"ipv4_gw": "20.0.0.1"},
+             'hostname': 'midolman2',
+             'type': 'vmguest'
          }}
     ]
 }
@@ -512,10 +517,9 @@ def test_ping_multi_vms_ipv6():
     ping_from_inet('quagga1', 'cccc:cccc::2', 10, namespace='ip6')
 
 @attr(version="v1.2.0")
-@bindings(binding_empty,
+@bindings(binding_multihost_singletenant_neutronfip6,
           binding_manager=BindingManager(vtm=SingleTenantWithNeutronIPv6FIP()))
-@nottest
-def test_neutron_fip():
+def test_neutron_fip6():
     """
     Title: create and associates a IPv6 FIP in neutron checking connectivity
     """
