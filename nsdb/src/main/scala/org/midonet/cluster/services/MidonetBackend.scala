@@ -57,6 +57,7 @@ object MidonetBackend {
 
     final val ArpTable = "arp_table"
     final val Fip64Table = "fip64_table"
+    final val GatewayTable = "gateway_table"
     final val Ip4MacTable = "ip4_mac_table"
     final val MacTable = "mac_table"
     final val PeeringTable = "peering_table"
