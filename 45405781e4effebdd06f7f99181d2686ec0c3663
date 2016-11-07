@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d12eca8b",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-07T08:32:20Z",
+      "side": 1,
+      "message": "There is no guarantee that this is the order, it is only by coincidence. However it is consistent.",
+      "parentUuid": "baa041b7_f6b6643d",
+      "range": {
+        "startLine": 304,
+        "startChar": 27,
+        "endLine": 307,
+        "endChar": 46
+      },
+      "revId": "45405781e4effebdd06f7f99181d2686ec0c3663",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_567e306b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
         "patchSetId": 20
@@ -36,6 +60,24 @@
       "writtenOn": "2016-11-07T04:21:07Z",
       "side": 1,
       "message": "i don\u0027t understand these metrics changes.  can you explain?\n\nat least \"The metrics should not change\" message in L676 needs an update.",
+      "revId": "45405781e4effebdd06f7f99181d2686ec0c3663",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b14a265a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 677,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-07T08:32:20Z",
+      "side": 1,
+      "message": "Comment added.",
+      "parentUuid": "baa041b7_567e306b",
       "revId": "45405781e4effebdd06f7f99181d2686ec0c3663",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
