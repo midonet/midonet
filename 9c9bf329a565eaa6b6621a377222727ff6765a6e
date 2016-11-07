@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e61fd36e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-07T13:51:35Z",
+      "side": 1,
+      "message": "From what I can gather, at this step, we still haven\u0027t started the MidonetBackendService therefore its discovery is still set to null. I can think of 2 alternatives, let me know if any of them seem better:\n* Bind a discovery in MidonetBackendModule and make MidonetBackendService use it.\n* Delay the subscription to discovery until the first call to FlowRecorder.record(...) (at which point MidonetBackendService should already be working and we can get its discovery instance).\n\nFirst one seems cleaner as we can simply ask the injector for a discovery now and don\u0027t have to worry about who owns it. Do you foresee any problem with this?",
+      "parentUuid": "baa041b7_c3e281a0",
+      "range": {
+        "startLine": 141,
+        "startChar": 8,
+        "endLine": 142,
+        "endChar": 61
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4309d183",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-07T11:29:35Z",
       "side": 1,
       "message": "move this below",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 40
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_26149b4b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-07T13:51:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4309d183",
       "range": {
         "startLine": 18,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e606b320",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-07T13:51:35Z",
+      "side": 1,
+      "message": "Oops. Done",
+      "parentUuid": "baa041b7_8385990b",
+      "range": {
+        "startLine": 92,
+        "startChar": 4,
+        "endLine": 95,
+        "endChar": 72
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_63df350d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2016-11-07T11:29:35Z",
       "side": 1,
       "message": "other than using it below is there a use for this?, you could just keep the val",
+      "range": {
+        "startLine": 97,
+        "startChar": 4,
+        "endLine": 97,
+        "endChar": 59
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_190b3826",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-07T13:51:35Z",
+      "side": 1,
+      "message": "Idea here is that callers who for some reason want to know what the current endpoint of the recorder is (granted, at the moment these are just the unit tests) shouldn\u0027t have to know that it\u0027s stored inside an AtomicReference.",
+      "parentUuid": "baa041b7_63df350d",
       "range": {
         "startLine": 97,
         "startChar": 4,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f93e54b8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-07T13:51:35Z",
+      "side": 1,
+      "message": "That\u0027s the idea. If they don\u0027t get the new value immediately, worst case that can happen is we drop this record. But that would have happened anyway if the record had arrived some nanoseconds earlier or if there\u0027s a new discovery update in transit that invalidates the current endpoint.\n\nLet me know if you see some potential issue with this as we use it in several places in insights.",
+      "parentUuid": "baa041b7_2337ed4e",
+      "range": {
+        "startLine": 104,
+        "startChar": 26,
+        "endLine": 104,
+        "endChar": 33
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_23e92db8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 2
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f96534e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-07T13:51:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_23e92db8",
+      "range": {
+        "startLine": 128,
+        "startChar": 26,
+        "endLine": 128,
+        "endChar": 28
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_43ad5183",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 2
@@ -151,6 +295,30 @@
       "writtenOn": "2016-11-07T11:29:35Z",
       "side": 1,
       "message": "foreach is expensive because this will allocate a new function1 every time this is called\n\nuse if (option.nonEmpty) option.get, or alternatively replace the option altogether and use null",
+      "range": {
+        "startLine": 138,
+        "startChar": 11,
+        "endLine": 138,
+        "endChar": 49
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b9b68c3c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-07T13:51:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_43ad5183",
       "range": {
         "startLine": 138,
         "startChar": 11,
