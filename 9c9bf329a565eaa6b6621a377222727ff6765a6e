@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c3e281a0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T11:29:35Z",
+      "side": 1,
+      "message": "we already have a MidonetDiscovery in the MidonetBackendService, isn\u0027t possible to use that one?",
+      "range": {
+        "startLine": 141,
+        "startChar": 8,
+        "endLine": 142,
+        "endChar": 61
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4309d183",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T11:29:35Z",
+      "side": 1,
+      "message": "move this below",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 40
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8385990b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T11:29:35Z",
+      "side": 1,
+      "message": "an these be private/protected?",
+      "range": {
+        "startLine": 92,
+        "startChar": 4,
+        "endLine": 95,
+        "endChar": 72
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_63df350d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T11:29:35Z",
+      "side": 1,
+      "message": "other than using it below is there a use for this?, you could just keep the val",
+      "range": {
+        "startLine": 97,
+        "startChar": 4,
+        "endLine": 97,
+        "endChar": 59
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2337ed4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T11:29:35Z",
+      "side": 1,
+      "message": "so you use lazy set here because it\u0027s not essential for this to be visible to the simulation threads immediately, is this right?",
+      "range": {
+        "startLine": 104,
+        "startChar": 26,
+        "endLine": 104,
+        "endChar": 33
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_23e92db8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T11:29:35Z",
+      "side": 1,
+      "message": "missing message",
+      "range": {
+        "startLine": 128,
+        "startChar": 26,
+        "endLine": 128,
+        "endChar": 28
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_43ad5183",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-07T11:29:35Z",
+      "side": 1,
+      "message": "foreach is expensive because this will allocate a new function1 every time this is called\n\nuse if (option.nonEmpty) option.get, or alternatively replace the option altogether and use null",
+      "range": {
+        "startLine": 138,
+        "startChar": 11,
+        "endLine": 138,
+        "endChar": 49
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
