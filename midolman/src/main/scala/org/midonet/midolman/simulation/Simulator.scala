@@ -23,7 +23,7 @@ import org.midonet.midolman.simulation.SimulationStashes._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.topology.VirtualTopology.tryGet
-import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
+import org.midonet.sdn.flows.VirtualAction.VirtualFlowAction
 
 import scala.annotation.tailrec
 

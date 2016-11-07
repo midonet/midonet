@@ -35,7 +35,7 @@ import org.midonet.odp.OpenVSwitch
 import org.midonet.odp.flows.{FlowActionPushVLAN, FlowActionPopVLAN, FlowKeyEthernet, FlowActionSetKey}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.flows.VirtualActions.{Decap, Encap}
+import org.midonet.sdn.flows.VirtualAction.{Decap, Encap}
 import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
