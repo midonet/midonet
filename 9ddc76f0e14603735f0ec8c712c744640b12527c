@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b9a7ac4f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-07T14:44:44Z",
+      "side": 1,
+      "message": "Call it something more specific to 6/4 translation. Vpp is how 6-4 translation is implemented, not what it does.",
+      "range": {
+        "startLine": 43,
+        "startChar": 15,
+        "endLine": 43,
+        "endChar": 26
+      },
+      "revId": "9ddc76f0e14603735f0ec8c712c744640b12527c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
