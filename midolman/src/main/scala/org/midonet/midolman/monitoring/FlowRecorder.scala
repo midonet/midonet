@@ -15,17 +15,23 @@
  */
 package org.midonet.midolman.monitoring
 
-import scala.collection.JavaConverters._
 import java.net.{InetAddress, InetSocketAddress, SocketException}
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
+import java.util.concurrent.atomic.AtomicReference
 import java.util.{ArrayList, List, UUID}
+
+import scala.collection.JavaConverters._
+import scala.util.Random
 
 import org.slf4j.LoggerFactory
 import com.google.common.net.HostAndPort
 import com.typesafe.scalalogging.Logger
 
+import rx.Observer
+
 import org.midonet.cluster.flowhistory._
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHostAndPort}
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => MMSimRes}
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
@@ -42,21 +48,28 @@ trait FlowRecorder {
 object FlowRecorder {
     val log = Logger(LoggerFactory.getLogger(classOf[FlowRecorder]))
 
-    def apply(config: MidolmanConfig, hostId: UUID): FlowRecorder = {
+    def apply(config: MidolmanConfig, hostId: UUID,
+              discovery: MidonetDiscovery): FlowRecorder = {
         log.info("Creating flow recorder with " +
                      s"(${config.flowHistory.encoding}) encoding")
-        if (config.flowHistory.enabled) {
+        if (config.flowHistory.enabled &&
+            config.flowHistory.endpointService.nonEmpty) {
             config.flowHistory.encoding match {
                 case "json" => new JsonFlowRecorder(
-                    hostId, config.flowHistory)
+                    hostId, config.flowHistory, discovery)
                 case "binary" => new BinaryFlowRecorder(hostId,
-                                                        config.flowHistory)
+                                                        config.flowHistory,
+                                                        discovery)
                 case "none" => NullFlowRecorder
                 case other =>
                     log.error(s"Invalid encoding ($other) specified")
                     NullFlowRecorder
             }
         } else {
+            if (config.flowHistory.enabled) {
+                log.warn("Flow history disabled because no endpoint service " +
+                             "specified")
+            }
             NullFlowRecorder
         }
     }
@@ -76,29 +89,61 @@ object NullFlowRecorder extends FlowRecorder {
 /**
   * Abstract flow recorder example that sends summaries over a udp port
   */
-abstract class AbstractFlowRecorder(config: FlowHistoryConfig) extends FlowRecorder {
-    val log = Logger(LoggerFactory.getLogger("org.midonet.history"))
+abstract class AbstractFlowRecorder(config: FlowHistoryConfig,
+                                    discovery: MidonetDiscovery) extends FlowRecorder {
+    private val log = Logger(LoggerFactory.getLogger("org.midonet.history"))
 
-    val endpoint: InetSocketAddress = try {
-        val hostAndPort = HostAndPort.fromString(config.udpEndpoint)
-            .requireBracketsForIPv6.withDefaultPort(5000)
-        new InetSocketAddress(InetAddress.getByName(hostAndPort.getHostText),
-                              hostAndPort.getPort)
-    } catch {
-        case t: Throwable =>
-            log.warn(s"FlowHistory: Invalid udp endpoint ${config.udpEndpoint}",
-                     t)
-            null
-    }
+    private val clioDiscoveryClient = discovery.getClient[MidonetServiceHostAndPort](
+        config.endpointService)
 
-    val socket = DatagramChannel.open()
+    private val endpointRef = new AtomicReference[Option[InetSocketAddress]](None)
+
+    private val socket = DatagramChannel.open()
+
+    def endpoint: Option[InetSocketAddress] = endpointRef.get
+
+    // Update endpoint as we discover more/less clio nodes.
+    clioDiscoveryClient.observable.subscribe(
+        new Observer[Seq[MidonetServiceHostAndPort]] {
+            override def onCompleted(): Unit = {
+                log.debug("Service discovery completed for {}",
+                          config.endpointService)
+                endpointRef.lazySet(None)
+            }
+
+            override def onError(e: Throwable): Unit = {
+                log.error("Error on {} service discovery",
+                          config.endpointService)
+                endpointRef.lazySet(None)
+            }
+
+            override def onNext(t: Seq[MidonetServiceHostAndPort]): Unit = {
+                val chosenEndpoint =
+                    if (t.nonEmpty) {
+                        val randomEndpoint = t(Random.nextInt(t.length))
+                        try {
+                            Some(new InetSocketAddress(randomEndpoint.address,
+                                                       randomEndpoint.port))
+                        } catch {
+                            case t: Throwable =>
+                                log.warn("Invalid endpoint: " + randomEndpoint,
+                                         t)
+                                None
+                        }
+                    } else
+                        None
+                endpointRef.lazySet(chosenEndpoint)
+                log.debug("New endpoint chosen: {}" + chosenEndpoint)
+            }
+        }
+    )
 
     final override def record(pktContext: PacketContext, simRes: MMSimRes):
             Unit = {
         try {
-            if (endpoint != null) {
+            if (endpoint.nonEmpty) {
                 val buffer = encodeRecord(pktContext: PacketContext, simRes)
-                socket.send(buffer, endpoint)
+                socket.send(buffer, endpoint.get)
             }
         } catch {
             case ex: IndexOutOfBoundsException =>
