@@ -32,6 +32,9 @@ import com.google.inject.Inject
 
 import rx.subscriptions.CompositeSubscription
 
+import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
@@ -91,6 +94,10 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     private val portsSubscription = new CompositeSubscription()
     private val uplinks: LinksMap = new util.HashMap[UUID, BoundPort]
     private val downlinks: LinksMap = new util.HashMap[UUID, BoundPort]
+
+    private val gatewayId = HostIdGenerator.getHostId
+    private lazy val gatewayTable = vt.backend.stateTableStore
+        .getTable[UUID, AnyRef](MidonetBackend.GatewayTable)
 
     private var vppExiting = false
     private val vppExitAction = new Consumer[Exception] {
@@ -265,6 +272,10 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             VppProcessMaximumStarts, VppProcessFailingPeriod, vppExitAction)
         vppProcess.startAsync()
             .awaitRunning(VppProcessFailingPeriod, TimeUnit.MILLISECONDS)
+
+        gatewayTable.start()
+        gatewayTable.add(gatewayId, GatewayHostEncoder.DefaultValue)
+
         log debug "vpp process started"
     }
 
@@ -275,6 +286,9 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         vppProcess.stopAsync()
             .awaitTerminated(VppProcessFailingPeriod, TimeUnit.MILLISECONDS)
         vppProcess = null
+
+        gatewayTable.remove(gatewayId)
+        gatewayTable.stop()
     }
 
     private def associateFip(portId: UUID, vrf: Int, floatingIp: IPv6Addr,
