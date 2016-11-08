@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ad1ac6c4",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-08T08:05:04Z",
+      "side": 1,
+      "message": "i haven\u0027t looked at the doc, but can the hash order change in different versions, platforms, etc?\nif it can, it\u0027s better to avoid tests relying on the particular order.",
+      "parentUuid": "baa041b7_adb88612",
+      "range": {
+        "startLine": 304,
+        "startChar": 27,
+        "endLine": 307,
+        "endChar": 46
+      },
+      "revId": "45405781e4effebdd06f7f99181d2686ec0c3663",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_567e306b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
         "patchSetId": 20
