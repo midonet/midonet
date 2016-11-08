@@ -26,6 +26,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import com.google.inject.Guice
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.test.TestingServer
@@ -50,7 +51,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
     private final val rootPath = "/midonet/test"
     private var zkServer: TestingServer = _
     private var backend: MidonetBackend = _
-    private val log = LoggerFactory.getLogger(classOf[VppIntegrationTest])
+    private val log = Logger(LoggerFactory.getLogger(classOf[VppIntegrationTest]))
 
     def setupStorage(): Unit = {
         zkServer = new TestingServer
@@ -462,7 +463,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
 
                 setup = Some(new VppUplinkSetup(UUID.randomUUID,
                                                 uplinkDp.getPortNo,
-                                                api, ovs))
+                                                api, ovs, log))
                 assertCmdInNs(uplinkns, s"ip a add 2001::2/64 dev ${uplinkns}ns")
 
                 setup foreach { s => Await.result(s.execute(), 1 minute) }
@@ -504,7 +505,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 val ip4 = IPv4Subnet.fromCidr("169.254.0.1/30")
                 val ip6 = IPv6Subnet.fromString("2001::3/64")
                 setup = Some(new VppDownlinkSetup(routerPortId, 0,
-                                                  ip4, ip6, api, backend))
+                                                  ip4, ip6, api, backend, log))
                 setup foreach { s => Await.result(s.execute(), 1 minute) }
                 assertCmd(s"ip a add 169.254.0.2/30 dev $ovsDownlink")
                 log info "Pinging vpp interface"

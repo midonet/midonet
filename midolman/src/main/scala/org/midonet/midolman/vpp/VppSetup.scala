@@ -21,6 +21,8 @@ import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
+import com.typesafe.scalalogging.Logger
+
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil.toProto
@@ -154,7 +156,7 @@ private object VppSetup extends MidolmanLogging {
         def getPortNo: Int = dpPort match {
             case Some(port) => port.getPortNo
             case _ => throw new IllegalStateException(
-                s"Datapath Port hasn't been created for $endpointName")
+                s"Datapath port does not exist for $endpointName")
         }
     }
 
@@ -243,16 +245,17 @@ private object VppSetup extends MidolmanLogging {
 
 }
 
-class VppSetup(setupName: String)
+class VppSetup(setupName: String, log: Logger)
               (implicit ec: ExecutionContext)
-    extends FutureSequenceWithRollback(setupName)(ec)
+    extends FutureSequenceWithRollback(setupName, log)(ec)
 
 class VppUplinkSetup(uplinkPortId: UUID,
                      uplinkPortDpNo: Int,
                      vppApi: VppApi,
-                     vppOvs: VppOvs)
+                     vppOvs: VppOvs,
+                     log: Logger)
                      (implicit ec: ExecutionContext)
-    extends VppSetup("VPP uplink setup") {
+    extends VppSetup("VPP uplink setup", log) {
 
     import VppSetup._
 
@@ -263,25 +266,25 @@ class VppUplinkSetup(uplinkPortId: UUID,
 
     private val uplinkVppPrefix: Byte = 64
 
-    private val uplinkVeth = new VethPairSetup("uplink veth pair",
+    private val uplinkVeth = new VethPairSetup("uplink interface setup",
                                                uplinkVppName,
                                                uplinkOvsName)
 
-    private val uplinkVpp = new VppDevice("uplink device at vpp",
+    private val uplinkVpp = new VppDevice("uplink VPP interface setup",
                                           uplinkVppName,
                                           vppApi,
                                           uplinkVeth)
 
-    private val ipAddrVpp = new VppIpAddr("uplink IPv6 address at vpp",
+    private val ipAddrVpp = new VppIpAddr("uplink VPP IPv6 setup",
                                           vppApi,
                                           uplinkVpp,
                                           uplinkVppAddr,
                                           uplinkVppPrefix)
 
-    private val ovsBind = new OvsBindV6("ovs bind for vpp uplink veth",
+    private val ovsBind = new OvsBindV6("uplink OVS bindings",
                                         vppOvs,
                                         uplinkOvsName)
-    private val ovsFlows = new FlowInstall("install ipv6 flows",
+    private val ovsFlows = new FlowInstall("uplink OVS flows",
                                            vppOvs,
                                            () => { ovsBind.getPortNo },
                                            () => { uplinkPortDpNo })
@@ -307,9 +310,10 @@ class VppDownlinkSetup(downlinkPortId: UUID,
                        ip4Address: IPv4Subnet,
                        ip6Address: IPv6Subnet,
                        vppApi: VppApi,
-                       backEnd: MidonetBackend)
+                       backEnd: MidonetBackend,
+                       log: Logger)
                        (implicit ec: ExecutionContext)
-    extends VppSetup("VPP downlink setup")(ec) {
+    extends VppSetup("VPP downlink setup", log)(ec) {
 
     import VppSetup._
 
@@ -317,23 +321,23 @@ class VppDownlinkSetup(downlinkPortId: UUID,
     private val dlinkVppName = s"vpp-$dlinkSuffix"
     private val dlinkOvsName = s"ovs-$dlinkSuffix"
 
-    private val dlinkVeth = new VethPairSetup("dlink veth pair",
+    private val dlinkVeth = new VethPairSetup("downlink interface setup",
                                               dlinkVppName,
                                               dlinkOvsName)
 
-    private val dlinkVpp = new VppDevice("dlink device at vpp",
+    private val dlinkVpp = new VppDevice("downlink VPP interface setup",
                                           dlinkVppName,
                                           vppApi,
                                           dlinkVeth,
                                           vrf)
 
-    private val ipAddrVpp = new VppIpAddr("dlink IP4 address at vpp",
+    private val ipAddrVpp = new VppIpAddr("downlink VPP IPv6 setup",
                                           vppApi,
                                           dlinkVpp,
                                           ip4Address.getAddress,
                                           ip4Address.getPrefixLen.toByte)
 
-    private val ovsBind = new OvsBindV4("dlink bind veth pair to the tenant router",
+    private val ovsBind = new OvsBindV4("downlink OVS binding",
                                         downlinkPortId,
                                         dlinkOvsName,
                                         backEnd)

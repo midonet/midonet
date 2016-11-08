@@ -29,6 +29,7 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import com.google.inject.Inject
+import com.typesafe.scalalogging.Logger
 
 import rx.subscriptions.CompositeSubscription
 
@@ -177,19 +178,19 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     private def detachLink(links: LinksMap, portId: UUID): Future[_] = {
         links remove portId match {
             case boundPort: BoundPort =>
-                log debug s"FIP64 port $portId detached"
+                log debug s"Port $portId detached"
                 boundPort.setup.rollback()
             case null => Future.successful(Unit)
         }
     }
 
     private def attachUplink(portId: UUID): Future[_] = {
-        log debug s"Attaching uplink port $portId"
+        log debug s"Local port $portId active"
 
         val shouldStartDownlink = uplinks.isEmpty
         VirtualTopology.get(classOf[Port], portId) flatMap {
             case port: RouterPort if isIPv6(port) =>
-                log debug s"Port $port is an IPv6 port"
+                log debug s"Attaching IPv6 uplink port $port"
 
                 if (vppProcess eq null) {
                     startVppProcess()
@@ -198,7 +199,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
                 val dpNumber = datapathState.getDpPortNumberForVport(portId)
                 attachLink(uplinks, portId,
-                           new VppUplinkSetup(port.id, dpNumber, vppApi, vppOvs))
+                           new VppUplinkSetup(port.id, dpNumber, vppApi, vppOvs,
+                                              Logger(log.underlying)))
             case _ =>
                 Future.successful(None)
         } andThen {
@@ -213,7 +215,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     }
 
     private def detachUplink(portId: UUID): Future[_] = {
-        log debug s"Detaching uplink port $portId"
+        log debug s"Local port $portId inactive"
 
         detachLink(uplinks, portId) andThen { case _ =>
             if (uplinks.isEmpty) {
@@ -235,7 +237,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
         attachLink(downlinks, portId,
                    new VppDownlinkSetup(portId, vrf, ip4Address, ip6Address,
-                                        vppApi, vt.backend))
+                                        vppApi, vt.backend,
+                                        Logger(log.underlying)))
     }
 
     private def detachDownlink(portId: UUID): Future[_] = {
