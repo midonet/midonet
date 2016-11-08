@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_48232859",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-08T09:30:47Z",
+      "side": 1,
+      "message": "why don\u0027t you mock it?",
+      "revId": "f56e4d4cd99b57e15a52a077e5339262988b1e57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
