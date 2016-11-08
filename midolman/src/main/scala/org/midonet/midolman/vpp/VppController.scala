@@ -283,10 +283,10 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
                   s"$floatingIp -> $fixedIp"
 
         // TODO: Remove hardcoded addresses.
-        val srcIp6 = "2001::1"
+        val srcIp6 = "2001::2"
         val srcIp4 = "20.0.0.1"
         executeCommandWithTimeout(s"vppctl fip64 add $srcIp6 $floatingIp " +
-                                  s"$srcIp4 $fixedIp $vrf")
+                                  s"$srcIp4 $fixedIp table $vrf")
     }
 
     private def disassociateFip(portId: UUID, vrf: Int, floatingIp: IPv6Addr,
@@ -295,7 +295,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
                   s"$floatingIp -> $fixedIp"
 
         // TODO: Remove hardcoded addresses.
-        val srcIp6 = "2001::1"
+        val srcIp6 = "2001::2"
         executeCommandWithTimeout(s"sudo vppctl fip64 del $srcIp6 $floatingIp")
     }
 
