@@ -944,11 +944,13 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                subnetId: UUID = UUID.randomUUID(),
                                gatewayIp: String = null,
                                dnsServers: List[String] = null,
-                               hostRoutes: List[HostRoute] = null): UUID = {
+                               hostRoutes: List[HostRoute] = null,
+                               ipVersion: Int = 4): UUID = {
         val json = subnetJson(subnetId, networkId, cidr = cidr,
                               gatewayIp = gatewayIp,
                               dnsNameservers = dnsServers,
-                              hostRoutes = hostRoutes)
+                              hostRoutes = hostRoutes,
+                              ipVersion = ipVersion)
         insertCreateTask(taskId, SubnetType, json, subnetId)
         subnetId
     }

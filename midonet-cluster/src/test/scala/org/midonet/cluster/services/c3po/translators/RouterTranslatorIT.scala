@@ -35,6 +35,7 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
+import PortManager._
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
@@ -269,9 +270,10 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
                                      gwPortId = extNwGwPortId,
                                      enableSnat = true)
         insertUpdateTask(18, RouterType, trAddGwJson, tntRtrId)
-        eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
+        Thread.sleep(1000)
+        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
                                    "10.0.1.4", "ab:cd:ef:00:00:04", "10.0.1.2",
-                                   snatEnabled = true, extNwArpTable))
+                                   snatEnabled = true, extNwArpTable)
 
         // Disable SNAT.
         val trDisableSnatJson = routerJson(tntRtrId, name = "tr-disable-snat",
@@ -330,6 +332,203 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         }
         extNwArpTable.stop()
     }
+
+    it should "handle router IPv6 gateway CRUD" in {
+        val hostId = UUID.randomUUID()
+
+        // Create uplink network.
+        val uplinkNetworkId = createUplinkNetwork(2)
+        val uplinkSubnetId = createSubnet(3, uplinkNetworkId, "2001::/64",
+                                          ipVersion = 6)
+
+        createHost(hostId)
+
+        // Create edge router.
+        val edgeRouterId = createRouter(4)
+        val uplinkPortId = createRouterInterfacePort(
+            5, uplinkNetworkId, uplinkSubnetId, edgeRouterId, "2001::1",
+            "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
+        createRouterInterface(6, edgeRouterId, uplinkPortId, uplinkSubnetId)
+
+        // Create external network.
+        val extNetworkId = createTenantNetwork(7, external = true)
+        val extSubnetId = createSubnet(
+            8, extNetworkId, "2002::/64", gatewayIp = "2002::1",
+            ipVersion = 6)
+
+        val extPortId = createRouterInterfacePort(
+            9, extNetworkId, extSubnetId, edgeRouterId,
+            "2002::2", "03:03:03:03:03:03")
+        createRouterInterface(10, edgeRouterId, extPortId, extSubnetId)
+
+        // Create tenant router.
+        val gwPortId = createRouterGatewayPort(
+            11, extNetworkId, "2002::2", "04:04:04:04:04:04", extSubnetId)
+        val tenantRouterId = createRouter(12, gwPortId = gwPortId)
+
+        // Sanity check for external network's connection to edge router. This
+        // is just a normal router interface, so RouterInterfaceTranslatorIT
+        // checks the details.
+        val mnUplinkPortId = routerInterfacePortPeerId(uplinkPortId).asJava
+        val mnExtPortId = routerInterfacePortPeerId(extPortId).asJava
+        val mnGwPortId = tenantGwPortId(gwPortId).asJava
+
+        eventually {
+            storage.exists(classOf[Port], mnUplinkPortId).await() shouldBe true
+            storage.exists(classOf[Port], mnExtPortId).await() shouldBe true
+            storage.exists(classOf[Port], mnGwPortId).await() shouldBe true
+        }
+
+        val uplinkPort = storage.get(classOf[Port], mnUplinkPortId).await()
+        val uplinkPortRoutes =
+            storage.getAll(classOf[Route], uplinkPort.getRouteIdsList).await()
+
+        val extPort = storage.get(classOf[Port], mnExtPortId).await()
+        val extPortRoutes =
+            storage.getAll(classOf[Route], extPort.getRouteIdsList).await()
+
+        var gwPort: Port = null
+        var gwPortRoutes: Seq[Route] = null
+        var gwPortFipRules: Seq[Rule] = null
+
+        def verifyRouterPortCreated(): Unit = {
+            eventually {
+                storage.exists(classOf[Port], mnGwPortId).await() shouldBe true
+            }
+
+            gwPort = storage.get(classOf[Port], mnGwPortId).await()
+            gwPortRoutes =
+                storage.getAll(classOf[Route], gwPort.getRouteIdsList).await()
+            gwPortFipRules =
+                storage.getAll(classOf[Rule], gwPort.getFipNatRuleIdsList).await()
+
+            gwPort.getRouterId.asJava shouldBe tenantRouterId
+            gwPort.getPortMac shouldBe "04:04:04:04:04:04"
+            gwPort.getPortAddress shouldBe IPAddressUtil.toProto("169.254.0.1")
+            gwPort.getPortSubnet shouldBe IPSubnetUtil.toProto("169.254.0.0/30")
+
+            gwPort.getRouteIdsCount shouldBe 2
+            gwPort.getFipNatRuleIdsCount shouldBe 1
+
+            gwPortRoutes should have size 2
+            gwPortFipRules should have size 1
+        }
+
+        uplinkPort.getRouterId.asJava shouldBe edgeRouterId
+        uplinkPort.getHostId.asJava shouldBe hostId
+        uplinkPort.getInterfaceName shouldBe "eth0"
+        uplinkPort.getPortMac shouldBe "02:02:02:02:02:02"
+        uplinkPort.getPortAddress shouldBe IPAddressUtil.toProto("2001::1")
+        uplinkPort.getPortSubnet shouldBe IPSubnetUtil.toProto("2001:0:0:0:0:0:0:0/64")
+
+        // TODO: These routes should not be added on the IPv6 port
+        uplinkPortRoutes should have size 2
+
+        extPort.getRouterId.asJava shouldBe edgeRouterId
+        extPort.getPortMac shouldBe "03:03:03:03:03:03"
+
+        // TODO: This should be changed for ports that are not gateway ports
+        extPort.getPortAddress shouldBe IPAddressUtil.toProto("169.254.0.1")
+        extPort.getPortSubnet shouldBe IPSubnetUtil.toProto("169.254.0.0/30")
+        extPort.getFipNatRuleIdsCount should not be 0
+
+        // TODO: These routes should not be added on the IPv6 port
+        extPortRoutes should have size 2
+
+        verifyRouterPortCreated()
+
+        gwPortRoutes.head.getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
+        gwPortRoutes.head.getDstSubnet shouldBe RouterInterfaceTranslator.Nat64Pool
+
+        gwPortRoutes(1).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
+        gwPortRoutes(1).getDstSubnet shouldBe IPSubnetUtil.toProto("169.254.0.1/32")
+
+        gwPortFipRules.head.getNat64RuleData.getPortAddress shouldBe IPSubnetUtil
+            .toProto("2002::2/128")
+        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe IPAddressUtil
+            .toProto("20.0.0.1")
+        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe IPAddressUtil
+            .toProto("20.0.0.1")
+
+        // Delete gateway port.
+        insertDeleteTask(13, PortType, gwPortId)
+
+        def verifyRouterPortDeleted(): Unit = {
+            eventually {
+                storage.exists(classOf[Port], mnGwPortId).await() shouldBe false
+            }
+            storage.exists(classOf[Rule], gwPortFipRules.head.getId).await() shouldBe false
+        }
+        verifyRouterPortDeleted()
+
+        // Re-create the gateway port.
+        createRouterGatewayPort(
+            14, extNetworkId, "2002::2", "04:04:04:04:04:04", extSubnetId,
+            id = gwPortId)
+        insertUpdateTask(15, RouterType, routerJson(
+            tenantRouterId, name = "tenant", gwPortId = gwPortId), tenantRouterId)
+
+        verifyRouterPortCreated()
+
+        // Remove the gateway port from the router without deleting the port.
+        insertUpdateTask(16, RouterType, routerJson(
+            tenantRouterId, name = "tenant"), tenantRouterId)
+
+        verifyRouterPortDeleted()
+
+        // Re-add the gateway port.
+        insertUpdateTask(17, RouterType, routerJson(
+            tenantRouterId, name = "tenant", gwPortId = gwPortId), tenantRouterId)
+
+        verifyRouterPortCreated()
+
+        // Delete the gateway port.
+        insertDeleteTask(18, PortType, gwPortId)
+
+        verifyRouterPortDeleted()
+
+        // Re-create the gateway port.
+        createRouterGatewayPort(
+            19, extNetworkId, "2002::2", "04:04:04:04:04:04", extSubnetId,
+            id = gwPortId)
+        insertUpdateTask(20, RouterType, routerJson(
+            tenantRouterId, name = "tenant", gwPortId = gwPortId), tenantRouterId)
+
+        verifyRouterPortCreated()
+
+        // TODO: Support IPv6 in SubnetTranslator.update
+        // Clear the default gateway on the subnet.
+        // var extSubnet =
+        //    subnetJson(extSubnetId, extNetworkId, cidr = "2002::/64",
+        //               ipVersion = 6)
+        // insertUpdateTask(21, SubnetType, extSubnet, extSubnetId)
+
+        // TODO: Support IPv6 in SubnetTranslator.update
+        // Set the default gateway on the subnet
+        // var extSubnet =
+        //    subnetJson(extSubnetId, extNetworkId, cidr = "2002::/64",
+        //               gatewayIp = "2002::5", ipVersion = 6)
+        // insertUpdateTask(21, SubnetType, extSubnet, extSubnetId)
+
+
+        // TODO: Support IPv6 in SubnetTranslator.update
+        // Update the default gateway on the subnet
+        // var extSubnet =
+        //    subnetJson(extSubnetId, extNetworkId, cidr = "2002::/64",
+        //               gatewayIp = "2002::5", ipVersion = 6)
+        // insertUpdateTask(21, SubnetType, extSubnet, extSubnetId)
+
+        // TODO: Support IPv6 in SubnetTranslator.delete
+        // Delete the subnet
+        // insertDeleteTask(23, SubnetType, extSubnetId)
+
+
+        // Delete gateway and router.
+        insertDeleteTask(24, PortType, gwPortId)
+        insertDeleteTask(25, RouterType, tenantRouterId)
+        verifyRouterPortDeleted()
+    }
+
 
     it should "Preserve router properties on update" in {
         // Create external network and subnet.
@@ -433,15 +632,17 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
     : Unit = {
         // Tenant router should have gateway port and no routes.
         val trGwPortId = tenantGwPortId(nwGwPortId)
-        val tr = eventually {
+
+        Thread.sleep(1000)
+        //val tr = eventually {
             val tr = storage.get(classOf[Router], rtrId).await()
             tr.getPortIdsList.asScala should contain only trGwPortId
             tr.getRouteIdsCount shouldBe 0
 
             // The ARP entry should be added to the external network ARP table.
             extNwArpTable.getLocal(gatewayIp) shouldBe MAC.fromString(trPortMac)
-            tr
-        }
+        //    tr
+        //}
 
         // Get the router gateway port and its peer on the network.
         val portFs = storage.getAll(classOf[Port], List(nwGwPortId, trGwPortId))
