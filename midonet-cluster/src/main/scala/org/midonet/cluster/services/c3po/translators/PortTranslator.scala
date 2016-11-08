@@ -909,6 +909,9 @@ class PortTranslator(stateTableStorage: StateTableStorage,
 
     private def deleteRouterSnatRules(tx: Transaction, rPortId: UUID): Unit = {
         import RouterTranslator._
+        if (!tx.exists(classOf[Port], rPortId)) {
+            return
+        }
         val rPort = tx.get(classOf[Port], rPortId)
         val rtrId = rPort.getRouterId
 
