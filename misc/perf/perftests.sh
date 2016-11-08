@@ -652,7 +652,7 @@ cleanup_ns() {
     dpif="${ns}dp"
     nsif="${ns}ns"
 
-    ip netns list | grep "^$ns$" >/dev/null
+    ip netns list | awk '{print $1}' | grep -q "^$ns$"
     if [ $? -eq 1 ] ; then
         return 0
     fi
