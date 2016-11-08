@@ -60,7 +60,7 @@ class FlowRecorderTest extends MidolmanSpec {
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr).flowHistory
             val recorder = new TestFlowRecorder(conf)
-            recorder.record(newContext, PacketWorkflow.NoOp)
+            recorder.record(newContext(), PacketWorkflow.NoOp)
         }
 
         scenario("unreachable endpoint doesn't throw error on record()") {
@@ -72,7 +72,7 @@ class FlowRecorderTest extends MidolmanSpec {
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr).flowHistory
             val recorder = new TestFlowRecorder(conf)
-            recorder.record(newContext, PacketWorkflow.NoOp)
+            recorder.record(newContext(), PacketWorkflow.NoOp)
         }
 
         scenario("exception in encodeRecord doesn't propagate") {
@@ -84,7 +84,7 @@ class FlowRecorderTest extends MidolmanSpec {
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr).flowHistory
             val recorder = new ErrorFlowRecorder(conf)
-            recorder.record(newContext, PacketWorkflow.NoOp)
+            recorder.record(newContext(), PacketWorkflow.NoOp)
         }
     }
 
@@ -105,7 +105,7 @@ class FlowRecorderTest extends MidolmanSpec {
 
             val sock = getListeningSocket(conf)
 
-            val ctx = newContext
+            val ctx = newContext()
             recorder.record(ctx, PacketWorkflow.NoOp)
             try {
                 sock.receive(datagram)
@@ -178,9 +178,46 @@ class FlowRecorderTest extends MidolmanSpec {
                 sock.close()
             }
         }
+        scenario("Flooding packet is dropped, no exception is generated") {
+
+            val confStr =
+                """
+                  |agent.flow_history.enabled=true
+                  |agent.flow_history.encoding=binary
+                  |agent.flow_history.udp_endpoint="localhost:50023"
+                """.stripMargin
+            val conf = MidolmanConfig.forTests(confStr)
+
+            val recorder = FlowRecorder(conf, hostId)
+
+            val maxNumberOfDevices =  BinarySerialization.BufferSize / 17;
+            val ctx1 = newContext(2 * maxNumberOfDevices)
+            noException should be thrownBy {
+                recorder.record(ctx1, PacketWorkflow.NoOp)
+            }
+        }
+
+        scenario("Packet that cannot be send as single datagram is dropped") {
+
+            val confStr =
+                """
+                  |agent.flow_history.enabled=true
+                  |agent.flow_history.encoding=binary
+                  |agent.flow_history.udp_endpoint="localhost:50023"
+                """.stripMargin
+            val conf = MidolmanConfig.forTests(confStr)
+
+            val recorder = FlowRecorder(conf, hostId)
+
+            val maxNumberOfDevices =  BinarySerialization.BufferSize / 17;
+            val ctx1 = newContext(maxNumberOfDevices / 5)
+            noException should be thrownBy {
+                recorder.record(ctx1, PacketWorkflow.NoOp)
+            }
+        }
     }
 
-    private def newContext(): PacketContext = {
+    private def newContext(numPorts: Int = 5): PacketContext = {
         val ethernet = { eth addr MAC.random -> MAC.random } <<
             { ip4 addr IPv4Addr.random --> IPv4Addr.random } <<
             { icmp.unreach.host }
@@ -189,7 +226,7 @@ class FlowRecorderTest extends MidolmanSpec {
         val ctx = PacketContext.generated(0, packet, wcmatch)
         ctx.inPortId = UUID.randomUUID
 
-        for (i <- 1.until(5)) {
+        for (i <- 1.until(numPorts)) {
             ctx.addFlowTag(FlowTagger.tagForPort(UUID.randomUUID))
         }
         for (i <- 1.until(10)) {
