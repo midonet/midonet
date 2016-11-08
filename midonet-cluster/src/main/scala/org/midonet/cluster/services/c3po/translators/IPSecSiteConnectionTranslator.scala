@@ -26,9 +26,12 @@ import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.Topology.{Port, Route, ServiceContainer}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.IPSecSiteConnectionTranslator._
+import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers
+import org.midonet.packets.IPv4Subnet
 
 class IPSecSiteConnectionTranslator
     extends Translator[IPSecSiteConnection] with RouteManager {
@@ -52,7 +55,7 @@ class IPSecSiteConnectionTranslator
         val (delRoutes, addRoutes, currentRoutes) = updateRemoteRoutes(tx, cnxn, vpn)
 
         val newCnxn = cnxn.toBuilder
-            .addAllRouteIds(currentRoutes.map(toProto).asJava).build
+            .addAllRouteIds(currentRoutes.map(_.asProto).asJava).build
 
         delRoutes.foreach(r => tx.delete(classOf[Route], r.getId, ignoresNeo = true))
         addRoutes.foreach(r => tx.create(r))
@@ -75,19 +78,22 @@ class IPSecSiteConnectionTranslator
         val routerPort = tx.get(classOf[Port],
                                 container.getPortId)
         val routerPortId = routerPort.getId
-        val routerPortSubnet = routerPort.getPortSubnet
+        val routerPortSubnet =
+            routerPort.getPortSubnet.asJava.asInstanceOf[IPv4Subnet]
 
         val localPeerCidrPairs = for {
-            localCidr <- cnxn.getLocalCidrsList.asScala;
+            localCidr <- cnxn.getLocalCidrsList.asScala
             peerCidr <- cnxn.getPeerCidrsList.asScala
         } yield (localCidr, peerCidr)
+
 
         localPeerCidrPairs.map { case (localCidr, peerCidr) =>
             newNextHopPortRoute(
                 id = UUIDUtil.randomUuidProto,
                 ipSecSiteCnxnId = cnxn.getId,
                 nextHopPortId = routerPortId,
-                nextHopGwIpAddr = containers.containerPortAddress(routerPortSubnet),
+                nextHopGwIpAddr =
+                    containers.containerPortAddress(routerPortSubnet).asProto,
                 srcSubnet = localCidr,
                 dstSubnet = peerCidr)
         }.toList

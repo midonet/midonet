@@ -22,9 +22,8 @@ import java.util.{Comparator, NoSuchElementException, TreeMap}
 import rx.Scheduler
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion}
+import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
 import org.midonet.util.logging.Logger
 
@@ -49,7 +48,7 @@ package object containers {
     private val ContainerAddressOffset = 2
 
     @throws[NoSuchElementException]
-    def findLocalSubnet(ports: Seq[Port]): IPSubnet = {
+    def findLocalSubnet(ports: Seq[Port]): IPv4Subnet = {
         // Finds an available 169.254.x.y/30 (0xA9FE.x.y/30) subnet within the
         // 169.254.0.0/16 range excluding the subnets of the router ports that
         // already have been allocated within the same range. The method works
@@ -61,7 +60,7 @@ package object containers {
             new Comparator[Int]() {
                 @Override
                 def compare(a: Int, b: Int): Int = {
-                    return Integer.compareUnsigned(a, b)
+                    Integer.compareUnsigned(a, b)
                 }
             })
         for (port <- ports if port.getPortSubnet.getVersion == IPVersion.V4) {
@@ -83,8 +82,7 @@ package object containers {
             // selection.
             if ((subnet eq null) ||
                 Integer.compareUnsigned(subnet.getKey, selection + LocalSubnetSize) > 0)
-                return IPSubnetUtil.toProto(new IPv4Subnet(selection,
-                                                           LocalSubnetPrefix))
+                return new IPv4Subnet(selection, LocalSubnetPrefix)
             // Else, select the beginning of next /30 greater than the end of
             // the current entry range.
             selection = (subnet.getValue & LocalSubnetMask) + LocalSubnetSize + 1
@@ -97,18 +95,16 @@ package object containers {
       * Get the associated ip address of the router port for a given container
       * subnet.
       */
-    def routerPortAddress(subnet: IPSubnet): IPAddress = {
-        val s = new IPv4Subnet(subnet.getAddress, LocalSubnetPrefix)
-        IPAddressUtil.toProto(IPv4Addr(s.getIntAddress + RouterAddressOffset))
+    def routerPortAddress(subnet: IPv4Subnet): IPv4Addr = {
+        IPv4Addr(subnet.getIntAddress + RouterAddressOffset)
     }
 
     /**
       * Get the associated up address of the container port for a given
       * container subnet. This is the ip inside the container namespace.
       */
-    def containerPortAddress(subnet: IPSubnet): IPAddress = {
-        val s = new IPv4Subnet(subnet.getAddress, LocalSubnetPrefix)
-        IPAddressUtil.toProto(IPv4Addr(s.getIntAddress + ContainerAddressOffset))
+    def containerPortAddress(subnet: IPv4Subnet): IPv4Addr = {
+        IPv4Addr(subnet.getIntAddress + ContainerAddressOffset)
     }
 
 }

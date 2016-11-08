@@ -28,6 +28,7 @@ import org.midonet.cluster.models.Topology.Rule.NatTarget
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
+import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, SequenceDispenser}
@@ -131,8 +132,8 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
             val localSubnet = containers.findLocalSubnet(routerPorts)
             val localAddress = containers.routerPortAddress(localSubnet)
 
-            routerPortBuilder.setPortAddress(localAddress)
-            routerPortBuilder.setPortSubnet(localSubnet)
+            routerPortBuilder.setPortAddress(localAddress.asProto)
+            routerPortBuilder.setPortSubnet(localSubnet.asProto)
 
             assignTunnelKey(routerPortBuilder, sequenceDispenser)
 

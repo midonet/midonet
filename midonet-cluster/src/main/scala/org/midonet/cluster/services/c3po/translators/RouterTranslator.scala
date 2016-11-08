@@ -32,6 +32,8 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.containers
 import org.midonet.packets.{ICMP, MAC}
+import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.IPSubnetUtil._
 
 class RouterTranslator(stateTableStorage: StateTableStorage,
                        config: ClusterConfig)
@@ -221,8 +223,8 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         // Create the gateway port.
         val port = newRouterPortBuilder(routerPortId, nRouter.getId,
                                         adminStateUp = true)
-            .setPortAddress(localAddress)
-            .setPortSubnet(localSubnet)
+            .setPortAddress(localAddress.asProto)
+            .setPortSubnet(localSubnet.asProto)
             .setPortMac(portMac)
             .build()
         tx.create(port)
