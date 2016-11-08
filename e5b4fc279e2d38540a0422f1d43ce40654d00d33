@@ -22,6 +22,30 @@
       "revId": "e5b4fc279e2d38540a0422f1d43ce40654d00d33",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_edbe8eff",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-08T03:00:04Z",
+      "side": 1,
+      "message": "Submitted a new patch using this. It\u0027s slightly simpler.",
+      "parentUuid": "baa041b7_dc4b89b0",
+      "range": {
+        "startLine": 183,
+        "startChar": 16,
+        "endLine": 183,
+        "endChar": 31
+      },
+      "revId": "e5b4fc279e2d38540a0422f1d43ce40654d00d33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
