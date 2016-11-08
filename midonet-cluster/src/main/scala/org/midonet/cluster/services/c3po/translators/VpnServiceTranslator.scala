@@ -24,7 +24,7 @@ import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, VpnServic
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser, UUIDUtil}
 import org.midonet.containers
 import org.midonet.packets.MAC
 
@@ -193,6 +193,9 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
         case _ => super.retainHighLevelModel(tx, op)
     }
 
+    import org.midonet.cluster.util.IPAddressUtil._
+    import org.midonet.cluster.util.IPSubnetUtil._
+
     @throws[NoSuchElementException]
     private def createRouterPort(tx: Transaction, router: Router): Port = {
         val currentPorts = tx.getAll(classOf[Port], router.getPortIdsList)
@@ -203,10 +206,10 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
         val portId = JUUID.randomUUID
         val interfaceName = s"vpn-${portId.toString.substring(0, 8)}"
         val builder = Port.newBuilder
-            .setId(portId)
+            .setId(portId.asProto)
             .setRouterId(router.getId)
-            .setPortSubnet(subnet)
-            .setPortAddress(routerAddr)
+            .setPortSubnet(subnet.asProto)
+            .setPortAddress(routerAddr.asProto)
             .setPortMac(MAC.random().toString)
             .setInterfaceName(interfaceName)
         assignTunnelKey(builder, sequenceDispenser)
@@ -220,7 +223,7 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
 
         // Redirect ESP traffic addressed to local endpoint to VPN port.
         val espRuleBldr = redirectRuleBuilder(
-            id = Some(JUUID.randomUUID),
+            id = Some(UUIDUtil.randomUuidProto),
             chainId = chainId,
             targetPortId = portId)
         espRuleBldr.getConditionBuilder
@@ -230,7 +233,7 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
         // Redirect UDP traffic addressed to local endpoint on port 500 to VPN
         // port.
         val udpRuleBldr = redirectRuleBuilder(
-            id = Some(JUUID.randomUUID),
+            id = Some(UUIDUtil.randomUuidProto),
             chainId = chainId,
             targetPortId = portId)
         udpRuleBldr.getConditionBuilder
@@ -239,7 +242,7 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
             .setTpDst(RangeUtil.toProto(500, 500)) // IKE UDP port.
 
         val udp4500RuleBldr = redirectRuleBuilder(
-            id = Some(JUUID.randomUUID),
+            id = Some(UUIDUtil.randomUuidProto),
             chainId = chainId,
             targetPortId = portId)
         udp4500RuleBldr.getConditionBuilder

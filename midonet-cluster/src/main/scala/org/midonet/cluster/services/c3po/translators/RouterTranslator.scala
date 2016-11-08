@@ -26,7 +26,9 @@ import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSu
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.BgpPeerTranslator._
+import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil
+import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.ICMP
 

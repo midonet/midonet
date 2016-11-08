@@ -23,6 +23,8 @@ import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouteManager.extraRouteId
+import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
 import org.midonet.containers
@@ -170,8 +172,8 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
         val builder = Port.newBuilder
             .setId(quaggaPortId(router.getId))
             .setRouterId(router.getId)
-            .setPortSubnet(subnet)
-            .setPortAddress(routerAddress)
+            .setPortSubnet(subnet.asProto)
+            .setPortAddress(routerAddress.asProto)
             .setPortMac(MAC.random().toString)
 
         assignTunnelKey(builder, sequenceDispenser)

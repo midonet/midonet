@@ -26,6 +26,7 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
+import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}

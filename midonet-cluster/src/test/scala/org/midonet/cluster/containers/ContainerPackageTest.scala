@@ -23,7 +23,6 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.containers
 import org.midonet.packets.IPv4Subnet
 
@@ -43,7 +42,7 @@ class ContainerPackageTest extends FlatSpec with Matchers
         Then("A subnet within the container range is returned")
         val subnet1 = containers.findLocalSubnet(ports)
         val expected1 = new IPv4Subnet("169.254.0.0", 30)
-        IPSubnetUtil.fromProto(subnet1) shouldBe expected1
+        subnet1 shouldBe expected1
 
         When("Updating the list of ports")
         ports += createRouterPort(portSubnet = expected1)
@@ -53,7 +52,7 @@ class ContainerPackageTest extends FlatSpec with Matchers
         val expected2 = new IPv4Subnet("169.254.0.8", 30)
 
         Then("The next available should be provided, not the same")
-        IPSubnetUtil.fromProto(subnet2) shouldBe expected2
+        subnet2 shouldBe expected2
 
         When("Adding the whole container range into the list")
         ports += createRouterPort(portSubnet = new IPv4Subnet("169.254.0.0", 16))
