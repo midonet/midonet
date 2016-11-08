@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_0e46494f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-08T10:42:28Z",
+      "side": 1,
+      "message": "isn\u0027t the diffBaseMatch supposed to check whether the ToS field has changed? so you wouldn\u0027t need to introduce this new field in the FlowMatch",
+      "range": {
+        "startLine": 221,
+        "startChar": 20,
+        "endLine": 221,
+        "endChar": 39
+      },
+      "revId": "7a35889001d00fa0492456cd1a2f8447adc4f788",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2db6b6f9",
         "filename": "netlink/src/main/java/org/midonet/odp/FlowMatch.java",
         "patchSetId": 9
