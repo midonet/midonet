@@ -70,6 +70,30 @@
       "revId": "7a35889001d00fa0492456cd1a2f8447adc4f788",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_086640ee",
+        "filename": "netlink/src/main/java/org/midonet/odp/FlowMatch.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-08T09:05:26Z",
+      "side": 1,
+      "message": "isUsed just means the field have a value. there isn\u0027t any equivalent to your xxxSet.\nif we want xxxSet, it\u0027s better to have it for every fields,\nimplemented similarly with isUsed.\ni\u0027m not sure if it\u0027s really desirable though. for majority of cases, tos from vm won\u0027t vary i guess.  thus my suggestion to make the flow match on the field.  you can do it by marking the field seen.",
+      "parentUuid": "baa041b7_6d971eec",
+      "range": {
+        "startLine": 357,
+        "startChar": 20,
+        "endLine": 357,
+        "endChar": 36
+      },
+      "revId": "7a35889001d00fa0492456cd1a2f8447adc4f788",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
