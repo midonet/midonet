@@ -69,6 +69,24 @@
       "revId": "4aa89b32d165ab8c16cdcd1e274ffb378f7a7c3b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6deb9e13",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-08T01:52:17Z",
+      "side": 1,
+      "message": "Okay, I think I understand what you were pointing out.  If a packet has a diff TOS field, this will reset it and install a flow with that setTOSKey-\u003edspMark action for all further flow matches.  However, if the simulated packet has the same TOS field, this will NOT install a setTOSKey action, because there will be no diff.  Therefore, all further flow matches will not have a setTOSKey action, and since there is no match on TOS field, those packets will flow straight through without having their TOS field changed (even if it\u0027s not the same as the dscpMark).\n\nThis indeed seems to be wrong behavior.",
+      "parentUuid": "baa041b7_ed90ce98",
+      "revId": "4aa89b32d165ab8c16cdcd1e274ffb378f7a7c3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
