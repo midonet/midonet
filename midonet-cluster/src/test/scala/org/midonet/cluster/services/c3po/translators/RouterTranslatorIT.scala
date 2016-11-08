@@ -174,7 +174,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         }
     }
 
-    it should "handle router gateway CRUD" in {
+    it should "handle router IPv4 gateway CRUD" in {
 
         val hostId = UUID.randomUUID()
 
@@ -296,7 +296,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    "10.0.1.4", "ab:cd:ef:00:00:04", null,
                                    snatEnabled = true, extNwArpTable))
 
-        // Readd the default gateway on the subnet.
+        // Read the default gateway on the subnet.
         val extNwSubnetNewGwJson =
             subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24",
                        gatewayIp = "10.0.1.50")

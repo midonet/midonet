@@ -23,7 +23,7 @@ import scala.collection.mutable
 
 import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Topology._
@@ -31,7 +31,6 @@ import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Delete, Opera
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.packets.MAC
 import org.midonet.util.concurrent.toFutureOps
 
 /**
@@ -41,18 +40,6 @@ trait PortManager extends ChainManager with RouteManager {
 
     protected type DhcpUpdateFunction =
         (Dhcp.Builder, String, IPAddress, JList[ExtraDhcpOpts]) => Unit
-
-    protected def newTenantRouterGWPort(id: UUID,
-                                        routerId: UUID,
-                                        cidr: IPSubnet,
-                                        gwIpAddr: IPAddress,
-                                        mac: Option[String] = None,
-                                        adminStateUp: Boolean = true): Port = {
-        newRouterPortBuilder(id, routerId, adminStateUp = adminStateUp)
-            .setPortSubnet(cidr)
-            .setPortAddress(gwIpAddr)
-            .setPortMac(mac.getOrElse(MAC.random().toString)).build()
-    }
 
     private def checkNoPeerId(port: PortOrBuilder): Unit = {
         if (port.hasPeerId)
@@ -70,29 +57,6 @@ trait PortManager extends ChainManager with RouteManager {
                                   sequenceDispenser: SequenceDispenser): Unit = {
         val tk = sequenceDispenser.next(OverlayTunnelKey).await()
         port.setTunnelKey(tk)
-    }
-
-    /**
-     * Modifies port to set its peerId to peer's ID, and returns list of
-     * operations for creating appropriate routes on the ports, as well as an
-     * operation to set port's peerId.
-     *
-     * Does not set peer's peerId. Storage engine is assumed to handle this.
-     */
-    protected def linkPorts(tx: Transaction, port: Port, peer: PortOrBuilder)
-    : Unit = {
-        checkNoPeerId(port)
-        checkNoPeerId(peer)
-
-        val portBldr = Port.newBuilder(port)
-        portBldr.setPeerId(peer.getId)
-        tx.update(portBldr.build())
-
-        def addLocalRouteToRouter(rPort: PortOrBuilder): Unit =
-            tx.create(newLocalRoute(rPort.getId, rPort.getPortAddress))
-
-        if (port.hasRouterId) addLocalRouteToRouter(port)
-        if (peer.hasRouterId) addLocalRouteToRouter(peer)
     }
 
     /**
