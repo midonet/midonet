@@ -199,7 +199,7 @@ public abstract class Rule extends BaseConfig {
             pktCtx.recordMatchedRule(id, false);
         }
         pktCtx.recordAppliedRule(id, false);
-        return Chain.CONTINUE();
+        return Chain.Continue();
     }
 
     public Condition getCondition() {
@@ -248,13 +248,12 @@ public abstract class Rule extends BaseConfig {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Rule[");
+        StringBuilder sb = new StringBuilder("");
         sb.append("condition=").append(condition);
-        sb.append(", action=").append(action);
-        sb.append(", chainId=").append(chainId);
+        sb.append(" action=").append(action);
+        sb.append(" chainId=").append(chainId);
         if (meter != null)
-            sb.append(", meter=").append(meter);
-        sb.append("]");
+            sb.append(" meter=").append(meter);
         return sb.toString();
     }
 
