@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4e4fb1be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-08T13:02:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_68914c46",
+      "range": {
+        "startLine": 391,
+        "startChar": 54,
+        "endLine": 391,
+        "endChar": 63
+      },
+      "revId": "6029aa7eeacbae8c8cdecb5960fdbce7908b4405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_48e448df",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-08T09:50:52Z",
       "side": 1,
       "message": "Maybe this should be configurable? (\"clio\" being the default value in the configuration, and disabling the service if the value is empty)",
+      "range": {
+        "startLine": 48,
+        "startChar": 35,
+        "endLine": 48,
+        "endChar": 39
+      },
+      "revId": "6029aa7eeacbae8c8cdecb5960fdbce7908b4405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2eefcdea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-08T13:02:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_48e448df",
       "range": {
         "startLine": 48,
         "startChar": 35,
