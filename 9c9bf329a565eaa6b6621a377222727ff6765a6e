@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_cd2ceaae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-08T08:56:39Z",
+      "side": 1,
+      "message": "I think the first one is acceptable",
+      "parentUuid": "baa041b7_e61fd36e",
+      "range": {
+        "startLine": 141,
+        "startChar": 8,
+        "endLine": 142,
+        "endChar": 61
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4309d183",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 2
@@ -190,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a82e348a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-08T08:56:39Z",
+      "side": 1,
+      "message": "Correct, my question was whether this needed to be exposed as a public member, since it seems to be used only in one place in this class. \n\nWell, it was public previously, you may as well leave it like this. Then maybe rename `_endpoint` to `endpointRef`. If I\u0027m not mistaking, we don\u0027t typically use underscores in identifier names, see:\n\nhttps://github.com/midonet/midonet/wiki/Developer%27s-Guide#java-and-scala\nhttps://google.github.io/styleguide/javaguide.html#s5.1-identifier-names",
+      "parentUuid": "baa041b7_190b3826",
+      "range": {
+        "startLine": 97,
+        "startChar": 4,
+        "endLine": 97,
+        "endChar": 59
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2337ed4e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 2
@@ -225,6 +273,30 @@
       "side": 1,
       "message": "That\u0027s the idea. If they don\u0027t get the new value immediately, worst case that can happen is we drop this record. But that would have happened anyway if the record had arrived some nanoseconds earlier or if there\u0027s a new discovery update in transit that invalidates the current endpoint.\n\nLet me know if you see some potential issue with this as we use it in several places in insights.",
       "parentUuid": "baa041b7_2337ed4e",
+      "range": {
+        "startLine": 104,
+        "startChar": 26,
+        "endLine": 104,
+        "endChar": 33
+      },
+      "revId": "9c9bf329a565eaa6b6621a377222727ff6765a6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4806881d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-08T08:56:39Z",
+      "side": 1,
+      "message": "Understood, I don\u0027t see any problem",
+      "parentUuid": "baa041b7_f93e54b8",
       "range": {
         "startLine": 104,
         "startChar": 26,
