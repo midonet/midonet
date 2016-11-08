@@ -485,8 +485,6 @@ public class TestVtep extends RestApiTestBase {
     }
 
     /* The same port/vlan pair on the same vtep should not be allowed.
-     * However, we do allow idempotent binding creation (the same
-     * binding can be POSTed twice and will result in a single binding)
      */
     @Test
     public void testAddConflictingBinding() {
@@ -509,12 +507,15 @@ public class TestVtep extends RestApiTestBase {
         bridge2 = getBridge(bridge2.getId());
         assertTrue((bridge2.getVxLanPortIds().isEmpty()));
 
-        DtoVtepBinding b2 = postBinding(vtep,
-                                        makeBinding(vtep.getId(),
-                                                    physPortNames().get(0), 3,
-                                                    bridge1.getId()));
-
-        assertEquals(b1, b2);
+        // Ensure that creation of an existing binding is not possible
+        err = postBindingWithError(vtep,
+                                   makeBinding(vtep.getId(),
+                                               physPortNames().get(0), 3,
+                                               bridge1.getId()),
+                                   CONFLICT);
+        assertErrorMatches(err, VTEP_PORT_VLAN_PAIR_ALREADY_USED,
+                           vtep.getManagementIp(), vtep.getManagementPort(),
+                           physPortNames().get(0), 3, bridge1.getId());
     }
 
     @Test
