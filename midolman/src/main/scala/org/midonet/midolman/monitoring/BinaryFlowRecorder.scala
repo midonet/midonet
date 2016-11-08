@@ -22,9 +22,9 @@ import java.util.{ArrayList, List, UUID}
 import uk.co.real_logic.sbe.codec.java._
 
 import org.midonet.cluster.flowhistory.{ActionEncoder, BinarySerialization}
-import org.midonet.cluster.flowhistory.proto.{SimulationResult => SbeSimResult,
+import org.midonet.cluster.flowhistory.proto.{DeviceType => SbeDeviceType,
                                               RuleResult => SbeRuleResult,
-                                              DeviceType => SbeDeviceType,
+                                              SimulationResult => SbeSimResult,
                                               _}
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
