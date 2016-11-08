@@ -102,11 +102,12 @@ object VppDownlink {
       * translation rule for a new floating IP.
       */
     case class AssociateFip(portId: UUID, vrfTable: Int, floatingIp: IPv6Addr,
-                            fixedIp: IPv4Addr) extends Notification {
+                            fixedIp: IPv4Addr, localIp: IPv4Subnet,
+                            natPool: NatTarget) extends Notification {
 
         override def toString: String =
             s"AssociateFip [port=$portId vrf=$vrfTable floatingIp=$floatingIp " +
-            s"fixedIp=$fixedIp]"
+            s"fixedIp=$fixedIp localIp=$localIp natPool=$natPool]"
     }
 
     /**
@@ -114,11 +115,12 @@ object VppDownlink {
       * translation rule for an existing floating IP.
       */
     case class DisassociateFip(portId: UUID, vrfTable: Int, floatingIp: IPv6Addr,
-                               fixedIp: IPv4Addr) extends Notification {
+                               fixedIp: IPv4Addr, localIp: IPv4Subnet)
+        extends Notification {
 
         override def toString: String =
             s"DisassociateFip [port=$portId vrf=$vrfTable " +
-            s"floatingIp=$floatingIp fixedIp=$fixedIp]"
+            s"floatingIp=$floatingIp fixedIp=$fixedIp localIp=$localIp]"
     }
 
     /**
@@ -174,7 +176,9 @@ object VppDownlink {
             require(fip.portId == portId)
             if (fips.add(fip) && isReady) {
                 subject onNext AssociateFip(portId, vrfTable, fip.floatingIp,
-                                            fip.fixedIp)
+                                            fip.fixedIp,
+                                            currentPort.portSubnetV4,
+                                            currentRule.natPool)
             }
         }
 
@@ -185,7 +189,8 @@ object VppDownlink {
             require(fip.portId == portId)
             if (fips.remove(fip) && isReady) {
                 subject onNext DisassociateFip(portId, vrfTable, fip.floatingIp,
-                                               fip.fixedIp)
+                                               fip.fixedIp,
+                                               currentPort.portSubnetV4)
             }
         }
 
@@ -322,7 +327,7 @@ object VppDownlink {
         : Observable[Notification] = {
             val notifications = new Array[Notification](fips.size + 1)
             notifications(0) = CreateDownlink(portId, vrfTable,
-                                              port.portSubnetV4,
+                                              currentPort.portSubnetV4,
                                               rule.portAddress,
                                               rule.natPool)
             var index = 1
@@ -331,7 +336,9 @@ object VppDownlink {
                 val fip = iterator.next()
                 notifications(index) = AssociateFip(portId, vrfTable,
                                                     fip.floatingIp,
-                                                    fip.fixedIp)
+                                                    fip.fixedIp,
+                                                    currentPort.portSubnetV4,
+                                                    currentRule.natPool)
                 index += 1
             }
             Observable.from(notifications)
@@ -348,7 +355,8 @@ object VppDownlink {
                     val fip = iterator.next()
                     child onNext DisassociateFip(portId, vrfTable,
                                                  fip.floatingIp,
-                                                 fip.fixedIp)
+                                                 fip.fixedIp,
+                                                 currentPort.portSubnetV4)
                 }
                 child onNext DeleteDownlink(portId, vrfTable)
                 child.onCompleted()
