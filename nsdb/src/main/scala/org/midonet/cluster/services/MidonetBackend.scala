@@ -250,6 +250,8 @@ object MidonetBackend {
         // Field bindings between Neutron objects
         store.declareBinding(classOf[NeutronPort], "floating_ip_ids", CLEAR,
                              classOf[FloatingIp], "port_id", CLEAR)
+        store.declareBinding(classOf[NeutronPort], "gw_router_id", CLEAR,
+                             classOf[NeutronRouter], "gw_port_id", CLEAR)
 
         store.declareBinding(classOf[Network], "trace_request_ids", CASCADE,
                              classOf[TraceRequest], "network_id", CLEAR)
