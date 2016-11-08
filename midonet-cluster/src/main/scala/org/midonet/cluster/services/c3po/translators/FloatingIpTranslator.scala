@@ -281,12 +281,23 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
 
     @throws[IllegalArgumentException]
     private def associateFip6(tx: Transaction, fip: FloatingIp): Unit = {
-        tx.createNode(stateTableStorage.fip64EntryPath(fipToFip64Entry(fip)))
+        val router = tx.get(classOf[NeutronRouter], fip.getRouterId)
+        if (router.hasGwPortId) {
+            val portId = RouterTranslator.tenantGwPortId(router.getGwPortId)
+            tx.createNode(stateTableStorage.fip64EntryPath(
+                fipToFip64Entry(fip, portId)))
+        }
     }
 
     @throws[IllegalArgumentException]
     private def disassociateFip6(tx: Transaction, fip: FloatingIp): Unit = {
-        tx.deleteNode(stateTableStorage.fip64EntryPath(fipToFip64Entry(fip)))
+        val router = tx.get(classOf[NeutronRouter], fip.getRouterId)
+        if (router.hasGwPortId) {
+            val portId = RouterTranslator.tenantGwPortId(router.getGwPortId)
+            tx.deleteNode(
+                stateTableStorage.fip64EntryPath(fipToFip64Entry(fip, portId)),
+                idempotent = true)
+        }
     }
 }
 
@@ -297,7 +308,7 @@ object FloatingIpTranslator {
         fip.getFloatingIpAddress.getVersion == IPVersion.V6
 
     @throws[IllegalArgumentException]
-    private def fipToFip64Entry(fip: FloatingIp): Fip64Entry = {
+    private def fipToFip64Entry(fip: FloatingIp, portId: UUID): Fip64Entry = {
         if (!fip.hasFixedIpAddress
             || !fip.getFixedIpAddress.hasVersion
             ||  fip.getFixedIpAddress.getVersion != IPVersion.V4) {
@@ -312,7 +323,7 @@ object FloatingIpTranslator {
 
         Fip64Entry(IPv4Addr(fip.getFixedIpAddress.getAddress),
                    IPv6Addr(fip.getFloatingIpAddress.getAddress),
-                   fip.getPortId,
+                   portId,
                    fip.getRouterId)
     }
 }

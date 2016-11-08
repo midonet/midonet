@@ -28,6 +28,7 @@ import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
+import org.midonet.cluster.data.storage.StateTableEncoder.Fip64Encoder
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.models.Commons.UUID
@@ -156,7 +157,8 @@ abstract class TranslatorTestBase  extends FlatSpec
             new Answer[String] {
                 override def answer(invocation: InvocationOnMock): String = {
                     val entry = invocation.getArguments()(0).asInstanceOf[Fip64Entry]
-                    s"$zkRoot/0/tables/global/fip64_table/" + entry.encode
+                    s"$zkRoot/0/tables/global/fip64_table/" +
+                        Fip64Encoder.encodePersistentPath(entry, null)
                 }
             }
         )
