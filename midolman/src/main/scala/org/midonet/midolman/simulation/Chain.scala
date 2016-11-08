@@ -15,7 +15,8 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util.{ArrayList, Arrays, UUID, List => JList, Map => JMap}
+import java.util
+import java.util.{UUID, List => JList, Map => JMap}
 
 import com.google.common.annotations.VisibleForTesting
 
@@ -25,13 +26,14 @@ import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.sdn.flows.FlowTagger
 
 object Chain {
-    private val traversedChainsTL = new ThreadLocal[ArrayList[UUID]] {
-        override def initialValue = new ArrayList[UUID]()
-    }
+    private val traversedChainsThreadLocal =
+        new ThreadLocal[util.ArrayList[UUID]] {
+            override def initialValue = new util.ArrayList[UUID]()
+        }
 
-    val ACCEPT = new RuleResult(Action.ACCEPT)
-    val DROP = new RuleResult(Action.DROP)
-    val CONTINUE = new RuleResult(Action.CONTINUE)
+    val Accept = new RuleResult(Action.ACCEPT)
+    val Drop = new RuleResult(Action.DROP)
+    val Continue = new RuleResult(Action.CONTINUE)
 
     val NoMetadata = Array[Byte]()
 }
@@ -53,28 +55,27 @@ case class Chain(id: UUID,
     @VisibleForTesting def isJumpTargetsEmpty: Boolean = jumpTargets.isEmpty
 
     def process(context: PacketContext): RuleResult = {
-        context.log.debug(s"Testing against ${asList(0, recursive = false)}")
-
-        val traversedChains = Chain.traversedChainsTL.get()
+        val traversedChains = Chain.traversedChainsThreadLocal.get()
         traversedChains.clear()
         val res = apply(context, traversedChains)
         if (traversedChains.size > 25) {
             context.log.warn(s"Traversed ${traversedChains.size} chains " +
-                             s"when applying chain $id.")
+                             s"when applying chain $id")
         }
         if (res.isDecisive)
             res
         else
-            ACCEPT
+            Accept
     }
 
-    private def apply(
-            context: PacketContext,
-            traversedChains: ArrayList[UUID]): RuleResult = {
+    private def apply(context: PacketContext,
+                      traversedChains: util.ArrayList[UUID]): RuleResult = {
+        context.log.debug(s"Testing against $toString")
+
         context.addFlowTag(deviceTag)
         traversedChains.add(id)
         var i = 0
-        var res = CONTINUE
+        var res = Continue
         while ((i < rules.size()) && (res.action eq Action.CONTINUE)) {
             val rule = rules.get(i)
             i += 1
@@ -97,8 +98,7 @@ case class Chain(id: UUID,
             }
 
             if (rule.id == null) {
-                context.log.warn(
-                    s"$rule has no id, this is a bug. Please report.")
+                context.log.warn(s"Rule $rule missing identifier")
             } else {
                 context.recordTraversedRule(rule.id, res)
             }
@@ -110,56 +110,25 @@ case class Chain(id: UUID,
         res
     }
 
-    private[this] def jump(
-            context: PacketContext,
-            jumpToChain: UUID,
-            traversedChains: ArrayList[UUID]): RuleResult = {
-        val jumpChain: Chain = getJumpTarget(jumpToChain)
+    private[this] def jump(context: PacketContext,
+                           jumpChainId: UUID,
+                           traversedChains:util.ArrayList[UUID]): RuleResult = {
+        val jumpChain: Chain = getJumpTarget(jumpChainId)
         if (jumpChain == null) {
-            context.log.error(s"ignoring jump to chain $jumpToChain : not found.")
-            Chain.CONTINUE
-        } else if (traversedChains.contains(jumpChain.id)) {
-            context.log.warn(s"cannot jump from chain $this to chain" +
-                s" $jumpChain -- already visited")
-            Chain.CONTINUE
+            context.log.error(s"Ignoring non-existing jump chain $jumpChainId")
+            Continue
+        } else if (traversedChains.contains(jumpChainId)) {
+            context.log.warn(s"Jump chain $jumpChainId already visited")
+            Continue
         } else {
             val res = jumpChain.apply(context, traversedChains)
             if (res.action == Action.RETURN)
-                Chain.CONTINUE
+                Continue
             else
                 res
         }
     }
 
-    override def toString: String = "Chain[name=" + name + ", id=" + id + "]"
+    override def toString: String = s"Chain [name=$name id=$id rules=$rules]"
 
-    /**
-     * Generates a tree representation of the chain, including its rules and
-     * jump targets.
-     *
-     * @param indent Number of spaces to indent.
-     */
-    def asTree(indent: Int): String = asList(indent, recursive = true)
-
-    def asList(indent: Int, recursive: Boolean): String = {
-        val indentBuf = new Array[Char](indent)
-        Arrays.fill(indentBuf, ' ')
-        val indentStr = new String(indentBuf)
-        val bld = new StringBuilder
-        bld.append(indentStr)
-        bld.append(this.toString)
-        var i = 0
-        while (i < rules.size()) {
-            val rule = rules.get(i)
-            i += 1
-            bld.append(indentStr).append("    ")
-            bld.append(rule).append('\n')
-            if (recursive && rule.isInstanceOf[JumpRule]) {
-                val jr: JumpRule = rule.asInstanceOf[JumpRule]
-                val jumpTarget: Chain = jumpTargets.get(jr.jumpToChainID)
-                bld.append(jumpTarget.asTree(indent + 8))
-            }
-        }
-        bld.toString()
-    }
 }

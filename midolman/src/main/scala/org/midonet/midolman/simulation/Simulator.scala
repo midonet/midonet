@@ -262,7 +262,7 @@ trait InAndOutFilters extends SimDevice {
                 return ruleResult
             i += 1
         }
-        Chain.ACCEPT
+        Chain.Accept
     }
 
     def redirect(context: PacketContext, ruleResult: RuleResult): Result = {
