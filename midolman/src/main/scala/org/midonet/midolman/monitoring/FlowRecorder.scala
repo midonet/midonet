@@ -16,14 +16,12 @@
 package org.midonet.midolman.monitoring
 
 import scala.collection.JavaConverters._
-
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.{InetAddress, InetSocketAddress, SocketException}
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
 import java.util.{ArrayList, List, UUID}
 
 import org.slf4j.LoggerFactory
-
 import com.google.common.net.HostAndPort
 import com.typesafe.scalalogging.Logger
 
@@ -103,6 +101,10 @@ abstract class AbstractFlowRecorder(config: FlowHistoryConfig) extends FlowRecor
                 socket.send(buffer, endpoint)
             }
         } catch {
+            case msg: IndexOutOfBoundsException =>
+                log.warn(s"Too many information to encode: drop the packet history ")
+            case _: SocketException =>
+                log.warn("Cannot send packet encoding as single packet, dropped")
             case t: Throwable => log.warn("FlowHistory: Error sending data", t)
         }
     }

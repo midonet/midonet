@@ -22,9 +22,9 @@ import java.util.{ArrayList, List, UUID}
 import uk.co.real_logic.sbe.codec.java._
 
 import org.midonet.cluster.flowhistory.{ActionEncoder, BinarySerialization}
-import org.midonet.cluster.flowhistory.proto.{SimulationResult => SbeSimResult,
+import org.midonet.cluster.flowhistory.proto.{DeviceType => SbeDeviceType,
                                               RuleResult => SbeRuleResult,
-                                              DeviceType => SbeDeviceType,
+                                              SimulationResult => SbeSimResult,
                                               _}
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
@@ -40,6 +40,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
         extends AbstractFlowRecorder(config) {
     val MESSAGE_HEADER = new MessageHeader
     val FLOW_SUMMARY = new FlowSummary
+    // Set size close to the maximal size of UPD datagram (65507) ?
     val buffer = ByteBuffer.allocateDirect(BinarySerialization.BufferSize)
     val directBuffer = new DirectBuffer(buffer)
 
@@ -261,28 +262,36 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
         val iter = FLOW_SUMMARY.traversedDevicesCount(deviceStaging.size)
         while (i < deviceStaging.size) {
             val tag = deviceStaging.get(i)
-            val dev = iter.next()
-            dev.device(0, tag.device.getMostSignificantBits)
-            dev.device(1, tag.device.getLeastSignificantBits)
+            try {
+                val dev = iter.next()
 
-            tag match {
-                case t: LoadBalancerDeviceTag =>
-                    dev.`type`(SbeDeviceType.LOAD_BALANCER)
-                case t: PoolDeviceTag =>
-                    dev.`type`(SbeDeviceType.POOL)
-                case t: PortGroupDeviceTag =>
-                    dev.`type`(SbeDeviceType.PORT_GROUP)
-                case t: BridgeDeviceTag =>
-                    dev.`type`(SbeDeviceType.BRIDGE)
-                case t: RouterDeviceTag =>
-                    dev.`type`(SbeDeviceType.ROUTER)
-                case t: PortDeviceTag =>
-                    dev.`type`(SbeDeviceType.PORT)
-                case t: ChainDeviceTag =>
-                    dev.`type`(SbeDeviceType.CHAIN)
-                case t: MirrorDeviceTag =>
-                    dev.`type`(SbeDeviceType.MIRROR)
-                case _ =>
+                dev.device(0, tag.device.getMostSignificantBits)
+                dev.device(1, tag.device.getLeastSignificantBits)
+
+                tag match {
+                    case t: LoadBalancerDeviceTag =>
+                        dev.`type`(SbeDeviceType.LOAD_BALANCER)
+                    case t: PoolDeviceTag =>
+                        dev.`type`(SbeDeviceType.POOL)
+                    case t: PortGroupDeviceTag =>
+                        dev.`type`(SbeDeviceType.PORT_GROUP)
+                    case t: BridgeDeviceTag =>
+                        dev.`type`(SbeDeviceType.BRIDGE)
+                    case t: RouterDeviceTag =>
+                        dev.`type`(SbeDeviceType.ROUTER)
+                    case t: PortDeviceTag =>
+                        dev.`type`(SbeDeviceType.PORT)
+                    case t: ChainDeviceTag =>
+                        dev.`type`(SbeDeviceType.CHAIN)
+                    case t: MirrorDeviceTag =>
+                        dev.`type`(SbeDeviceType.MIRROR)
+                    case _ =>
+                }
+            } catch {
+                case what: IndexOutOfBoundsException =>
+                    log warn s"Too many devices to encode: ${deviceStaging.size}" +
+                             s" overflow at device ${i}, skipping the rest"
+                    throw what
             }
             i += 1
         }
