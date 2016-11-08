@@ -250,6 +250,7 @@ class VppSetup(setupName: String, log: Logger)
     extends FutureSequenceWithRollback(setupName, log)(ec)
 
 class VppUplinkSetup(uplinkPortId: UUID,
+                     uplinkPortAddress: IPv6Addr,
                      uplinkPortDpNo: Int,
                      vppApi: VppApi,
                      vppOvs: VppOvs,
@@ -262,7 +263,6 @@ class VppUplinkSetup(uplinkPortId: UUID,
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
     private val uplinkOvsName = s"ovs-$uplinkSuffix"
-    private val uplinkVppAddr = IPv6Addr.fromString("2001::1")
 
     private val uplinkVppPrefix: Byte = 64
 
@@ -278,7 +278,7 @@ class VppUplinkSetup(uplinkPortId: UUID,
     private val ipAddrVpp = new VppIpAddr("uplink VPP IPv6 setup",
                                           vppApi,
                                           uplinkVpp,
-                                          uplinkVppAddr,
+                                          uplinkPortAddress,
                                           uplinkVppPrefix)
 
     private val ovsBind = new OvsBindV6("uplink OVS bindings",

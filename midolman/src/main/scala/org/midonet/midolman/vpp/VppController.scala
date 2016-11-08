@@ -199,7 +199,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
                 val dpNumber = datapathState.getDpPortNumberForVport(portId)
                 attachLink(uplinks, portId,
-                           new VppUplinkSetup(port.id, dpNumber, vppApi, vppOvs,
+                           new VppUplinkSetup(port.id, port.portAddressV6,
+                                              dpNumber, vppApi, vppOvs,
                                               Logger(log.underlying)))
             case _ =>
                 Future.successful(None)
