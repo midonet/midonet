@@ -46,6 +46,30 @@
       "revId": "8cf2bb3fafeccd90d9c0dff80e0e3742494e7477",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d1336012",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-08T13:30:15Z",
+      "side": 1,
+      "message": "Should be!",
+      "parentUuid": "baa041b7_c81df8bf",
+      "range": {
+        "startLine": 288,
+        "startChar": 36,
+        "endLine": 289,
+        "endChar": 64
+      },
+      "revId": "8cf2bb3fafeccd90d9c0dff80e0e3742494e7477",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
