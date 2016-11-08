@@ -285,7 +285,8 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
             } else {
                 deleteGatewayPort6(tx, oldRouter)
             }
-        } else if (isSnatEnabled(oldRouter) != isSnatEnabled(nRouter)) {
+        } else if (nRouter.hasGwPortId &&
+                   isSnatEnabled(oldRouter) != isSnatEnabled(nRouter)) {
             val nPort = tx.get(classOf[NeutronPort], nRouter.getGwPortId)
             val portAddress = nPort.getFixedIps(0).getIpAddress
             if (portAddress.getVersion == IPVersion.V4) {
