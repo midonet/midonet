@@ -46,6 +46,30 @@
       "revId": "7a35889001d00fa0492456cd1a2f8447adc4f788",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6d971eec",
+        "filename": "netlink/src/main/java/org/midonet/odp/FlowMatch.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-08T08:27:52Z",
+      "side": 1,
+      "message": "None that I could find.  Using \"isUsed(field)\" doesn\u0027t work because it always returns true, even if I didn\u0027t set the TOS field directly.  If this really is a problem, could we iterate on this, and I can open a new ticket, unless you feel this is unacceptable to check in at all.",
+      "parentUuid": "baa041b7_8d5dc27e",
+      "range": {
+        "startLine": 357,
+        "startChar": 20,
+        "endLine": 357,
+        "endChar": 36
+      },
+      "revId": "7a35889001d00fa0492456cd1a2f8447adc4f788",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
