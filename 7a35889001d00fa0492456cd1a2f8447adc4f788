@@ -22,6 +22,30 @@
       "revId": "7a35889001d00fa0492456cd1a2f8447adc4f788",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8d5dc27e",
+        "filename": "netlink/src/main/java/org/midonet/odp/FlowMatch.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-08T08:12:21Z",
+      "side": 1,
+      "message": "i\u0027m not sure if it\u0027s a good idea to take a special approach only for tos field.\nisn\u0027t it simpler (or at least consistent) to make the flow match on the field?",
+      "parentUuid": "baa041b7_2db6b6f9",
+      "range": {
+        "startLine": 357,
+        "startChar": 20,
+        "endLine": 357,
+        "endChar": 36
+      },
+      "revId": "7a35889001d00fa0492456cd1a2f8447adc4f788",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
