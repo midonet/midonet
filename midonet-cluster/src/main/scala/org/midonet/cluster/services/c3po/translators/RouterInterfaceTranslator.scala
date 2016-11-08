@@ -33,6 +33,7 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, SequenceDispenser}
 import org.midonet.containers
+import org.midonet.packets.IPv4Subnet
 
 object RouterInterfaceTranslator {
 
@@ -130,10 +131,12 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
             val routerPorts = tx.getAll(classOf[Port],
                                         router.getPortIdsList.asScala)
             val localSubnet = containers.findLocalSubnet(routerPorts)
-            val localAddress = containers.routerPortAddress(localSubnet)
+            val portAddress = containers.routerPortAddress(localSubnet)
+            val portSubnet = new IPv4Subnet(portAddress,
+                                            localSubnet.getPrefixLen)
 
-            routerPortBuilder.setPortAddress(localAddress.asProto)
-            routerPortBuilder.setPortSubnet(localSubnet.asProto)
+            routerPortBuilder.setPortAddress(portAddress.asProto)
+            routerPortBuilder.setPortSubnet(portSubnet.asProto)
 
             assignTunnelKey(routerPortBuilder, sequenceDispenser)
 

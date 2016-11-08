@@ -31,7 +31,7 @@ import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.containers
-import org.midonet.packets.{ICMP, MAC}
+import org.midonet.packets.{ICMP, IPv4Subnet, MAC}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 
@@ -218,20 +218,21 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         val routerPorts = tx.getAll(classOf[Port],
                                     router.getPortIdsList.asScala)
         val localSubnet = containers.findLocalSubnet(routerPorts)
-        val localAddress = containers.routerPortAddress(localSubnet)
+        val portAddress4 = containers.routerPortAddress(localSubnet)
+        val portSubnet4 = new IPv4Subnet(portAddress4, localSubnet.getPrefixLen)
 
         // Create the gateway port.
         val port = newRouterPortBuilder(routerPortId, nRouter.getId,
                                         adminStateUp = true)
-            .setPortAddress(localAddress.asProto)
-            .setPortSubnet(localSubnet.asProto)
+            .setPortAddress(portAddress4.asProto)
+            .setPortSubnet(portSubnet4.asProto)
             .setPortMac(portMac)
             .build()
         tx.create(port)
 
         // Create the NAT64 rule containing the port IPv6 address and the
         // NAT64 pool.
-        val portSubnet = IPSubnet.newBuilder()
+        val portSubnet6 = IPSubnet.newBuilder()
             .setAddress(portAddress.getAddress)
             .setPrefixLength(128)
             .setVersion(IPVersion.V6)
@@ -243,7 +244,7 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
             .setFipPortId(routerPortId)
             .setType(Rule.Type.NAT64_RULE)
             .setNat64RuleData(Rule.Nat64RuleData.newBuilder()
-                                  .setPortAddress(portSubnet)
+                                  .setPortAddress(portSubnet6)
                                   .setNatPool(NatTarget.newBuilder()
                                                   .setNwStart(natPoolAddress)
                                                   .setNwEnd(natPoolAddress)
