@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0d94128a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-08T01:25:51Z",
+      "side": 1,
+      "message": "tclass?  Is that the IPv6 version for dscp?  I was told not to worry about IPv6 for now.",
+      "parentUuid": "baa041b7_221ece0d",
+      "revId": "4aa89b32d165ab8c16cdcd1e274ffb378f7a7c3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_62e4d6df",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2016-11-04T14:46:03Z",
       "side": 1,
       "message": "this coding would wildcarding the field.\nif the original value happened to be same, it ends up with installing a wrong flow, doesn\u0027t it?",
+      "revId": "4aa89b32d165ab8c16cdcd1e274ffb378f7a7c3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ed90ce98",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-08T01:25:51Z",
+      "side": 1,
+      "message": "I don\u0027t understand \u0027wildcarding\u0027, but here\u0027s how this should work: If the DSCP rule is set and has a value, this will replace the value in the simulated packet.  After the simulation is finished and when the packet egresses a port on the bridge, the packet diff is checked to see if any values are different, and if they are, a flow action is installed with the flow.  If the original value was the same as the DSCP value, the inequality operator in \u0027diffIp\u0027 would return false, and hence, no special flow action would be installed.  Is that what you were wondering about?",
+      "parentUuid": "baa041b7_62e4d6df",
       "revId": "4aa89b32d165ab8c16cdcd1e274ffb378f7a7c3b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
