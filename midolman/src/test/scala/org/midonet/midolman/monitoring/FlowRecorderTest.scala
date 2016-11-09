@@ -48,6 +48,16 @@ class FlowRecorderTest extends MidolmanSpec {
             val recorder = FlowRecorder(config, hostId)
             recorder should be (NullFlowRecorder)
         }
+        scenario("Record matches with null fields don't throw exceptions") {
+            try {
+                FlowRecordBuilder.buildRecord(
+                    UUID.randomUUID(),
+                    new PacketContext,
+                    null)
+            } catch {
+                case npe: NullPointerException => fail(npe)
+            }
+        }
     }
 
     feature("abstract flow recorder") {
