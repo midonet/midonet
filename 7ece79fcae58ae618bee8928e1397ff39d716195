@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_481b211d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T06:08:51Z",
+      "side": 1,
+      "message": "will",
+      "range": {
+        "startLine": 19,
+        "startChar": 16,
+        "endLine": 19,
+        "endChar": 19
+      },
+      "revId": "7ece79fcae58ae618bee8928e1397ff39d716195",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e8d0b52d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T06:08:51Z",
+      "side": 1,
+      "message": "why origMatch, rather than wcmatch?",
+      "range": {
+        "startLine": 364,
+        "startChar": 20,
+        "endLine": 364,
+        "endChar": 29
+      },
+      "revId": "7ece79fcae58ae618bee8928e1397ff39d716195",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_88dfe939",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T06:08:51Z",
+      "side": 1,
+      "message": "missing whitespace around \u003d",
+      "range": {
+        "startLine": 374,
+        "startChar": 50,
+        "endLine": 374,
+        "endChar": 51
+      },
+      "revId": "7ece79fcae58ae618bee8928e1397ff39d716195",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a8daad49",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T06:08:51Z",
+      "side": 1,
+      "message": "missing whitespace around \u003d",
+      "range": {
+        "startLine": 437,
+        "startChar": 55,
+        "endLine": 437,
+        "endChar": 56
+      },
+      "revId": "7ece79fcae58ae618bee8928e1397ff39d716195",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
