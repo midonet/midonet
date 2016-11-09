@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_ae3992a5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T17:18:48Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 105,
+        "startChar": 25,
+        "endLine": 105,
+        "endChar": 26
+      },
+      "revId": "c7e84a5b84e401d6885b2b29d4df765eb8badb36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
