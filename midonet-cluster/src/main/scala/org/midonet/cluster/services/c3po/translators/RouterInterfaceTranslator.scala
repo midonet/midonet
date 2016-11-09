@@ -116,7 +116,7 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
         if (nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
             convertPortOps(tx, nPort, isUplink, ri.getId)
 
-        if (isUplink) {
+        val nextHopAddress = if (isUplink) {
             // Uplink ports use the Neutron port address, either V4 or V6.
             routerPortBuilder.setPortAddress(portAddress)
             routerPortBuilder.setPortSubnet(nSubnet.getCidr)
@@ -126,12 +126,14 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
             routerPortBuilder
                 .addPortGroupIds(PortManager.portGroupId(routerId))
             assignTunnelKey(routerPortBuilder, sequenceDispenser)
+            null
         } else if (isV6) {
             val router = tx.get(classOf[Router], routerId)
             val routerPorts = tx.getAll(classOf[Port],
                                         router.getPortIdsList.asScala)
             val localSubnet = containers.findLocalSubnet(routerPorts)
             val portAddress = containers.routerPortAddress(localSubnet)
+            val vppAddress = containers.containerPortAddress(localSubnet)
             val portSubnet = new IPv4Subnet(portAddress,
                                             localSubnet.getPrefixLen)
 
@@ -139,7 +141,7 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
             routerPortBuilder.setPortSubnet(portSubnet.asProto)
 
             assignTunnelKey(routerPortBuilder, sequenceDispenser)
-
+            vppAddress.asProto
         } else {
             routerPortBuilder.setPortAddress(portAddress)
             routerPortBuilder.setPortSubnet(nSubnet.getCidr)
@@ -158,6 +160,7 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
             // a Dhcp port.
             if (nSubnet.getGatewayIp == routerPortBuilder.getPortAddress)
                 routerPortBuilder.setDhcpId(ri.getSubnetId)
+            null
         }
 
         val routerPort = routerPortBuilder.build()
@@ -221,7 +224,8 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
         val portRoute = newNextHopPortRoute(nextHopPortId = routerPortId,
                                             id = routerInterfaceRouteId,
                                             srcSubnet = univSubnet4,
-                                            dstSubnet = portRouteSubnet)
+                                            dstSubnet = portRouteSubnet,
+                                            nextHopGwIpAddr = nextHopAddress)
 
         // Need to do these after the update returned by bindPortOps(), since
         // these creates add route IDs to the port's routeIds list, which would

@@ -27,13 +27,12 @@ import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.BgpPeerTranslator._
 import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator._
+import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.containers
 import org.midonet.packets.{ICMP, IPv4Subnet, MAC}
-import org.midonet.cluster.util.IPAddressUtil._
-import org.midonet.cluster.util.IPSubnetUtil._
 
 class RouterTranslator(stateTableStorage: StateTableStorage,
                        config: ClusterConfig)
@@ -219,6 +218,7 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
                                     router.getPortIdsList.asScala)
         val localSubnet = containers.findLocalSubnet(routerPorts)
         val portAddress4 = containers.routerPortAddress(localSubnet)
+        val vppAddress4 = containers.containerPortAddress(localSubnet)
         val portSubnet4 = new IPv4Subnet(portAddress4, localSubnet.getPrefixLen)
 
         // Create the gateway port.
@@ -258,7 +258,8 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         val portRoute = newNextHopPortRoute(nextHopPortId = routerPortId,
                                             id = portRouteId,
                                             srcSubnet = univSubnet4,
-                                            dstSubnet = Nat64Pool)
+                                            dstSubnet = Nat64Pool,
+                                            nextHopGwIpAddr = vppAddress4.asProto)
 
         tx.create(portRoute)
         tx.create(localRoute)
