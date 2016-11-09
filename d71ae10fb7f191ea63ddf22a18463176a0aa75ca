@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_489e8155",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 12
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T07:07:58Z",
+      "side": 1,
+      "message": "will",
+      "range": {
+        "startLine": 19,
+        "startChar": 16,
+        "endLine": 19,
+        "endChar": 19
+      },
+      "revId": "d71ae10fb7f191ea63ddf22a18463176a0aa75ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e8daf51c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T07:07:58Z",
+      "side": 1,
+      "message": "is this necessary?",
+      "range": {
+        "startLine": 354,
+        "startChar": 8,
+        "endLine": 354,
+        "endChar": 43
+      },
+      "revId": "d71ae10fb7f191ea63ddf22a18463176a0aa75ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e8b315eb",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T07:07:58Z",
+      "side": 1,
+      "message": "is this necessary?",
+      "range": {
+        "startLine": 356,
+        "startChar": 8,
+        "endLine": 356,
+        "endChar": 50
+      },
+      "revId": "d71ae10fb7f191ea63ddf22a18463176a0aa75ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c8b851ca",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T07:07:58Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 370,
+        "startChar": 8,
+        "endLine": 370,
+        "endChar": 50
+      },
+      "revId": "d71ae10fb7f191ea63ddf22a18463176a0aa75ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a8ad0d86",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T07:07:58Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 383,
+        "startChar": 8,
+        "endLine": 383,
+        "endChar": 49
+      },
+      "revId": "d71ae10fb7f191ea63ddf22a18463176a0aa75ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
