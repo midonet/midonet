@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e35d767d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/BinaryFlowRecorder.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-09T09:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_08019906",
+      "range": {
+        "startLine": 43,
+        "startChar": 45,
+        "endLine": 43,
+        "endChar": 48
+      },
+      "revId": "b0d43e806e7b057ceb23b16504032e0487feb2ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c3015206",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/BinaryFlowRecorder.scala",
         "patchSetId": 1
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c362723d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/BinaryFlowRecorder.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-09T09:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c3015206",
+      "range": {
+        "startLine": 265,
+        "startChar": 12,
+        "endLine": 265,
+        "endChar": 17
+      },
+      "revId": "b0d43e806e7b057ceb23b16504032e0487feb2ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_48ab211f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/BinaryFlowRecorder.scala",
         "patchSetId": 1
@@ -83,6 +131,30 @@
       "writtenOn": "2016-11-09T08:14:08Z",
       "side": 1,
       "message": "this message seems misleading.\nwe will skip the whole record, not only the rest of devices, right?",
+      "range": {
+        "startLine": 293,
+        "startChar": 55,
+        "endLine": 293,
+        "endChar": 74
+      },
+      "revId": "b0d43e806e7b057ceb23b16504032e0487feb2ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a3576e59",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/BinaryFlowRecorder.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-09T09:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_48ab211f",
       "range": {
         "startLine": 293,
         "startChar": 55,
