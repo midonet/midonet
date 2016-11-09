@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_08ed19b7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-09T08:01:18Z",
+      "side": 1,
+      "message": "Yes.  The test code doesn\u0027t set this during it\u0027s mock simulation.  This is why wcmatch.getEtherType wasn\u0027t returning IPv4.ETHERTYPE before.",
+      "parentUuid": "baa041b7_e8daf51c",
+      "range": {
+        "startLine": 354,
+        "startChar": 8,
+        "endLine": 354,
+        "endChar": 43
+      },
+      "revId": "d71ae10fb7f191ea63ddf22a18463176a0aa75ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e8b315eb",
         "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
         "patchSetId": 12
