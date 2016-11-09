@@ -44,6 +44,9 @@ object MidolmanConfig {
         new MidolmanConfig(configurator.runtimeConfig(HostIdGenerator.getHostId),
                            configurator.mergedSchemas())
     }
+
+    lazy val fip64Vxlan =
+        System.getProperties.containsKey("org.midonet.midolman.fip64vxlan")
 }
 
 trait TypeFailureFallback {
