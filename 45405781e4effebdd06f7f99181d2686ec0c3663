@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c83971a5",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/TestQosService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-09T03:19:15Z",
+      "side": 1,
+      "message": "changed to list.",
+      "parentUuid": "baa041b7_ad1ac6c4",
+      "range": {
+        "startLine": 304,
+        "startChar": 27,
+        "endLine": 307,
+        "endChar": 46
+      },
+      "revId": "45405781e4effebdd06f7f99181d2686ec0c3663",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_567e306b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
         "patchSetId": 20
