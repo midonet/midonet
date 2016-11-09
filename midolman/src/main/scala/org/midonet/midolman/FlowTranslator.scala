@@ -29,7 +29,7 @@ import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.VirtualActions.{Decap, Encap}
+import org.midonet.sdn.flows.VirtualAction.{Decap, Encap}
 
 object FlowTranslator {
     val NotADpPort: JInteger = -1
