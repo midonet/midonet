@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a3540efe",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c73cde32",
+      "range": {
+        "startLine": 9,
+        "startChar": 65,
+        "endLine": 9,
+        "endChar": 72
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e7cb62a3",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -59,6 +83,30 @@
       "writtenOn": "2016-11-02T11:58:46Z",
       "side": 1,
       "message": "Unconnected with previous paragraph. I would add here what exactly in Neutron is modified and then mention that midolman will translate ipv6 packages to ipv4 and vice-versa leveraging VPP for this",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 32
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e371f6ac",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "Removed the Neutron stuff since irrelevant, kept only that MidoNet uses VPP to implement IPv6. I think we should enhance this section, but it\u0027s not part of this patch.",
+      "parentUuid": "baa041b7_e7cb62a3",
       "range": {
         "startLine": 21,
         "startChar": 0,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_035dfa14",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c7c17e83",
+      "range": {
+        "startLine": 28,
+        "startChar": 8,
+        "endLine": 28,
+        "endChar": 11
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0757665b",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -105,6 +177,30 @@
       "writtenOn": "2016-11-02T12:11:37Z",
       "side": 1,
       "message": "the rationale for using VPP is more that OVS isn\u0027t able to strip off IPv6 headers and add IPv4 headers and vice versa. So even if we wanted to do simulation in midonet, there would be no OVS actions to do what we want.",
+      "range": {
+        "startLine": 71,
+        "startChar": 30,
+        "endLine": 71,
+        "endChar": 33
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a3a2cefa",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "Updated",
+      "parentUuid": "baa041b7_0757665b",
       "range": {
         "startLine": 71,
         "startChar": 30,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_038bba69",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "I think this is too generic, we have to be more specific about which component of MidoNet is not supporting now IPv6, as Ivan suggested above.",
+      "parentUuid": "baa041b7_a7e1dafe",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 48
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e75b6285",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -151,6 +271,30 @@
       "writtenOn": "2016-11-02T12:11:37Z",
       "side": 1,
       "message": "uplink",
+      "range": {
+        "startLine": 77,
+        "startChar": 3,
+        "endLine": 77,
+        "endChar": 9
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e3e69649",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e75b6285",
       "range": {
         "startLine": 77,
         "startChar": 3,
@@ -186,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c3eb9211",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a74e7ac0",
+      "range": {
+        "startLine": 78,
+        "startChar": 12,
+        "endLine": 78,
+        "endChar": 15
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e727e261",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -197,6 +365,30 @@
       "writtenOn": "2016-11-02T11:58:46Z",
       "side": 1,
       "message": "I don\u0027t know if we tolerate spaces on empty lines in documentation :)",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 82,
+        "endChar": 1
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_63dba67e",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "what do you mean by tolerate? previously we had many examples of empty lines, were they a problem?",
+      "parentUuid": "baa041b7_e727e261",
       "range": {
         "startLine": 82,
         "startChar": 0,
@@ -232,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_43d8a27f",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "no, this tells how we decide what vport constitutes an uplink",
+      "parentUuid": "baa041b7_02d62ac3",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 13
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c7c73e45",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -243,6 +459,30 @@
       "writtenOn": "2016-11-02T11:58:46Z",
       "side": 1,
       "message": "VPP will fail to start if another VPP process is running, so we try to kill all of them first to make sure smooth start.",
+      "range": {
+        "startLine": 113,
+        "startChar": 2,
+        "endLine": 113,
+        "endChar": 59
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_23e59e37",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "but this is done as part of the agent startup not during the uplink setup, isn\u0027t it?",
+      "parentUuid": "baa041b7_c7c73e45",
       "range": {
         "startLine": 113,
         "startChar": 2,
@@ -272,6 +512,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e3cd76bb",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "Changed. The editor indented automatically",
+      "parentUuid": "baa041b7_c7d85ef3",
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a7d55ab8",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -283,6 +541,30 @@
       "writtenOn": "2016-11-02T12:11:37Z",
       "side": 1,
       "message": "I\u0027d remove this line, as it\u0027s redundant with the next mostly, and the next bullet covers the \"carry the packets\" part.",
+      "range": {
+        "startLine": 116,
+        "startChar": 1,
+        "endLine": 117,
+        "endChar": 37
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a3c76e97",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a7d55ab8",
       "range": {
         "startLine": 116,
         "startChar": 1,
@@ -318,6 +600,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_63c28688",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "I think these hard-coded addresses are temporary",
+      "parentUuid": "baa041b7_87aa5670",
+      "range": {
+        "startLine": 119,
+        "startChar": 1,
+        "endLine": 119,
+        "endChar": 20
+      },
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8297daea",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -329,6 +635,24 @@
       "writtenOn": "2016-11-04T15:10:40Z",
       "side": 1,
       "message": "this diagram seems upside-down compared with the above ones.",
+      "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c33952a5",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T09:16:04Z",
+      "side": 1,
+      "message": "so the first one is from a virtual topology perspective (north-south)\n\nthis one should be from a kernel-user perspective, I inverted the second one to look the same",
+      "parentUuid": "baa041b7_8297daea",
       "revId": "cdb7ac89265ce76a796eb3ee321b10aff5ee1e9e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
