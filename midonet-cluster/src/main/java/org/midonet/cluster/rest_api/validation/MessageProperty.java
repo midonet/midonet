@@ -152,6 +152,8 @@ public class MessageProperty {
             "{midokura.javarx.VtepPortVlanPairAlreadyUsed.message}";
     public static final String VXLAN_PORT_ID_NOT_SETTABLE =
             "{midokura.javarx.VxLanPortIdNotSettable.message}";
+    public static final String L4_PORT_RANGE_NOT_VALID =
+            "{midokura.javarx.L4PortRangeNotValid.message}";
 
     private static ResourceBundle resourceBundle =
             ResourceBundle.getBundle("ValidationMessages");
