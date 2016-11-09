@@ -16,6 +16,24 @@
       "revId": "f56e4d4cd99b57e15a52a077e5339262988b1e57",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e83435ad",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-09T03:19:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_48232859",
+      "revId": "f56e4d4cd99b57e15a52a077e5339262988b1e57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
