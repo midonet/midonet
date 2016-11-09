@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8300ea67",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-09T09:51:40Z",
+      "side": 1,
+      "message": "whitespace.",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 1
+      },
+      "revId": "76f83fdd652022bbcab382a522184acd1903d81d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
