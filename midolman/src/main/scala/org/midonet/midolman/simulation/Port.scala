@@ -27,6 +27,7 @@ import org.midonet.cluster.models.Topology
 import org.midonet.cluster.state.PortStateStorage.PortState
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow._
+import org.midonet.midolman.rules.Rule
 import org.midonet.midolman.simulation.Simulator.{ContinueWith, SimHook, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.packets._
@@ -45,7 +46,7 @@ object Port {
               inFilters: JList[UUID],
               outFilters: JList[UUID],
               servicePorts: JList[UUID] = emptyList(),
-              fipNatRules: JList[UUID] = emptyList(),
+              fipNatRules: JList[Rule] = emptyList(),
               peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
               qosPolicy: QosPolicy = null): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
@@ -93,7 +94,7 @@ object Port {
                            state: PortState,
                            inFilters: JList[UUID],
                            outFilters: JList[UUID],
-                           fipNatRules: JList[UUID],
+                           fipNatRules: JList[Rule],
                            peeringTable: StateTable[MAC, IPv4Addr],
                            qosPolicy: QosPolicy) = {
 
@@ -457,7 +458,7 @@ case class RouterPort(override val id: UUID,
                       override val preOutFilterMirrors: JList[UUID] = emptyList(),
                       vni: Int = 0,
                       tunnelIp: IPv4Addr = null,
-                      fipNatRules: JList[UUID] = emptyList(),
+                      fipNatRules: JList[Rule] = emptyList(),
                       peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
                       override val qosPolicy: QosPolicy = null)
     extends Port {

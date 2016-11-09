@@ -23,10 +23,12 @@ import scala.collection.mutable
 import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
+import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.StateTable
-import org.midonet.cluster.models.Topology.{L2Insertion, Network, Port => TopologyPort}
+import org.midonet.cluster.models.Topology.{L2Insertion, Network, Port => TopologyPort, Rule => TopologyRule}
 import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.rules.Rule
 import org.midonet.midolman.simulation.{Chain, Mirror, QosPolicy, Port => SimulationPort}
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
@@ -81,12 +83,14 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         new StoreObjectReferenceTracker(vt, classOf[Network], log)
     private val l2insertionsTracker =
         new StoreObjectReferenceTracker(vt, classOf[L2Insertion], log)
+    private val natRuleTracker =
+        new StoreObjectReferenceTracker(vt, classOf[TopologyRule], log)
     private var peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty
 
     private def buildPort(ignored: AnyRef): SimulationPort = {
         val inFilters = new JArrayList[UUID](2)
         val outFilters = new JArrayList[UUID](2)
-        val fipNatRules = new JArrayList[UUID](topologyPort.getFipNatRuleIdsCount)
+        val fipNatRules = new JArrayList[Rule](natRuleTracker.currentRefs.size)
         traceChainIdOpt.foreach(inFilters.add)
         if (topologyPort.hasL2InsertionInfilterId) {
             inFilters.add(topologyPort.getL2InsertionInfilterId)
@@ -100,8 +104,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         if (topologyPort.hasL2InsertionOutfilterId) {
             outFilters.add(topologyPort.getL2InsertionOutfilterId)
         }
-        for (id <- topologyPort.getFipNatRuleIdsList.asScala) {
-            fipNatRules.add(id.asJava)
+        for (rule <- natRuleTracker.currentRefs.values) {
+            fipNatRules.add(ZoomConvert.fromProto(rule, classOf[Rule]))
         }
 
         SimulationPort(topologyPort, portState, inFilters, outFilters,
@@ -131,6 +135,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                mirrorsTracker.refsObservable.doOnNext(refUpdatedAction),
                traceChainObservable.doOnNext(makeAction1(traceChainUpdated)),
                bridgeTracker.refsObservable.doOnNext(makeAction1(bridgeUpdated)),
+               natRuleTracker.refsObservable.doOnNext(makeAction1(natRuleUpdated)),
                qosPolicyTracker.refsObservable.doOnNext(refUpdatedAction),
                portStateObservable, portObservable)
         .filter(makeFunc1(isPortReady))
@@ -173,6 +178,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         handleQosPolicyIdChanges(port)
 
         l2insertionsTracker.requestRefs(port.getInsertionIdsList :_*)
+
+        natRuleTracker.requestRefs(port.getFipNatRuleIdsList: _*)
 
         topologyPort = port
     }
@@ -236,6 +243,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
         qosPolicyTracker.completeRefs()
+        natRuleTracker.completeRefs()
     }
 
     /** Handles updates to the chains. */
@@ -253,6 +261,11 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         assertThread()
         log.debug("Trace chain ID updated: {}", chainId)
         traceChainIdOpt = chainId
+    }
+
+    private def natRuleUpdated(rule: TopologyRule): Unit = {
+        assertThread()
+        log.debug("FIP NAT rule updated: {}", rule.getId.asJava)
     }
 
     private def bridgeUpdated(network: Network): Unit = {
@@ -279,6 +292,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         mirrorsTracker.areRefsReady &&
         bridgeTracker.areRefsReady &&
         qosPolicyTracker.areRefsReady &&
+        natRuleTracker.areRefsReady &&
         isTracingReady
     }
 }

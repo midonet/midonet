@@ -239,7 +239,7 @@ object VppDownlink {
         private def portUpdated(port: RouterPort): Observable[Notification] = {
             log debug s"Port updated: $port"
 
-            val natRuleIds = Set(port.fipNatRules.asScala: _*)
+            val natRuleIds = Set(port.fipNatRules.asScala.map(_.id): _*)
 
             // Track the current FIP NAT rules.
             ruleTracker.requestRefs(natRuleIds)
