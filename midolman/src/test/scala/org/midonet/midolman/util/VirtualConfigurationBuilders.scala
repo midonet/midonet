@@ -99,6 +99,7 @@ trait VirtualConfigurationBuilders {
     def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit
     def deleteIpAddrGroup(id: UUID): Unit
     def greTunnelZone(name: String, id: Option[UUID] = None): UUID
+    def vxlanTunnelZone(name: String, id: Option[UUID] = None): UUID
     def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit
     def deleteTunnelZoneMember(tz: UUID, host: UUID): Unit
 
@@ -312,6 +313,8 @@ trait ForwardingVirtualConfigurationBuilders
     override def deleteIpAddrGroup(id: UUID): Unit = virtConfBuilderImpl.deleteIpAddrGroup(id)
     override def greTunnelZone(name: String, id: Option[UUID] = None): UUID =
         virtConfBuilderImpl.greTunnelZone(name, id)
+    override def vxlanTunnelZone(name: String, id: Option[UUID] = None): UUID =
+        virtConfBuilderImpl.vxlanTunnelZone(name, id)
     override def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit =
         virtConfBuilderImpl.addTunnelZoneMember(tz, host, ip)
     override def deleteTunnelZoneMember(tz: UUID, host: UUID): Unit =
@@ -362,8 +365,8 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.newRouterPort(router, mac, portAddr, nwAddr, nwLen,
                                           vni, tunnelIp, containerId)
 
-    def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
-                     vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID =
+    override def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
+                              vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID =
         virtConfBuilderImpl.newVxLanPort(bridge, mgmtIp, mgmtPort,
                                          vni, tunnelIp, tunnelZone)
 
