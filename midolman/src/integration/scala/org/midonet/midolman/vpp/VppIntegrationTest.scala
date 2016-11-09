@@ -462,6 +462,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 val uplinkDp = ovs.createDpPort(s"${uplinkns}dp")
 
                 setup = Some(new VppUplinkSetup(UUID.randomUUID,
+                                                IPv6Addr("2001::1"),
                                                 uplinkDp.getPortNo,
                                                 api, ovs, log))
                 assertCmdInNs(uplinkns, s"ip a add 2001::2/64 dev ${uplinkns}ns")
