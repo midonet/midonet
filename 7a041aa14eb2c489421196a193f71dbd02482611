@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_15040d16",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/BinaryFlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T13:11:43Z",
+      "side": 1,
+      "message": "this exception is already logged in FlowRecorder, right? I think the log will end-up too noisy",
+      "range": {
+        "startLine": 291,
+        "startChar": 21,
+        "endLine": 292,
+        "endChar": 63
+      },
+      "revId": "7a041aa14eb2c489421196a193f71dbd02482611",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_380ee832",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T13:11:43Z",
+      "side": 1,
+      "message": "this should be e or ex, right? same comment below",
+      "range": {
+        "startLine": 104,
+        "startChar": 17,
+        "endLine": 104,
+        "endChar": 20
+      },
+      "revId": "7a041aa14eb2c489421196a193f71dbd02482611",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5811ac52",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T13:11:43Z",
+      "side": 1,
+      "message": "rather than this, log the exception log.warn(\"message\", e)",
+      "range": {
+        "startLine": 107,
+        "startChar": 16,
+        "endLine": 107,
+        "endChar": 37
+      },
+      "revId": "7a041aa14eb2c489421196a193f71dbd02482611",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_981df464",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T13:11:43Z",
+      "side": 1,
+      "message": "I think this case should have been enough, because we only log here and by adding t we include the exception information, something that\u0027s lost in the cases above",
+      "range": {
+        "startLine": 112,
+        "startChar": 12,
+        "endLine": 113,
+        "endChar": 62
+      },
+      "revId": "7a041aa14eb2c489421196a193f71dbd02482611",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
