@@ -25,6 +25,53 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_08019906",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/BinaryFlowRecorder.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T08:42:24Z",
+      "side": 1,
+      "message": "if you\u0027re not sure why this is, maybe remove the comment",
+      "parentUuid": "baa041b7_c8be1164",
+      "range": {
+        "startLine": 43,
+        "startChar": 45,
+        "endLine": 43,
+        "endChar": 48
+      },
+      "revId": "b0d43e806e7b057ceb23b16504032e0487feb2ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c3015206",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/BinaryFlowRecorder.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-09T08:42:24Z",
+      "side": 1,
+      "message": "maybe we should skip the whole record? I think we should agree on an approach, maybe with the MEM team, first",
+      "range": {
+        "startLine": 265,
+        "startChar": 12,
+        "endLine": 265,
+        "endChar": 17
+      },
+      "revId": "b0d43e806e7b057ceb23b16504032e0487feb2ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_48ab211f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/BinaryFlowRecorder.scala",
         "patchSetId": 1
