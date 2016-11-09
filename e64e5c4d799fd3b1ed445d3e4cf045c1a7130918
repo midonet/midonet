@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4868c121",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-09T07:37:01Z",
+      "side": 1,
+      "message": "Extra \u0027c\u0027",
+      "range": {
+        "startLine": 67,
+        "startChar": 39,
+        "endLine": 67,
+        "endChar": 48
+      },
+      "revId": "e64e5c4d799fd3b1ed445d3e4cf045c1a7130918",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0872b911",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-09T07:37:01Z",
+      "side": 1,
+      "message": "Would it be better to make the tests not be order-sensitive?",
+      "revId": "e64e5c4d799fd3b1ed445d3e4cf045c1a7130918",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
