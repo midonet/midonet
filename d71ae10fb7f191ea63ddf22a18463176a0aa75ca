@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b54fa169",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-09T10:47:12Z",
+      "side": 1,
+      "message": "it fails only for vlan cases, right?\nif yes, i think these setEtherType calls merely hide bugs.",
+      "parentUuid": "baa041b7_4859e15a",
+      "range": {
+        "startLine": 354,
+        "startChar": 8,
+        "endLine": 354,
+        "endChar": 43
+      },
+      "revId": "d71ae10fb7f191ea63ddf22a18463176a0aa75ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e8b315eb",
         "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
         "patchSetId": 12
