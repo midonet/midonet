@@ -95,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_28d9fd22",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-09T07:08:43Z",
+      "side": 1,
+      "message": "This will add the NetworkTOS field as part of the FlowMatch criteria, meaning a new packet with a different TOS will miss the flow and resimulate.  Basically, if a packet comes in with 0 TOS, the simulation will create a flow with a setKey FlowAction to set TOS field to the dscpMark.  If another packet comes in with TOS 0, it will hit the flow and also have its packet TOS set.  \n\nIf a new packet comes in with the TOS set to the dscpMark, it will resimulate and a new flow will be created.  THIS flow will NOT have a setKey FlowAction because the diffIp will skip due to the TOS field being the same as the original packet.  This was the problem before.  \n\nHowever, with this change, if a new packet comes in with the TOS set to dscpMark, it will hit the flow (the flow without a setKey), but it will still be fine because the final packet will still have a TOS of the dscpMark value.  \n\nBut, now if a new packet comes in with a different TOS, whereas before, it would match the flow and emit a packet with a wrong TOS, NOW it will miss this flow and resimulate, but this time it will add a setKey FlowAction, thus avoiding the problem.",
+      "parentUuid": "baa041b7_28745d34",
+      "range": {
+        "startLine": 372,
+        "startChar": 12,
+        "endLine": 372,
+        "endChar": 65
+      },
+      "revId": "7ece79fcae58ae618bee8928e1397ff39d716195",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_88dfe939",
         "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
         "patchSetId": 11
@@ -152,6 +176,30 @@
       "writtenOn": "2016-11-09T06:52:52Z",
       "side": 1,
       "message": "Too pythonic.\n\nThe other two functions, too.",
+      "range": {
+        "startLine": 799,
+        "startChar": 37,
+        "endLine": 799,
+        "endChar": 42
+      },
+      "revId": "7ece79fcae58ae618bee8928e1397ff39d716195",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c8061185",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 799,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-09T07:08:43Z",
+      "side": 1,
+      "message": "Can you elaborate?  Also, this function is essentially the same style as the newBridge function, form which I copied the style.",
+      "parentUuid": "baa041b7_687a6527",
       "range": {
         "startLine": 799,
         "startChar": 37,
