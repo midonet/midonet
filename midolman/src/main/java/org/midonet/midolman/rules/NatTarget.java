@@ -16,6 +16,8 @@
 
 package org.midonet.midolman.rules;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -75,22 +77,22 @@ public class NatTarget extends ZoomObject {
             return false;
 
         NatTarget nt = (NatTarget) other;
-        return nwStart.equals(nt.nwStart) && nwEnd.equals(nt.nwEnd) &&
+        return Objects.equals(nwStart, nt.nwStart) &&
+               Objects.equals(nwEnd, nt.nwEnd) &&
                tpStart == nt.tpStart && tpEnd == nt.tpEnd;
     }
 
     @Override
     public int hashCode() {
-        int hash = nwStart.hashCode();
-        hash = 13 * hash + nwEnd.hashCode();
+        int hash = nwStart != null ? nwStart.hashCode() : 0;
+        hash = 13 * hash + (nwEnd != null ? nwEnd.hashCode() : 0);
         hash = 17 * hash + tpStart;
         return 23 * hash + tpEnd;
     }
 
     @Override
     public String toString() {
-        return "NatTarget [" + "nwStart=" + nwStart.toString() + ", nwEnd="
-               + nwEnd.toString() + ", tpStart=" + tpStart + ", tpEnd=" + tpEnd
-               + "]";
+        return "NatTarget [nwStart=" + nwStart + " nwEnd=" + nwEnd +
+               " tpStart=" + tpStart + " tpEnd=" + tpEnd + "]";
     }
 }
