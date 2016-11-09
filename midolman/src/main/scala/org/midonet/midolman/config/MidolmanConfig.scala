@@ -84,6 +84,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     def datapathName = Try(getString(s"$PREFIX.midolman.datapath")).getOrElse("midonet")
 
     def lockMemory = getBoolean(s"$PREFIX.midolman.lock_memory")
+    def fip64Vxlan = System.getProperties.containsKey("org.midonet.midolman.fip64vxlan")
 
     val bridge = new BridgeConfig(conf, schema)
     val router = new RouterConfig(conf, schema)
