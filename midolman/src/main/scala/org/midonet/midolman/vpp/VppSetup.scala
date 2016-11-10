@@ -243,6 +243,127 @@ private object VppSetup extends MidolmanLogging {
         }
     }
 
+    class VxlanCreate(override val name: String,
+                      vni: Int, vrf: Int, vppApi: VppApi)
+        (implicit ec: ExecutionContext)
+        extends FutureTaskWithRollback with VppInterfaceProvider {
+
+        var vppInterface:Option[VppApi.Device] = None
+
+        override def execute(): Future[Any] = {
+            vppApi.addVxlanTunnel(IPv4Addr.fromString("169.254.0.1"),
+                                  IPv4Addr.fromString("169.254.0.2"),
+                                  vni) map {
+                result => vppInterface = Some(VppApi.Device(result.swIfIndex))
+            }
+        }
+
+        override def rollback(): Future[Any] =
+            vppApi.delVxlanTunnel(IPv4Addr.fromString("169.254.0.1"),
+                                  IPv4Addr.fromString("169.254.0.2"),
+                                  vni)
+    }
+
+    class VxlanSetBridge(override val name: String,
+                         vxlanDevice: VppInterfaceProvider,
+                         brId: Int, bvi: Boolean,
+                         vppApi: VppApi)
+                        (implicit ec: ExecutionContext)
+    extends FutureTaskWithRollback {
+
+        override def execute(): Future[Any] = {
+            require(vxlanDevice.vppInterface.isDefined)
+            vppApi.setIfBridge(vxlanDevice.vppInterface.get,
+                               brId, bvi)
+        }
+
+        override def rollback(): Future[Any] = {
+            vppApi.unsetIfBridge(vxlanDevice.vppInterface.get,
+                                 brId, bvi)
+        }
+    }
+
+    class LoopBackCreate(override val name: String,
+                         vni: Int, vrf: Int,
+                         vppApi: VppApi)
+                        (implicit ec: ExecutionContext)
+    extends FutureTaskWithRollback with VppInterfaceProvider {
+
+        var vppInterface: Option[VppApi.Device] = None
+
+        override def execute(): Future[Any] = {
+            vppApi.createLoopBackIf(None) map  {
+                result  => vppInterface = Some(result)
+            }
+        }
+
+        override def rollback(): Future[Any] = {
+            require(vppInterface.isDefined)
+            vppApi.deleteLoopBackIf(vppInterface.get)
+        }
+
+    }
+
+    class VxlanLoopToVrf(override val name: String,
+                         loopDevice: VppInterfaceProvider,
+                         vrf: Int,
+                         vppApi: VppApi)
+                        (implicit ec: ExecutionContext)
+    extends FutureTaskWithRollback {
+
+        override def execute(): Future[Any] = {
+            require(loopDevice.vppInterface.isDefined)
+            vppApi.setDeviceTable(loopDevice.vppInterface.get,
+                                  vrf, isIpv6 = false)
+        }
+
+        override def rollback(): Future[Any] = Future.successful(Unit)
+    }
+
+    class VxlanAddArpNeighbour(override val name: String,
+                               loopDevice: VppInterfaceProvider,
+                               vrf: Int,
+                               vppApi: VppApi)
+                              (implicit ec: ExecutionContext)
+        extends FutureTaskWithRollback {
+
+        override def execute(): Future[Any] = {
+            require(loopDevice.vppInterface.isDefined)
+            vppApi.addIfArpCacheEntry(loopDevice.vppInterface.get, vrf,
+                                      IPv4Addr.fromString("172.16.0.1"),
+                                      "de:ad:be:ef:00:03")
+        }
+
+        override def rollback(): Future[Any] = {
+            vppApi.deleteIfArpCacheEntry(loopDevice.vppInterface.get, vrf,
+                                         IPv4Addr.fromString("172.16.0.1"),
+                                         "de:ad:be:ef:00:03")
+        }
+    }
+
+    class VxlanAddRoute(override val name: String,
+                        vrf: Int,
+                        vppApi: VppApi)
+                       (implicit ec: ExecutionContext)
+        extends FutureTaskWithRollback {
+
+        override def execute(): Future[Any] = {
+            vppApi.addRoute(IPSubnet.fromString("0.0.0.0/0").
+                asInstanceOf[IPv4Subnet],
+                               nextHop = Some(IPv4Addr.fromString("172.16.0.1")),
+                                None,
+                                vrf)
+        }
+
+        override def rollback(): Future[Any] = {
+            vppApi.deleteRoute(IPSubnet.fromString("0.0.0.0/0").
+                asInstanceOf[IPv4Subnet],
+                               nextHop = Some(IPv4Addr.fromString("172.16.0.1")),
+                               None,
+                               vrf)
+        }
+    }
+
 }
 
 class VppSetup(setupName: String, log: Logger)
@@ -349,4 +470,62 @@ class VppDownlinkSetup(downlinkPortId: UUID,
     add(dlinkVpp)
     add(ipAddrVpp)
     add(ovsBind)
+}
+
+/**
+  * @param vni VNI for this VXLAN
+  * @param vrf VRF for the corresponding tenant router
+  * Executes the following sequence of VPP commands:
+  *     create vxlan tunnel src 169.254.0.1 dst 169.254.0.2 vni 139
+        loopback create mac de:ad:be:ef:00:05
+        set int state loop0 up
+        set int l2 bridge vxlan_tunnel0 <vni>
+        set int l2 bridge loop0 <vni>  bvi
+        set int ip table loop0 <vrf>
+        set ip arp fib-id <vrf> loop0 172.16.0.1 dead.beef.0003
+        ip route add table <vrf> 0.0.0.0/0 via 172.16.0.1
+  */
+class VppVxlanTunnelSetup(vni: Int, vrf: Int, vppApi: VppApi, log: Logger)
+                         (implicit ec: ExecutionContext)
+    extends VppSetup("Vxlan tunnel setup",  log)(ec) {
+
+    import VppSetup._
+
+    private val vxlanDevice = new VxlanCreate("Create vxlan tunnel",
+                                              vni, vrf, vppApi)
+
+    private val vxlanToBridge =
+        new VxlanSetBridge("Set bridge domain for vxlan device",
+                           vxlanDevice,
+                           vni, false, vppApi)
+
+    private val loopBackDevice = new LoopBackCreate("Create loopback interface",
+                                                    vni, vrf, vppApi)
+
+    private val loopToBridge =
+        new VxlanSetBridge("Set bridge domain for loopback device",
+                           loopBackDevice,
+                           vni, true, vppApi)
+
+    private val loopToVrf =
+        new VxlanLoopToVrf(s"Move loopback interface to VRF $vrf",
+                           loopBackDevice,
+                           vrf, vppApi)
+
+    private val addLoopArpNeighbour =
+        new VxlanAddArpNeighbour("Add 172.16.0.1 arp neighbour for loop interface",
+                                 loopBackDevice,
+                                 vrf, vppApi)
+
+    private val routefip64ToBridge =
+        new VxlanAddRoute("Add default route to forward fip64 to vxlan bridge",
+                          vrf, vppApi)
+
+    add(vxlanDevice)
+    add(vxlanToBridge)
+    add(loopBackDevice)
+    add(loopToBridge)
+    add(loopToVrf)
+    add(addLoopArpNeighbour)
+    add(routefip64ToBridge)
 }
