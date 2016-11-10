@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3bec9b91",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-10T19:48:37Z",
+      "side": 1,
+      "message": "eventually event case in this partial function will have an if like this. I suggest creating a separate event handler for when this config flag is enabled and adding it to the receive method. this will also make cleanup easier later on",
+      "range": {
+        "startLine": 113,
+        "startChar": 12,
+        "endLine": 113,
+        "endChar": 44
+      },
+      "revId": "e7097f83ddc29cc8d2789461c55f9b9e138348c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9bd4c7bb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-10T19:48:37Z",
+      "side": 1,
+      "message": "this needs to be flatMap, put it on the previous line",
+      "range": {
+        "startLine": 115,
+        "startChar": 19,
+        "endLine": 115,
+        "endChar": 26
+      },
+      "revId": "e7097f83ddc29cc8d2789461c55f9b9e138348c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bbd9cbf6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-10T19:48:37Z",
+      "side": 1,
+      "message": "rather than reusing the existing attachDownlink, I think we should have a separate setup, for example setting the ip addresses is no longer needed. also, you can\u0027t use the same portId for both the uplink and the downlink because the interfaces will have the same name\n\nalso, add an integration test to test this is working",
+      "range": {
+        "startLine": 121,
+        "startChar": 23,
+        "endLine": 121,
+        "endChar": 84
+      },
+      "revId": "e7097f83ddc29cc8d2789461c55f9b9e138348c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5bde3fdb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-10T19:48:37Z",
+      "side": 1,
+      "message": "this should be deleted, but see my first comment",
+      "range": {
+        "startLine": 131,
+        "startChar": 12,
+        "endLine": 131,
+        "endChar": 80
+      },
+      "revId": "e7097f83ddc29cc8d2789461c55f9b9e138348c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
