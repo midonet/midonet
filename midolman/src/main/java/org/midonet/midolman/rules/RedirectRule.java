@@ -73,7 +73,7 @@ public class RedirectRule extends L2TransformRule {
         RedirectRule res = (RedirectRule)other;
         return Objects.equals(targetPort, res.targetPort)
             && (ingress != res.ingress)
-            && (ingress != res.ingress);
+            && (failOpen != res.failOpen);
     }
 
     @Override
