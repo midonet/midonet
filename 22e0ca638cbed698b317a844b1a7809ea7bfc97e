@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_048e1d79",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-10T08:44:34Z",
+      "side": 1,
+      "message": "Added to the message.",
+      "parentUuid": "baa041b7_757eb96b",
+      "range": {
+        "startLine": 231,
+        "startChar": 8,
+        "endLine": 231,
+        "endChar": 69
+      },
+      "revId": "22e0ca638cbed698b317a844b1a7809ea7bfc97e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b5068183",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 2
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Oh, correct!\nIs default route enough then?",
       "parentUuid": "baa041b7_55529569",
+      "range": {
+        "startLine": 293,
+        "startChar": 8,
+        "endLine": 294,
+        "endChar": 42
+      },
+      "revId": "22e0ca638cbed698b317a844b1a7809ea7bfc97e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2491219b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-10T08:44:34Z",
+      "side": 1,
+      "message": "I don\u0027t think we should use a default route as this would open the door of sending traffic for any destination into midonet. This is going to be replaced by vxlan anyway.",
+      "parentUuid": "baa041b7_983e148a",
       "range": {
         "startLine": 293,
         "startChar": 8,
