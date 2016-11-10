@@ -103,7 +103,7 @@ object LinkOps {
         deleteLink(link)
     }
 
-    def setAddress(link: Link, ipsubnet: IPSubnet[_ <: IPAddr], mac: MAC = null): Unit = {
+    def setAddress(link: Link, ipsubnet: IPSubnet[_ <: IPAddr], mac: MAC = null, delete: Boolean = false): Unit = {
         val (channel, protocol) = prepare()
         try {
             val buf = BytesUtil.instance.allocateDirect(2048)
@@ -118,7 +118,11 @@ object LinkOps {
                 case ip: IPv4Addr => addr.ipv4.add(ip)
                 case ip: IPv6Addr => addr.ipv6.add(ip)
             }
-            protocol.prepareAddrNew(buf, addr)
+            if( delete ) {
+                protocol.prepareAddrDel(buf, addr)
+            } else {
+                protocol.prepareAddrNew(buf, addr)
+            }
             writer.write(buf)
             buf.clear()
             writer.write(buf)

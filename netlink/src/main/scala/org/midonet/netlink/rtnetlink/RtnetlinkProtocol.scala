@@ -148,6 +148,13 @@ final class RtnetlinkProtocol(pid: Int) {
         message.finalize(pid)
     }
 
+    def prepareAddrDel(buf: ByteBuffer, addr: Addr): Unit = {
+        val message = messageFor(buf, Rtnetlink.Type.DELADDR)
+              .withFlags(NLFlag.REQUEST)
+        Addr.describeDelRequest(buf, addr)
+        message.finalize(pid)
+    }
+
     def prepareRouteList(buf: ByteBuffer): Unit = {
         val message = messageFor(buf, Rtnetlink.Type.GETROUTE)
             .withFlags((NLFlag.REQUEST | NLFlag.Get.DUMP).toShort)
