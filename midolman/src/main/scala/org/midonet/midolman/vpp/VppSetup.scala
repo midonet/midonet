@@ -47,7 +47,9 @@ private object VppSetup extends MidolmanLogging {
 
     class VethPairSetup(override val name: String,
                         devName: String,
-                        peerName: String)
+                        peerName: String,
+                        devAddress: Option[IPSubnet[_ <: IPAddr]] = None,
+                        peerAddress: Option[IPSubnet[_ <: IPAddr]] = None)
                        (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback with MacAddressProvider {
 
@@ -56,6 +58,14 @@ private object VppSetup extends MidolmanLogging {
         @throws[Exception]
         override def execute(): Future[Any] = Future {
             val veth = LinkOps.createVethPair(devName, peerName, up=true)
+            devAddress match {
+                case Some(address) => LinkOps.setAddress(veth.dev, address)
+                case None => Unit
+            }
+            peerAddress match {
+                case Some(address) => LinkOps.setAddress(veth.peer, address)
+                case None => Unit
+            }
             macAddress = Some(veth.dev.mac)
         }
 
@@ -472,6 +482,63 @@ class VppDownlinkSetup(downlinkPortId: UUID,
     add(dlinkVpp)
     add(ipAddrVpp)
     add(ovsBind)
+}
+
+/**
+  * @param vppApi handler for the JVPP
+  * @param log logger
+  * @param ec Execution context for futures 
+  */
+class VppDownlinkVxlanSetup(vppApi: VppApi,
+                            log: Logger)
+                           (implicit ec: ExecutionContext)
+    extends VppSetup("VPP downlink Vxlan setup", log)(ec) {
+
+    import VppSetup._
+
+    private val dlinkPrefix = "downlink"
+    private val dlinkVppName = s"$dlinkPrefix-vpp"
+    private val dlinkTunName = s"$dlinkPrefix-tun"
+
+    private val vppAddress = IPv4Subnet.fromCidr("169.254.0.1/30")
+    private val tunAddress = IPv4Subnet.fromCidr("169.254.0.2/30")
+
+    private val dlinkVeth = new VethPairSetup("downlink vxlan interface setup",
+                                              dlinkVppName,
+                                              dlinkTunName,
+                                              None,
+                                              Some(tunAddress))
+
+    private val dlinkVpp = new VppDevice("downlink vxlan VPP interface setup",
+        dlinkVppName,
+        vppApi,
+        dlinkVeth)
+
+    private val dlinkVppIp = new VppIpAddr("downlink VPP IPv4 setup",
+        vppApi,
+        dlinkVpp,
+        vppAddress.getAddress,
+        vppAddress.getPrefixLen.toByte)
+
+    private val dlinkTun = new VppDevice("downlink vxlan TUN interface setup",
+        dlinkTunName,
+        vppApi,
+        dlinkVeth)
+
+    private val dlinkTunIp = new VppIpAddr("downlink TUN IPv4 setup",
+        vppApi,
+        dlinkTun,
+        tunAddress.getAddress,
+        tunAddress.getPrefixLen.toByte)
+
+    /*
+     * setup the tasks, in execution order
+     */
+    add(dlinkVeth)
+    add(dlinkVpp)
+    add(dlinkVppIp)
+    add(dlinkTun)
+    add(dlinkTunIp)
 }
 
 /**
