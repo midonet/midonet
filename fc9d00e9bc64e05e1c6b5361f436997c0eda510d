@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_24d8017f",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-10T09:01:21Z",
+      "side": 1,
+      "message": "this is unused, I guess you need to setup the external network with the ipv6 subnet rather than the ipv4 one",
+      "range": {
+        "startLine": 325,
+        "startChar": 9,
+        "endLine": 328,
+        "endChar": 54
+      },
+      "revId": "fc9d00e9bc64e05e1c6b5361f436997c0eda510d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_04e5fd36",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-10T09:01:21Z",
+      "side": 1,
+      "message": "I think we no longer need some of the vpp configuration performed manually here, since much of it should be handled by the agent",
+      "range": {
+        "startLine": 338,
+        "startChar": 19,
+        "endLine": 338,
+        "endChar": 33
+      },
+      "revId": "fc9d00e9bc64e05e1c6b5361f436997c0eda510d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_44db057e",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-10T09:01:21Z",
+      "side": 1,
+      "message": "this shouldn\u0027t be needed anymore, is it? it should be configured by the vpp controller following the creation of the FIP in neutron",
+      "range": {
+        "startLine": 353,
+        "startChar": 8,
+        "endLine": 358,
+        "endChar": 44
+      },
+      "revId": "fc9d00e9bc64e05e1c6b5361f436997c0eda510d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
