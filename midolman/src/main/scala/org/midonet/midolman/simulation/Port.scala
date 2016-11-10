@@ -213,82 +213,42 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
 
     protected def device: ForwardingDevice
 
-    private[this] val emit = ContinueWith(
-        if (isExterior) {
-            context =>
-                context.calculateActionsFromMatchDiff()
-                context.log.debug("Emitting packet from port {}", id)
-                context.addVirtualAction(action)
-                context.trackConnection(deviceId)
-                AddVirtualWildcardFlow
-        } else if (isInterior) {
-            context =>
-                tryGet(classOf[Port], peerId).ingress(context)
-        } else {
-            context =>
-                context.log.warn("Port {} is unplugged", id)
-                ErrorDrop
-        })
-
-    def ingress(context: PacketContext): SimulationResult = {
-        context.log.debug(s"Packet ingressing $this")
-        if (context.devicesTraversed >= Simulator.MaxDevicesTraversed) {
-            context.log.debug("Dropping packet that traversed too many devices "+
-                              s"(${context.devicesTraversed}}): possible " +
-                              s"topology loop")
-            ErrorDrop
-        } else {
-            context.devicesTraversed += 1
-            context.addFlowTag(deviceTag)
-            context.addFlowTag(rxTag)
-            context.inPortId = id
-            context.inPortGroups = portGroups
-            context.currentDevice = deviceId
-            context.nwDstRewritten = false
-            mirroringPreInFilter(context, portIngress)
-        }
-    }
-
-    protected def egressCommon(context: PacketContext,
-                               next: SimStep): SimulationResult = {
-        context.addFlowTag(deviceTag)
-        context.addFlowTag(txTag)
-        context.outPortId = id
-
-        next(context)
-    }
-
-    def egress(context: PacketContext): SimulationResult = {
-        if (context.devicesTraversed >= Simulator.MaxDevicesTraversed) {
-            context.log.debug("Dropping packet that traversed too many devices "+
-                              s"(${context.devicesTraversed}}): possible " +
-                              s"topology loop")
-            ErrorDrop
-        } else {
-            egressCommon(context, mirrorFilterAndContinueOut)
-        }
-    }
-
-    private[this] val ingressDevice: SimStep = context => {
+    // Ingress simulation steps and results:
+    //  1. ingress
+    //  2. pre-in-filter mirror
+    //  3. in-filter
+    //  4. post-in-filter mirror
+    //  5. port device
+    private val continueIn = ContinueWith(context => {
         val dev = device
         dev.continue(context, dev.process(context))
-    }
-
-    private def mirrorFilterAndContinueOut: SimStep =
-        mirroringPreOutFilter(_, filterAndContinueOut)
-
-
-    private val continueIn = ContinueWith(ingressDevice(_))
-    private val continueOut: SimStep = c => mirroringPostOutFilter(c, emit)
+    })
 
     private val mirrorAndContinueIn: SimStep =
         mirroringPostInFilter(_, continueIn)
-    private val filterAndContinueOut = ContinueWith(filterOut(_, continueOut))
-    private val portIngress = ContinueWith(filterIn(_, mirrorAndContinueIn))
 
-    val egressNoFilter: SimStep = context => {
-        egressCommon(context, continueOut)
-    }
+    private val filterMirrorAndContinueIn =
+        ContinueWith(filterIn(_, mirrorAndContinueIn))
+
+    // Egress simulation steps and results:
+    //  1. egress
+    //  2. pre-out-filter mirror
+    //  3. out-filter
+    //  4. post-out-filter mirror
+    //  5. emit
+    private val emit = ContinueWith(emitCommon)
+
+    private val continueOut: SimStep =
+        mirroringPostOutFilter(_, emit)
+
+    private val filterAndContinueOut =
+        ContinueWith(filterOut(_, continueOut))
+
+    private val mirrorFilterAndContinueOut: SimStep =
+        mirroringPreOutFilter(_, filterAndContinueOut)
+
+    private[simulation] val egressNoFilter: SimStep =
+        egressCommon(_, continueOut)
 
     override protected val preIn: SimHook = c => {
         if (isExterior && (portGroups ne null))
@@ -310,6 +270,70 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         s"tunnelKey=$tunnelKey portGroups=$portGroups peerId=$peerId " +
         s"hostId=$hostId interfaceName=$interfaceName vlanId=$vlanId"
 
+    final def ingress(context: PacketContext): SimulationResult = {
+        context.log.debug(s"Packet ingressing $this")
+
+        if (context.devicesTraversed >= Simulator.MaxDevicesTraversed) {
+            context.log.debug("Dropping packet that traversed too many devices "+
+                              s"(${context.devicesTraversed}}): possible " +
+                              s"topology loop")
+            ErrorDrop
+        } else {
+            context.devicesTraversed += 1
+            ingressCommon(context)
+        }
+    }
+
+    final def egress(context: PacketContext): SimulationResult = {
+        context.log.debug(s"Packet egressing $this")
+
+        if (context.devicesTraversed >= Simulator.MaxDevicesTraversed) {
+            context.log.debug("Dropping packet that traversed too many devices "+
+                              s"(${context.devicesTraversed}}): possible " +
+                              s"topology loop")
+            ErrorDrop
+        } else {
+            egressCommon(context, mirrorFilterAndContinueOut)
+        }
+    }
+
+    protected def ingressCommon(context: PacketContext): SimulationResult = {
+        context.addFlowTag(deviceTag)
+        context.addFlowTag(rxTag)
+        context.inPortId = id
+        context.inPortGroups = portGroups
+        context.currentDevice = deviceId
+        context.nwDstRewritten = false
+        mirroringPreInFilter(context, filterMirrorAndContinueIn)
+    }
+
+    protected def egressCommon(context: PacketContext,
+                               next: SimStep): SimulationResult = {
+        context.addFlowTag(deviceTag)
+        context.addFlowTag(txTag)
+        context.outPortId = id
+
+        next(context)
+    }
+
+    protected def emitCommon: SimStep = {
+        if (isExterior) {
+            context =>
+                context.log.debug("Emitting packet from port {}", id)
+                context.calculateActionsFromMatchDiff()
+                context.addVirtualAction(action)
+                context.trackConnection(deviceId)
+                AddVirtualWildcardFlow
+        } else if (isInterior) {
+            context =>
+                tryGet(classOf[Port], peerId).ingress(context)
+        } else {
+            context =>
+                context.log.warn("Port {} is unplugged", id)
+                ErrorDrop
+        }
+    }
+
 }
 
 trait AbstractBridgePort extends Port {
@@ -320,9 +344,8 @@ trait AbstractBridgePort extends Port {
 
     protected def device = tryGet(classOf[Bridge], networkId)
 
-    override def egressCommon(context: PacketContext,
-                              next: SimStep): SimulationResult = {
-        context.log.debug(s"Packet egressing $this")
+    protected override def egressCommon(context: PacketContext,
+                                        next: SimStep): SimulationResult = {
         if (id == context.inPortId) {
             Drop
         } else {
@@ -385,9 +408,9 @@ case class ServicePort(override val id: UUID,
         s"ServicePort [${super.toString} networkId=$networkId " +
         s"realAdminStateUp=$realAdminStateUp]"
 
-    override def ingress(context: PacketContext): SimulationResult = {
+    protected override def ingressCommon(context: PacketContext)
+    : SimulationResult = {
         if (!realAdminStateUp) {
-            context.log.debug(s"Packet ingressing $this")
             context.log.debug("Administratively down service port: dropping")
             Drop
         } else {
@@ -395,10 +418,8 @@ case class ServicePort(override val id: UUID,
         }
     }
 
-    override def egressCommon(context: PacketContext,
-                              next: SimStep): SimulationResult = {
-        context.log.debug(s"Packet egressing $this")
-
+    protected override def egressCommon(context: PacketContext,
+                                        next: SimStep): SimulationResult = {
         if (context.isRedirectedOut) {
             val result = if (!realAdminStateUp || !isActive) {
                 /* If a service port is down, what happens to the packet depends
@@ -488,9 +509,8 @@ case class RouterPort(override val id: UUID,
             context.addGeneratedPacket(from.id, ethOpt.get)
     }
 
-    override def egressCommon(context: PacketContext,
-                              next: SimStep): SimulationResult = {
-        context.log.debug(s"Packet egressing $this")
+    protected override def egressCommon(context: PacketContext,
+                                        next: SimStep): SimulationResult = {
         if (context.wcmatch.getEthSrc == context.wcmatch.getEthDst) {
             ingress(context)
         } else {
