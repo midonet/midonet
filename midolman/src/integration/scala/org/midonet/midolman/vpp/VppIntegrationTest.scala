@@ -610,5 +610,39 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 deleteNamespace(nsIPv6)
             }
         }
+
+        scenario("VPP sets up downlink port") {
+            setupStorage()
+            log.info("Creating downlink")
+
+            val dlinkPrefix = "downlink"
+            val dlinkVppName = s"$dlinkPrefix-vpp"
+            val dlinkTunName = s"$dlinkPrefix-tun"
+
+            val vppAddress = IPv4Subnet.fromCidr("169.254.0.1/30")
+            val tunAddress = IPv4Subnet.fromCidr("169.254.0.2/30")
+
+            val currentHostId = HostIdGenerator.getHostId
+            log info "Adding current host to the storage"
+            val host = this.createHost(currentHostId)
+            backend.store.create(host)
+
+            val proc = startVpp()
+            Thread.sleep(1000)
+            val api = new VppApi("test")
+
+            var setup: Option[VppDownlinkVxlanSetup] = None
+            try {
+                setup = Some(new VppDownlinkVxlanSetup(api, backend, log))
+                setup foreach { s => Await.result(s.execute(), 1 minute) }
+                assertCmd(s"ip a add ${tunAddress} dev $dlinkTunName")
+                log info "Pinging vpp interface"
+                assertCmd(s"ping -c 5 ${tunAddress.getAddress}")
+            } finally {
+                setup foreach { s => Await.result(s.rollback(), 1 minute) }
+                api.close()
+                proc.destroy()
+            }
+        }
     }
 }

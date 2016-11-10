@@ -350,3 +350,54 @@ class VppDownlinkSetup(downlinkPortId: UUID,
     add(ipAddrVpp)
     add(ovsBind)
 }
+
+class VppDownlinkVxlanSetup(vppApi: VppApi,
+                            backend: MidonetBackend,
+                            log: Logger)
+                           (implicit ec: ExecutionContext)
+    extends VppSetup("VPP downlink Vxlan setup", log)(ec) {
+
+    import VppSetup._
+
+    private val dlinkPrefix = "downlink"
+    private val dlinkVppName = s"$dlinkPrefix-vpp"
+    private val dlinkTunName = s"$dlinkPrefix-tun"
+
+    private val vppAddress = IPv4Subnet.fromCidr("169.254.0.1/30")
+    private val tunAddress = IPv4Subnet.fromCidr("169.254.0.2/30")
+
+    private val dlinkVeth = new VethPairSetup("downlink vxlan interface setup",
+                                              dlinkVppName,
+                                              dlinkTunName)
+
+    private val dlinkVpp = new VppDevice("downlink vxlan VPP interface setup",
+        dlinkVppName,
+        vppApi,
+        dlinkVeth)
+
+    private val dlinkVppIp = new VppIpAddr("downlink VPP IPv4 setup",
+        vppApi,
+        dlinkVpp,
+        vppAddress.getAddress,
+        vppAddress.getPrefixLen.toByte)
+
+    private val dlinkTun = new VppDevice("downlink vxlan TUN interface setup",
+        dlinkTunName,
+        vppApi,
+        dlinkVeth)
+
+    private val dlinkTunIp = new VppIpAddr("downlink TUN IPv4 setup",
+        vppApi,
+        dlinkTun,
+        tunAddress.getAddress,
+        tunAddress.getPrefixLen.toByte)
+
+    /*
+     * setup the tasks, in execution order
+     */
+    add(dlinkVeth)
+    add(dlinkVpp)
+    add(dlinkVppIp)
+    add(dlinkTun)
+    add(dlinkTunIp)
+}
