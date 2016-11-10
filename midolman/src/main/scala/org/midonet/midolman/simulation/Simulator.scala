@@ -67,7 +67,6 @@ object Simulator {
             tryGet(classOf[Port], context.egressPort).egress(context)
     }
 
-
 }
 
 trait ForwardingDevice extends SimDevice {
