@@ -115,17 +115,17 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             attachUplink(portId)
         case LocalPortActive(portId, portNumber, false) =>
             detachUplink(portId)
-        case CreateDownlink(portId, vrf, ip4Address, ip6Address, natPool) =>
-            attachDownlink(portId, vrf, ip4Address, ip6Address, natPool)
+        case create@CreateDownlink(portId, vrf, ip4Address, ip6Address, natPool) =>
+            attachDownlink(portId, vrf, create.vppAddress4, ip6Address, natPool)
         case UpdateDownlink(portId, vrf, oldAddress, newAddress) =>
             // TODO
             Future.successful(())
         case DeleteDownlink(portId, vrf) =>
             detachDownlink(portId)
-        case AssociateFip(portId, vrf, floatingIp, fixedIp) =>
-            associateFip(portId, vrf, floatingIp, fixedIp)
-        case DisassociateFip(portId, vrf, floatingIp, fixedIp) =>
-            disassociateFip(portId, vrf, floatingIp, fixedIp)
+        case AssociateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool) =>
+            associateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool)
+        case DisassociateFip(portId, vrf, floatingIp, fixedIp, localIp) =>
+            disassociateFip(portId, vrf, floatingIp, fixedIp, localIp)
         case OnCompleted =>
             Future.successful(())
         case OnError(e) =>
@@ -232,11 +232,12 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
     }
 
-    private def attachDownlink(portId: UUID, vrf: Int, ip4Address: IPv4Subnet,
-                               ip6Address: IPv6Subnet, natPool: NatTarget)
+    private def attachDownlink(portId: UUID, vrf: Int, vppAddress4: IPv4Subnet,
+                               portAddress6: IPv6Subnet, natPool: NatTarget)
     : Future[_] = {
-        log debug s"Attach downlink port $portId (VRF $vrf): network=$ip6Address " +
-                  s"link-local=$ip4Address pool=$natPool"
+
+        log debug s"Attach downlink port $portId (VRF $vrf): " +
+                  s"network=$portAddress6 vppAddress=$vppAddress4 pool=$natPool"
 
         if (vppProcess eq null) {
             startVppProcess()
@@ -244,7 +245,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
 
         attachLink(downlinks, portId,
-                   new VppDownlinkSetup(portId, vrf, ip4Address, ip6Address,
+                   new VppDownlinkSetup(portId, vrf, vppAddress4, portAddress6,
                                         vppApi, vt.backend,
                                         Logger(log.underlying)))
     }
@@ -270,7 +271,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
     private def startVppProcess(): Unit = {
         if (vppExiting) return
-        log debug "Starting vpp process"
+        log debug "Starting VPP process"
         vppProcess = new MonitoredDaemonProcess(
             "/usr/share/midolman/vpp-start", log.underlying, "org.midonet.vpp",
             VppProcessMaximumStarts, VppProcessFailingPeriod, vppExitAction)
@@ -284,7 +285,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     }
 
     private def stopVppProcess(): Unit = {
-        log debug "Stopping vpp process"
+        log debug "Stopping VPP process"
         // flag vpp exiting so midolman isn't stopped by the exit action
         vppExiting = true
         vppProcess.stopAsync()
@@ -296,29 +297,33 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     }
 
     private def associateFip(portId: UUID, vrf: Int, floatingIp: IPv6Addr,
-                             fixedIp: IPv4Addr): Future[_] = {
+                             fixedIp: IPv4Addr, localIp: IPv4Subnet,
+                             natPool: NatTarget): Future[_] = {
         log debug s"Associating FIP at port $portId (VRF $vrf): " +
                   s"$floatingIp -> $fixedIp"
 
-        // TODO: Remove hardcoded addresses.
-        val srcIp6 = "2001::2"
-        val srcIp4 = "20.0.0.1"
-        executeCommandWithTimeout(s"vppctl fip64 add $srcIp6 $floatingIp " +
-                                  s"$srcIp4 $fixedIp table $vrf")
+        exec(s"vppctl ip route table $vrf add $fixedIp/32 " +
+             s"via ${localIp.getAddress}") flatMap { _ =>
+            exec(s"vppctl fip64 add $floatingIp $fixedIp " +
+                 s"pool ${natPool.nwStart} ${natPool.nwStart} table $vrf")
+        }
     }
 
     private def disassociateFip(portId: UUID, vrf: Int, floatingIp: IPv6Addr,
-                                fixedIp: IPv4Addr): Future[_] ={
+                                fixedIp: IPv4Addr, localIp: IPv4Subnet)
+    : Future[_] ={
         log debug s"Disassociating FIP at port $portId (VRF $vrf): " +
                   s"$floatingIp -> $fixedIp"
 
-        // TODO: Remove hardcoded addresses.
-        val srcIp6 = "2001::2"
-        executeCommandWithTimeout(s"sudo vppctl fip64 del $srcIp6 $floatingIp")
+        exec(s"vppctl fip64 del $floatingIp") flatMap { _ =>
+            exec(s"vppctl ip route table $vrf del $fixedIp/32")
+        }
     }
 
-    private def executeCommandWithTimeout(cmdLine: String): Future[_] = {
-        val process = ProcessHelper.newProcess(cmdLine)
+    private def exec(command: String): Future[_] = {
+        log debug s"Executing command: `$command`"
+
+        val process = ProcessHelper.newProcess(command)
             .logOutput(log.underlying, "vppctl", StdOutput, StdError)
             .run()
 
@@ -326,8 +331,10 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         Future {
             if (!process.waitFor(VppCtlTimeout.toMillis, MILLISECONDS)) {
                 process.destroy()
-                throw new TimeoutException("Command execution timed out")
+                log warn s"Command `$command` timed out"
+                throw new TimeoutException(s"Command `$command` timed out")
             }
+            log debug s"Command `$command` exited with code ${process.exitValue()}"
             if (process.exitValue == 0) {
                 promise.trySuccess(())
             } else {
