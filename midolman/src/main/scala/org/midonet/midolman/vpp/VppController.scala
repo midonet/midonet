@@ -27,16 +27,14 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
-
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-
 import rx.subscriptions.CompositeSubscription
-
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.NatTarget
@@ -112,11 +110,30 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
     private val eventHandler: PartialFunction[Any, Future[_]] = {
         case LocalPortActive(portId, portNumber, true) =>
-            attachUplink(portId)
+            if (MidolmanConfig.fip64Vxlan) {
+                attachUplink(portId)
+                  .andThen {
+                    case Success(Some(_)) =>
+                        val vrf = 0
+                        val ip4Address = null
+                        val ip6Address = null
+                        val natPool = null
+                        attachDownlink(portId, vrf, ip4Address, ip6Address, natPool)
+                    case Failure(err) =>
+                        log warn s"Get port $portId failed: $err"
+                }
+            } else {
+                attachUplink(portId)
+            }
         case LocalPortActive(portId, portNumber, false) =>
             detachUplink(portId)
         case create@CreateDownlink(portId, vrf, ip4Address, ip6Address, natPool) =>
             attachDownlink(portId, vrf, create.vppAddress4, ip6Address, natPool)
+            if (!MidolmanConfig.fip64Vxlan) {
+                attachDownlink(portId, vrf, create.vppAddress4, ip6Address, natPool)
+            } else {
+                Future.successful(None)
+            }
         case UpdateDownlink(portId, vrf, oldAddress, newAddress) =>
             // TODO
             Future.successful(())
