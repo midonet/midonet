@@ -1,0 +1,97 @@
+#!/bin/bash -x
+
+# Copyright 2016 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+makens() {
+    if [ -z ${NAME} ]; then
+        echo "no name specified"
+        exit 1
+    fi
+    if [ -z ${IFACE} ]; then
+        echo "no interface name specified"
+        exit 1
+    fi
+    if [ -z ${MAC} ]; then
+        echo "no mac specified"
+        exit 1
+    fi
+    if [ -z ${IP} ]; then
+        echo "no namespace IP specified"
+        exit 1
+    fi
+    if [ -z ${ROUTERIP} ]; then
+        echo "no router IP specified"
+        exit 1
+    fi
+    ip netns add $NAME
+    DP=${IFACE}.out
+    NS=${IFACE}.in
+    ip link add name $DP type veth peer name $NS
+    ip link set $DP up
+    ip link set $NS netns $NAME
+    ip netns exec $NAME ip link set $NS address $MAC
+    ip netns exec $NAME ip address add $IP/30 dev $NS
+    ip netns exec $NAME ip link set up dev $NS
+    ip netns exec $NAME ip link set up dev lo
+    ip netns exec $NAME route add default gateway $ROUTERIP $NS
+}
+
+restarthaproxy() {
+    echo "RESTART HAPROXY"
+}
+
+cleanns() {
+    if [ -z ${NAME} ]; then
+        echo "no name specified"
+        exit 1
+    fi
+    if [ -z ${IFACE} ]; then
+        echo "no interface name specified"
+        exit 1
+    fi
+    DP=${IFACE}.out
+    ip netns del $NAME
+    ip link del $DP
+}
+
+ACTION=$1
+shift
+
+if [ -z ${ACTION} ]; then
+    echo "no action specified. What do you want me to do?"
+    exit 1
+fi
+
+case $ACTION in
+    makens)
+        NAME=$1
+        IFACE=$2
+        MAC=$3
+        IP=$4
+        ROUTERIP=$5
+        makens
+        ;;
+    restarthaproxy)
+        NAME=$1
+        CONF=$2
+        PIDFILE=$3
+        restarthaproxy
+        ;;
+    cleanns)
+        NAME=$1
+        IFACE=$2
+        cleanns
+        ;;
+esac
