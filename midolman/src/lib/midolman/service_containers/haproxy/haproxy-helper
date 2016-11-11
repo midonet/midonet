@@ -1,0 +1,157 @@
+#!/bin/bash -x
+
+# Copyright 2016 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+makens() {
+    if [ -z ${NAME} ]; then
+        echo "no name specified"
+        exit 1
+    fi
+    if [ -z ${IFACE} ]; then
+        echo "no interface name specified"
+        exit 1
+    fi
+    if [ -z ${MAC} ]; then
+        echo "no mac specified"
+        exit 1
+    fi
+    if [ -z ${IP} ]; then
+        echo "no namespace IP specified"
+        exit 1
+    fi
+    if [ -z ${ROUTERIP} ]; then
+        echo "no router IP specified"
+        exit 1
+    fi
+
+    ##########################################################################
+    #
+    # Creates a simple topology as follows:
+    # 1) creates a veth pair
+    # 2) creates a namespace
+    # 3) puts one of the links in the veth pair in the namespace and assigns
+    #    it the ip $IP
+    # 4) Creates a default route to $ROUTERIP
+    ##########################################################################
+    #
+    #                       +-----------------------------+
+    #                       |                             |
+    # (veth pair)           |                             |
+    #  iface.out+-----------------+iface.in ($IP/30)      |
+    #                       |      lo                     |
+    #                       |                             |
+    #                       |                             |
+    #                       |                             |
+    #  HOST                 |  NAMESPACE $NAME            |
+    #                       +-----------------------------+
+    #
+    ##########################################################################
+
+    ip netns add $NAME
+    DP=${IFACE}.out
+    NS=${IFACE}.in
+    ip link add name $DP type veth peer name $NS
+    ip link set $DP up
+    ip link set $NS netns $NAME
+    ip netns exec $NAME ip link set $NS address $MAC
+    ip netns exec $NAME ip address add $IP/30 dev $NS
+    ip netns exec $NAME ip link set up dev $NS
+    ip netns exec $NAME ip link set up dev lo
+    ip netns exec $NAME route add default gateway $ROUTERIP $NS
+}
+
+restart_ha() {
+    if [ -z ${NAME} ]; then
+        echo "no name specified"
+        exit 1
+    fi
+    if [ -z ${CONF} ]; then
+        echo "no configuration file specified"
+        exit 1
+    fi
+    if [ -z ${PID} ]; then
+        echo "no pid file specified"
+        exit 1
+    fi
+    ip netns exec $NAME haproxy -f $CONF -p $PID
+}
+
+cleanns() {
+    if [ -z ${NAME} ]; then
+        echo "no name specified"
+        exit 1
+    fi
+    if [ -z ${IFACE} ]; then
+        echo "no interface name specified"
+        exit 1
+    fi
+    if ! $(sudo ip netns | grep "^$NAME$" > /dev/null ); then
+        echo "Namespace $NAME doesn't exist";
+        exit 0
+    fi
+    DP=${IFACE}.out
+    for pid in $(ip netns pids $NAME)
+    do
+        kill -9 $pid
+    done
+    ip netns del $NAME
+    ip link del $DP
+}
+
+SCRIPT_NAME=$0
+ACTION=$1
+shift
+
+if [ -z ${ACTION} ]; then
+    echo "no action specified. What do you want me to do?"
+    exit 1
+fi
+
+case $ACTION in
+    makens)
+        NAME=$1
+        IFACE=$2
+        MAC=$3
+        IP=$4
+        ROUTERIP=$5
+        if [ "$#" -ne 5 ]; then
+            echo "expected 6 arguments, but $# supplied"
+            echo "$0 makens NAME IFACE MAC IP ROUTERIP"
+            exit 1
+        fi
+        makens
+        ;;
+    restart_ha)
+        NAME=$1
+        CONF=$2
+        PID=$3
+        if [ "$#" -ne 3 ]; then
+            echo "expected 4 arguments, but $# supplied"
+            echo "$0 restart_ha NAME CONF_FILE PID_FILE"
+            exit 1
+        fi
+        restart_ha
+        ;;
+    cleanns)
+        NAME=$1
+        IFACE=$2
+        if [ "$#" -ne 2 ]; then
+            echo "expected 2 arguments, but $# supplied"
+            echo "$0 cleanns NAME IFACE"
+            exit 1
+        fi
+        cleanns
+        ;;
+esac
