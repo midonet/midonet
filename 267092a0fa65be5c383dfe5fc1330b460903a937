@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_61983476",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Condition.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-11T10:24:43Z",
+      "side": 1,
+      "message": "why did you add a new validator, and not use @Min \u0026 @Max?",
+      "range": {
+        "startLine": 182,
+        "startChar": 5,
+        "endLine": 182,
+        "endChar": 15
+      },
+      "revId": "267092a0fa65be5c383dfe5fc1330b460903a937",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
