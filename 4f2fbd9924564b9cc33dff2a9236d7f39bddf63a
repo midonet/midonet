@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8c748f36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-11T13:51:28Z",
+      "side": 1,
+      "message": "this comment seems a bit stale.",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 11
+      },
+      "revId": "4f2fbd9924564b9cc33dff2a9236d7f39bddf63a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4cb447d3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-11T13:51:28Z",
+      "side": 1,
+      "message": "this can race with L176?",
+      "range": {
+        "startLine": 128,
+        "startChar": 8,
+        "endLine": 128,
+        "endChar": 25
+      },
+      "revId": "4f2fbd9924564b9cc33dff2a9236d7f39bddf63a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2cbd8367",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-11T13:51:28Z",
+      "side": 1,
+      "message": "have you considered retryWhen?\nhttp://reactivex.io/RxJava/javadoc/rx/Observable.html#retryWhen(rx.functions.Func1)",
+      "revId": "4f2fbd9924564b9cc33dff2a9236d7f39bddf63a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4c8d6729",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-11T13:51:28Z",
+      "side": 1,
+      "message": "this assignment and the one in L176 can race?",
+      "range": {
+        "startLine": 191,
+        "startChar": 8,
+        "endLine": 191,
+        "endChar": 27
+      },
+      "revId": "4f2fbd9924564b9cc33dff2a9236d7f39bddf63a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
