@@ -83,7 +83,9 @@ class Pool(resource_base.ResourceBase,
         return self
 
     def add_pool_member(self):
-        return pool_member.PoolMember(self.dto['poolMembers'], {}, self.auth)
+        return pool_member.PoolMember(self.dto['poolMembers'], {
+            'poolId': self.get_id()
+        }, self.auth)
 
     def add_vip(self):
-        return vip.VIP(self.dto['vips'], {}, self.auth)
+        return vip.VIP(self.dto['vips'], {'poolId': self.get_id()}, self.auth)
