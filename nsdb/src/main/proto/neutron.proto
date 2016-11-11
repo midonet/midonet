@@ -177,6 +177,38 @@ message SecurityGroupRule {
     optional string remote_ip_prefix = 10;
 }
 
+message NeutronLoadBalancerV2 {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 4;
+    optional string description = 5;
+    optional bool admin_state_up = 6;
+    optional string provisioning_status = 7;
+    optional string operating_status = 8;
+    repeated UUID listeners = 9;
+    optional string vip_address = 10;
+    optional UUID vip_subnet_id = 11;
+    optional UUID vip_port_id = 12;
+    optional string provider = 13;
+    optional UUID flavor_id = 14;
+    repeated UUID pools = 15;
+}
+
+message NeutronLoadBalancerV2Listener {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional int32 connection_limit = 3;
+    optional string protocol = 4;
+    optional string description = 5;
+    optional bool admin_state_up = 6;
+    optional UUID default_tls_container_ref = 7;
+    repeated string sni_container_refs = 8;
+    repeated UUID loadbalancers = 9;
+    optional UUID default_pool_id = 10;
+    optional string name = 11;
+    optional int32 protocol_port = 12;
+}
+
 message NeutronLoadBalancerPool {
     optional UUID id = 1;
     optional string tenant_id = 2;
@@ -195,6 +227,25 @@ message NeutronLoadBalancerPool {
     optional string status_description = 15;
 }
 
+message NeutronLoadBalancerV2Pool {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional bool admin_state_up = 5;
+    optional string lb_algorithm = 6;
+    repeated UUID members = 7;
+    optional UUID healthmonitor_id = 8;
+    optional UUID listener_id = 9;
+    repeated UUID listeners = 10;
+    optional string protocol = 11;
+    message LBV2SessionPersistenceAlgorithm {
+        optional string type = 1;
+        optional string cookie_name = 2;
+    }
+    optional LBV2SessionPersistenceAlgorithm session_persistence = 12;
+}
+
 message NeutronLoadBalancerPoolMember {
     optional UUID id = 1;
     optional string tenant_id = 2;
@@ -205,6 +256,18 @@ message NeutronLoadBalancerPoolMember {
     optional int32 weight = 7;
     optional string status = 8;
     optional string status_description = 9;
+}
+
+message NeutronLoadBalancerV2PoolMember {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional IPAddress address = 3;
+    optional bool admin_state_up = 4;
+    optional int32 protocol_port = 5;
+    optional int32 weight = 6;
+    optional UUID subnet_id = 7;
+    optional string name = 8;
+    optional UUID pool_id = 9;
 }
 
 message NeutronVIP {
@@ -250,6 +313,21 @@ message NeutronHealthMonitor {
     optional int32 max_retries = 6;
     optional int32 timeout = 7;
     optional string type = 8;
+}
+
+message NeutronHealthMonitorV2 {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional bool admin_state_up = 3;
+    repeated UUID pools = 4;
+    optional string expected_codes = 5;
+    optional string http_method = 6;
+    optional string url_path = 7;
+    optional int32 delay = 8;
+    optional int32 max_retries = 9;
+    optional int32 timeout = 10;
+    optional string type = 11;
+    optional string name = 12;
 }
 
 message PortBinding {  // This model itself will not be persisted in Storage.
