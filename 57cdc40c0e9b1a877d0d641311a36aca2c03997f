@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0c587f89",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-11-11T14:38:54Z",
+      "side": 1,
+      "message": "The other services we have in service discovery (elasticsearch, logstash, ... use lowercase only; I would prefer continuing with that approach and use \u0027clio\u0027",
+      "range": {
+        "startLine": 324,
+        "startChar": 27,
+        "endLine": 324,
+        "endChar": 31
+      },
+      "revId": "57cdc40c0e9b1a877d0d641311a36aca2c03997f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
