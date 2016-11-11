@@ -28,29 +28,34 @@ enum Type {
     DHCP = 4;
     DHCP_V6 = 5;
     HEALTH_MONITOR = 6;
-    HOST = 7;
-    IP_ADDR_GROUP = 8;
-    LOAD_BALANCER = 9;
-    NETWORK = 10;
-    POOL = 11;
-    POOL_MEMBER = 12;
-    PORT = 13;
-    PORT_GROUP = 14;
-    ROUTE = 15;
-    ROUTER = 16;
-    RULE = 17;
-    TRACE_REQUEST = 18;
-    TUNNEL_ZONE = 19;
-    VIP = 20;
-    VTEP = 21;
-    MIRROR = 22;
-    HOST_GROUP = 23;
-    L2INSERTION = 31;
-    SERVICE_CONTAINER = 32;
-    SERVICE_CONTAINER_GROUP = 33;
-    QOS_POLICY = 34;
-    QOS_RULE_BWLIMIT = 35;
-    QOS_RULE_DSCP = 36;
+    HEALTH_MONITOR_V2 = 7;
+    HOST = 8;
+    IP_ADDR_GROUP = 9;
+    LB_LISTENER_V2 = 10;
+    LOAD_BALANCER = 11;
+    LOAD_BALANCER_V2 = 12;
+    NETWORK = 13;
+    POOL = 14;
+    POOL_V2 = 15;
+    POOL_MEMBER = 16;
+    POOL_MEMBER_V2 = 17;
+    PORT = 18;
+    PORT_GROUP = 19;
+    ROUTE = 20;
+    ROUTER = 21;
+    RULE = 22;
+    TRACE_REQUEST = 23;
+    TUNNEL_ZONE = 24;
+    VIP = 25;
+    VTEP = 26;
+    MIRROR = 27;
+    HOST_GROUP = 28;
+    L2INSERTION = 29;
+    SERVICE_CONTAINER = 30;
+    SERVICE_CONTAINER_GROUP = 31;
+    QOS_POLICY = 32;
+    QOS_RULE_BWLIMIT = 33;
+    QOS_RULE_DSCP = 34;
 }
 
 message BgpNetwork {
@@ -161,6 +166,10 @@ message HealthMonitor {
     repeated UUID pool_ids = 101;
 }
 
+message HealthMonitorV2 {
+    optional UUID id = 1;
+}
+
 message Host {
     optional UUID id = 1;
     optional string name = 2;
@@ -217,6 +226,10 @@ message L2Insertion {
     optional UUID srv_rule_out_id = 101;
 }
 
+message LBListenerV2 {
+    optional UUID id = 1;
+}
+
 message LoadBalancer {
     // Load Balancer ID is always the same as the Router ID to which the LB is
     // attached. Therefore, LoadBalancer does not have a reference to Router.
@@ -226,6 +239,10 @@ message LoadBalancer {
     // Backreference
     optional UUID router_id = 101;
     repeated UUID pool_ids = 102;
+}
+
+message LoadBalancerV2 {
+    optional UUID id = 1;
 }
 
 message LoggingResource {
@@ -313,6 +330,10 @@ message Pool {
     repeated UUID vip_ids = 102;
 }
 
+message PoolV2 {
+    optional UUID id = 1;
+}
+
 message PoolMember {
     optional UUID id = 1;
     optional bool admin_state_up = 2;
@@ -321,6 +342,10 @@ message PoolMember {
     optional IPAddress address = 5;
     optional int32 protocol_port = 6;
     optional int32 weight = 7;
+}
+
+message PoolMemberV2 {
+    optional UUID id = 1;
 }
 
 message Port {
