@@ -26,6 +26,7 @@ class PoolMember(resource_base.ResourceBase,
 
     def __init__(self, uri, dto, auth):
         super(PoolMember, self).__init__(uri, dto, auth)
+        self.pool_id('00000000-0000-0000-0000-000000000000')
 
     def get_id(self):
         return self.dto['id']
