@@ -177,6 +177,48 @@ message SecurityGroupRule {
     optional string remote_ip_prefix = 10;
 }
 
+message NeutronLoadBalancerV2 {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string project_id = 3;
+    optional string name = 4;
+    optional string description = 5;
+    optional bool admin_state_up = 6;
+    enum ProvisioningStatus {
+        ACTIVE = 0;
+        PENDING_CREATE = 1;
+        ERROR = 2;
+    }
+    optional ProvisioningStatus provisioning_status = 7;
+    enum OperatingStatus {
+        ONLINE = 0;
+        OFFLINE = 1;
+    }
+    optional OperatingStatus operating_status = 8;
+    repeated UUID listeners = 9;
+    optional string vip_address = 10;
+    optional UUID vip_subnet_id = 11;
+    optional string provider = 12;
+    optional UUID flavor = 13;
+}
+
+message NeutronLoadBalancerV2Listener {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string project_id = 3;
+    optional int32 connection_limit = 4;
+
+    optional string protocol = 5;
+    optional string description = 6;
+    optional bool admin_state_up = 7;
+    optional string default_tls_container_ref = 8;
+    repeated string sni_container_refs = 9;
+    repeated UUID loadbalancers = 10;
+    optional UUID default_pool_id = 11;
+    optional string name = 12;
+    optional int32 protocol_port = 13;
+}
+
 message NeutronLoadBalancerPool {
     optional UUID id = 1;
     optional string tenant_id = 2;
@@ -195,6 +237,39 @@ message NeutronLoadBalancerPool {
     optional string status_description = 15;
 }
 
+message NeutronLoadBalancerV2Pool {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string project_id = 3;
+    optional string name = 4;
+    optional string description = 5;
+    optional bool admin_state_up = 6;
+    enum LBAlgorithm {
+        ROUND_ROBIN = 0;
+        LEAST_CONNECTIONS = 1;
+        SOURCE_IP = 2;
+    }
+    optional LBAlgorithm lb_algorithm = 7;
+    repeated UUID members = 8;
+    optional UUID subnet_id = 9;
+    optional UUID vip_id = 10;
+    repeated UUID health_monitors = 11;
+    message HealthMonitorV2Status {
+        optional UUID monitor_id = 1;
+        optional string status = 2;
+        optional string status_description = 3;
+    }
+    repeated HealthMonitorV2Status health_monitors_status = 12;
+    optional string protocol = 13;
+    optional LBStatus status = 14;
+    optional string provider = 15;
+    message LBV2SessionPersistenceAlgorithm {
+        optional string type = 1;
+        optional string cookie_name = 2;
+    }
+    optional LBV2SessionPersistenceAlgorithm session_persistence = 16;
+}
+
 message NeutronLoadBalancerPoolMember {
     optional UUID id = 1;
     optional string tenant_id = 2;
@@ -205,6 +280,19 @@ message NeutronLoadBalancerPoolMember {
     optional int32 weight = 7;
     optional string status = 8;
     optional string status_description = 9;
+}
+
+message NeutronLoadBalancerV2PoolMember {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string project_id = 3;
+    optional UUID pool_id = 4;
+    optional IPAddress address = 5;
+    optional bool admin_state_up = 6;
+    optional int32 protocol_port = 7;
+    optional int32 weight = 8;
+    optional LBStatus status = 9;
+    optional string status_description = 10;
 }
 
 message NeutronVIP {
@@ -250,6 +338,33 @@ message NeutronHealthMonitor {
     optional int32 max_retries = 6;
     optional int32 timeout = 7;
     optional string type = 8;
+}
+
+message NeutronHealthMonitorV2 {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string project_id = 3;
+    optional bool admin_state_up = 4;
+
+    message HealthMonitorV2Pool {
+        optional UUID pool_id = 1;
+        optional string status = 2;
+        optional string status_description = 3;
+    }
+    repeated HealthMonitorV2Pool pools = 5;
+    optional string expected_codes = 6;
+    optional string http_method = 7;
+    optional string url_path = 8;
+    optional int32 delay = 9;
+    optional int32 max_retries = 10;
+    optional int32 timeout = 11;
+    enum HealthMonitorType {
+        PING = 0;
+        TCP = 1;
+        HTTP = 2;
+        HTTPS = 3;
+    }
+    optional HealthMonitorType type = 12;
 }
 
 message PortBinding {  // This model itself will not be persisted in Storage.
