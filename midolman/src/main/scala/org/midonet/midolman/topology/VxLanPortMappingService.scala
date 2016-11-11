@@ -37,7 +37,6 @@ import org.midonet.cluster.models.Topology.{Network, Port, Vtep}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.selfHealingTypeObservable
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VxLanPortMappingService.{TunnelInfo, TunnelIpAndVni, VtepInfo}
 import org.midonet.packets.IPv4Addr
@@ -456,9 +455,9 @@ class VxLanPortMappingService(vt: VirtualTopology)
 
     override protected def doStart(): Unit = {
         log info "Starting VXLAN port mapping service"
-        vtepsSubscription = selfHealingTypeObservable[Vtep](store)
-                                .observeOn(vt.vtScheduler)
-                                .subscribe(vtepsObserver)
+        vtepsSubscription = store.observable(classOf[Vtep])
+                                 .observeOn(vt.vtScheduler)
+                                 .subscribe(vtepsObserver)
         notifyStarted()
     }
 

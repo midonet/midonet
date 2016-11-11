@@ -40,7 +40,7 @@ import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.services.vxgw.FloodingProxyManager.{HostFpState, MaxFpRetries}
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.logging.ProtoTextPrettifier.makeReadable
-import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil, selfHealingEntityObservable, selfHealingTypeObservable}
+import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.cluster.VxgwLog
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
@@ -170,7 +170,7 @@ class FloodingProxyManager(backend: MidonetBackend) {
         log.info("Flooding proxy manager is started")
         subscriptions.add(
             // backpressure omitted here, we're not expecting > 128 TZs!
-            Observable.merge(selfHealingTypeObservable[TunnelZone](store))
+            Observable.merge(store.observable(classOf[TunnelZone]))
                       .observeOn(rxScheduler)
                       .subscribe(tzObserver))
         herald.start()
@@ -218,7 +218,7 @@ class FloodingProxyManager(backend: MidonetBackend) {
     }
 
     private def trackHost(id: UUID, onTz: UUID): Unit  = {
-        val obs = selfHealingEntityObservable[Host](store, id)
+        val obs = store.observable(classOf[Host], id)
         val stateObs = stateStore.keyObservable(id.toString, classOf[Host], id,
                                                 AliveKey)
         val sub = new CompositeSubscription
