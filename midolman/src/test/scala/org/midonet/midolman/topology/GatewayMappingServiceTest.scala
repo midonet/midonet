@@ -60,7 +60,7 @@ class GatewayMappingServiceTest extends MidolmanSpec {
             service.startAsync().awaitRunning()
 
             Then("Accessing the gateways should succeed")
-            GatewayMappingService.gateways.hasMoreElements shouldBe false
+            GatewayMappingService.gateways.hasMoreElements
         }
     }
 
@@ -78,20 +78,20 @@ class GatewayMappingServiceTest extends MidolmanSpec {
             service.startAsync().awaitRunning()
 
             Then("The gateway table should be empty")
-            GatewayMappingService.gateways.hasMoreElements shouldBe false
+            service.gateways.hasMoreElements shouldBe false
 
             When("Adding a gateway")
             val id = UUID.randomUUID()
             table.add(id, DefaultValue)
 
             Then("The service should return the gateway")
-            GatewayMappingService.gateways.nextElement() shouldBe id
+            service.gateways.nextElement() shouldBe id
 
             When("Removing the gateway")
             table.remove(id)
 
             Then("The gateway table should be empty")
-            GatewayMappingService.gateways.hasMoreElements shouldBe false
+            service.gateways.hasMoreElements shouldBe false
 
             service.stopAsync().awaitTerminated()
         }
@@ -113,13 +113,13 @@ class GatewayMappingServiceTest extends MidolmanSpec {
             service.startAsync().awaitRunning()
 
             Then("The service should return the gateway")
-            GatewayMappingService.gateways.nextElement() shouldBe id
+            service.gateways.nextElement() shouldBe id
 
             When("Removing the gateway")
             table.remove(id)
 
             Then("The gateway table should be empty")
-            GatewayMappingService.gateways.hasMoreElements shouldBe false
+            service.gateways.hasMoreElements shouldBe false
 
             service.stopAsync().awaitTerminated()
         }

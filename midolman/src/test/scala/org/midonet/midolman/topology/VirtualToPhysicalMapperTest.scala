@@ -471,4 +471,11 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec with TopologyBuilder
         }
     }
 
+    feature("The virtual to physical mapper manager sub-services") {
+        scenario("The gateway mapping service") {
+            Then("Calling the singleton method should succeed")
+            GatewayMappingService.gateways.hasMoreElements
+        }
+    }
+
 }
