@@ -72,6 +72,19 @@ JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 
 set -x
 
+# kill the Midonet Agent Services Node if already running. Otherwise startup
+# fails because the JMX port is in use.
+SIGNAL=
+TRY=0
+while pkill $SIGNAL -f $MIDO_MAIN
+do
+    echo "$0: Sent termination signal to running node"
+    TRY=$((TRY+1))
+    test $TRY -eq 3 && SIGNAL='-9'
+    test $TRY -eq 5 && break
+    sleep 1
+done
+
 JAVA_OPTS="$JVM_OPTS -Dminions.log.dir=$MIDO_LOG_DIR \
                      -Dminions.db.dir=$MIDO_DB_DIR \
                      -Dlogback.configurationFile=$MIDO_CFG/logback-minions.xml"
