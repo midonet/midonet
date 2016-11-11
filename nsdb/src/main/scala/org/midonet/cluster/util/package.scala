@@ -29,7 +29,7 @@ import org.midonet.util.functors.makeFunc1
 package object util {
 
     private val log = LoggerFactory.getLogger("org.midonet.cluster.nsdb")
-
+/*
     /** An Observable that will recover itself if an error is emitted */
     def selfHealingTypeObservable[T](store: Storage, retries: Int = 10)
                                     (implicit ct: ClassTag[T]):
@@ -67,5 +67,5 @@ package object util {
                              s"${ct.runtimeClass} failed, recover")
                     selfHealingEntityObservable[T](store, id, retries - 1)(ct)
             })
-    }
+    }*/
 }

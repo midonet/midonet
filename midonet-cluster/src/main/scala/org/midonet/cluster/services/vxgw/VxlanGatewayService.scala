@@ -25,8 +25,10 @@ import scala.concurrent.duration._
 
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
+
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.LoggerFactory
+
 import rx.schedulers.Schedulers
 import rx.{Observable, Observer, Subscriber}
 
@@ -34,12 +36,12 @@ import org.midonet.cluster._
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Vtep
-import org.midonet.cluster.services.MidonetBackend.VtepVxgwManager
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.MidonetBackend.VtepVxgwManager
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.{Snatcher, UUIDUtil, selfHealingTypeObservable}
+import org.midonet.cluster.util.{Snatcher, UUIDUtil}
 import org.midonet.minion.MinionService.TargetNode
-import org.midonet.minion.{MinionService, Context, Minion}
+import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -147,7 +149,7 @@ class VxlanGatewayService @Inject()(
 
     override def doStart(): Unit = {
         log.info("Starting VxLAN Gateway service")
-        selfHealingTypeObservable[Topology.Vtep](backend.store)
+        backend.store.observable(classOf[Topology.Vtep])
             .onBackpressureBuffer(maxVtepBuffer, alertOverflow)
             .observeOn(Schedulers.from(executor))
             .subscribe(new Observer[Observable[Topology.Vtep]] {

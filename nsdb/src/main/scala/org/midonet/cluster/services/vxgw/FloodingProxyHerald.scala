@@ -16,25 +16,25 @@
 
 package org.midonet.cluster.services.vxgw
 
-import java.util.Objects
-import java.util.{ArrayList => JArrayList, UUID}
+import java.util.{Objects, UUID, ArrayList => JArrayList}
 
 import scala.collection.JavaConverters._
 
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory.getLogger
+
 import rx.subjects.PublishSubject
 import rx.subscriptions.{CompositeSubscription, Subscriptions}
-import rx.{Subscription, Subscriber, Observable, Observer}
+import rx.{Observable, Observer, Subscriber, Subscription}
 
 import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
-import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.models.Topology.TunnelZone.Type.VTEP
+import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.FloodingProxyKey
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{selfHealingEntityObservable, selfHealingTypeObservable}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
@@ -111,7 +111,7 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
                 fpIndex -= tzId
                 updateFps()
                 log.debug(s"Zone $tzId loses flooding proxy (was: $oldFp)")
-                updateStream.onNext(new FloodingProxy(tzId, null, null))
+                updateStream.onNext(FloodingProxy(tzId, null, null))
             case None =>
         }
     }
@@ -154,7 +154,7 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
                 val tzId = newZonesIt.next().asJava
                 if (!remainingTunnelZones.contains(tzId)) {
                     val s = subscribeToTunnelZone(
-                        selfHealingEntityObservable[TunnelZone](backend.store, tzId))
+                        backend.store.observable(classOf[TunnelZone], tzId))
                     tunnelZones += tzId -> s
                 } else {
                     remainingTunnelZones -= tzId
@@ -162,7 +162,7 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
             }
 
             remainingTunnelZones foreach { tzId =>
-                tunnelZones.get(tzId).get.unsubscribe()
+                tunnelZones(tzId).unsubscribe()
                 tunnelZones -= tzId
             }
         }
@@ -182,7 +182,7 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
          */
         hostFilter match {
             case None =>
-                selfHealingTypeObservable[TunnelZone](backend.store)
+                backend.store.observable(classOf[TunnelZone])
                     .subscribe(new Observer[Observable[TunnelZone]] {
                         override def onCompleted(): Unit = { }
                         override def onError(e: Throwable): Unit =
@@ -191,7 +191,7 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
                             subscribeToTunnelZone(obs)
                     })
             case Some(hostId) =>
-                selfHealingEntityObservable[Host](backend.store, hostId)
+                backend.store.observable(classOf[Host], hostId)
                     .subscribe(hostObserver)
         }
     }
