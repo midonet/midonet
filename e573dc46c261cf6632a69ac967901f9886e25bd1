@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a78f6c75",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/package.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-11T14:14:44Z",
+      "side": 1,
+      "message": "why you keep these commented out code?",
+      "revId": "e573dc46c261cf6632a69ac967901f9886e25bd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
