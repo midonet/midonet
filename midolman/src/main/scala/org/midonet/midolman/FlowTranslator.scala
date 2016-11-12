@@ -23,7 +23,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.Simulator.{Nat64Action, ToPortAction}
 import org.midonet.midolman.simulation.{PacketContext, Port, VxLanPort}
 import org.midonet.midolman.topology.devices.Host
-import org.midonet.midolman.topology.{VirtualTopology, VxLanPortMappingService}
+import org.midonet.midolman.topology.{GatewayMappingService, VirtualTopology, VxLanPortMappingService}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows._
@@ -68,7 +68,7 @@ trait FlowTranslator {
                 case ToPortAction(port) =>
                     expandPortAction(port, context, addFlowAndPacketAction)
                 case Nat64Action(gatewayId, vni) =>
-                    expandVppAction(gatewayId, vni, context,
+                    expandNat64Action(gatewayId, vni, context,
                                     addFlowAndPacketAction)
                 case a: FlowActionSetKey =>
                     a.getFlowKey match {
@@ -255,10 +255,20 @@ trait FlowTranslator {
         }
     }
 
-    private def expandVppAction(gatewayId: UUID, vni: Long,
-                                context: PacketContext,
-                                addFlowAndPacketAction: AddFlowAction): Unit = {
-        outputActionsToPeer(vni, gatewayId, context, addFlowAndPacketAction)
+    private def expandNat64Action(gatewayId: UUID, vni: Long,
+                                  context: PacketContext,
+                                  addFlowAndPacketAction: AddFlowAction): Unit = {
+        // If the gateway is set by the action, tunnel to that specific gateway.
+        // Otherwise, tunnel to all gateways.
+        if (gatewayId ne null) {
+            outputActionsToPeer(vni, gatewayId, context, addFlowAndPacketAction)
+        } else {
+            val iterator = GatewayMappingService.gateways
+            while (iterator.hasMoreElements) {
+                outputActionsToPeer(vni, iterator.nextElement(), context,
+                                    addFlowAndPacketAction)
+            }
+        }
     }
 
     private def recircInnerPacket(

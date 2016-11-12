@@ -25,6 +25,8 @@ import scala.collection.{mutable, Set => ROSet}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder.DefaultValue
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
@@ -78,15 +80,23 @@ class FlowTranslatorTest extends MidolmanSpec {
         def verify(result: (Seq[FlowAction], ROSet[FlowTag]))
     }
 
-    var nextId = 0
-    def id = {
+    case class VtepDef(tunIp: IPv4Addr, mgmtIp: IPv4Addr, vni: Int)
+
+    private var backend: MidonetBackend = _
+    private var nextId = 0
+
+    protected override def beforeTest(): Unit = {
+        backend = injector.getInstance(classOf[MidonetBackend])
+    }
+
+    private def id = {
         val x = nextId
         nextId += 1
         x
     }
 
-    def makePort(host: UUID, bridge: Option[UUID] = None,
-                 interface: Option[String] = None): BridgePort = {
+    private def makePort(host: UUID, bridge: Option[UUID] = None,
+                         interface: Option[String] = None): BridgePort = {
         val port = newBridgePort(bridge match {
                                      case Some(bridgeid) => bridgeid
                                      case None => newBridge("bridge" + id)
@@ -96,8 +106,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         fetchDevice[BridgePort](port)
     }
 
-    case class VtepDef(tunIp: IPv4Addr, mgmtIp: IPv4Addr, vni: Int)
-    def makeVxLanPort(host: UUID, bridge: UUID, vtep: VtepDef, tzId: UUID): VxLanPort = {
+    private def makeVxLanPort(host: UUID, bridge: UUID, vtep: VtepDef,
+                              tzId: UUID): VxLanPort = {
 
         val port = newVxLanPort(bridge, vtep.mgmtIp, 4789,
                                 vtep.vni, vtep.tunIp, tzId)
@@ -107,7 +117,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         fetchDevice[VxLanPort](port)
     }
 
-    def activatePorts(localPorts: Seq[UUID]): Unit = {
+    private def activatePorts(localPorts: Seq[UUID]): Unit = {
         localPorts foreach { p =>
             VirtualToPhysicalMapper.setPortActive(p, portNumber = -1,
                                                   active = true,
@@ -115,20 +125,20 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
     }
 
-    def reject(port: UUID) = newChain(port, RuleResult.Action.REJECT)
+    private def reject(port: UUID) = newChain(port, RuleResult.Action.REJECT)
 
-    def accept(port: UUID) = newChain(port, RuleResult.Action.ACCEPT)
+    private def accept(port: UUID) = newChain(port, RuleResult.Action.ACCEPT)
 
-    def newChain(port: UUID, action: Action): UUID = {
+    private def newChain(port: UUID, action: Action): UUID = {
         val chain = newOutboundChainOnPort("chain" + id, port)
         newLiteralRuleOnChain(chain, 1, new Condition(), action)
         fetchChains(chain)
         chain
     }
 
-    def makeGreHost(bindings: Map[UUID, String] = Map(),
-                    hostIp: IPv4Addr = IPv4Addr("102.32.2.2"),
-                    zones: Map[UUID, IPv4Addr] = Map()): Unit = {
+    private def makeGreHost(bindings: Map[UUID, String] = Map(),
+                            hostIp: IPv4Addr = IPv4Addr("102.32.2.2"),
+                            zones: Map[UUID, IPv4Addr] = Map()): Unit = {
         (Map(UUID.randomUUID() -> hostIp) ++ zones) foreach { case (id, ip) =>
             greTunnelZone(ip.toString, id=Some(id))
             addTunnelZoneMember(id, hostId, ip)
@@ -136,8 +146,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         bindings foreach { case (id, name) => materializePort(id, hostId, name) }
     }
 
-    def makeVxlanHost(hostIp: IPv4Addr = IPv4Addr("102.32.2.3"),
-                      zones: Map[UUID, IPv4Addr] = Map()): Unit = {
+    private def makeVxlanHost(hostIp: IPv4Addr = IPv4Addr("102.32.2.3"),
+                              zones: Map[UUID, IPv4Addr] = Map()): Unit = {
         (Map(UUID.randomUUID() -> hostIp) ++ zones) foreach { case (id, ip) =>
             vxlanTunnelZone(ip.toString, id=Some(id))
             addTunnelZoneMember(id, hostId, ip)
@@ -188,7 +198,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
     }
 
-    feature("ToVppAction is translated") {
+    feature("Nat64Action is translated") {
         translationScenario("To gateway host") { ctx =>
             val remoteHost = newHost("remoteHost")
             val vni = 20001
@@ -198,6 +208,21 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx translate Nat64Action(remoteHost, vni)
             ctx verify (List(setKey(FlowKeys.tunnel(vni, 1, 2, 0)), output(0)),
                         Set(FlowTagger.tagForTunnelRoute(1, 2)))
+        }
+
+        translationScenario("Gateway host not specified") { ctx =>
+            val remoteHost = newHost("remoteHost")
+            val vni = 20001
+            ctx vxlanPort 1343
+            ctx peer remoteHost -> (1, 2)
+
+            val table = backend.stateTableStore.getTable[UUID, AnyRef](
+                MidonetBackend.GatewayTable)
+            table.addPersistent(remoteHost, DefaultValue)
+
+            ctx translate Nat64Action(hostId = null, vni)
+            ctx verify (List(setKey(FlowKeys.tunnel(vni, 1, 2, 0)), output(0)),
+                Set(FlowTagger.tagForTunnelRoute(1, 2)))
         }
     }
 
