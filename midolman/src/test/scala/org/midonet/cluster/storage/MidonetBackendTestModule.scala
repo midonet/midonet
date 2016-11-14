@@ -58,6 +58,9 @@ class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend
     inMemoryZoom.registerTable(classOf[Fip64Entry],
                                classOf[AnyRef], MidonetBackend.Fip64Table,
                                classOf[Fip64StateTable])
+    inMemoryZoom.registerTable(classOf[UUID], classOf[AnyRef],
+                               MidonetBackend.GatewayTable,
+                               classOf[GatewayHostStateTable])
     val connectionState =
         BehaviorSubject.create[ConnectionState](ConnectionState.CONNECTED)
 

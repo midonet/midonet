@@ -26,8 +26,9 @@ import org.midonet.cluster.models.Topology
 import org.midonet.cluster.state.PortStateStorage.PortState
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.rules.Rule
-import org.midonet.midolman.simulation.Simulator.{ContinueWith, SimHook, ToPortAction}
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.rules.{Nat64Rule, Rule}
+import org.midonet.midolman.simulation.Simulator.{ContinueWith, Nat64Action, SimHook, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.odp.FlowMatch
 import org.midonet.packets._
@@ -535,6 +536,51 @@ case class RouterPort(override val id: UUID,
         } else {
             super.egressCommon(context, next)
         }
+    }
+
+    protected override def emitCommon: SimStep = {
+        val emitBase = super.emitCommon
+        if (!MidolmanConfig.fip64Vxlan) {
+            return emitBase
+        }
+        var index = 0
+        while (index < fipNatRules.size()) {
+            if (fipNatRules.get(index).isInstanceOf[Nat64Rule]) {
+                return context => {
+                    if (fipNatMatch(context)) {
+                        context.log.debug("Emitting packet to NAT64 gateway " +
+                                          s"with tunnel key $tunnelKey")
+                        context.calculateActionsFromMatchDiff()
+                        context.addVirtualAction(Nat64Action(null, tunnelKey))
+                        context.trackConnection(deviceId)
+                        AddVirtualWildcardFlow
+                    } else {
+                        emitBase(context)
+                    }
+                }
+            }
+            index += 1
+        }
+        emitBase
+    }
+
+    private def fipNatMatch(context: PacketContext): Boolean = {
+        val address: Int = context.wcmatch.getNetworkDstIP match {
+            case ip4: IPv4Addr => ip4.addr
+            case _ => return false
+        }
+        var index = 0
+        while (index < fipNatRules.size()) {
+            fipNatRules.get(index) match {
+                case rule: Nat64Rule if rule.natPool ne null =>
+                    if (rule.natPool.nwStart.addr <= address &&
+                        rule.natPool.nwEnd.addr >= address)
+                        return true
+                case _ =>
+            }
+            index += 1
+        }
+        false
     }
 
     override def toString =

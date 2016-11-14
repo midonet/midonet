@@ -181,6 +181,7 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
     override def logSource = "org.midonet.devices.underlay"
 
     private val vxlanPortMappingService = new VxLanPortMappingService(vt)
+    private val gatewayMappingService = new GatewayMappingService(vt)
 
     // Use a private executor to manage the container handlers. Since the
     // container handler perform I/O operations (e.g. create namespaces, etc.)
@@ -207,61 +208,75 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
 
     override def doStart(): Unit = {
         try {
-            vxlanPortMappingService.startAsync().awaitRunning()
+            startService(gatewayMappingService, "gateway mapping")
+            startService(vxlanPortMappingService, "VXLAN port mapping")
+            startService(containersService, "containers")
+            notifyStarted()
         } catch {
             case NonFatal(e) =>
-                log.error("Failed to start the VXLAN port mapping service", e)
-                notifyFailed(e)
+                log.error(e.getMessage, e)
                 doStop()
-                return
-        }
-        try {
-            containersService.startAsync().awaitRunning()
-        } catch {
-            case NonFatal(e) =>
-                log.error("Failed to start the Containers service", e)
                 notifyFailed(e)
-                doStop()
-                return
         }
-
-        notifyStarted()
     }
 
     override def doStop(): Unit = {
         clearPortsActive().await()
 
-        try {
-            containersService.stopAsync().awaitTerminated()
-        } catch {
-            case NonFatal(e) =>
-                log.warn("Failed to stop the containers service", e)
-        }
-        try {
-            vxlanPortMappingService.stopAsync().awaitTerminated()
-        } catch {
-            case NonFatal(e) =>
-                log.warn("Failed to stop the VXLAN port mapping service", e)
-        }
+        stopService(containersService, "containers")
+        stopService(vxlanPortMappingService, "VXLAN port mapping")
+        stopService(gatewayMappingService, "gateway mapping")
 
+        shutdown()
+
+        if (state() != State.FAILED) {
+            notifyStopped()
+        }
+    }
+
+    /**
+      * Starts the specified service.
+      */
+    @throws[IllegalStateException]
+    private def startService(service: AbstractService, name: String): Unit = {
+        try {
+            service.startAsync().awaitRunning()
+        } catch {
+            case NonFatal(e) =>
+                throw new IllegalStateException(s"Failed to start the $name service", e)
+        }
+    }
+
+    /**
+      * Stops the specified service.
+      */
+    private def stopService(service: AbstractService, name: String): Unit = {
+        try {
+            service.stopAsync().awaitTerminated()
+        } catch {
+            case NonFatal(e) =>
+                log.warn(s"Failed to stop the $name service", e)
+        }
+    }
+
+    /**
+      * Shuts down the executors used by the [[VirtualToPhysicalMapper]].
+      */
+    private def shutdown(): Unit = {
         // Shutdown the executors.
         containerExecutors.shutdown()
         containerExecutor.shutdown()
         ioExecutor.shutdown()
 
         if (!containerExecutor.awaitTermination(vt.config.containers
-                                                  .shutdownGraceTime.toMillis,
+                                                    .shutdownGraceTime.toMillis,
                                                 TimeUnit.MILLISECONDS)) {
             containerExecutor.shutdownNow()
         }
         if (!ioExecutor.awaitTermination(vt.config.containers
-                                           .shutdownGraceTime.toMillis,
+                                             .shutdownGraceTime.toMillis,
                                          TimeUnit.MILLISECONDS)) {
             ioExecutor.shutdownNow()
-        }
-
-        if (state() != State.FAILED) {
-            notifyStopped()
         }
     }
 
