@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a2e3d7a3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-14T07:28:28Z",
+      "side": 1,
+      "message": "doStart/doStop is synchronized by a monitor.\nhttps://google.github.io/guava/releases/19.0/api/docs/src-html/com/google/common/util/concurrent/AbstractService.html#line.98\nas you removed the assignment in L176, the lock doesn\u0027t seem necessary anymore.",
+      "parentUuid": "baa041b7_02e843b2",
+      "range": {
+        "startLine": 128,
+        "startChar": 8,
+        "endLine": 128,
+        "endChar": 25
+      },
+      "revId": "4f2fbd9924564b9cc33dff2a9236d7f39bddf63a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2cbd8367",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 24
