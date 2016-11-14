@@ -22,6 +22,30 @@
       "revId": "0e39e58fc8f9c49e2dd51fb41a5e56b980039c9f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c944be1a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-14T21:47:25Z",
+      "side": 1,
+      "message": "This is done on constructor, because the method returns a function that is used to intialize a val in the base class",
+      "parentUuid": "baa041b7_ae4ce0c8",
+      "range": {
+        "startLine": 530,
+        "startChar": 15,
+        "endLine": 530,
+        "endChar": 20
+      },
+      "revId": "0e39e58fc8f9c49e2dd51fb41a5e56b980039c9f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
