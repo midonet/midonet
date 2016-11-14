@@ -22,6 +22,30 @@
       "revId": "9f58cdb6c0ae6890b47bd8e36a69dd0b3ad6c62c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_894eb636",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-14T21:48:31Z",
+      "side": 1,
+      "message": "agree: I added it initially because I didn\u0027t know how the code will look like, it is redundant now",
+      "parentUuid": "baa041b7_eed9c8f5",
+      "range": {
+        "startLine": 71,
+        "startChar": 38,
+        "endLine": 71,
+        "endChar": 47
+      },
+      "revId": "9f58cdb6c0ae6890b47bd8e36a69dd0b3ad6c62c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
