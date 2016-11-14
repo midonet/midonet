@@ -44,7 +44,6 @@ class PortBinder(storage: Storage, stateStorage: StateStorage) {
                 newPortBldr.setPreviousHostId(oldPort.getHostId)
             }
             tx.update(newPortBldr.build)
-            tx.commit()
         } catch {
             case NonFatal(e) =>
                 log.error(s"Unable to bind port $portId to host $hostId", e)
@@ -70,7 +69,6 @@ class PortBinder(storage: Storage, stateStorage: StateStorage) {
                     .setPreviousHostId(pHostId)
                     .build()
                 tx.update(newPort)
-                tx.commit()
             }
         } catch {
             case NonFatal(e) =>
