@@ -26,7 +26,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink._
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKeys}
-import org.midonet.odp.ports.NetDevPort
+import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
 import org.midonet.packets.IPv6Addr
 
 object VppOvs {
@@ -106,18 +106,26 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         flowMatch
     }
 
-    def createDpPort(portName: String): DpPort = {
+    private def createDpPortImpl(portBuilder: () => DpPort) = {
         buf.clear()
-        val port = new NetDevPort(portName)
+        val port = portBuilder()
         proto.prepareDpPortCreate(dp.getIndex, port, buf)
         writeRead[DpPort](buf, DpPort.deserializer.deserializeFrom)
     }
+
+    def createDpPort(portName: String): DpPort =
+        createDpPortImpl(() => new NetDevPort(portName))
 
     def deleteDpPort(port: DpPort): Unit = {
         buf.clear()
         proto.prepareDpPortDelete(dp.getIndex, port, buf)
         writeRead(buf, identity)
     }
+
+    def createVxlanDpPort(portName: String,
+                          portNumber: Short): VxLanTunnelPort =
+        createDpPortImpl(() => new VxLanTunnelPort(portName, portNumber)).
+            asInstanceOf[VxLanTunnelPort]
 
     def addIpv6Flow(inputPort: Int, outputPort: Int): Unit = {
         buf.clear()
