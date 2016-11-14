@@ -610,5 +610,11 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 deleteNamespace(nsIPv6)
             }
         }
+
+        scenario("Can create Vxlan ovs port") {
+            val datapath = createDatapath("foobar")
+            val ovs = new VppOvs(datapath)
+            ovs.createVxlanDpPort("vxlan_test_port", 5321)
+        }
     }
 }
