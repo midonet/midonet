@@ -133,6 +133,7 @@ class DatapathConfig(val conf: Config, val schema: Config) extends TypeFailureFa
     def vxlanVtepUdpPort = getInt(s"$PREFIX.vxlan_vtep_udp_port")
     def vxlanOverlayUdpPort = getInt(s"$PREFIX.vxlan_overlay_udp_port")
     def vxlanRecirculateUdpPort = getInt(s"$PREFIX.vxlan_recirculate_udp_port")
+    def vxlanVppUdpPort = getInt(s"$PREFIX.vxlan_vpp_udp_port")
 
     def recircCidr = IPv4Subnet.fromCidr(Try(getString(s"$PREFIX.recirc_cidr"))
                                                .getOrElse("169.254.123.0/24"))
