@@ -1543,6 +1543,9 @@ object TopologyBuilder {
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
 
+    def randomIPv6Subnet = new IPv6Subnet(
+        new IPv6Addr(random.nextLong(), random.nextLong()), random.nextInt(128))
+
     implicit def asRichHost(host: Host): RichHost = new RichHost(host)
 
     implicit def asRichTunnelZone(tunnelZone: TunnelZone): RichTunnelZone =
