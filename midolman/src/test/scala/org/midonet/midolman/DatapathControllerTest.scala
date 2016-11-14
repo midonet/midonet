@@ -244,19 +244,19 @@ class DatapathControllerTest extends MidolmanSpec {
         }
     }
 
-    feature("The datapath controller handles port bindings") {
-        scenario("Port creation fails")
-        {
-            dpc.driver.tunnelOverlayGre should be(null)
-            dpc.driver.tunnelOverlayVxLan should be(null)
-            dpc.driver.tunnelVtepVxLan should be(null)
+    scenario("The datapath controller initializes tunnel ports")
+    {
+        dpc.driver.tunnelOverlayGre should be(null)
+        dpc.driver.tunnelOverlayVxLan should be(null)
+        dpc.driver.tunnelVtepVxLan should be(null)
+        dpc.driver.tunnelVppVxlan shouldBe null
 
-            initialize()
+        initialize()
 
-            dpc.driver.tunnelOverlayGre should not be null
-            dpc.driver.tunnelOverlayVxLan should not be null
-            dpc.driver.tunnelVtepVxLan should not be null
-        }
+        dpc.driver.tunnelOverlayGre should not be null
+        dpc.driver.tunnelOverlayVxLan should not be null
+        dpc.driver.tunnelVtepVxLan should not be null
+        dpc.driver.tunnelVppVxlan should not be null
     }
 
     scenario("The datapath controller handles tunnel zones") {

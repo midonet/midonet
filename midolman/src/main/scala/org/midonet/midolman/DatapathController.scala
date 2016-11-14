@@ -240,8 +240,14 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             makePort(VirtualMachine) { () =>
                 new NetDevPort(config.datapath.recircConfig.recircMnName)
             }
-        } map { recircPort =>
+        } flatMap { recircPort =>
             driver.hostRecircPort = recircPort
+            makePort(VirtualMachine) { () =>
+                val vxlanVppPort = config.datapath.vxlanVppUdpPort
+                VxLanTunnelPort make("tnvxlan-vpp", vxlanVppPort)
+            }
+        } map { vpp =>
+            driver.tunnelVppVxlan = vpp
             TunnelPortsCreated
         } pipeTo self
     }
@@ -426,11 +432,12 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     import DatapathStateDriver._
     import UnderlayResolver.Route
 
-    val log = Logger(LoggerFactory.getLogger("org.midonet.datapath-control"))
+    private val log = Logger(LoggerFactory.getLogger("org.midonet.datapath-control"))
 
     var tunnelOverlayGre: GreTunnelPort = _
     var tunnelOverlayVxLan: VxLanTunnelPort = _
     var tunnelVtepVxLan: VxLanTunnelPort = _
+    var tunnelVppVxlan: VxLanTunnelPort = _
     var tunnelRecircVxLanPort: VxLanTunnelPort = _
     var hostRecircPort: NetDevPort = _
 
