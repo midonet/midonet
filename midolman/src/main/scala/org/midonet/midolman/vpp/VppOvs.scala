@@ -20,13 +20,15 @@ import java.nio.ByteBuffer
 import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
+import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VtepTunnel}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink._
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKeys}
-import org.midonet.odp.ports.NetDevPort
+import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
 import org.midonet.packets.IPv6Addr
 
 object VppOvs {
@@ -35,7 +37,9 @@ object VppOvs {
     val NoProtocol = 0.toByte
 }
 
-class VppOvs(dp: Datapath) extends MidolmanLogging {
+class VppOvs(dp: Datapath,
+             upcallConnManager: UpcallDatapathConnectionManager)
+    extends MidolmanLogging {
     import VppOvs._
 
     override def logSource = s"org.midonet.vpp"
@@ -117,6 +121,20 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         buf.clear()
         proto.prepareDpPortDelete(dp.getIndex, port, buf)
         writeRead(buf, identity)
+    }
+
+    def createVxlanDpPort(portName: String,
+                          portNumber: Short): Future[VxLanTunnelPort] = {
+        val port = new VxLanTunnelPort(portName, portNumber)
+        upcallConnManager.
+            createAndHookDpPort(dp, port,
+                                VtepTunnel) map {
+            case (p, _) => p.asInstanceOf[VxLanTunnelPort]
+        }
+    }
+
+    def deleteVxlanDpPort(port: DpPort): Future[_] = {
+        upcallConnManager.deleteDpPort(dp, port)
     }
 
     def addIpv6Flow(inputPort: Int, outputPort: Int): Unit = {
