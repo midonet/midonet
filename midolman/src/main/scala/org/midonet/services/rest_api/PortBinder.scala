@@ -24,13 +24,8 @@ import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.services.rest_api.BindingApiService.log
-import org.midonet.util.{DefaultRetriable, ImmediateRetriable}
 
-class PortBinder(storage: Storage, stateStorage: StateStorage)
-    extends DefaultRetriable with ImmediateRetriable {
-
-
-    override def maxRetries = 3
+class PortBinder(storage: Storage, stateStorage: StateStorage) {
 
     def bindPort(portId: UUID, hostId: UUID, deviceName: String): Unit = {
         val protoHostId = hostId.asProto
