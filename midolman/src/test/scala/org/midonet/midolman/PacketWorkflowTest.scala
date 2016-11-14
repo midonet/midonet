@@ -17,67 +17,71 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import org.midonet.midolman.topology.VirtualTopology
-
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 
-import akka.actor.Props
-import akka.testkit.TestActorRef
-
-import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.slf4j.helpers.NOPLogger
 
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.flows.ManagedFlow
 import org.midonet.midolman.monitoring.NullFlowRecorder
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets}
-import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable}
+import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable, FlowStateAgentPackets => FlowStatePackets}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.odp.flows.{FlowActions, FlowAction}
+import org.midonet.odp.flows.{FlowAction, FlowActions}
+import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort}
 import org.midonet.odp.{Datapath, FlowMatches, Packet}
-import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.Ethernet
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.EthBuilder
-import org.midonet.packets.util.PacketBuilder.{udp, _}
+import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
 class PacketWorkflowTest extends MidolmanSpec {
-    var packetsSeen = List[PacketContext]()
-    var packetWorkflow: TestablePacketWorkflow = _
-    var packetsOut = 0
-    var stateMessagesSeen = 0
 
-    val NoLogging = Logger(NOPLogger.NOP_LOGGER)
+    private var packetsSeen = List[PacketContext]()
+    private var packetWorkflow: TestablePacketWorkflow = _
+    private var packetsOut = 0
+    private var stateMessagesSeen = 0
 
-    val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
-    val natTable = new MockFlowStateTable[NatKey, NatBinding]()
-
-    var statePushed = false
-
-    val cookie = 42
+    private val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
+    private val natTable = new MockFlowStateTable[NatKey, NatBinding]()
 
     override def beforeTest() {
         createPacketWorkflow()
     }
 
-    def createPacketWorkflow(simulationExpireMillis: Long = 5000L): Unit = {
+    def createPacketWorkflow(simulationExpireMillis: Long = 5000L,
+                             custom: Boolean = true,
+                             overlayVxlanPort: Int = 10,
+                             vtepVxlanPort: Int = 11,
+                             vppVxlanPort: Int = 12): Unit = {
+        val dpState = new DatapathStateDriver(new Datapath(0, "midonet"))
+        dpState.tunnelOverlayGre = new GreTunnelPort("overlay-gre")
+        dpState.tunnelOverlayVxLan = new VxLanTunnelPort("overlay-vxlan", 4700,
+                                                         overlayVxlanPort)
+        dpState.tunnelVtepVxLan = new VxLanTunnelPort("vtep-vxlan", 4701,
+                                                      vtepVxlanPort)
+        dpState.tunnelVppVxlan = new VxLanTunnelPort("vpp-vxlan", 4702,
+                                                     vppVxlanPort)
+
         packetWorkflow = new TestablePacketWorkflow(new CookieGenerator(1, 1),
                                                     mockDpChannel,
+                                                    dpState,
                                                     (x: Int) => { packetsOut += x },
+                                                    custom = custom,
                                                     simulationExpireMillis)
     }
 
@@ -105,6 +109,10 @@ class PacketWorkflowTest extends MidolmanSpec {
     }
 
     def makeUniquePacket(variation: Short): Packet = makeUniqueFrame(variation)
+
+    def makeVppPacket(vni: Int): Packet = {
+        makeFrame(5) << { vxlan vni vni }
+    }
 
     feature("Packet workflow handles packets") {
         scenario("state messages are not deduplicated") {
@@ -150,7 +158,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetWorkflow.process()
 
             Then("the generated packet should be simulated")
-            packetsSeen map { _.ethernet } should be (List(pkt.getEthernet(),
+            packetsSeen map { _.ethernet } should be (List(pkt.getEthernet,
                                                            frame))
 
             And("packetsOut should not be called for the generated packet")
@@ -169,7 +177,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetWorkflow.process()
 
             Then("the generated packet should be seen")
-            packetsSeen map { _.ethernet } should be (List(pkt.getEthernet(),
+            packetsSeen map { _.ethernet } should be (List(pkt.getEthernet,
                                                            frame))
 
             And("packetsOut should not be called for the generated packet")
@@ -201,7 +209,7 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         scenario("packet context is cleared in the waiting room") {
             Given("a simulation result")
-            packetWorkflow.nextActions = List(FlowActions.output(1))
+            packetWorkflow.flowActions = List(FlowActions.output(1))
 
             When("a packet is placed in the waiting room")
             val pkt = makePacket(1)
@@ -252,6 +260,24 @@ class PacketWorkflowTest extends MidolmanSpec {
             Then("The workflow is not restarted")
             packetWorkflow.backChannel.hasMessages shouldBe false
         }
+
+        scenario("Workflow handles VPP tunnel packets without matching port") {
+            val vxlanPortNumber = 20
+            createPacketWorkflow(0, custom = false,
+                                 vppVxlanPort = vxlanPortNumber)
+
+            Given("A VPP packet")
+            val packet = makeVppPacket(1000)
+            packet.getMatch.setInputPortNumber(vxlanPortNumber)
+            packet.getMatch.setTunnelKey(1000)
+
+            When("Simulating the packet")
+            packetWorkflow.handlePackets(packet)
+
+            Then("The packet should be processed")
+            packetWorkflow.result shouldBe FlowCreated
+            packetWorkflow.flowActions shouldBe empty
+        }
     }
 
     feature("Packet Context pooling") {
@@ -269,7 +295,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             metrics.contextsBeingProcessed.getCount shouldBe 1
 
             When("the context is processed")
-            mockDpChannel.contextsSeen.asScala map { c =>
+            mockDpChannel.contextsSeen.asScala foreach { c =>
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
@@ -361,7 +387,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             metrics.contextsPooled.getCount shouldBe 1
 
             When("the original packet finishes processing")
-            mockDpChannel.contextsSeen.asScala map { c =>
+            mockDpChannel.contextsSeen.asScala foreach { c =>
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
@@ -389,7 +415,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             metrics.contextsBeingProcessed.getCount shouldBe 1200
 
             When("the contexts are processed")
-            mockDpChannel.contextsSeen.asScala map { c =>
+            mockDpChannel.contextsSeen.asScala foreach { c =>
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
@@ -603,10 +629,12 @@ class PacketWorkflowTest extends MidolmanSpec {
            */
     class TestablePacketWorkflow(cookieGen: CookieGenerator,
                                  dpChannel: DatapathChannel,
+                                 dpState: DatapathState,
                                  packetOut: Int => Unit,
+                                 custom: Boolean,
                                  override val simulationExpireMillis: Long)
             extends PacketWorkflow(1, 0, injector.getInstance(classOf[MidolmanConfig]),
-                                   hostId, new DatapathStateDriver(new Datapath(0, "midonet")),
+                                   hostId, dpState,
                                    cookieGen, clock, dpChannel,
                                    mockDhcpConfig,
                                    simBackChannel,
@@ -622,8 +650,10 @@ class PacketWorkflowTest extends MidolmanSpec {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
         var generatedException: Exception = _
-        var nextActions: List[FlowAction] = _
+        var flowActions: List[FlowAction] = _
         var exception: Exception = _
+        var result: SimulationResult = _
+        var flow: ManagedFlow = _
 
         def completeWithGenerated(actions: List[FlowAction],
                                   generatedPacket: GeneratedPacket): Unit = {
@@ -645,7 +675,7 @@ class PacketWorkflowTest extends MidolmanSpec {
         }
 
         def complete(actions: List[FlowAction]): Unit = {
-            nextActions = actions
+            flowActions = actions
             p success null
         }
 
@@ -657,15 +687,22 @@ class PacketWorkflowTest extends MidolmanSpec {
         protected override def handleStateMessage(context: PacketContext): Unit =
             stateMessagesSeen += 1
 
-        override def start(pktCtx: PacketContext) = {
+        override def start(pktCtx: PacketContext): SimulationResult = {
+            if (!custom) {
+                result = super.start(pktCtx)
+                flow = pktCtx.flow
+                flowActions = pktCtx.flowActions.asScala.toList
+                return result
+            }
+
             pktCtx.runs += 1
             pktCtx.addFlowTag(FlowTagger.tagForDpPort(1))
             pktCtx.addFlowRemovedCallback(new Callback0 {
                 override def call(): Unit = { }
             })
             pktCtx.wcmatch.setSrcPort(pktCtx.wcmatch.getSrcPort + 1)
-            if (nextActions ne null) {
-                nextActions foreach pktCtx.flowActions.add
+            if (flowActions ne null) {
+                flowActions foreach pktCtx.flowActions.add
             }
             if (pktCtx.runs == 1) {
                 packetsSeen = packetsSeen :+ pktCtx
@@ -674,11 +711,11 @@ class PacketWorkflowTest extends MidolmanSpec {
                         throw generatedException
                     } else FlowCreated
                 } else {
-                    throw new NotYetException(p.future)
+                    throw NotYetException(p.future)
                 }
             } else if (pktCtx.runs == 2) {
                 // re-suspend the packet (with a completed future)
-                throw new NotYetException(p.future)
+                throw NotYetException(p.future)
             } else {
                 if (generatedPacket ne null) {
                     pktCtx.backChannel.tell(generatedPacket)
