@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_eed9c8f5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-14T17:34:46Z",
+      "side": 1,
+      "message": "we can probably remove the gateway from the Nat64Action completely, and just let the translator choose the gateway to use, once we can make that choice.",
+      "range": {
+        "startLine": 71,
+        "startChar": 38,
+        "endLine": 71,
+        "endChar": 47
+      },
+      "revId": "9f58cdb6c0ae6890b47bd8e36a69dd0b3ad6c62c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
