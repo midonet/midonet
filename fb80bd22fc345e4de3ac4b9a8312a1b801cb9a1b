@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_73723fb2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-14T14:10:08Z",
+      "side": 1,
+      "message": "it would be better to return a Future[Any].",
+      "range": {
+        "startLine": 144,
+        "startChar": 41,
+        "endLine": 144,
+        "endChar": 63
+      },
+      "revId": "fb80bd22fc345e4de3ac4b9a8312a1b801cb9a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_73991fd0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-14T14:10:08Z",
+      "side": 1,
+      "message": "use a MAC object (see createDevice)",
+      "range": {
+        "startLine": 156,
+        "startChar": 37,
+        "endLine": 156,
+        "endChar": 43
+      },
+      "revId": "fb80bd22fc345e4de3ac4b9a8312a1b801cb9a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_539cdbbe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-14T14:10:08Z",
+      "side": 1,
+      "message": "Generate a random mac. MAC.random()\n\nAlso, it would be cleaner as.\nmac.getOrElse(MAC.random())",
+      "range": {
+        "startLine": 160,
+        "startChar": 16,
+        "endLine": 160,
+        "endChar": 35
+      },
+      "revId": "fb80bd22fc345e4de3ac4b9a8312a1b801cb9a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b3b7a739",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-14T14:10:08Z",
+      "side": 1,
+      "message": "make the name \"loop-\u003cmac\u003e\"",
+      "range": {
+        "startLine": 169,
+        "startChar": 29,
+        "endLine": 169,
+        "endChar": 31
+      },
+      "revId": "fb80bd22fc345e4de3ac4b9a8312a1b801cb9a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5383bb55",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-14T14:10:08Z",
+      "side": 1,
+      "message": "return Future[Any]",
+      "range": {
+        "startLine": 185,
+        "startChar": 42,
+        "endLine": 185,
+        "endChar": 69
+      },
+      "revId": "fb80bd22fc345e4de3ac4b9a8312a1b801cb9a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_337a7778",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-14T14:10:08Z",
+      "side": 1,
+      "message": "Any",
+      "range": {
+        "startLine": 190,
+        "startChar": 44,
+        "endLine": 190,
+        "endChar": 71
+      },
+      "revId": "fb80bd22fc345e4de3ac4b9a8312a1b801cb9a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d38fcb74",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-14T14:10:08Z",
+      "side": 1,
+      "message": "Any",
+      "range": {
+        "startLine": 213,
+        "startChar": 47,
+        "endLine": 213,
+        "endChar": 68
+      },
+      "revId": "fb80bd22fc345e4de3ac4b9a8312a1b801cb9a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f3940f8d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-14T14:10:08Z",
+      "side": 1,
+      "message": "MAC",
+      "range": {
+        "startLine": 213,
+        "startChar": 31,
+        "endLine": 213,
+        "endChar": 37
+      },
+      "revId": "fb80bd22fc345e4de3ac4b9a8312a1b801cb9a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
