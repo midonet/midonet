@@ -17,15 +17,11 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import org.midonet.midolman.topology.VirtualTopology
-
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 
-import akka.actor.Props
-import akka.testkit.TestActorRef
-
 import com.typesafe.scalalogging.Logger
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
@@ -38,16 +34,15 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets}
-import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable}
+import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable, FlowStateAgentPackets => FlowStatePackets}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.odp.flows.{FlowActions, FlowAction}
+import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.midonet.odp.{Datapath, FlowMatches, Packet}
-import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.Ethernet
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.{udp, _}
 import org.midonet.sdn.flows.FlowTagger

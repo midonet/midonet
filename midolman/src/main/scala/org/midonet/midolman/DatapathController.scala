@@ -82,9 +82,11 @@ trait UnderlayResolver {
 
     def hostRecircOutputAction: FlowActionOutput
 
-    def isVtepTunnellingPort(portNumber: Integer): Boolean
+    def isVtepTunnellingPort(portNumber: Int): Boolean
 
-    def isOverlayTunnellingPort(portNumber: Integer): Boolean
+    def isOverlayTunnellingPort(portNumber: Int): Boolean
+
+    def isVppTunnellingPort(portNumber: Int): Boolean
 }
 
 trait VirtualPortsResolver {
@@ -451,12 +453,18 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     override def tunnelRecircOutputAction = tunnelRecircVxLanPort.toOutputAction
     override def hostRecircOutputAction = hostRecircPort.toOutputAction
 
-    def isVtepTunnellingPort(portNumber: Integer) =
+    override def isVtepTunnellingPort(portNumber: Int): Boolean = {
         tunnelVtepVxLan.getPortNo == portNumber
+    }
 
-    def isOverlayTunnellingPort(portNumber: Integer) =
+    override def isOverlayTunnellingPort(portNumber: Int): Boolean = {
         tunnelOverlayGre.getPortNo == portNumber ||
         tunnelOverlayVxLan.getPortNo == portNumber
+    }
+
+    override def isVppTunnellingPort(portNumber: Int): Boolean = {
+        tunnelVppVxlan.getPortNo == portNumber
+    }
 
     /** 2D immutable map of peerUUID -> zoneUUID -> (srcIp, dstIp, outputAction)
      *  this map stores all the possible underlay routes from this host

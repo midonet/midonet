@@ -51,6 +51,7 @@ import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStateReplicator, NatLeaser, _}
 import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
 import org.midonet.midolman.topology.{VirtualTopology, VxLanPortMappingService}
+import org.midonet.midolman.vpp.VppController
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowActions.output
@@ -114,12 +115,20 @@ class CookieGenerator(val start: Int, val increment: Int) {
 trait UnderlayTrafficHandler { this: PacketWorkflow =>
     import PacketWorkflow._
 
-    def handleFromTunnel(context: PacketContext, inPortNo: Int): SimulationResult =
+    protected def handleFromTunnel(context: PacketContext, inPortNo: Int)
+    : SimulationResult = {
         if (dpState isOverlayTunnellingPort inPortNo) {
             handleFromUnderlay(context)
-        } else {
+        } else if (dpState isVtepTunnellingPort inPortNo) {
             handleFromVtep(context)
+        } else if (dpState isVppTunnellingPort inPortNo) {
+            handleFromVpp(context)
+        } else {
+            context.log.info("Ingress tunnel packet has unknown port number " +
+                             s"$inPortNo: dropping")
+            Drop
         }
+    }
 
     private def handleFromVtep(context: PacketContext): SimulationResult = {
         val srcTunIp = IPv4Addr(context.wcmatch.getTunnelSrc)
@@ -164,6 +173,21 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
                 addActionsForTunnelPacket(context, dpPort)
                 addTranslatedFlow(context, FlowExpirationIndexer.TUNNEL_FLOW_EXPIRATION)
         }
+    }
+
+    private def handleFromVpp(context: PacketContext): SimulationResult = {
+        context.log.debug(s"Received packet matching ${context.origMatch} " +
+                          s"from VPP")
+        val portId = VppController.portOfTunnelKey(context.wcmatch.getTunnelKey)
+        val result = if (portId ne null) {
+            context.inputPort = portId
+            simulatePacketIn(context)
+        } else {
+            context.log.info("VPP tunnel key does not match any virtual port: " +
+                             "dropping")
+            Drop
+        }
+        processSimulationResult(context, result)
     }
 }
 
