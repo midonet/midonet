@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8a24650e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppOvs.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-15T11:05:17Z",
+      "side": 1,
+      "message": "passing a method is strange here. Why not just take a port. and construct it in the calling method.",
+      "range": {
+        "startLine": 109,
+        "startChar": 33,
+        "endLine": 109,
+        "endChar": 44
+      },
+      "revId": "0ceb171acbb84ba2d21dead990f1c169c4849f27",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
