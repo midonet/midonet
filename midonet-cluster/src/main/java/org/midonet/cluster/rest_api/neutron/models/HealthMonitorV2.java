@@ -15,15 +15,22 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import java.util.List;
-import java.util.UUID;
 
-import org.midonet.cluster.data.*;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
 
 @ZoomClass(clazz = org.midonet.cluster.models.Neutron.NeutronHealthMonitorV2.class)
 public class HealthMonitorV2 extends ZoomObject {
@@ -44,7 +51,7 @@ public class HealthMonitorV2 extends ZoomObject {
     public UUID poolId;
 
     @ZoomField(name = "pools")
-    public List<UUID> pools;
+    public List<UUID> pools = new ArrayList<>();
 
     @JsonProperty("expected_codes")
     @ZoomField(name = "expected_codes")

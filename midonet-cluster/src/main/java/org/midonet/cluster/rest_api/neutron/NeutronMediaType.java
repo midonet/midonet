@@ -39,6 +39,16 @@ public final class NeutronMediaType {
     public static final String MEMBERS_JSON_V1 = "application/vnd.org.midonet.neutron.lb.PoolMembers-v1+json";
     public static final String HEALTH_MONITOR_JSON_V1 = "application/vnd.org.midonet.neutron.lb.HealthMonitor-v1+json";
     public static final String HEALTH_MONITORS_JSON_V1 = "application/vnd.org.midonet.neutron.lb.HealthMonitors-v1+json";
+    public static final String LOAD_BALANCER_JSON_V2 = "application/vnd.org.midonet.neutron.lb.LoadBalancer-v2+json";
+    public static final String LOAD_BALANCERS_JSON_V2 = "application/vnd.org.midonet.neutron.lb.LoadBalancers-v2+json";
+    public static final String LB_LISTENER_JSON_V2 = "application/vnd.org.midonet.neutron.lb.Listener-v2+json";
+    public static final String LB_LISTENERS_JSON_V2 = "application/vnd.org.midonet.neutron.lb.Listeners-v2+json";
+    public static final String POOL_JSON_V2 = "application/vnd.org.midonet.neutron.lb.Pool-v2+json";
+    public static final String POOLS_JSON_V2 = "application/vnd.org.midonet.neutron.lb.Pools-v2+json";
+    public static final String POOL_MEMBER_JSON_V2 = "application/vnd.org.midonet.neutron.lb.PoolMember-v2+json";
+    public static final String POOL_MEMBERS_JSON_V2 = "application/vnd.org.midonet.neutron.lb.PoolMembers-v2+json";
+    public static final String HEALTH_MONITOR_JSON_V2 = "application/vnd.org.midonet.neutron.lb.HealthMonitor-v2+json";
+    public static final String HEALTH_MONITORS_JSON_V2 = "application/vnd.org.midonet.neutron.lb.HealthMonitors-v2+json";
     public static final String POOL_HEALTH_MONITOR_JSON_V1 = "application/vnd.org.midonet.neutron.lb.PoolHealthMonitor-v1+json";
     public static final String FIREWALL_JSON_V1 = "application/vnd.org.midonet.neutron.Firewall-v1+json";
 }

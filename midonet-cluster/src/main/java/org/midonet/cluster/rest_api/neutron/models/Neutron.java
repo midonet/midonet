@@ -72,6 +72,21 @@ public class Neutron {
     @JsonProperty("load_balancer")
     public LoadBalancer loadBalancer;
 
+    @JsonProperty("load_balancers_v2")
+    public URI loadBalancersV2;
+
+    @JsonProperty("pools_v2")
+    public URI poolsV2;
+
+    @JsonProperty("pool_members_v2")
+    public URI poolMembersV2;
+
+    @JsonProperty("listeners_v2")
+    public URI listenersV2;
+
+    @JsonProperty("health_monitors_v2")
+    public URI healthMonitorsV2;
+
     @JsonProperty("firewalls")
     public URI firewalls;
 
@@ -178,6 +193,11 @@ public class Neutron {
                && Objects.equal(securityGroupRuleTemplate,
                                 other.securityGroupRuleTemplate)
                && Objects.equal(loadBalancer, other.loadBalancer)
+               && Objects.equal(loadBalancersV2, other.loadBalancersV2)
+               && Objects.equal(poolsV2, other.poolsV2)
+               && Objects.equal(poolMembersV2, other.poolMembersV2)
+               && Objects.equal(listenersV2, other.listenersV2)
+               && Objects.equal(healthMonitorsV2, other.healthMonitorsV2)
                && Objects.equal(firewalls, other.firewalls)
                && Objects.equal(firewallTemplate, other.firewallTemplate)
                && Objects.equal(vpnServices, other.vpnServices)
@@ -215,7 +235,9 @@ public class Neutron {
                                 floatingIpTemplate, securityGroups,
                                 securityGroupTemplate,
                                 securityGroupRules, securityGroupRuleTemplate,
-                                loadBalancer, firewalls, firewallTemplate,
+                                loadBalancer, loadBalancersV2, poolsV2,
+                                poolMembersV2, listenersV2, healthMonitorsV2,
+                                firewallTemplate,
                                 vpnServices, vpnServiceTemplate,
                                 ipsecSiteConnections,
                                 ipsecSiteConnectionTemplate,
@@ -252,6 +274,11 @@ public class Neutron {
             .add("securityGroupRules", securityGroupRules)
             .add("securityGroupRuleTemplate", securityGroupRuleTemplate)
             .add("loadBalancer", loadBalancer)
+            .add("loadBalancersV2", loadBalancersV2)
+            .add("poolsV2", poolsV2)
+            .add("poolMembersV2", poolMembersV2)
+            .add("listenersV2", listenersV2)
+            .add("healthMonitorsV2", healthMonitorsV2)
             .add("firewalls", firewalls)
             .add("firewallTemplate", firewallTemplate)
             .add("vpnServices", vpnServices)

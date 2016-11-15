@@ -15,16 +15,23 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import java.util.List;
-import java.util.UUID;
 
-import org.midonet.cluster.data.*;
-import org.midonet.cluster.models.Neutron;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
 
 @ZoomClass(clazz = Neutron.NeutronLoadBalancerV2.class)
 public class LoadBalancerV2 extends ZoomObject {
@@ -55,7 +62,7 @@ public class LoadBalancerV2 extends ZoomObject {
     public LoadBalancerV2Status operatingStatus;
 
     @ZoomField(name = "listeners")
-    public List<UUID> listeners;
+    public List<UUID> listeners = new ArrayList<>();
 
     @JsonProperty("vip_address")
     @ZoomField(name = "vip_address")
@@ -77,7 +84,7 @@ public class LoadBalancerV2 extends ZoomObject {
     public UUID flavorId;
 
     @ZoomField(name = "pools")
-    public List<UUID> pools;
+    public List<UUID> pools = new ArrayList<>();
 
     @ZoomEnum(clazz = Neutron.NeutronLoadBalancerV2.LoadBalancerV2Status.class)
     public enum LoadBalancerV2Status {
