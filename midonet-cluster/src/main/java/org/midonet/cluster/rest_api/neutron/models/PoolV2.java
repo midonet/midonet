@@ -15,18 +15,25 @@
  */
 
 package org.midonet.cluster.rest_api.neutron.models;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.google.common.base.MoreObjects;
-import org.midonet.cluster.models.Neutron;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.midonet.cluster.data.*;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+
 import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
 
 @ZoomClass(clazz = Neutron.NeutronLoadBalancerV2Pool.class)
 public class PoolV2 extends ZoomObject {
@@ -53,7 +60,7 @@ public class PoolV2 extends ZoomObject {
     public LoadBalancerV2Algorithm lbAlgorithm;
 
     @ZoomField(name = "members")
-    public List<UUID> members;
+    public List<UUID> members = new ArrayList<>();
 
     @JsonProperty("healthmonitor_id")
     @ZoomField(name = "healthmonitor_id")
@@ -64,14 +71,14 @@ public class PoolV2 extends ZoomObject {
     public UUID listenerId;
 
     @ZoomField(name = "listeners")
-    public List<UUID> listeners;
+    public List<UUID> listeners = new ArrayList<>();
 
     @ZoomField(name = "protocol")
     public LoadBalancerV2Protocol protocol;
 
     @JsonProperty("loadbalancers")
     @ZoomField(name = "loadbalancers")
-    public List<UUID> loadBalancers;
+    public List<UUID> loadBalancers = new ArrayList<>();
 
     @JsonProperty("session_persistence")
     @ZoomField(name = "session_persistence")
@@ -130,8 +137,6 @@ public class PoolV2 extends ZoomObject {
         this.protocol = LoadBalancerV2Protocol.forValue(protocol);
         this.lbAlgorithm = LoadBalancerV2Algorithm.forValue(lbAlgorithm);
         this.adminStateUp = adminStateUp;
-        this.listeners = new ArrayList<>();
-        this.loadBalancers = new ArrayList<>();
     }
 
     @JsonIgnore
