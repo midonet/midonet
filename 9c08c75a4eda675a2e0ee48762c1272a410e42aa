@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8447bba2",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-15T09:25:37Z",
+      "side": 1,
+      "message": "I think if we want to allow one or the other, we have to define both, I believe.",
+      "parentUuid": "baa041b7_44a2d3ae",
+      "revId": "9c08c75a4eda675a2e0ee48762c1272a410e42aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a4c2bf32",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2016-11-15T09:14:24Z",
       "side": 1,
       "message": "this can be more than a protocol number. eg. HTTP, TERMINATED_HTTPS, etc.\ni\u0027m not sure if Protocol is appropriate.",
+      "range": {
+        "startLine": 211,
+        "startChar": 22,
+        "endLine": 211,
+        "endChar": 30
+      },
+      "revId": "9c08c75a4eda675a2e0ee48762c1272a410e42aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_64c5d708",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-15T09:25:37Z",
+      "side": 1,
+      "message": "Ahh.  That is inconsistent with the spec, which states this must be one of \"tcp\", \"icmp\", \"udp\", or \"null\".  So, the spec is incorrect?  If so, I will change this back to a string.",
+      "parentUuid": "baa041b7_a4c2bf32",
       "range": {
         "startLine": 211,
         "startChar": 22,
@@ -88,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_24cfcf2a",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-15T09:25:37Z",
+      "side": 1,
+      "message": "The status field, which according to spec is either \"ACTIVE\", \"PENDING_CREATE\", or \"ERROR\"",
+      "parentUuid": "baa041b7_040deb8e",
+      "range": {
+        "startLine": 264,
+        "startChar": 22,
+        "endLine": 264,
+        "endChar": 28
+      },
+      "revId": "9c08c75a4eda675a2e0ee48762c1272a410e42aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c41f03b7",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 5
@@ -111,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_04d28bd1",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-15T09:25:37Z",
+      "side": 1,
+      "message": "It was in the spec.  For what that is worth. :)",
+      "parentUuid": "baa041b7_c41f03b7",
+      "range": {
+        "startLine": 265,
+        "startChar": 20,
+        "endLine": 265,
+        "endChar": 28
+      },
+      "revId": "9c08c75a4eda675a2e0ee48762c1272a410e42aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8419fbd3",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 5
@@ -122,6 +212,30 @@
       "writtenOn": "2016-11-15T09:14:24Z",
       "side": 1,
       "message": "does v2 member have these?",
+      "range": {
+        "startLine": 294,
+        "startChar": 0,
+        "endLine": 295,
+        "endChar": 44
+      },
+      "revId": "9c08c75a4eda675a2e0ee48762c1272a410e42aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e4d9e7f5",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-15T09:25:37Z",
+      "side": 1,
+      "message": "It was in the spec.  I cannot account for whether the spec is accurate or not.",
+      "parentUuid": "baa041b7_8419fbd3",
       "range": {
         "startLine": 294,
         "startChar": 0,
