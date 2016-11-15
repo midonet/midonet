@@ -51,7 +51,7 @@ public class PoolV2 extends ZoomObject {
     public String lbAlgorithm;
 
     @ZoomField(name = "members")
-    public List<UUID> members;
+    public List<UUID> members = new ArrayList<>();
 
     @JsonProperty("healthmonitor_id")
     @ZoomField(name = "healthmonitor_id")
@@ -62,14 +62,14 @@ public class PoolV2 extends ZoomObject {
     public UUID listenerId;
 
     @ZoomField(name = "listeners")
-    public List<UUID> listeners;
+    public List<UUID> listeners = new ArrayList<>();
 
     @ZoomField(name = "protocol")
     public String protocol;
 
     @JsonProperty("loadbalancers")
     @ZoomField(name = "loadbalancers")
-    public List<UUID> loadBalancers;
+    public List<UUID> loadBalancers = new ArrayList<>();
 
     @JsonProperty("session_persistence")
     @ZoomField(name = "session_persistence")
@@ -86,8 +86,6 @@ public class PoolV2 extends ZoomObject {
         this.protocol = protocol;
         this.lbAlgorithm = lbAlgorithm;
         this.adminStateUp = adminStateUp;
-        this.listeners = new ArrayList<>();
-        this.loadBalancers = new ArrayList<>();
     }
 
     @JsonIgnore

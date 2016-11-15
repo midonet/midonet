@@ -41,6 +41,12 @@ public class NeutronUriBuilder {
     public static final String HEALTH_MONITORS = "/health_monitors";
     public static final String POOL_HEALTH_MONITOR = "/pool_health_monitor";
 
+    public static final String LBS_V2 = "/lb_v2";
+    public static final String LB_ISTENERS_V2 = "/listeners_v2";
+    public static final String POOLS_V2 = "/pools_v2";
+    public static final String POOL_MEMBERS_V2 = "/pool_members_v2";
+    public static final String HEALTH_MONITORS_V2 = "/health_monitors_v2";
+
     public static final String FIREWALLS = "/firewalls";
     public static final String VPNSERVICES = "/vpnservices";
     public static final String IPSEC_SITE_CONNECTIONS =
@@ -207,7 +213,7 @@ public class NeutronUriBuilder {
 
     public static URI getPool(URI baseUri, UUID id) {
         return UriBuilder.fromUri(
-            getPools(baseUri)).path(id.toString()).build();
+                getPools(baseUri)).path(id.toString()).build();
     }
 
     public static String getPoolTemplate(URI baseUri) {
@@ -248,6 +254,78 @@ public class NeutronUriBuilder {
     public static URI getPoolHealthMonitor(URI baseUri) {
         return UriBuilder.fromUri(getLoadBalancer(baseUri))
             .path(POOL_HEALTH_MONITOR).build();
+    }
+
+    // LB V2
+    public static URI getLoadBalancersV2(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(LBS_V2).build();
+    }
+
+    public static URI getLoadBalancerV2(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+            getLoadBalancersV2(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getLoadBalancerV2Template(URI baseUri) {
+        return buildIdTemplateUri(getLoadBalancersV2(baseUri));
+    }
+
+    // Listeners (V2)
+    public static URI getListenersV2(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(LB_ISTENERS_V2).build();
+    }
+
+    public static URI getListenerV2(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+            getListenersV2(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getListenerV2Template(URI baseUri) {
+        return buildIdTemplateUri(getListenersV2(baseUri));
+    }
+
+    // Pools V2
+    public static URI getPoolsV2(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(POOLS_V2).build();
+    }
+
+    public static URI getPoolV2(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+            getPoolsV2(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getPoolV2Template(URI baseUri) {
+        return buildIdTemplateUri(getPoolsV2(baseUri));
+    }
+
+    // Pool Members V2
+    public static URI getPoolMembersV2(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(POOL_MEMBERS_V2)
+            .build();
+    }
+
+    public static URI getPoolMemberV2(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+            getPoolMembersV2(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getPoolMemberV2Template(URI baseUri) {
+        return buildIdTemplateUri(getPoolMembersV2(baseUri));
+    }
+
+    // Health Monitors V2
+    public static URI getHealthMonitorsV2(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+            .path(HEALTH_MONITORS_V2).build();
+    }
+
+    public static URI getHealthMonitorV2(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+            getHealthMonitorsV2(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getHealthMonitorV2Template(URI baseUri) {
+        return buildIdTemplateUri(getHealthMonitorsV2(baseUri));
     }
 
     // Neutron BGP

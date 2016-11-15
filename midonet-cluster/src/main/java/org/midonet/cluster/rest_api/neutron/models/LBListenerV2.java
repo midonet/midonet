@@ -19,6 +19,8 @@ package org.midonet.cluster.rest_api.neutron.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.midonet.cluster.data.ZoomClass;
@@ -57,11 +59,11 @@ public class LBListenerV2 extends ZoomObject {
 
     @JsonProperty("sni_container_refs")
     @ZoomField(name = "sni_container_refs")
-    public List<String> sniContainerRefs;
+    public List<String> sniContainerRefs = new ArrayList<>();
 
     @JsonProperty("loadbalancers")
     @ZoomField(name = "loadbalancers")
-    public List<UUID> loadBalancers;
+    public List<UUID> loadBalancers = new ArrayList<>();
 
     @JsonProperty("default_pool_id")
     @ZoomField(name = "default_pool_id")

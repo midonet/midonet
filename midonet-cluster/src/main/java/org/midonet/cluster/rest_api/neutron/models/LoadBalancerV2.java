@@ -18,6 +18,8 @@ package org.midonet.cluster.rest_api.neutron.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,7 +55,7 @@ public class LoadBalancerV2 extends ZoomObject {
     public String operatingStatus;
 
     @ZoomField(name = "listeners")
-    public List<UUID> listeners;
+    public List<UUID> listeners = new ArrayList<>();
 
     @JsonProperty("vip_address")
     @ZoomField(name = "vip_address")
@@ -75,7 +77,7 @@ public class LoadBalancerV2 extends ZoomObject {
     public UUID flavorId;
 
     @ZoomField(name = "pools")
-    public List<UUID> pools;
+    public List<UUID> pools = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {
