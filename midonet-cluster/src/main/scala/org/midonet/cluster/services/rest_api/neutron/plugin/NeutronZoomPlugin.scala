@@ -56,6 +56,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
             with FirewallApi
             with L2GatewayConnectionApi
             with LoadBalancerApi
+            with LoadBalancerV2Api
             with NetworkApi
             with SecurityGroupApi
             with VpnServiceApi
@@ -326,6 +327,72 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         port.id = id
         update(port)
     }
+
+    // LBaaS V2
+    override def getLoadBalancerV2(id: UUID): LoadBalancerV2 = get[LoadBalancerV2](id)
+
+    override def getLoadBalancersV2: util.List[LoadBalancerV2] = listAll(classOf[LoadBalancerV2])
+
+    override def createLoadBalancerV2(lbv2: LoadBalancerV2): LoadBalancerV2 = create(lbv2)
+
+    override def updateLoadBalancerV2(id: UUID, lbv2: LoadBalancerV2): LoadBalancerV2 = {
+        lbv2.id = id
+        update(lbv2)
+    }
+
+    override def deleteLoadBalancerV2(id: UUID) = delete(id, classOf[LoadBalancerV2])
+
+    override def getPoolV2(id: UUID): PoolV2 = get[PoolV2](id)
+
+    override def getPoolsV2: util.List[PoolV2] = listAll(classOf[PoolV2])
+
+    override def createPoolV2(pool: PoolV2): PoolV2 = create(pool)
+
+    override def updatePoolV2(id: UUID, pool: PoolV2): PoolV2 = {
+        pool.id = id
+        update(pool)
+    }
+
+    override def deletePoolV2(id: UUID) = delete(id, classOf[PoolV2])
+
+    override def getPoolMemberV2(id: UUID): PoolMemberV2 = get[PoolMemberV2](id)
+
+    override def getPoolMembersV2: util.List[PoolMemberV2] = listAll(classOf[PoolMemberV2])
+
+    override def createPoolMemberV2(member: PoolMemberV2): PoolMemberV2 = create(member)
+
+    override def updatePoolMemberV2(id: UUID, member: PoolMemberV2): PoolMemberV2 = {
+        member.id = id
+        update(member)
+    }
+
+    override def deletePoolMemberV2(id: UUID) = delete(id, classOf[PoolMemberV2])
+
+    override def getListenerV2(id: UUID): ListenerV2 = get[ListenerV2](id)
+
+    override def getListenersV2: util.List[ListenerV2] = listAll(classOf[ListenerV2])
+
+    override def createListenerV2(l: ListenerV2): ListenerV2 = create(l)
+
+    override def updateListenerV2(id: UUID, l: ListenerV2): ListenerV2 = {
+        l.id = id
+        update(l)
+    }
+
+    override def deleteListenerV2(id: UUID) = delete(id, classOf[ListenerV2])
+
+    override def getHealthMonitorV2(id: UUID): HealthMonitorV2 = get[HealthMonitorV2](id)
+
+    override def getHealthMonitorsV2: util.List[HealthMonitorV2] = listAll(classOf[HealthMonitorV2])
+
+    override def createHealthMonitorV2(healthMonitor: HealthMonitorV2): HealthMonitorV2 = create(healthMonitor)
+
+    override def updateHealthMonitorV2(id: UUID, healthMonitor: HealthMonitorV2): HealthMonitorV2 = {
+        healthMonitor.id = id
+        update(healthMonitor)
+    }
+
+    override def deleteHealthMonitorV2(id: UUID) = delete(id, classOf[HealthMonitorV2])
 
     override def createSubnetBulk(subnets: util.List[Subnet])
     : util.List[Subnet] = bulkCreate(subnets)

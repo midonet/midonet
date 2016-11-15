@@ -72,6 +72,36 @@ public class Neutron {
     @JsonProperty("load_balancer")
     public LoadBalancer loadBalancer;
 
+    @JsonProperty("load_balancers_v2")
+    public URI loadBalancersV2;
+
+    @JsonProperty("load_balancers_v2")
+    public String loadBalancerV2Template;
+
+    @JsonProperty("pools_v2")
+    public URI poolsV2;
+
+    @JsonProperty("pools_v2")
+    public String poolV2Template;
+
+    @JsonProperty("pool_members_v2")
+    public URI poolMembersV2;
+
+    @JsonProperty("pool_members_v2")
+    public String poolMemberV2Template;
+
+    @JsonProperty("listeners_v2")
+    public URI listenersV2;
+
+    @JsonProperty("listeners_v2")
+    public String listenerV2Template;
+
+    @JsonProperty("health_monitors_v2")
+    public URI healthMonitorsV2;
+
+    @JsonProperty("health_monitors_v2")
+    public String healthMonitorV2Template;
+
     @JsonProperty("firewalls")
     public URI firewalls;
 
@@ -178,6 +208,16 @@ public class Neutron {
                && Objects.equal(securityGroupRuleTemplate,
                                 other.securityGroupRuleTemplate)
                && Objects.equal(loadBalancer, other.loadBalancer)
+                && Objects.equal(loadBalancersV2, other.loadBalancersV2)
+                && Objects.equal(loadBalancerV2Template, other.loadBalancerV2Template)
+                && Objects.equal(poolsV2, other.poolsV2)
+                && Objects.equal(poolV2Template, other.poolV2Template)
+               && Objects.equal(poolMembersV2, other.poolMembersV2)
+                && Objects.equal(poolMemberV2Template, other.poolMemberV2Template)
+                && Objects.equal(listenersV2, other.listenersV2)
+               && Objects.equal(listenerV2Template, other.listenerV2Template)
+                && Objects.equal(healthMonitorsV2, other.healthMonitorsV2)
+                && Objects.equal(healthMonitorV2Template, other.healthMonitorV2Template)
                && Objects.equal(firewalls, other.firewalls)
                && Objects.equal(firewallTemplate, other.firewallTemplate)
                && Objects.equal(vpnServices, other.vpnServices)
@@ -215,7 +255,13 @@ public class Neutron {
                                 floatingIpTemplate, securityGroups,
                                 securityGroupTemplate,
                                 securityGroupRules, securityGroupRuleTemplate,
-                                loadBalancer, firewalls, firewallTemplate,
+                                firewalls, loadBalancer,
+                                loadBalancersV2, poolsV2,
+                                poolMembersV2, listenersV2, healthMonitorsV2,
+                                loadBalancerV2Template, poolV2Template,
+                                poolMemberV2Template, listenerV2Template,
+                                healthMonitorV2Template,
+                                firewallTemplate,
                                 vpnServices, vpnServiceTemplate,
                                 ipsecSiteConnections,
                                 ipsecSiteConnectionTemplate,
@@ -252,6 +298,16 @@ public class Neutron {
             .add("securityGroupRules", securityGroupRules)
             .add("securityGroupRuleTemplate", securityGroupRuleTemplate)
             .add("loadBalancer", loadBalancer)
+            .add("loadBalancersV2", loadBalancersV2)
+            .add("loadBalancerV2Template", loadBalancerV2Template)
+            .add("poolsV2", poolsV2)
+            .add("poolV2Template", poolV2Template)
+            .add("poolMembersV2", poolMembersV2)
+            .add("poolMemberV2Template", poolMemberV2Template)
+            .add("listenersV2", listenersV2)
+            .add("listenerV2Template", listenerV2Template)
+            .add("healthMonitorsV2", healthMonitorsV2)
+            .add("healthMonitorV2Template", healthMonitorV2Template)
             .add("firewalls", firewalls)
             .add("firewallTemplate", firewallTemplate)
             .add("vpnServices", vpnServices)
