@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6afb6149",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-15T11:26:32Z",
+      "side": 1,
+      "message": "could be useful. the text string is just for debugging and logging really.",
+      "parentUuid": "baa041b7_aa99696f",
+      "range": {
+        "startLine": 169,
+        "startChar": 29,
+        "endLine": 169,
+        "endChar": 31
+      },
+      "revId": "fb80bd22fc345e4de3ac4b9a8312a1b801cb9a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5383bb55",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
         "patchSetId": 3
