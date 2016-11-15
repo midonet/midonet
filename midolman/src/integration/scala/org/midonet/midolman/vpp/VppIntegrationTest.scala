@@ -562,7 +562,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 assertCmdInNs(nsVxLan,
                               "ip r add default dev tun src 192.168.0.1")
                 assertCmdInNs(nsVxLan,
-                              "ip neigh add 10.0.0.235"
+                              "ip neigh add 10.0.0.1"
                                   + " lladdr de:ad:be:ef:00:05 dev tun")
 
                 val ip6Dev = Await.result(api.createDevice("ip6dp", None),
@@ -587,19 +587,11 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                                  IPv4Addr.fromString("169.254.0.1"), 24),
                              1 minute)
 
-                assertVppCtl("fip64 add 4001::1 3001::1"
-                                 + " 10.0.0.1 192.168.0.1 table 1")
+                assertVppCtl("fip64 add 3001::1 192.168.0.1 " +
+                             "pool  10.0.0.1  10.0.0.1 table 1")
 
-                assertVppCtl("create vxlan tunnel src 169.254.0.1"
-                                 + " dst 169.254.0.2 vni 139")
-                assertVppCtl("loopback create mac de:ad:be:ef:00:05")
-                assertVppCtl("set int state loop0 up")
-                assertVppCtl("set int l2 bridge vxlan_tunnel0 13 1")
-                assertVppCtl("set int l2 bridge loop0 13  bvi")
-                assertVppCtl("set int ip table loop0 1")
-                assertVppCtl(
-                    "set ip arp fib-id 1 loop0 172.16.0.1 dead.beef.0003")
-                assertVppCtl("ip route add table 1 0.0.0.0/0 via 172.16.0.1")
+                val setupVxlan = new VppVxlanTunnelSetup(139, 1, api, log)
+                setupVxlan.execute()
 
                 assertCmdInNs(nsIPv6, "ping6 -c 5 3001::1")
             } finally {
