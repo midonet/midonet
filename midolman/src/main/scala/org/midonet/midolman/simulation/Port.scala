@@ -383,7 +383,7 @@ case class BridgePort(override val id: UUID,
         s"BridgePort [${super.toString} networkId=$networkId " +
         s"qosPolicy=$qosPolicy]"
 
-    override def ingress(context: PacketContext): SimulationResult = {
+    override def ingressCommon(context: PacketContext): SimulationResult = {
         // Only set DSCP if the packet is an IPv4 packet type, and only if
         // the QOS policy is both set for this port and has a DSCP marking rule
         if (context.wcmatch.getEtherType == IPv4.ETHERTYPE &&
@@ -396,7 +396,7 @@ case class BridgePort(override val id: UUID,
             context.wcmatch.setNetworkTOS(qosPolicy.dscpRules.head.dscpMark)
             context.wcmatch.fieldSeen(FlowMatch.Field.NetworkTOS)
         }
-        super.ingress(context)
+        super.ingressCommon(context)
     }
 
 }
