@@ -463,6 +463,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_64ecb792",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-15T09:25:37Z",
+      "side": 1,
+      "message": "If it is going to be parsed by the API via JSON, I believe it has to be in the protobufs, otherwise it can\u0027t be deserialized from the JSON.",
+      "parentUuid": "baa041b7_8498db76",
+      "range": {
+        "startLine": 257,
+        "startChar": 4,
+        "endLine": 262,
+        "endChar": 63
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6486f717",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 4
