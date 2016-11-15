@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c94ddec6",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2Pool.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-15T06:09:37Z",
+      "side": 1,
+      "message": "I will fix.  I just used IntelliJ\u0027s insert toString feature.",
+      "parentUuid": "baa041b7_c91f1eb7",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 20
+      },
+      "revId": "e54c1290a182f998b5bc1fa26b602599ee8e6c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_695ed27a",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2.java",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-15T05:50:33Z",
       "side": 1,
       "message": "Can\u0027t you just call members.remove(memberId)?\n\nhttps://docs.oracle.com/javase/7/docs/api/java/util/List.html#remove(java.lang.Object)\n\nAlso, I see that you check for members \u003d\u003d null in members.addMember. Is it okay not to check here?",
+      "range": {
+        "startLine": 133,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 9
+      },
+      "revId": "e54c1290a182f998b5bc1fa26b602599ee8e6c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_69c5b208",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-15T06:09:37Z",
+      "side": 1,
+      "message": "This was the same func from the V1 LB, and I didn\u0027t change anything, so this is how we did it before.  I will update this one to match your suggestion.",
+      "parentUuid": "baa041b7_695ed27a",
       "range": {
         "startLine": 133,
         "startChar": 0,
