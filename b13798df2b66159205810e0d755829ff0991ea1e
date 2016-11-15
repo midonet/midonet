@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_be06471a",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T18:40:07Z",
+      "side": 1,
+      "message": "so this is in the same range as the NAT64 pool, is this on purpose?",
+      "range": {
+        "startLine": 354,
+        "startChar": 41,
+        "endLine": 354,
+        "endChar": 52
+      },
+      "revId": "b13798df2b66159205810e0d755829ff0991ea1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
