@@ -209,7 +209,7 @@ class Service(object):
         # Result is a data blocking stream, exec_id for future checks
         LOG.debug('[%s] executing command: %s -> stream',
                   self.get_name(), cmd)
-        return self.check_exit_status(exec_id, outputstream)
+        return Service.check_exit_status(exec_id, outputstream)
 
     def exec_command(self, cmd, stdout=True, stderr=False, tty=False,
                      detach=False, stream=False):
@@ -263,7 +263,8 @@ class Service(object):
         LOG.debug('Command started')
         return True
 
-    def check_exit_status(self, exec_id, output_stream=None, timeout=20):
+    @staticmethod
+    def check_exit_status(exec_id, output_stream=None, timeout=20):
         wait_time = 1
         exec_info = cli.exec_inspect(exec_id)
         cmdline = exec_info['ProcessConfig']['entrypoint']

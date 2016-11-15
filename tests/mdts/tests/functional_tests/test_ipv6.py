@@ -205,6 +205,31 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont_services = service.get_container_by_hostname(container)
         cont_services.try_command_blocking('ip neigh flush dev %s' % interface)
 
+    def await_vpp_initialized(self, host_name,
+                              vpp_uplink_name,
+                              timeout):
+        cmd = "vppctl show hardware"
+        container = service.get_container_by_hostname(host_name)
+        curr_moment = time.time()
+        regexp = re.compile('up[\s\t]+host\-' + vpp_uplink_name)
+        while timeout > 0:
+            success = True
+            try:
+                exec_id = service.cli.exec_create(container.get_name(), cmd,
+                                                  stdout=True, stderr=False,
+                                                  tty=False)
+                outputstream = service.cli.exec_start(exec_id, detach=False,
+                                                      stream=True)
+                status = service.Service.check_exit_status(exec_id, None, 2)
+                for line in outputstream:
+                    if regexp.search(line, re.MULTILINE):
+                         return
+            except RuntimeError as ex:
+               pass
+            timeout += curr_moment
+            curr_moment = time.time()
+            timeout -= curr_moment
+        raise RuntimeError("Timed out waiting vpp to initialize")
 
 class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
@@ -230,19 +255,16 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
         self.flush_neighbours('quagga1', 'bgp1')
         self.flush_neighbours('midolman1', 'bgp0')
-        self.addBackRoute('midolman1')
 
-    # So VPP always know where to send egress packets
-    def addBackRoute(self, container = 'midolman1'):
-        #VPP is lunched by midolman and this might take some time
-        # TODO: something better should be done to wait VPP running
-        time.sleep(20)
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
-        uplink_port_name = 'vpp-' + uplink_port_id[0:8]
-        self.add_route_to_vpp(container,
+        vpp_uplink_name = 'vpp-' + uplink_port_id[0:8]
+
+        self.await_vpp_initialized('midolman1', vpp_uplink_name, 180)
+
+        self.add_route_to_vpp('midolman1',
                               prefix='::/0',
                               via='2001::2',
-                              port=uplink_port_name)
+                              port=vpp_uplink_name)
 
     def addTenant(self, name, pubnet, mac, port_name):
 
@@ -298,7 +320,6 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         super(UplinkWithVPP, self).destroy()
         service.get_container_by_hostname('midolman1').\
                 exec_command_blocking("restart midolman")
-        time.sleep(10)
 
 # Neutron topology with a single tenant and uplink
 # configured
@@ -351,7 +372,7 @@ class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
         privnet = self.create_network("private-" + tenant_name)
         privsubnet = self.create_subnet("privatesubnet-" + tenant_name,
                                         privnet,
-                                        '20.0.0.0/26')
+                                        '192.168.0.0/24')
         self.add_router_interface(tenantrtr, subnet=privsubnet)
 
         #IP 20.0.0.2 is auto assigned to port1
@@ -436,7 +457,7 @@ binding_multihost_singletenant_neutronfip6 = {
     'bindings': [
          {'vport': 'port1',
          'interface': {
-             'definition': {"ipv4_gw": "20.0.0.1"},
+             'definition': {"ipv4_gw": "192.168.0.1"},
              'hostname': 'midolman2',
              'type': 'vmguest'
          }}
