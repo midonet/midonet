@@ -188,11 +188,13 @@ class Service(object):
         return Interface(**iface_kwargs)
 
     def try_command_blocking(self, cmd):
-        ret = self.exec_command_blocking(cmd)
+        (ret, ignore) = self.exec_command_blocking(cmd)
         if ret != 0:
             raise Exception("Cmd(%s) exited with code %d, \n check cmd output in the log" % (cmd, ret))
 
-    def exec_command_blocking(self, cmd):
+    def exec_command_blocking(self, cmd,
+                              return_output = False,
+                              timeout = 20):
         """
         Blocking version of exec command
         :param cmd: The command to run
@@ -209,7 +211,12 @@ class Service(object):
         # Result is a data blocking stream, exec_id for future checks
         LOG.debug('[%s] executing command: %s -> stream',
                   self.get_name(), cmd)
-        return self.check_exit_status(exec_id, outputstream)
+        status = self.check_exit_status(exec_id,
+                                        None if return_output else outputstream,
+                                        timeout)
+        if return_output:
+            return (status, outputstream)
+        return (status, None)
 
     def exec_command(self, cmd, stdout=True, stderr=False, tty=False,
                      detach=False, stream=False):
