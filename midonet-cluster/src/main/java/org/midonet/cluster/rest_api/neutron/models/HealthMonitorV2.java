@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,7 +46,7 @@ public class HealthMonitorV2 extends ZoomObject {
     public UUID poolId;
 
     @ZoomField(name = "pools")
-    public List<UUID> pools;
+    public List<UUID> pools = new ArrayList<>();
 
     @JsonProperty("expected_codes")
     @ZoomField(name = "expected_codes")
