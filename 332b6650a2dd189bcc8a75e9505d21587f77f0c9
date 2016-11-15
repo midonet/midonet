@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_c4f263e3",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2Pool.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "order imports",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 22
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a4019fb1",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2Status.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 22
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a4bcff06",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2Status.java",
         "patchSetId": 4
@@ -42,6 +88,443 @@
         "startChar": 40,
         "endLine": 34,
         "endChar": 58
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_642a7731",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/LBV2SessionPersistenceAlgorithm.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "nit: why didn\u0027t you use MoreObjects here?",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 48,
+        "endChar": 20
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_44d4131e",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/LoadBalancerV2.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_84ea1bd7",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/LoadBalancerV2.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "extends ZoomObject",
+      "range": {
+        "startLine": 32,
+        "startChar": 13,
+        "endLine": 32,
+        "endChar": 27
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_24246f5e",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/LoadBalancerV2.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "vipAddress",
+      "range": {
+        "startLine": 99,
+        "startChar": 18,
+        "endLine": 99,
+        "endChar": 29
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e41e870c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/LoadBalancerV2.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "vipSubnetId",
+      "range": {
+        "startLine": 103,
+        "startChar": 16,
+        "endLine": 103,
+        "endChar": 29
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_04de0b3e",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolHealthMonitorV2.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 22
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c4e023fb",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolHealthMonitorV2.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "extends ZoomObject",
+      "range": {
+        "startLine": 31,
+        "startChar": 13,
+        "endLine": 31,
+        "endChar": 32
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_84133b01",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolMemberV2.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a4187f1f",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 22
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_44bbf3e4",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "id?",
+      "range": {
+        "startLine": 36,
+        "startChar": 21,
+        "endLine": 36,
+        "endChar": 38
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_24b22f07",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2Listener.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_04b5ebeb",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2Listener.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "id?",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 35,
+        "endChar": 36
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e4cc478c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2Listener.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "Up",
+      "range": {
+        "startLine": 58,
+        "startChar": 29,
+        "endLine": 58,
+        "endChar": 32
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c4c70364",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2Listener.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "capital B",
+      "range": {
+        "startLine": 69,
+        "startChar": 26,
+        "endLine": 69,
+        "endChar": 27
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_649f1766",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "I don\u0027t have a strong opinion, but maybe we should add the suffix \"_id\" or \"_ids\" to UUIDs and list of UUIDs to be consistent with other models?",
+      "range": {
+        "startLine": 198,
+        "startChar": 18,
+        "endLine": 198,
+        "endChar": 27
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8498db76",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "does this need to go to the topology model? it seems like status data",
+      "range": {
+        "startLine": 257,
+        "startChar": 4,
+        "endLine": 262,
+        "endChar": 63
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6486f717",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 264,
+        "startChar": 3,
+        "endLine": 264,
+        "endChar": 34
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e47a0725",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 294,
+        "startChar": 4,
+        "endLine": 296,
+        "endChar": 1
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_846fbb5f",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T09:02:08Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 351,
+        "startChar": 7,
+        "endLine": 352,
+        "endChar": 47
       },
       "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
