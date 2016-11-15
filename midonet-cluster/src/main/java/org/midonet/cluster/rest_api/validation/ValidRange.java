@@ -32,7 +32,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface ValidRange {
 
-    String message() default MessageProperty.L4_PORT_RANGE_NOT_VALID;
+    String message() default MessageProperty.RANGE_NOT_VALID;
 
     Class<?>[] groups() default {};
 
