@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_33ff1004",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-15T18:39:15Z",
+      "side": 1,
+      "message": "It seems they are needed (see 205)",
+      "parentUuid": "baa041b7_f3dd2814",
+      "range": {
+        "startLine": 299,
+        "startChar": 8,
+        "endLine": 299,
+        "endChar": 9
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_7338f83b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-15T17:33:27Z",
       "side": 1,
       "message": "any is unused.",
+      "range": {
+        "startLine": 304,
+        "startChar": 20,
+        "endLine": 304,
+        "endChar": 31
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_53fa9444",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-15T18:39:15Z",
+      "side": 1,
+      "message": "The intention here was just to give a different alias from the matching done in line 305. But maybe is better to put here the _ and there the `any`. Anyway, I am going to delete it also, so it is not needed (see next comment).",
+      "parentUuid": "baa041b7_7338f83b",
       "range": {
         "startLine": 304,
         "startChar": 20,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1361ac11",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-15T18:39:15Z",
+      "side": 1,
+      "message": "Sorry, I will remove this. It is a left over from the `inlining` of the attach link line 212. In this method, the return value is not a future, so a proper result is chained to the future to return it once completed. In this case it is not needed, as the return type is also a Future, as returned by setup.execute(). Anyway, it is probably wrong.",
+      "parentUuid": "baa041b7_933dbc2e",
+      "range": {
+        "startLine": 305,
+        "startChar": 27,
+        "endLine": 305,
+        "endChar": 46
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b3356046",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2016-11-15T17:33:27Z",
       "side": 1,
       "message": "rollback returns a future, so this is the same as \n\ncase e \u003d\u003e\n    setup.rollback()\n    downlinkVxlan \u003d null\n    throw e\n\nYou want downlinkVxlan \u003d null to happen after setup has rollbacked back though. Also, what does throw e do inside a recoverWith?",
+      "range": {
+        "startLine": 307,
+        "startChar": 18,
+        "endLine": 307,
+        "endChar": 26
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_532df4a6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-15T18:39:15Z",
+      "side": 1,
+      "message": "Sorry, I don\u0027t get it: I think is not the same, and the `map` call is chaining the future completion with the code in `downlinkVxlan \u003d null; throw e`, that is exactly the expected and correct, it isn\u0027t? The same as in lines 213-218",
+      "parentUuid": "baa041b7_b3356046",
       "range": {
         "startLine": 307,
         "startChar": 18,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f304087e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 490,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-15T18:39:15Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_33bdd0b1",
+      "range": {
+        "startLine": 490,
+        "startChar": 43,
+        "endLine": 490,
+        "endChar": 44
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b3e7a0e2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2016-11-15T17:20:50Z",
       "side": 1,
       "message": "this is not a vpp interface. Remove these two steps, they\u0027re unused.",
+      "range": {
+        "startLine": 523,
+        "startChar": 1,
+        "endLine": 532,
+        "endChar": 39
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_33eb90a6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-15T18:39:15Z",
+      "side": 1,
+      "message": "sorry, I forget to remove them.",
+      "parentUuid": "baa041b7_b3e7a0e2",
       "range": {
         "startLine": 523,
         "startChar": 1,
