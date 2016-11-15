@@ -16,19 +16,26 @@
 
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import java.util.List;
-import java.util.UUID;
 
-import org.midonet.cluster.data.*;
-import org.midonet.cluster.models.Neutron;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
+
 @ZoomClass(clazz = Neutron.NeutronLoadBalancerV2Listener.class)
-public class LBListenerV2 extends ZoomObject {
+public class ListenerV2 extends ZoomObject {
 
     @JsonProperty("id")
     @ZoomField(name = "id")
@@ -58,11 +65,11 @@ public class LBListenerV2 extends ZoomObject {
 
     @JsonProperty("sni_container_refs")
     @ZoomField(name = "sni_container_refs")
-    public List<String> sniContainerRefs;
+    public List<String> sniContainerRefs = new ArrayList<>();
 
     @JsonProperty("loadbalancers")
     @ZoomField(name = "loadbalancers")
-    public List<UUID> loadBalancers;
+    public List<UUID> loadBalancers = new ArrayList<>();
 
     @JsonProperty("default_pool_id")
     @ZoomField(name = "default_pool_id")
@@ -91,7 +98,7 @@ public class LBListenerV2 extends ZoomObject {
             try {
                 return valueOf(v.toUpperCase());
             } catch (IllegalArgumentException ex) {
-                LoggerFactory.getLogger(LBListenerV2.class)
+                LoggerFactory.getLogger(ListenerV2.class)
                         .warn("Unknown protocol enum value {}", v);
                 return null;
             }
@@ -121,7 +128,7 @@ public class LBListenerV2 extends ZoomObject {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        LBListenerV2 that = (LBListenerV2) o;
+        ListenerV2 that = (ListenerV2) o;
         return Objects.equal(id, that.id) &&
                 Objects.equal(tenantId, that.tenantId) &&
                 Objects.equal(protocolPort, that.protocolPort) &&
