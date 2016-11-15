@@ -22,6 +22,30 @@
       "revId": "0ceb171acbb84ba2d21dead990f1c169c4849f27",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4a753df8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppOvs.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-15T11:12:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8a24650e",
+      "range": {
+        "startLine": 109,
+        "startChar": 33,
+        "endLine": 109,
+        "endChar": 44
+      },
+      "revId": "0ceb171acbb84ba2d21dead990f1c169c4849f27",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
