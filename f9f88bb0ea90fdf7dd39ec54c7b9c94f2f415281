@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2a98b974",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Condition.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T10:48:40Z",
+      "side": 1,
+      "message": "remove spaces",
+      "range": {
+        "startLine": 179,
+        "startChar": 16,
+        "endLine": 179,
+        "endChar": 17
+      },
+      "revId": "f9f88bb0ea90fdf7dd39ec54c7b9c94f2f415281",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ca96ed3d",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/validation/MessageProperty.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T10:48:40Z",
+      "side": 1,
+      "message": "put this above to keep list ordered",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 60
+      },
+      "revId": "f9f88bb0ea90fdf7dd39ec54c7b9c94f2f415281",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_aa8289fd",
+        "filename": "midonet-cluster/src/main/resources/ValidationMessages.properties",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T10:48:40Z",
+      "side": 1,
+      "message": "put this above to keep list ordered",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 86
+      },
+      "revId": "f9f88bb0ea90fdf7dd39ec54c7b9c94f2f415281",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
