@@ -205,6 +205,23 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont_services = service.get_container_by_hostname(container)
         cont_services.try_command_blocking('ip neigh flush dev %s' % interface)
 
+    @staticmethod
+    def await_vpp_running(host_name, timeout = 180):
+        cmd = "vppctl show version"
+        container = service.get_container_by_hostname(host_name)
+        curr_moment = time.time()
+        while timeout > 0:
+            (ret, output) = container.exec_command_blocking(cmd,
+                                                            stderr = True,
+                                                            return_output = True)
+            for line in output:
+                if "vpp v16.09-midonet" in line:
+                     return
+            next_moment = time.time()
+            timeout -= (next_moment - curr_moment)
+            curr_moment = next_moment
+        raise RuntimeError("Timed out waiting vpp")
+
 
 class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
@@ -230,15 +247,16 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
         self.flush_neighbours('quagga1', 'bgp1')
         self.flush_neighbours('midolman1', 'bgp0')
-        self.addBackRoute('midolman1')
+        self.add_back_route('midolman1')
 
     # So VPP always know where to send egress packets
-    def addBackRoute(self, container = 'midolman1'):
+    def add_back_route(self, container = 'midolman1'):
         #VPP is lunched by midolman and this might take some time
         # TODO: something better should be done to wait VPP running
-        time.sleep(20)
+        #time.sleep(20)
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
+        NeutronVPPTopologyManagerBase.await_vpp_running(container, 180)
         self.add_route_to_vpp(container,
                               prefix='::/0',
                               via='2001::2',
