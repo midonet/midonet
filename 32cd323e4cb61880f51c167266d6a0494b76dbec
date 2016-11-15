@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2aeaf9d8",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-15T10:36:25Z",
+      "side": 1,
+      "message": "are these necessary?\ni thought test-attr.py changes were enough.",
+      "revId": "32cd323e4cb61880f51c167266d6a0494b76dbec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
