@@ -35,7 +35,7 @@ import rx.internal.producers.ProducerArbiter
 import rx.plugins.RxJavaPlugins
 import rx.subjects.{BehaviorSubject, PublishSubject}
 import rx.subscriptions.{SerialSubscription, Subscriptions}
-import rx.{Observable, Producer, Subscriber, Subscription}
+import rx.{Observable, Observer, Producer, Subscriber, Subscription}
 
 import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
 import org.midonet.cluster.models.State.ContainerStatus
@@ -177,7 +177,19 @@ class ContainerScheduler(containerId: UUID, context: Context,
     // container status did not report a running container. This subject
     // provides the feedback loop necessary to adjust the scheduling based on
     // the reported container status.
-    private val feedbackSubject = BehaviorSubject.create[Feedback](StatusFeedback)
+    private val feedbackSubject =
+        BehaviorSubject.create[Feedback](StatusFeedback)
+    private val feedbackObserver = new Observer[Feedback] {
+        override def onNext(feedback: Feedback): Unit = {
+            log debug s"Feedback notification $feedback"
+            feedbackSubject onNext feedback
+        }
+        override def onError(e: Throwable): Unit = {
+            log.warn(s"Feedback error", e)
+            feedbackSubject onError e
+        }
+        override def onCompleted(): Unit = { }
+    }
     private val feedbackObservable = feedbackSubject
         .observeOn(context.scheduler)
 
@@ -244,7 +256,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
                     .observeOn(context.scheduler)
                     .filter(makeFunc1(containerStatusUpdated))
                     .map[Feedback](makeFunc1(_ => StatusFeedback))
-                    .subscribe(feedbackSubject)
+                    .subscribe(feedbackObserver)
                 schedulerObservable subscribe child
                 child add statusSubscription
             } else {
@@ -419,8 +431,8 @@ class ContainerScheduler(containerId: UUID, context: Context,
     def downWithRetry(attempts: Int): Unit = {
         val subscription = retryObservable
             .filter(makeFunc1(_ => scheduleRetry(attempts)))
-            .map[Feedback](makeFunc1(_ => RetryFeedback ))
-            .subscribe(feedbackSubject)
+            .map[Feedback](makeFunc1(_ => RetryFeedback))
+            .subscribe(feedbackObserver)
         state = DownState(subscription, attempts)
     }
 
@@ -452,7 +464,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
             val subscription = timeoutObservable
                 .filter(makeFunc1(_ => scheduleTimeout(hostId)))
                 .map[Feedback](makeFunc1(_ => TimeoutFeedback))
-                .subscribe(feedbackSubject)
+                .subscribe(feedbackObserver)
             oldHostId match {
                 case None =>
                     state = ScheduledState(hostId, container, subscription)

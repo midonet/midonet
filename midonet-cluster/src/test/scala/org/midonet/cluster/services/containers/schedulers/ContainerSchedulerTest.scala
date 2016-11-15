@@ -49,7 +49,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
                         provider: HostSelectorProvider)
         extends ContainerScheduler(containerId, context, config, provider) {
         var time = 0L
-        val timer = PublishSubject.create[java.lang.Long]
+        var timer = PublishSubject.create[java.lang.Long]
         protected override def timeoutObservable = timer
         protected override def retryObservable = timer
         protected override def currentTime = time
@@ -2257,6 +2257,40 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
 
             Then("The scheduler state should be down and unsubscribed")
             scheduler.schedulerState shouldBeDownFor(isUnsubscribed = true)
+        }
+
+        scenario("Scheduler handles RX timers") {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("A host with container service")
+            val host = createHost()
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            And("The scheduler state should be down")
+            scheduler.schedulerState shouldBeDownFor(isUnsubscribed = false,
+                attempts = 0)
+
+            When("The retry expires several times")
+            for (index <- 0L to 2L) {
+                val timer = scheduler.timer
+                scheduler.timer = PublishSubject.create[java.lang.Long]
+                timer onNext index
+                timer.onCompleted()
+            }
+
+            Then("The scheduler state should be down with 3 attempts")
+            scheduler.schedulerState shouldBeDownFor(isUnsubscribed = false,
+                                                     attempts = 3)
         }
     }
 
