@@ -25,6 +25,75 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7338f83b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-15T17:33:27Z",
+      "side": 1,
+      "message": "any is unused.",
+      "range": {
+        "startLine": 304,
+        "startChar": 20,
+        "endLine": 304,
+        "endChar": 31
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_933dbc2e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-15T17:33:27Z",
+      "side": 1,
+      "message": "what is this supposed to do?",
+      "range": {
+        "startLine": 305,
+        "startChar": 27,
+        "endLine": 305,
+        "endChar": 46
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b3356046",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-15T17:33:27Z",
+      "side": 1,
+      "message": "rollback returns a future, so this is the same as \n\ncase e \u003d\u003e\n    setup.rollback()\n    downlinkVxlan \u003d null\n    throw e\n\nYou want downlinkVxlan \u003d null to happen after setup has rollbacked back though. Also, what does throw e do inside a recoverWith?",
+      "range": {
+        "startLine": 307,
+        "startChar": 18,
+        "endLine": 307,
+        "endChar": 26
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_33bdd0b1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
         "patchSetId": 3
