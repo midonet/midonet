@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c91f1eb7",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2Pool.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-15T05:50:33Z",
+      "side": 1,
+      "message": "We\u0027ve been using this pattern:\n\n        return MoreObjects.toStringHelper(this)\n            .omitNullValues() // Optional, but I prefer this.\n            .add(\"poolId\", poolId)\n            .add(\"status\", status)\n            .add(\"statusDescription\", statusDescription)\n            .toString()\n\nI guess it produces the same representation anyway, so maybe it\u0027s fine. I use this template for the toString generator:\n\npublic java.lang.String toString() {\nreturn com.google.common.base.MoreObjects.toStringHelper(this).omitNullValues()\n#foreach ($member in $members)\n.add(\"$member.name\", $member.accessor)\n#end\n.toString();\n}",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 20
+      },
+      "revId": "e54c1290a182f998b5bc1fa26b602599ee8e6c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_695ed27a",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-15T05:50:33Z",
+      "side": 1,
+      "message": "Can\u0027t you just call members.remove(memberId)?\n\nhttps://docs.oracle.com/javase/7/docs/api/java/util/List.html#remove(java.lang.Object)\n\nAlso, I see that you check for members \u003d\u003d null in members.addMember. Is it okay not to check here?",
+      "range": {
+        "startLine": 133,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 9
+      },
+      "revId": "e54c1290a182f998b5bc1fa26b602599ee8e6c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
