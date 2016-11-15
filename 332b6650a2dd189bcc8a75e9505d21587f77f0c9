@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a4bcff06",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2Status.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-15T08:24:49Z",
+      "side": 1,
+      "message": "statusDescription\n\ncan you please check if there\u0027re more instances of the similar error? :-)",
+      "range": {
+        "startLine": 34,
+        "startChar": 40,
+        "endLine": 34,
+        "endChar": 58
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
