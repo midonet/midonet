@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_709c6e5b",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-15T14:53:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_9fbef662",
+      "range": {
+        "startLine": 319,
+        "startChar": 0,
+        "endLine": 322,
+        "endChar": 49
+      },
+      "revId": "85a3f429c7fd54f56e3f8ce91e94332e956e7377",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3faeca2f",
         "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_30a6e6ab",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-15T14:53:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_3faeca2f",
+      "range": {
+        "startLine": 350,
+        "startChar": 13,
+        "endLine": 350,
+        "endChar": 35
+      },
+      "revId": "85a3f429c7fd54f56e3f8ce91e94332e956e7377",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ff9062ef",
         "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2016-11-10T12:18:17Z",
       "side": 1,
       "message": "remove this?",
+      "range": {
+        "startLine": 512,
+        "startChar": 0,
+        "endLine": 512,
+        "endChar": 8
+      },
+      "revId": "85a3f429c7fd54f56e3f8ce91e94332e956e7377",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f0b63eda",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-15T14:53:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ff9062ef",
       "range": {
         "startLine": 512,
         "startChar": 0,
