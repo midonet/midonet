@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_69025274",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-15T05:36:23Z",
+      "side": 1,
+      "message": "i have a question.\n\nunlike these self-healing observables,\nZookeeperObjectMapper seems to recover from only a limited set of exceptions. (that is, NodeObservableClosedException and PathCacheClosedException)\nwe don\u0027t need to catch other exceptions like PathCacheDisconnectedException?\n\nor do you mean something in lower level, like PathChildrenCache?",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 16
+      },
+      "revId": "cb2f892da2adb4149d2d19e6cd29274bf3f7b455",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
