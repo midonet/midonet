@@ -242,9 +242,10 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override val datapath = new Datapath(0, "midonet")
             override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] =
                 peers.get(peer)
-            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
-            override def isOverlayTunnellingPort(portNumber: Integer): Boolean =
+            override def isVtepTunnellingPort(portNumber: Int): Boolean = false
+            override def isOverlayTunnellingPort(portNumber: Int): Boolean =
                 tunnelPorts.contains(portNumber)
+            override def isVppTunnellingPort(portNumber: Int): Boolean = false
             override def vtepTunnellingOutputAction: FlowActionOutput = null
             override def getVportForDpPortNumber(portNum: Integer): UUID =
                 dpPortToVport get portNum orNull

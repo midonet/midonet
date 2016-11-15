@@ -122,9 +122,10 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
     }
 
     def createVxlanDpPort(portName: String,
-                          portNumber: Short): VxLanTunnelPort =
+                          portNumber: Short): VxLanTunnelPort = {
         createDpPortImpl(new VxLanTunnelPort(portName, portNumber)).
             asInstanceOf[VxLanTunnelPort]
+    }
 
     def addIpv6Flow(inputPort: Int, outputPort: Int): Unit = {
         buf.clear()
