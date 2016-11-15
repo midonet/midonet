@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f3dd2814",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-15T17:20:50Z",
+      "side": 1,
+      "message": "superfluous braces still here.",
+      "range": {
+        "startLine": 299,
+        "startChar": 8,
+        "endLine": 299,
+        "endChar": 9
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_33bdd0b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 490,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-15T17:20:50Z",
+      "side": 1,
+      "message": "whitespace.",
+      "range": {
+        "startLine": 490,
+        "startChar": 43,
+        "endLine": 490,
+        "endChar": 44
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b3e7a0e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-15T17:20:50Z",
+      "side": 1,
+      "message": "this is not a vpp interface. Remove these two steps, they\u0027re unused.",
+      "range": {
+        "startLine": 523,
+        "startChar": 1,
+        "endLine": 532,
+        "endChar": 39
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
