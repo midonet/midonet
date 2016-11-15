@@ -22,6 +22,30 @@
       "revId": "b13798df2b66159205810e0d755829ff0991ea1e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_de26abb8",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-15T18:48:35Z",
+      "side": 1,
+      "message": "Good observation. Tests \"should\" work with any private-subnet. I will modify this in a separate patch",
+      "parentUuid": "baa041b7_be06471a",
+      "range": {
+        "startLine": 354,
+        "startChar": 41,
+        "endLine": 354,
+        "endChar": 52
+      },
+      "revId": "b13798df2b66159205810e0d755829ff0991ea1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
