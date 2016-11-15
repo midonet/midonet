@@ -39,6 +39,7 @@ import org.midonet.cluster.rest_api.annotation.JsonError;
 import org.midonet.cluster.rest_api.validation.IsValidFragmentType;
 import org.midonet.cluster.rest_api.validation.ValidMac;
 import org.midonet.cluster.rest_api.validation.ValidMacMask;
+import org.midonet.cluster.rest_api.validation.ValidRange;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.RangeUtil;
 import org.midonet.packets.IPSubnet;
@@ -175,8 +176,11 @@ public class Condition extends UriResource {
     public FragmentPolicy fragmentPolicy;
 
     @ZoomField(name = "tp_src", converter = RangeUtil.Converter.class)
+    @ValidRange( min = 1, max = 0xFFFF )
     public Range<Integer> tpSrc;
+
     @ZoomField(name = "tp_dst", converter = RangeUtil.Converter.class)
+    @ValidRange( min = 1, max = 0xFFFF )
     public Range<Integer> tpDst;
 
     @ZoomField(name = "tp_src_inv")
