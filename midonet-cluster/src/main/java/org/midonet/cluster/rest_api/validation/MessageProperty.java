@@ -102,6 +102,8 @@ public class MessageProperty {
             "{midokura.javarx.PortAlreadyBound.message}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable.message}";
+    public static final String RANGE_NOT_VALID =
+            "{midokura.javarx.RangeNotValid.message}";
     public static final String RESOURCE_EXISTS =
             "{midokura.javarx.ResourceExists.message}";
     public static final String RESOURCE_NOT_FOUND =
@@ -154,8 +156,6 @@ public class MessageProperty {
             "{midokura.javarx.VtepPortVlanPairAlreadyUsed.message}";
     public static final String VXLAN_PORT_ID_NOT_SETTABLE =
             "{midokura.javarx.VxLanPortIdNotSettable.message}";
-    public static final String L4_PORT_RANGE_NOT_VALID =
-            "{midokura.javarx.L4PortRangeNotValid.message}";
 
     private static ResourceBundle resourceBundle =
             ResourceBundle.getBundle("ValidationMessages");
