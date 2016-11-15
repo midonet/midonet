@@ -69,6 +69,7 @@ test_ipv6.test_uplink_ipv6.gate = 1
 test_ipv6.test_ping_vm_ipv6.gate = 1
 test_ipv6.test_ping_multi_vms_ipv6.gate = 1
 test_ipv6.test_neutron_fip6.gate = 1
+test_ipv6.test_client_server_ipv6.gate = 1
 test_l2gw.test_failback_on_generic_failure_with_icmp_from_mn.slow = 1
 test_l2gw.test_failback_on_generic_failure_with_icmp_to_mn.slow = 1
 test_l2gw.test_failback_on_ifdown_with_icmp_from_mn.slow = 1

@@ -33,7 +33,8 @@ LOG = logging.getLogger(__name__)
 UPLINK_VETH_MAC = '2e:0e:2f:68:00:11'
 DOWNLINK_VETH_MAC = '2e:0e:2f:68:00:22'
 DOWNLINK_VETH_MAC_2 = '2e:0e:2f:68:00:33'
-
+TCP_SERVER_PORT = 9999
+TCP_CLIENT_PORT = 9998
 
 class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
     def cleanup_veth(self, container, name):
@@ -128,21 +129,22 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
                                                              ip4PoolEnd,
                                                              tableId))
 
-    def cleanup_remote_host(self, container, interface):
+    def cleanup_remote_host(self, container, interface, address):
         cont = service.get_container_by_hostname(container)
         cont.exec_command('ip r del 100.0.0.0/8')
-        cont.exec_command('ip a del 2001::2/64 dev %s' % interface)
+        cont.exec_command('ip a del %s/64 dev %s' % (address, interface))
         cont.exec_command('ip -6 r del cccc:bbbb::/32')
         cont.exec_command('ip -6 r del cccc:cccc::/32')
 
         cont.exec_command('ip netns delete ip6')
 
-    def setup_remote_host(self, container, interface):
-        self.addCleanup(self.cleanup_remote_host, container, interface)
+    def setup_remote_host(self, container, interface, gw_address,
+                          local_address, local_router):
+        self.addCleanup(self.cleanup_remote_host, container, interface, gw_address)
         cont = service.get_container_by_hostname(container)
 
         cont.try_command_blocking('ip r add 100.0.0.0/8 via 10.1.0.1')
-        cont.try_command_blocking('ip a add 2001::2/64 dev %s' % interface)
+        cont.try_command_blocking('ip a add %s/64 dev %s' % (gw_address, interface))
         cont.try_command_blocking('ip -6 r add cccc:bbbb::/32 via 2001::1')
         cont.try_command_blocking('ip -6 r add cccc:cccc::/32 via 2001::1')
 
@@ -158,11 +160,11 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont.try_command_blocking('ip netns exec ip6 ip link set up dev lo')
         cont.try_command_blocking('ip netns exec ip6 ip link set up dev ip6ns')
         cont.try_command_blocking(
-            'ip a add bbbb::1/48 dev ip6dp')
+            'ip a add %s/48 dev ip6dp' % local_router)
         cont.try_command_blocking(
-            'ip netns exec ip6 ip a add bbbb::2/48 dev ip6ns')
+            'ip netns exec ip6 ip a add %s/48 dev ip6ns' % local_address)
         cont.try_command_blocking(
-            'ip netns exec ip6 ip -6 r add default via bbbb::1')
+            'ip netns exec ip6 ip -6 r add default via %s' % local_router)
 
     def add_mn_router_port(self, name, router_id, port_address,
                            network_addr, network_len):
@@ -226,9 +228,17 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         self.add_router_interface(self._edgertr, port=self.uplink_port)
 
         # setup quagga1
-        self.setup_remote_host('quagga1', 'bgp1')
+        self.setup_remote_host('quagga1', 'bgp1',
+            gw_address = "2001::2",
+            local_address = "bbbb::2",
+            local_router = "bbbb::1")
+        self.setup_remote_host('quagga2', 'bgp2',
+            gw_address = "2001::3",
+            local_address = "eeee::2",
+            local_router = "eeee::1")
 
         self.flush_neighbours('quagga1', 'bgp1')
+        self.flush_neighbours('quagga2', 'bgp2')
         self.flush_neighbours('midolman1', 'bgp0')
         self.addBackRoute('midolman1')
 
@@ -240,8 +250,12 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
         self.add_route_to_vpp(container,
-                              prefix='::/0',
+                              prefix='bbbb::/64',
                               via='2001::2',
+                              port=uplink_port_name)
+        self.add_route_to_vpp(container,
+                              prefix='eeee::/64',
+                              via='2001::3',
                               port=uplink_port_name)
 
     def addTenant(self, name, pubnet, mac, port_name):
@@ -485,6 +499,81 @@ def ping_from_inet(container, ipv6 = '2001::1', count=4, namespace=None):
     cont_services = service.get_container_by_hostname(container)
     cont_services.try_command_blocking(cmd)
 
+# Starts a modified echo server at given container
+# for every input line, the server will echo the same line
+# and will append a $ sign at the end of the line.
+def start_server(container, address, port):
+    cont_services = service.get_container_by_hostname(container)
+
+    # namespace has a random name, vmXXXX
+    namespace = cont_services.exec_command('ip netns')
+
+    # interface inside the ns has a random name
+    interface = cont_services.exec_command("/bin/sh -c 'ip netns exec %s ip l | grep UP | cut -d: -f2'" % namespace)
+
+    # optional: install ethtool
+    #cont_services.try_command_blocking("sh -c 'apt-get update && apt-get -y install ethtool'")
+
+    # disable TCP checksums on interface
+    cont_services.try_command_blocking("ip netns exec %s ethtool -K %s tx off rx off" % (
+        namespace, interface))
+
+    # launch netcat server in namespace
+    cmd = "/bin/sh -c \"ip netns exec %s /usr/bin/ncat -v -4 -l %s %d -k -e '/bin/cat -E'\"" % (namespace, address, port)
+    cont_services.exec_command(cmd, stream=True, detach=True)
+
+def stop_server(container):
+    cont_services = service.get_container_by_hostname(container)
+    namespace = cont_services.exec_command('ip netns')
+    pid = cont_services.exec_command('/bin/sh -c "ip netns exec %s netstat -ntlp | grep ncat | awk \'{print $7}\' | cut -d/ -f1"' % namespace)
+    cont_services.try_command_blocking("kill %s" % pid)
+
+def client_prepare(container, namespace):
+    cont_services = service.get_container_by_hostname(container)
+
+    # optional: install ethtool
+    # cont_services.try_command_blocking("sh -c 'apt-get update && apt-get -y install ethtool'")
+
+    # disable TCP checksums
+    cont_services.try_command_blocking("ip netns exec ip6 ethtool -K ip6ns tx off rx off")
+
+def client_launch(container, address, server_port, client_port, namespace, count=100):
+
+    # client writes "<host>:<counter>\n" to server every 0.2 secs
+    # WARNING: don't remove the delay or fragmentation can occur
+    loop_cmd = "for i in `seq 1 %d` ; do echo \"%s:$i\" ; sleep 0.2 ; done" % (
+                        count,
+                        container)
+    ns_cmd = "ip netns exec %s" % namespace
+    ncat_cmd = "%s /bin/nc -6 -p %d %s %d" % (ns_cmd if namespace else "",
+        client_port, address, server_port)
+    cmd = "/bin/sh -c '%s | %s'" % (loop_cmd, ncat_cmd)
+    cont_services = service.get_container_by_hostname(container)
+    output = cont_services.exec_command(cmd, stream=True)
+    return output[0]
+
+def client_wait_for_termination(container, server_port):
+    cont_services = service.get_container_by_hostname(container)
+    tries = 12
+    delay_seconds = 10
+    for i in range(tries):
+        time.sleep(delay_seconds)
+        if (len(cont_services.exec_command("pidof nc")) < 2):
+            break
+    else:
+        raise Exception('TCP client at %s did not terminate within %d seconds' %
+                        (container, tries * delay_seconds))
+
+def client_check_result(container, stream, count=100):
+    # read stream and break into lines
+    lines = reduce(list.__add__, [ i.split() for i in stream ])
+    LOG.info("%s: RESULT: got %d lines" % (container, len(lines)))
+    assert (len(lines) == count)
+    for i in range(count):
+        # server must've echoed the line back to us with a dollar sign at the end
+        wanted = "%s:%d$" % (container, i+1)
+        LOG.info("%s: RESULT: lines[%d] = %s" % (container, i, lines[i]))
+        assert(lines[i] == wanted)
 
 @attr(version="v1.2.0")
 @bindings(binding_empty,
@@ -524,3 +613,35 @@ def test_neutron_fip6():
     Title: create and associates a IPv6 FIP in neutron checking connectivity
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
+
+BM=BindingManager(vtm=MultiTenantAndUplinkWithVPP())
+@attr(version="v1.2.0")
+@bindings(binding_multihost_multitenant,
+          binding_manager=BM)
+def test_client_server_ipv6():
+    """
+    Title: Multiple concurrent clients to FIP TCP server.
+    """
+
+    # start a netcat server in midolman2
+    start_server('midolman2', '0.0.0.0', TCP_SERVER_PORT)
+
+    # configure clients in quagga 1 and 2
+    hosts = ['quagga1', 'quagga2']
+    namespace = 'ip6'
+    for host in hosts:
+        client_prepare(host, namespace)
+
+    # launch clients in parallel
+    result = {}
+    for host in hosts:
+        result[host] = client_launch(host, 'cccc:bbbb::2', TCP_SERVER_PORT,
+                                     TCP_CLIENT_PORT, namespace)
+
+    # check server response
+    for host in hosts:
+        client_wait_for_termination(host, TCP_SERVER_PORT)
+        client_check_result(host, result[host])
+
+    stop_server('midolman2')
+
