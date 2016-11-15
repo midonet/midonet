@@ -16,10 +16,12 @@
 
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import java.util.UUID;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;

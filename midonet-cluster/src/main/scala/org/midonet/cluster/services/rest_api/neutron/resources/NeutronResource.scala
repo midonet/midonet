@@ -63,6 +63,21 @@ class NeutronResource @Inject()(uriInfo: UriInfo,
     @Path("lb")
     def loadBalancerResource: LbResource = new LbResource(uriInfo, api)
 
+    @Path("lbs_v2")
+    def loadBalancerV2Resource: LbV2Resource = new LbV2Resource(uriInfo, api)
+
+    @Path("pools_v2")
+    def poolsV2Resource: PoolV2Resource = new PoolV2Resource(uriInfo, api)
+
+    @Path("pool_members_v2")
+    def poolMembersV2Resource: PoolMemberV2Resource = new PoolMemberV2Resource(uriInfo, api)
+
+    @Path("listeners_v2")
+    def listenersV2Resource: ListenerV2Resource = new ListenerV2Resource(uriInfo, api)
+
+    @Path("health_monitors_v2")
+    def healthMonitorsV2Resource: HealthMonitorV2Resource = new HealthMonitorV2Resource(uriInfo, api)
+
     @Path("firewalls")
     def firewallResource: FirewallResource = new FirewallResource(uriInfo, api)
 
@@ -134,6 +149,11 @@ class NeutronResource @Inject()(uriInfo: UriInfo,
         neutron.securityGroupRuleTemplate =
             getSecurityGroupRuleTemplate(baseUri)
         neutron.loadBalancer = LbResource.buildLoadBalancer(baseUri)
+        neutron.loadBalancersV2 = getLoadBalancersV2(baseUri)
+        neutron.poolsV2 = getPoolsV2(baseUri)
+        neutron.poolMembersV2 = getPoolMembersV2(baseUri)
+        neutron.listenersV2 = getListenersV2(baseUri)
+        neutron.healthMonitorsV2 = getHealthMonitorsV2(baseUri)
         neutron.firewalls = getFirewalls(baseUri)
         neutron.firewallTemplate = getFirewallTemplate(baseUri)
         neutron.vpnServices = getVpnServices(baseUri)
