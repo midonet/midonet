@@ -48,6 +48,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_eab651da",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/validation/ValidRange.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-15T10:49:19Z",
+      "side": 1,
+      "message": "it looks as if the valid range is custom made for L4 ports",
+      "range": {
+        "startLine": 35,
+        "startChar": 29,
+        "endLine": 35,
+        "endChar": 69
+      },
+      "revId": "f9f88bb0ea90fdf7dd39ec54c7b9c94f2f415281",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_aa8289fd",
         "filename": "midonet-cluster/src/main/resources/ValidationMessages.properties",
         "patchSetId": 1
