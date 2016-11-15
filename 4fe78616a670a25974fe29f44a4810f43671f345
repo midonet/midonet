@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_04216b9e",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2Pool.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-15T07:48:37Z",
+      "side": 1,
+      "message": "statusDescription?",
+      "range": {
+        "startLine": 35,
+        "startChar": 38,
+        "endLine": 35,
+        "endChar": 56
+      },
+      "revId": "4fe78616a670a25974fe29f44a4810f43671f345",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
