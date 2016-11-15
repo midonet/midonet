@@ -22,6 +22,30 @@
       "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_442d3344",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2Status.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-15T08:51:31Z",
+      "side": 1,
+      "message": "This seems to be the last of the constructor var errors",
+      "parentUuid": "baa041b7_a4bcff06",
+      "range": {
+        "startLine": 34,
+        "startChar": 40,
+        "endLine": 34,
+        "endChar": 58
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
