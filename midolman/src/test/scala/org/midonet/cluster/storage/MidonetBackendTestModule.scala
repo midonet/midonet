@@ -31,6 +31,7 @@ import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, StateTab
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Router
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{FakeDiscovery, MidonetDiscovery}
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -102,8 +103,14 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
     }
 
     override protected def backend(curatorFramework: CuratorFramework,
-                                    failFastCurator: CuratorFramework) = {
+                                   failFastCurator: CuratorFramework,
+                                   discovery: MidonetDiscovery) = {
         new MidonetTestBackend
     }
 
+    override protected def bindDiscovery(curator: CuratorFramework) = {
+        val discovery = new FakeDiscovery
+        bind(classOf[MidonetDiscovery]).toInstance(discovery)
+        discovery
+    }
 }
