@@ -104,7 +104,7 @@ backend $id
             this.id == that.id &&
             this.loadBalancerId == that.loadBalancerId &&
             this.l4lbFileLocs == that.l4lbFileLocs &&
-            this.nsPostFix == that.nsPostFix
+            this.nsPostFix == that.nsPostFix &&
             this.adminStateUp == that.adminStateUp &&
             this.vip == that.vip &&
             this.vips == that.vips &&
