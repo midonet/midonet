@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e71d5f63",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppControllerIntegrationTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-16T18:39:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_512de98d",
+      "range": {
+        "startLine": 71,
+        "startChar": 22,
+        "endLine": 71,
+        "endChar": 24
+      },
+      "revId": "f41d9dd5538d902e5d0e134779d7dbbe894b5de7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f16bddb7",
         "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppControllerIntegrationTest.scala",
         "patchSetId": 12
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_67494f60",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppControllerIntegrationTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-16T18:39:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_f16bddb7",
+      "range": {
+        "startLine": 163,
+        "startChar": 18,
+        "endLine": 163,
+        "endChar": 40
+      },
+      "revId": "f41d9dd5538d902e5d0e134779d7dbbe894b5de7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3124a5b0",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
         "patchSetId": 12
@@ -59,6 +107,30 @@
       "writtenOn": "2016-11-16T14:25:26Z",
       "side": 1,
       "message": "if you want to share this between unit and integration tests tests, maybe it\u0027s better to break it out to it\u0027s own file, say DatapathSpec, which both MidolmanSpec and the integration tests can inherit",
+      "range": {
+        "startLine": 169,
+        "startChar": 0,
+        "endLine": 196,
+        "endChar": 1
+      },
+      "revId": "f41d9dd5538d902e5d0e134779d7dbbe894b5de7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0775e395",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-16T18:39:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_3124a5b0",
       "range": {
         "startLine": 169,
         "startChar": 0,
