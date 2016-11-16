@@ -40,12 +40,11 @@ import org.midonet.containers.ContainerDelegate
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.concurrent.NamedThreadFactory
-import org.midonet.util.functors.makeAction0
 import org.midonet.util.logging.Logger
 
 object ContainerService {
 
-    val SchedulingBufferSize = 0x1000
+    val SchedulingBufferSize = 0x100000
     val MaximumFailures = 0x100
     val ShutdownTimeoutSeconds = 5
 
@@ -215,9 +214,7 @@ class ContainerService @Inject()(nodeContext: Context,
         stopScheduling()
         scheduler = newScheduler()
         schedulerSubscription = scheduler.observable
-            .onBackpressureBuffer(SchedulingBufferSize, makeAction0 {
-                log error s"Scheduling buffer overflow (>$SchedulingBufferSize)"
-            })
+            .onBackpressureBuffer(SchedulingBufferSize)
             .observeOn(delegateScheduler)
             .subscribe(schedulerObserver)
     }

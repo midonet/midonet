@@ -24,12 +24,12 @@ import scala.collection.mutable
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory.getLogger
-import rx.subscriptions.CompositeSubscription
 
-import rx.{Subscription, Subscriber, Observable}
 import rx.Observable.OnSubscribe
+import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.models.Topology.ServiceContainer
+import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.{ContainersConfig, ContainersLog}
 import org.midonet.containers.{Context, ObjectTracker}
@@ -67,6 +67,7 @@ class ServiceScheduler(context: Context, config: ContainersConfig)
 
     private val containersObservable = context.store
         .observable(classOf[ServiceContainer])
+        .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
         .observeOn(context.scheduler)
         .flatMap(makeFunc1(_.take(1)))
         .flatMap(makeFunc1(containerCreated))
