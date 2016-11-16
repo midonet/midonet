@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.midonet.containers;
+package org.midonet.cluster.services.containers
 
-/**
- * Common methods and constants for service containers.
- */
-public class Containers {
+import com.google.inject.Inject
 
-    public static final String HAPROXY_CONTAINER = "HAPROXY";
-    public static final String IPSEC_CONTAINER = "IPSEC";
-    public static final String QUAGGA_CONTAINER = "QUAGGA";
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.containers.{Container, Containers}
 
+@Container(name = Containers.HAPROXY_CONTAINER, version = 1)
+class HaProxyContainerDelegate @Inject()(backend: MidonetBackend)
+    extends DatapathBoundContainerDelegate(backend) {
+    override def name = "haproxy"
 }
