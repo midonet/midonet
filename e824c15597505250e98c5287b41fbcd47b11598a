@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_59fbd548",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-16T08:55:10Z",
+      "side": 1,
+      "message": "Super weird. Not worth holding up this change for though.",
+      "parentUuid": "baa041b7_33ff1004",
+      "range": {
+        "startLine": 299,
+        "startChar": 8,
+        "endLine": 299,
+        "endChar": 9
+      },
+      "revId": "e824c15597505250e98c5287b41fbcd47b11598a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_7338f83b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 3
