@@ -32,10 +32,10 @@ case class PoolV2Config(id: UUID, adminStateUp: Boolean,
                         members: Set[MemberV2Config],
                         healthMonitor: HealthMonitorV2Config)
 
-class LoadBalancerV2Config(val id: UUID,
-                           val vips: Set[ListenerV2Config],
-                           val pools: Set[PoolV2Config],
-                           val adminStateUp: Boolean) {
+case class LoadBalancerV2Config(id: UUID,
+                                vips: Set[ListenerV2Config],
+                                pools: Set[PoolV2Config],
+                                adminStateUp: Boolean) {
 
     def generateConfigFile(sockFile: String): String = {
         val conf = new StringBuilder()

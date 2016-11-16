@@ -227,6 +227,12 @@ class IPSecContainerConfig(val conf: Config, val schema: Config) extends TypeFai
                                            TimeUnit.MILLISECONDS) millis
 }
 
+class HaProxyContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    val prefix = "agent.containers.haproxy"
+    def statusUpdateInterval = getDuration(s"$prefix.status_update_internal",
+                                           TimeUnit.MILLISECONDS) millis
+}
+
 class ServicesConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
     val prefix = "agent.minions"
 

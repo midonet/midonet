@@ -27,7 +27,8 @@ object HaproxyHelper {
     def sockLocation(path: String) = s"$path/sock"
 }
 
-class HaproxyHelper(haproxyScript: String) extends ContainerCommons {
+class HaproxyHelper(haproxyScript: String = "/usr/lib/midolman/haproxy-helper")
+    extends ContainerCommons {
 
     import HaproxyHealthMonitor._
     import HaproxyHelper._

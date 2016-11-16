@@ -107,18 +107,18 @@ class HaproxyHelperTest extends FeatureSpec
     val listener1 = ListenerV2Config(UUID.randomUUID(), true, 80, pool1.id)
     val listener2 = ListenerV2Config(UUID.randomUUID(), true, 80, pool2.id)
 
-    val lb1 = new LoadBalancerV2Config(UUID.randomUUID(), Set(listener1),
-                                       Set(pool1), true)
-    val lb2 = new LoadBalancerV2Config(UUID.randomUUID(),
-                                       Set(listener1, listener2),
-                                       Set(pool1, pool2), true)
+    val lb1 = LoadBalancerV2Config(UUID.randomUUID(), Set(listener1),
+                                   Set(pool1), true)
+    val lb2 = LoadBalancerV2Config(UUID.randomUUID(),
+                                   Set(listener1, listener2),
+                                   Set(pool1, pool2), true)
 
-    val lb1Updated = new LoadBalancerV2Config(lb1.id, Set(listener1),
-                                              Set(pool1Updated), true)
+    val lb1Updated = LoadBalancerV2Config(lb1.id, Set(listener1),
+                                          Set(pool1Updated), true)
 
-    val lbMultiPool = new LoadBalancerV2Config(lb1.id,
-                                               Set(listener1, listener2),
-                                               Set(pool1, pool2), true)
+    val lbMultiPool = LoadBalancerV2Config(lb1.id,
+                                           Set(listener1, listener2),
+                                           Set(pool1, pool2), true)
 
     val haproxyScript = "../midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper"
 
