@@ -80,7 +80,7 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         deserialized
     }
 
-    private def createFlow(dp: Datapath,
+    private[vpp] def createFlow(dp: Datapath,
                            fmatch: FlowMatch,
                            mask: FlowMask,
                            actions: java.util.List[FlowAction]): Unit = {
@@ -90,7 +90,7 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         writeRead(buf, Flow.deserializer.deserializeFrom)
     }
 
-    private def deleteFlow(dp: Datapath, fmatch: FlowMatch): Unit = {
+    private[vpp] def deleteFlow(dp: Datapath, fmatch: FlowMatch): Unit = {
         buf.clear()
         proto.prepareFlowDelete(dp.getIndex, fmatch.getKeys, buf)
         writeRead(buf, Flow.buildFrom)
