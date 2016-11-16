@@ -223,7 +223,7 @@ public class Addr implements AttributeHandler {
         return buf;
     }
 
-    static public ByteBuffer describeNewRequest(ByteBuffer buf, Addr addr) {
+    static public ByteBuffer fillNewOrDelRequest(ByteBuffer buf, Addr addr) {
         buf.put(addr.ifa.family);
         buf.put(addr.ifa.prefixLen);
         buf.put(addr.ifa.flags);
@@ -232,14 +232,26 @@ public class Addr implements AttributeHandler {
 
         switch (addr.ifa.family) {
             case Family.AF_INET:
-                for (IPv4Addr ip : addr.ipv4) {
+                for (IPv4Addr ip4 : addr.ipv4) {
                     NetlinkMessage.writeRawAttribute(
-                            buf, Attr.IFA_LOCAL, ip.toBytes());
+                            buf, Attr.IFA_LOCAL, ip4.toBytes());
+                }
+                for (IPv6Addr ip6 : addr.ipv6) {
+                    NetlinkMessage.writeRawAttribute(
+                            buf, Attr.IFA_LOCAL, ip6.toBytes());
                 }
                 break;
         }
 
         return buf;
+    }
+
+    static public ByteBuffer describeNewRequest(ByteBuffer buf, Addr addr) {
+        return fillNewOrDelRequest(buf, addr);
+    }
+
+    static public ByteBuffer describeDelRequest(ByteBuffer buf, Addr addr) {
+        return fillNewOrDelRequest(buf, addr);
     }
 
     @Override

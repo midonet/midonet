@@ -27,16 +27,14 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
-
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-
 import rx.subscriptions.CompositeSubscription
-
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.NatTarget
@@ -95,6 +93,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     private val portsSubscription = new CompositeSubscription()
     private val uplinks: LinksMap = new util.HashMap[UUID, BoundPort]
     private val downlinks: LinksMap = new util.HashMap[UUID, BoundPort]
+    private var downlinkVxlan: Option[VppDownlinkVxlanSetup] = None
 
     private val gatewayId = HostIdGenerator.getHostId
     private lazy val gatewayTable = vt.backend.stateTableStore
@@ -110,7 +109,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
     }
 
-    private val eventHandler: PartialFunction[Any, Future[_]] = {
+    private val eventHandlerWithoutVxlan: PartialFunction[Any, Future[_]] = {
         case LocalPortActive(portId, portNumber, true) =>
             attachUplink(portId)
         case LocalPortActive(portId, portNumber, false) =>
@@ -133,6 +132,28 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             Future.failed(e)
     }
 
+    private val eventHandlerWithVxlan: PartialFunction[Any, Future[_]] = {
+        case LocalPortActive(portId, portNumber, true) =>
+            attachUplink(portId).flatMap {
+                case Success(Some(_)) => attachDownlinkVxlan()
+                case Failure(err) => log error s"Failure during attaching uplink (portId: $portId, portNumber: $portNumber"
+                                     Future.failed(err)
+            }
+        case LocalPortActive(portId, portNumber, false) =>
+            detachUplink(portId).flatMap {
+                case _ => detachDownlinkVxlan()
+            }
+        case create@CreateDownlink(portId, vrf, ip4Address, ip6Address, natPool) =>
+            log.error("Creating extra downlink in FIP64 vxlan downlink mode")
+            Future.successful(()) // Nothing to do
+        case UpdateDownlink(portId, vrf, oldAddress, newAddress) =>
+            log.error("Updating downlink in FIP64 vxlan downlink mode")
+            Future.successful(())
+        case DeleteDownlink(portId, vrf) =>
+            log.error("Deleting downlink in FIP64 vxlan downlink mode")
+            Future.successful(())
+    }
+
     override def preStart(): Unit = {
         super.preStart()
         log debug s"Starting VPP controller"
@@ -153,6 +174,21 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         uplinks.clear()
         downlinks.clear()
         super.postStop()
+    }
+
+    var fip64Vxlan = MidolmanConfig.fip64Vxlan
+    var eventHandler = getEventHandler()
+
+    def getEventHandler(): PartialFunction[Any, Future[_]] = {
+        if (fip64Vxlan) {
+            eventHandlerWithVxlan orElse eventHandlerWithoutVxlan
+        } else {
+            eventHandlerWithoutVxlan
+        }
+    }
+
+    def resetEventHandler(): Unit = {
+        eventHandler = getEventHandler
     }
 
     override def receive: Receive = super.receive orElse {
@@ -253,6 +289,35 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     private def detachDownlink(portId: UUID): Future[_] = {
         log debug s"Detaching downlink port $portId"
         detachLink(downlinks, portId)
+    }
+
+    private def attachDownlinkVxlan(): Future[_] = {
+        log debug s"Attrach downlink VXLAN port"
+
+        val setup = new VppDownlinkVxlanSetup(vppApi, Logger(log.underlying))
+
+        {
+            downlinkVxlan match {
+                case None => Future.successful(Unit)
+                case Some(previousSetup: VppDownlinkVxlanSetup) => previousSetup.rollback()
+            }
+        } flatMap { _ =>
+            setup.execute()
+        } recoverWith { case e =>
+            setup.rollback() map { _ =>
+                downlinkVxlan = None
+                throw e
+            }
+        }
+    }
+
+    private def detachDownlinkVxlan() : Future[_] = {
+        log debug s"Detaching downlink VXLAN port"
+
+        downlinkVxlan match {
+            case None => Future.failed(null)
+            case Some(previousSetup: VppDownlinkVxlanSetup) => previousSetup.rollback()
+        }
     }
 
     @tailrec
