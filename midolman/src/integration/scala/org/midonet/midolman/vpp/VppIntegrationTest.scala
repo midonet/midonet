@@ -17,7 +17,7 @@
 package org.midonet.midolman.vpp
 
 import java.nio.ByteBuffer
-import java.util.UUID
+import java.util.{ArrayList, UUID}
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 import scala.concurrent.Await
@@ -43,7 +43,8 @@ import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.conf.HostIdGenerator
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.odp.{Datapath, OvsNetlinkFamilies, OvsProtocol}
+import org.midonet.odp._
+import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKeys}
 import org.midonet.packets._
 
 @RunWith(classOf[JUnitRunner])
@@ -121,6 +122,18 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
         log.info(s"Deleting namespace $name")
         cmd(s"ip netns del ${name}")
         cmd(s"ip l del dev ${name}dp")
+    }
+
+    def createVethPair(name: String): Unit = {
+        assertCmd(s"ip l add ${name}-left type veth"
+                      + s" peer name ${name}-right")
+        assertCmd(s"ip l set up dev ${name}-right")
+        assertCmd(s"ip l set up dev ${name}-left")
+    }
+
+    def deleteVethPair(name: String): Unit = {
+        log.info(s"Deleting veth pair $name")
+        cmd(s"ip l del dev ${name}-left")
     }
 
     private def doDatapathOp(opBuf: (OvsProtocol) => ByteBuffer): Unit = {
@@ -522,49 +535,37 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
     feature("VXLan downlink") {
         scenario("ping6 through vxlan") {
             val nsIPv6 = "ip6"
-            val nsVxLan = "vxlan"
+            val vethDownlink = "downlink"
+            val datapathName = "foobar"
+            val vxlanPort: Short = 4789
             val proc = startVpp()
             Thread.sleep(1000) // only needed while first testcase is failing
             val api = new VppApi("test")
 
+            val bviMac = MAC.fromString("de:ad:be:ef:00:05")
+            val nsMac = MAC.fromString("de:ad:be:ef:00:03")
+
+            val datapath = createDatapath(datapathName)
+
+            val vtepVpp = IPv4Addr.fromString("169.254.0.1")
+            val vtepKern = IPv4Addr.fromString("169.254.0.2")
+
+            var cleanupNs = Seq[String]()
             try {
                 createNamespace(nsIPv6)
-                createNamespace(nsVxLan)
 
-                // fix vxlan udp port (this is ugly)
-                // this is only needed for ubuntu 14.04 which
-                // has an old iproute2 without the ability to set the
-                // vxlan port using the command
-                cmd("rmmod openvswitch vxlan")
-                assertCmd("modprobe vxlan udp_port=4789")
-                assertCmd("modprobe openvswitch")
+                createVethPair(vethDownlink)
 
+                val ovs = new VppOvs(datapath)
+                val vxlanDp = ovs.createVxlanDpPort("fip64", vxlanPort)
+
+                // setup ipv6 side
                 assertCmdInNs(nsIPv6,
                               "ip l set address de:ad:be:ef:00:01 dev ip6ns")
                 assertCmdInNs(nsIPv6, "ip a add 2001::1/64 dev ip6ns")
                 assertCmdInNs(nsIPv6, "ip a add 4001::1/64 dev lo")
                 assertCmdInNs(nsIPv6,
                               "ip -6 r add 3001::/64 via 2001::2 src 4001::1")
-
-                assertCmdInNs(nsVxLan,
-                              "ip l set address de:ad:be:ef:00:02 dev vxlanns")
-                assertCmdInNs(nsVxLan,
-                              "ip a add 169.254.0.2/24 dev vxlanns")
-                assertCmdInNs(nsVxLan,
-                              "ip a add 192.168.0.1/24 dev lo")
-                assertCmdInNs(nsVxLan,
-                              "ip l add tun type vxlan id 139 dev vxlanns"
-                                  + " remote 169.254.0.1 local 169.254.0.2"
-                                  + " port 4789 4789")
-                assertCmdInNs(nsVxLan,
-                              "ip l set address de:ad:be:ef:00:03 dev tun")
-                assertCmdInNs(nsVxLan, "ip l set up dev tun")
-                assertCmdInNs(nsVxLan,
-                              "ip r add default dev tun src 192.168.0.1")
-                assertCmdInNs(nsVxLan,
-                              "ip neigh add 10.0.0.1"
-                                  + " lladdr de:ad:be:ef:00:05 dev tun")
-
                 val ip6Dev = Await.result(api.createDevice("ip6dp", None),
                                           1 minute)
                 Await.result(api.setDeviceAdminState(ip6Dev, isUp=true),
@@ -577,29 +578,89 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                                  nextHop=Some(IPv6Addr.fromString("2001::1")),
                                  device=Some(ip6Dev)), 1 minute)
 
-
-                val vxlanDev = Await.result(api.createDevice("vxlandp", None),
-                                            1 minute)
-                Await.result(api.setDeviceAdminState(vxlanDev, isUp=true),
+                val downlinkDev = Await.result(
+                    api.createDevice(s"${vethDownlink}-right", None),
+                    1 minute)
+                Await.result(api.setDeviceAdminState(downlinkDev, isUp=true),
                              1 minute)
                 Await.result(api.addDeviceAddress(
-                                 vxlanDev,
+                                 downlinkDev,
                                  IPv4Addr.fromString("169.254.0.1"), 24),
                              1 minute)
+                assertCmd(s"ip a add ${vtepKern}/24 dev ${vethDownlink}-left")
 
-                assertVppCtl("fip64 add 3001::1 192.168.0.1 " +
-                             "pool  10.0.0.1  10.0.0.1 table 1")
+                def addTenant(id: Int): IPv6Addr = {
+                    val ns = s"tenant$id"
+                    cleanupNs = cleanupNs :+ ns
 
-                val setupVxlan = new VppVxlanTunnelSetup(139, 1, api, log)
-                setupVxlan.execute()
+                    createNamespace(ns)
+                    val dp = ovs.createDpPort(s"${ns}dp")
 
-                assertCmdInNs(nsIPv6, "ping6 -c 5 3001::1")
+                    val fmatch1 = new FlowMatch()
+                    val fmask1 = new FlowMask()
+                    val actions1 = new ArrayList[FlowAction]
+                    fmatch1.addKey(FlowKeys.inPort(vxlanDp.getPortNo))
+                    fmatch1.addKey(FlowKeys.tunnel(
+                                      id, vtepVpp.toInt, vtepKern.toInt,  0))
+                    fmatch1.addKey(FlowKeys.ethernet(bviMac.getAddress,
+                                                    nsMac.getAddress))
+                    fmatch1.getTunnelKey // to mark as seen
+                    actions1.add(FlowActions.output(dp.getPortNo))
+                    fmask1.calculateFor(fmatch1, actions1)
+                    ovs.createFlow(datapath, fmatch1, fmask1, actions1)
+
+                    val fmatch2 = new FlowMatch()
+                    val fmask2 = new FlowMask()
+                    val actions2 = new ArrayList[FlowAction]
+                    fmatch2.addKey(FlowKeys.inPort(dp.getPortNo))
+                    fmatch2.addKey(FlowKeys.ethernet(nsMac.getAddress,
+                                                     bviMac.getAddress))
+                    actions2.add(FlowActions.setKey(
+                                    FlowKeys.tunnel(
+                                        id, vtepKern.toInt, vtepVpp.toInt, 0)))
+                    actions2.add(FlowActions.output(vxlanDp.getPortNo))
+                    fmask2.calculateFor(fmatch2, actions2)
+                    ovs.createFlow(datapath, fmatch2, fmask2, actions2)
+
+                    assertCmdInNs(ns,
+                                  s"ip l set address ${nsMac.toString}"
+                                  + s" dev ${ns}ns")
+                    assertCmdInNs(ns,
+                                  s"ip a add 192.168.0.1/24 dev ${ns}ns")
+                    assertCmdInNs(ns,
+                                  "ip r add default via 192.168.0.2")
+                    assertCmdInNs(ns,
+                                  "ip neigh add 192.168.0.2 lladdr"
+                                      + s" ${bviMac.toString} dev ${ns}ns")
+
+                    val fip = IPv6Addr.fromString(s"3001::$id")
+                    assertVppCtl(s"fip64 add ${fip} 192.168.0.1 "
+                                 + "pool 10.0.0.1 10.0.0.1 "
+                                 + s"table ${id}")
+
+                    val setupVxlan = new VppVxlanTunnelSetup(id, id, api, log)
+                    setupVxlan.execute()
+
+                    fip
+                }
+
+                val addr1 = addTenant(1)
+                assertCmdInNs(nsIPv6, s"ping6 -c 5 ${addr1}")
+
+                val addr2 = addTenant(2)
+                assertCmdInNs(nsIPv6, s"ping6 -c 5 ${addr2}")
+
+                val addr3 = addTenant(3)
+                assertCmdInNs(nsIPv6, s"ping6 -c 5 ${addr3}")
             } finally {
                 proc.destroy()
                 api.close()
 
-                deleteNamespace(nsVxLan)
+                deleteVethPair(vethDownlink)
+                cleanupNs foreach deleteNamespace
                 deleteNamespace(nsIPv6)
+
+                deleteDatapath(datapath)
             }
         }
 
