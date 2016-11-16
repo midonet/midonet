@@ -22,6 +22,30 @@
       "revId": "821541a651b5396accb000ecce741557df319b79",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_792339bf",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-16T09:20:15Z",
+      "side": 1,
+      "message": "Currently, if this parameter is False, check_exit_status \"consumes\" stdout and caller cannot get it. If return_output is set to True, check_exit_status does not print result of the comand to log and the caller gets \"unconsumed\" stdout.  Does it make secnse or I am doing something wrong?",
+      "parentUuid": "baa041b7_d995a5e3",
+      "range": {
+        "startLine": 196,
+        "startChar": 30,
+        "endLine": 196,
+        "endChar": 43
+      },
+      "revId": "821541a651b5396accb000ecce741557df319b79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
