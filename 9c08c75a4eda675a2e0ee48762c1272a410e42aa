@@ -108,6 +108,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7938d9d4",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-16T00:01:37Z",
+      "side": 1,
+      "message": "http://developer.openstack.org/api-ref/networking/v2/?expanded\u003dcreate-pool-detail#lbaas-2-0-stable\n\nI note that what it says is valid for protocol differs between the top paragraph and the table...",
+      "parentUuid": "baa041b7_64ba7773",
+      "range": {
+        "startLine": 211,
+        "startChar": 22,
+        "endLine": 211,
+        "endChar": 30
+      },
+      "revId": "9c08c75a4eda675a2e0ee48762c1272a410e42aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_64027774",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 5
