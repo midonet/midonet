@@ -164,6 +164,12 @@ abstract class MidonetResource[T >: Null <: UriResource]
             fromProto(tx.get(UriResource.getZoomClass(clazz), id), clazz)
         }
 
+        def getAll[U >: Null <: UriResource](clazz: Class[U], ids: Seq[Any])
+        : Seq[U] = tryRead {
+            tx.getAll(UriResource.getZoomClass(clazz), ids)
+                .map(fromProto(_, clazz))
+        }
+
         def list[U >: Null <: UriResource](clazz: Class[U]): Seq[U] = tryRead {
             tx.getAll(UriResource.getZoomClass(clazz))
                 .map(fromProto(_, clazz))

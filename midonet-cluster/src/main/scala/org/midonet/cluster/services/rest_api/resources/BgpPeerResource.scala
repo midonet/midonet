@@ -26,10 +26,13 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{Router, BgpPeer}
+import org.midonet.cluster.rest_api.models.{BgpPeer, Router}
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.packets.IPAddr
 
 @ApiResource(version = 1, template = "bgpPeerTemplate")
 @Path("bgp_peers")
@@ -64,6 +67,19 @@ class RouterBgpPeerResource @Inject()(routerId: UUID,
 
     protected override def createFilter(bgpPeer: BgpPeer,
                                         tx: ResourceTransaction): Unit = {
+        val router = tx.get(classOf[Router], routerId)
+        val peers = tx.getAll(classOf[BgpPeer], router.bgpPeerIds.asScala)
+
+        val address = IPAddr.fromString(bgpPeer.address)
+        if (peers.exists(peer => {
+            IPAddr.fromString(peer.address) == address &&
+            peer.asNumber == bgpPeer.asNumber
+        })) {
+            throw new BadRequestHttpException(
+                getMessage(BGP_PEER_NOT_UNIQUE, address.toString,
+                           Int.box(bgpPeer.asNumber)))
+        }
+
         bgpPeer.create(routerId)
         tx.create(bgpPeer)
     }

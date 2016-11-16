@@ -28,6 +28,8 @@ public class MessageProperty {
             "{midokura.javarx.ArpEntryNotFound.message}";
     public static final String BGP_NOT_UNIQUE =
             "{midokura.javarx.BgpNotUnique.message}";
+    public static final String BGP_PEER_NOT_UNIQUE =
+            "{midokura.javarx.BgpPeerNotUnique.message}";
     public static final String BRIDGE_HAS_MAC_PORT =
             "{midokura.javarx.BridgeHasMacPort.message}";
     public static final String BRIDGE_HAS_VLAN =
