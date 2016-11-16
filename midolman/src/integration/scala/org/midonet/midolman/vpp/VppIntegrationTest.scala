@@ -537,7 +537,8 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
             val nsIPv6 = "ip6"
             val vethDownlink = "downlink"
             val datapathName = "foobar"
-            val vxlanPort: Short = 4789
+            val vxlanPortOld: Short = 4789
+            val vxlanPortNew: Short = 5321
             val proc = startVpp()
             Thread.sleep(1000) // only needed while first testcase is failing
             val api = new VppApi("test")
@@ -557,7 +558,8 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 createVethPair(vethDownlink)
 
                 val ovs = new VppOvs(datapath)
-                val vxlanDp = ovs.createVxlanDpPort("fip64", vxlanPort)
+                val vxlanDpOld = ovs.createVxlanDpPort("fip64n", vxlanPortOld)
+                val vxlanDpNew = ovs.createVxlanDpPort("fip64o", vxlanPortNew)
 
                 // setup ipv6 side
                 assertCmdInNs(nsIPv6,
@@ -596,18 +598,21 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                     createNamespace(ns)
                     val dp = ovs.createDpPort(s"${ns}dp")
 
-                    val fmatch1 = new FlowMatch()
-                    val fmask1 = new FlowMask()
-                    val actions1 = new ArrayList[FlowAction]
-                    fmatch1.addKey(FlowKeys.inPort(vxlanDp.getPortNo))
-                    fmatch1.addKey(FlowKeys.tunnel(
-                                      id, vtepVpp.toInt, vtepKern.toInt,  0))
-                    fmatch1.addKey(FlowKeys.ethernet(bviMac.getAddress,
-                                                    nsMac.getAddress))
-                    fmatch1.getTunnelKey // to mark as seen
-                    actions1.add(FlowActions.output(dp.getPortNo))
-                    fmask1.calculateFor(fmatch1, actions1)
-                    ovs.createFlow(datapath, fmatch1, fmask1, actions1)
+                    for (vxlanDp <- Seq(vxlanDpOld, vxlanDpNew)) {
+                        val fmatch1 = new FlowMatch()
+                        val fmask1 = new FlowMask()
+                        val actions1 = new ArrayList[FlowAction]
+                        fmatch1.addKey(FlowKeys.inPort(vxlanDp.getPortNo))
+                        fmatch1.addKey(FlowKeys.tunnel(
+                                           id, vtepVpp.toInt,
+                                           vtepKern.toInt,  0))
+                        fmatch1.addKey(FlowKeys.ethernet(bviMac.getAddress,
+                                                         nsMac.getAddress))
+                        fmatch1.getTunnelKey // to mark as seen
+                        actions1.add(FlowActions.output(dp.getPortNo))
+                        fmask1.calculateFor(fmatch1, actions1)
+                        ovs.createFlow(datapath, fmatch1, fmask1, actions1)
+                    }
 
                     val fmatch2 = new FlowMatch()
                     val fmask2 = new FlowMask()
@@ -616,9 +621,11 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                     fmatch2.addKey(FlowKeys.ethernet(nsMac.getAddress,
                                                      bviMac.getAddress))
                     actions2.add(FlowActions.setKey(
-                                    FlowKeys.tunnel(
-                                        id, vtepKern.toInt, vtepVpp.toInt, 0)))
-                    actions2.add(FlowActions.output(vxlanDp.getPortNo))
+                                     FlowKeys.tunnel(
+                                         id, vtepKern.toInt,
+                                         vtepVpp.toInt, 0)))
+                    actions2.add(FlowActions.output(vxlanDpOld.getPortNo))
+                    actions2.add(FlowActions.output(vxlanDpNew.getPortNo))
                     fmask2.calculateFor(fmatch2, actions2)
                     ovs.createFlow(datapath, fmatch2, fmask2, actions2)
 
