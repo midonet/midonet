@@ -42,6 +42,7 @@ import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.models.Topology.{Port, ServiceContainer, ServiceContainerGroup, ServiceContainerPolicy}
 import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.services.containers.schedulers.ContainerScheduler._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.{ContainersConfig, ContainersLog}
@@ -191,12 +192,14 @@ class ContainerScheduler(containerId: UUID, context: Context,
         override def onCompleted(): Unit = { }
     }
     private val feedbackObservable = feedbackSubject
+        .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
         .observeOn(context.scheduler)
 
     private val containerObservable = context.store
         .observable(classOf[ServiceContainer], containerId)
         .distinctUntilChanged[ContainerSelector](makeFunc1(c =>
             ContainerSelector(c.getPortId.asJava, c.getServiceGroupId.asJava)))
+        .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
         .observeOn(context.scheduler)
         .doOnNext(makeAction1(containerUpdated))
         .doOnCompleted(makeAction0(containerDeleted()))
@@ -204,19 +207,16 @@ class ContainerScheduler(containerId: UUID, context: Context,
     private val groupSubject = PublishSubject.create[Observable[ServiceContainerGroup]]
     private val groupObservable = Observable
         .switchOnNext(groupSubject)
-        .observeOn(context.scheduler)
         .doOnNext(makeAction1(policyUpdated))
 
     private val hostsSubject = PublishSubject.create[Observable[HostsEvent]]
     private val hostsObservable = Observable
         .switchOnNext(hostsSubject)
         .distinctUntilChanged()
-        .observeOn(context.scheduler)
 
     private val portSubject = PublishSubject.create[Observable[Option[Port]]]
     private val portObservable = Observable
         .merge(portSubject)
-        .observeOn(context.scheduler)
 
     private var namespaceId: UUID = null
     private val namespaceSubject = PublishSubject.create[String]
@@ -377,6 +377,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
             groupReady = false
             groupSubject onNext context.store
                 .observable(classOf[ServiceContainerGroup], groupId)
+                .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
                 .observeOn(context.scheduler)
                 .doOnNext(makeAction1(_ => groupReady = true))
         }
@@ -387,6 +388,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
             if (container.hasPortId) {
                 portSubject onNext context.store
                     .observable(classOf[Port], portId)
+                    .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
                     .observeOn(context.scheduler)
                     .map[Option[Port]](makeFunc1(Option(_)))
                     .doOnNext(makeAction1(_ => portReady = true))
