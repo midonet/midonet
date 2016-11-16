@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_04fde407",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-16T09:26:40Z",
+      "side": 1,
+      "message": "we should manage the lifecycle of the executor, ideally this should be done in the service",
+      "range": {
+        "startLine": 120,
+        "startChar": 8,
+        "endLine": 126,
+        "endChar": 17
+      },
+      "revId": "5d755dc0493d8437aa3a081f9e585d48b28d5ac4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_39049116",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-16T09:26:40Z",
+      "side": 1,
+      "message": "I think we should avoid initializing the discovery service in two different places, but I\u0027m fine to fix this in a later patch",
+      "range": {
+        "startLine": 149,
+        "startChar": 12,
+        "endLine": 154,
+        "endChar": 13
+      },
+      "revId": "5d755dc0493d8437aa3a081f9e585d48b28d5ac4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
