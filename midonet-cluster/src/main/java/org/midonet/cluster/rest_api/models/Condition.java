@@ -179,11 +179,11 @@ public class Condition extends UriResource {
     public FragmentPolicy fragmentPolicy;
 
     @ZoomField(name = "tp_src", converter = RangeUtil.Converter.class)
-    @ValidRange( min = 1, max = 0xFFFF )
+    @ValidRange(min = 1, max = 0xFFFF)
     public Range<Integer> tpSrc;
 
     @ZoomField(name = "tp_dst", converter = RangeUtil.Converter.class)
-    @ValidRange( min = 1, max = 0xFFFF )
+    @ValidRange(min = 1, max = 0xFFFF)
     public Range<Integer> tpDst;
 
     @ZoomField(name = "tp_src_inv")
