@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7449fb5f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-16T15:54:45Z",
+      "side": 1,
+      "message": "ugh, maybe we could make this part of datapathState to avoid having a global.",
+      "range": {
+        "startLine": 64,
+        "startChar": 21,
+        "endLine": 64,
+        "endChar": 36
+      },
+      "revId": "9936f150ab98a62e0d02ce5fba7160c1cb0b78f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
