@@ -214,6 +214,7 @@ class ContainerConfig(val conf: Config, val schema: Config) extends TypeFailureF
     def logDirectory = getString(s"$prefix.log_directory")
 
     val ipsec = new IPSecContainerConfig(conf, schema)
+    val haproxy = new HaProxyContainerConfig(conf, schema)
 }
 
 class IPSecContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
@@ -223,6 +224,12 @@ class IPSecContainerConfig(val conf: Config, val schema: Config) extends TypeFai
                                           TimeUnit.MILLISECONDS) millis
     def loggingTimeout = getDuration(s"$prefix.logging_timeout",
                                      TimeUnit.MILLISECONDS) millis
+    def statusUpdateInterval = getDuration(s"$prefix.status_update_interval",
+                                           TimeUnit.MILLISECONDS) millis
+}
+
+class HaProxyContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    val prefix = "agent.containers.haproxy"
     def statusUpdateInterval = getDuration(s"$prefix.status_update_interval",
                                            TimeUnit.MILLISECONDS) millis
 }
