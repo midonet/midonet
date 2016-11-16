@@ -398,25 +398,19 @@ class AdminStateTest extends MidolmanSpec {
 
         protected val dpState: DatapathState = new DatapathState {
             val host = Host(hostId, true, Map.empty, Map.empty)
-            def peerTunnelInfo(peer: UUID) = null
-            def overlayTunnellingOutputAction: FlowActionOutput = null
-            def dpPortForTunnelKey(key: Long) = null
-            def greOverlayTunnellingOutputAction: FlowActionOutput = null
-            def vxlanOverlayTunnellingOutputAction: FlowActionOutput = null
-            def vtepTunnellingOutputAction: FlowActionOutput = null
-            def getDpPortNumberForVport(vportId: UUID): Integer = 1
-            def getDpPortForInterface(itfName: String): DpPort = null
-            def getVportForDpPortNumber(portNum: Integer): UUID = null
-            def getDpPortName(num: Integer): Option[String] = null
-            def version: Long = 0L
-            def uplinkPid: Int = 0
-            def isVtepTunnellingPort(portNumber: Integer): Boolean = false
-            def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
-            def datapath: Datapath = new Datapath(0, "midonet")
-            def tunnelRecircVxLanPort: VxLanTunnelPort = null
-            def hostRecircPort: NetDevPort = null
-            def tunnelRecircOutputAction: FlowActionOutput = null
-            def hostRecircOutputAction: FlowActionOutput = null
+            override def peerTunnelInfo(peer: UUID) = null
+            override def dpPortForTunnelKey(key: Long) = null
+            override def vtepTunnellingOutputAction: FlowActionOutput = null
+            override def getDpPortNumberForVport(vportId: UUID): Integer = 1
+            override def getVportForDpPortNumber(portNum: Integer): UUID = null
+            override def isVtepTunnellingPort(portNumber: Int): Boolean = false
+            override def isOverlayTunnellingPort(portNumber: Int): Boolean = false
+            override def isVppTunnellingPort(portNumber: Int): Boolean = false
+            override def datapath: Datapath = new Datapath(0, "midonet")
+            override def tunnelRecircVxLanPort: VxLanTunnelPort = null
+            override def hostRecircPort: NetDevPort = null
+            override def tunnelRecircOutputAction: FlowActionOutput = null
+            override def hostRecircOutputAction: FlowActionOutput = null
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {

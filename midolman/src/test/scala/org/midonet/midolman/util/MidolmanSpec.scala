@@ -172,27 +172,25 @@ trait MidolmanSpec extends FeatureSpecLike
         var grePort: Int = _
         var vxlanPortNumber: Int = _
 
-        def getDpPortNumberForVport(vportId: UUID): Integer =
+        override def getDpPortNumberForVport(vportId: UUID): Integer =
             dpPortNumberForVport get vportId orNull
 
-        def overlayTunnellingOutputAction: FlowActionOutput =
-            FlowActions.output(grePort)
         var vtepTunnellingOutputAction: FlowActionOutput = null
 
-        def peerTunnelInfo(peer: UUID) = peerTunnels get peer
-        def getVportForDpPortNumber(portNum: Integer): UUID = null
-        def dpPortForTunnelKey(tunnelKey: Long): DpPort = null
-        def getDpPortName(num: Integer): Option[String] = None
-        def isVtepTunnellingPort(portNumber: Integer): Boolean =
+        override def peerTunnelInfo(peer: UUID) = peerTunnels get peer
+        override def getVportForDpPortNumber(portNum: Integer): UUID = null
+        override def dpPortForTunnelKey(tunnelKey: Long): DpPort = null
+        override def isVtepTunnellingPort(portNumber: Int): Boolean =
             portNumber == vxlanPortNumber
-        def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+        override def isOverlayTunnellingPort(portNumber: Int): Boolean = false
+        override def isVppTunnellingPort(portNumber: Int): Boolean = false
 
-        def datapath: Datapath = new Datapath(0, "midonet")
+        override def datapath: Datapath = new Datapath(0, "midonet")
 
-        val tunnelRecircVxLanPort: VxLanTunnelPort =
+        override val tunnelRecircVxLanPort: VxLanTunnelPort =
             new VxLanTunnelPort("tnvxlan-overlay", VXLAN_DEFAULT_DST_PORT, 100)
-        val hostRecircPort: NetDevPort = new NetDevPort("host-recirc", 101)
-        def tunnelRecircOutputAction: FlowActionOutput = null
-        def hostRecircOutputAction: FlowActionOutput = null
+        override val hostRecircPort: NetDevPort = new NetDevPort("host-recirc", 101)
+        override def tunnelRecircOutputAction: FlowActionOutput = null
+        override def hostRecircOutputAction: FlowActionOutput = null
     }
 }

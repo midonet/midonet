@@ -145,8 +145,9 @@ class RecircTest extends FeatureSpec
             override def getVportForDpPortNumber(portNum: Integer): UUID = null
             override def dpPortForTunnelKey(tunnelKey: Long): DpPort = null
             override def peerTunnelInfo(peer: UUID): Option[Route] = null
-            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
-            override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+            override def isVtepTunnellingPort(portNumber: Int): Boolean = false
+            override def isOverlayTunnellingPort(portNumber: Int): Boolean = false
+            override def isVppTunnellingPort(portNumber: Int): Boolean = false
             override def vtepTunnellingOutputAction: FlowActionOutput = null
 
             override def getDpPortNumberForVport(vportId: UUID): Integer =
