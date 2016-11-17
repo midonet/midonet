@@ -22,6 +22,30 @@
       "revId": "35a1b2a9bba3498a5344a682cbe32f65a705ee64",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a5006f36",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-11-17T09:55:45Z",
+      "side": 1,
+      "message": "Nevermind, tryTransaction already uses the retriable trait inside.",
+      "parentUuid": "baa041b7_c5fed369",
+      "range": {
+        "startLine": 33,
+        "startChar": 12,
+        "endLine": 33,
+        "endChar": 34
+      },
+      "revId": "35a1b2a9bba3498a5344a682cbe32f65a705ee64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
