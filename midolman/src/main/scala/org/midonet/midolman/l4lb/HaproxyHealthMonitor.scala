@@ -462,8 +462,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         val destIp = IPAddressUtil.toProto(ip)
         Route.newBuilder
             .setId(toProto(routeId))
-            .setSrcSubnet(IPSubnetUtil.univSubnet4)
-            .setDstSubnet(IPSubnetUtil.fromAddr(destIp))
+            .setSrcSubnet(IPSubnetUtil.AnyIPv4Subnet)
+            .setDstSubnet(IPSubnetUtil.fromAddress(destIp))
             .setWeight(100)
             .setNextHopGateway(IPAddressUtil.toProto(NameSpaceIp))
             .setNextHop(Route.NextHop.PORT)

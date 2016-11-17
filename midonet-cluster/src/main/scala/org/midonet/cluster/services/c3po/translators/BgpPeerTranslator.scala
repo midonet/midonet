@@ -92,7 +92,7 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
                                        portId: UUID, chainId: UUID,
                                        bgpPeer: NeutronBgpPeer, inverse: Boolean)
     : Unit = {
-        val peerIp = IPSubnetUtil.fromAddr(bgpPeer.getPeerIp)
+        val peerIp = IPSubnetUtil.fromAddress(bgpPeer.getPeerIp)
 
         val peerRuleBuilder = redirectRuleBuilder(
             id = Some(ruleId),

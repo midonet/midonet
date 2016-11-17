@@ -298,7 +298,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         val redirectChain = storage.get(classOf[Chain],
                                         router.getLocalRedirectChainId).await()
 
-        val localEndpointIp = IPSubnetUtil.fromAddr(rtrGwIp)
+        val localEndpointIp = IPSubnetUtil.fromAddress(rtrGwIp)
         val rules = storage.getAll(classOf[Rule],
                                    redirectChain.getRuleIdsList).await()
             .filter((r: Rule) => {
@@ -342,14 +342,14 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         localRt.getNextHop shouldBe NextHop.LOCAL
         localRt.getNextHopPortId shouldBe rtrPort.getId
         localRt.hasNextHopGateway shouldBe false
-        localRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+        localRt.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
         localRt.getDstSubnet shouldBe
-            IPSubnetUtil.fromAddr(rtrPort.getPortAddress)
+            IPSubnetUtil.fromAddress(rtrPort.getPortAddress)
 
         vpnRt.getNextHop shouldBe NextHop.PORT
         vpnRt.getNextHopPortId shouldBe rtrPort.getId
         vpnRt.hasNextHopGateway shouldBe false
-        vpnRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+        vpnRt.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
         vpnRt.getDstSubnet shouldBe IPSubnetUtil.toProto("169.254.0.0/30")
     }
 }

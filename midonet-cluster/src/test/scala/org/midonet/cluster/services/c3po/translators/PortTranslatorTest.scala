@@ -1643,7 +1643,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
 
         val revSnatRuleBldr = revSnatRule.toBuilder
         revSnatRuleBldr.getConditionBuilder
-            .setNwDstIp(IPSubnetUtil.fromAddr(newIfPortIp))
+            .setNwDstIp(IPSubnetUtil.fromAddress(newIfPortIp))
         midoOps should contain (UpdateOp(revSnatRuleBldr.build))
      }
 
@@ -1812,7 +1812,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest{
     }
 
     "Router gateway port UPDATE" should "update redirect rules if VPN service exists" in {
-        val newExternalIp = IPSubnetUtil.fromAddr(IPv4Addr.random)
+        val newExternalIp = IPSubnetUtil.fromAddress(IPv4Addr.random)
         val newGwPort = nPortFromTxt(portBaseUp + s"""
             device_owner: ROUTER_GATEWAY
             device_id: '${fromProto(routerIdWithVPN)}'
