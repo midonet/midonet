@@ -204,7 +204,7 @@ public class ZkPathManager {
     private StringBuilder buildBridgeDhcpSubnetPath(UUID bridgeId,
                                                     IPv4Subnet subnetAddr) {
         return buildBridgeDhcpPath(bridgeId).append("/")
-            .append(subnetAddr.toZkString());
+            .append(subnetAddr.toUriString());
     }
 
     /**
@@ -269,7 +269,7 @@ public class ZkPathManager {
     private StringBuilder buildBridgeDhcpSubnet6Path(UUID bridgeId,
                                                      IPv6Subnet prefix) {
         return buildBridgeDhcpV6Path(bridgeId).append("/")
-            .append(prefix.toZkString());
+            .append(prefix.toUriString());
     }
 
     /**

@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 import com.google.protobuf.Message;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
@@ -77,8 +79,8 @@ public class BgpNetwork extends UriResource {
     @Override
     @JsonIgnore
     public void beforeToProto() {
-        subnet = subnetAddress != null ?
-                 IPSubnet.fromString(subnetAddress + "/" + subnetLength) : null;
+        subnet = StringUtils.isNotEmpty(subnetAddress) ?
+                 IPSubnet.fromString(subnetAddress, subnetLength) : null;
     }
 
     @Override

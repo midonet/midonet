@@ -58,7 +58,7 @@ public class DhcpOption121 extends ZoomObject {
     public void beforeToProto() {
         if (StringUtils.isNotEmpty(destinationPrefix)) {
             destinationSubnet =
-                IPSubnet.fromString(destinationPrefix + "/" + destinationLength);
+                IPSubnet.fromString(destinationPrefix, destinationLength);
         }
     }
 

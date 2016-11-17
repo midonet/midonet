@@ -16,35 +16,65 @@
 
 package org.midonet.packets;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang.StringUtils;
 
 public final class IPv6Subnet extends IPSubnet<IPv6Addr> {
 
-    /* Default constructor for deserialization. */
-    public IPv6Subnet() {
+    public IPv6Subnet(IPv6Addr address, int prefixLen) {
+        super(address, prefixLen);
     }
 
-    public IPv6Subnet(IPv6Addr addr, int prefixLen) {
-        super(addr, prefixLen);
+    public IPv6Subnet(String address, int prefixLen) {
+        super(IPv6Addr.fromString(address), prefixLen);
     }
 
-    public IPv6Subnet(String addr, int prefixLen) {
-        super(IPv6Addr.fromString(addr), prefixLen);
-    }
-
-    public IPv6Subnet(byte[] addr, int prefixLen) {
-        this(IPv6Addr.fromBytes(addr), prefixLen);
+    public IPv6Subnet(byte[] address, int prefixLen) {
+        this(IPv6Addr.fromBytes(address), prefixLen);
     }
 
     @Override
-    public void setAddress(IPv6Addr addr) {
-        this.address = addr;
-    }
-
-    @Override
-    @JsonIgnore
     public short ethertype() {
         return IPv6.ETHERTYPE;
+    }
+
+    @Override
+    public IPv6Addr toNetworkAddress() {
+        if (prefixLength == 0)
+            return IPv6Addr$.MODULE$.AnyAddress();
+
+        int maskSize = 128 - prefixLength;
+        long upperMask, lowerMask;
+        if (maskSize >= 64) {
+            upperMask = ~0L << (maskSize - 64);
+            lowerMask = 0;
+        } else {
+            upperMask = ~0L;
+            lowerMask = ~0L << maskSize;
+        }
+
+        if (address.upperWord() == (address.upperWord() & upperMask) &&
+            address.lowerWord() == (address.lowerWord() & lowerMask))
+            return address;
+        return new IPv6Addr(address.upperWord() & upperMask,
+                            address.lowerWord() & lowerMask);
+    }
+
+    @Override
+    public IPv6Addr toBroadcastAddress() {
+        if (prefixLength == 128)
+            return address;
+
+        long upperMask, lowerMask;
+        if (prefixLength < 64) {
+            upperMask = ~0L >>> prefixLength;
+            lowerMask = ~0L;
+        } else {
+            upperMask = 0;
+            lowerMask = ~0L >>> (prefixLength - 64);
+        }
+
+        return new IPv6Addr(address.upperWord() | upperMask,
+                            address.lowerWord() | lowerMask);
     }
 
     @Override
@@ -52,31 +82,36 @@ public final class IPv6Subnet extends IPSubnet<IPv6Addr> {
         if (!(other instanceof IPv6Addr))
             return false;
         IPv6Addr that = (IPv6Addr) other;
-        if (prefixLen == 0)
+        if (prefixLength == 0)
             return true;
 
-        int maskSize = 128-prefixLen;
+        int maskSize = 128 - prefixLength;
         long upperMask, lowerMask;
         if (maskSize >= 64) {
-            upperMask = ~0L << (maskSize-64);
+            upperMask = ~0L << (maskSize - 64);
             lowerMask = 0;
         } else { /* maskSize < 64 */
             upperMask = ~0L;
             lowerMask = ~0L << maskSize;
         }
+
         return (address.upperWord() & upperMask) ==
                (that.upperWord() & upperMask) &&
                (address.lowerWord() & lowerMask) ==
                (that.lowerWord() & lowerMask);
     }
 
-    public static IPv6Subnet fromString(String subnetStr) {
-        String[] parts = subnetStr.split("/", 2);
-        if (parts.length == 1) {
-            parts = subnetStr.split("_", 2);
-        }
-        // Because of String.split's contract, parts.length can only be 1 or 2
-        return new IPv6Subnet(IPv6Addr.fromString(parts[0]),
-                parts.length == 1 ? 128 : Integer.parseInt(parts[1]));
+    public static IPv6Subnet fromCidr(String cidr) {
+        return fromCidr(cidr, '/');
+    }
+
+    public static IPv6Subnet fromUriCidr(String cidr) {
+        return fromCidr(cidr, '_');
+    }
+
+    private static IPv6Subnet fromCidr(String cidr, char delimiter) {
+        String[] parts = StringUtils.split(cidr.trim(), delimiter);
+        int prefixLength = parts.length == 1 ? 128 : Integer.parseInt(parts[1]);
+        return new IPv6Subnet(IPv6Addr.fromString(parts[0]), prefixLength);
     }
 }

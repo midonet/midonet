@@ -18,39 +18,24 @@ package org.midonet.packets;
 
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang.StringUtils;
 
 public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
 
-    /* Default constructor for deserialization. */
-    public IPv4Subnet() {
+    public IPv4Subnet(IPv4Addr address, int prefixLen) {
+        super(address, prefixLen);
     }
 
-    public IPv4Subnet(IPv4Addr addr, int prefixLen) {
-        super(addr, prefixLen);
+    public IPv4Subnet(int address, int prefixLen) {
+        super(new IPv4Addr(address), prefixLen);
     }
 
-    public IPv4Subnet(int addr, int prefixLen) {
-        super(new IPv4Addr(addr), prefixLen);
+    public IPv4Subnet(String address, int prefixLen) {
+        super(IPv4Addr.fromString(address), prefixLen);
     }
 
-    public IPv4Subnet(String addr, int prefixLen) {
-        super(IPv4Addr.fromString(addr), prefixLen);
-    }
-
-    public IPv4Subnet(byte[] addr, int prefixLen) {
-        super(IPv4Addr.apply(addr), prefixLen);
-    }
-
-    public IPv4Subnet(String zkCidr) {
-        String[] parts = zkCidr.split("_");
-        this.address = IPv4Addr.fromString(parts[0]);
-        this.prefixLen = Integer.parseInt(parts[1]);
-    }
-
-    @Override
-    public void setAddress(IPv4Addr addr) {
-        this.address = addr;
+    public IPv4Subnet(byte[] address, int prefixLen) {
+        super(IPv4Addr.apply(address), prefixLen);
     }
 
     /**
@@ -61,23 +46,22 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
      * IllegalArgumentException is thrown if the CIDR notation string is
      * invalid.
      *
-     * @param cidr_ CIDR notation string
+     * @param cidr CIDR notation string
      */
-    public static IPv4Subnet fromCidr(String cidr_) {
-        if (!isValidIpv4Cidr(cidr_))
-            throw new IllegalArgumentException(cidr_ + " is not a valid cidr");
-
-        return fromString(cidr_, "/");
+    public static IPv4Subnet fromCidr(String cidr) {
+        if (!isValidIpv4Cidr(cidr))
+            throw new IllegalArgumentException(cidr + " is not a valid CIDR");
+        return fromCidr(cidr, '/');
     }
 
-    public static IPv4Subnet fromZkString(String zkCidr) {
-        return fromString(zkCidr, "_");
+    public static IPv4Subnet fromUriCidr(String cidr) {
+        return fromCidr(cidr, '_');
     }
 
-    public static IPv4Subnet fromString(String cidr, String delim) {
-        String[] parts = cidr.trim().split(delim);
-        int prefixLen = parts.length == 1 ? 32 : Integer.parseInt(parts[1]);
-        return new IPv4Subnet(IPv4Addr.fromString(parts[0]), prefixLen);
+    private static IPv4Subnet fromCidr(String cidr, char delimiter) {
+        String[] parts = StringUtils.split(cidr.trim(), delimiter);
+        int prefixLength = parts.length == 1 ? 32 : Integer.parseInt(parts[1]);
+        return new IPv4Subnet(IPv4Addr.fromString(parts[0]), prefixLength);
     }
 
     public int getIntAddress() {
@@ -85,22 +69,25 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
     }
 
     @Override
-    @JsonIgnore
     public short ethertype() {
         return IPv4.ETHERTYPE;
     }
 
-    public IPv4Addr toBroadcastAddress() {
-        int mask = 0xFFFFFFFF >>> prefixLen;
-        int bcast = address.toInt() | mask;
-        return IPv4Addr.fromInt(bcast);
+    @Override
+    public IPv4Addr toNetworkAddress() {
+        if (prefixLength == 0)
+            return IPv4Addr$.MODULE$.AnyAddress();
+        int mask = 0xFFFFFFFF << (32 - prefixLength);
+        if (address.addr() == (address.addr() & mask))
+            return address;
+        return new IPv4Addr(address.addr() & mask);
     }
 
-    public IPv4Addr toNetworkAddress() {
-        if (prefixLen == 0)
-            return new IPv4Addr(0);
-        int mask = 0xFFFFFFFF << (32 - prefixLen);
-        return new IPv4Addr(address.addr() & mask);
+    @Override
+    public IPv4Addr toBroadcastAddress() {
+        if (prefixLength == 32)
+            return address;
+        return IPv4Addr.fromInt(address.toInt() | (0xFFFFFFFF >>> prefixLength));
     }
 
     @Override
@@ -108,17 +95,17 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
         if (! (other instanceof IPv4Addr))
             return false;
 
-        IPv4Addr that =  (IPv4Addr) other;
-        return addrMatch(address.toInt(), that.toInt(), prefixLen);
+        IPv4Addr that = (IPv4Addr) other;
+        return addrMatch(address.toInt(), that.toInt(), prefixLength);
     }
 
     /**
      * Regex pattern representing IPv4 CIDR
      */
-    public static String IPV4_CIDR_PATTERN =
-            "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" +
-            "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])" +
-            "(\\/(\\d|[1-2]\\d|3[0-2]))?$";
+    private static final String IPV4_CIDR_PATTERN =
+        "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" +
+        "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])" +
+        "(\\/(\\d|[1-2]\\d|3[0-2]))?$";
 
     private static Pattern ipv4CidrPattern = Pattern.compile(IPV4_CIDR_PATTERN);
 
@@ -131,14 +118,14 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
      * @param cidr CIDR to validate
      * @return True if CIDR is valid
      */
-    public static boolean isValidIpv4Cidr(String cidr) {
+    static boolean isValidIpv4Cidr(String cidr) {
         return cidr != null && ipv4CidrPattern.matcher(cidr.trim()).matches();
     }
 
     public static boolean addrMatch(int ip1, int ip2, int prefixLen) {
         if (prefixLen == 0)
             return true;
-        int maskSize = 32-prefixLen;
+        int maskSize = 32 - prefixLen;
         int mask = ~0 << maskSize;
         return (ip1 & mask) == (ip2 & mask);
     }
