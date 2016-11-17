@@ -379,7 +379,7 @@ public class LocalDataClientImpl implements DataClient {
                 dhcpZkManager.getSubnet(bridgeId, subnetAddr);
 
             subnet = Converter.fromDhcpSubnetConfig(subnetConfig);
-            subnet.setId(subnetAddr.toZkString());
+            subnet.setId(subnetAddr.toUriString());
         }
 
         return subnet;

@@ -401,7 +401,7 @@ object Migrator extends App {
     private def migrateDhcpHosts(bridgeId: UUID, subnet: IPv4Subnet): Unit = {
         for (h <- legacyImporter.listDhcpHosts(bridgeId, subnet)) {
             log.info("Migrating " + h)
-            val resp = resources.bridges.dhcps(bridgeId).hosts(subnet)
+            val resp = resources.bridges.dhcps(bridgeId).hosts(subnet.toString)
                 .create(h, APPLICATION_DHCP_HOST_JSON_V2)
             handleResponse(resp)
         }
@@ -411,7 +411,8 @@ object Migrator extends App {
     private def migrateDhcpV6Hosts(bridgeId: UUID, subnet: IPv6Subnet): Unit = {
         for (h <- legacyImporter.listDhcpV6Hosts(bridgeId, subnet)) {
             log.info("Migrating " + h)
-            val resp = resources.bridges.dhcpsv6(bridgeId).hosts(subnet)
+            val resp = resources.bridges.dhcpsv6(bridgeId)
+                .hosts(subnet.toString)
                 .create(h, APPLICATION_DHCPV6_HOST_JSON)
             handleResponse(resp)
         }

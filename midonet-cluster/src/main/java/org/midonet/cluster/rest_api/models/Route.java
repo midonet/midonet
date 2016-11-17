@@ -157,11 +157,11 @@ public class Route extends UriResource {
     public void beforeToProto() {
         if (StringUtils.isNotEmpty(dstNetworkAddr)) {
             dstSubnet =
-                IPSubnet.fromString(dstNetworkAddr + "/" + dstNetworkLength);
+                IPSubnet.fromCidr(dstNetworkAddr + "/" + dstNetworkLength);
         }
         if (StringUtils.isNotEmpty(srcNetworkAddr)) {
             srcSubnet =
-                IPSubnet.fromString(srcNetworkAddr + "/" + srcNetworkLength);
+                IPSubnet.fromCidr(srcNetworkAddr + "/" + srcNetworkLength);
         }
 
         // In the protobuf model, a route only has next_hop_port_id or
