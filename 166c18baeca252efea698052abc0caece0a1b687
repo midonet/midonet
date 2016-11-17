@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bbb40ef1",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-17T14:39:59Z",
+      "side": 1,
+      "message": "don\u0027t use the docker cli calls directly. what you had before was better, I just didn\u0027t want a boolean argument. If you can\u0027t remove the boolean argument, break it into two different methods, one which returns the output the other that doesn\u0027t.",
+      "range": {
+        "startLine": 218,
+        "startChar": 13,
+        "endLine": 223,
+        "endChar": 76
+      },
+      "revId": "166c18baeca252efea698052abc0caece0a1b687",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
