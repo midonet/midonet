@@ -118,7 +118,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
             .setAction(Rule.Action.ACCEPT)
             .setFipPortId(fip.getPortId)
             .setCondition(anyFragCondition
-                              .setNwSrcIp(IPSubnetUtil.fromAddr(
+                              .setNwSrcIp(IPSubnetUtil.fromAddress(
                                               fip.getFixedIpAddress)))
             .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = false,
                                         dynamic = false))
@@ -127,7 +127,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
             .setId(fipSnatExactRuleId(fip.getId))
             .setCondition(anyFragCondition
                               .addOutPortIds(rtrPortId)
-                              .setNwSrcIp(IPSubnetUtil.fromAddr(
+                              .setNwSrcIp(IPSubnetUtil.fromAddress(
                                               fip.getFixedIpAddress)))
             .build()
 
@@ -137,7 +137,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
             .setAction(Rule.Action.ACCEPT)
             .setFipPortId(fip.getPortId)
             .setCondition(anyFragCondition
-                              .setNwDstIp(IPSubnetUtil.fromAddr(
+                              .setNwDstIp(IPSubnetUtil.fromAddress(
                                               fip.getFloatingIpAddress)))
             .setNatRuleData(natRuleData(fip.getFixedIpAddress, dnat = true,
                                         dynamic = false))

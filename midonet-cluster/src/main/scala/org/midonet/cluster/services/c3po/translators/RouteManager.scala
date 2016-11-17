@@ -22,7 +22,7 @@ import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rest_api.neutron.models.MetaDataService
-import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
+import org.midonet.cluster.util.IPSubnetUtil.AnyIPv4Subnet
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.IPv4Addr
@@ -56,8 +56,8 @@ trait RouteManager {
     : Route = {
         Route.newBuilder
              .setId(RouteManager.localRouteId(portId))
-             .setSrcSubnet(IPSubnetUtil.univSubnet4)
-             .setDstSubnet(IPSubnetUtil.fromAddr(portAddr))
+             .setSrcSubnet(IPSubnetUtil.AnyIPv4Subnet)
+             .setDstSubnet(IPSubnetUtil.fromAddress(portAddr))
              .setNextHop(NextHop.LOCAL)
              .setWeight(DEFAULT_WEIGHT)
              .setNextHopPortId(portId).build()
@@ -76,8 +76,8 @@ trait RouteManager {
     protected def newNextHopPortRoute(nextHopPortId: UUID,
                                       id: UUID = null,
                                       nextHopGwIpAddr: IPAddress = null,
-                                      srcSubnet: IPSubnet = univSubnet4,
-                                      dstSubnet: IPSubnet = univSubnet4,
+                                      srcSubnet: IPSubnet = AnyIPv4Subnet,
+                                      dstSubnet: IPSubnet = AnyIPv4Subnet,
                                       gatewayDhcpId: UUID = null,
                                       weight: Int = DEFAULT_WEIGHT,
                                       ipSecSiteCnxnId: UUID = null): Route = {

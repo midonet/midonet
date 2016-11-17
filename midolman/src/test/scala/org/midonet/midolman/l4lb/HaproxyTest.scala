@@ -307,8 +307,8 @@ class HaproxyTest extends MidolmanSpec
         val routeId = port.getRouteIds(0).asJava
         val route = getRoute(routeId)
         val simRoute = new layer3.Route(
-            IPSubnetUtil.univSubnet4.asJava.asInstanceOf[IPv4Subnet],
-            IPSubnetUtil.fromAddr(vipIp).asJava.asInstanceOf[IPv4Subnet],
+            IPSubnetUtil.AnyIPv4Subnet.asJava.asInstanceOf[IPv4Subnet],
+            IPSubnetUtil.fromAddress(vipIp).asJava.asInstanceOf[IPv4Subnet],
             NextHop.PORT, portId, HaproxyHealthMonitor.NameSpaceIp,
             100 /* weight */, null /* routerId */)
         simRoute shouldBeDeviceOf route
