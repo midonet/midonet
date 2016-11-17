@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_85a8cbda",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-17T06:50:13Z",
+      "side": 1,
+      "message": "Aside from putting the complexity all in the translator rather than spreading it between the JSON serializer and the translator (I\u0027d rather do the former, which would imply using a string here and just checking the string value in the translator), and aside from more complexity in writing up the API models (we have to have some special code to handle serializing the enums vs. a simple string), I don\u0027t really have a strong opinion on this.  I will ask Brandon and Joe  what their stances are.",
+      "parentUuid": "baa041b7_853a0bc3",
+      "range": {
+        "startLine": 236,
+        "startChar": 13,
+        "endLine": 236,
+        "endChar": 19
+      },
+      "revId": "76b283cf8c41ba3073a366d77fa3b5b4274193d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_45440346",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 8
@@ -59,6 +83,30 @@
       "writtenOn": "2016-11-17T06:10:27Z",
       "side": 1,
       "message": "do we need both?",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 33
+      },
+      "revId": "76b283cf8c41ba3073a366d77fa3b5b4274193d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a5ad0fec",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-17T06:50:13Z",
+      "side": 1,
+      "message": "I\u0027m actually not sure.  They seem to be separated and set in the Pool object separately:\n\n\n        ret_dict[\u0027listeners\u0027] \u003d [{\u0027id\u0027: listener.id}\n                                 for listener in self.listeners]\n        if self.listener:\n            ret_dict[\u0027listener_id\u0027] \u003d self.listener.id\n        else:\n            ret_dict[\u0027listener_id\u0027] \u003d None\n\n\nThis will set \u0027listeners\u0027 based on the internal list it has of listeners, while it will set \u0027listener_id\u0027 based off of whatever was set in \"listener\", which doesn\u0027t seem to actually be related to \"listeners\" list at all.  But, it\u0027s in the ctor for the Pool object, so I actually don\u0027t know.",
+      "parentUuid": "baa041b7_45440346",
       "range": {
         "startLine": 239,
         "startChar": 0,
