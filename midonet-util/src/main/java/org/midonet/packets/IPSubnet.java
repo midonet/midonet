@@ -19,27 +19,19 @@ package org.midonet.packets;
 
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.apache.commons.lang.StringUtils;
 
 import org.midonet.Util;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
-    property = "type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = IPv4Subnet.class, name = "IPv4"),
-    @JsonSubTypes.Type(value = IPv6Subnet.class, name = "IPv6")
-})
 public abstract class IPSubnet<T extends IPAddr> {
 
-    protected T address;
-    protected int prefixLen;
+    protected final T address;
+    protected final int prefixLength;
+    private String string = null;
 
-    protected IPSubnet() {}
-
-    protected IPSubnet(T address, int prefixLen) {
+    protected IPSubnet(T address, int prefixLength) {
         this.address = address;
-        this.prefixLen = prefixLen;
+        this.prefixLength = prefixLength;
     }
 
     public T getAddress() {
@@ -47,37 +39,41 @@ public abstract class IPSubnet<T extends IPAddr> {
     }
 
     public int getPrefixLen() {
-        return prefixLen;
+        return prefixLength;
     }
 
-    public abstract boolean containsAddress(IPAddr addr);
+    public abstract boolean containsAddress(IPAddr address);
 
-    /* Required for deserialization */
-    public abstract void setAddress(T address);
+    public abstract T toNetworkAddress();
 
-    /* Required for deserialization */
-    public void setPrefixLen(int prefixLen) {
-        this.prefixLen = prefixLen;
-    }
+    public abstract T toBroadcastAddress();
 
     public abstract short ethertype();
 
     @Override
     public String toString() {
-        return address.toString() + "/" + prefixLen;
+        if (string == null)
+            string = toNetworkAddress().toString() + "/" + prefixLength;
+        return string;
     }
 
     public String toZkString() {
-        return address.toString() + "_" + prefixLen;
+        return address.toString() + "_" + prefixLength;
     }
 
     public String toUnicastString() {
         return getAddress().toString();
     }
 
-    public static IPSubnet<?> fromString(String cidr) {
-        return cidr.contains(".") ?
-               IPv4Subnet.fromCidr(cidr) : IPv6Subnet.fromString(cidr);
+    public static IPSubnet<?> fromString(String address, int prefixLength) {
+        return StringUtils.contains(address, '.') ?
+               new IPv4Subnet(address, prefixLength) :
+               new IPv6Subnet(address, prefixLength);
+    }
+
+    public static IPSubnet<?> fromCidr(String cidr) {
+        return StringUtils.contains(cidr, '.') ?
+               IPv4Subnet.fromCidr(cidr) : IPv6Subnet.fromCidr(cidr);
     }
 
     @Override
@@ -87,12 +83,12 @@ public abstract class IPSubnet<T extends IPAddr> {
             return false;
 
         IPSubnet<T> that = Util.uncheckedCast(o);
-        return prefixLen == that.prefixLen &&
+        return prefixLength == that.prefixLength &&
                Objects.equals(address, that.address);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(address, prefixLen);
+        return Objects.hash(address, prefixLength);
     }
 }

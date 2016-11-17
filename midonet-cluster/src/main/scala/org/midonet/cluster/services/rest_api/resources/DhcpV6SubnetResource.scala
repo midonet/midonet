@@ -48,7 +48,7 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
                     APPLICATION_JSON))
     override def get(@PathParam("subnetAddress") subnetAddress: String,
                      @HeaderParam("Accept") accept: String): DhcpSubnet6 = {
-        getSubnet(IPv6Subnet.fromString(subnetAddress))
+        getSubnet(IPv6Subnet.fromCidr(subnetAddress))
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
 
@@ -73,7 +73,7 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
                         subnet: DhcpSubnet6,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = tryTx { tx =>
-        getSubnet(IPv6Subnet.fromString(subnetAddress), tx).map(current => {
+        getSubnet(IPv6Subnet.fromCidr(subnetAddress), tx).map(current => {
             subnet.update(current)
             tx.update(subnet)
             OkNoContentResponse
@@ -84,7 +84,7 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
     @Path("{subnetAddress}")
     override def delete(@PathParam("subnetAddress") subnetAddress: String)
     : Response = tryTx { tx =>
-        getSubnet(IPv6Subnet.fromString(subnetAddress), tx).map(subnet => {
+        getSubnet(IPv6Subnet.fromCidr(subnetAddress), tx).map(subnet => {
             tx.delete(classOf[DhcpSubnet6], subnet.id)
             OkNoContentResponse
         }).getOrElse(subnetNotFoundResp(subnetAddress))

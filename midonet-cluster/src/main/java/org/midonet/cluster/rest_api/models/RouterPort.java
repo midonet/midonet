@@ -119,7 +119,7 @@ public class RouterPort extends Port {
     public void beforeToProto() {
         if (StringUtils.isNotEmpty(networkAddress)) {
             portSubnet =
-                IPSubnet.fromString(networkAddress + "/" + networkLength);
+                IPSubnet.fromCidr(networkAddress + "/" + networkLength);
         }
     }
 

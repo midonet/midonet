@@ -78,7 +78,7 @@ public class BgpNetwork extends UriResource {
     @JsonIgnore
     public void beforeToProto() {
         subnet = subnetAddress != null ?
-                 IPSubnet.fromString(subnetAddress + "/" + subnetLength) : null;
+                 IPSubnet.fromCidr(subnetAddress + "/" + subnetLength) : null;
     }
 
     @Override

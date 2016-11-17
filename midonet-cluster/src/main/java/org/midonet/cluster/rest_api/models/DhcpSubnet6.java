@@ -110,7 +110,7 @@ public class DhcpSubnet6 extends UriResource {
     @JsonIgnore
     @Override
     public void beforeToProto() {
-        subnetAddress = IPSubnet.fromString(prefix + "/" + prefixLength);
+        subnetAddress = IPSubnet.fromString(prefix, prefixLength);
     }
 
     @Override

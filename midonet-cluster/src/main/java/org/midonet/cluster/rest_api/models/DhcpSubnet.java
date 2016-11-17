@@ -127,7 +127,7 @@ public class DhcpSubnet extends UriResource {
 
         try {
             subnetAddress =
-                IPSubnet.fromString(subnetPrefix + "/" + subnetLength);
+                IPSubnet.fromCidr(subnetPrefix + "/" + subnetLength);
         } catch (IllegalArgumentException ex){
             throw new BadRequestHttpException(ex, ex.getMessage());
         }
@@ -136,7 +136,7 @@ public class DhcpSubnet extends UriResource {
     @JsonIgnore
     public void update(DhcpSubnet from) {
         id = from.id;
-        subnetAddress = IPSubnet.fromString(subnetPrefix + "/" + subnetLength);
+        subnetAddress = IPSubnet.fromCidr(subnetPrefix + "/" + subnetLength);
         bridgeId = from.bridgeId;
         dhcpHosts = from.dhcpHosts;
     }

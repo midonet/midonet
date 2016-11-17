@@ -321,7 +321,7 @@ class RoutingHandlerTest extends FeatureSpecLike
 
         scenario("peer route map gets updated") {
             val dst = "10.10.10.0/24"
-            val dstSub = IPv4Subnet.fromString(dst, "/")
+            val dstSub = IPv4Subnet.fromCidr(dst)
             val gw1 = "192.168.80.254"
             val gw1Addr = IPv4Addr.fromString(gw1)
             val gw2 = "192.168.80.253"
