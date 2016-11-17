@@ -22,13 +22,13 @@ import com.google.protobuf.Message
 
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
-import org.mockito.Matchers.{anyObject, argThat}
+import org.mockito.Matchers.{anyObject, argThat, eq => mockEq, notNull}
 import org.mockito.Mockito._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 
 import org.midonet.cluster.ClusterConfig
-import org.midonet.cluster.data.storage.{PersistenceOp, Storage, StorageException, Transaction => ZoomTransaction}
+import org.midonet.cluster.data.storage.{PersistenceOp, Storage, StorageException, Transaction => ZoomTransaction, UpdateValidator}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute}
 import org.midonet.cluster.models.Topology.{Network, Port}
@@ -173,7 +173,8 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         storageManager.interpretAndExecTxn(
                 txn("txn1", c3poUpdate(2, updatedNetwork)))
 
-        verify(transaction).update(updatedNetwork, null)
+        verify(transaction).update(mockEq(updatedNetwork),
+                                   notNull(classOf[UpdateValidator[Object]]))
         verify(transaction).update(midoNetwork.toBuilder.setName(newNetworkName)
                                        .setAdminStateUp(!adminStateUp)
                                        .build, null)
