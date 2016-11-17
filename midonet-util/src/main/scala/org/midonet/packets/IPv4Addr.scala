@@ -82,6 +82,8 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
 
 object IPv4Addr {
 
+    val AnyAddress = IPv4Addr(0)
+
     val r = new Random
 
     def random = IPv4Addr(r.nextInt)

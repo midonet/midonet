@@ -35,7 +35,7 @@ import org.midonet.cluster.services.c3po.translators.PortTranslator._
 import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator._
 import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
-import org.midonet.cluster.util.IPSubnetUtil.{fromAddr, univSubnet4}
+import org.midonet.cluster.util.IPSubnetUtil.{fromAddress, AnyIPv4Subnet}
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.cluster.util._
 import org.midonet.midolman.simulation.Bridge
@@ -409,7 +409,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         val localRoute = newLocalRoute(rtrPortId, portAddress)
         val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPortId,
             id = rtrInterfaceRouteId,
-            srcSubnet = univSubnet4,
+            srcSubnet = AnyIPv4Subnet,
             dstSubnet = ns.getCidr)
         tx.update(rifRoute)
         tx.update(localRoute)
@@ -429,7 +429,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
 
             val revSnatRuleBldr = revSnatRule.toBuilder
             revSnatRuleBldr.getConditionBuilder.setNwDstIp(
-                fromAddr(portAddress))
+                fromAddress(portAddress))
 
             tx.update(snatRuleBldr.build())
             tx.update(revSnatRuleBldr.build())
@@ -535,7 +535,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
 
         for (fixedIp <- nPort.getFixedIpsList.asScala) {
             addIpMacPair(portCtx.antiSpoofRules, spoofChainId,
-                         IPSubnetUtil.fromAddr(fixedIp.getIpAddress), mac)
+                         IPSubnetUtil.fromAddress(fixedIp.getIpAddress), mac)
         }
 
         for (ipAddr <- nPort.getAllowedAddressPairsList.asScala) {

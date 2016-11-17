@@ -41,9 +41,9 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val tntRouterId = randomUuidProto
     protected val fipPortId = randomUuidProto
     protected val fipIpAddr = IPAddressUtil.toProto("10.10.10.1")
-    protected val fipIpSubnet = IPSubnetUtil.fromAddr(fipIpAddr)
+    protected val fipIpSubnet = IPSubnetUtil.fromAddress(fipIpAddr)
     protected val fipFixedIpAddr = IPAddressUtil.toProto("192.168.1.1")
-    protected val fipFixedIpSubnet = IPSubnetUtil.fromAddr(fipFixedIpAddr)
+    protected val fipFixedIpSubnet = IPSubnetUtil.fromAddress(fipFixedIpAddr)
 
     protected val unboundFip = nFloatingIpFromTxt(s"""
         id { $fipId }
@@ -127,7 +127,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         """)
     protected val mTntRouterGatwewayPort = Port.newBuilder
         .setId(mTntRouterGatewayPortId)
-        .setPortSubnet(IPSubnetUtil.fromAddr(fipIpAddr, 24))
+        .setPortSubnet(IPSubnetUtil.fromAddress(fipIpAddr, 24))
         .setPeerId(nTntRouterGatewayPortId)
         .build()
     protected val mTntRouterInternalPort = Port.newBuilder
@@ -324,7 +324,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     protected val tntRouter2OutChainId = outChainId(tntRouter2Id)
     protected val fipPort2Id = randomUuidProto
     protected val fixedIp2 = IPAddressUtil.toProto("192.168.1.10")
-    protected val fixedIpSubnet2 = IPSubnetUtil.fromAddr(fixedIp2)
+    protected val fixedIpSubnet2 = IPSubnetUtil.fromAddress(fixedIp2)
     protected val fipMovedRtr2 = fip(tntRouter2Id)
     protected val fipMovedPort2 = fip(portId = fipPort2Id, fixedIp = fixedIp2)
     protected val fipMovedRtr2Port2 =

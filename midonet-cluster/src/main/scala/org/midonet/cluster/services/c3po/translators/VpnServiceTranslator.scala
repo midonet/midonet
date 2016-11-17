@@ -219,7 +219,7 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
     private def makeRedirectRules(chainId: UUID,
                                   externalIp: IPAddress,
                                   portId: UUID): List[Rule] = {
-        val localEndpointIp = IPSubnetUtil.fromAddr(externalIp)
+        val localEndpointIp = IPSubnetUtil.fromAddress(externalIp)
 
         // Redirect ESP traffic addressed to local endpoint to VPN port.
         val espRuleBldr = redirectRuleBuilder(
@@ -302,7 +302,7 @@ protected[translators] object VpnServiceTranslator {
     }
 
     def updateVpnRedirectRules(newExternalIp: IPAddress, rules: List[Rule]): List[Rule] = {
-        val localEndpointIp = IPSubnetUtil.fromAddr(newExternalIp)
+        val localEndpointIp = IPSubnetUtil.fromAddress(newExternalIp)
         for (rule <- rules) yield {
             val bldr = rule.toBuilder
             bldr.getConditionBuilder.setNwDstIp(localEndpointIp)
@@ -311,7 +311,7 @@ protected[translators] object VpnServiceTranslator {
     }
 
     def filterVpnRedirectRules(externalIp: IPAddress, rules: Seq[Rule]): List[Rule] = {
-        val localEndpointIp = IPSubnetUtil.fromAddr(externalIp)
+        val localEndpointIp = IPSubnetUtil.fromAddress(externalIp)
 
         rules.filter((r:Rule) => {
                         isRedirectForEndpointRule(r, localEndpointIp) &&

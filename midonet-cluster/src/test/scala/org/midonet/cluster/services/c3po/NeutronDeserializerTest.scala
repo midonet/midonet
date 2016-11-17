@@ -335,7 +335,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         fw.getFirewallRuleList(0).getSourceIpAddress shouldBe
             IPSubnetUtil.toProto("10.0.0.0/24")
         fw.getFirewallRuleList(0).getDestinationIpAddress shouldBe
-            IPSubnetUtil.fromAddr("200.0.0.1")
+            IPSubnetUtil.fromAddress("200.0.0.1")
         fw.getFirewallRuleList(0).getSourcePort shouldBe "80"
         fw.getFirewallRuleList(0).getDestinationPort shouldBe "8080:8085"
         fw.getFirewallRuleList(0).getAction shouldBe FirewallRuleAction.DENY

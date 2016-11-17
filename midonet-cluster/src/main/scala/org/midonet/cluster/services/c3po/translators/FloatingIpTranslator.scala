@@ -109,11 +109,12 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
             .setFipPortId(fip.getPortId)
             .setCondition(anyFragCondition
                               .addOutPortIds(rtrPortId)
-                              .setNwSrcIp(IPSubnetUtil.fromAddr(
+                              .setNwSrcIp(IPSubnetUtil.fromAddress(
                                               fip.getFixedIpAddress)))
             .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = false,
                                         dynamic = false))
             .build()
+
         val dnatRule = Rule.newBuilder
             .setId(fipDnatRuleId(fip.getId))
             .setType(Rule.Type.NAT_RULE)
@@ -121,7 +122,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
             .setFipPortId(fip.getPortId)
             .setCondition(anyFragCondition
                               .addInPortIds(rtrPortId)
-                              .setNwDstIp(IPSubnetUtil.fromAddr(
+                              .setNwDstIp(IPSubnetUtil.fromAddress(
                                               fip.getFloatingIpAddress)))
             .setNatRuleData(natRuleData(fip.getFixedIpAddress, dnat = true,
                                         dynamic = false))
@@ -134,7 +135,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
             .setFipPortId(fip.getPortId)
             .setCondition(anyFragCondition
                               .addOutPortIds(rtrPortId)
-                              .setIcmpDataDstIp(IPSubnetUtil.fromAddr(
+                              .setIcmpDataDstIp(IPSubnetUtil.fromAddress(
                                                     fip.getFixedIpAddress)))
             .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = true,
                                         dynamic = false))

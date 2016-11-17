@@ -79,7 +79,7 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
             RouteManager.routerInterfaceRouteId(rtrPort.getId)
         val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPort.getId,
                                            id = routerInterfaceRouteId,
-                                           srcSubnet = univSubnet4,
+                                           srcSubnet = AnyIPv4Subnet,
                                            dstSubnet = ns.getCidr)
         val localRoute = newLocalRoute(rtrPort.getId, rtrPort.getPortAddress)
 
@@ -151,7 +151,7 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
     private def sameSubnetRevSnatRule(chainId: UUID, port: Port): Rule = {
         val cond = Condition.newBuilder()
                 .addInPortIds(port.getId)
-                .setNwDstIp(fromAddr(port.getPortAddress))
+                .setNwDstIp(fromAddress(port.getPortAddress))
                 .setMatchReturnFlow(true).build()
         val natTarget = revNatRuleData(dnat = false)
         newRule(chainId)

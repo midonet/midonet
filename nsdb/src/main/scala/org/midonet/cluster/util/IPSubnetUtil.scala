@@ -4,6 +4,7 @@
 package org.midonet.cluster.util
 
 import java.lang.reflect.{ParameterizedType, Type}
+import java.util.{ArrayList => JArrayList, List => JList}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
@@ -21,6 +22,12 @@ object IPSubnetUtil {
     private final val IPv4SubnetClass = classOf[IPv4Subnet]
     private final val IPv6SubnetClass = classOf[IPv6Subnet]
 
+    final val AnyIPv4Subnet = Commons.IPSubnet.newBuilder()
+        .setVersion(IPVersion.V4)
+        .setAddress("0.0.0.0")
+        .setPrefixLength(0).build()
+
+    @throws[IllegalArgumentException]
     implicit def toProto(subnet: IPSubnet[_]): Commons.IPSubnet = {
         val version = subnet match {
             case net4: IPv4Subnet => Commons.IPVersion.V4
@@ -35,14 +42,7 @@ object IPSubnetUtil {
             .build()
     }
 
-    def fromV4Proto(subnet: Commons.IPSubnet): IPv4Subnet = {
-        if (subnet.getVersion == Commons.IPVersion.V4) {
-            new IPv4Subnet(subnet.getAddress, subnet.getPrefixLength)
-        } else {
-            throw new IllegalArgumentException("Can't make an ipv4 address v6")
-        }
-    }
-
+    @throws[IllegalArgumentException]
     implicit def fromProto(subnet: Commons.IPSubnet): IPSubnet[_] = {
         subnet.getVersion match {
             case Commons.IPVersion.V4 =>
@@ -54,31 +54,50 @@ object IPSubnetUtil {
         }
     }
 
+    @throws[IllegalArgumentException]
+    def fromV4Proto(subnet: Commons.IPSubnet): IPv4Subnet = {
+        if (subnet.getVersion == Commons.IPVersion.V4) {
+            new IPv4Subnet(subnet.getAddress, subnet.getPrefixLength)
+        } else {
+            throw new IllegalArgumentException("Can't make an ipv4 address v6")
+        }
+    }
+
+    def fromAddress(address: String): Commons.IPSubnet = {
+        fromAddress(IPAddressUtil.toProto(address))
+    }
+
     def toProto(cidr: String): Commons.IPSubnet = {
         toProto(IPSubnet.fromString(cidr))
     }
 
-    def fromAddr(addr: String): Commons.IPSubnet = {
-        fromAddr(IPAddressUtil.toProto(addr))
-    }
-
-    def fromAddr(addr: IPAddress): Commons.IPSubnet = {
-        fromAddr(addr, if (addr.getVersion == Commons.IPVersion.V4) 32 else 128)
+    def fromAddress(addr: IPAddress): Commons.IPSubnet = {
+        fromAddress(addr, if (addr.getVersion == Commons.IPVersion.V4) 32 else 128)
     }
 
 
-    def fromAddr(addr: IPAddress, prefLen: Int): Commons.IPSubnet = {
+    def fromAddress(address: IPAddress, prefixLength: Int): Commons.IPSubnet = {
         Commons.IPSubnet.newBuilder()
-            .setVersion(addr.getVersion)
-            .setAddress(addr.getAddress)
-            .setPrefixLength(prefLen)
+            .setVersion(address.getVersion)
+            .setAddress(address.getAddress)
+            .setPrefixLength(prefixLength)
             .build()
+    }
+
+    def fromProto(subnets: JList[Commons.IPSubnet]): JList[IPSubnet[_]] = {
+        val result = new JArrayList[IPSubnet[_]](subnets.size())
+        var index = 0
+        while (index < subnets.size()) {
+            result.add(fromProto(subnets.get(index)))
+            index += 1
+        }
+        result
     }
 
     implicit def richIPSubnet(subnet: IPSubnet[_]): RichIPSubnet =
         new RichIPSubnet(subnet)
 
-    final class RichIPSubnet protected[IPSubnetUtil](val subnet: IPSubnet[_])
+    final class RichIPSubnet private[IPSubnetUtil](val subnet: IPSubnet[_])
         extends AnyVal {
         def asProto: Commons.IPSubnet = toProto(subnet)
     }
@@ -86,7 +105,7 @@ object IPSubnetUtil {
     implicit def richProtoIPSubnet(subnet: Commons.IPSubnet)
         : RichProtoIPSubnet = new RichProtoIPSubnet(subnet)
 
-    final class RichProtoIPSubnet protected[IPSubnetUtil]
+    final class RichProtoIPSubnet private[IPSubnetUtil]
         (val subnet: Commons.IPSubnet) extends AnyVal {
         def asJava: IPSubnet[_] = fromProto(subnet)
     }
@@ -111,8 +130,4 @@ object IPSubnetUtil {
         }
     }
 
-    val univSubnet4 = Commons.IPSubnet.newBuilder()
-                                      .setVersion(IPVersion.V4)
-                                      .setAddress("0.0.0.0")
-                                      .setPrefixLength(0).build()
 }

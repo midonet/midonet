@@ -473,8 +473,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
             trGwRt.getNextHop shouldBe NextHop.PORT
             trGwRt.getNextHopPortId shouldBe trGwPort.getId
-            trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
-            trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+            trGwRt.getDstSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
+            trGwRt.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
             if (nextHopIp == null) trGwRt.hasNextHopGateway shouldBe false
             else trGwRt.getNextHopGateway.getAddress shouldBe nextHopIp
 
@@ -490,8 +490,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         rt.getNextHop shouldBe NextHop.LOCAL
         rt.getNextHopPortId shouldBe nextHopPort.getId
         rt.getDstSubnet shouldBe
-        IPSubnetUtil.fromAddr(nextHopPort.getPortAddress)
-        rt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+        IPSubnetUtil.fromAddress(nextHopPort.getPortAddress)
+        rt.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
         rt.getWeight shouldBe RouteManager.DEFAULT_WEIGHT
     }
 
@@ -509,7 +509,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                  outSnatRule, outDropFragmentsRule) =
             storage.getAll(classOf[Rule], ruleIds).await()
 
-        val gwSubnet = IPSubnetUtil.fromAddr(gatewayIp)
+        val gwSubnet = IPSubnetUtil.fromAddress(gatewayIp)
 
         outSnatRule.getChainId shouldBe outChain.getId
         outSnatRule.getCondition.getOutPortIdsList.asScala should contain only trGwPortId
