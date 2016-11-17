@@ -49,6 +49,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a5c86f57",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-17T08:46:09Z",
+      "side": 1,
+      "message": "maybe you can use retryWhen?",
+      "range": {
+        "startLine": 174,
+        "startChar": 20,
+        "endLine": 174,
+        "endChar": 34
+      },
+      "revId": "a81d6875d5e91f853d4c3ecb006853bb53d8941f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_67a752a8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/QosService.scala",
         "patchSetId": 1
