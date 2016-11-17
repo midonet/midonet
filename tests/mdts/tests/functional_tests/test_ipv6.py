@@ -351,7 +351,7 @@ class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
         privnet = self.create_network("private-" + tenant_name)
         privsubnet = self.create_subnet("privatesubnet-" + tenant_name,
                                         privnet,
-                                        '20.0.0.0/26')
+                                        '192.168.0.0/26')
         self.add_router_interface(tenantrtr, subnet=privsubnet)
 
         #IP 20.0.0.2 is auto assigned to port1
@@ -436,7 +436,7 @@ binding_multihost_singletenant_neutronfip6 = {
     'bindings': [
          {'vport': 'port1',
          'interface': {
-             'definition': {"ipv4_gw": "20.0.0.1"},
+             'definition': {"ipv4_gw": "192.168.0.1"},
              'hostname': 'midolman2',
              'type': 'vmguest'
          }}
