@@ -440,6 +440,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d94da572",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-17T06:50:13Z",
+      "side": 1,
+      "message": "IIRC, I think this has to be the same as the JSON property that neutron will send us, otherwise it won\u0027t get serialized.  The JSON property itself is called \"listeners\".  We could alter the field name in ZK, though, I guess, although I\u0027d be concerned about some confusion maybe building up if the JSON prop and neutron object ZOOM field were different.",
+      "parentUuid": "baa041b7_649f1766",
+      "range": {
+        "startLine": 198,
+        "startChar": 18,
+        "endLine": 198,
+        "endChar": 27
+      },
+      "revId": "332b6650a2dd189bcc8a75e9505d21587f77f0c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8498db76",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 4
