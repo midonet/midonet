@@ -134,7 +134,7 @@ public class BridgeDhcpV6ZkManager extends BaseZkManager {
                 paths.getBridgeDhcpV6Path(bridgeId), null);
         List<IPv6Subnet> prefixes = new ArrayList<>();
         for (String prefixStr : prefixStrings)
-            prefixes.add(IPv6Subnet.fromString(prefixStr));
+            prefixes.add(IPv6Subnet.fromCidr(prefixStr));
         return prefixes;
     }
 

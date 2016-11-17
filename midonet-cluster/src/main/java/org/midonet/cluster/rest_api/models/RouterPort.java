@@ -118,8 +118,7 @@ public class RouterPort extends Port {
     @Override
     public void beforeToProto() {
         if (StringUtils.isNotEmpty(networkAddress)) {
-            portSubnet =
-                IPSubnet.fromString(networkAddress + "/" + networkLength);
+            portSubnet = IPSubnet.fromString(networkAddress, networkLength);
         }
     }
 

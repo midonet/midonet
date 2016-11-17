@@ -101,7 +101,7 @@ public class DhcpSubnet extends UriResource {
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.BRIDGES(), bridgeId,
-                           ResourceUris.DHCP(), subnetAddress.toZkString());
+                           ResourceUris.DHCP(), subnetAddress.toUriString());
     }
 
     public URI getHosts() {
@@ -126,8 +126,7 @@ public class DhcpSubnet extends UriResource {
         this.bridgeId = bridgeId;
 
         try {
-            subnetAddress =
-                IPSubnet.fromString(subnetPrefix + "/" + subnetLength);
+            subnetAddress = IPSubnet.fromString(subnetPrefix, subnetLength);
         } catch (IllegalArgumentException ex){
             throw new BadRequestHttpException(ex, ex.getMessage());
         }
@@ -136,7 +135,7 @@ public class DhcpSubnet extends UriResource {
     @JsonIgnore
     public void update(DhcpSubnet from) {
         id = from.id;
-        subnetAddress = IPSubnet.fromString(subnetPrefix + "/" + subnetLength);
+        subnetAddress = IPSubnet.fromString(subnetPrefix, subnetLength);
         bridgeId = from.bridgeId;
         dhcpHosts = from.dhcpHosts;
     }

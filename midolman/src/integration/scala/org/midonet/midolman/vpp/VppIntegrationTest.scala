@@ -312,11 +312,11 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                              1 minute)
 
                 log.info("Add routes in vpp")
-                Await.result(api.addRoute(IPSubnet.fromString("1001::/64"),
+                Await.result(api.addRoute(IPSubnet.fromCidr("1001::/64"),
                                           Some(IPAddr.fromString("2001::1")),
                                           Some(leftdp)),
                              1 minute)
-                Await.result(api.addRoute(IPSubnet.fromString("4001::/64"),
+                Await.result(api.addRoute(IPSubnet.fromCidr("4001::/64"),
                                           Some(IPAddr.fromString("3001::1")),
                                           Some(rightdp)),
                              1 minute)
@@ -327,11 +327,11 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 assertCmdInNs(nsRight, "ping6 -c 5 1001::1")
 
                 log.info("Deleting routes in vpp")
-                Await.result(api.deleteRoute(IPSubnet.fromString("1001::/64"),
+                Await.result(api.deleteRoute(IPSubnet.fromCidr("1001::/64"),
                                              Some(IPAddr.fromString("2001::1")),
                                              Some(leftdp)),
                              1 minute)
-                Await.result(api.deleteRoute(IPSubnet.fromString("4001::/64"),
+                Await.result(api.deleteRoute(IPSubnet.fromCidr("4001::/64"),
                                              Some(IPAddr.fromString("3001::1")),
                                              Some(rightdp)),
                              1 minute)
@@ -406,11 +406,11 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                              1 minute)
 
                 log.info("Add routes in vpp")
-                Await.result(api.addRoute(IPSubnet.fromString("1.0.0.0/24"),
+                Await.result(api.addRoute(IPSubnet.fromCidr("1.0.0.0/24"),
                                           Some(IPAddr.fromString("2.0.0.1")),
                                           Some(leftdp)),
                              1 minute)
-                Await.result(api.addRoute(IPSubnet.fromString("4.0.0.0/24"),
+                Await.result(api.addRoute(IPSubnet.fromCidr("4.0.0.0/24"),
                                           Some(IPAddr.fromString("3.0.0.1")),
                                           Some(rightdp)),
                              1 minute)
@@ -421,11 +421,11 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                 assertCmdInNs(nsRight, "ping -c 5 1.0.0.1")
 
                 log.info("Deleting routes in vpp")
-                Await.result(api.deleteRoute(IPSubnet.fromString("1.0.0.0/24"),
+                Await.result(api.deleteRoute(IPSubnet.fromCidr("1.0.0.0/24"),
                                              Some(IPAddr.fromString("2.0.0.1")),
                                              Some(leftdp)),
                              1 minute)
-                Await.result(api.deleteRoute(IPSubnet.fromString("4.0.0.0/24"),
+                Await.result(api.deleteRoute(IPSubnet.fromCidr("4.0.0.0/24"),
                                              Some(IPAddr.fromString("3.0.0.1")),
                                              Some(rightdp)),
                              1 minute)
@@ -517,7 +517,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
             var setup: Option[VppDownlinkSetup] = None
             try {
                 val ip4 = IPv4Subnet.fromCidr("169.254.0.1/30")
-                val ip6 = IPv6Subnet.fromString("2001::3/64")
+                val ip6 = IPv6Subnet.fromCidr("2001::3/64")
                 setup = Some(new VppDownlinkSetup(routerPortId, 0,
                                                   ip4, ip6, api, backend, log))
                 setup foreach { s => Await.result(s.execute(), 1 minute) }
@@ -576,7 +576,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                                  ip6Dev, IPv6Addr.fromString("2001::2"), 64),
                              1 minute)
                 Await.result(api.addRoute(
-                                 IPv6Subnet.fromString("4001::/64"),
+                                 IPv6Subnet.fromCidr("4001::/64"),
                                  nextHop=Some(IPv6Addr.fromString("2001::1")),
                                  device=Some(ip6Dev)), 1 minute)
 

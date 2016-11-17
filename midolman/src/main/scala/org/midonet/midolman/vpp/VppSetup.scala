@@ -360,7 +360,7 @@ private object VppSetup extends MidolmanLogging {
         extends FutureTaskWithRollback {
 
         override def execute(): Future[Any] = {
-            vppApi.addRoute(IPSubnet.fromString("0.0.0.0/0").
+            vppApi.addRoute(IPSubnet.fromCidr("0.0.0.0/0").
                 asInstanceOf[IPv4Subnet],
                                nextHop = Some(IPv4Addr.fromString("172.16.0.1")),
                                 None,
@@ -368,7 +368,7 @@ private object VppSetup extends MidolmanLogging {
         }
 
         override def rollback(): Future[Any] = {
-            vppApi.deleteRoute(IPSubnet.fromString("0.0.0.0/0").
+            vppApi.deleteRoute(IPSubnet.fromCidr("0.0.0.0/0").
                 asInstanceOf[IPv4Subnet],
                                nextHop = Some(IPv4Addr.fromString("172.16.0.1")),
                                None,
