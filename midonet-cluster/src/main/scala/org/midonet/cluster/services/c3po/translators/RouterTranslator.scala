@@ -179,7 +179,7 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
 
         val routerPort = newRouterPortBuilder(routerPortId, nRouter.getId,
                                               adminStateUp = true)
-            .setPortSubnet(dhcp.getSubnetAddress)
+            .addPortSubnet(dhcp.getSubnetAddress)
             .setPortAddress(portAddress)
             .setPortMac(routerPortMac)
             .setPeerId(nPort.getId)
@@ -225,7 +225,7 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         val port = newRouterPortBuilder(routerPortId, nRouter.getId,
                                         adminStateUp = true)
             .setPortAddress(portAddress4.asProto)
-            .setPortSubnet(portSubnet4.asProto)
+            .addPortSubnet(portSubnet4.asProto)
             .setPortMac(portMac)
             .build()
         tx.create(port)

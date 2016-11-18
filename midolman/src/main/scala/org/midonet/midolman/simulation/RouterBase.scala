@@ -385,7 +385,13 @@ abstract class RouterBase[IP <: IPAddr]()
 
         context.log.debug("Post routing phase")
 
-        if (context.wcmatch.getNetworkDstIP == outPort.portAddressV4) {
+        if (outPort.portAddress4 eq null) {
+            context.log.debug("Received a packet to a port without an IPv4 " +
+                              "address: dropping")
+            return Drop
+        }
+
+        if (context.wcmatch.getNetworkDstIP == outPort.portAddress4.getAddress) {
             context.log.warn("Received a packet addressed to a port without " +
                              "a LOCAL route: dropping")
             return Drop

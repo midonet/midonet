@@ -93,13 +93,13 @@ class TopologyWithLoop extends MidolmanSpec {
                      "0.0.0.0", 0,
                      "0.0.0.0", 0,
                      Route.NextHop.PORT, interiorEdgeRouterPort,
-                     fetchDevice[RouterPort](interiorTenantRouterPort).portAddressV4.toString,
+                     fetchDevice[RouterPort](interiorTenantRouterPort).portAddress4.toString,
                      10)
             newRoute(tenantRouter,
                      "0.0.0.0", 0,
                      "0.0.0.0", 0,
                      Route.NextHop.PORT, interiorTenantRouterPort,
-                     fetchDevice[RouterPort](interiorEdgeRouterPort).portAddressV4.toString,
+                     fetchDevice[RouterPort](interiorEdgeRouterPort).portAddress4.toString,
                      10)
 
             val pkt =
