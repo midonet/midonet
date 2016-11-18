@@ -26,7 +26,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.Failure
 
-import com.google.common.util.concurrent.AbstractService
 import com.lmax.disruptor._
 
 import org.slf4j.{LoggerFactory, MDC}
@@ -240,8 +239,7 @@ class PacketWorkflow(
             val flowRecorder: FlowRecorder,
             val vt: VirtualTopology,
             val packetOut: Int => Unit)
-        extends AbstractService
-        with EventHandler[PacketWorkflow.PacketRef]
+        extends EventHandler[PacketWorkflow.PacketRef]
         with TimeoutHandler
         with DisruptorBackChannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
@@ -295,17 +293,6 @@ class PacketWorkflow(
                 releaseBinding(k, v, natLeaser)
             }
         }
-
-
-    override def doStart(): Unit = {
-        flowRecorder.startAsync().awaitRunning()
-        notifyStarted()
-    }
-
-    override def doStop(): Unit = {
-        flowRecorder.stopAsync().awaitTerminated()
-        notifyStopped()
-    }
 
     override def onEvent(event: PacketRef, sequence: Long,
                          endOfBatch: Boolean): Unit = {

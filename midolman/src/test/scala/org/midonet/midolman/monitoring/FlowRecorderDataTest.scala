@@ -21,7 +21,7 @@ import scala.collection.JavaConverters._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflow.{HandlePackets, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{FlowMatch, Packet}
@@ -94,10 +94,6 @@ class FlowRecorderDataTest extends MidolmanSpec {
     class RecordingFlowRecorder extends FlowRecorder {
         case class Record(ctx: PacketContext, result: SimulationResult)
         val queue = new LinkedList[Record]()
-
-        override def doStart(): Unit = notifyStarted()
-
-        override def doStop(): Unit = notifyStopped()
 
         def record(pktContext: PacketContext, simRes: SimulationResult): Unit = {
             queue.add(Record(pktContext, simRes))
