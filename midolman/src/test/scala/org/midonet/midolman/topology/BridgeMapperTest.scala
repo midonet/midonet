@@ -37,7 +37,7 @@ import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.simulation.{BridgePort, Chain, Mirror, Bridge => SimulationBridge}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForPort, tagForVlanPort}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent._
@@ -1038,7 +1038,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val peerRouter = createRouter(id = peerRouterId)
             val peerPort = createRouterPort(id = peerPortId,
                                             routerId = Some(peerRouterId),
-                                            portAddress = peerPortAddr,
+                                            portSubnet = new IPv4Subnet(peerPortAddr, 32),
                                             portMac = peerPortMac)
 
             store.multi(Seq(CreateOp(peerRouter), CreateOp(port),
@@ -1122,7 +1122,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val peerRouter = createRouter(id = peerRouterId)
             val peerPort = createRouterPort(id = peerPortId,
                                             routerId = Some(peerRouterId),
-                                            portAddress = peerPortAddr1,
+                                            portSubnet = new IPv4Subnet(peerPortAddr1, 32),
                                             portMac = peerPortMac)
 
             store.multi(Seq(CreateOp(peerRouter), CreateOp(port),
@@ -1138,7 +1138,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.ipToMac.toSeq should contain only ((peerPortAddr1, peerPortMac))
 
             When("The router port IP is updated")
-            store.update(peerPort.setPeerId(portId).setPortAddress(peerPortAddr2))
+            store.update(peerPort.setPeerId(portId)
+                             .setPortSubnet(new IPv4Subnet(peerPortAddr2, 32)))
 
             Then("The observer should receive the update")
             obs.awaitOnNext(3, timeout) shouldBe true
@@ -1168,11 +1169,11 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val peerRouter = createRouter(id = peerRouterId)
             val peerPort1 = createRouterPort(id = peerPortId1,
                                              routerId = Some(peerRouterId),
-                                             portAddress = peerPortAddr1,
+                                             portSubnet = new IPv4Subnet(peerPortAddr1, 32),
                                              portMac = peerPortMac1)
             val peerPort2 = createRouterPort(id = peerPortId2,
                                              routerId = Some(peerRouterId),
-                                             portAddress = peerPortAddr2,
+                                             portSubnet = new IPv4Subnet(peerPortAddr2, 32),
                                              portMac = peerPortMac2)
 
             store.multi(Seq(CreateOp(peerRouter), CreateOp(port),
@@ -1245,7 +1246,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanPortId shouldBe None
 
             When("The peer port is updated")
-            store.update(peerPort.setPortAddress(IPv4Addr.random))
+            store.update(peerPort.setPortSubnet(randomIPv4Subnet))
 
             Then("The observer should not receive a new update")
             obs.getOnNextEvents should have size 4

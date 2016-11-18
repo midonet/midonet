@@ -149,13 +149,13 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         """)
     protected val mTntRouterGatwewayPort = Port.newBuilder
         .setId(mTntRouterGatewayPortId)
-        .setPortSubnet(IPSubnetUtil.fromAddress(fipIpAddr, 24))
+        .addPortSubnet(IPSubnetUtil.fromAddress(fipIpAddr, 24))
         .setPeerId(nTntRouterGatewayPortId)
         .build()
     protected val mTntRouterInternalPort = Port.newBuilder
         .setId(tntRouterInternalPortId)
         .setRouterId(tntRouterId)
-        .setPortSubnet(tntRouterInternalPortSubnet)
+        .addPortSubnet(tntRouterInternalPortSubnet)
         .build()
 
     protected val fipArpEntryPath = stateTableStorage.bridgeArpEntryPath(
@@ -458,7 +458,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     protected val mTntRouter2GwPort = Port.newBuilder
         .setId(mTntRouter2GwPortId)
         .setPeerId(nTntRouter2GwPortId)
-        .setPortSubnet(fipIpSubnet)
+        .addPortSubnet(fipIpSubnet)
         .build()
 
     protected val tntRouter2InChain = mChainFromTxt(s"""

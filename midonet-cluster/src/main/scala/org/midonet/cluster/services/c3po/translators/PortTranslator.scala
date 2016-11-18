@@ -410,9 +410,9 @@ class PortTranslator(stateTableStorage: StateTableStorage,
             rtrPortId)
         val localRoute = newLocalRoute(rtrPortId, portAddress)
         val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPortId,
-            id = rtrInterfaceRouteId,
-            srcSubnet = AnyIPv4Subnet,
-            dstSubnet = ns.getCidr)
+                                           id = rtrInterfaceRouteId,
+                                           srcSubnet = AnyIPv4Subnet,
+                                           dstSubnet = ns.getCidr)
         tx.update(rifRoute)
         tx.update(localRoute)
 

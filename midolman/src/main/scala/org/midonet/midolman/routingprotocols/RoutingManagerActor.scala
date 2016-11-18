@@ -166,8 +166,10 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
         })
     }
 
-    def isPossibleBgpPort(port: RouterPort): Boolean =
+    def isPossibleBgpPort(port: RouterPort): Boolean = {
+        (port.portAddress4 ne null) &&
         port.isExterior || isQuaggaContainerPort(port)
+    }
 
     override def receive = {
         case BgpContainerReady(portId) => sendPortActive(portId)

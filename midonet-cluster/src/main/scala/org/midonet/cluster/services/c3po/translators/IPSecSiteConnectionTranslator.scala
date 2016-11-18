@@ -22,13 +22,13 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeSet
 
 import org.midonet.cluster.data.storage.Transaction
+import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.Topology.{Port, Route, ServiceContainer}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.IPSecSiteConnectionTranslator._
 import org.midonet.cluster.util.IPAddressUtil._
-import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers
 import org.midonet.packets.IPv4Subnet
@@ -72,14 +72,27 @@ class IPSecSiteConnectionTranslator
       */
     private def createRemoteRoutes(tx: Transaction,
                                    cnxn: IPSecSiteConnection,
-                                   vpn: VpnService): List[Route] = {
+                                   vpn: VpnService): Seq[Route] = {
+
+        def findPortSubnet(port: Port): IPv4Subnet = {
+            for (subnet <- port.getPortSubnetList.asScala) {
+                if (subnet.getVersion == IPVersion.V4) {
+                    return IPSubnetUtil.fromV4Proto(subnet)
+                }
+            }
+            null
+        }
+
         val container = tx.get(classOf[ServiceContainer],
                                vpn.getContainerId)
         val routerPort = tx.get(classOf[Port],
                                 container.getPortId)
         val routerPortId = routerPort.getId
-        val routerPortSubnet =
-            routerPort.getPortSubnet.asJava.asInstanceOf[IPv4Subnet]
+        val routerPortSubnet = findPortSubnet(routerPort)
+
+        if (routerPortSubnet eq null) {
+            return Seq.empty
+        }
 
         val localPeerCidrPairs = for {
             localCidr <- cnxn.getLocalCidrsList.asScala
