@@ -15,17 +15,21 @@
  */
 package org.midonet.midolman.monitoring
 
-import java.net.{InetSocketAddress, SocketException}
+import java.io.IOException
+import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import java.nio.channels.DatagramChannel
+import java.nio.channels.SocketChannel
 import java.util.concurrent.atomic.AtomicReference
 import java.util.{ArrayList, List, UUID}
 
 import scala.collection.JavaConverters._
-import scala.util.Random
+import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
+import scala.util.{Random, Try}
 
 import org.slf4j.LoggerFactory
 import com.google.common.util.concurrent.AbstractService
+import com.google.protobuf.CodedOutputStream
 import com.typesafe.scalalogging.Logger
 
 import rx.Observer
@@ -47,6 +51,7 @@ trait FlowRecorder extends AbstractService {
 }
 
 object FlowRecorder {
+    final val ConnectionTimeout = Duration("5s")
     val log = Logger(LoggerFactory.getLogger(classOf[FlowRecorder]))
 
     def apply(config: MidolmanConfig, hostId: UUID,
@@ -96,7 +101,7 @@ object NullFlowRecorder {
 }
 
 /**
-  * Abstract flow recorder example that sends summaries over a udp port
+  * Abstract flow recorder example that sends summaries over a tcp port
   */
 abstract class AbstractFlowRecorder(config: FlowHistoryConfig,
                                     backend: MidonetBackend) extends FlowRecorder {
@@ -106,7 +111,10 @@ abstract class AbstractFlowRecorder(config: FlowHistoryConfig,
 
     private val endpointRef = new AtomicReference[Option[InetSocketAddress]](None)
 
-    private val socket = DatagramChannel.open()
+    private var channel: SocketChannel = _
+    private var current: InetSocketAddress = _
+    private val sizeBuffer: ByteBuffer = ByteBuffer.allocateDirect(4)
+    private val codedOutputStream = CodedOutputStream.newInstance(sizeBuffer, 4)
 
     def endpoint: Option[InetSocketAddress] = endpointRef.get
 
@@ -123,25 +131,35 @@ abstract class AbstractFlowRecorder(config: FlowHistoryConfig,
         notifyStopped()
     }
 
-    final override def record(pktContext: PacketContext, simRes: MMSimRes):
-            Unit = {
+    final override def record(pktContext: PacketContext, simRes: MMSimRes) {
         try {
-            if (endpoint.nonEmpty) {
+            val actualEndpoint = endpoint.orNull
+            if (actualEndpoint != null) {
+                connect(actualEndpoint)
                 val buffer = encodeRecord(pktContext: PacketContext, simRes)
-                socket.send(buffer, endpoint.get)
+                // Send buffer length int before sending buffer
+                sizeBuffer.clear()
+                codedOutputStream.writeRawVarint32(buffer.limit)
+                codedOutputStream.flush()
+                sizeBuffer.flip()
+                while (sizeBuffer.hasRemaining)
+                    channel.write(sizeBuffer)
+                while (buffer.hasRemaining)
+                    channel.write(buffer)
             }
         } catch {
             case ex: IndexOutOfBoundsException =>
-                log.info(s"Too many information to encode: " +
-                         "drop the packet history. " + ex.toString)
-            case ex: SocketException =>
-                log.info("Cannot send packet history encoding as " +
-                         "single packet, drop the packet history. " +
-                          ex.toString)
-            case t: Throwable =>
-                log.warn("FlowHistory: Error sending data", t)
+                log.error("Too much information to encode: " +
+                              "drop the packet history. " + ex.toString)
+            case ex: IOException =>
+                // Close channel on IOException
+                close()
+                log.error("Error sending flow record to endpoint", ex)
+            case NonFatal(e) =>
+                log.error("Unknown error while recording flow record", e)
         }
     }
+
 
     def encodeRecord(pktContext: PacketContext,
                      simRes: MMSimRes): ByteBuffer
@@ -186,6 +204,24 @@ abstract class AbstractFlowRecorder(config: FlowHistoryConfig,
         )
     }
 
+    private def connect(address: InetSocketAddress) = {
+        if (channel == null || current != address) {
+            current = address
+            channel = SocketChannel.open()
+            val connectionTimeoutMillis =
+                FlowRecorder.ConnectionTimeout.toMillis.toInt
+            channel.socket.connect(address, connectionTimeoutMillis)
+            log.debug("FlowRecordSender connected to {}", current)
+        }
+    }
+
+    private def close() = {
+        if (channel != null) {
+            Try(channel.shutdownOutput()) // eat up shutdown errors
+            Try(channel.close()) // eat up close errors
+            channel = null
+        }
+    }
 }
 
 object FlowRecordBuilder {

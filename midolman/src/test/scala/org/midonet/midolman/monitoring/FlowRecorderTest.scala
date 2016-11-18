@@ -15,16 +15,27 @@
  */
 package org.midonet.midolman.monitoring
 
-import scala.collection.JavaConverters._
-import java.net.{DatagramPacket, DatagramSocket, InetSocketAddress}
+import java.net.InetSocketAddress
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeUnit
 import java.util.{UUID, Map => JMap}
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.codehaus.jackson.map.ObjectMapper
+import scala.collection.JavaConverters._
+import scala.concurrent.duration.Duration
+
 import com.google.common.io.BaseEncoding
 import com.google.common.net.HostAndPort
+
+import org.codehaus.jackson.map.ObjectMapper
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+import rx.Observer
+
+import io.netty.channel.socket.SocketChannel
+import io.netty.channel.{ChannelHandlerContext, ChannelInitializer, SimpleChannelInboundHandler}
+import io.netty.handler.codec.bytes.ByteArrayDecoder
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
 
 import org.midonet.cluster.flowhistory._
 import org.midonet.cluster.services.MidonetBackend
@@ -34,15 +45,17 @@ import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows._
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets.util.PacketBuilder._
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.util.netty.ServerFrontEnd
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class FlowRecorderTest extends MidolmanSpec {
-    import FlowRecorderTest.EndpointServiceName
+    import FlowRecorderTest.{EndpointServiceName, Timeout}
 
     feature("flow recording construction") {
         scenario("unconfigured flow history yields null recorder") {
@@ -223,15 +236,19 @@ class FlowRecorderTest extends MidolmanSpec {
 
             discovery.registerServiceInstance(EndpointServiceName, target)
 
-            val data = new Array[Byte](4096)
-            val datagram = new DatagramPacket(data, data.length)
+            val observer = new TestAwaitableObserver[Array[Byte]]
 
-            val sock = getListeningSocket(target)
+            val srv = getDelimBytesServer(50022, observer)
+
+            srv.startAsync().awaitRunning(Timeout.toMillis,
+                                          TimeUnit.MILLISECONDS)
 
             val ctx = newContext()
             recorder.record(ctx, PacketWorkflow.NoOp)
             try {
-                sock.receive(datagram)
+                observer.awaitOnNext(1, Timeout) shouldBe true
+                val data = observer.getOnNextEvents.asScala.head
+
                 val mapper = new ObjectMapper()
 
                 val result: JMap[String, Object] =
@@ -253,8 +270,8 @@ class FlowRecorderTest extends MidolmanSpec {
                     e.getValue should not be (null)
                 }
             } finally {
-                sock.close()
-
+                srv.stopAsync().awaitTerminated(Timeout.toMillis,
+                                                TimeUnit.MILLISECONDS)
                 recorder.stopAsync().awaitTerminated()
             }
         }
@@ -279,35 +296,43 @@ class FlowRecorderTest extends MidolmanSpec {
             discovery.registerServiceInstance(EndpointServiceName,
                                               target)
 
-            val data = new Array[Byte](409600)
-            val datagram = new DatagramPacket(data, data.length)
+            val observer = new TestAwaitableObserver[Array[Byte]]
 
-            val sock = getListeningSocket(target)
+            val srv = getDelimBytesServer(50023, observer)
+
+            srv.startAsync().awaitRunning(Timeout.toMillis,
+                                          TimeUnit.MILLISECONDS)
 
             val binSerializer = new BinarySerialization
             try {
                 val ctx1 = newContext()
                 recorder.record(ctx1, PacketWorkflow.NoOp)
+                val ctx2 = newContext()
+                recorder.record(ctx2, PacketWorkflow.GeneratedPacket)
 
-                sock.receive(datagram)
+                observer.awaitOnNext(2, Timeout) shouldBe true
+
+                val receivedData = observer.getOnNextEvents.asScala
+
+                receivedData.size shouldBe 2
+
+                val data1 = receivedData.head
 
                 val shouldMatch1 = FlowRecordBuilder.buildRecord(
                     recorder.asInstanceOf[BinaryFlowRecorder].hostId,
                     ctx1, PacketWorkflow.NoOp)
-                shouldMatch1 should be (binSerializer.bufferToFlowRecord(data))
+                shouldMatch1 should be (binSerializer.bufferToFlowRecord(data1))
 
-                val ctx2 = newContext()
-                recorder.record(ctx2, PacketWorkflow.GeneratedPacket)
+                val data2 = receivedData(1)
 
-                sock.receive(datagram)
                 val shouldMatch2 = FlowRecordBuilder.buildRecord(
                     recorder.asInstanceOf[BinaryFlowRecorder].hostId,
                     ctx2, PacketWorkflow.GeneratedPacket)
 
-                shouldMatch2 should be (binSerializer.bufferToFlowRecord(data))
+                shouldMatch2 should be (binSerializer.bufferToFlowRecord(data2))
             } finally {
-                sock.close()
-
+                srv.stopAsync().awaitTerminated(Timeout.toMillis,
+                                                TimeUnit.MILLISECONDS)
                 recorder.stopAsync().awaitTerminated()
             }
         }
@@ -390,11 +415,37 @@ class FlowRecorderTest extends MidolmanSpec {
         ctx
     }
 
-    private def getListeningSocket(target: HostAndPort): DatagramSocket = {
-        val sock = new DatagramSocket(target.getPort)
-        sock.setSoTimeout(5000)
-        sock
-    }
+    /**
+      * Create a server frontend expecting to receive delimited byte buffers.
+      *
+      * Delimited byte buffers are bytebuffers prepended by a varint field
+      * containing the length of the buffer.
+      *
+      * @param port Port where server should listen to.
+      * @param observer Observer to notify of received byte arrays.
+      * @return Server that notifies some observer of received delimited byte
+      *         arrays.
+      */
+    private def getDelimBytesServer(port: Int, observer: Observer[Array[Byte]])
+    : ServerFrontEnd =
+        ServerFrontEnd.tcp(
+            new ChannelInitializer[SocketChannel]() {
+                override def initChannel(ch: SocketChannel): Unit = {
+                    ch.pipeline.addLast(new ProtobufVarint32FrameDecoder)
+                    ch.pipeline.addLast(new ByteArrayDecoder)
+
+                    ch.pipeline().addLast(
+                        new SimpleChannelInboundHandler[Array[Byte]]() {
+                            override def channelRead0(ctx: ChannelHandlerContext,
+                                                      msg: Array[Byte]) = {
+                                observer.onNext(msg)
+                            }
+                        }
+                    )
+                }
+            },
+            port
+        )
 
     private def backend: MidonetBackend =
         injector.getInstance(classOf[MidonetBackend])
@@ -443,4 +494,5 @@ class FlowRecorderTest extends MidolmanSpec {
 
 object FlowRecorderTest {
     final val EndpointServiceName = "cliotest"
+    final val Timeout = Duration("5s")
 }
