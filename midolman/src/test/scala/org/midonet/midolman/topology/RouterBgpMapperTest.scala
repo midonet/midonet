@@ -48,8 +48,8 @@ class RouterBgpMapperTest extends MidolmanSpec with TopologyBuilder
             val cidrs = Seq("10.0.1.1/24", "10.0.2.1/24", "10.1.0.1/16")
             val ports = createRouterWithPorts(cidrs)
             val routerId = ports.head.getRouterId.asJava
-            createBgpPeer(routerId, ports(1).getPortSubnet.getAddress)
-            createBgpPeer(routerId, ports(2).getPortSubnet.getAddress)
+            createBgpPeer(routerId, ports(1).getPortSubnet(0).getAddress)
+            createBgpPeer(routerId, ports(2).getPortSubnet(0).getAddress)
 
             val obs = createMapperAndObserver(routerId)
             obs.awaitOnNext(1, timeout)
@@ -75,7 +75,6 @@ class RouterBgpMapperTest extends MidolmanSpec with TopologyBuilder
             // Add an additional port.
             val cidr2Subnet = IPv4Subnet.fromCidr(cidrs(2))
             ports += createRouterPort(routerId = Some(routerId),
-                                      portAddress = cidr2Subnet.getAddress,
                                       portSubnet = cidr2Subnet)
             vt.store.create(ports.last)
             obs.awaitOnNext(2, timeout)
@@ -92,7 +91,6 @@ class RouterBgpMapperTest extends MidolmanSpec with TopologyBuilder
             // Add the port back.
             val cidr0Subnet = IPv4Subnet.fromCidr(cidrs.head)
             ports += createRouterPort(routerId = Some(routerId),
-                                      portAddress = cidr0Subnet.getAddress,
                                       portSubnet = cidr0Subnet)
             vt.store.create(ports.last)
             obs.awaitOnNext(4, timeout)
@@ -101,7 +99,7 @@ class RouterBgpMapperTest extends MidolmanSpec with TopologyBuilder
 
             // Create a port with no BGP peer.
             vt.store.create(createRouterPort(
-                routerId = Some(routerId), portAddress = IPv4Addr("10.0.4.1"),
+                routerId = Some(routerId),
                 portSubnet = new IPv4Subnet("10.0.4.1", 24)))
             intercept[TimeoutException] {
                 obs.awaitOnNext(5, timeout)
@@ -127,7 +125,6 @@ class RouterBgpMapperTest extends MidolmanSpec with TopologyBuilder
         for (cidr <- cidrs) yield {
             val subnet = IPv4Subnet.fromCidr(cidr)
             val p = createRouterPort(routerId = Some(r.getId.asJava),
-                                     portAddress = subnet.getAddress,
                                      portSubnet = subnet)
             vt.store.create(p)
             p
