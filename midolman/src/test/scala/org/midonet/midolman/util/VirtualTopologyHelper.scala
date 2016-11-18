@@ -245,7 +245,6 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override def isVtepTunnellingPort(portNumber: Int): Boolean = false
             override def isOverlayTunnellingPort(portNumber: Int): Boolean =
                 tunnelPorts.contains(portNumber)
-            override def isVppTunnellingPort(portNumber: Int): Boolean = false
             override def vtepTunnellingOutputAction: FlowActionOutput = null
             override def getVportForDpPortNumber(portNum: Integer): UUID =
                 dpPortToVport get portNum orNull
@@ -259,6 +258,10 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override def hostRecircPort: NetDevPort = null
             override def tunnelRecircOutputAction: FlowActionOutput = null
             override def hostRecircOutputAction: FlowActionOutput = null
+
+            override def isFip64TunnellingPort(portNumber: Int): Boolean = false
+            override def tunnelFip64VxLanPort: VxLanTunnelPort =
+                new VxLanTunnelPort("tnvxlan-fip64", 1234)
         }
 
         new MockPacketWorkflow(config, hostId, dpState, clock, dpChannel,

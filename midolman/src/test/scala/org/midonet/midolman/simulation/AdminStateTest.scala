@@ -405,12 +405,13 @@ class AdminStateTest extends MidolmanSpec {
             override def getVportForDpPortNumber(portNum: Integer): UUID = null
             override def isVtepTunnellingPort(portNumber: Int): Boolean = false
             override def isOverlayTunnellingPort(portNumber: Int): Boolean = false
-            override def isVppTunnellingPort(portNumber: Int): Boolean = false
             override def datapath: Datapath = new Datapath(0, "midonet")
             override def tunnelRecircVxLanPort: VxLanTunnelPort = null
             override def hostRecircPort: NetDevPort = null
             override def tunnelRecircOutputAction: FlowActionOutput = null
             override def hostRecircOutputAction: FlowActionOutput = null
+            override def isFip64TunnellingPort(portNumber: Int): Boolean = false
+            override def tunnelFip64VxLanPort: VxLanTunnelPort = null
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {

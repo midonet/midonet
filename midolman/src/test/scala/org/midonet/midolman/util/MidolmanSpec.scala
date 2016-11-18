@@ -183,7 +183,6 @@ trait MidolmanSpec extends FeatureSpecLike
         override def isVtepTunnellingPort(portNumber: Int): Boolean =
             portNumber == vxlanPortNumber
         override def isOverlayTunnellingPort(portNumber: Int): Boolean = false
-        override def isVppTunnellingPort(portNumber: Int): Boolean = false
 
         override def datapath: Datapath = new Datapath(0, "midonet")
 
@@ -192,5 +191,9 @@ trait MidolmanSpec extends FeatureSpecLike
         override val hostRecircPort: NetDevPort = new NetDevPort("host-recirc", 101)
         override def tunnelRecircOutputAction: FlowActionOutput = null
         override def hostRecircOutputAction: FlowActionOutput = null
+
+        override def isFip64TunnellingPort(portNumber: Int): Boolean = false
+        override def tunnelFip64VxLanPort: VxLanTunnelPort =
+            new VxLanTunnelPort("tnvxlan-fip64", 1234)
     }
 }

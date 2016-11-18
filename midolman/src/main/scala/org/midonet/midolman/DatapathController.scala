@@ -85,8 +85,6 @@ trait UnderlayResolver {
     def isVtepTunnellingPort(portNumber: Int): Boolean
 
     def isOverlayTunnellingPort(portNumber: Int): Boolean
-
-    def isVppTunnellingPort(portNumber: Int): Boolean
 }
 
 trait VirtualPortsResolver {
@@ -95,9 +93,17 @@ trait VirtualPortsResolver {
     def getVportForDpPortNumber(portNum: JInteger): UUID
 }
 
-trait DatapathState extends VirtualPortsResolver with UnderlayResolver {
+trait Fip64DatapathState {
+    def tunnelFip64VxLanPort: VxLanTunnelPort
+
+    def isFip64TunnellingPort(portNumber: Int): Boolean
+}
+
+trait DatapathState extends VirtualPortsResolver
+        with UnderlayResolver with Fip64DatapathState {
     def datapath: Datapath
     def tunnelRecircVxLanPort: VxLanTunnelPort
+
     def hostRecircPort: NetDevPort
 }
 
@@ -242,8 +248,13 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             makePort(VirtualMachine) { () =>
                 new NetDevPort(config.datapath.recircConfig.recircMnName)
             }
-        } map { recircPort =>
+        } flatMap { recircPort =>
             driver.hostRecircPort = recircPort
+            makePort(OverlayTunnel) { () =>
+                VxLanTunnelPort make("tnvxlan-fip64", config.fip64.vtepUdpPort)
+            }
+        } map { fip64Port =>
+            driver.tunnelFip64VxLanPort = fip64Port
             TunnelPortsCreated
         } pipeTo self
     }
@@ -433,8 +444,8 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     var tunnelOverlayGre: GreTunnelPort = _
     var tunnelOverlayVxLan: VxLanTunnelPort = _
     var tunnelVtepVxLan: VxLanTunnelPort = _
-    var tunnelVppVxlan: VxLanTunnelPort = _
     var tunnelRecircVxLanPort: VxLanTunnelPort = _
+    var tunnelFip64VxLanPort: VxLanTunnelPort = _
     var hostRecircPort: NetDevPort = _
 
     val interfaceToTriad = new ConcurrentHashMap[String, DpTriad]()
@@ -456,9 +467,8 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
         tunnelOverlayVxLan.getPortNo == portNumber
     }
 
-    override def isVppTunnellingPort(portNumber: Int): Boolean = {
-        val port = tunnelVppVxlan
-        (port ne null) && port.getPortNo == portNumber
+    override def isFip64TunnellingPort(portNumber: Int): Boolean = {
+        tunnelFip64VxLanPort.getPortNo == portNumber
     }
 
     /** 2D immutable map of peerUUID -> zoneUUID -> (srcIp, dstIp, outputAction)
