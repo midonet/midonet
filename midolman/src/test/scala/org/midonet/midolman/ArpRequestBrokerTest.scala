@@ -17,6 +17,7 @@ package org.midonet.midolman
 
 import java.util.{ArrayDeque, HashMap, UUID}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
@@ -83,8 +84,9 @@ class ArpRequestBrokerTest extends Suite
 
     private val THEIR_IP = "180.0.1.1"
     private val NW_ADDR = "180.0.1.0"
-    private val NW_CIDR = "180.0.1.0/24"
     private val MY_IP = "180.0.1.2"
+    private val MY_CIDR = "180.0.1.2/24"
+    private val MY_SUBNET = IPv4Subnet.fromCidr(MY_CIDR)
     private val MY_MAC = MAC.fromString("02:0a:08:06:04:02")
     private val THEIR_MAC = MAC.random()
 
@@ -92,8 +94,9 @@ class ArpRequestBrokerTest extends Suite
                           tunnelKey = 0,
                           portMac = MY_MAC,
                           routerId = routerId,
-                          portAddressV4 = MY_IP,
-                          portSubnetV4 = IPv4Subnet.fromCidr(NW_CIDR))
+                          portAddress4 = MY_SUBNET,
+                          portAddress6 = null,
+                          portAddresses = List[IPSubnet[_]](MY_SUBNET).asJava)
 
     var router: Router = _
 

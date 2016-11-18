@@ -82,9 +82,8 @@ object HaproxyHealthMonitor {
 
     // Constants for linking namespace to router port
     val NameSpaceIp = IPv4Addr.fromString("169.254.17.42")
-    val RouterIp = IPv4Addr.fromString("169.254.17.41")
+    val RouterIp = IPv4Subnet.fromCidr("169.254.17.41/30")
     val RouterMAC = MAC.random
-    val NetSubnet = IPv4Subnet.fromCidr("169.254.17.40/30")
     val NameSpaceMAC = "0C:0C:0C:0C:0C:0C"
 
     // Constants used in parsing haproxy output
@@ -485,12 +484,14 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             }
 
             val tk = seqDispenser.next(OverlayTunnelKey).await()
+            val routerSubnet = IPSubnetUtil.toProto(RouterIp)
+            val routerAddress = IPAddressUtil.toProto(RouterIp.getAddress)
 
             val hmPort = Port.newBuilder()
                 .setId(randomUuidProto)
                 .setRouterId(toProto(routerId))
-                .setPortAddress(IPAddressUtil.toProto(RouterIp))
-                .setPortSubnet(IPSubnetUtil.toProto(NetSubnet))
+                .setPortAddress(routerAddress)
+                .addPortSubnet(routerSubnet)
                 .setPortMac(RouterMAC.toString)
                 .setHostId(toProto(hostId))
                 .setTunnelKey(tk)

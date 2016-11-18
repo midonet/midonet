@@ -288,10 +288,12 @@ class SingleRouterArpRequestBroker(id: UUID,
     private def arpForAddress(ip: IPv4Addr, port: RouterPort, cookie: Long): Unit = {
         if (arpLoops.contains(ip))
             return
+        if (port.portAddress4 eq null)
+            return
 
         val loop = new ArpLoop(ip, port, cookie)
 
-        val arp = makeArpRequest(port.portMac, port.portAddressV4, ip)
+        val arp = makeArpRequest(port.portMac, port.portAddress4.getAddress, ip)
         backChannel.tell(GeneratedLogicalPacket(port.id, arp, cookie))
 
         arpLoops.add(ip)
@@ -358,7 +360,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                 breakPromises(loop.ip)
             } else {
                 val arp = makeArpRequest(loop.port.portMac,
-                                         loop.port.portAddressV4,
+                                         loop.port.portAddress4.getAddress,
                                          loop.ip)
                 backChannel.tell(
                     GeneratedLogicalPacket(loop.port.id, arp, loop.cookie))

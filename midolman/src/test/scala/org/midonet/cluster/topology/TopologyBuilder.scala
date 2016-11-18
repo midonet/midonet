@@ -99,7 +99,6 @@ trait TopologyBuilder {
                          postInFilterMirrorIds: Set[UUID] = Set.empty,
                          preOutFilterMirrorIds: Set[UUID] = Set.empty,
                          portSubnet: IPSubnet[_] = randomIPv4Subnet,
-                         portAddress: IPAddr = IPv4Addr.random,
                          portMac: MAC = MAC.random,
                          vni: Int = 0,
                          tunnelIp: Option[IPv4Addr] = None,
@@ -112,8 +111,8 @@ trait TopologyBuilder {
             hostId, interfaceName, adminStateUp, portGroupIds,
             inboundMirrorIds, outboundMirrorIds, postInFilterMirrorIds,
             preOutFilterMirrorIds)
-            .setPortSubnet(portSubnet.asProto)
-            .setPortAddress(portAddress.asProto)
+            .addPortSubnet(portSubnet.asProto)
+            .setPortAddress(portSubnet.asInstanceOf[IPv4Subnet].getAddress.asProto)
             .setPortMac(portMac.toString)
             .addAllRouteIds(routeIds.map(_.asProto).asJava)
             .addAllFipNatRuleIds(fipNatRuleIds.map(_.asProto).asJava)
@@ -1250,10 +1249,10 @@ object TopologyBuilder {
             port.toBuilder.setAdminStateUp(adminStateUp).build()
         def setVlanId(vlanId: Int): Port =
             port.toBuilder.setVlanId(vlanId).build()
-        def setPortSubnet(ipSubnet: IPSubnet[_]): Port =
-            port.toBuilder.setPortSubnet(ipSubnet.asProto).build()
-        def setPortAddress(ipAddress: IPAddr): Port =
-            port.toBuilder.setPortAddress(ipAddress.asProto).build()
+        def setPortSubnet(ipSubnet: IPv4Subnet): Port =
+            port.toBuilder.clearPortSubnet().addPortSubnet(ipSubnet.asProto)
+                .setPortAddress(IPAddressUtil.toProto(ipSubnet.getAddress))
+                .build()
         def setPortMac(mac: MAC): Port =
             port.toBuilder.setPortMac(mac.toString).build()
         def setContainerId(containerId: UUID): Port =
@@ -1277,9 +1276,7 @@ object TopologyBuilder {
         def clearVlanId(): Port =
             port.toBuilder.clearVlanId().build()
         def clearPortSubnet(): Port =
-            port.toBuilder.clearPortSubnet().build()
-        def clearPortAddress(): Port =
-            port.toBuilder.clearPortAddress().build()
+            port.toBuilder.clearPortSubnet().clearPortAddress().build()
         def clearPortMac(): Port =
             port.toBuilder.clearPortMac().build()
         def clearContainerId(): Port =
