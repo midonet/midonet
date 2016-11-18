@@ -24,7 +24,6 @@ import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPort, NeutronRouter, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
-import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouteManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -222,7 +221,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
 
         val rPortIds = mRouter.getPortIdsList.asScala - nRouter.getGwPortId
         val rPorts = tx.getAll(classOf[Port], rPortIds)
-                       .filter(p => p.hasPeerId && p.hasPortSubnet)
+                       .filter(p => p.hasPeerId && p.getPortSubnetCount > 0)
         val nPortIds = rPorts.map(_.getPeerId)
 
         // All of the neutron ports on this router, and on the floating

@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
@@ -104,9 +106,16 @@ trait RouteManager {
      */
     protected def isValidRouteOnPort(address: IPAddress,
                                      port: Port): Boolean = {
-        port.hasPortSubnet && port.getPortAddress != address &&
-            IPSubnetUtil.fromProto(port.getPortSubnet).containsAddress(
-                IPAddressUtil.toIPv4Addr(address))
+        if (port.getPortAddress == address)
+            return false
+        val a = IPAddressUtil.toIPv4Addr(address)
+        for (subnet <- port.getPortSubnetList.asScala) {
+            val s = IPSubnetUtil.fromProto(subnet)
+            if (s.containsAddress(a) && s.getAddress != a) {
+                return true
+            }
+        }
+        false
     }
 }
 

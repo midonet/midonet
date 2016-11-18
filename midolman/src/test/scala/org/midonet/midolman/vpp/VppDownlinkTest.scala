@@ -117,7 +117,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
         CreateDownlink(
             portId = port.getId,
             vrfTable = vrf,
-            portAddress4 = fromV4Proto(port.getPortSubnet),
+            portAddress4 = fromV4Proto(port.getPortSubnet(0)),
             portAddress6 = fromV6Proto(rule.getNat64RuleData.getPortAddress),
             natPool = ZoomConvert.fromProto(rule.getNat64RuleData.getNatPool,
                                             classOf[NatTarget]))
@@ -140,7 +140,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
                      vrfTable = vrf,
                      floatingIp = entry.floatingIp,
                      fixedIp = entry.fixedIp,
-                     localIp = fromV4Proto(port.getPortSubnet),
+                     localIp = fromV4Proto(port.getPortSubnet(0)),
                      natPool = natPool)
     }
 
@@ -150,7 +150,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
                         vrfTable = vrf,
                         floatingIp = entry.floatingIp,
                         fixedIp = entry.fixedIp,
-                        localIp = fromV4Proto(port.getPortSubnet))
+                        localIp = fromV4Proto(port.getPortSubnet(0)))
     }
 
     feature("VPP downlink handles downlink updates") {
