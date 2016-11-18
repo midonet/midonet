@@ -62,11 +62,6 @@ class PacketWorkflowTest extends MidolmanSpec {
 
     override def beforeTest() {
         createPacketWorkflow()
-        packetWorkflow.startAsync().awaitRunning()
-    }
-
-    override def afterTest() {
-        packetWorkflow.stopAsync().awaitTerminated()
     }
 
     def createPacketWorkflow(simulationExpireMillis: Long = 5000L,
