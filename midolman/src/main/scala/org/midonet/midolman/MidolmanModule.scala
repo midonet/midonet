@@ -142,8 +142,6 @@ class MidolmanModule(injector: Injector,
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
 
         val discovery = injector.getInstance(classOf[MidonetDiscovery])
-        val flowRecorder = createFlowRecorder(host, discovery)
-        bind(classOf[FlowRecorder]).toInstance(flowRecorder)
 
         val allocator = natAllocator()
         bind(classOf[NatBlockAllocator]).toInstance(allocator)
@@ -163,7 +161,7 @@ class MidolmanModule(injector: Injector,
                                                         allocator, resolver,
                                                         backChannel, vt,
                                                         NanoClock.DEFAULT,
-                                                        flowRecorder,
+                                                        discovery,
                                                         metricRegistry,
                                                         counter, as)
         bind(classOf[PacketWorkersService]).toInstance(workersService)
@@ -335,14 +333,14 @@ class MidolmanModule(injector: Injector,
                                              backChannel: ShardedSimulationBackChannel,
                                              vt: VirtualTopology,
                                              clock: NanoClock,
-                                             flowRecorder: FlowRecorder,
+                                             discovery: MidonetDiscovery,
                                              metricsRegistry: MetricRegistry,
                                              counter: StatisticalCounter,
                                              actorSystem: ActorSystem)
             : PacketWorkersService =
         new PacketWorkersServiceImpl(config, hostIdProvider, dpChannel, dpState,
                                         flowProcessor, natBlockAllocator, peerResolver,
-                                        backChannel, vt, clock, flowRecorder,
+                                        backChannel, vt, clock, discovery,
                                         metricsRegistry, counter, actorSystem)
 
     protected def connectionPool(): DatapathConnectionPool =
