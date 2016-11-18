@@ -19,6 +19,8 @@ package org.midonet
 import java.util.concurrent.ExecutorService
 import java.util.{Comparator, NoSuchElementException, TreeMap}
 
+import scala.collection.JavaConverters._
+
 import rx.Scheduler
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
@@ -63,9 +65,10 @@ package object containers {
                     Integer.compareUnsigned(a, b)
                 }
             })
-        for (port <- ports if port.getPortSubnet.getVersion == IPVersion.V4) {
-            val portSubnet = new IPv4Subnet(port.getPortSubnet.getAddress,
-                                            port.getPortSubnet.getPrefixLength)
+        for (port <- ports; subnet <- port.getPortSubnetList.asScala
+             if subnet.getVersion == IPVersion.V4) {
+            val portSubnet = new IPv4Subnet(subnet.getAddress,
+                                            subnet.getPrefixLength)
             val subnetBegin = portSubnet.toNetworkAddress.toInt
             val subnetEnd = portSubnet.toBroadcastAddress.toInt
             subnets.put(subnetBegin, subnetEnd)
@@ -96,7 +99,7 @@ package object containers {
       * subnet.
       */
     def routerPortAddress(subnet: IPv4Subnet): IPv4Addr = {
-        IPv4Addr(subnet.getIntAddress + RouterAddressOffset)
+        IPv4Addr(subnet.toNetworkAddress.toInt + RouterAddressOffset)
     }
 
     /**
@@ -104,7 +107,7 @@ package object containers {
       * container subnet. This is the ip inside the container namespace.
       */
     def containerPortAddress(subnet: IPv4Subnet): IPv4Addr = {
-        IPv4Addr(subnet.getIntAddress + ContainerAddressOffset)
+        IPv4Addr(subnet.toNetworkAddress.toInt + ContainerAddressOffset)
     }
 
 }

@@ -25,12 +25,12 @@ import com.google.protobuf.GeneratedMessage
 
 import rx.Observable
 
+import org.midonet.cluster.models.Commons.IPSubnet
 import org.midonet.cluster.models.Topology.{BgpPeer, Port, Router}
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /** Given a router ID, produces an observable that publishes the CIDR, MAC, port
@@ -98,10 +98,10 @@ class RouterBgpMapper(routerId: UUID, vt: VirtualTopology) extends MidolmanLoggi
         }
 
         // Return true if the port's subnet contains any of the BGP peers' IPs.
-        def getBgpPeer(p: Port): Option[BgpPeer] = {
-            val subnet = IPSubnetUtil.fromProto(p.getPortSubnet)
+        def getBgpPeer(subnet: IPSubnet): Option[BgpPeer] = {
+            val s = IPSubnetUtil.fromProto(subnet)
             val bgpPeer = ipToBgpPeer.find {
-                case (ip, peer) => subnet.containsAddress(ip)
+                case (ip, peer) => s.containsAddress(ip)
             }.map(_._2)
             if (bgpPeer.isDefined) {
                 log.debug("Port with subnet {} has BGP peer {}",
@@ -112,11 +112,12 @@ class RouterBgpMapper(routerId: UUID, vt: VirtualTopology) extends MidolmanLoggi
 
         // Return a set containing the IP address and subnet prefix length of
         // any port whose subnet contains the IP address of a BGP peer.
-        for (p <- portTracker.currentRefs.values.toSeq;
-             bgpPeer <- getBgpPeer(p)) yield {
-            val addr = p.getPortAddress.getAddress
-            val prefixLen = p.getPortSubnet.getPrefixLength
-            PortBgpInfo(p.getId.asJava, p.getPortMac, s"$addr/$prefixLen",
+        for (port <- portTracker.currentRefs.values.toSeq;
+             subnet <- port.getPortSubnetList;
+             bgpPeer <- getBgpPeer(subnet)) yield {
+            val addr = port.getPortAddress.getAddress
+            val prefixLen = subnet.getPrefixLength
+            PortBgpInfo(port.getId.asJava, port.getPortMac, s"$addr/$prefixLen",
                         bgpPeer.getAddress.getAddress)
         }
     }

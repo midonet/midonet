@@ -343,7 +343,7 @@ message Port {
     optional uint32 vlan_id = 13;
 
     // Router port specific
-    optional IPSubnet port_subnet = 14;
+    repeated IPSubnet port_subnet = 14;
     optional IPAddress port_address = 15;
     optional string port_mac = 16;
     repeated UUID route_ids = 17;
