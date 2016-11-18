@@ -32,6 +32,7 @@ import org.midonet.cluster.models.TestModels;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
@@ -232,6 +233,8 @@ public class ZoomObjectTest {
         for(int index = 0; index < message.getSubnetListCount(); index++) {
             assertEquals(pojo.subnetList.get(index),
                          IPSubnetUtil.fromProto(message.getSubnetList(index)).toString());
+            assertEquals(pojo.subnetList2.get(index),
+                         IPSubnetUtil.fromProto(message.getSubnetList(index)));
         }
     }
 
@@ -381,6 +384,8 @@ public class ZoomObjectTest {
         private List<String> addressList;
         @ZoomField(name = "subnet_list", converter = IPSubnetUtil.Converter.class)
         private List<String> subnetList;
+        @ZoomField(name = "subnet_list", converter = IPSubnetUtil.Converter.class)
+        private List<IPSubnet<?>> subnetList2;
 
         private int before;
         private int after;
