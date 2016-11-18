@@ -120,6 +120,8 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
 
 object IPv6Addr {
 
+    val AnyAddress = IPv6Addr(0L, 0L)
+
     val r = new Random
 
     def random = IPv6Addr(r.nextLong, r.nextLong)

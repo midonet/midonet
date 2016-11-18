@@ -79,7 +79,7 @@ object IPSubnetUtil {
     }
 
     def toProto(cidr: String): Commons.IPSubnet = {
-        toProto(IPSubnet.fromString(cidr))
+        toProto(IPSubnet.fromCidr(cidr))
     }
 
     def fromAddr(addr: String): Commons.IPSubnet = {

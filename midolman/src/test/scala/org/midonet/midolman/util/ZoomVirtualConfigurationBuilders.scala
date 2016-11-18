@@ -838,7 +838,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
     }
 
     def toSubnet(network: String, length: Int): IPSubnet[_] = {
-        IPSubnet.fromString(s"${network}/${length}")
+        IPSubnet.fromString(network, length)
     }
 
     implicit def convertNextHop(from: NextHop): Route.NextHop = from.toProto()

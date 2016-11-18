@@ -388,7 +388,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         String path = paths.getBridgeDhcpPath(bridgeId);
         List<IPv4Subnet> addrs = new ArrayList<>();
         for (String addrStr : zk.getChildren(path , null)) {
-            addrs.add(IPv4Subnet.fromZkString(addrStr));
+            addrs.add(IPv4Subnet.fromUriCidr(addrStr));
         }
         return addrs;
     }
@@ -398,7 +398,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         String path = paths.getBridgeDhcpPath(bridgeId);
         List<Subnet> subnets = new ArrayList<>();
         for (String addrStr : zk.getChildren(path)) {
-            subnets.add(getSubnet(bridgeId, IPv4Subnet.fromZkString(addrStr)));
+            subnets.add(getSubnet(bridgeId, IPv4Subnet.fromUriCidr(addrStr)));
         }
         return subnets;
     }

@@ -80,7 +80,7 @@ class BgpRouterMapperTest extends MidolmanSpec with TopologyBuilder
         )
     }
 
-    implicit def asIPSubnet(str: String): IPSubnet[_] = IPSubnet.fromString(str)
+    implicit def asIPSubnet(str: String): IPSubnet[_] = IPSubnet.fromCidr(str)
     implicit def asIPAddress(str: String): IPv4Addr = IPv4Addr(str)
 
     feature("Test mapper lifecycle") {

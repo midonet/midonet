@@ -48,7 +48,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
                     APPLICATION_JSON))
     override def get(@PathParam("subnetAddress") subnetAddress: String,
                      @HeaderParam("Accept") accept: String): DhcpSubnet = {
-        getSubnet(IPv4Subnet.fromZkString(subnetAddress))
+        getSubnet(IPv4Subnet.fromUriCidr(subnetAddress))
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
 
@@ -73,7 +73,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
                         subnet: DhcpSubnet,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = tryTx { tx =>
-        getSubnet(IPv4Subnet.fromZkString(subnetAddress), tx).map(current => {
+        getSubnet(IPv4Subnet.fromUriCidr(subnetAddress), tx).map(current => {
             subnet.update(current)
             tx.update(subnet)
             OkNoContentResponse
@@ -84,16 +84,17 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
     @Path("{subnetAddress}")
     override def delete(@PathParam("subnetAddress") subnetAddress: String)
     : Response = tryTx { tx =>
-        getSubnet(IPv4Subnet.fromZkString(subnetAddress), tx).map(subnet => {
+        getSubnet(IPv4Subnet.fromUriCidr(subnetAddress), tx).map(subnet => {
             tx.delete(classOf[DhcpSubnet], subnet.id)
             OkNoContentResponse
         }).getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
     @Path("{subnetAddress}/hosts")
-    def hosts(@PathParam("subnetAddress") subnetAddress: IPv4Subnet)
+    def hosts(@PathParam("subnetAddress") subnetAddress: String)
     : DhcpHostResource = {
-        new DhcpHostResource(bridgeId, subnetAddress, resContext)
+        new DhcpHostResource(bridgeId, IPv4Subnet.fromUriCidr(subnetAddress),
+                             resContext)
     }
 
     protected override def createFilter(subnet: DhcpSubnet,

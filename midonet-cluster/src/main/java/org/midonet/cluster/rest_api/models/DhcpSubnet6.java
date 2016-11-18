@@ -81,7 +81,7 @@ public class DhcpSubnet6 extends UriResource {
         IPv6Subnet subnetAddr = new IPv6Subnet(IPv6Addr.fromString(prefix),
                                                prefixLength);
         return absoluteUri(ResourceUris.BRIDGES(), bridgeId,
-                           ResourceUris.DHCPV6(), subnetAddr.toZkString());
+                           ResourceUris.DHCPV6(), subnetAddr.toUriString());
     }
 
     @JsonIgnore
@@ -110,7 +110,7 @@ public class DhcpSubnet6 extends UriResource {
     @JsonIgnore
     @Override
     public void beforeToProto() {
-        subnetAddress = IPSubnet.fromString(prefix + "/" + prefixLength);
+        subnetAddress = IPSubnet.fromString(prefix, prefixLength);
     }
 
     @Override

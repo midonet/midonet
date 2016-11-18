@@ -133,7 +133,7 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
 
         scenario("Test conversion for NAT64 rule") {
-            val subnet = IPv6Subnet.fromString("2001::1/64")
+            val subnet = IPv6Subnet.fromCidr("2001::1/64")
             val rule = createNat64Rule(portAddress = Some(subnet),
                                        natPool = Some(createNatTarget()))
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
