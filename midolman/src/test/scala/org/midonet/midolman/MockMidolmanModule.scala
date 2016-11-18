@@ -37,7 +37,6 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.host.services.{QosService, TcRequestHandler}
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.FlowTracingAppender
-import org.midonet.midolman.monitoring.{FlowRecorder, NullFlowRecorder}
 import org.midonet.midolman.services.{HostIdProvider, MidolmanActorsService, SelectLoopService}
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
@@ -121,7 +120,7 @@ class MockMidolmanModule(override val hostId: UUID,
                                                       backChannel: ShardedSimulationBackChannel,
                                                       vt: VirtualTopology,
                                                       clock: NanoClock,
-                                                      flowRecorder: FlowRecorder,
+                                                      discovery: MidonetDiscovery,
                                                       metricsRegistry: MetricRegistry,
                                                       counter: StatisticalCounter,
                                                       actorSystem: ActorSystem)
@@ -135,10 +134,6 @@ class MockMidolmanModule(override val hostId: UUID,
 
     protected override def netlinkChannelFactory(): NetlinkChannelFactory =
         new MockNetlinkChannelFactory
-
-    protected override def createFlowRecorder(hostId: UUID,
-                                              discovery: MidonetDiscovery) =
-        NullFlowRecorder
 
     protected override def upcallDatapathConnectionManager(
             tbPolicy: TokenBucketPolicy, workers: IndexedSeq[PacketWorker]) =
