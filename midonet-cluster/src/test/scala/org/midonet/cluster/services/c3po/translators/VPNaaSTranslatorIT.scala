@@ -335,7 +335,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
 
         rtrPort.getRouterId shouldBe router.getId
         rtrPort.getPortAddress shouldBe IPAddressUtil.toProto("169.254.0.1")
-        rtrPort.getPortSubnet shouldBe IPSubnetUtil.toProto("169.254.0.0/30")
+        rtrPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("169.254.0.0/30")
         rtrPort.getRouteIdsList should contain only(localRt.getId, vpnRt.getId)
         rtrPort.hasPortMac shouldBe true
 

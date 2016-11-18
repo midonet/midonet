@@ -95,7 +95,7 @@ object Icmp {
             // The nwDst is the source of triggering IPv4 as seen by this router.
             ip.setDestinationAddress(fmatch.getNetworkSrcIP.asInstanceOf[IPv4Addr])
             // The nwSrc is the address of the ingress port.
-            ip.setSourceAddress(inPort.portAddressV4)
+            ip.setSourceAddress(inPort.portAddress4.getAddress)
             val eth = new Ethernet()
             eth.setPayload(ip)
             eth.setEtherType(IPv4.ETHERTYPE)
@@ -157,8 +157,8 @@ object Icmp {
             }
             // Ignore packets sent to the local-subnet IP broadcast address of the
             // intended egress port.
-            if (null != outPort && outPort.portSubnetV4.isInstanceOf[IPv4Subnet] &&
-                fmatch.getNetworkDstIP == outPort.portSubnetV4.toBroadcastAddress) {
+            if (null != outPort && (outPort.portAddress4 ne null) &&
+                fmatch.getNetworkDstIP == outPort.portAddress4.toBroadcastAddress) {
                 context.log.debug("Not generating ICMP Unreachable for packet to "
                                 + "the subnet local broadcast address.")
                 return false

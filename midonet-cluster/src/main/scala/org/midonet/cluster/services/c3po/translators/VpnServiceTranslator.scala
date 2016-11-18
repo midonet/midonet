@@ -23,10 +23,12 @@ import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, VpnService}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
+import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser, UUIDUtil}
 import org.midonet.containers
-import org.midonet.packets.MAC
+import org.midonet.packets.{IPv4Subnet, MAC}
 
 class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
     extends Translator[VpnService] with ChainManager with PortManager
@@ -71,11 +73,11 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
         }
 
         val containerId = JUUID.randomUUID
-        val routerPort = createRouterPort(tx, router)
-
-        val vpnRoute = newNextHopPortRoute(id = vpnContainerRouteId(containerId),
+        val portSubnet = findPortSubnet(tx, router)
+        val routerPort = createRouterPort(tx, router, portSubnet)
+        val vpnRoute = newNextHopPortRoute(id = vpnContainerRouteId(containerId.asProto),
                                            nextHopPortId = routerPort.getId,
-                                           dstSubnet = routerPort.getPortSubnet)
+                                           dstSubnet = portSubnet.asProto)
         val localRoute = newLocalRoute(routerPort.getId,
                                        routerPort.getPortAddress)
 
@@ -83,11 +85,11 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
             router.getLocalRedirectChainId
         } else {
             val id = JUUID.randomUUID
-            val chain = newChain(id, "LOCAL_REDIRECT_" + routerId.asJava)
+            val chain = newChain(id.asProto, "LOCAL_REDIRECT_" + routerId.asJava)
             tx.create(chain)
 
             val routerWithChain = router.toBuilder
-                .setLocalRedirectChainId(id)
+                .setLocalRedirectChainId(id.asProto)
                 .build()
             tx.update(routerWithChain)
 
@@ -99,12 +101,12 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
 
         // TODO: Set port group ID (MI-300).
         val scg = ServiceContainerGroup.newBuilder
-            .setId(JUUID.randomUUID)
+            .setId(UUIDUtil.randomUuidProto)
             .setPolicy(ServiceContainerPolicy.LEAST_SCHEDULER)
             .build()
 
         val sc = ServiceContainer.newBuilder
-            .setId(containerId)
+            .setId(containerId.asProto)
             .setServiceGroupId(scg.getId)
             .setPortId(routerPort.getId)
             .setServiceType(VpnServiceType)
@@ -193,22 +195,24 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
         case _ => super.retainHighLevelModel(tx, op)
     }
 
-    import org.midonet.cluster.util.IPAddressUtil._
-    import org.midonet.cluster.util.IPSubnetUtil._
+    private def findPortSubnet(tx: Transaction, router: Router): IPv4Subnet = {
+        val currentPorts = tx.getAll(classOf[Port], router.getPortIdsList)
+        containers.findLocalSubnet(currentPorts)
+    }
 
     @throws[NoSuchElementException]
-    private def createRouterPort(tx: Transaction, router: Router): Port = {
-        val currentPorts = tx.getAll(classOf[Port], router.getPortIdsList)
+    private def createRouterPort(tx: Transaction, router: Router,
+                                 subnet: IPv4Subnet): Port = {
 
-        val subnet = containers.findLocalSubnet(currentPorts)
         val routerAddr = containers.routerPortAddress(subnet)
+        val routerSubnet = new IPv4Subnet(routerAddr, subnet.getPrefixLen)
 
         val portId = JUUID.randomUUID
         val interfaceName = s"vpn-${portId.toString.substring(0, 8)}"
         val builder = Port.newBuilder
             .setId(portId.asProto)
             .setRouterId(router.getId)
-            .setPortSubnet(subnet.asProto)
+            .addPortSubnet(routerSubnet.asProto)
             .setPortAddress(routerAddr.asProto)
             .setPortMac(MAC.random().toString)
             .setInterfaceName(interfaceName)

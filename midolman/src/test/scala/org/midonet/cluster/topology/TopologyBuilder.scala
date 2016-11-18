@@ -112,7 +112,7 @@ trait TopologyBuilder {
             hostId, interfaceName, adminStateUp, portGroupIds,
             inboundMirrorIds, outboundMirrorIds, postInFilterMirrorIds,
             preOutFilterMirrorIds)
-            .setPortSubnet(portSubnet.asProto)
+            .addPortSubnet(portSubnet.asProto)
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
             .addAllRouteIds(routeIds.map(_.asProto).asJava)
@@ -1250,8 +1250,8 @@ object TopologyBuilder {
             port.toBuilder.setAdminStateUp(adminStateUp).build()
         def setVlanId(vlanId: Int): Port =
             port.toBuilder.setVlanId(vlanId).build()
-        def setPortSubnet(ipSubnet: IPSubnet[_]): Port =
-            port.toBuilder.setPortSubnet(ipSubnet.asProto).build()
+        def addPortSubnet(ipSubnet: IPSubnet[_]): Port =
+            port.toBuilder.addPortSubnet(ipSubnet.asProto).build()
         def setPortAddress(ipAddress: IPAddr): Port =
             port.toBuilder.setPortAddress(ipAddress.asProto).build()
         def setPortMac(mac: MAC): Port =

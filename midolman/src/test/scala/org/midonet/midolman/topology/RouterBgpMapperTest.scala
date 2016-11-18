@@ -48,8 +48,8 @@ class RouterBgpMapperTest extends MidolmanSpec with TopologyBuilder
             val cidrs = Seq("10.0.1.1/24", "10.0.2.1/24", "10.1.0.1/16")
             val ports = createRouterWithPorts(cidrs)
             val routerId = ports.head.getRouterId.asJava
-            createBgpPeer(routerId, ports(1).getPortSubnet.getAddress)
-            createBgpPeer(routerId, ports(2).getPortSubnet.getAddress)
+            createBgpPeer(routerId, ports(1).getPortSubnet(0).getAddress)
+            createBgpPeer(routerId, ports(2).getPortSubnet(0).getAddress)
 
             val obs = createMapperAndObserver(routerId)
             obs.awaitOnNext(1, timeout)

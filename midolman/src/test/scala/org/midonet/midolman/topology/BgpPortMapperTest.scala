@@ -720,7 +720,7 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
             obs.getOnNextEvents.get(0) shouldBe bgpPort(port1, router, Set(peer1))
 
             When("Port changes the subnet to include the last two peers")
-            val port2 = port1.setPortSubnet("10.0.1.0/24")
+            val port2 = port1.clearPortSubnet().addPortSubnet("10.0.1.0/24")
             store.update(port2)
 
             Then("The observer should receive the BGP port with the last peers")
@@ -729,7 +729,7 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
                                                                            peer3))
 
             When("Port changes the subnet to include no peers")
-            val port3 = port1.setPortSubnet("10.0.2.0/24")
+            val port3 = port1.clearPortSubnet().addPortSubnet("10.0.2.0/24")
             store.update(port3)
 
             Then("The observer should receive the BGP port with no peers")

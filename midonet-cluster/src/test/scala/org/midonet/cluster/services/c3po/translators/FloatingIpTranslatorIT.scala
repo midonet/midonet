@@ -278,7 +278,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         storage.create(Port.newBuilder
                            .setId(toProto(UUID.randomUUID()))
                            .setRouterId(rtrId)
-                           .setPortSubnet(IPSubnetUtil.toProto("20.0.0.0/24"))
+                           .addPortSubnet(IPSubnetUtil.toProto("20.0.0.0/24"))
                            .build())
 
         val extNw2RifMac = "20:00:00:00:00:02"
