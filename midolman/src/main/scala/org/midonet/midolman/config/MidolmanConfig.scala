@@ -201,6 +201,7 @@ class FlowHistoryConfig(val conf: Config, val schema: Config) extends TypeFailur
     def enabled = getBoolean("agent.flow_history.enabled")
     def encoding = getString("agent.flow_history.encoding")
     def endpointService = getString("agent.flow_history.endpoint_service")
+    def queueSize = getInt("agent.flow_history.queue_size")
 }
 
 class ContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
