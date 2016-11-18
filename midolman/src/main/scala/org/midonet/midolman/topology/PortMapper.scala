@@ -110,7 +110,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
         SimulationPort(topologyPort, portState, inFilters, outFilters,
                        makeServicePortList, fipNatRules, peeringTable,
-                       qosPolicyTracker.currentRefs.values.headOption.orNull)
+                       qosPolicyTracker.currentRefs.values.headOption.orNull,
+                       vt.config.fip64.vxlanDownlink)
     }
 
     private lazy val portObservable =
