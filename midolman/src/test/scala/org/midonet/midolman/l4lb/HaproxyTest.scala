@@ -53,7 +53,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.{MockScheduler, layer3}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
@@ -297,8 +297,9 @@ class HaproxyTest extends MidolmanSpec
         val simPort = RouterPort(port.getId.asJava,
                                  tunnelKey = port.getTunnelKey,
                                  routerId = routerId,
-                                 portAddressV4 = HaproxyHealthMonitor.RouterIp,
-                                 portSubnetV4 = HaproxyHealthMonitor.NetSubnet,
+                                 portAddress4 = HaproxyHealthMonitor.RouterIp,
+                                 portAddress6 = null,
+                                 portAddresses = List[IPSubnet[_]](HaproxyHealthMonitor.RouterIp).asJava,
                                  portMac = HaproxyHealthMonitor.RouterMAC,
                                  hostId = hostId,
                                  interfaceName = hmName + "_dp")
@@ -310,7 +311,7 @@ class HaproxyTest extends MidolmanSpec
             IPSubnetUtil.AnyIPv4Subnet.asJava.asInstanceOf[IPv4Subnet],
             IPSubnetUtil.fromAddress(vipIp).asJava.asInstanceOf[IPv4Subnet],
             NextHop.PORT, portId, HaproxyHealthMonitor.NameSpaceIp,
-            100 /* weight */, null /* routerId */)
+            100 /* weight */ , null /* routerId */)
         simRoute shouldBeDeviceOf route
 
         checkIpTables(hmName, "append", vipIp)

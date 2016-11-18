@@ -34,7 +34,6 @@ import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.NatTarget
@@ -66,8 +65,7 @@ object VppController extends Referenceable {
     private case class BoundPort(setup: VppSetup)
     private type LinksMap = util.Map[UUID, BoundPort]
 
-    private def isIPv6(port: RouterPort) = (port.portAddressV6 ne null) &&
-                                           (port.portSubnetV6 ne null)
+    private def isIPv6(port: RouterPort) = port.portAddress6 ne null
 
     /**
       * Returns the virtual port identifier for the specified tunnel key.
@@ -151,8 +149,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
                                      Future.failed(err)
             }
         case LocalPortActive(portId, portNumber, false) =>
-            detachUplink(portId).flatMap {
-                case _ => detachDownlinkVxlan()
+            detachUplink(portId).flatMap { _ =>
+                detachDownlinkVxlan()
             }
         case create@CreateDownlink(portId, vrf, ip4Address, ip6Address, natPool) =>
             log.error("Creating extra downlink in FIP64 vxlan downlink mode")
@@ -164,6 +162,13 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             log.error("Deleting downlink in FIP64 vxlan downlink mode")
             Future.successful(())
     }
+
+    private val eventHandler =
+        if (vt.config.fip64.vxlanDownlink) {
+            eventHandlerWithVxlan orElse eventHandlerWithoutVxlan
+        } else {
+            eventHandlerWithoutVxlan
+        }
 
     override def preStart(): Unit = {
         super.preStart()
@@ -185,21 +190,6 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         uplinks.clear()
         downlinks.clear()
         super.postStop()
-    }
-
-    var fip64Vxlan = vt.config.fip64.vxlanDownlink
-    var eventHandler = getEventHandler()
-
-    def getEventHandler(): PartialFunction[Any, Future[_]] = {
-        if (fip64Vxlan) {
-            eventHandlerWithVxlan orElse eventHandlerWithoutVxlan
-        } else {
-            eventHandlerWithoutVxlan
-        }
-    }
-
-    def resetEventHandler(): Unit = {
-        eventHandler = getEventHandler
     }
 
     override def receive: Receive = super.receive orElse {
@@ -253,7 +243,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
                 val dpNumber = datapathState.getDpPortNumberForVport(portId)
                 attachLink(uplinks, portId,
-                           new VppUplinkSetup(port.id, port.portAddressV6,
+                           new VppUplinkSetup(port.id,
+                                              port.portAddress6.getAddress,
                                               dpNumber, vppApi, vppOvs,
                                               Logger(log.underlying)))
             case _ =>
