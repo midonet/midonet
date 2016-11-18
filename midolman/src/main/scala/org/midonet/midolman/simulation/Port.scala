@@ -20,8 +20,10 @@ import java.util.Collections.emptyList
 import java.util.{UUID, List => JList}
 
 import scala.collection.JavaConverters._
+
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage.StateTable
+import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.state.PortStateStorage.PortState
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
@@ -37,10 +39,6 @@ import org.midonet.sdn.flows.FlowTagger
 object Port {
     import IPAddressUtil._
     import UUIDUtil.{fromProto, fromProtoList}
-
-    // Defaults for a RouterPort containing only IPv6 addresses
-    val DefaultIPv4Subnet = new IPv4Subnet(0, 0)
-    val DefaultIPv4Address = new IPv4Addr(0)
 
     def apply(proto: Topology.Port,
               state: PortState,
@@ -101,18 +99,39 @@ object Port {
                            qosPolicy: QosPolicy,
                            fip64vxlan: Boolean) = {
 
-        var ip4Addr: IPv4Addr = Port.DefaultIPv4Address
-        var ip6Addr: IPv6Addr = null
-        toIPAddr(p.getPortAddress) match {
-            case addr: IPv4Addr => ip4Addr = addr
-            case addr: IPv6Addr => ip6Addr = addr
-        }
-        var ip4Subnet: IPv4Subnet = Port.DefaultIPv4Subnet
-        var ip6Subnet: IPv6Subnet = null
+        // Compute the port addresses: this distinguishes between ports created
+        // in a previous version of MidoNet that have only one IP address, and
+        // ports created in MidoNet 5.4+ that may have several IP addresses.
+        val addresses = IPSubnetUtil.fromProto(p.getPortSubnetList)
+        var address4: IPv4Subnet = null
+        var address6: IPv6Subnet = null
 
-        IPSubnetUtil.fromProto(p.getPortSubnet) match {
-            case subnet: IPv4Subnet => ip4Subnet = subnet
-            case subnet: IPv6Subnet => ip6Subnet = subnet
+        if (addresses.size() == 1) {
+            // Forward compatibility: if the port has only one IP address, use
+            // that address, converted to a subnet.
+            if (p.getPortAddress.getVersion == IPVersion.V4) {
+                val ip = IPv4Addr(p.getPortAddress.getAddress)
+                address4 = new IPv4Subnet(ip, addresses.get(0).getPrefixLen)
+            } else {
+                val ip = IPv6Addr(p.getPortAddress.getAddress)
+                address6 = new IPv6Subnet(ip, addresses.get(0).getPrefixLen)
+            }
+        } else if (addresses.size() > 1) {
+            // If the port has multiple IP addresses, select the first IPv4 and
+            // first IPv6. Ignore the message IP address since this was set only
+            // for backward compatibility.
+            var index = 0
+            while (index < addresses.size()) {
+                if ((address4 eq null) &&
+                    addresses.get(index).isInstanceOf[IPv4Subnet]) {
+                    address4 = addresses.get(index).asInstanceOf[IPv4Subnet]
+                }
+                if ((address6 eq null) &&
+                    addresses.get(index).isInstanceOf[IPv6Subnet]) {
+                    address6 = addresses.get(index).asInstanceOf[IPv6Subnet]
+                }
+                index += 1
+            }
         }
 
         RouterPort(
@@ -128,10 +147,9 @@ object Port {
             isActive = state.isActive,
             containerId = if (p.hasServiceContainerId) p.getServiceContainerId else null,
             routerId = if (p.hasRouterId) p.getRouterId else null,
-            portSubnetV4 = ip4Subnet,
-            portAddressV4 = ip4Addr,
-            portSubnetV6 = ip6Subnet,
-            portAddressV6 = ip6Addr,
+            portAddresses = addresses,
+            portAddress4 = address4,
+            portAddress6 = address6,
             portMac = if (p.hasPortMac) MAC.fromString(p.getPortMac) else null,
             routeIds = p.getRouteIdsList.asScala.map(fromProto).toSet,
             preInFilterMirrors = p.getInboundMirrorIdsList,
@@ -490,10 +508,9 @@ case class RouterPort(override val id: UUID,
                       override val isActive: Boolean = false,
                       override val containerId: UUID = null,
                       routerId: UUID,
-                      portSubnetV4: IPv4Subnet = Port.DefaultIPv4Subnet,
-                      portAddressV4: IPv4Addr = Port.DefaultIPv4Address,
-                      portSubnetV6: IPv6Subnet = null,
-                      portAddressV6: IPv6Addr = null,
+                      portAddresses: JList[IPSubnet[_]],
+                      portAddress4: IPv4Subnet,
+                      portAddress6: IPv6Subnet,
                       portMac: MAC,
                       routeIds: Set[UUID] = Set.empty,
                       override val preInFilterMirrors: JList[UUID] = emptyList(),
@@ -589,9 +606,8 @@ case class RouterPort(override val id: UUID,
 
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
-        s"portSubnet4=$portSubnetV4 portAddress4=$portAddressV4 " +
-        s"portSubnet6=$portSubnetV6 portAddress6=$portAddressV6 " +
-        s"portMac=$portMac " +
+        s"portAddresses=$portAddresses portAddress4=$portAddress4 " +
+        s"portAddress6=$portAddress6 portMac=$portMac " +
         s"${if (isL2) s"vni=$vni tunnelIp=$tunnelIp" else ""} " +
         s"routeIds=$routeIds fipNatRules=$fipNatRules]"
 }

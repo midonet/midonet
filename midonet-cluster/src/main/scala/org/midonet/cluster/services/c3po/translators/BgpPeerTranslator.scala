@@ -28,7 +28,7 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
 import org.midonet.containers
-import org.midonet.packets.{MAC, TCP}
+import org.midonet.packets.{IPv4Subnet, MAC, TCP}
 
 class BgpPeerTranslator(stateTableStorage: StateTableStorage,
                         sequenceDispenser: SequenceDispenser)
@@ -168,11 +168,12 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
 
         val subnet = containers.findLocalSubnet(currentPorts)
         val routerAddress = containers.routerPortAddress(subnet)
+        val routerSubnet = new IPv4Subnet(routerAddress, subnet.getPrefixLen)
 
         val builder = Port.newBuilder
             .setId(quaggaPortId(router.getId))
             .setRouterId(router.getId)
-            .setPortSubnet(subnet.asProto)
+            .addPortSubnet(routerSubnet.asProto)
             .setPortAddress(routerAddress.asProto)
             .setPortMac(MAC.random().toString)
 

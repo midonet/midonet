@@ -39,7 +39,7 @@ import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.DeviceMapper.MapperState
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.{IPSubnet, IPv4Addr}
+import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet}
 import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
 import org.midonet.util.reactivex.AwaitableObserver
 
@@ -86,7 +86,7 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
                 peers.map(_.getId.asJava))
     }
 
-    implicit def asIPSubnet(str: String): IPSubnet[_] = IPSubnet.fromCidr(str)
+    implicit def asIPSubnet(str: String): IPv4Subnet = IPv4Subnet.fromCidr(str)
     implicit def asIPAddress(str: String): IPv4Addr = IPv4Addr(str)
 
     feature("Test mapper lifecycle") {

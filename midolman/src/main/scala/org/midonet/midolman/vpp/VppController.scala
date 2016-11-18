@@ -66,8 +66,7 @@ object VppController extends Referenceable {
     private case class BoundPort(setup: VppSetup)
     private type LinksMap = util.Map[UUID, BoundPort]
 
-    private def isIPv6(port: RouterPort) = (port.portAddressV6 ne null) &&
-                                           (port.portSubnetV6 ne null)
+    private def isIPv6(port: RouterPort) = port.portAddress6 ne null
 
     /**
       * Returns the virtual port identifier for the specified tunnel key.
@@ -165,6 +164,13 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             Future.successful(())
     }
 
+    private val eventHandler =
+        if (vt.config.fip64.vxlanDownlink) {
+            eventHandlerWithVxlan orElse eventHandlerWithoutVxlan
+        } else {
+            eventHandlerWithoutVxlan
+        }
+
     override def preStart(): Unit = {
         super.preStart()
         log debug s"Starting VPP controller"
@@ -185,21 +191,6 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         uplinks.clear()
         downlinks.clear()
         super.postStop()
-    }
-
-    var fip64Vxlan = vt.config.fip64.vxlanDownlink
-    var eventHandler = getEventHandler()
-
-    def getEventHandler(): PartialFunction[Any, Future[_]] = {
-        if (fip64Vxlan) {
-            eventHandlerWithVxlan orElse eventHandlerWithoutVxlan
-        } else {
-            eventHandlerWithoutVxlan
-        }
-    }
-
-    def resetEventHandler(): Unit = {
-        eventHandler = getEventHandler
     }
 
     override def receive: Receive = super.receive orElse {
@@ -253,7 +244,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
                 val dpNumber = datapathState.getDpPortNumberForVport(portId)
                 attachLink(uplinks, portId,
-                           new VppUplinkSetup(port.id, port.portAddressV6,
+                           new VppUplinkSetup(port.id,
+                                              port.portAddress6.getAddress,
                                               dpNumber, vppApi, vppOvs,
                                               Logger(log.underlying)))
             case _ =>
