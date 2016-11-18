@@ -503,24 +503,27 @@ object ZoomConvert {
         if (!protoField.isRepeated) {
             return getScalarConverter(fieldType, zoomField)
         }
+
+        def getElementClass(`type`: ParameterizedType): Class[_] = {
+            `type`.getActualTypeArguments()(0) match {
+                case clazz: Class[_] => clazz
+                case generic: ParameterizedType =>
+                    generic.getRawType.asInstanceOf[Class[_]]
+            }
+        }
+
         genericFieldType match {
             case c: Class[_] if c.isArray =>
                 getArrayConverter(fieldType.getComponentType, zoomField)
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JList[_]]) =>
-                val elClass = generic.getActualTypeArguments()(0)
-                    .asInstanceOf[Class[_]]
-                getListConverter(elClass, zoomField)
+                getListConverter(getElementClass(generic), zoomField)
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[Set[_]]) =>
-                val elClass = generic.getActualTypeArguments()(0)
-                    .asInstanceOf[Class[_]]
-                getSetConverter(elClass, zoomField)
+                getSetConverter(getElementClass(generic), zoomField)
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JSet[_]]) =>
-                val elClass = generic.getActualTypeArguments()(0)
-                    .asInstanceOf[Class[_]]
-                getJavaSetConverter(elClass, zoomField)
+                getJavaSetConverter(getElementClass(generic), zoomField)
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[Map[_,_]]) =>
                 getMapConverter(zoomField)
