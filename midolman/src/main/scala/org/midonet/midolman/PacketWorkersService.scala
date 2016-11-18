@@ -30,6 +30,7 @@ import com.lmax.disruptor._
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.logging.MidolmanLogging
@@ -62,7 +63,6 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
                                   backChannel: ShardedSimulationBackChannel,
                                   vt: VirtualTopology,
                                   clock: NanoClock,
-                                  flowRecorder: FlowRecorder,
                                   metricsRegistry: MetricRegistry,
                                   counter: StatisticalCounter,
                                   actorSystem: ActorSystem)
@@ -150,6 +150,7 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
         val backChannelProcessor = backChannel.registerProcessor()
 
         val metrics = new PacketPipelineMetrics(metricsRegistry, index)
+        val flowRecorder = FlowRecorder(config, hostIdProvider.hostId)
         val workflow = new PacketWorkflow(
             numWorkers, index,
             config, hostIdProvider.hostId, dpState,
