@@ -27,6 +27,7 @@ import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.conf.HostIdGenerator
+import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
@@ -254,6 +255,7 @@ private object VppSetup extends MidolmanLogging {
     }
 
     class VxlanCreate(override val name: String,
+                      src: IPv4Addr, dst: IPv4Addr,
                       vni: Int, vrf: Int, vppApi: VppApi)
         (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback with VppInterfaceProvider {
@@ -261,17 +263,13 @@ private object VppSetup extends MidolmanLogging {
         var vppInterface:Option[VppApi.Device] = None
 
         override def execute(): Future[Any] = {
-            vppApi.addVxlanTunnel(IPv4Addr.fromString("169.254.0.1"),
-                                  IPv4Addr.fromString("169.254.0.2"),
-                                  vni) map {
+            vppApi.addVxlanTunnel(src, dst, vni) map {
                 result => vppInterface = Some(result)
             }
         }
 
         override def rollback(): Future[Any] =
-            vppApi.delVxlanTunnel(IPv4Addr.fromString("169.254.0.1"),
-                                  IPv4Addr.fromString("169.254.0.2"),
-                                  vni)
+            vppApi.delVxlanTunnel(src, dst, vni)
     }
 
     class VxlanSetBridge(override val name: String,
@@ -489,25 +487,23 @@ class VppDownlinkSetup(downlinkPortId: UUID,
   * @param log logger
   * @param ec Execution context for futures
   */
-class VppDownlinkVxlanSetup(vppApi: VppApi,
+class VppDownlinkVxlanSetup(config: Fip64Config,
+                            vppApi: VppApi,
                             log: Logger)
                            (implicit ec: ExecutionContext)
     extends VppSetup("VPP downlink Vxlan setup", log)(ec) {
 
     import VppSetup._
 
-    private val dlinkPrefix = "downlink"
-    private val dlinkVppName = s"$dlinkPrefix-vpp"
-    private val dlinkTunName = s"$dlinkPrefix-tun"
-
-    private val vppAddress = IPv4Subnet.fromCidr("169.254.0.1/30")
-    private val tunAddress = IPv4Subnet.fromCidr("169.254.0.2/30")
+    private val uplinkSuffix = UUID.randomUUID().toString.substring(0, 8)
+    private val dlinkVppName = s"vpp-dl-$uplinkSuffix"
+    private val dlinkTunName = s"tun-dl-$uplinkSuffix"
 
     private val dlinkVeth = new VethPairSetup("downlink vxlan interface setup",
                                               dlinkVppName,
                                               dlinkTunName,
                                               None,
-                                              Some(tunAddress))
+                                              Some(config.vtepKernAddr))
 
     private val dlinkVpp = new VppDevice("downlink vxlan VPP interface setup",
         dlinkVppName,
@@ -517,8 +513,8 @@ class VppDownlinkVxlanSetup(vppApi: VppApi,
     private val dlinkVppIp = new VppIpAddr("downlink VPP IPv4 setup",
         vppApi,
         dlinkVpp,
-        vppAddress.getAddress,
-        vppAddress.getPrefixLen.toByte)
+        config.vtepVppAddr.getAddress,
+        config.vtepVppAddr.getPrefixLen.toByte)
 
     /*
      * setup the tasks, in execution order
@@ -541,13 +537,17 @@ class VppDownlinkVxlanSetup(vppApi: VppApi,
         set ip arp fib-id <vrf> loop0 172.16.0.1 dead.beef.0003
         ip route add table <vrf> 0.0.0.0/0 via 172.16.0.1
   */
-class VppVxlanTunnelSetup(vni: Int, vrf: Int, vppApi: VppApi, log: Logger)
+class VppVxlanTunnelSetup(config: Fip64Config,
+                          vni: Int, vrf: Int,
+                          vppApi: VppApi, log: Logger)
                          (implicit ec: ExecutionContext)
     extends VppSetup("Vxlan tunnel setup",  log)(ec) {
 
     import VppSetup._
 
     private val vxlanDevice = new VxlanCreate("Create vxlan tunnel",
+                                              config.vtepVppAddr.getAddress,
+                                              config.vtepKernAddr.getAddress,
                                               vni, vrf, vppApi)
 
     private val vxlanToBridge =
