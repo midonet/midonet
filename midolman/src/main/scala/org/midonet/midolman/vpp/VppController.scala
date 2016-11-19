@@ -18,7 +18,7 @@ package org.midonet.midolman.vpp
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.{TimeUnit, TimeoutException}
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit, TimeoutException}
 import java.util.function.Consumer
 
 import scala.annotation.tailrec
@@ -61,11 +61,22 @@ object VppController extends Referenceable {
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
 
+    private[vpp] val tunnelKeyToPort = new ConcurrentHashMap[Long, UUID]
+
     private case class BoundPort(setup: VppSetup)
     private type LinksMap = util.Map[UUID, BoundPort]
 
     private def isIPv6(port: RouterPort) = (port.portAddressV6 ne null) &&
                                            (port.portSubnetV6 ne null)
+
+    /**
+      * Returns the virtual port identifier for the specified tunnel key.
+      * Packets received from tunnels with the specified tunnel key are handled
+      * as ingressing at the specified virtual port.
+      */
+    def portOfTunnelKey(tunnelKey: Long): UUID = {
+        tunnelKeyToPort.get(tunnelKey)
+    }
 }
 
 
