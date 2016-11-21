@@ -30,11 +30,16 @@ import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.IPSubnetUtil._
+import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.util.SequenceDispenser.Fip64TunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.containers
-import org.midonet.packets.{ICMP, IPv4Subnet, MAC}
 
-class RouterTranslator(stateTableStorage: StateTableStorage,
+import org.midonet.containers
+import org.midonet.packets.{ICMP, IPv4Subnet, MAC, TunnelKeys}
+import org.midonet.util.concurrent.toFutureOps
+
+class RouterTranslator(sequenceDispenser: SequenceDispenser,
+                       stateTableStorage: StateTableStorage,
                        config: ClusterConfig)
     extends Translator[NeutronRouter]
     with ChainManager with PortManager with RouteManager
@@ -221,12 +226,16 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         val vppAddress4 = containers.containerPortAddress(localSubnet)
         val portSubnet4 = new IPv4Subnet(portAddress4, localSubnet.getPrefixLen)
 
+        val tk = TunnelKeys.Fip64Type.apply(
+            sequenceDispenser.next(Fip64TunnelKey).await())
+
         // Create the gateway port.
         val port = newRouterPortBuilder(routerPortId, nRouter.getId,
                                         adminStateUp = true)
             .setPortAddress(portAddress4.asProto)
             .setPortSubnet(portSubnet4.asProto)
             .setPortMac(portMac)
+            .setTunnelKey(tk)
             .build()
         tx.create(port)
 
