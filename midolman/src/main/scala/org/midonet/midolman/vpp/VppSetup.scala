@@ -332,11 +332,12 @@ private object VppSetup extends MidolmanLogging {
     class VxlanAddArpNeighbour(override val name: String,
                                loopDevice: VppInterfaceProvider,
                                vrf: Int,
+                               mac: MAC,
                                vppApi: VppApi)
                               (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
 
-        val neighbourMac = Some(MAC.fromString("de:ad:be:ef:00:03"))
+        val neighbourMac = Some(mac)
         override def execute(): Future[Any] = {
             require(loopDevice.vppInterface.isDefined)
             vppApi.addIfArpCacheEntry(loopDevice.vppInterface.get, vrf,
@@ -538,12 +539,14 @@ class VppDownlinkVxlanSetup(config: Fip64Config,
         ip route add table <vrf> 0.0.0.0/0 via 172.16.0.1
   */
 class VppVxlanTunnelSetup(config: Fip64Config,
-                          vni: Int, vrf: Int,
+                          vni: Int, vrf: Int, routerPortMac: MAC,
                           vppApi: VppApi, log: Logger)
                          (implicit ec: ExecutionContext)
     extends VppSetup("Vxlan tunnel setup",  log)(ec) {
 
     import VppSetup._
+
+    val bridgeDomain = vrf
 
     private val vxlanDevice = new VxlanCreate("Create vxlan tunnel",
                                               config.vtepVppAddr.getAddress,
@@ -553,7 +556,7 @@ class VppVxlanTunnelSetup(config: Fip64Config,
     private val vxlanToBridge =
         new VxlanSetBridge("Set bridge domain for vxlan device",
                            vxlanDevice,
-                           vni, false, vppApi)
+                           bridgeDomain, false, vppApi)
 
     private val loopBackDevice = new LoopBackCreate("Create loopback interface",
                                                     vni, vrf, vppApi)
@@ -561,7 +564,7 @@ class VppVxlanTunnelSetup(config: Fip64Config,
     private val loopToBridge =
         new VxlanSetBridge("Set bridge domain for loopback device",
                            loopBackDevice,
-                           vni, true, vppApi)
+                           bridgeDomain, true, vppApi)
 
     private val loopToVrf =
         new VxlanLoopToVrf(s"Move loopback interface to VRF $vrf",
@@ -569,9 +572,9 @@ class VppVxlanTunnelSetup(config: Fip64Config,
                            vrf, vppApi)
 
     private val addLoopArpNeighbour =
-        new VxlanAddArpNeighbour("Add 172.16.0.1 arp neighbour for loop interface",
+        new VxlanAddArpNeighbour("Add arp neighbour for loop interface",
                                  loopBackDevice,
-                                 vrf, vppApi)
+                                 vrf, routerPortMac, vppApi)
 
     private val routefip64ToBridge =
         new VxlanAddRoute("Add default route to forward fip64 to vxlan bridge",
