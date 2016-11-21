@@ -412,6 +412,10 @@ class AdminStateTest extends MidolmanSpec {
             override def hostRecircOutputAction: FlowActionOutput = null
             override def isFip64TunnellingPort(portNumber: Int): Boolean = false
             override def tunnelFip64VxLanPort: VxLanTunnelPort = null
+
+            override def setFip64PortKey(port: UUID, key: Int): Unit = {}
+            override def clearFip64PortKey(port: UUID, key: Int): Unit = {}
+            override def getFip64PortForKey(key: Int): UUID = null
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {

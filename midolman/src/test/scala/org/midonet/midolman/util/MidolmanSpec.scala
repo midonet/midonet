@@ -171,6 +171,7 @@ trait MidolmanSpec extends FeatureSpecLike
         var peerTunnels = mutable.Map[UUID,Route]()
         var grePort: Int = _
         var vxlanPortNumber: Int = _
+        val fip64KeyToPort = mutable.Map[Int, UUID]()
 
         override def getDpPortNumberForVport(vportId: UUID): Integer =
             dpPortNumberForVport get vportId orNull
@@ -195,5 +196,17 @@ trait MidolmanSpec extends FeatureSpecLike
         override def isFip64TunnellingPort(portNumber: Int): Boolean = false
         override def tunnelFip64VxLanPort: VxLanTunnelPort =
             new VxLanTunnelPort("tnvxlan-fip64", 1234)
+
+        override def setFip64PortKey(port: UUID, key: Int): Unit = {
+            fip64KeyToPort += (key -> port)
+        }
+
+        override def clearFip64PortKey(port: UUID, key: Int): Unit = {
+            fip64KeyToPort -= key
+        }
+
+        override def getFip64PortForKey(key: Int): UUID = {
+            fip64KeyToPort getOrElse (key, null)
+        }
     }
 }
