@@ -91,7 +91,7 @@ class QosPolicyMapper(id: UUID, vt: VirtualTopology)
         assertThread()
 
         val bwRules = for ((id, r) <- bandwidthRuleTracker.currentRefs) yield {
-            val burst = if (r.hasMaxBurstKbps) {
+            val burst = if (r.hasMaxBurstKbps && r.getMaxBurstKbps > 0) {
                 r.getMaxBurstKbps
             } else {
                 // Neutron reference implementation uses float for burst size,
