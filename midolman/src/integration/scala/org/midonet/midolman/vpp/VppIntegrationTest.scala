@@ -25,7 +25,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import com.google.inject.Guice
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.Logger
 
 import org.apache.curator.framework.CuratorFramework
@@ -41,6 +41,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{MidonetBackendTestModule, MidonetTestBackend}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.conf.HostIdGenerator
+import org.midonet.midolman.config.Fip64Config
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
@@ -53,12 +54,13 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
     private var zkServer: TestingServer = _
     private var backend: MidonetBackend = _
     private val log = Logger(LoggerFactory.getLogger(classOf[VppIntegrationTest]))
+    private var config: Config = _
 
     def setupStorage(): Unit = {
         zkServer = new TestingServer
         zkServer.start()
 
-        val config = ConfigFactory.parseString(
+        config = ConfigFactory.parseString(
             s"""
            |zookeeper.zookeeper_hosts : "${zkServer.getConnectString}"
            |zookeeper.buffer_size : 524288
@@ -67,9 +69,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
            |zookeeper.root_key : "$rootPath"
             """.stripMargin)
 
-        val
-        injector = Guice.createInjector(new MidonetBackendTestModule(
-            config))
+        val injector = Guice.createInjector(new MidonetBackendTestModule(config))
         val  curator = injector.getInstance(classOf[CuratorFramework])
         backend = new  MidonetTestBackend(curator)
         backend.startAsync().awaitRunning()
@@ -645,7 +645,8 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                                  + "pool 10.0.0.1 10.0.0.1 "
                                  + s"table ${id}")
 
-                    val setupVxlan = new VppVxlanTunnelSetup(id, id, api, log)
+                    val setupVxlan = new VppVxlanTunnelSetup(
+                        new Fip64Config(config, config), id, id, api, log)
                     setupVxlan.execute()
 
                     fip
@@ -699,7 +700,8 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
 
             var setup: Option[VppDownlinkVxlanSetup] = None
             try {
-                setup = Some(new VppDownlinkVxlanSetup(api, log))
+                setup = Some(new VppDownlinkVxlanSetup(
+                    new Fip64Config(config, config), api, log))
                 setup foreach { s => Await.result(s.execute(), 1 minute) }
                 log info "Pinging vpp interface"
                 assertCmd(s"ping -c 5 ${tunAddress.getAddress}")

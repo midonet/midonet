@@ -121,7 +121,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
             handleFromUnderlay(context)
         } else if (dpState isVtepTunnellingPort inPortNo) {
             handleFromVtep(context)
-        } else if (dpState isVppTunnellingPort inPortNo) {
+        } else if (dpState isFip64TunnellingPort inPortNo) {
             handleFromVpp(context)
         } else {
             context.log.info("Ingress tunnel packet has unknown port number " +
