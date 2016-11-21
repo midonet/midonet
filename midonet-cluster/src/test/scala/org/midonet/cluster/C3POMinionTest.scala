@@ -994,6 +994,17 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         id
     }
 
+    protected def createRouterGatewayPort(taskId: Int, networkId: UUID,
+                                          fixedIps: Seq[IPAlloc], macAddr: String,
+                                          id: UUID)
+    : UUID = {
+        val json = portJson(id, networkId, macAddr = macAddr,
+                            fixedIps = fixedIps,
+                            deviceOwner = DeviceOwner.ROUTER_GATEWAY)
+        insertCreateTask(taskId, PortType, json, id)
+        id
+    }
+
     protected def createRouterInterfacePort(taskId: Int, nwId: UUID,
                                             subnetId: UUID, rtrId: UUID,
                                             ipAddr: String,

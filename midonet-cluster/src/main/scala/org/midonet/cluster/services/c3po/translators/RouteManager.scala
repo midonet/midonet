@@ -54,12 +54,11 @@ trait RouteManager {
             .setId(UUIDUtil.randomUuidProto)
             .setRouterId(routerId)
 
-    protected def newLocalRoute(portId: UUID, portAddr: IPAddress)
-    : Route = {
+    protected def newLocalRoute(portId: UUID, portAddress: IPAddress): Route = {
         Route.newBuilder
-             .setId(RouteManager.localRouteId(portId))
+             .setId(RouteManager.localRouteId(portId, portAddress))
              .setSrcSubnet(IPSubnetUtil.AnyIPv4Subnet)
-             .setDstSubnet(IPSubnetUtil.fromAddress(portAddr))
+             .setDstSubnet(IPSubnetUtil.fromAddress(portAddress))
              .setNextHop(NextHop.LOCAL)
              .setWeight(DEFAULT_WEIGHT)
              .setNextHopPortId(portId).build()
@@ -146,15 +145,23 @@ object RouteManager {
     /**
      * Deterministically derives an ID for a local route to the port using the
      * port ID. */
+    @Deprecated
     def localRouteId(portId: UUID): UUID =
         portId.xorWith(0x13bd079b6c0e43fbL, 0x80fe647e6e718b72L)
+    def localRouteId(portId: UUID, address: IPAddress): UUID =
+        portId.xorWith(0x13bd079b6c0e43fbL,
+                       0x80fe647e6e718b72L ^ address.hashCode())
 
     /**
      * Deterministically derives an ID for a next-hop route from tenant router
      * to provider router via gateway port, or vice-versa, using the gateway
      * port ID. */
+    @Deprecated
     def gatewayRouteId(gwPortId: UUID): UUID =
         gwPortId.xorWith(0x6ba5df84b8a44ab4L, 0x90adb3f665e7850dL)
+    def gatewayRouteId(gwPortId: UUID, address: IPAddress): UUID =
+        gwPortId.xorWith(0x6ba5df84b8a44ab4L,
+                         0x90adb3f665e7850dL ^ address.hashCode())
 
     /**
      * Deterministically derives an ID for a network route on a router, or
@@ -165,8 +172,12 @@ object RouteManager {
     /**
      * Deterministically derives an ID for a next-hop route to the subnet of the
      * router interface port using the router interface port ID. */
+    @Deprecated
     def routerInterfaceRouteId(rifPortId: UUID): UUID =
         rifPortId.xorWith(0xb288abe0c5744762L, 0xb3a04b12442bb179L)
+    def routerInterfaceRouteId(rifPortId: UUID, address: IPAddress): UUID =
+        rifPortId.xorWith(0xb288abe0c5744762L,
+                          0xb3a04b12442bb179L ^ address.hashCode())
 
     /**
      * Deterministically derives an ID for a Metadata Service route using the

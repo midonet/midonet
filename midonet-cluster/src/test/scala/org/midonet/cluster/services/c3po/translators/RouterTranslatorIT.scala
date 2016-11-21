@@ -29,13 +29,13 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronRoute, NeutronRouter}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
-import PortManager._
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
@@ -404,8 +404,9 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
             gwPort.getRouterId.asJava shouldBe tenantRouterId
             gwPort.getPortMac shouldBe "04:04:04:04:04:04"
-            gwPort.getPortAddress shouldBe IPAddressUtil.toProto("169.254.0.1")
-            gwPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
+            gwPort.getPortAddress shouldBe IPAddressUtil.toProto("2002::2")
+            gwPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("2002::2/64")
+            gwPort.getPortSubnet(1) shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
 
             gwPort.getRouteIdsCount shouldBe 2
             gwPort.getFipNatRuleIdsCount shouldBe 1
@@ -444,7 +445,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         gwPortRoutes(1).getDstSubnet shouldBe IPSubnetUtil.toProto("169.254.0.1/32")
 
         gwPortFipRules.head.getNat64RuleData.getPortAddress shouldBe IPSubnetUtil
-            .toProto("2002::2/128")
+            .toProto("2002::2/64")
         gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe IPAddressUtil
             .toProto("20.0.0.1")
         gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe IPAddressUtil
@@ -529,6 +530,95 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         verifyRouterPortDeleted()
     }
 
+    it should "handle router multiple IP gateway CRUD" in {
+        // Create external network.
+        val extNetworkId = createTenantNetwork(1, external = true)
+        val extSubnetId1 = createSubnet(
+            3, extNetworkId, "10.0.0.0/24", gatewayIp = "10.0.0.1",
+            ipVersion = 4)
+        val extSubnetId2 = createSubnet(
+            4, extNetworkId, "2002::/64", gatewayIp = "2002::1",
+            ipVersion = 6)
+
+        // Create tenant router.
+        val gwPortId = createRouterGatewayPort(
+            5, extNetworkId,
+            Seq(IPAlloc("10.0.0.2", extSubnetId1),
+                IPAlloc("2002::2", extSubnetId2)),
+            "04:04:04:04:04:04",
+            UUID.randomUUID())
+        val tenantRouterId = createRouter(6, gwPortId = gwPortId)
+
+        // Sanity check for external network's connection to edge router. This
+        // is just a normal router interface, so RouterInterfaceTranslatorIT
+        // checks the details.
+        val mnGwPortId = tenantGwPortId(gwPortId).asJava
+
+        eventually {
+            storage.exists(classOf[Port], mnGwPortId).await() shouldBe true
+        }
+
+        var gwPort: Port = null
+        var gwPortRoutes: Seq[Route] = null
+        var gwPortFipRules: Seq[Rule] = null
+
+        def verifyRouterPortCreated(): Unit = {
+            eventually {
+                storage.exists(classOf[Port], mnGwPortId).await() shouldBe true
+            }
+
+            gwPort = storage.get(classOf[Port], mnGwPortId).await()
+            gwPortRoutes =
+                storage.getAll(classOf[Route], gwPort.getRouteIdsList).await()
+            gwPortFipRules =
+                storage.getAll(classOf[Rule], gwPort.getFipNatRuleIdsList).await()
+
+            gwPort.getRouterId.asJava shouldBe tenantRouterId
+            gwPort.getPortMac shouldBe "04:04:04:04:04:04"
+            gwPort.getPortAddress shouldBe IPAddressUtil.toProto("10.0.0.2")
+            gwPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("10.0.0.2/24")
+            gwPort.getPortSubnet(1) shouldBe IPSubnetUtil.toProto("2002::2/64")
+            gwPort.getPortSubnet(2) shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
+
+            gwPort.getRouteIdsCount shouldBe 5
+            gwPort.getFipNatRuleIdsCount shouldBe 1
+
+            gwPortRoutes should have size 5
+            gwPortFipRules should have size 1
+        }
+
+        verifyRouterPortCreated()
+
+        // Default route
+        gwPortRoutes.head.getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
+        gwPortRoutes.head.getDstSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
+        gwPortRoutes.head.getNextHopGateway shouldBe IPAddressUtil.toProto("10.0.0.1")
+
+        // Local IPv4 route.
+        gwPortRoutes(1).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
+        gwPortRoutes(1).getDstSubnet shouldBe IPSubnetUtil.toProto("10.0.0.2/32")
+
+        // IPv4 subnet route.
+        gwPortRoutes(2).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
+        gwPortRoutes(2).getDstSubnet shouldBe IPSubnetUtil.toProto("10.0.0.0/24")
+
+        // IPv6 NAT pool route.
+        gwPortRoutes(3).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
+        gwPortRoutes(3).getDstSubnet shouldBe RouterInterfaceTranslator.Nat64Pool
+        gwPortRoutes(3).getNextHopGateway shouldBe IPAddressUtil.toProto("169.254.0.2")
+
+        // IPv6 local route.
+        gwPortRoutes(4).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
+        gwPortRoutes(4).getDstSubnet shouldBe IPSubnetUtil.toProto("169.254.0.1/32")
+
+        // NAT64 rules.
+        gwPortFipRules.head.getNat64RuleData.getPortAddress shouldBe IPSubnetUtil
+            .toProto("2002::2/64")
+        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe IPAddressUtil
+            .toProto("20.0.0.1")
+        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe IPAddressUtil
+            .toProto("20.0.0.1")
+    }
 
     it should "Preserve router properties on update" in {
         // Create external network and subnet.
@@ -633,24 +723,24 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Tenant router should have gateway port and no routes.
         val trGwPortId = tenantGwPortId(nwGwPortId)
 
-        Thread.sleep(1000)
-        //val tr = eventually {
+        val tr = eventually {
             val tr = storage.get(classOf[Router], rtrId).await()
             tr.getPortIdsList.asScala should contain only trGwPortId
             tr.getRouteIdsCount shouldBe 0
 
             // The ARP entry should be added to the external network ARP table.
             extNwArpTable.getLocal(gatewayIp) shouldBe MAC.fromString(trPortMac)
-        //    tr
-        //}
+            tr
+        }
 
         // Get the router gateway port and its peer on the network.
         val portFs = storage.getAll(classOf[Port], List(nwGwPortId, trGwPortId))
 
         // Get routes on router gateway port.
-        val trRifRtId = RouteManager.routerInterfaceRouteId(trGwPortId)
-        val trLocalRtId = RouteManager.localRouteId(trGwPortId)
-        val trGwRtId = RouteManager.gatewayRouteId(trGwPortId)
+        val gwAddress = IPAddressUtil.toProto(gatewayIp)
+        val trRifRtId = RouteManager.routerInterfaceRouteId(trGwPortId, gwAddress)
+        val trLocalRtId = RouteManager.localRouteId(trGwPortId, gwAddress)
+        val trGwRtId = RouteManager.gatewayRouteId(trGwPortId, gwAddress)
 
         val List(nwGwPort, trGwPort) = portFs.await()
 
