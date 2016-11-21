@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_9e6d0c35",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/TunnelKeys.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T16:37:48Z",
+      "side": 1,
+      "message": "d",
+      "range": {
+        "startLine": 24,
+        "startChar": 23,
+        "endLine": 24,
+        "endChar": 24
+      },
+      "revId": "af48eeaeb736f62bc4056a9e71d5082d2a26d4e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_7effe834",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/TunnelKeys.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T16:37:48Z",
+      "side": 1,
+      "message": "it would be nice to have some unit tests",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 19
+      },
+      "revId": "af48eeaeb736f62bc4056a9e71d5082d2a26d4e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_5efc243e",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/TunnelKeys.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T16:37:48Z",
+      "side": 1,
+      "message": "can we use this to validate a flow state tunnel key (will isOfType(0xffffff) return true)?",
+      "range": {
+        "startLine": 59,
+        "startChar": 8,
+        "endLine": 59,
+        "endChar": 21
+      },
+      "revId": "af48eeaeb736f62bc4056a9e71d5082d2a26d4e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
