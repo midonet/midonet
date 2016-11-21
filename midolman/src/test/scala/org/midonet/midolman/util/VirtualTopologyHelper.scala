@@ -17,6 +17,7 @@ package org.midonet.midolman.util
 
 import java.util.{UUID, LinkedList => JLinkedList, List => JList, Queue => JQueue}
 
+import scala.collection.mutable
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
@@ -239,6 +240,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        flowRecorder: FlowRecorder = NullFlowRecorder)
                       (implicit hostId: UUID) = {
         val dpState = new DatapathState {
+            val fip64KeyToPort = mutable.Map[Int, UUID]()
+
             override val datapath = new Datapath(0, "midonet")
             override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] =
                 peers.get(peer)
@@ -262,6 +265,17 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override def isFip64TunnellingPort(portNumber: Int): Boolean = false
             override def tunnelFip64VxLanPort: VxLanTunnelPort =
                 new VxLanTunnelPort("tnvxlan-fip64", 1234)
+            override def setFip64PortKey(port: UUID, key: Int): Unit = {
+                fip64KeyToPort += (key -> port)
+            }
+
+            override def clearFip64PortKey(port: UUID, key: Int): Unit = {
+                fip64KeyToPort -= key
+            }
+
+            override def getFip64PortForKey(key: Int): UUID = {
+                fip64KeyToPort getOrElse (key, null)
+            }
         }
 
         new MockPacketWorkflow(config, hostId, dpState, clock, dpChannel,

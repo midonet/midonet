@@ -97,6 +97,10 @@ trait Fip64DatapathState {
     def tunnelFip64VxLanPort: VxLanTunnelPort
 
     def isFip64TunnellingPort(portNumber: Int): Boolean
+
+    def setFip64PortKey(port: UUID, key: Int): Unit
+    def clearFip64PortKey(port: UUID, key: Int): Unit
+    def getFip64PortForKey(key: Int): UUID
 }
 
 trait DatapathState extends VirtualPortsResolver
@@ -451,6 +455,7 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     val keyToTriad = new ConcurrentHashMap[Long, DpTriad]()
     val dpPortNumToTriad = new ConcurrentHashMap[Int, DpTriad]
     val localKeys = new ConcurrentHashMap[Long, DpTriad]
+    val fip64KeyToPort = new ConcurrentHashMap[Int, UUID]
 
     override def vtepTunnellingOutputAction = tunnelVtepVxLan.toOutputAction
     override def tunnelRecircOutputAction = tunnelRecircVxLanPort.toOutputAction
@@ -467,6 +472,18 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
 
     override def isFip64TunnellingPort(portNumber: Int): Boolean = {
         tunnelFip64VxLanPort.getPortNo == portNumber
+    }
+
+    override def setFip64PortKey(port: UUID, key: Int): Unit = {
+        fip64KeyToPort.put(key, port)
+    }
+
+    override def clearFip64PortKey(port: UUID, key: Int): Unit = {
+        fip64KeyToPort.remove(key, port)
+    }
+
+    override def getFip64PortForKey(key: Int): UUID = {
+        fip64KeyToPort.get(key)
     }
 
     /** 2D immutable map of peerUUID -> zoneUUID -> (srcIp, dstIp, outputAction)

@@ -159,6 +159,10 @@ class RecircTest extends FeatureSpec
             override def hostRecircPort = recircPort.asInstanceOf[NetDevPort]
             override def tunnelRecircOutputAction = vxlanRecircPort.toOutputAction
             override def hostRecircOutputAction = recircPort.toOutputAction
+
+            override def setFip64PortKey(port: UUID, key: Int): Unit = {}
+            override def clearFip64PortKey(port: UUID, key: Int): Unit = {}
+            override def getFip64PortForKey(key: Int): UUID = null
         }
         translator = new FlowTranslator {
             override protected val hostId = UUID.randomUUID()
