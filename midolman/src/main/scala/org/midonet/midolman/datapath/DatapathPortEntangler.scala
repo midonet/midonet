@@ -22,6 +22,7 @@ import scala.util.Random
 
 import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.DatapathStateDriver.DpTriad
+import org.midonet.midolman.config.TunnelKeys.LocalPortGeneratedType
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.devices.PortBinding
 import org.midonet.odp.DpPort
@@ -299,9 +300,8 @@ trait DatapathPortEntangler {
     private def allocateLocalTunnelKey(triad: DpTriad): Unit = {
         var tunnelKey = 0L
         do {
-            tunnelKey = random.nextLong() &
-                        DatapathStateDriver.LocalTunnelKeyMask |
-                        DatapathStateDriver.LocalTunnelKeyBit
+            tunnelKey = LocalPortGeneratedType.apply(
+                random.nextInt())
         } while (localKeys.putIfAbsent(tunnelKey, triad) != null)
         triad.localTunnelKey = tunnelKey
 

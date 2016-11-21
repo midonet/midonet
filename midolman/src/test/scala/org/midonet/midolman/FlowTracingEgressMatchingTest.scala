@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.config.TunnelKeys.TraceBit
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.layer3.{Route => L3Route}
 import org.midonet.midolman.simulation.{Bridge => SimBridge, PacketContext, Port, Router => SimRouter}
@@ -236,14 +237,14 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         // should have executed flow with tunnel mask set
         val (packet, actions) = packetOutQueueIngress.remove()
-        TraceState.traceBitPresent(getTunnelId(actions)) shouldBe true
+        TraceBit.isSet(getTunnelId(actions).toInt) shouldBe true
         getTunnelDst(actions) should be (egressHostIp)
 
         // should have created flow, but without tunnel mask set
         flowQueueIngress.size should be (1)
         val flow = flowQueueIngress.remove()
-        TraceState.traceBitPresent(
-            getTunnelId(flow.getActions)) shouldBe false
+        TraceBit.isSet(
+            getTunnelId(flow.getActions).toInt) shouldBe false
 
         packetCtxTrapIngress.size should be (2)
         val ingressCtx = packetCtxTrapIngress.remove()

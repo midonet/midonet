@@ -26,6 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.flowstate.proto.FlowState
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.config.TunnelKeys.TraceBit
 import org.midonet.midolman.simulation.{Bridge, PacketContext, Simulator}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets, HappyGoLuckyLeaser, TraceState}
@@ -436,7 +437,7 @@ class FlowTracingTest extends MidolmanSpec {
 
             pktCtxs.clear()
             wkflEgress.handlePackets(
-                tunnelPacket(frame, tunnelPort | TraceState.TraceTunnelKeyMask))
+                tunnelPacket(frame, TraceBit.set(tunnelPort.toInt)))
             pktCtxs.get(0).traceContext.flowTraceId shouldBe flowTrace1
 
             val statePacket2 = tunnelPacket(statePacketsSent.get(1),
@@ -445,7 +446,7 @@ class FlowTracingTest extends MidolmanSpec {
 
             pktCtxs.clear()
             wkflEgress.handlePackets(
-                tunnelPacket(frame, tunnelPort | TraceState.TraceTunnelKeyMask))
+                tunnelPacket(frame, TraceBit.set(tunnelPort.toInt)))
             pktCtxs.get(0).traceContext.flowTraceId shouldBe flowTrace2
             egressTable.get(traceKey) should not be (null)
 
