@@ -22,6 +22,30 @@
       "revId": "e20bedc884ae641f78f81d88ce6f38806974e6cb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_5481aa8e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-21T10:54:42Z",
+      "side": 1,
+      "message": "I think I found the reason: We use int instead of Integer in the DTO, so when you use midonet-cli, there\u0027s no way to leave the value unset. We should probably change this, but maybe it\u0027s best to leave this change in as well?",
+      "parentUuid": "9aa53dc9_14dd6214",
+      "range": {
+        "startLine": 10,
+        "startChar": 14,
+        "endLine": 10,
+        "endChar": 30
+      },
+      "revId": "e20bedc884ae641f78f81d88ce6f38806974e6cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
