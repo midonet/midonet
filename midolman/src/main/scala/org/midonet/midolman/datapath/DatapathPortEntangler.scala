@@ -26,6 +26,7 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.devices.PortBinding
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
+import org.midonet.packets.TunnelKeys.LocalPortGeneratedType
 import org.midonet.util.concurrent._
 import org.midonet.util.logging.Logger
 
@@ -299,9 +300,8 @@ trait DatapathPortEntangler {
     private def allocateLocalTunnelKey(triad: DpTriad): Unit = {
         var tunnelKey = 0L
         do {
-            tunnelKey = random.nextLong() &
-                        DatapathStateDriver.LocalTunnelKeyMask |
-                        DatapathStateDriver.LocalTunnelKeyBit
+            tunnelKey = LocalPortGeneratedType.apply(
+                random.nextInt())
         } while (localKeys.putIfAbsent(tunnelKey, triad) != null)
         triad.localTunnelKey = tunnelKey
 
