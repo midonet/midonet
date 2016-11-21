@@ -20,8 +20,6 @@ import java.net.URI
 
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
-import com.google.common.net.HostAndPort
-
 import org.apache.curator.x.discovery.UriSpec
 
 import rx.Observer
@@ -67,36 +65,6 @@ class FakeDiscovery extends MidonetDiscovery {
     override def getClient[S](serviceName: String)
                              (implicit tag: TypeTag[S]) =
         new FakeDiscoveryClient[S](serviceName)
-
-    /**
-      * A helper utility to register a service instance using HostAndPort
-      *
-      * @param serviceName Name of the service whose instance we want to
-      *                    register.
-      * @param hostAndPort HostAndPort representing the location of this new
-      *                    instance.
-      * @return The handler associated with this registered instance.
-      */
-    def registerServiceInstance(serviceName: String,
-                                hostAndPort: HostAndPort)
-        : MidonetServiceHandler =
-        registerServiceInstance(serviceName, hostAndPort.getHostText,
-                                hostAndPort.getPort)
-
-    /**
-      * A helper utility to register a service instance using host:port string
-      *
-      * @param serviceName Name of the service whose instance we want to
-      *                    register.
-      * @param hostAndPortStr host:port string representing the location of this
-      *                       new instance.
-      * @return The handler associated with this registered instance.
-      */
-    def registerServiceInstance(serviceName: String,
-                                hostAndPortStr: String)
-        : MidonetServiceHandler =
-        registerServiceInstance(serviceName,
-                                HostAndPort.fromString(hostAndPortStr))
 
     override def registerServiceInstance(serviceName: String,
                                          address: String,

@@ -132,7 +132,6 @@ public class FuncTest {
 
             backend = new MidonetBackendService(cfg.backend(), curator, curator,
                                                 new MetricRegistry(),
-                                                scala.Option.apply(null),
                                                 scala.Option.apply(null)) {
                     @Override
                     public void setup(StateTableStorage storage) {

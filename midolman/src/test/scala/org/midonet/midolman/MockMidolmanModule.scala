@@ -120,7 +120,7 @@ class MockMidolmanModule(override val hostId: UUID,
                                                       backChannel: ShardedSimulationBackChannel,
                                                       vt: VirtualTopology,
                                                       clock: NanoClock,
-                                                      discovery: MidonetDiscovery,
+                                                      backend: MidonetBackend,
                                                       metricsRegistry: MetricRegistry,
                                                       counter: StatisticalCounter,
                                                       actorSystem: ActorSystem)

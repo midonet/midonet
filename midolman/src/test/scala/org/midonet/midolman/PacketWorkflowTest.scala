@@ -61,6 +61,11 @@ class PacketWorkflowTest extends MidolmanSpec {
 
     override def beforeTest() {
         createPacketWorkflow()
+        packetWorkflow.startAsync().awaitRunning()
+    }
+
+    override def afterTest() {
+        packetWorkflow.stopAsync().awaitTerminated()
     }
 
     def createPacketWorkflow(simulationExpireMillis: Long = 5000L,
@@ -644,7 +649,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    peerResolver,
                                    HappyGoLuckyLeaser,
                                    metrics,
-                                   NullFlowRecorder,
+                                   NullFlowRecorder(),
                                    injector.getInstance(classOf[VirtualTopology]),
                                    packetOut) {
         var p = Promise[Any]()

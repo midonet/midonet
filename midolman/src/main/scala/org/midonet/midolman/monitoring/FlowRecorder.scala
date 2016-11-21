@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.monitoring
 
-import java.net.{InetAddress, InetSocketAddress, SocketException}
+import java.net.{InetSocketAddress, SocketException}
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
 import java.util.concurrent.atomic.AtomicReference
@@ -25,13 +25,14 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 import org.slf4j.LoggerFactory
-import com.google.common.net.HostAndPort
+import com.google.common.util.concurrent.AbstractService
 import com.typesafe.scalalogging.Logger
 
 import rx.Observer
 
 import org.midonet.cluster.flowhistory._
-import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHostAndPort}
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{MidonetDiscoveryClient, MidonetServiceHostAndPort}
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => MMSimRes}
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
@@ -41,7 +42,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.sdn.flows.FlowTagger._
 
-trait FlowRecorder {
+trait FlowRecorder extends AbstractService {
     def record(pktContext: PacketContext, simRes: MMSimRes): Unit
 }
 
@@ -49,28 +50,28 @@ object FlowRecorder {
     val log = Logger(LoggerFactory.getLogger(classOf[FlowRecorder]))
 
     def apply(config: MidolmanConfig, hostId: UUID,
-              discovery: MidonetDiscovery): FlowRecorder = {
+              backend: MidonetBackend): FlowRecorder = {
         log.info("Creating flow recorder with " +
                      s"(${config.flowHistory.encoding}) encoding")
         if (config.flowHistory.enabled &&
             config.flowHistory.endpointService.nonEmpty) {
             config.flowHistory.encoding match {
                 case "json" => new JsonFlowRecorder(
-                    hostId, config.flowHistory, discovery)
+                    hostId, config.flowHistory, backend)
                 case "binary" => new BinaryFlowRecorder(hostId,
                                                         config.flowHistory,
-                                                        discovery)
-                case "none" => NullFlowRecorder
+                                                        backend)
+                case "none" => NullFlowRecorder()
                 case other =>
                     log.error(s"Invalid encoding ($other) specified")
-                    NullFlowRecorder
+                    NullFlowRecorder()
             }
         } else {
             if (config.flowHistory.enabled) {
                 log.warn("Flow history disabled because no endpoint service " +
                              "specified")
             }
-            NullFlowRecorder
+            NullFlowRecorder()
         }
     }
 }
@@ -79,22 +80,29 @@ object FlowRecorder {
   * Null implementation of flow recorder, for use when flow recording
   * is disabled.
   */
-object NullFlowRecorder extends FlowRecorder {
+class NullFlowRecorder extends FlowRecorder {
     override def record(pktContext: PacketContext, simRes: MMSimRes):
             Unit = {
         // do nothing
     }
+
+    override def doStart(): Unit = notifyStarted()
+
+    override def doStop(): Unit = notifyStopped()
+}
+
+object NullFlowRecorder {
+    def apply(): FlowRecorder = new NullFlowRecorder
 }
 
 /**
   * Abstract flow recorder example that sends summaries over a udp port
   */
 abstract class AbstractFlowRecorder(config: FlowHistoryConfig,
-                                    discovery: MidonetDiscovery) extends FlowRecorder {
+                                    backend: MidonetBackend) extends FlowRecorder {
     private val log = Logger(LoggerFactory.getLogger("org.midonet.history"))
 
-    private val clioDiscoveryClient = discovery.getClient[MidonetServiceHostAndPort](
-        config.endpointService)
+    private var clioDiscoveryClient: MidonetDiscoveryClient[MidonetServiceHostAndPort] = _
 
     private val endpointRef = new AtomicReference[Option[InetSocketAddress]](None)
 
@@ -102,41 +110,18 @@ abstract class AbstractFlowRecorder(config: FlowHistoryConfig,
 
     def endpoint: Option[InetSocketAddress] = endpointRef.get
 
-    // Update endpoint as we discover more/less clio nodes.
-    clioDiscoveryClient.observable.subscribe(
-        new Observer[Seq[MidonetServiceHostAndPort]] {
-            override def onCompleted(): Unit = {
-                log.debug("Service discovery completed for {}",
-                          config.endpointService)
-                endpointRef.lazySet(None)
-            }
+    override def doStart(): Unit = {
+        clioDiscoveryClient =
+            backend.discovery.getClient[MidonetServiceHostAndPort](
+                config.endpointService)
+        subscribeToDiscovery()
+        notifyStarted()
+    }
 
-            override def onError(e: Throwable): Unit = {
-                log.error("Error on {} service discovery",
-                          config.endpointService)
-                endpointRef.lazySet(None)
-            }
-
-            override def onNext(t: Seq[MidonetServiceHostAndPort]): Unit = {
-                val chosenEndpoint =
-                    if (t.nonEmpty) {
-                        val randomEndpoint = t(Random.nextInt(t.length))
-                        try {
-                            Some(new InetSocketAddress(randomEndpoint.address,
-                                                       randomEndpoint.port))
-                        } catch {
-                            case t: Throwable =>
-                                log.warn("Invalid endpoint: " + randomEndpoint,
-                                         t)
-                                None
-                        }
-                    } else
-                        None
-                endpointRef.lazySet(chosenEndpoint)
-                log.debug("New endpoint chosen: {}" + chosenEndpoint)
-            }
-        }
-    )
+    override def doStop(): Unit = {
+        clioDiscoveryClient.stop()
+        notifyStopped()
+    }
 
     final override def record(pktContext: PacketContext, simRes: MMSimRes):
             Unit = {
@@ -160,6 +145,47 @@ abstract class AbstractFlowRecorder(config: FlowHistoryConfig,
 
     def encodeRecord(pktContext: PacketContext,
                      simRes: MMSimRes): ByteBuffer
+
+    private def subscribeToDiscovery() = {
+        // Update endpoint as we discover more/less clio nodes.
+        clioDiscoveryClient.observable.subscribe(
+            new Observer[Seq[MidonetServiceHostAndPort]] {
+                override def onCompleted(): Unit = {
+                    log.debug("Service discovery completed for {}",
+                              config.endpointService)
+                    endpointRef.lazySet(None)
+                }
+
+                override def onError(e: Throwable): Unit = {
+                    log.error("Error on {} service discovery",
+                              config.endpointService)
+                    endpointRef.lazySet(None)
+                }
+
+                override def onNext(t: Seq[MidonetServiceHostAndPort]): Unit = {
+                    val chosenEndpoint =
+                        if (t.nonEmpty) {
+                            val randomEndpoint = t(Random.nextInt(t.length))
+                            try {
+                                Some(new InetSocketAddress(
+                                    randomEndpoint.address,
+                                    randomEndpoint.port))
+                            } catch {
+                                case t: Throwable =>
+                                    log.warn(
+                                        "Invalid endpoint: " + randomEndpoint,
+                                        t)
+                                    None
+                            }
+                        } else
+                            None
+                    endpointRef.lazySet(chosenEndpoint)
+                    log.debug("New endpoint chosen: {}" + chosenEndpoint)
+                }
+            }
+        )
+    }
+
 }
 
 object FlowRecordBuilder {

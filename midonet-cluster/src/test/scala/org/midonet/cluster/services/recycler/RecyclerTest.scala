@@ -39,6 +39,7 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.models.Topology.{Host, Network, Port, Router}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{FakeDiscovery, MidonetDiscovery}
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.minion.Context
@@ -121,6 +122,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             override def doStart(): Unit = { }
             override def connectionState: Observable[ConnectionState] = Observable.never()
             override def stateTableClient: StateTableClient = null
+            override val discovery: MidonetDiscovery = new FakeDiscovery
         }
         clusterConfig = new ClusterConfig(ConfigFactory.parseString(
             """
@@ -287,6 +289,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
                 override def doStart(): Unit = { }
                 override def connectionState: Observable[ConnectionState] = Observable.never()
                 override def stateTableClient: StateTableClient = null
+                override val discovery: MidonetDiscovery = new FakeDiscovery
             }
 
             And("A recycling service")

@@ -133,7 +133,6 @@ public class HostServiceTest {
             MidonetBackendService backend =
                 new MidonetBackendService(backendConfig, curator, curator,
                                           new MetricRegistry(),
-                                          scala.Option.apply(null),
                                           scala.Option.apply(null));
             bind(MidonetBackend.class).toInstance(backend);
             bind(Reactor.class)
