@@ -496,9 +496,9 @@ class VppDownlinkVxlanSetup(config: Fip64Config,
 
     import VppSetup._
 
-    private val uplinkSuffix = UUID.randomUUID().toString.substring(0, 8)
-    private val dlinkVppName = s"vpp-dl-$uplinkSuffix"
-    private val dlinkTunName = s"tun-dl-$uplinkSuffix"
+    private val dlinkSuffix = UUID.randomUUID().toString.substring(0, 8)
+    private val dlinkVppName = s"vpp-dl-$dlinkSuffix"
+    private val dlinkTunName = s"tun-dl-$dlinkSuffix"
 
     private val dlinkVeth = new VethPairSetup("downlink vxlan interface setup",
                                               dlinkVppName,
