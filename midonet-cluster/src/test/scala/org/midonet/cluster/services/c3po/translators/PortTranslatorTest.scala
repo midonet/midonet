@@ -1652,7 +1652,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
             """)
         midoOps should contain (UpdateOp(rifRoute))
 
-        val localRouteId = RouteManager.localRouteId(peerPortId)
+        val localRouteId = RouteManager.localRouteId(peerPortId, newIfPortIp)
         val localRoute = mRouteFromTxt(s"""
             id: { $localRouteId }
             src_subnet {
