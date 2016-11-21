@@ -45,7 +45,7 @@ import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.vpp.VppDownlink._
-import org.midonet.packets.{IPv4Addr, IPv6Addr, IPv6Subnet}
+import org.midonet.packets.{IPv4Addr, IPv6Addr, IPv6Subnet, MAC}
 import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
@@ -117,10 +117,12 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
         CreateDownlink(
             portId = port.getId,
             vrfTable = vrf,
+            vni = vrf,
             portAddress4 = fromV4Proto(port.getPortSubnet),
             portAddress6 = fromV6Proto(rule.getNat64RuleData.getPortAddress),
             natPool = ZoomConvert.fromProto(rule.getNat64RuleData.getNatPool,
-                                            classOf[NatTarget]))
+                                            classOf[NatTarget]),
+            routerPortMac=MAC.random())
     }
 
     private def updateDownlink(port: Port, oldRule: Rule, newRule: Rule, vrf: Int)
@@ -230,7 +232,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The actor should receive a Delete notification")
             actor.messages should have size 4
             actor.messages(2) shouldBe disassociateFip(port, entry, 1)
-            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1)
+            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1, 1)
         }
 
         scenario("Port deleted for non-existing downlink") {
@@ -292,7 +294,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The actor should receive a Delete notification")
             actor.messages should have size 6
             actor.messages(4) shouldBe disassociateFip(port1, entry1, 1)
-            actor.messages(5) shouldBe DeleteDownlink(port1.getId, 1)
+            actor.messages(5) shouldBe DeleteDownlink(port1.getId, 1, 1)
 
             When("Adding a new port")
             val port3 = createRouterPort(routerId = Some(router.getId))
@@ -332,7 +334,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The actor should receive a DisassociateFip and Delete notification")
             actor.messages should have size 4
             actor.messages(2) shouldBe disassociateFip(port, entry, 1)
-            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1)
+            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1, 1)
         }
 
         scenario("Deleted downlink frees VRF numbers") {
@@ -606,7 +608,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The actor should receive DownlinkDeleted")
             actor.messages should have size 6
             actor.messages(4) shouldBe disassociateFip(port, entry2, 1)
-            actor.messages(5) shouldBe DeleteDownlink(port.getId, 1)
+            actor.messages(5) shouldBe DeleteDownlink(port.getId, 1, 1)
         }
 
         scenario("All FIP entries are cleared when port deleted") {
@@ -640,7 +642,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
                 disassociateFip(port, entry1, 1),
                 disassociateFip(port, entry2, 1),
                 disassociateFip(port, entry3, 1))
-            actor.messages(7) shouldBe DeleteDownlink(port.getId, 1)
+            actor.messages(7) shouldBe DeleteDownlink(port.getId, 1, 1)
         }
     }
 
@@ -676,7 +678,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The VPP downlink should cleanup")
             actor.messages should have size 4
             actor.messages(2) shouldBe disassociateFip(port, entry, 1)
-            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1)
+            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1, 1)
         }
     }
 

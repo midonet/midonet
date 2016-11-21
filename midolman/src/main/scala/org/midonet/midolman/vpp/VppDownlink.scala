@@ -42,7 +42,7 @@ import org.midonet.midolman.services.MidolmanActorsService.{ChildActorStartTimeo
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.{StoreObjectReferenceTracker, VirtualTopology}
 import org.midonet.midolman.vpp.VppDownlink.{DownlinkState, Notification}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
 import org.midonet.util.functors.{makeAction0, makeFunc1, makeRunnable}
 import org.midonet.util.logging.Logger
 
@@ -65,17 +65,20 @@ object VppDownlink {
       */
     case class CreateDownlink(portId: UUID,
                               vrfTable: Int,
+                              vni: Int,
                               portAddress4: IPv4Subnet,
                               portAddress6: IPv6Subnet,
-                              natPool: NatTarget) extends Notification {
+                              natPool: NatTarget,
+                              routerPortMac: MAC) extends Notification {
 
         lazy val vppAddress4 = new IPv4Subnet(portAddress4.getIntAddress + 1,
                                               portAddress4.getPrefixLen)
 
         override def toString: String =
-            s"CreateDownlink [port=$portId vrf=$vrfTable " +
+            s"CreateDownlink [port=$portId vrf=$vrfTable vni=$vni " +
             s"portAddress4=$portAddress4 portAddress6=$portAddress6 " +
-            s"vppAddress4=$vppAddress4 pool=$natPool]"
+            s"vppAddress4=$vppAddress4 pool=$natPool " +
+            s" routerPortMac=$routerPortMac]"
     }
 
     /**
@@ -88,17 +91,18 @@ object VppDownlink {
                               newAddress: IPv6Subnet) extends Notification {
 
         override def toString: String =
-            s"UpdateDownlink [port=$portId vfr=$vrfTable oldAddress=$oldAddress " +
+            s"UpdateDownlink [port=$portId vrf=$vrfTable oldAddress=$oldAddress " +
             s"newAddress=$newAddress]"
     }
 
     /**
       * A message to delete the veth pair for the tenant router downlink port.
       */
-    case class DeleteDownlink(portId: UUID, vrfTable: Int) extends Notification {
+    case class DeleteDownlink(portId: UUID, vrfTable: Int, vni: Int)
+            extends Notification {
 
         override def toString: String =
-            s"DeleteDownlink [port=$portId vfr=$vrfTable]"
+            s"DeleteDownlink [port=$portId vrf=$vrfTable vni=$vni]"
     }
 
     /**
@@ -331,9 +335,11 @@ object VppDownlink {
         : Observable[Notification] = {
             val notifications = new Array[Notification](fips.size + 1)
             notifications(0) = CreateDownlink(portId, vrfTable,
+                                              port.tunnelKey.toInt,
                                               currentPort.portSubnetV4,
                                               rule.portAddress,
-                                              rule.natPool)
+                                              rule.natPool,
+                                              port.portMac)
             var index = 1
             val iterator = fips.iterator
             while (iterator.hasNext) {
@@ -362,7 +368,9 @@ object VppDownlink {
                                                  fip.fixedIp,
                                                  currentPort.portSubnetV4)
                 }
-                child onNext DeleteDownlink(portId, vrfTable)
+                child onNext DeleteDownlink(portId,
+                                            currentPort.tunnelKey.toInt,
+                                            vrfTable)
                 child.onCompleted()
             }
         }
