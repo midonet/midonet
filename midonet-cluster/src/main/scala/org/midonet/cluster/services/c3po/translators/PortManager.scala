@@ -41,12 +41,6 @@ trait PortManager extends ChainManager with RouteManager {
     protected type DhcpUpdateFunction =
         (Dhcp.Builder, String, IPAddress, JList[ExtraDhcpOpts]) => Unit
 
-    private def checkNoPeerId(port: PortOrBuilder): Unit = {
-        if (port.hasPeerId)
-            throw new IllegalStateException(
-                s"Port ${port.getId} already connected to ${port.getPeerId}.")
-    }
-
     protected def newRouterPortBuilder(id: UUID, routerId: UUID,
                                        adminStateUp: Boolean = true)
     : Port.Builder = Port.newBuilder.setId(id)
