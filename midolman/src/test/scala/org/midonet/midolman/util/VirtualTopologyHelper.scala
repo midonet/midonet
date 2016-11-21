@@ -262,6 +262,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override def tunnelRecircOutputAction: FlowActionOutput = null
             override def hostRecircOutputAction: FlowActionOutput = null
 
+            var fip64TunnellingOutputAction: FlowActionOutput = null
             override def isFip64TunnellingPort(portNumber: Int): Boolean = false
             override def tunnelFip64VxLanPort: VxLanTunnelPort =
                 new VxLanTunnelPort("tnvxlan-fip64", 1234)

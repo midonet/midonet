@@ -65,8 +65,13 @@ class FlowTranslatorTest extends MidolmanSpec {
            inPortUUID = Some(id)
 
         def vxlanPort(num: Int): Unit = {
-            dpState.vtepTunnellingOutputAction = output(num)
+            dpState.vxlanTunnellingOutputAction = output(num)
             dpState.vxlanPortNumber = num
+        }
+
+        def fip64Port(num: Int): Unit = {
+            dpState.fip64TunnellingOutputAction = output(num)
+            dpState.fip64PortNumber = num
         }
 
         def translate(action: FlowAction, ethernet: Ethernet = null): Unit =
@@ -221,8 +226,43 @@ class FlowTranslatorTest extends MidolmanSpec {
             table.addPersistent(remoteHost, DefaultValue)
 
             ctx translate Nat64Action(hostId = null, vni)
-            ctx verify (List(setKey(FlowKeys.tunnel(vni, 1, 2, 0)), output(0)),
-                Set(FlowTagger.tagForTunnelRoute(1, 2)))
+            ctx verify (List(setKey(FlowKeys.tunnel(vni, 1, 2, 0)),
+                             output(0)),
+                        Set(FlowTagger.tagForTunnelRoute(1, 2)))
+        }
+
+        translationScenario("Specified gateway host is local") { ctx =>
+            val tunSrc = config.fip64.vtepKernAddr.getAddress.toInt
+            val tunDst = config.fip64.vtepVppAddr.getAddress.toInt
+            val vni = 5421
+
+            ctx fip64Port 4328
+            ctx translate Nat64Action(hostId = this.hostId, vni)
+            ctx verify (List(setKey(FlowKeys.tunnel(vni, tunSrc, tunDst, 0)),
+                             output(4328)), Set())
+        }
+
+        translationScenario("Local host is in list of all gateways") { ctx =>
+            val tunSrc = config.fip64.vtepKernAddr.getAddress.toInt
+            val tunDst = config.fip64.vtepVppAddr.getAddress.toInt
+            val vni = 5421
+
+            val remoteHost = newHost("remoteHost")
+            ctx vxlanPort 1343
+            ctx peer remoteHost -> (1, 2)
+
+            val table = backend.stateTableStore.getTable[UUID, AnyRef](
+                MidonetBackend.GatewayTable)
+            table.addPersistent(remoteHost, DefaultValue)
+            table.addPersistent(hostId, DefaultValue)
+
+            ctx fip64Port 4328
+            ctx translate Nat64Action(hostId = null, vni)
+            ctx verify (List(setKey(FlowKeys.tunnel(vni, 1, 2, 0)),
+                             output(0),
+                             setKey(FlowKeys.tunnel(vni, tunSrc, tunDst, 0)),
+                             output(4328)),
+                        Set(FlowTagger.tagForTunnelRoute(1, 2)))
         }
     }
 

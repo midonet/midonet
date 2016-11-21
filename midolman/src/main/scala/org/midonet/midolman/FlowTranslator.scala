@@ -190,6 +190,18 @@ trait FlowTranslator {
         }
     }
 
+    private def outputActionsToLocalFip64(key: Long,
+                                          context: PacketContext,
+                                          addFlowAndPacketAction: AddFlowAction): Unit = {
+        val src = config.fip64.vtepKernAddr.getAddress().toInt
+        val dst = config.fip64.vtepVppAddr.getAddress().toInt
+
+        addFlowAndPacketAction(context,
+                               setKey(FlowKeys.tunnel(key, src, dst, 0)))
+        addFlowAndPacketAction(context,
+                               dpState.fip64TunnellingOutputAction)
+    }
+
     /** Update the list of action and list of tags with the output tunnelling
      *  action for the given vtep tunnel addr and vni key. The tzId is the
      *  id of the tunnel zone specified by this VTEP's config which allows
@@ -258,15 +270,23 @@ trait FlowTranslator {
     private def expandNat64Action(gatewayId: UUID, vni: Long,
                                   context: PacketContext,
                                   addFlowAndPacketAction: AddFlowAction): Unit = {
+        def toPeerOrLocal(gw: UUID): Unit = {
+            if (gw.equals(hostId)) {
+                outputActionsToLocalFip64(vni, context, addFlowAndPacketAction)
+            } else {
+                outputActionsToPeer(vni, gw, context,
+                                    addFlowAndPacketAction)
+            }
+         }
+
         // If the gateway is set by the action, tunnel to that specific gateway.
         // Otherwise, tunnel to all gateways.
         if (gatewayId ne null) {
-            outputActionsToPeer(vni, gatewayId, context, addFlowAndPacketAction)
+            toPeerOrLocal(gatewayId)
         } else {
             val iterator = GatewayMappingService.gateways
             while (iterator.hasMoreElements) {
-                outputActionsToPeer(vni, iterator.nextElement(), context,
-                                    addFlowAndPacketAction)
+                toPeerOrLocal(iterator.nextElement())
             }
         }
     }

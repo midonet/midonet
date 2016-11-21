@@ -94,6 +94,8 @@ trait VirtualPortsResolver {
 }
 
 trait Fip64DatapathState {
+    def fip64TunnellingOutputAction: FlowActionOutput
+
     def tunnelFip64VxLanPort: VxLanTunnelPort
 
     def isFip64TunnellingPort(portNumber: Int): Boolean
@@ -460,6 +462,8 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     override def vtepTunnellingOutputAction = tunnelVtepVxLan.toOutputAction
     override def tunnelRecircOutputAction = tunnelRecircVxLanPort.toOutputAction
     override def hostRecircOutputAction = hostRecircPort.toOutputAction
+    override def fip64TunnellingOutputAction =
+        tunnelFip64VxLanPort.toOutputAction
 
     override def isVtepTunnellingPort(portNumber: Int): Boolean = {
         tunnelVtepVxLan.getPortNo == portNumber
