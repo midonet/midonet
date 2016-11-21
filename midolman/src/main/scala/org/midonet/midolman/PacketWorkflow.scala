@@ -43,6 +43,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.{Port, _}
+import org.midonet.midolman.simulation.Simulator.Nat64Action
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.datapath.FlowProcessor.{DuplicateFlow, FlowError}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
@@ -122,7 +123,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         } else if (dpState isVtepTunnellingPort inPortNo) {
             handleFromVtep(context)
         } else if (dpState isFip64TunnellingPort inPortNo) {
-            handleFromVpp(context)
+            handleFromFip64(context)
         } else {
             context.log.info("Ingress tunnel packet has unknown port number " +
                              s"$inPortNo: dropping")
@@ -157,6 +158,19 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         context.packetActions.add(forwardTo.toOutputAction)
     }
 
+    private def addActionsForFip64Packet(context: PacketContext,
+                                         vni: Int): Unit = {
+        val origMatch = context.origMatch
+        origMatch.fieldSeen(Field.TunnelTOS)
+        origMatch.fieldSeen(Field.TunnelTTL)
+        origMatch.fieldSeen(Field.TunnelSrc)
+        origMatch.fieldSeen(Field.TunnelDst)
+        origMatch.fieldSeen(Field.TunnelKey)
+
+        context.virtualFlowActions.add(Nat64Action(null, vni))
+        translateActions(context)
+    }
+
     private def handleFromUnderlay(context: PacketContext): SimulationResult = {
         if (context.hasTraceTunnelBit) {
             context.enableTracingOnEgress()
@@ -166,19 +180,32 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
                            " from underlay")
 
         val tunnelKey = context.wcmatch.getTunnelKey
-        dpState.dpPortForTunnelKey(tunnelKey) match {
-            case null =>
-                processSimulationResult(context, ErrorDrop)
-            case dpPort =>
-                addActionsForTunnelPacket(context, dpPort)
-                addTranslatedFlow(context, FlowExpirationIndexer.TUNNEL_FLOW_EXPIRATION)
+        if (TunnelKeys.Fip64Type.isOfType(tunnelKey.toInt)) {
+            context.log.debug("Packet redirected to vpp for fip64 rewrite")
+            dpState.getFip64PortForKey(tunnelKey.toInt) match {
+                case id: UUID => context.addFlowTag(FlowTagger.tagForPort(id))
+                case _ =>
+            }
+
+            addActionsForFip64Packet(context, tunnelKey.toInt)
+            addTranslatedFlow(context,
+                              FlowExpirationIndexer.TUNNEL_FLOW_EXPIRATION)
+        } else {
+            dpState.dpPortForTunnelKey(tunnelKey) match {
+                case null =>
+                    processSimulationResult(context, ErrorDrop)
+                case dpPort =>
+                    addActionsForTunnelPacket(context, dpPort)
+                    addTranslatedFlow(context, FlowExpirationIndexer.TUNNEL_FLOW_EXPIRATION)
+            }
         }
     }
 
-    private def handleFromVpp(context: PacketContext): SimulationResult = {
+    private def handleFromFip64(context: PacketContext): SimulationResult = {
         context.log.debug(s"Received packet matching ${context.origMatch} " +
                           s"from VPP")
-        val portId = VppController.portOfTunnelKey(context.wcmatch.getTunnelKey)
+        val portId = dpState.getFip64PortForKey(
+            context.wcmatch.getTunnelKey.toInt)
         val result = if (portId ne null) {
             context.inputPort = portId
             simulatePacketIn(context)
