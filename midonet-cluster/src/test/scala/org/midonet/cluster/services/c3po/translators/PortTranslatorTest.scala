@@ -1433,10 +1433,25 @@ class RouterInterfacePortTranslationTest extends PortTranslatorTest {
                                               adminStateUp = true)
     protected val routerIfPortIpStr = "127.0.0.2"
     protected val routerIfPortIp = IPAddressUtil.toProto(routerIfPortIpStr)
+    protected val routerIfPortIp2Str = "127.0.0.3"
+    protected val routerIfPortIp2 = IPAddressUtil.toProto(routerIfPortIp2Str)
     protected val routerIfPortMac = "01:01:01:02:02:02"
     protected val routerIfPort = nPortFromTxt(routerIfPortBase + s"""
         fixed_ips {
             ip_address { $routerIfPortIp }
+            subnet_id { $nIpv4Subnet1Id }
+        }
+        mac_address: "$routerIfPortMac"
+        device_owner: ROUTER_INTERFACE
+        device_id: "$deviceId"
+        """)
+    protected val routerIfPortWith2Ips = nPortFromTxt(routerIfPortBase + s"""
+        fixed_ips {
+            ip_address { $routerIfPortIp }
+            subnet_id { $nIpv4Subnet1Id }
+        }
+        fixed_ips {
+            ip_address { $routerIfPortIp2 }
             subnet_id { $nIpv4Subnet1Id }
         }
         mac_address: "$routerIfPortMac"
@@ -1449,12 +1464,6 @@ class RouterInterfacePortTranslationTest extends PortTranslatorTest {
         id { $routerId }
         inbound_filter_id { $preRouteChainId }
         outbound_filter_id { $postRouteChainId }
-        """)
-    protected val mBridgePortBaseWithPeer = mPortFromTxt(s"""
-        id { $portWithPeerId }
-        network_id { $networkId }
-        tunnel_key: 1
-        admin_state_up: true
         """)
     protected val mRouterPortWithPeer = mPortFromTxt(s"""
         id { $peerPortId }
@@ -1517,6 +1526,13 @@ class RouterInterfacePortTranslationTest extends PortTranslatorTest {
             reverse: true
         }
     """)
+
+    protected def getBridgePortBaseWithPeer() = mPortFromTxt(s"""
+        id { $portWithPeerId }
+        network_id { $networkId }
+        tunnel_key: $currTunnelKey
+        admin_state_up: true
+        """)
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -1541,7 +1557,25 @@ class RouterInterfacePortCreateTranslationTest
             CreateNode(stateTableStorage.bridgeMacEntryPath(
                 networkId, 0, MAC.fromString(routerIfPortMac),
                 portWithPeerId)),
-            CreateOp(mBridgePortBaseWithPeer))
+            CreateOp(getBridgePortBaseWithPeer))
+    }
+
+    "Router interface port with several IPs CREATE" should "create a normal Network port with several IPs" in {
+        bind(networkId, nNetworkBase)
+        bind(networkId, mNetworkWithIpv4Subnet)
+        when(transaction.getAll(classOf[NeutronBgpSpeaker])).thenReturn(Seq())
+        translator.translate(transaction, CreateOp(routerIfPortWith2Ips))
+        midoOps should contain only (
+          CreateNode(stateTableStorage.bridgeArpEntryPath(
+              networkId, IPv4Addr(routerIfPortIpStr),
+              MAC.fromString(routerIfPortMac))),
+          CreateNode(stateTableStorage.bridgeArpEntryPath(
+              networkId, IPv4Addr(routerIfPortIp2Str),
+              MAC.fromString(routerIfPortMac))),
+          CreateNode(stateTableStorage.bridgeMacEntryPath(
+              networkId, 0, MAC.fromString(routerIfPortMac),
+              portWithPeerId)),
+          CreateOp(getBridgePortBaseWithPeer))
     }
 }
 

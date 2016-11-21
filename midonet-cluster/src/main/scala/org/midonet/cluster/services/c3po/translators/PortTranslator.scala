@@ -23,7 +23,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
@@ -211,16 +211,20 @@ class PortTranslator(stateTableStorage: StateTableStorage,
 
     private def macAndArpTableEntryPaths(nPort: NeutronPort)
     : Seq[String] = {
+        val paths = mutable.ArrayBuffer[String]()
         val portId = if (isRemoteSitePort(nPort)) {
             l2gwNetworkPortId(nPort.getNetworkId)
         } else nPort.getId
         val macPath = stateTableStorage.bridgeMacEntryPath(
             nPort.getNetworkId, 0, MAC.fromString(nPort.getMacAddress), portId)
-        if (nPort.getFixedIpsCount == 0) {
-            Seq(macPath)
-        } else {
-            Seq(macPath, arpEntryPath(nPort))
+        paths += macPath
+        for (nPortFixedIp <- nPort.getFixedIpsList.asScala) {
+            nPortFixedIp.getIpAddress.getVersion match {
+                case IPVersion.V4 =>
+                    paths += arpEntryPath(nPort, IPv4Addr(nPortFixedIp.getIpAddress.getAddress))
+            }
         }
+        paths
     }
 
     /**
@@ -877,6 +881,13 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         stateTableStorage.bridgeArpEntryPath(
             nPort.getNetworkId,
             IPv4Addr(nPort.getFixedIps(0).getIpAddress.getAddress),
+            MAC.fromString(nPort.getMacAddress))
+    }
+
+    private def arpEntryPath(nPort: NeutronPort, address: IPv4Addr): String = {
+        stateTableStorage.bridgeArpEntryPath(
+            nPort.getNetworkId,
+            address,
             MAC.fromString(nPort.getMacAddress))
     }
 
