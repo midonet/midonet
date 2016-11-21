@@ -67,15 +67,15 @@ class PacketWorkflowTest extends MidolmanSpec {
                              custom: Boolean = true,
                              overlayVxlanPort: Int = 10,
                              vtepVxlanPort: Int = 11,
-                             vppVxlanPort: Int = 12): Unit = {
+                             fip64VxlanPort: Int = 12): Unit = {
         val dpState = new DatapathStateDriver(new Datapath(0, "midonet"))
         dpState.tunnelOverlayGre = new GreTunnelPort("overlay-gre")
         dpState.tunnelOverlayVxLan = new VxLanTunnelPort("overlay-vxlan", 4700,
                                                          overlayVxlanPort)
         dpState.tunnelVtepVxLan = new VxLanTunnelPort("vtep-vxlan", 4701,
                                                       vtepVxlanPort)
-        dpState.tunnelVppVxlan = new VxLanTunnelPort("vpp-vxlan", 4702,
-                                                     vppVxlanPort)
+        dpState.tunnelFip64VxLanPort = new VxLanTunnelPort("fip64-vxlan", 4702,
+                                                           fip64VxlanPort)
 
         packetWorkflow = new TestablePacketWorkflow(new CookieGenerator(1, 1),
                                                     mockDpChannel,
@@ -264,7 +264,7 @@ class PacketWorkflowTest extends MidolmanSpec {
         scenario("Workflow handles VPP tunnel packets without matching port") {
             val vxlanPortNumber = 20
             createPacketWorkflow(0, custom = false,
-                                 vppVxlanPort = vxlanPortNumber)
+                                 fip64VxlanPort = vxlanPortNumber)
 
             Given("A VPP packet")
             val packet = makeVppPacket(1000)

@@ -34,6 +34,7 @@ import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStateReplicator, MockStateStorage}
 import org.midonet.odp.flows.FlowActionOutput
+import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -57,7 +58,6 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         override def peerTunnelInfo(peer: UUID): Option[Route] = None
         override def isVtepTunnellingPort(portNumber: Int): Boolean = false
         override def isOverlayTunnellingPort(portNumber: Int): Boolean = false
-        override def isVppTunnellingPort(portNumber: Int): Boolean = false
         override def vtepTunnellingOutputAction: FlowActionOutput = null
         override def tunnelRecircOutputAction: FlowActionOutput = null
         override def hostRecircOutputAction: FlowActionOutput = null
