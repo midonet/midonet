@@ -44,9 +44,6 @@ object MidolmanConfig {
         new MidolmanConfig(configurator.runtimeConfig(HostIdGenerator.getHostId),
                            configurator.mergedSchemas())
     }
-
-    lazy val fip64Vxlan =
-        System.getProperties.containsKey("org.midonet.midolman.fip64vxlan")
 }
 
 trait TypeFailureFallback {
@@ -104,6 +101,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val flowState = new FlowStateConfig(conf, schema)
     val bindingApi = new BindingApiConfig(conf, schema)
     val ruleLogging = new RuleLoggingConfig(conf, schema)
+    val fip64 = new Fip64Config(conf, schema)
 }
 
 class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
@@ -272,4 +270,12 @@ class RuleLoggingConfig(val conf: Config, val schema: Config)
     def maxFiles = getInt(s"$prefix.max_files")
     def logDirectory = getString(s"$prefix.log_directory")
     def rotationFrequency = getString(s"$prefix.rotation_frequency")
+}
+
+class Fip64Config(val conf: Config, val schema: Config) {
+    val vtepUdpPort: Short = 5321
+    val vtepVppAddr = IPv4Subnet.fromCidr("169.254.0.1/30")
+    val vtepKernAddr = IPv4Subnet.fromCidr("169.254.0.2/30")
+
+    val vxlanDownlink = false
 }

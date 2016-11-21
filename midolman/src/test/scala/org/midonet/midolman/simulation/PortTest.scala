@@ -44,10 +44,6 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
     private var arpBroker: ArpRequestBroker = _
 
     protected override def beforeTest(): Unit = {
-        val clazz = Class.forName(classOf[MidolmanConfig].getName + "$")
-        val field = clazz.getDeclaredField("fip64Vxlan")
-        field.setAccessible(true)
-        field.setBoolean(clazz.getField("MODULE$").get(null), true)
         arpBroker = new ArpRequestBroker(config, simBackChannel, UnixClock.mock())
     }
 
@@ -57,7 +53,8 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
              PortActive(UUID.randomUUID(), Some(1L)),
              Collections.emptyList(),
              Collections.emptyList(),
-             fipNatRules = rules.asJava)
+             fipNatRules = rules.asJava,
+             fip64vxlan=true)
     }
 
     private def packet(src: String, dst: String): EthBuilder = {

@@ -187,7 +187,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         super.postStop()
     }
 
-    var fip64Vxlan = MidolmanConfig.fip64Vxlan
+    var fip64Vxlan = vt.config.fip64.vxlanDownlink
     var eventHandler = getEventHandler()
 
     def getEventHandler(): PartialFunction[Any, Future[_]] = {
@@ -303,10 +303,11 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     }
 
     private def attachDownlinkVxlan(): Future[_] = {
-        log debug s"Attrach downlink VXLAN port"
+        log debug s"Attach downlink VXLAN port"
 
-        val setup = new VppDownlinkVxlanSetup(vppApi, Logger(log.underlying))
-
+        val setup = new VppDownlinkVxlanSetup(vt.config.fip64,
+                                              vppApi,
+                                              Logger(log.underlying));
         {
             downlinkVxlan match {
                 case None => Future.successful(Unit)
