@@ -82,11 +82,11 @@ def get_source_port_number():
 def warmup(sender, receiver):
     tries = 15
     ip_dst = receiver.get_ip()
-    return sender.ping_ipv4_addr(ip_dst, count = tries, interval = 1,
-                                 sync = True, should_succeed = True)
+    return sender.ping_ipv4_addr(ip_dst, count=tries, interval=1,
+                                 sync=True, should_succeed=True)
 
 
-def send_udp(sender, receiver, hw_dst, dst_p, src_p, mirror = None):
+def send_udp(sender, receiver, hw_dst, dst_p, src_p, mirror=None):
     sender.get_mac_addr()
     sender.get_ip()
     ip_dst = receiver.get_ip()
@@ -97,7 +97,7 @@ def send_udp(sender, receiver, hw_dst, dst_p, src_p, mirror = None):
     if mirror is not None:
         futures.append(async_assert_that(mirror, receives(udp_filter, within_sec(15))))
 
-    sender.send_udp(hw_dst, ip_dst, src_port = src_p, dst_port = dst_p)
+    sender.send_udp(hw_dst, ip_dst, src_port=src_p, dst_port=dst_p)
     wait_on_futures(futures)
 
 

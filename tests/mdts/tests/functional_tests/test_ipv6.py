@@ -17,14 +17,10 @@ from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.lib.bindings import BindingManager
 from mdts.services import service
 from mdts.tests.utils.utils import bindings
-
 from nose.plugins.attrib import attr
-from mdts.tests.utils import *
-from hamcrest import *
-from nose.tools import nottest, with_setup
 
 import time
-import pdb, logging
+import logging
 import re
 import uuid
 
@@ -35,6 +31,7 @@ DOWNLINK_VETH_MAC = '2e:0e:2f:68:00:22'
 DOWNLINK_VETH_MAC_2 = '2e:0e:2f:68:00:33'
 TCP_SERVER_PORT = 9999
 TCP_CLIENT_PORT = 9998
+
 
 class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
     def cleanup_veth(self, container, name):
@@ -229,13 +226,13 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
         # setup quagga1
         self.setup_remote_host('quagga1', 'bgp1',
-            gw_address = "2001::2",
-            local_address = "bbbb::2",
-            local_router = "bbbb::1")
+            gw_address="2001::2",
+            local_address="bbbb::2",
+            local_router="bbbb::1")
         self.setup_remote_host('quagga2', 'bgp2',
-            gw_address = "2001::3",
-            local_address = "eeee::2",
-            local_router = "eeee::1")
+            gw_address="2001::3",
+            local_address="eeee::2",
+            local_router="eeee::1")
 
         self.flush_neighbours('quagga1', 'bgp1')
         self.flush_neighbours('quagga2', 'bgp2')
@@ -243,7 +240,7 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         self.addBackRoute('midolman1')
 
     # So VPP always know where to send egress packets
-    def addBackRoute(self, container = 'midolman1'):
+    def addBackRoute(self, container='midolman1'):
         #VPP is lunched by midolman and this might take some time
         # TODO: something better should be done to wait VPP running
         time.sleep(20)
@@ -298,12 +295,12 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
                                                      "10.0.0.0",
                                                      24)
         self.add_mn_route(tenantrtr['id'],
-                          src_prefix = "0.0.0.0/0",
-                          dst_prefix = "10.0.0.0/24",
+                          src_prefix="0.0.0.0/0",
+                          dst_prefix="10.0.0.0/24",
                           port=mn_tenant_downlink.get_id())
         self.add_mn_route(tenantrtr['id'],
-                          src_prefix = "0.0.0.0/0",
-                          dst_prefix = "20.0.0.64/26",
+                          src_prefix="0.0.0.0/0",
+                          dst_prefix="20.0.0.64/26",
                           via="10.0.0.1",
                           port=mn_tenant_downlink.get_id())
         return self.vrf
@@ -311,8 +308,9 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
     def destroy(self):
         super(UplinkWithVPP, self).destroy()
         service.get_container_by_hostname('midolman1').\
-                exec_command_blocking("restart midolman")
+            exec_command_blocking("restart midolman")
         time.sleep(10)
+
 
 # Neutron topology with a single tenant and uplink
 # configured
@@ -335,11 +333,12 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
                              DOWNLINK_VETH_MAC,
                              'port1')
         self.setup_fip64("midolman1",
-                         ip6fip = 'cccc:bbbb::2',
-                         ip4fixed = "20.0.0.2",
-                         ip4PoolStart = "20.0.0.65",
-                         ip4PoolEnd = "20.0.0.66",
+                         ip6fip='cccc:bbbb::2',
+                         ip4fixed="20.0.0.2",
+                         ip4PoolStart="20.0.0.65",
+                         ip4PoolEnd="20.0.0.66",
                          tableId=vrf)
+
 
 class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
 
@@ -378,10 +377,10 @@ class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
                     {'floating_network_id': self.pubnet['id'],
                      'floating_ip_address': 'cccc:bbbb::3',
                      'port_id': self.port1['id'],
-                     'tenant_id': 'admin'
-                    }}
+                     'tenant_id': 'admin'}}
             )
         )
+
 
 # Neutron topology with a 3 tenants and uplink
 # configured
@@ -405,22 +404,22 @@ class MultiTenantAndUplinkWithVPP(UplinkWithVPP):
                              DOWNLINK_VETH_MAC,
                              'port1')
         self.setup_fip64("midolman1",
-                         ip6fip = 'cccc:bbbb::2',
-                         ip4fixed = "20.0.0.2",
-                         ip4PoolStart = "20.0.0.65",
-                         ip4PoolEnd = "20.0.0.67",
-                         tableId = vrf)
+                         ip6fip='cccc:bbbb::2',
+                         ip4fixed="20.0.0.2",
+                         ip4PoolStart="20.0.0.65",
+                         ip4PoolEnd="20.0.0.67",
+                         tableId=vrf)
 
         vrf = self.addTenant('tenant2',
                              pubnet,
                              DOWNLINK_VETH_MAC_2,
                              'port2')
         self.setup_fip64("midolman1",
-                         ip6fip = 'cccc:cccc::2',
-                         ip4fixed = "20.0.0.2",
-                         ip4PoolStart = "20.0.0.65",
-                         ip4PoolEnd = "20.0.0.67",
-                         tableId = vrf)
+                         ip6fip='cccc:cccc::2',
+                         ip4fixed="20.0.0.2",
+                         ip4PoolStart="20.0.0.65",
+                         ip4PoolEnd="20.0.0.67",
+                         tableId=vrf)
 
 binding_empty = {
     'description': 'nothing bound',
@@ -449,11 +448,10 @@ binding_multihost_singletenant_neutronfip6 = {
     'description': 'spanning across 2 midolman no tenant binding',
     'bindings': [
          {'vport': 'port1',
-         'interface': {
-             'definition': {"ipv4_gw": "192.168.0.1"},
-             'hostname': 'midolman2',
-             'type': 'vmguest'
-         }}
+          'interface': {
+              'definition': {"ipv4_gw": "192.168.0.1"},
+              'hostname': 'midolman2',
+              'type': 'vmguest'}}
     ]
 }
 
@@ -491,13 +489,14 @@ binding_multihost_multitenant = {
 # Runs ping6 command with given ip6 address from given containter
 # Count provides the number of packets ping will send.
 # The number must be positive
-def ping_from_inet(container, ipv6 = '2001::1', count=4, namespace=None):
+def ping_from_inet(container, ipv6='2001::1', count=4, namespace=None):
     count = max(1, count)
     cmd = "%s ping6 %s -c %d" % (
         "ip netns exec %s" % namespace if namespace else "",
         ipv6, count)
     cont_services = service.get_container_by_hostname(container)
     cont_services.try_command_blocking(cmd)
+
 
 # Starts a modified echo server at given container
 # for every input line, the server will echo the same line
@@ -522,11 +521,13 @@ def start_server(container, address, port):
     cmd = "/bin/sh -c \"ip netns exec %s /usr/bin/ncat -v -4 -l %s %d -k -e '/bin/cat -E'\"" % (namespace, address, port)
     cont_services.exec_command(cmd, stream=True, detach=True)
 
+
 def stop_server(container):
     cont_services = service.get_container_by_hostname(container)
     namespace = cont_services.exec_command('ip netns')
     pid = cont_services.exec_command('/bin/sh -c "ip netns exec %s netstat -ntlp | grep ncat | awk \'{print $7}\' | cut -d/ -f1"' % namespace)
     cont_services.try_command_blocking("kill %s" % pid)
+
 
 def client_prepare(container, namespace):
     cont_services = service.get_container_by_hostname(container)
@@ -536,6 +537,7 @@ def client_prepare(container, namespace):
 
     # disable TCP checksums
     cont_services.try_command_blocking("ip netns exec ip6 ethtool -K ip6ns tx off rx off")
+
 
 def client_launch(container, address, server_port, client_port, namespace, count=100):
 
@@ -552,6 +554,7 @@ def client_launch(container, address, server_port, client_port, namespace, count
     output = cont_services.exec_command(cmd, stream=True)
     return output[0]
 
+
 def client_wait_for_termination(container, server_port):
     cont_services = service.get_container_by_hostname(container)
     tries = 12
@@ -564,16 +567,18 @@ def client_wait_for_termination(container, server_port):
         raise Exception('TCP client at %s did not terminate within %d seconds' %
                         (container, tries * delay_seconds))
 
+
 def client_check_result(container, stream, count=100):
     # read stream and break into lines
-    lines = reduce(list.__add__, [ i.split() for i in stream ])
+    lines = reduce(list.__add__, [i.split() for i in stream])
     LOG.info("%s: RESULT: got %d lines" % (container, len(lines)))
     assert (len(lines) == count)
     for i in range(count):
         # server must've echoed the line back to us with a dollar sign at the end
-        wanted = "%s:%d$" % (container, i+1)
+        wanted = "%s:%d$" % (container, i + 1)
         LOG.info("%s: RESULT: lines[%d] = %s" % (container, i, lines[i]))
         assert(lines[i] == wanted)
+
 
 @attr(version="v1.2.0")
 @bindings(binding_empty,
@@ -605,6 +610,7 @@ def test_ping_multi_vms_ipv6():
     ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')
     ping_from_inet('quagga1', 'cccc:cccc::2', 10, namespace='ip6')
 
+
 @attr(version="v1.2.0")
 @bindings(binding_multihost_singletenant_neutronfip6,
           binding_manager=BindingManager(vtm=SingleTenantWithNeutronIPv6FIP()))
@@ -614,7 +620,9 @@ def test_neutron_fip6():
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
 
-BM=BindingManager(vtm=MultiTenantAndUplinkWithVPP())
+BM = BindingManager(vtm=MultiTenantAndUplinkWithVPP())
+
+
 @attr(version="v1.2.0")
 @bindings(binding_multihost_multitenant,
           binding_manager=BM)
@@ -644,4 +652,3 @@ def test_client_server_ipv6():
         client_check_result(host, result[host])
 
     stop_server('midolman2')
-

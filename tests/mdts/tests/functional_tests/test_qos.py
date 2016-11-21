@@ -18,7 +18,6 @@ from mdts.services import service
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils import utils
 
-from nose.tools import nottest
 
 class QosTopology(VirtualTopologyManager):
 
@@ -108,7 +107,7 @@ def test_qos_policy_update():
         VTM.destroy()
         PTM.destroy()
 
-@nottest
+
 def test_qos_bw_limit_on_port_with_burst():
     """
     Title: Port-based BW Limit With Burst
@@ -153,7 +152,7 @@ def test_qos_bw_limit_on_port_with_burst():
         VTM.destroy()
         PTM.destroy()
 
-@nottest
+
 def test_qos_bw_limit_on_port_with_network_policy():
     """
     1) Test that setting bandwidth limit/burst on a port belonging to a

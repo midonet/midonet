@@ -77,7 +77,7 @@ class ChainTest(unittest.TestCase):
         # Load chain and rule virtual topology data from file.
         self._chain_data = virtual_topology_data['chains'][0].get('chain')
         self._chain = Chain(self._api, self._context, self._chain_data)
-        self._chain._get_tenant_id = MagicMock(return_value = 'tenant_0')
+        self._chain._get_tenant_id = MagicMock(return_value='tenant_0')
         self._chain.build()
 
     def test_load_empty_chain(self):

@@ -63,7 +63,7 @@ class RuleTest(unittest.TestCase):
 
         self.assertNotEqual(None, self._rule)
         self.assertEqual(101, self._rule.get_id())
-        self.assertEqual('chain_0',  self._rule.get_chain_id())
+        self.assertEqual('chain_0', self._rule.get_chain_id())
         self.assertEqual('drop', self._rule.get_type())
 
         self._mn_rule.chain_id.assert_called_with('mn_chain_0')
@@ -104,7 +104,7 @@ class RuleTest(unittest.TestCase):
 
         self.assertNotEqual(None, self._rule)
         self.assertEqual(101, self._rule.get_id())
-        self.assertEqual('chain_0',  self._rule.get_chain_id())
+        self.assertEqual('chain_0', self._rule.get_chain_id())
         self.assertEqual('snat', self._rule.get_type())
 
         self._mn_rule.chain_id.assert_called_with('mn_chain_0')

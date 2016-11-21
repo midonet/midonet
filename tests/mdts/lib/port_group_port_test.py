@@ -33,7 +33,7 @@ class PortGroupPortTest(unittest.TestCase):
         self._port_group = MagicMock()
         self._port_group_port_resource = MagicMock()
         self._port_group._mn_resource.add_port_group_port = MagicMock(
-                return_value = self._port_group_port_resource)
+                return_value=self._port_group_port_resource)
 
     def load_port_group_port_data(self):
         self._port_group_port = PortGroupPort(self._api,

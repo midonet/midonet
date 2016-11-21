@@ -40,7 +40,7 @@ class RouterTest(unittest.TestCase):
         virtual_topology_data = yaml.load(yaml_vt_data)
         self._router_data = virtual_topology_data['routers'][0].get('router')
         self._router = Router(self._api, self._context, self._router_data)
-        self._router._get_tenant_id = MagicMock(return_value = 'tenant_0')
+        self._router._get_tenant_id = MagicMock(return_value='tenant_0')
         self._router.build()
 
     def test_assign_filters_on_build_no_filters(self):
