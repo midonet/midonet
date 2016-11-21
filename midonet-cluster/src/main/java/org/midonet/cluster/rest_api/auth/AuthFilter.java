@@ -90,7 +90,7 @@ public final class AuthFilter implements Filter {
         } catch (AuthException ex) {
             ResponseUtils.setErrorResponse((HttpServletResponse) response,
                                            SC_UNAUTHORIZED, ex.getMessage());
-            log.error("Authentication error", ex);
+            log.info("Invalid authentication token from " + req.getRemoteAddr());
             return;
         }
 
