@@ -43,7 +43,7 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.{DatapathState, Midolman, Referenceable}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.process.ProcessHelper.OutputStreams._
@@ -106,6 +106,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     private val downlinks: LinksMap = new util.HashMap[UUID, BoundPort]
     private var downlinkVxlan: Option[VppDownlinkVxlanSetup] = None
 
+    private val vxlanTunnels = new util.HashMap[UUID, VppVxlanTunnelSetup]
+
     private val gatewayId = HostIdGenerator.getHostId
     private lazy val gatewayTable = vt.backend.stateTableStore
         .getTable[UUID, AnyRef](MidonetBackend.GatewayTable)
@@ -125,12 +127,13 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             attachUplink(portId)
         case LocalPortActive(portId, portNumber, false) =>
             detachUplink(portId)
-        case create@CreateDownlink(portId, vrf, ip4Address, ip6Address, natPool) =>
+        case create@CreateDownlink(portId, vrf, vni,
+                                   ip4Address, ip6Address, natPool, routerPortMac) =>
             attachDownlink(portId, vrf, create.vppAddress4, ip6Address, natPool)
         case UpdateDownlink(portId, vrf, oldAddress, newAddress) =>
             // TODO
             Future.successful(())
-        case DeleteDownlink(portId, vrf) =>
+        case DeleteDownlink(portId, vrf, vni) =>
             detachDownlink(portId)
         case AssociateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool) =>
             associateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool)
@@ -145,24 +148,25 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
     private val eventHandlerWithVxlan: PartialFunction[Any, Future[_]] = {
         case LocalPortActive(portId, portNumber, true) =>
-            attachUplink(portId).flatMap {
-                case Success(Some(_)) => attachDownlinkVxlan()
-                case Failure(err) => log error s"Failure during attaching uplink (portId: $portId, portNumber: $portNumber"
-                                     Future.failed(err)
+            attachUplink(portId) flatMap {
+                _ match {
+                    case Some(_) => attachDownlinkVxlan()
+                    case None => Future.successful(Unit) // not an IPv6 uplink
+                }
             }
         case LocalPortActive(portId, portNumber, false) =>
             detachUplink(portId).flatMap {
                 case _ => detachDownlinkVxlan()
             }
-        case create@CreateDownlink(portId, vrf, ip4Address, ip6Address, natPool) =>
-            log.error("Creating extra downlink in FIP64 vxlan downlink mode")
-            Future.successful(()) // Nothing to do
+        case create@CreateDownlink(portId, vrf, vni,
+                                   ip4Address, ip6Address, natPool, routerPortMac) =>
+            createDownlinkTunnel(portId, vrf, vni, routerPortMac)
+
         case UpdateDownlink(portId, vrf, oldAddress, newAddress) =>
             log.error("Updating downlink in FIP64 vxlan downlink mode")
             Future.successful(())
-        case DeleteDownlink(portId, vrf) =>
-            log.error("Deleting downlink in FIP64 vxlan downlink mode")
-            Future.successful(())
+        case DeleteDownlink(portId, vrf, vni) =>
+            deleteDownlinkTunnel(portId, vni)
     }
 
     override def preStart(): Unit = {
@@ -329,6 +333,45 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         downlinkVxlan match {
             case None => Future.failed(null)
             case Some(previousSetup: VppDownlinkVxlanSetup) => previousSetup.rollback()
+        }
+    }
+
+    private def createDownlinkTunnel(portId: UUID,
+                                     vrf: Int, vni: Int,
+                                     routerPortMac: MAC) : Future[_] = {
+        log debug s"Creating downlink tunnel for port:$portId, vrf:$vrf, vni:$vni"
+        val setup = new VppVxlanTunnelSetup(vt.config.fip64,
+                                            vni, vrf, routerPortMac,
+                                            vppApi, Logger(log.underlying));
+
+        {
+            vxlanTunnels.replace(portId, setup) match {
+                case oldSetup: VppVxlanTunnelSetup =>
+                    oldSetup.rollback() flatMap { _ =>
+                        setup.execute()
+                    }
+                case null =>
+                    setup.execute()
+            }
+        } andThen { case _ =>
+                datapathState.setFip64PortKey(portId, vni)
+        } recoverWith { case e =>
+            setup.rollback() map {
+                vxlanTunnels.remove(portId, setup)
+                throw e
+            }
+        }
+    }
+
+    private def deleteDownlinkTunnel(portId: UUID, vni: Int) : Future[_] = {
+        log debug s"Deleting downlink tunnel for port:$portId"
+        vxlanTunnels.remove(portId) match {
+            case setup: VppVxlanTunnelSetup =>
+                setup.rollback() andThen { case _ =>
+                    datapathState.clearFip64PortKey(portId, vni)
+                }
+            case null =>
+                Future.failed(null)
         }
     }
 
