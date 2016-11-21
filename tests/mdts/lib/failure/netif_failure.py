@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import logging
-import subprocess
 import time
 
 from mdts.lib import subprocess_compat
@@ -37,7 +36,7 @@ class NetifFailure(FailureBase):
         self._wait = wait
 
     def inject(self):
-        cmdline =  "ip netns exec %s ip link set dev %s down"  \
+        cmdline = "ip netns exec %s ip link set dev %s down"  \
             % (self._netns, self._interface)
         LOG.debug('set dev %s down in %s' \
                   % (self._interface, self._netns))
@@ -45,7 +44,7 @@ class NetifFailure(FailureBase):
         time.sleep(self._wait)
 
     def eject(self):
-        cmdline =  "ip netns exec %s ip link set dev %s up"  \
+        cmdline = "ip netns exec %s ip link set dev %s up"  \
             % (self._netns, self._interface)
         LOG.debug('set dev %s up in %s' \
                   % (self._interface, self._netns))

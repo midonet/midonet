@@ -432,7 +432,7 @@ class Interface(object):
                                 pkt_parms=protocol_params,
                                 payload_size=payload_size,
                                 delay=delay, count=count, sync=sync,
-                                src_hw = src_hw, src_ipv4 = src_ipv4)
+                                src_hw=src_hw, src_ipv4=src_ipv4)
 
     def ping4(self, target_iface, interval=0.5, count=1, sync=False,
               size=56, should_succeed=True, do_arp=False, data=None):

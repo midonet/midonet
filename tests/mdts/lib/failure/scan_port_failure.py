@@ -34,7 +34,7 @@ class ScanPortFailure(FailureBase):
 
     NOTE: work in progress
     """
-    def __init__(self, netns, interface, src, dst, delay = '0', count = 0):
+    def __init__(self, netns, interface, src, dst, delay='0', count=0):
         super(ScanPortFailure, self)\
             .__init__("scan_port_failure %s %s %s %s %s %d" \
                       % (netns, interface, src, dst, delay, count))

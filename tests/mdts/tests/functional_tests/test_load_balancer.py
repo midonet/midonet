@@ -332,7 +332,7 @@ def check_num_backends_hit(results, num_backends):
     return len(set(results)) == num_backends
 
 
-def get_current_leader(lb_pools, timeout = 60, wait_time=5):
+def get_current_leader(lb_pools, timeout=60, wait_time=5):
     agents = service.get_all_containers('midolman')
     current_leader = None
     num_leaders = 0

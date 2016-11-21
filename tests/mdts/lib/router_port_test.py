@@ -39,7 +39,7 @@ class RouterPortTest(unittest.TestCase):
                                         'links_to': {'device': 'bridge-000-001',
                                                      'port_id': 1}})
         self._router_port.build()
-        self._chain =  MagicMock()
+        self._chain = MagicMock()
         self._chain._mn_resource.get_id.return_value = 'chain_0'
 
     def test_router_port_on_build_no_filters(self):

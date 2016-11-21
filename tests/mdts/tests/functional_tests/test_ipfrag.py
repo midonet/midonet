@@ -91,7 +91,7 @@ def _async_assert_receives_icmp_frag_needed(sender, should_receive):
 
 
 def _send_icmp(sender, receiver, payload, target_ipv4,
-               expect, expect_icmp_frag_needed = False):
+               expect, expect_icmp_frag_needed=False):
     f1 = async_assert_that(receiver,
                            expect('dst host %s and icmp' % target_ipv4,
                                   within_sec(5)))
