@@ -95,6 +95,10 @@ class FlowRecorderDataTest extends MidolmanSpec {
         case class Record(ctx: PacketContext, result: SimulationResult)
         val queue = new LinkedList[Record]()
 
+        override def doStart(): Unit = notifyStarted()
+
+        override def doStop(): Unit = notifyStopped()
+
         def record(pktContext: PacketContext, simRes: SimulationResult): Unit = {
             queue.add(Record(pktContext, simRes))
         }

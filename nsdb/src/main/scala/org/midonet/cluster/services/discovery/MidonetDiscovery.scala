@@ -24,6 +24,7 @@ import scala.reflect.runtime.universe._
 import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.net.HostAndPort
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
@@ -134,6 +135,38 @@ trait MidonetDiscovery {
       */
     def registerServiceInstance(serviceName: String, uri: URI)
     : MidonetServiceHandler
+
+    /** Returns a [[MidonetServiceHandler]] handle necessary to register the
+      * service instance in the discovery service. The returned service instance
+      * must be explicitly unregistered. This method accepts a [[HostAndPort]]
+      * specifying the discovery information. If the registered node crashes,
+      * it will be unregistered upon session timeout.
+      *
+      * @param serviceName name of the service to register
+      * @param hostAndPort [[HostAndPort]] describing the instance location
+      * @return
+      */
+    def registerServiceInstance(serviceName: String,
+                                hostAndPort: HostAndPort)
+    : MidonetServiceHandler =
+        registerServiceInstance(serviceName, hostAndPort.getHostText,
+                                hostAndPort.getPort)
+
+    /** Returns a [[MidonetServiceHandler]] handle necessary to register the
+      * service instance in the discovery service. The returned service instance
+      * must be explicitly unregistered. This method accepts a "host:port"
+      * string specifying the discovery information. If the registered node
+      * crashes, it will be unregistered upon session timeout.
+      *
+      * @param serviceName name of the service to register
+      * @param hostAndPortStr "host:port" string with the instance location
+      * @return
+      */
+    def registerServiceInstance(serviceName: String,
+                                hostAndPortStr: String)
+    : MidonetServiceHandler =
+        registerServiceInstance(serviceName,
+                                HostAndPort.fromString(hostAndPortStr))
 }
 
 class MidonetDiscoveryImpl @Inject()(curator: CuratorFramework,

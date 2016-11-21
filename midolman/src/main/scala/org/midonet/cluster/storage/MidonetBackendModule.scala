@@ -60,18 +60,15 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
     override def configure(): Unit = {
         val curator =  bindCuratorFramework()
         val failFastCurator = failFastCuratorFramework()
-        val discovery = bindDiscovery(curator)
-        val storage = backend(curator, failFastCurator, discovery)
+        val storage = backend(curator, failFastCurator)
         bind(classOf[MidonetBackend]).toInstance(storage)
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
     }
 
     protected def backend(curatorFramework: CuratorFramework,
-                          failFastCurator: CuratorFramework,
-                          discovery: MidonetDiscovery): MidonetBackend = {
+                          failFastCurator: CuratorFramework): MidonetBackend = {
         new MidonetBackendService(conf, curatorFramework, failFastCurator,
-                                  metricRegistry, reflections,
-                                  Option(discovery)) {
+                                  metricRegistry, reflections) {
             protected override def setup(storage: StateTableStorage): Unit = {
                 // Setup state tables (note: we do this here because the tables
                 // backed by the replicated maps are not available to the nsdb

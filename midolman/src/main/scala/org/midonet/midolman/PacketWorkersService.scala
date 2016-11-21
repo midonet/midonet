@@ -17,20 +17,17 @@
 package org.midonet.midolman
 
 import java.util.concurrent.CountDownLatch
+
 import scala.collection.IndexedSeq
-import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
 
 import com.google.common.util.concurrent.AbstractService
-
 import com.codahale.metrics.MetricRegistry
-
-import com.lmax.disruptor._
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.services.discovery.MidonetDiscovery
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.logging.MidolmanLogging
@@ -63,7 +60,7 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
                                backChannel: ShardedSimulationBackChannel,
                                vt: VirtualTopology,
                                clock: NanoClock,
-                               discovery: MidonetDiscovery,
+                               backend: MidonetBackend,
                                metricsRegistry: MetricRegistry,
                                counter: StatisticalCounter,
                                actorSystem: ActorSystem)
@@ -151,7 +148,7 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
 
         val metrics = new PacketPipelineMetrics(metricsRegistry, index)
         val flowRecorder = FlowRecorder(config, hostIdProvider.hostId,
-                                        discovery)
+                                        backend)
         val workflow = new PacketWorkflow(
             numWorkers, index,
             config, hostIdProvider.hostId, dpState,

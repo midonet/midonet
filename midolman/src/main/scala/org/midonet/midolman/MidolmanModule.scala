@@ -37,7 +37,6 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.midonet.Util
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.MidolmanConfig
@@ -48,7 +47,6 @@ import org.midonet.midolman.host.services.{HostService, TcRequestHandler, QosSer
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.rule.{DisruptorRuleLogEventChannel, RuleLogEventChannel}
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
-import org.midonet.midolman.monitoring._
 import org.midonet.midolman.monitoring.metrics.{DatapathMetrics, PacketExecutorMetrics}
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
@@ -141,8 +139,6 @@ class MidolmanModule(injector: Injector,
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
 
-        val discovery = injector.getInstance(classOf[MidonetDiscovery])
-
         val allocator = natAllocator()
         bind(classOf[NatBlockAllocator]).toInstance(allocator)
         bindSelectLoopService()
@@ -156,12 +152,13 @@ class MidolmanModule(injector: Injector,
         val resolver = peerResolver(host, vt)
         bind(classOf[PeerResolver]).toInstance(resolver)
 
+        val backend = injector.getInstance(classOf[MidonetBackend])
         val workersService = createPacketWorkersService(config, hostIdProvider,
                                                         channel, dpState, fp,
                                                         allocator, resolver,
                                                         backChannel, vt,
                                                         NanoClock.DEFAULT,
-                                                        discovery,
+                                                        backend,
                                                         metricRegistry,
                                                         counter, as)
         bind(classOf[PacketWorkersService]).toInstance(workersService)
@@ -333,14 +330,14 @@ class MidolmanModule(injector: Injector,
                                              backChannel: ShardedSimulationBackChannel,
                                              vt: VirtualTopology,
                                              clock: NanoClock,
-                                             discovery: MidonetDiscovery,
+                                             backend: MidonetBackend,
                                              metricsRegistry: MetricRegistry,
                                              counter: StatisticalCounter,
                                              actorSystem: ActorSystem)
             : PacketWorkersService =
         new PacketWorkersServiceImpl(config, hostIdProvider, dpChannel, dpState,
                                         flowProcessor, natBlockAllocator, peerResolver,
-                                        backChannel, vt, clock, discovery,
+                                        backChannel, vt, clock, backend,
                                         metricsRegistry, counter, actorSystem)
 
     protected def connectionPool(): DatapathConnectionPool =
@@ -388,10 +385,6 @@ class MidolmanModule(injector: Injector,
 
     protected def bindActorService(): Unit =
         bind(classOf[MidolmanActorsService]).asEagerSingleton()
-
-    protected def createFlowRecorder(hostId: UUID,
-                                     discovery: MidonetDiscovery): FlowRecorder =
-        FlowRecorder(config, hostId, discovery)
 
     protected def flowTracingAppender() = {
         val cass = new CassandraClient(

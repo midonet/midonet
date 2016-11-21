@@ -74,6 +74,7 @@ class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend
     override def reactor: Reactor = null
     override def failFastConnectionState =
         connectionState.asObservable()
+    override val discovery: MidonetDiscovery = new FakeDiscovery
 
     override def doStart(): Unit = {
         MidonetBackend.setupBindings(store, stateStore)
@@ -103,8 +104,7 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
     }
 
     override protected def backend(curatorFramework: CuratorFramework,
-                                   failFastCurator: CuratorFramework,
-                                   discovery: MidonetDiscovery) = {
+                                   failFastCurator: CuratorFramework) = {
         new MidonetTestBackend
     }
 
