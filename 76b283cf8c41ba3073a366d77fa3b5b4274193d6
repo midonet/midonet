@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_1474429a",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-21T08:52:24Z",
+      "side": 1,
+      "message": "As these both can come from the neutron API, I think we still need them in the protobufs.  However, in the translation for listener and pool, we will definitely investigate (I was just speaking with Brandon about this).",
+      "parentUuid": "9aa53dc9_d99e1307",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 33
+      },
+      "revId": "76b283cf8c41ba3073a366d77fa3b5b4274193d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e55437ff",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 8
