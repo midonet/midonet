@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_1437a2b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T09:22:28Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 299,
+        "startChar": 69,
+        "endLine": 299,
+        "endChar": 70
+      },
+      "revId": "5f37cb17a7a907d0d3aeb1d75aa5417357720738",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_b4ceb6b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T09:22:28Z",
+      "side": 1,
+      "message": "uplink? and do we need an uuid here?",
+      "range": {
+        "startLine": 498,
+        "startChar": 16,
+        "endLine": 498,
+        "endChar": 28
+      },
+      "revId": "5f37cb17a7a907d0d3aeb1d75aa5417357720738",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
