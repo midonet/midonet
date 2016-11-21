@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_74ff0e35",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-21T10:50:19Z",
+      "side": 1,
+      "message": "listeners is a read-only field so it\u0027s not necessary.  But so is members.  Either we remove both or include both.  My preference though is that we not include fields that we don\u0027t use for translation.",
+      "parentUuid": "9aa53dc9_d40edae4",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 33
+      },
+      "revId": "76b283cf8c41ba3073a366d77fa3b5b4274193d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e55437ff",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 8
