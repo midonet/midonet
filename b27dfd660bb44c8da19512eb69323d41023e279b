@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_de43946b",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T17:00:08Z",
+      "side": 1,
+      "message": "order imports",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 31
+      },
+      "revId": "b27dfd660bb44c8da19512eb69323d41023e279b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_fe4e5895",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T17:00:08Z",
+      "side": 1,
+      "message": "use Collections.emptyList()?",
+      "range": {
+        "startLine": 49,
+        "startChar": 27,
+        "endLine": 49,
+        "endChar": 48
+      },
+      "revId": "b27dfd660bb44c8da19512eb69323d41023e279b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_7e5b6855",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/resources/HealthMonitorV2Resource.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T17:00:08Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 81
+      },
+      "revId": "b27dfd660bb44c8da19512eb69323d41023e279b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
