@@ -39,7 +39,7 @@ public class QosRuleBandwidthLimit extends UriResource {
     public int maxKbps;
 
     @ZoomField(name = "max_burst_kbps")
-    public int maxBurstKbps;
+    public Integer maxBurstKbps;
 
     @ZoomField(name = "policy_id")
     public UUID policyId;
