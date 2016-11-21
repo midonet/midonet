@@ -410,8 +410,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
 
         // Update routes
         val ns = tx.get(classOf[NeutronSubnet], nPort.getFixedIps(0).getSubnetId)
-        val rtrInterfaceRouteId = RouteManager.routerInterfaceRouteId(
-            rtrPortId)
+        val rtrInterfaceRouteId = RouteManager.routerInterfaceRouteId(rtrPortId)
         val localRoute = newLocalRoute(rtrPortId, portAddress)
         val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPortId,
                                            id = rtrInterfaceRouteId,

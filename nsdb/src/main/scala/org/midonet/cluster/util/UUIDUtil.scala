@@ -110,6 +110,23 @@ object UUIDUtil {
             val lsbMask = lsb & 0x3fffffffffffffffL
             toProto(uuid.getMsb ^ msbMask, uuid.getLsb ^ lsbMask)
         }
+
+        def xorWith(bytes: Array[Byte]): PUUID = {
+            var msbMask = 0L
+            var lsbMask = 0L
+            var index = 0
+            while (index < 8 && index < bytes.length) {
+                lsbMask = lsbMask | (bytes(index).toLong << index)
+                index += 1
+            }
+            while (index < 16 && index < bytes.length) {
+                msbMask = msbMask | (bytes(index).toLong << (index - 8))
+                index += 1
+            }
+            msbMask = msbMask & 0xffffffffffff0fffL
+            lsbMask = lsbMask & 0x3fffffffffffffffL
+            toProto(uuid.getMsb ^ msbMask, uuid.getLsb ^ lsbMask)
+        }
     }
 
     def toString(id: PUUID) = if (id == null) "null" else fromProto(id).toString

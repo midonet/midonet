@@ -22,6 +22,7 @@ import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons._
+import org.midonet.cluster.models.Neutron.NeutronPort.IPAllocation
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget}
 import org.midonet.cluster.models.Topology._
@@ -161,99 +162,150 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
              */
             val nPort = tx.get(classOf[NeutronPort], nRouter.getGwPortId)
 
-            // Neutron gateway port assumed to have one IP, namely the gateway IP.
-            val gwIpAddr = nPort.getFixedIps(0).getIpAddress
+            // Create the generic router port builder without IP configuration.
+            val builder = createGatewayPort(tx, nRouter, router, nPort)
 
-            if (gwIpAddr.getVersion == IPVersion.V4) {
-                createGatewayPort4(tx, nRouter, router, nPort, gwIpAddr)
-            } else {
-                createGatewayPort6(tx, nRouter, router, nPort, gwIpAddr)
+            val addresses = for (fixedIp <- nPort.getFixedIpsList.asScala
+                                 if fixedIp.hasIpAddress &&
+                                    fixedIp.hasSubnetId) yield {
+                addGatewayPortAddress(tx, builder, nRouter, fixedIp)
+            }
+
+            val port = builder.build()
+            tx.create(port)
+
+            for (address <- addresses) {
+                setupGatewayPort(tx, nRouter, router, port, address)
             }
         }
     }
 
-    private def createGatewayPort4(tx: Transaction, nRouter: NeutronRouter,
-                                   router: Router, nPort: NeutronPort,
-                                   portAddress: IPAddress): Unit = {
-        val subnetId = nPort.getFixedIps(0).getSubnetId
-        val dhcp = tx.get(classOf[Dhcp], subnetId)
-
+    private def createGatewayPort(tx: Transaction, nRouter: NeutronRouter,
+                                  router: Router, nPort: NeutronPort)
+    : Port.Builder = {
         val routerPortId = tenantGwPortId(nRouter.getGwPortId)
         val routerPortMac = if (nPort.hasMacAddress) nPort.getMacAddress
                             else MAC.random().toString
 
-        val routerPort = newRouterPortBuilder(routerPortId, nRouter.getId,
-                                              adminStateUp = true)
-            .addPortSubnet(dhcp.getSubnetAddress)
-            .setPortAddress(portAddress)
+        newRouterPortBuilder(routerPortId, nRouter.getId,
+                             adminStateUp = true)
             .setPortMac(routerPortMac)
             .setPeerId(nPort.getId)
-            .build()
-
-        val subnet = tx.get(classOf[NeutronSubnet], subnetId)
-        val portRoute = newNextHopPortRoute(
-            nextHopPortId = routerPortId,
-            id = routerInterfaceRouteId(routerPortId),
-            srcSubnet = IPSubnetUtil.AnyIPv4Subnet,
-            dstSubnet = subnet.getCidr)
-
-        val localRoute = newLocalRoute(routerPortId,
-                                       routerPort.getPortAddress)
-
-        val defaultRoute = defaultGwRoute(dhcp, routerPortId)
-
-        tx.create(routerPort)
-        tx.create(defaultRoute)
-        tx.create(localRoute)
-        tx.create(portRoute)
-        createSnatRules(tx, nRouter, router, portAddress, routerPortId)
     }
 
-    private def createGatewayPort6(tx: Transaction, nRouter: NeutronRouter,
-                                   router: Router, nPort: NeutronPort,
-                                   portAddress: IPAddress): Unit = {
-        val routerPortId = tenantGwPortId(nRouter.getGwPortId)
-        val portRouteId = RouteManager.routerInterfaceRouteId(routerPortId)
-        val portMac = if (nPort.hasMacAddress) nPort.getMacAddress
-                      else MAC.random().toString
+    private def addGatewayPortAddress(tx: Transaction, builder: Port.Builder,
+                                      nRouter: NeutronRouter,
+                                      fixedIp: IPAllocation): PortAddress = {
 
-        // Determine the gateway port address and subnet.
+        // Add a port address for the given subnet: the address is added to the
+        // port subnet list, and only the first address is set to the port
+        // address for compatibility.
+        val dhcp = tx.get(classOf[Dhcp], fixedIp.getSubnetId)
+
+        val address = fixedIp.getIpAddress.asIPAddress
+        val subnet = dhcp.getSubnetAddress.asJava
+
+        if (!subnet.containsAddress(address)) {
+            throw new IllegalArgumentException(
+                s"Port address $address does not belong to DHCP subnet " +
+                s"$subnet")
+        }
+
+        val portSubnet = IPSubnet.newBuilder()
+            .setVersion(fixedIp.getIpAddress.getVersion)
+            .setAddress(address.toString)
+            .setPrefixLength(subnet.getPrefixLen)
+            .build()
+
+        builder.addPortSubnet(portSubnet)
+        if (!builder.hasPortAddress) {
+            builder.setPortAddress(fixedIp.getIpAddress)
+        }
+
+        val internalSubnet =
+            if (fixedIp.getIpAddress.getVersion == IPVersion.V6) {
+                Option(addGatewayPortAddress6(tx, builder, nRouter, fixedIp))
+            } else None
+
+        PortAddress(portSubnet, fixedIp.getIpAddress, fixedIp.getSubnetId,
+                    internalSubnet)
+    }
+
+    private def addGatewayPortAddress6(tx: Transaction, builder: Port.Builder,
+                                       nRouter: NeutronRouter,
+                                       fixedIp: IPAllocation): IPv4Subnet = {
+
         val router = tx.get(classOf[Router], nRouter.getId)
         val routerPorts = tx.getAll(classOf[Port],
                                     router.getPortIdsList.asScala)
-        val localSubnet = containers.findLocalSubnet(routerPorts)
-        val portAddress4 = containers.routerPortAddress(localSubnet)
-        val vppAddress4 = containers.containerPortAddress(localSubnet)
-        val portSubnet4 = new IPv4Subnet(portAddress4, localSubnet.getPrefixLen)
 
-        val tk = TunnelKeys.Fip64Type.apply(
-            sequenceDispenser.next(Fip64TunnelKey).await())
+        // Add internal subnet that allows the port to communicate with VPP.
+        val internalSubnet = containers.findLocalSubnet(routerPorts)
+        val internalAddress = containers.routerPortAddress(internalSubnet)
+        val subnet = new IPv4Subnet(internalAddress, internalSubnet.getPrefixLen)
 
-        // Create the gateway port.
-        val port = newRouterPortBuilder(routerPortId, nRouter.getId,
-                                        adminStateUp = true)
-            .setPortAddress(portAddress4.asProto)
-            .addPortSubnet(portSubnet4.asProto)
-            .setPortMac(portMac)
-            .setTunnelKey(tk)
-            .build()
-        tx.create(port)
+        val tunnelKey =
+            TunnelKeys.Fip64Type(sequenceDispenser.next(Fip64TunnelKey).await())
+
+        builder.addPortSubnet(subnet.asProto)
+        builder.setTunnelKey(tunnelKey)
+
+        subnet
+    }
+
+    private def setupGatewayPort(tx: Transaction, nRouter: NeutronRouter,
+                                 router: Router, port: Port,
+                                 portAddress: PortAddress): Unit = {
+        if (portAddress.subnet.getVersion == IPVersion.V4) {
+            setupGatewayPort4(tx, nRouter, router, port, portAddress)
+        } else {
+            setupGatewayPort6(tx, nRouter, router, port, portAddress)
+        }
+    }
+
+    private def setupGatewayPort4(tx: Transaction, nRouter: NeutronRouter,
+                                  router: Router, port: Port,
+                                  portAddress: PortAddress): Unit = {
+        val dhcp = tx.get(classOf[Dhcp], portAddress.subnetId)
+        val subnet = tx.get(classOf[NeutronSubnet], portAddress.subnetId)
+
+        val portRoute = newNextHopPortRoute(
+            nextHopPortId = port.getId,
+            id = routerInterfaceRouteId(port.getId, portAddress.address),
+            srcSubnet = IPSubnetUtil.AnyIPv4Subnet,
+            dstSubnet = subnet.getCidr)
+
+        val localRoute = newLocalRoute(port.getId, portAddress.address)
+
+        val defaultRoute = defaultGwRoute(dhcp, port.getId, portAddress.address)
+
+        tx.create(defaultRoute)
+        tx.create(localRoute)
+        tx.create(portRoute)
+        createSnatRules(tx, nRouter, router, portAddress.address, port.getId)
+    }
+
+    private def setupGatewayPort6(tx: Transaction, nRouter: NeutronRouter,
+                                  router: Router, port: Port,
+                                  portAddress: PortAddress): Unit = {
+        val portRouteId =
+            RouteManager.routerInterfaceRouteId(port.getId, portAddress.address)
+
+        // Determine the gateway port address and subnet.
+        val internalSubnet = portAddress.internalSubnet.get
+        val vppAddress = containers.containerPortAddress(internalSubnet)
 
         // Create the NAT64 rule containing the port IPv6 address and the
         // NAT64 pool.
-        val portSubnet6 = IPSubnet.newBuilder()
-            .setAddress(portAddress.getAddress)
-            .setPrefixLength(128)
-            .setVersion(IPVersion.V6)
         val natPoolAddress = IPAddress.newBuilder()
             .setAddress(Nat64Pool.getAddress)
             .setVersion(IPVersion.V4)
         val nat64Rule = Rule.newBuilder()
-            .setId(nat64RuleId(routerPortId))
-            .setFipPortId(routerPortId)
+            .setId(nat64RuleId(port.getId))
+            .setFipPortId(port.getId)
             .setType(Rule.Type.NAT64_RULE)
             .setNat64RuleData(Rule.Nat64RuleData.newBuilder()
-                                  .setPortAddress(portSubnet6)
+                                  .setPortAddress(portAddress.subnet)
                                   .setNatPool(NatTarget.newBuilder()
                                                   .setNwStart(natPoolAddress)
                                                   .setNwEnd(natPoolAddress)
@@ -263,12 +315,13 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         tx.create(nat64Rule)
 
         // Create the route to the gateway port.
-        val localRoute = newLocalRoute(routerPortId, port.getPortAddress)
-        val portRoute = newNextHopPortRoute(nextHopPortId = routerPortId,
+        val localRoute = newLocalRoute(port.getId,
+                                       internalSubnet.getAddress.asProto)
+        val portRoute = newNextHopPortRoute(nextHopPortId = port.getId,
                                             id = portRouteId,
                                             srcSubnet = AnyIPv4Subnet,
                                             dstSubnet = Nat64Pool,
-                                            nextHopGwIpAddr = vppAddress4.asProto)
+                                            nextHopGwIpAddr = vppAddress.asProto)
 
         tx.create(portRoute)
         tx.create(localRoute)
@@ -283,21 +336,9 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
 
         val oldRouter = tx.get(classOf[NeutronRouter], nRouter.getId)
         if (!oldRouter.hasGwPortId && nRouter.hasGwPortId) {
-            val nPort = tx.get(classOf[NeutronPort], nRouter.getGwPortId)
-            val portAddress = nPort.getFixedIps(0).getIpAddress
-            if (portAddress.getVersion == IPVersion.V4) {
-                createGatewayPort4(tx, nRouter, router, nPort, portAddress)
-            } else {
-                createGatewayPort6(tx, nRouter, router, nPort, portAddress)
-            }
+            createGatewayPort(tx, nRouter, router)
         } else if (oldRouter.hasGwPortId && !nRouter.hasGwPortId) {
-            val nPort = tx.get(classOf[NeutronPort], oldRouter.getGwPortId)
-            val portAddress = nPort.getFixedIps(0).getIpAddress
-            if (portAddress.getVersion == IPVersion.V4) {
-                deleteGatewayPort4(tx, oldRouter)
-            } else {
-                deleteGatewayPort6(tx, oldRouter)
-            }
+            deleteGatewayPort(tx, oldRouter)
         } else if (nRouter.hasGwPortId &&
                    isSnatEnabled(oldRouter) != isSnatEnabled(nRouter)) {
             val nPort = tx.get(classOf[NeutronPort], nRouter.getGwPortId)
@@ -320,35 +361,36 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         }
     }
 
-    private def deleteGatewayPort4(tx: Transaction, nRouter: NeutronRouter)
+    private def deleteGatewayPort(tx: Transaction, nRouter: NeutronRouter)
     : Unit = {
         val routerPortId = tenantGwPortId(nRouter.getGwPortId)
 
-        tx.delete(classOf[Port], routerPortId, ignoresNeo = true)
-        tx.delete(classOf[Route], gatewayRouteId(routerPortId),
-                  ignoresNeo = true)
-        tx.delete(classOf[Route], localRouteId(routerPortId),
-                  ignoresNeo = true)
-        tx.delete(classOf[Route], routerInterfaceRouteId(routerPortId),
-                  ignoresNeo = true)
+        if (tx.exists(classOf[Port], routerPortId)) {
+            val port = tx.get(classOf[Port], routerPortId)
 
+            for (address <- port.getPortSubnetList.asScala) {
+                if (address.getVersion == IPVersion.V4) {
+                    deleteGatewayPort4(tx, nRouter)
+                } else {
+                    deleteGatewayPort6(tx, nRouter, routerPortId)
+                }
+            }
+
+            // Delete the port: will also delete the routes through the
+            // referential integrity.
+            tx.delete(classOf[Port], routerPortId, ignoresNeo = true)
+        }
+    }
+
+    private def deleteGatewayPort4(tx: Transaction, nRouter: NeutronRouter)
+    : Unit = {
+        // Delete the SNAT rules.
         deleteSnatRules(tx, nRouter.getId)
     }
 
-    private def deleteGatewayPort6(tx: Transaction, nRouter: NeutronRouter)
-    : Unit = {
-        val routerPortId = tenantGwPortId(nRouter.getGwPortId)
-
-        // Delete the port routes.
-        tx.delete(classOf[Route], localRouteId(routerPortId),
-                  ignoresNeo = true)
-        tx.delete(classOf[Route], routerInterfaceRouteId(routerPortId),
-                  ignoresNeo = true)
-
-        // Delete the port.
-        tx.delete(classOf[Port], routerPortId, ignoresNeo = false)
-
-        // Delete the NAT rule.
+    private def deleteGatewayPort6(tx: Transaction, nRouter: NeutronRouter,
+                                   routerPortId: UUID): Unit = {
+        // Delete the NAT64 rule.
         tx.delete(classOf[Rule], nat64RuleId(routerPortId), ignoresNeo = true)
     }
 
@@ -405,10 +447,11 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
     /**
       * Creates a default route for gateway port.
       */
-    private def defaultGwRoute(dhcp: Dhcp, portId: UUID): Route = {
+    private def defaultGwRoute(dhcp: Dhcp, portId: UUID, address: IPAddress)
+    : Route = {
         val nextHopIp =
             if (dhcp.hasDefaultGateway) dhcp.getDefaultGateway else null
-        newNextHopPortRoute(portId, id = gatewayRouteId(portId),
+        newNextHopPortRoute(portId, id = gatewayRouteId(portId, address),
                             gatewayDhcpId = dhcp.getId,
                             nextHopGwIpAddr = nextHopIp)
     }
@@ -500,6 +543,10 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
 }
 
 object RouterTranslator {
+
+    case class PortAddress(subnet: IPSubnet, address: IPAddress, subnetId: UUID,
+                           internalSubnet: Option[IPv4Subnet])
+
     def preRouteChainName(id: UUID) = "OS_PRE_ROUTING_" + id.asJava
 
     def postRouteChainName(id: UUID) = "OS_POST_ROUTING_" + id.asJava

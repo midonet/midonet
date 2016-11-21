@@ -29,10 +29,10 @@ import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.translators.PortManager.{routerInterfacePortPeerId, routerInterfacePortGroupId}
+import org.midonet.cluster.services.c3po.translators.PortManager.{routerInterfacePortGroupId, routerInterfacePortPeerId}
 import org.midonet.cluster.services.c3po.translators.RouteManager.{localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.util.UUIDUtil.RichJavaUuid
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -82,7 +82,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
         val routes = storage.getAll(
             classOf[Route], rPort.getRouteIdsList.asScala).await()
 
-        val rifRouteId = routerInterfaceRouteId(rPort.getId)
+        val rifRouteId = routerInterfaceRouteId(rPort.getId,
+                                                IPAddressUtil.toProto("10.0.0.1"))
         val rifRoute = routes.find(_.getId == rifRouteId).get
         rifRoute.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
         rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.0"
@@ -97,7 +98,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
         mdsRoute.getNextHopGateway.getAddress shouldBe "10.0.0.2"
         mdsRoute.getNextHopPortId shouldBe rPort.getId
 
-        val localRtId = localRouteId(rPort.getId)
+        val localRtId = localRouteId(rPort.getId,
+                                     IPAddressUtil.toProto("10.0.0.1"))
         val localRoute = routes.find(_.getId == localRtId).get
         localRoute.getSrcSubnet.getAddress shouldBe "0.0.0.0"
         localRoute.getSrcSubnet.getPrefixLength shouldBe 0
@@ -500,7 +502,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         rPort.getRouteIdsCount shouldBe 2
         val rifRoute = storage.get(classOf[Route], rPort.getRouteIds(0)).await()
-        rifRoute.getId shouldBe RouteManager.routerInterfaceRouteId(rPort.getId)
+        rifRoute.getId shouldBe RouteManager
+            .routerInterfaceRouteId(rPort.getId, IPAddressUtil.toProto("10.0.0.3"))
         rifRoute.getNextHopPortId shouldBe rPort.getId
         rifRoute.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
         rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.0"
