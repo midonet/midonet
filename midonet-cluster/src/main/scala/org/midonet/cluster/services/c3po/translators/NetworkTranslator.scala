@@ -16,10 +16,11 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.Transaction
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
 import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 
 /**
   * Provides a Neutron model translator for Network.
@@ -70,9 +71,31 @@ class NetworkTranslator extends Translator[NeutronNetwork] {
         tx.delete(classOf[Network], nNetwork.getId, ignoresNeo = true)
     }
 
+    /*
+     * Retain backrefs to subnets.
+     */
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[NeutronNetwork])
+    : List[Operation[NeutronNetwork]] = {
+        op match {
+            case Create(nm) => List(Create(nm))
+            case Update(nm, _) => List(Update(nm, NeutronNetworkUpdateValidator))
+            case Delete(clazz, id) => List(Delete(clazz, id))
+        }
+    }
 }
 
 private[translators] object NetworkTranslator {
     def isUplinkNetwork(nn: NeutronNetwork): Boolean =
         nn.hasNetworkType && nn.getNetworkType == NetworkType.UPLINK
+}
+
+private[translators] object NeutronNetworkUpdateValidator
+        extends UpdateValidator[NeutronNetwork] {
+    override def validate(oldNet: NeutronNetwork, newNet: NeutronNetwork)
+    : NeutronNetwork = {
+        if (oldNet.getSubnetsCount > 0)
+            newNet.toBuilder.addAllSubnets(oldNet.getSubnetsList).build()
+        else newNet
+    }
 }
