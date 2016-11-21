@@ -84,7 +84,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         val rifRouteId = routerInterfaceRouteId(rPort.getId)
         val rifRoute = routes.find(_.getId == rifRouteId).get
-        rifRoute.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+        rifRoute.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
         rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.0"
         rifRoute.getDstSubnet.getPrefixLength shouldBe 24
         rifRoute.getNextHopPortId shouldBe rPort.getId
@@ -502,7 +502,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
         val rifRoute = storage.get(classOf[Route], rPort.getRouteIds(0)).await()
         rifRoute.getId shouldBe RouteManager.routerInterfaceRouteId(rPort.getId)
         rifRoute.getNextHopPortId shouldBe rPort.getId
-        rifRoute.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+        rifRoute.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
         rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.0"
         rifRoute.getDstSubnet.getPrefixLength shouldBe 24
 

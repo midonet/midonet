@@ -114,7 +114,7 @@ class FirewallTranslatorTest extends TranslatorTestBase  {
 
     "A rule allowing traffic from an address" should "be translated" in
         validateRuleConversion(neutronFwRule(
-            srcAddr = IPSubnetUtil.fromAddr("200.0.0.10")))
+            srcAddr = IPSubnetUtil.fromAddress("200.0.0.10")))
 
     "A rule allowing traffic to a subnet" should "be translated" in
         validateRuleConversion(neutronFwRule(
@@ -122,7 +122,7 @@ class FirewallTranslatorTest extends TranslatorTestBase  {
 
     "A rule allowing traffic to an address" should "be translated" in
         validateRuleConversion(neutronFwRule(
-            dstAddr = IPSubnetUtil.fromAddr("200.0.0.10")))
+            dstAddr = IPSubnetUtil.fromAddress("200.0.0.10")))
 
     "A rule allowing traffic to a port " should "be translated" in
         validateRuleConversion(neutronFwRule(dstPort = "80"))

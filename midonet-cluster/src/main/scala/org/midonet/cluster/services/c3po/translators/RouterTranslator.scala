@@ -189,7 +189,7 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         val portRoute = newNextHopPortRoute(
             nextHopPortId = routerPortId,
             id = routerInterfaceRouteId(routerPortId),
-            srcSubnet = IPSubnetUtil.univSubnet4,
+            srcSubnet = IPSubnetUtil.AnyIPv4Subnet,
             dstSubnet = subnet.getCidr)
 
         val localRoute = newLocalRoute(routerPortId,
@@ -257,7 +257,7 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
         val localRoute = newLocalRoute(routerPortId, port.getPortAddress)
         val portRoute = newNextHopPortRoute(nextHopPortId = routerPortId,
                                             id = portRouteId,
-                                            srcSubnet = univSubnet4,
+                                            srcSubnet = AnyIPv4Subnet,
                                             dstSubnet = Nat64Pool,
                                             nextHopGwIpAddr = vppAddress4.asProto)
 
@@ -412,7 +412,7 @@ class RouterTranslator(stateTableStorage: StateTableStorage,
             tx.exists(classOf[Rule], outSnatRuleId(nRouter.getId)))
             return
 
-        val portSubnet = IPSubnetUtil.fromAddr(portAddress)
+        val portSubnet = IPSubnetUtil.fromAddress(portAddress)
 
         def outRuleBuilder(ruleId: UUID) = Rule.newBuilder
             .setId(ruleId)
