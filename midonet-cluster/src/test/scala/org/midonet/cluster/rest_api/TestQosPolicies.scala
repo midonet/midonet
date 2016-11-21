@@ -305,6 +305,18 @@ class TestQosPolicies extends FeatureSpec
                             ClientResponse.Status.METHOD_NOT_ALLOWED.getStatusCode)
     }
 
+    scenario("Bandwidth rule's burst remains unset when created as such.") {
+        val qosPolicy = createPolicy("test-qos")
+        postAndAssertOk(qosPolicy, qosPolicyResource.getURI)
+
+        val bwRes = jerseyTest.client().resource(qosPolicy.getBwLimitRules)
+        val bwRule = createTopLevelBwLimitRule(1000, null)
+        val bwRuleUri = postAndAssertOk(bwRule, bwRes.getURI)
+
+        val bwRuleResult = getAndAssertOk[QosRuleBandwidthLimit](bwRuleUri)
+        bwRuleResult.maxBurstKbps shouldBe null
+    }
+
     scenario("Create, Read, Update, Delete BW Limit Rules") {
         val qosPolicy = createPolicy("test-qos")
 
