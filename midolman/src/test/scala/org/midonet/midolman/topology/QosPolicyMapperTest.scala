@@ -391,6 +391,18 @@ class QosPolicyMapperTest extends MidolmanSpec
             val simPolBurstCleared = obs.getOnNextEvents.get(2).qosPolicy
             checkSimPolicy(simPolBurstCleared, Seq(BwData(1000, 800)), Seq(12))
         }
+
+        scenario("Burst defaults to 80% of rate if set to 0") {
+            val polId = createQosPolicyAndRules(Seq(BwData(1000, 0)),
+                                                Seq(12))
+            val portId = createBridgeAndPort(polId)
+
+            val obs = createPortMapperAndObserver(portId)
+            obs.awaitOnNext(1, timeout)
+
+            val simPol = obs.getOnNextEvents.get(0).qosPolicy
+            checkSimPolicy(simPol, Seq(BwData(1000, 800)), Seq(12))
+        }
     }
 
     case class BwData(maxKbps: Int, maxBurstKbps: Option[Int])
