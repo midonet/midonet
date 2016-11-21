@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_a1e79511",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T18:37:31Z",
+      "side": 1,
+      "message": "you can replace with:\n\n  for (...) yield {\n     ...\n     path\n  }",
+      "range": {
+        "startLine": 221,
+        "startChar": 8,
+        "endLine": 221,
+        "endChar": 61
+      },
+      "revId": "16f97ecd2753e0ba482c0e33dd3bcb9674ba1cb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_c1e17900",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T18:37:31Z",
+      "side": 1,
+      "message": "I think an if is better here since the match will fail if there is no matching option",
+      "range": {
+        "startLine": 222,
+        "startChar": 12,
+        "endLine": 222,
+        "endChar": 56
+      },
+      "revId": "16f97ecd2753e0ba482c0e33dd3bcb9674ba1cb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_81e4910d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 880,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T18:37:31Z",
+      "side": 1,
+      "message": "is this still needed?",
+      "range": {
+        "startLine": 880,
+        "startChar": 16,
+        "endLine": 880,
+        "endChar": 28
+      },
+      "revId": "16f97ecd2753e0ba482c0e33dd3bcb9674ba1cb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_61f18dcd",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1563,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-21T18:37:31Z",
+      "side": 1,
+      "message": "line too long\n\nalso the Network port does not have IP addresses, so you can remove that",
+      "range": {
+        "startLine": 1563,
+        "startChar": 0,
+        "endLine": 1563,
+        "endChar": 111
+      },
+      "revId": "16f97ecd2753e0ba482c0e33dd3bcb9674ba1cb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
