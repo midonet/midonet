@@ -22,6 +22,30 @@
       "revId": "7a4ac15824d4cf5e28891fa21505862730de2e8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_9425f2c3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-21T11:02:40Z",
+      "side": 1,
+      "message": "Clio is the Midonet Insights minion responsible for organising and storing Flow History data. It is indeed the only user of this functionality at the moment. The move from UDP to TCP comes from datagram-size limitations of UDP so if any other user comes in the future, having it use UDP would result in the same limitations we see now with Clio.",
+      "parentUuid": "9aa53dc9_d4e6dae7",
+      "range": {
+        "startLine": 7,
+        "startChar": 43,
+        "endLine": 7,
+        "endChar": 47
+      },
+      "revId": "7a4ac15824d4cf5e28891fa21505862730de2e8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
