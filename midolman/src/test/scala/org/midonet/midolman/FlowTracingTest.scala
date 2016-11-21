@@ -34,6 +34,7 @@ import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, IPv4Addr, SbeEncoder}
+import org.midonet.packets.TunnelKeys.TraceBit
 import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
@@ -436,7 +437,7 @@ class FlowTracingTest extends MidolmanSpec {
 
             pktCtxs.clear()
             wkflEgress.handlePackets(
-                tunnelPacket(frame, tunnelPort | TraceState.TraceTunnelKeyMask))
+                tunnelPacket(frame, TraceBit.set(tunnelPort.toInt)))
             pktCtxs.get(0).traceContext.flowTraceId shouldBe flowTrace1
 
             val statePacket2 = tunnelPacket(statePacketsSent.get(1),
@@ -445,7 +446,7 @@ class FlowTracingTest extends MidolmanSpec {
 
             pktCtxs.clear()
             wkflEgress.handlePackets(
-                tunnelPacket(frame, tunnelPort | TraceState.TraceTunnelKeyMask))
+                tunnelPacket(frame, TraceBit.set(tunnelPort.toInt)))
             pktCtxs.get(0).traceContext.flowTraceId shouldBe flowTrace2
             egressTable.get(traceKey) should not be (null)
 

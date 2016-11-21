@@ -39,6 +39,7 @@ import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.flows._
 import org.midonet.odp.{Flow, FlowMatches, Packet}
 import org.midonet.packets._
+import org.midonet.packets.TunnelKeys.TraceBit
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.ShardedFlowStateTable
@@ -236,14 +237,14 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         // should have executed flow with tunnel mask set
         val (packet, actions) = packetOutQueueIngress.remove()
-        TraceState.traceBitPresent(getTunnelId(actions)) shouldBe true
+        TraceBit.isSet(getTunnelId(actions).toInt) shouldBe true
         getTunnelDst(actions) should be (egressHostIp)
 
         // should have created flow, but without tunnel mask set
         flowQueueIngress.size should be (1)
         val flow = flowQueueIngress.remove()
-        TraceState.traceBitPresent(
-            getTunnelId(flow.getActions)) shouldBe false
+        TraceBit.isSet(
+            getTunnelId(flow.getActions).toInt) shouldBe false
 
         packetCtxTrapIngress.size should be (2)
         val ingressCtx = packetCtxTrapIngress.remove()

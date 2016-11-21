@@ -28,16 +28,11 @@ import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.TraceState.{TraceKeyAllocator, TraceKeyStore}
 import org.midonet.packets.{MAC, IPAddr, ICMP}
+import org.midonet.packets.TunnelKeys.TraceBit
 import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
     val log = LoggerFactory.getLogger(classOf[TraceState])
-
-    val TraceTunnelKeyMask = 1 << 23
-
-    def traceBitPresent(tunnelId: Long): Boolean = {
-        (tunnelId & TraceTunnelKeyMask) != 0
-    }
 
     object TraceKey extends TraceKeyAllocator[TraceKey] {
         def fromFlowMatch(flowMatch: FlowMatch): TraceKey = {
@@ -185,17 +180,17 @@ trait TraceState extends FlowState { this: PacketContext =>
     def traceKeyForEgress = TraceKey.fromFlowMatch(wcmatch)
 
     def setTraceTunnelBit(key: Long): Long = {
-        key | TraceTunnelKeyMask
+        TraceBit.set(key.toInt)
     }
 
     def hasTraceTunnelBit: Boolean = {
-        TraceState.traceBitPresent(origMatch.getTunnelKey) &&
+        TraceBit.isSet(origMatch.getTunnelKey.toInt) &&
                 origMatch.getTunnelKey != FlowStateAgentPackets.TUNNEL_KEY
     }
 
     def stripTraceBit(m: FlowMatch): Unit = {
         m.doNotTrackSeenFields()
-        m.setTunnelKey(m.getTunnelKey & ~TraceTunnelKeyMask)
+        m.setTunnelKey(TraceBit.clear(m.getTunnelKey.toInt))
         m.doTrackSeenFields()
     }
 
