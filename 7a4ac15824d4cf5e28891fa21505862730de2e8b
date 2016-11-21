@@ -46,6 +46,29 @@
       "revId": "7a4ac15824d4cf5e28891fa21505862730de2e8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_41bb290f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-21T17:56:03Z",
+      "side": 1,
+      "message": "Use a varint instead of an int.",
+      "range": {
+        "startLine": 155,
+        "startChar": 16,
+        "endLine": 155,
+        "endChar": 47
+      },
+      "revId": "7a4ac15824d4cf5e28891fa21505862730de2e8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
