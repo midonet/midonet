@@ -646,7 +646,8 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                                  + s"table ${id}")
 
                     val setupVxlan = new VppVxlanTunnelSetup(
-                        new Fip64Config(config, config), id, id, api, log)
+                        new Fip64Config(config, config), id, id,
+                        nsMac, api, log)
                     setupVxlan.execute()
 
                     fip
