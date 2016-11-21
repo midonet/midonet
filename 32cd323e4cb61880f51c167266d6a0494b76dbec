@@ -16,6 +16,24 @@
       "revId": "32cd323e4cb61880f51c167266d6a0494b76dbec",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_9413b25c",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-21T08:40:38Z",
+      "side": 1,
+      "message": "You are correct, this is not needed. removed.",
+      "parentUuid": "baa041b7_2aeaf9d8",
+      "revId": "32cd323e4cb61880f51c167266d6a0494b76dbec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
