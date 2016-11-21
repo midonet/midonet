@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_14dd6214",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-21T10:24:18Z",
+      "side": 1,
+      "message": "this \"for some reason\" makes me afraid.\n\nthe change itself looks ok.\ntreating zero this way seems consistent with the neutron reference implementation.",
+      "range": {
+        "startLine": 10,
+        "startChar": 14,
+        "endLine": 10,
+        "endChar": 30
+      },
+      "revId": "e20bedc884ae641f78f81d88ce6f38806974e6cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
