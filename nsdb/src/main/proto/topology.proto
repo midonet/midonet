@@ -446,7 +446,7 @@ message QosPolicy {
     repeated UUID bandwidth_limit_rule_ids = 6;
     repeated UUID dscp_marking_rule_ids = 7;
 
-    optional UUID tenant_id = 8;
+    optional string tenant_id = 8;
 
     // Backreferences
     repeated UUID port_ids = 101;
