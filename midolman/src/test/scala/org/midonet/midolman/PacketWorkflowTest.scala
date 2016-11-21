@@ -29,6 +29,7 @@ import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.flows.ManagedFlow
 import org.midonet.midolman.monitoring.NullFlowRecorder
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.simulation.Simulator.Fip64Action
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -40,7 +41,7 @@ import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort}
 import org.midonet.odp.{Datapath, FlowMatches, Packet}
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{Ethernet, TunnelKeys}
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
@@ -261,12 +262,12 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetWorkflow.backChannel.hasMessages shouldBe false
         }
 
-        scenario("Workflow handles VPP tunnel packets without matching port") {
+        scenario("Workflow handles Fip64 tunnel packets without matching port") {
             val vxlanPortNumber = 20
             createPacketWorkflow(0, custom = false,
                                  fip64VxlanPort = vxlanPortNumber)
 
-            Given("A VPP packet")
+            Given("A Fip64 packet")
             val packet = makeVppPacket(1000)
             packet.getMatch.setInputPortNumber(vxlanPortNumber)
             packet.getMatch.setTunnelKey(1000)
@@ -277,6 +278,30 @@ class PacketWorkflowTest extends MidolmanSpec {
             Then("The packet should be processed")
             packetWorkflow.result shouldBe FlowCreated
             packetWorkflow.flowActions shouldBe empty
+        }
+
+        scenario("Workflow handles tunnelled packet that needs, fip64 translation") {
+            val fip64PortNumber = 10
+            val overlayPortNumber = 20
+            val tunnelKey = TunnelKeys.Fip64Type.apply(100)
+            createPacketWorkflow(0, custom = false,
+                                 fip64VxlanPort = fip64PortNumber,
+                                 overlayVxlanPort = overlayPortNumber)
+
+            Given("A tunnelled packet for fip64")
+            val packet = makeVppPacket(1000)
+            packet.getMatch.setInputPortNumber(overlayPortNumber)
+            packet.getMatch.setTunnelKey(tunnelKey)
+
+            When("Simulating the packet")
+            packetWorkflow.handlePackets(packet)
+
+            Then("The packet should be processed")
+            packetWorkflow.result shouldBe FlowCreated
+
+            And("The actions should send the packet to vpp")
+            packetWorkflow.virtualFlowActions shouldBe (
+                List(Fip64Action(null, tunnelKey)))
         }
     }
 
@@ -651,6 +676,7 @@ class PacketWorkflowTest extends MidolmanSpec {
         var generatedPacket: GeneratedPacket = _
         var generatedException: Exception = _
         var flowActions: List[FlowAction] = _
+        var virtualFlowActions: List[FlowAction] = _
         var exception: Exception = _
         var result: SimulationResult = _
         var flow: ManagedFlow = _
@@ -692,6 +718,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                 result = super.start(pktCtx)
                 flow = pktCtx.flow
                 flowActions = pktCtx.flowActions.asScala.toList
+                virtualFlowActions = pktCtx.virtualFlowActions.asScala.toList
                 return result
             }
 
