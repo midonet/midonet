@@ -421,10 +421,14 @@ class Interface(object):
                  src_port=9, dst_port=9, extra_params=None, delay=1, count=1,
                  sync=False, src_hw=None, src_ipv4=None):
         params = []
-        if src_port: params.append('sp=%d' % src_port)
-        if dst_port: params.append('dp=%d' % dst_port)
-        if iplen: params.append('iplen=%d' % iplen)
-        if extra_params: params.append(extra_params)
+        if src_port:
+            params.append('sp=%d' % src_port)
+        if dst_port:
+            params.append('dp=%d' % dst_port)
+        if iplen:
+            params.append('iplen=%d' % iplen)
+        if extra_params:
+            params.append(extra_params)
         protocol_params = ','.join(params)
         return self.send_packet(target_hw=target_hw,
                                 target_ipv4=target_ipv4,
@@ -457,7 +461,7 @@ class Interface(object):
             self.send_arp_request(ipv4_addr)
             time.sleep(1)
 
-        if data == None:
+        if data is None:
             data = "ff"
 
         ping_cmd = 'ping -i %s -c %s -s %s -p %s %s' % (

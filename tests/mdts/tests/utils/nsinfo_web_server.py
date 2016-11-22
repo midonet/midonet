@@ -42,7 +42,8 @@ class MyHandler(WSGIRequestHandler):
     def address_string(self):
         return str(self.client_address[0])
 
-    def log_request(*args, **kw): pass
+    def log_request(*args, **kw):
+        pass
 
 
 from SocketServer import ThreadingMixIn

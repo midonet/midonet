@@ -37,7 +37,8 @@ class Vtep(ResourceBase):
         self._mn_resource.create()
 
     def destroy(self):
-        for binding in self._bindings.values(): binding.destroy()
+        for binding in self._bindings.values():
+            binding.destroy()
         self._bindings.clear()
         self._mn_resource.delete()
 

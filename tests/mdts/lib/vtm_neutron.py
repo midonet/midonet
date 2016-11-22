@@ -117,13 +117,13 @@ class NeutronTopologyManager(TopologyManager):
                                         }})
 
     def add_router_interface(self, router, subnet=None, port=None):
-        if subnet != None:
+        if subnet is not None:
             self.api.add_interface_router(
                 router['id'], {'subnet_id': subnet['id']})
             self.addCleanup(self.api.remove_interface_router,
                             router['id'],
                             {'subnet_id': subnet['id']})
-        elif port != None:
+        elif port is not None:
             self.api.add_interface_router(
                 router['id'], {'port_id': port['id']})
             self.addCleanup(self.api.remove_interface_router,

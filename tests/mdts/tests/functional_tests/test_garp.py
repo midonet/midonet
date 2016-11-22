@@ -129,13 +129,13 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                      'admin_state_up': True,
                      'tenant_id': 'admin'}
 
-        if real_ip != None and subnet_id != None:
+        if real_ip is not None and subnet_id is not None:
             port_spec['fixed_ips'] = [{'ip_address': real_ip,
                                        'subnet_id': subnet_id}]
-        if vip != None and vmac != None:
+        if vip is not None and vmac is not None:
             port_spec['allowed_address_pairs'] = [{'ip_address': vip,
                                                    'mac_address': vmac}]
-        elif vip != None:
+        elif vip is not None:
             port_spec['allowed_address_pairs'] = [{'ip_address': vip}]
         return self.create_resource(self.api.create_port({'port': port_spec}))
 
@@ -215,7 +215,7 @@ def run_garp_scenario(BM, sender_port, target_ip, enable_vip, disable_vip):
     sender = BM.get_interface_on_vport(sender_port)
     # allow sender to accept gratutious arps (only makes sense if on same network)
     sender.execute('bash -c "echo 1 > /proc/sys/net/ipv4/conf/%s/arp_accept"'
-                   % sender.get_ifname());
+                   % sender.get_ifname())
     rcv_filter = 'icmp and ip src %s' % (sender.get_ip())
 
     # noone responds initially
