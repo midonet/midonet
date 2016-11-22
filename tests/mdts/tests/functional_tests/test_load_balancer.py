@@ -273,7 +273,7 @@ def make_n_requests_to(sender, num_reqs, dest, timeout=30, src_port=None):
     LOG.debug("L4LB: executing %s" % cmd)
     result = sender.execute(cmd, timeout, sync=True)
     if src_port is None:
-        SRC_PORT += num_reqs # to account for the loop in the cmd above
+        SRC_PORT += num_reqs  # to account for the loop in the cmd above
     return result.split('\n')
 
 
@@ -553,7 +553,7 @@ def test_haproxy_failback():
 
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
-@nottest # MI-185
+@nottest  # MI-185
 def test_health_monitoring_backend_failback():
     """
     Title: Health monitoring backend failure resilience test
