@@ -174,7 +174,7 @@ class RecircTest extends FeatureSpec
             maxRequestSize = 1024,
             channelFactory,
             SelectorProvider.provider(),
-            new ShardedSimulationBackChannel(() => { }),
+            new ShardedSimulationBackChannel,
             new DatapathMetrics(new MetricRegistry),
             NanoClock.DEFAULT)
         packetExecutor = new PacketExecutor(
