@@ -9,6 +9,137 @@ The Operations and Deployment docs will cover the user-facing aspect of
 the feature, so this document is aimed at MidoNet developers and
 explains some of the internal implementation details.
 
+## Quick-Start
+
+MidoNet floating IPv6 is aimed to allowing hosts from the IPv6 Internet
+to connect to IPv4 tenant instances. Use the following steps to setup
+a virtual topology for floating IPv6.
+
+1. Create a provider router.
+
+<pre>
+neutron router-create provider-router
+</pre>
+
+2. Create an IPv6 uplink network and subnet. In principle, these will
+use a globally routable IPv6 prefix. In this example, we use `2001::/64`
+as the uplink IPv6 prefix.
+
+<pre>
+neutron net-create uplink-network \
+    --provider:network_type uplink
+
+neutron subnet-create \
+    --disable-dhcp \
+    --ip-version 6 \
+    --name uplink-subnet \
+    uplink-network 2001::/64
+</pre>
+
+3. Create a port on the uplink network. This port will be bound to
+the physical uplink interface, `<UPLINK>`. The IPv6 address assigned to
+the port will be `2001::2`. We denote by `<UPLINK-PORT-ID>` the
+identifier of the uplink port, and by <HOSTNAME> the name of the gateway
+host.
+
+<pre>
+neutron port-create uplink-network \
+    --binding:host_id <HOSTNAME> \
+    --binding:profile type=dict interface_name=<UPLINK> \
+    --fixed-ip ip_address=2001::2
+</pre>
+
+4. Add a router interface from the provider router to the uplink
+network.
+
+<pre>
+neutron router-interface-add provider-router port=<UPLINK-PORT-ID>
+</pre>
+
+5. Ensure that the uplink port is reachable from the IPv6 Internet. If
+the IPv6 subnet assigned to the uplink network is not globally routable,
+add the corresponding routes on the remote systems as needed.
+
+<pre>
+ping6 2001::2
+</pre>
+
+6. Create a public external network to interconnect the provider and
+tenant routers. This must have an IPv6 subnet that is also globally
+routable. In this example, we use `1000::/120` as the public IPv6
+prefix.
+
+<pre>
+neutron net-create public-network \
+    --router:external true
+
+neutron subnet-create \
+    --name public-subnet \
+    --ip-version 6 \
+    public-network 1000::/120
+</pre>
+
+7. Create a tenant router.
+
+<pre>
+neutron router-create tenant-router
+</pre>
+
+8. Set the tenant router gateway to the public external network.
+
+<pre>
+neutron router-gateway-set tenant-router public-network
+</pre>
+
+9. Create a tenant private network and subnet. We use the private IPv4
+subnet `192.168.0.0/24`.
+
+<pre>
+neutron net-create tenant-network
+
+neutron subnet-create \
+    --name tenant-subnet \
+    tenant-network 192.168.0.0/24
+</pre>
+
+10. Add a router interface from the tenant router to the tenant network.
+
+<pre>
+neutron router-interface-add tenant-router tenant-subnet
+</pre>
+
+11. Create an instance port on the tenant network. We denote by
+`<INSTANCE-PORT-ID>` the identifier of this port. Set the port's MAC
+address to the one of the physical interface that will be bound to this
+port.
+
+<pre>
+neutron port-create tenant-network
+</pre>
+
+12. Create a floating IP for the instance port on the public network.
+
+<pre>
+neutron floatingip-create \
+    --port-id <INSTANCE-PORT-ID> \
+    public
+</pre>
+
+13. In VPP add a default route for the IPv6 Internet. This route should
+route traffic via the uplink interface identified as
+`host-vpp-<UPLINK-PORT-ID-FIRST-EIGHT-DIGITS>`, e.g. `host-vpp-f8f94c54`.
+
+<pre>
+vpp# ip route add 0::/0 via 2001::1 host-vpp-f8f94c54
+</pre>
+
+14. If using veth pairs, disable checksum offloading on source and
+destination interfaces, as needed.
+
+<pre>
+ethtool -K <INTERFACE> tx off rx off
+</pre>
+
 ## Architecture
 
 To implement support for IPv6, MidoNet leverages VPP, a open source
