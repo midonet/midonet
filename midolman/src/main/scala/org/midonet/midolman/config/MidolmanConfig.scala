@@ -274,8 +274,9 @@ class RuleLoggingConfig(val conf: Config, val schema: Config)
 
 class Fip64Config(val conf: Config, val schema: Config) {
     val vtepUdpPort: Short = 5321
-    val vtepVppAddr = IPv4Subnet.fromCidr("169.254.0.1/30")
-    val vtepKernAddr = IPv4Subnet.fromCidr("169.254.0.2/30")
+    val vtepVppAddr = IPv4Subnet.fromCidr("169.254.124.1/30")
+    val vtepKernAddr = IPv4Subnet.fromCidr("169.254.124.2/30")
 
+    val vtepVppMac = MAC.fromString("de:ad:be:ef:00:05")
     val vxlanDownlink = false
 }
