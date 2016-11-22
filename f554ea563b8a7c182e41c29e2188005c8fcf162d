@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_6d905c96",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-22T11:24:21Z",
+      "side": 1,
+      "message": "home grown way of String.valueOf(matches) ?",
+      "range": {
+        "startLine": 181,
+        "startChar": 42,
+        "endLine": 181,
+        "endChar": 68
+      },
+      "revId": "f554ea563b8a7c182e41c29e2188005c8fcf162d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
