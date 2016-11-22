@@ -293,6 +293,7 @@ private object VppSetup extends MidolmanLogging {
 
     class LoopBackCreate(override val name: String,
                          vni: Int, vrf: Int,
+                         mac: MAC,
                          vppApi: VppApi)
                         (implicit ec: ExecutionContext)
     extends FutureTaskWithRollback with VppInterfaceProvider {
@@ -300,8 +301,7 @@ private object VppSetup extends MidolmanLogging {
         var vppInterface: Option[VppApi.Device] = None
 
         override def execute(): Future[Any] = {
-            vppApi.createLoopBackIf(Some(MAC.
-                fromString("de:ad:be:ef:00:05"))) map  {
+            vppApi.createLoopBackIf(Some(mac)) map  {
                 result  => vppInterface = Some(result)
             }
         }
@@ -559,7 +559,8 @@ class VppVxlanTunnelSetup(config: Fip64Config,
                            bridgeDomain, false, vppApi)
 
     private val loopBackDevice = new LoopBackCreate("Create loopback interface",
-                                                    vni, vrf, vppApi)
+                                                    vni, vrf, config.vtepVppMac,
+                                                    vppApi)
 
     private val loopToBridge =
         new VxlanSetBridge("Set bridge domain for loopback device",
