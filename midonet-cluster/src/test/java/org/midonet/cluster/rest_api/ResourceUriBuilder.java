@@ -20,7 +20,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
+import static org.midonet.cluster.rest_api.models.Bridge.UNTAGGED_VLAN_ID;
 
 /**
  * We're keeping this one around as many tests still depend on it and the

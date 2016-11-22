@@ -25,7 +25,6 @@ import javax.validation.constraints.NotNull;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;

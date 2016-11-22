@@ -16,14 +16,9 @@
 
 package org.midonet.midolman.rules;
 
-import java.util.HashMap;
-import java.util.Map;
+
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -37,17 +32,6 @@ import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.nsdb.BaseConfig;
 import org.midonet.sdn.flows.FlowTagger;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
-    property = "type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = LiteralRule.class, name = "Literal"),
-    @JsonSubTypes.Type(value = TraceRule.class, name = "Trace"),
-    @JsonSubTypes.Type(value = JumpRule.class, name = "Jump"),
-    @JsonSubTypes.Type(value = DynamicForwardNatRule.class, name = "DynamicForwardNat"),
-    @JsonSubTypes.Type(value = StaticForwardNatRule.class, name = "StaticForwardNat"),
-    @JsonSubTypes.Type(value = ReverseNatRule.class, name = "ReverseNat")
-})
-
 @ZoomClass(clazz = Topology.Rule.class, factory = Rule.RuleFactory.class)
 public abstract class Rule extends BaseConfig {
 
@@ -59,10 +43,7 @@ public abstract class Rule extends BaseConfig {
     @ZoomField(name = "chain_id")
     public UUID chainId;
 
-    @JsonIgnore
     public FlowTagger.UserTag meter;
-    private Map<String, String> properties = new HashMap<>();
-    private Map<String, String> metadata = new HashMap<>();
 
     protected RuleResult result;
 
@@ -143,12 +124,10 @@ public abstract class Rule extends BaseConfig {
             "supported");
     }
 
-    @JsonProperty
     public void setMeterName(String meterName) {
         meter = FlowTagger.tagForUserMeter(meterName);
     }
 
-    @JsonProperty
     public String getMeterName() {
         return meter != null ? meter.name() : null;
     }
@@ -189,14 +168,6 @@ public abstract class Rule extends BaseConfig {
     }
 
     protected abstract boolean apply(PacketContext pktCtx);
-
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
-    }
 
     @Override
     public int hashCode() {

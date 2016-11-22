@@ -34,7 +34,6 @@ import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.services.BindingApiLog
@@ -74,7 +73,6 @@ class BindingApiService @Inject()(nodeContext: Context,
                 bind(classOf[CuratorFramework]).toInstance(curator)
                 bind(classOf[MidolmanConfig]).toInstance(config)
                 bind(classOf[MidonetBackend]).toInstance(backend)
-                bind(classOf[PathBuilder]).asEagerSingleton()
                 bind(classOf[BindingHandler]).asEagerSingleton()
                 serve("/*").`with`(classOf[GuiceContainer])
             }
