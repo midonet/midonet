@@ -22,6 +22,7 @@ import scala.concurrent.ExecutionContext
 
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow._
+import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
@@ -85,7 +86,8 @@ class Router(override val id: UUID,
              override val rTable: RoutingTable,
              override val routerMgrTagger: TagManager,
              override val vniToPort: util.Map[Int, UUID],
-             val arpCache: ArpCache)
+             val arpCache: ArpCache,
+             fip64Config: Fip64Config)
         extends RouterBase[IPv4Addr] with MirroringDevice {
 
     import Router._
@@ -322,6 +324,12 @@ class Router(override val id: UUID,
                                          ipDest: IPv4Addr, context: PacketContext): MAC = {
         if (outPort == null)
             return null
+
+        if (rt.nextHopGateway.equals(
+                fip64Config.vtepVppAddr.getAddress.toInt)) {
+            context.log.debug("Next hop is fip64 translation")
+            return fip64Config.vtepVppMac
+        }
 
         if (outPort.isInterior && outPort.peerId == null) {
             context.log.warn("Packet sent to dangling interior port {}",

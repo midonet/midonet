@@ -733,7 +733,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             new RouterRoutingTable(routes),
             tagManager,
             vniToPort.asJava,
-            arpCache)
+            arpCache,
+            vt.config.fip64)
         log.debug("Build router: {} {}", device, routes)
 
         device
