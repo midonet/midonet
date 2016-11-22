@@ -13,10 +13,9 @@
 # limitations under the License.
 
 import logging
-import time
-
-from mdts.lib import subprocess_compat
 from mdts.lib.failure.failure_base import FailureBase
+from mdts.lib import subprocess_compat
+import time
 
 LOG = logging.getLogger(__name__)
 

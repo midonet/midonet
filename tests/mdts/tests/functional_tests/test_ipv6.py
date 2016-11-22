@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-from mdts.lib.vtm_neutron import NeutronTopologyManager
+import logging
 from mdts.lib.bindings import BindingManager
+from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
 from mdts.tests.utils.utils import bindings
 from nose.plugins.attrib import attr
-
-import time
-import logging
 import re
+import time
 import uuid
 
 LOG = logging.getLogger(__name__)

@@ -15,7 +15,7 @@
 from mdts.lib.physical_topology_manager import TopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.services import service
-from mdts.tests.utils.asserts import *
+from mdts.tests.utils.asserts import assert_that
 from mdts.tests.utils import utils
 
 

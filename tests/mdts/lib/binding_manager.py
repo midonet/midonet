@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 from mdts.lib.topology_manager import TopologyManager
+from mdts.services import service
 from mdts.tests.utils.utils import await_port_active
 from mdts.tests.utils.utils import get_midonet_api
-from mdts.services import service
-
-import logging
 import sys
-
-from time import sleep
 
 LOG = logging.getLogger(__name__)
 

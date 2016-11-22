@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mdts.lib.resource_base import ResourceBase
 from mdts.lib.bridge_port import BridgePort
 from mdts.lib.dhcp_subnet import DhcpSubnet
+from mdts.lib.resource_base import ResourceBase
 
 # A list of
 #   - filter id attribute name in Bridge DTO, and

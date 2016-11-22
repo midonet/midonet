@@ -16,27 +16,24 @@
 Resource manager for virtual topology data.
 """
 
+import logging
 from mdts.lib.bridge import Bridge
 from mdts.lib.chain import Chain
 from mdts.lib.health_monitor import HealthMonitor
 from mdts.lib.link import Link
 from mdts.lib.load_balancer import LoadBalancer
 from mdts.lib.mdts_exception import MdtsException
+from mdts.lib.mirror import Mirror
 from mdts.lib.port_group import PortGroup
+from mdts.lib.qos_policy import QOSPolicy
 from mdts.lib.resource_reference import ResourceReference
 from mdts.lib.router import Router
-from mdts.lib.mirror import Mirror
-from mdts.lib.qos_policy import QOSPolicy
 from mdts.lib.tenants import get_or_create_tenant
 from mdts.lib.topology_manager import TopologyManager
 from mdts.lib.tracerequest import TraceRequest
 from mdts.lib.vtep import Vtep
-from mdts.tests.utils.utils import clear_virtual_topology_for_tenants
-
-from midonetclient.api import MidonetApi
-
+from midonetclient.api import MidonetApi  # noqa
 from webob.exc import HTTPBadRequest
-import logging
 
 LOG = logging.getLogger(__name__)
 

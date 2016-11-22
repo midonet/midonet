@@ -11,18 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from nose.plugins.attrib import attr
-
+import logging
 from mdts.lib.binding_manager import BindingManager
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.services import service
-from mdts.tests.utils.asserts import *
+from mdts.tests.utils.asserts import async_assert_that
+from mdts.tests.utils.asserts import receives
+from mdts.tests.utils.asserts import should_NOT_receive
+from mdts.tests.utils.asserts import within_sec
 from mdts.tests.utils.utils import await_port_active
 from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.utils import wait_on_futures
-
-import logging
+from nose.plugins.attrib import attr
 import random
 import time
 

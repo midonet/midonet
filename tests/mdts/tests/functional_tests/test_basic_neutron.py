@@ -13,19 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from nose import with_setup
-from nose.tools import nottest
 
+import logging
 from mdts.lib.bindings import BindingManager
-
 from mdts.lib.topology_manager import TopologyManager
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
-from mdts.tests.utils.asserts import *
-from mdts.tests.utils.utils import bindings, get_neutron_api
+from mdts.tests.utils.asserts import async_assert_that
+from mdts.tests.utils.asserts import receives
+from mdts.tests.utils.asserts import within_sec
+from mdts.tests.utils.utils import bindings
+from mdts.tests.utils.utils import get_neutron_api
 from mdts.tests.utils.utils import wait_on_futures
-
-import logging
+from nose.tools import nottest
+from nose import with_setup
 
 LOG = logging.getLogger(__name__)
 

@@ -12,26 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nose.plugins.attrib import attr
 
+import cassandra
+from cassandra.cluster import Cluster
+import logging
 from mdts.lib.binding_manager import BindingManager
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
+from mdts.services.service import get_container_by_hostname
 from mdts.tests.utils.asserts import async_assert_that
 from mdts.tests.utils.asserts import receives
-from mdts.tests.utils.asserts import receives_icmp_unreachable_for_udp
-from mdts.tests.utils.asserts import should_NOT_receive
 from mdts.tests.utils.asserts import within_sec
 from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.utils import wait_on_futures
-from mdts.services.service import get_container_by_hostname
-
-import logging
+from nose.plugins.attrib import attr
 import time
-
 from uuid import UUID
-from cassandra.cluster import Cluster
-import cassandra
 
 LOG = logging.getLogger(__name__)
 PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_tracing.yaml')

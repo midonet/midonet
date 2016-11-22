@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nose.plugins.attrib import attr
-from mdts.lib.vtm_neutron import NeutronTopologyManager
+from hamcrest import assert_that
+from hamcrest import equal_to
+from hamcrest import is_not
+import logging
 from mdts.lib.bindings import BindingManager
-from mdts.services import service
-from mdts.tests.utils.asserts import *
+from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.tests.utils.utils import bindings
-
-from hamcrest import *
-from nose.tools import with_setup
-
-import logging, pdb, re, time
+from nose.plugins.attrib import attr
+import re
 
 LOG = logging.getLogger(__name__)
 

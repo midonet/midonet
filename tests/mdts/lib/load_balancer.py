@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mdts.lib.pool import Pool
-
-from mdts.lib.resource_base import ResourceBase
 from mdts.lib.admin_state_up_mixin import AdminStateUpMixin
-from mdts.lib.router import Router
+from mdts.lib.pool import Pool
+from mdts.lib.resource_base import ResourceBase
+from mdts.lib.router import Router  # noqa
 
 
 class LoadBalancer(ResourceBase, AdminStateUpMixin):

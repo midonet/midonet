@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import logging
 from mdts.services.jmx_monitor import JMXMonitor
 from mdts.services.service import Service
-from mdts.tests.utils.conf import is_cluster_enabled
 from midonetclient.api import MidonetApi
-import logging, time
+import time
 
 LOG = logging.getLogger(__name__)
 

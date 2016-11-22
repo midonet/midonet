@@ -19,22 +19,12 @@ from copy import deepcopy
 from functools import wraps
 import inspect
 import logging
-from nose import with_setup
-import os
-import subprocess
-import time
-import tempfile
-
-from hamcrest import assert_that
-from hamcrest import is_
-from hamcrest import less_than
-
+from mdts.lib import subprocess_compat
 from mdts.lib.tenants import list_tenants
 from mdts.services import service
-from mdts.lib import subprocess_compat
-from mdts.lib.mdts_exception import TestSetupException
-from mdts.lib.mdts_exception import TestTeardownException
-from mdts.tests.utils.conf import is_vxlan_enabled
+import subprocess
+import tempfile
+import time
 
 LOG = logging.getLogger(__name__)
 

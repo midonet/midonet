@@ -19,8 +19,8 @@ Resource manager for physical topology data.
 import logging
 
 from mdts.lib.topology_manager import TopologyManager
-from mdts.tests.utils.conf import is_vxlan_enabled
 from mdts.services import service
+from mdts.tests.utils.conf import is_vxlan_enabled
 
 
 LOG = logging.getLogger(__name__)

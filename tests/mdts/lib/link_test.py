@@ -15,10 +15,8 @@
 """ Unit test module for Link element in virtual topology specification."""
 from mdts.lib.link import Link
 from mdts.lib.link import PeerDevicePortNotFoundException
-
-from mock import MagicMock
 from mock import call
-
+from mock import MagicMock
 import unittest
 import yaml
 

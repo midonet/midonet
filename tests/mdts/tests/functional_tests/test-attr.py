@@ -22,26 +22,19 @@
 #       tests it is marking. Hence the current name of test-attr.py instead of
 #       test_attr.py (since in ASCII '-' is placed before '_')
 
-import test_basic_neutron
 import test_bgp
-import test_bridge
 import test_chains
 import test_conn_tracking
-import test_delete_port
 import test_fip_icmp
 import test_ipfrag
 import test_ipv6
 import test_l2gw
-import test_l2insertion
 import test_l4state
 import test_load_balancer
 import test_midolman_and_interfaces
 import test_mirroring
 import test_nat_router
 import test_port_migration
-import test_qos
-import test_router
-import test_router_service
 import test_tracing
 import test_vpnaas
 import test_vxlangw

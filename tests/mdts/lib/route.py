@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mdts.lib.resource_base import ResourceBase
-
-import pdb
 import logging
+from mdts.lib.resource_base import ResourceBase
 LOG = logging.getLogger(__name__)
 
 

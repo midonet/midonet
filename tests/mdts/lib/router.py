@@ -14,8 +14,8 @@
 
 from mdts.lib.bridge import Bridge
 from mdts.lib.resource_base import ResourceBase
-from mdts.lib.router_port import RouterPort
 from mdts.lib.route import Route
+from mdts.lib.router_port import RouterPort
 
 # A list of
 #   - filter id attribute name in Router DTO, and

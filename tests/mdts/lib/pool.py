@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from mdts.lib.admin_state_up_mixin import AdminStateUpMixin
 from mdts.lib.pool_member import PoolMember
 from mdts.lib.resource_base import ResourceBase
-from mdts.lib.admin_state_up_mixin import AdminStateUpMixin
 from mdts.lib.vip import VIP
 
 

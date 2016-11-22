@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import subprocess
-import time
-
-from mdts.services.interface import Interface
 import logging
+from mdts.services.interface import Interface
+import time
 
 LOG = logging.getLogger(__name__)
 
