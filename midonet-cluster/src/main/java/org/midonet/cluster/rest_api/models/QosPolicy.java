@@ -72,7 +72,7 @@ public class QosPolicy extends UriResource {
 
     @JsonProperty("tenant_id")
     @ZoomField(name = "tenant_id")
-    public UUID tenantId;
+    public String tenantId;
 
     @JsonIgnore
     @ZoomField(name = "bandwidth_limit_rule_ids")
