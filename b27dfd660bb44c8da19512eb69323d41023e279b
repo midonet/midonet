@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_1779df93",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-22T05:53:36Z",
+      "side": 1,
+      "message": "You won\u0027t be able to append; according to the JavaDoc the resulting list is immutable. Though I\u0027m not sure you need to be able to. We don\u0027t really do a lot of manipulation of these objects, and if you really need to add stuff to the list, you can just reassign to a new list. That\u0027s what Jackson does when deserializing, I think.",
+      "parentUuid": "9aa53dc9_fcaf807b",
+      "range": {
+        "startLine": 49,
+        "startChar": 27,
+        "endLine": 49,
+        "endChar": 48
+      },
+      "revId": "b27dfd660bb44c8da19512eb69323d41023e279b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_7e5b6855",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/resources/HealthMonitorV2Resource.java",
         "patchSetId": 2
