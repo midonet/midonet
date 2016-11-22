@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_97060a1f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-22T20:04:21Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "9aa53dc9_a1e79511",
+      "range": {
+        "startLine": 221,
+        "startChar": 8,
+        "endLine": 221,
+        "endChar": 61
+      },
+      "revId": "16f97ecd2753e0ba482c0e33dd3bcb9674ba1cb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_c1e17900",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_77038610",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-22T20:04:21Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "9aa53dc9_c1e17900",
+      "range": {
+        "startLine": 222,
+        "startChar": 12,
+        "endLine": 222,
+        "endChar": 56
+      },
+      "revId": "16f97ecd2753e0ba482c0e33dd3bcb9674ba1cb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_81e4910d",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-11-21T18:37:31Z",
       "side": 1,
       "message": "is this still needed?",
+      "range": {
+        "startLine": 880,
+        "startChar": 16,
+        "endLine": 880,
+        "endChar": 28
+      },
+      "revId": "16f97ecd2753e0ba482c0e33dd3bcb9674ba1cb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_1a09ff2c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 880,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-22T20:04:21Z",
+      "side": 1,
+      "message": "Needed by updateArpTable, but I will refactor it to use the new one and remove this one.",
+      "parentUuid": "9aa53dc9_81e4910d",
       "range": {
         "startLine": 880,
         "startChar": 16,
