@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_32bcf16b",
+        "filename": "tests/mdts/tests/functional_tests/test_qos.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-22T10:33:53Z",
+      "side": 0,
+      "message": "unrelated changes",
+      "revId": "11beb1bf3fcc413bb2d0ff5c305df7f297b539ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
