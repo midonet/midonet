@@ -28,6 +28,10 @@ import org.midonet.packets.NatState.{NatKeyStore, NatBinding}
 import org.midonet.packets.TraceState.{TraceKeyAllocator, TraceKeyStore}
 import org.midonet.packets.NatState._
 
+object FlowStatePackets {
+    val TUNNEL_KEY = 0xFFFFFF
+}
+
 trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
                        NatKeyT <: NatKeyStore,
                        TraceKeyT <: TraceKeyStore] {
@@ -46,7 +50,7 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
      *     | Tunnel encap (key = 0xFFFFFF)         |
      *     +---------------------------------------+
      */
-    val TUNNEL_KEY = 0xFFFFFF
+    val TUNNEL_KEY = FlowStatePackets.TUNNEL_KEY
     val SRC_MAC = MAC.fromString("AC:CA:BA:00:15:01")
     val DST_MAC = MAC.fromString("AC:CA:BA:00:15:02")
     val SRC_IP = IPv4Addr.fromString("169.254.15.1")

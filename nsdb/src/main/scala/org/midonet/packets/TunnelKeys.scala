@@ -21,7 +21,7 @@ package org.midonet.packets
  * clash.
  *
  * Tunnel keys have a 24 bits (limit imposed by vxlan).
- * The first bit is uses for tracing. The next 3 are the tunnel key type.
+ * The first bit is used for tracing. The next 3 are the tunnel key type.
  * There are 8 possible types. 4 are currently used.
  * The remaining bits are used for the key itself.
  *
