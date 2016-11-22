@@ -134,11 +134,13 @@ class VirtualTopologyManager(TopologyManager):
             self.resolve_resource_reference(reference)
             referrers[reference.get_referrer()] = None
         # Call update() on resources whose references have been resolved.
-        for referrer in referrers: referrer.update()
+        for referrer in referrers:
+            referrer.update()
         self._resource_references = []
         # Link peer ports
         for link in self._links:
-            try: link.build()
+            try:
+                link.build()
             except HTTPBadRequest as e:
                 raise DevicePortLinkingException(link, e)
 
@@ -190,20 +192,23 @@ class VirtualTopologyManager(TopologyManager):
         if 'device_name' in spec and 'port_id' in spec:
             port = self.get_device_port(spec['device_name'],
                                         spec['port_id'])
-            if port: return port._mn_resource.get_id()
+            if port:
+                return port._mn_resource.get_id()
             else:
                 raise ResourceNotFoundException(
                         'No device port with device name, %s, port id, %d' % (
                                 spec['device_name'], spec['port_id']))
         elif 'port_group_name' in spec:
             port_group = self.get_port_group(spec['port_group_name'])
-            if port_group: return port_group._mn_resource.get_id()
+            if port_group:
+                return port_group._mn_resource.get_id()
             else:
                 raise ResourceNotFoundException("No port group with name: %s" %
                         spec['port_group_name'])
         elif 'chain_name' in spec:
             chain = self.get_chain(spec['chain_name'])
-            if chain: return chain._mn_resource.get_id()
+            if chain:
+                return chain._mn_resource.get_id()
             else:
                 raise ResourceNotFoundException("No chain with name: %s" %
                         spec['chain_name'])
@@ -213,25 +218,33 @@ class VirtualTopologyManager(TopologyManager):
 
     def destroy(self):
         """ Cleans up the virtual topology resources created by the manager. """
-        for qos_policy in self._qos_policies.values(): qos_policy.destroy()
+        for qos_policy in self._qos_policies.values():
+            qos_policy.destroy()
         self._qos_policies.clear()
-        for load_balancer in self._load_balancers.values(): load_balancer.destroy()
+        for load_balancer in self._load_balancers.values():
+            load_balancer.destroy()
         self._load_balancers.clear()
-        for health_monitor in self._health_monitors.values(): health_monitor.destroy()
+        for health_monitor in self._health_monitors.values():
+            health_monitor.destroy()
         self._health_monitors.clear()
-        for router in self._routers.values(): router.destroy()
+        for router in self._routers.values():
+            router.destroy()
         self._routers.clear()
-        for bridge in self._bridges.values(): bridge.destroy()
+        for bridge in self._bridges.values():
+            bridge.destroy()
         self._bridges.clear()
         self._bridge_router.clear()
 
-        for chain in self._chains.values(): chain.destroy()
+        for chain in self._chains.values():
+            chain.destroy()
         self._chains.clear()
 
-        for port_group in self._port_groups.values(): port_group.destroy()
+        for port_group in self._port_groups.values():
+            port_group.destroy()
         self._port_groups.clear()
 
-        for vtep in self._vteps.values(): vtep.destroy()
+        for vtep in self._vteps.values():
+            vtep.destroy()
         self._vteps.clear()
 
         # Missing clearing these

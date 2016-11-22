@@ -84,7 +84,8 @@ class Rule(ResourceBase):
         self._mn_resource = self._chain._mn_resource.add_rule()
         self._mn_resource.chain_id(self._chain._mn_resource.get_id())
         for field in FIELDS:
-            if field is 'chain_id' or field not in self._data: continue
+            if field is 'chain_id' or field not in self._data:
+                continue
             if field in ['in_ports', 'out_ports',
                          'port_group_src', 'target_port']:
                 self._context.look_up_resource(

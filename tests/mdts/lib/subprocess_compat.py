@@ -19,7 +19,7 @@ import subprocess
 def check_output(*popenargs, **kwargs):
     if 'stdout' in kwargs:
         raise ValueError('stdout argument not allowed, it will be overridden.')
-    if not 'stderr' in kwargs:
+    if 'stderr' not in kwargs:
         kwargs['stderr'] = subprocess.PIPE
     process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
     stdout, stderr = process.communicate()
