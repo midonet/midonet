@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_f234494b",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/TunnelKeys.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-22T10:16:33Z",
+      "side": 1,
+      "message": "fix in later patch.",
+      "parentUuid": "9aa53dc9_9e6d0c35",
+      "range": {
+        "startLine": 24,
+        "startChar": 23,
+        "endLine": 24,
+        "endChar": 24
+      },
+      "revId": "af48eeaeb736f62bc4056a9e71d5082d2a26d4e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_7effe834",
         "filename": "nsdb/src/main/scala/org/midonet/packets/TunnelKeys.scala",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_923cdd30",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/TunnelKeys.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-22T10:16:33Z",
+      "side": 1,
+      "message": "in later patch.",
+      "parentUuid": "9aa53dc9_7effe834",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 19
+      },
+      "revId": "af48eeaeb736f62bc4056a9e71d5082d2a26d4e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_5efc243e",
         "filename": "nsdb/src/main/scala/org/midonet/packets/TunnelKeys.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2016-11-21T16:37:48Z",
       "side": 1,
       "message": "can we use this to validate a flow state tunnel key (will isOfType(0xffffff) return true)?",
+      "range": {
+        "startLine": 59,
+        "startChar": 8,
+        "endLine": 59,
+        "endChar": 21
+      },
+      "revId": "af48eeaeb736f62bc4056a9e71d5082d2a26d4e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_327991fd",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/TunnelKeys.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-22T10:16:33Z",
+      "side": 1,
+      "message": "Yes. There\u0027s a unit test also. We can\u0027t use this to generate the flow state key though, since it would need the trace bit set too for historical reasons.",
+      "parentUuid": "9aa53dc9_5efc243e",
       "range": {
         "startLine": 59,
         "startChar": 8,
