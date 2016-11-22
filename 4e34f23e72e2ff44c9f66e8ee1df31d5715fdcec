@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_378dfe31",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1006816
+      },
+      "writtenOn": "2016-11-22T17:18:47Z",
+      "side": 1,
+      "message": "It would be useful to add a some vppctl commands to check the vpp status e.g.:\nshow int address\ntrace add af-packet-input 10\nshow trace\nclear trace\nshow ip6 fib\nfip64 show",
+      "revId": "4e34f23e72e2ff44c9f66e8ee1df31d5715fdcec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
