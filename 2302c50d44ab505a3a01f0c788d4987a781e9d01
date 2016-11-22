@@ -22,6 +22,30 @@
       "revId": "2302c50d44ab505a3a01f0c788d4987a781e9d01",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_77e5cba6",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/WritableFloodingProxyHeraldTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-22T08:58:54Z",
+      "side": 1,
+      "message": "Making it a singleton would make it more complicated to ensure tests don\u0027t affect each other. Doesn\u0027t really matter in this particular file but in some other tests, having different instances of FakeDiscovery easily gives us this guarantee.",
+      "parentUuid": "9aa53dc9_f759db8f",
+      "range": {
+        "startLine": 83,
+        "startChar": 55,
+        "endLine": 83,
+        "endChar": 72
+      },
+      "revId": "2302c50d44ab505a3a01f0c788d4987a781e9d01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
