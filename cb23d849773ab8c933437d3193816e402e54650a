@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_b7f913cb",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronMediaType.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-22T07:13:20Z",
+      "side": 1,
+      "message": "Just because that is its name \"LBListener\" as in LoadBalancerListener (but I didn\u0027t want to spell it all out every time, so I abbreviated it).",
+      "parentUuid": "9aa53dc9_97484f2f",
+      "range": {
+        "startLine": 45,
+        "startChar": 31,
+        "endLine": 45,
+        "endChar": 51
+      },
+      "revId": "cb23d849773ab8c933437d3193816e402e54650a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_b74b532b",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronMediaType.java",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-22T06:55:43Z",
       "side": 1,
       "message": "does this mean this is a new version of POOLS_JSON_V1?\nmy understanding is that these should be separate types, rather than versions of lbaasv1 things.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 100
+      },
+      "revId": "cb23d849773ab8c933437d3193816e402e54650a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_97f60fd6",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronMediaType.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-22T07:13:20Z",
+      "side": 1,
+      "message": "This is should be its own object, not a versioning of LBaaS V1 Pools.",
+      "parentUuid": "9aa53dc9_b74b532b",
       "range": {
         "startLine": 46,
         "startChar": 0,
