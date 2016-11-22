@@ -53,6 +53,29 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_976f2f92",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-22T07:10:25Z",
+      "side": 1,
+      "message": "These messages aren\u0027t necessarily correct. For example, the caller could specify name, iface, ip, and router ip, omitting mac address, but the error you give would be \"no router IP specified.\" I would just check the total number of arguments supplied, and if it\u0027s different from what\u0027s expected, give an error that states the correct usage, like:\n\n\"Expected 5 arguments, but 6 were specified. Usage:\n\n  haproxy-helper makens NAME IFACE MAC IP ROUTERIP\"",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 6
+      },
+      "revId": "793f487b7dfae1d4f25baf0817969b68a1766092",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_1c68e4f4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 5
