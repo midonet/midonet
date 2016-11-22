@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from threading import Semaphore
 from concurrent.futures import ThreadPoolExecutor
-from hamcrest import *
-from math import ceil
-import time
+from hamcrest import assert_that
 import logging
+from math import ceil
+from threading import Semaphore
+import time
 
 EXECUTOR = ThreadPoolExecutor(max_workers=10)
 

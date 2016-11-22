@@ -16,7 +16,6 @@
 
 import fixtures
 from fixtures import callmany
-from midonetclient.api import MidonetApi
 import uuid
 import yaml
 

@@ -15,12 +15,11 @@
 """
 Unit tests for mdts.tests.utils.utils module.
 """
-from mdts.tests.utils.utils import ipv4_int
-from mdts.tests.utils.utils import get_top_dir
 from mdts.tests.utils.utils import get_midolman_script_dir
-
-import unittest
+from mdts.tests.utils.utils import get_top_dir
+from mdts.tests.utils.utils import ipv4_int
 import os
+import unittest
 
 
 class UtilsTest(unittest.TestCase):

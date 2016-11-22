@@ -14,18 +14,14 @@
 # limitations under the License.
 #
 
-import importlib
 import base64
+import importlib
 import logging
-import os.path
-import time
-import yaml
-
 from mdts.lib.mdtsdocker import DockerClient
 from mdts.lib.ssh import SshClient
-
 from mdts.services.interface import Interface
 from mdts.tests.utils import conf
+import time
 
 LOG = logging.getLogger(__name__)
 

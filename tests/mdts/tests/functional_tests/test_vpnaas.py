@@ -13,28 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from nose import with_setup
 
 import copy
-
-import itertools
 from hamcrest import equal_to
-
+import itertools
+import logging
 from mdts.lib.bindings import BindingManager
-
-from mdts.lib.topology_manager import TopologyManager
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
-from mdts.tests.utils.asserts import *
-from mdts.tests.utils.utils import bindings, get_neutron_api, await_port_active
+from mdts.tests.utils.asserts import assert_that
+from mdts.tests.utils.utils import await_port_active
+from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.utils import wait_on_futures
-
-import neutronclient.neutron.client as neutron
-
 from nose.tools import nottest
-from nose.plugins.attrib import attr
-
-import logging
+import time
 
 LOG = logging.getLogger(__name__)
 

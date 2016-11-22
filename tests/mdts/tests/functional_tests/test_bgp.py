@@ -12,29 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mdts.lib.physical_topology_manager import PhysicalTopologyManager
-from mdts.lib.virtual_topology_manager import VirtualTopologyManager
+from hamcrest import assert_that
+from hamcrest import calling
+from hamcrest import equal_to
+from hamcrest import raises
+import logging
 from mdts.lib.binding_manager import BindingManager
 from mdts.lib.failure.pkt_failure import PktFailure
+from mdts.lib.physical_topology_manager import PhysicalTopologyManager
+from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.services import service
-
 from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.utils import wait_on_futures
-
-from mdts.tests.utils.asserts import *
-from mdts.tests.utils import *
-
-
 from nose.plugins.attrib import attr
-
-from hamcrest import *
-from nose.tools import nottest, with_setup
-
-import logging
+from nose.tools import nottest
+from nose.tools import with_setup
 import time
-import pdb
-import re
-import subprocess
 
 LOG = logging.getLogger(__name__)
 

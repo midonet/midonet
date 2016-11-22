@@ -16,8 +16,8 @@
 Base class for virtual topology resource data such as bridges and routers.
 """
 
-from webob.exc import HTTPServiceUnavailable
 import time
+from webob.exc import HTTPServiceUnavailable
 
 
 def retryloop(attempts, delay):

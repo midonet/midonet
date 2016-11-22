@@ -13,13 +13,11 @@
 # limitations under the License.
 
 import fixtures
-from collections import namedtuple
 from fixtures import callmany
-import uuid
 from mdts.lib.topology_manager import TopologyManager
-
 from mdts.services import service
 from mdts.tests.utils.utils import await_port_active
+import uuid  # noqa
 
 import logging
 

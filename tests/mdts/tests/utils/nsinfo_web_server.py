@@ -15,7 +15,8 @@
 import commands
 import sys
 
-from wsgiref.simple_server import make_server, WSGIRequestHandler, WSGIServer
+from wsgiref.simple_server import make_server
+from wsgiref.simple_server import WSGIRequestHandler, WSGIServer
 
 """
 nsinfo (namespace info) web server

@@ -14,19 +14,17 @@
 
 from collections import Counter
 from hamcrest.core import assert_that
-from hamcrest import equal_to, is_not
-from nose.plugins.attrib import attr
-from nose.tools import with_setup, nottest
-
+from hamcrest import equal_to
+from hamcrest import is_not
+import logging
 from mdts.lib.binding_manager import BindingManager
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.services import service
 from mdts.tests.utils.utils import bindings
-from mdts.tests.utils.asserts import async_assert_that, receives, should_NOT_receive, within_sec
-from mdts.tests.utils.utils import wait_on_futures
-
-import logging
+from nose.plugins.attrib import attr
+from nose.tools import nottest
+from nose.tools import with_setup
 import time
 
 LOG = logging.getLogger(__name__)

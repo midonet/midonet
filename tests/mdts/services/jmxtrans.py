@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from mdts.services.service import Service, get_container_by_hostname
-import json, tempfile, tarfile, os, os.path
+import json
+from mdts.services.service import get_container_by_hostname
+from mdts.services.service import Service
 
 
 class JmxTransHost(Service):

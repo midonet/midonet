@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mdts.lib.resource_base import ResourceBase
-from mdts.lib.dhcp_host import DhcpHost
-
-import pdb
 import logging
+from mdts.lib.dhcp_host import DhcpHost
+from mdts.lib.resource_base import ResourceBase
 LOG = logging.getLogger(__name__)
 
 

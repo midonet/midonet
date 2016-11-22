@@ -14,22 +14,18 @@
 
 import copy
 
-from mdts.lib import sandbox
+import logging
 from mdts.lib.bindings import BindingManager
 from mdts.lib.bindings import BindingType
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
-from mdts.tests.utils.asserts import *
+from mdts.tests.utils.asserts import async_assert_that
+from mdts.tests.utils.asserts import receives
+from mdts.tests.utils.asserts import within_sec
 from mdts.tests.utils.utils import await_port_active
 from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.utils import wait_on_futures
-from mdts.tests.utils import conf
 
-from hamcrest import *
-from nose.tools import with_setup
-
-import logging
-import time
 
 LOG = logging.getLogger(__name__)
 

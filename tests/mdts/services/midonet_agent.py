@@ -13,16 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import random
+import logging
+from mdts.lib.bindings import BindingType
 from mdts.services.interface import Interface
 from mdts.services.jmx_monitor import JMXMonitor
-
+from mdts.services import service
 from mdts.services.service import Service
 from mdts.services.vmguest import VMGuest
+import random
 import uuid
-import logging
-from mdts.services import service
-from mdts.lib.bindings import BindingType
 
 LOG = logging.getLogger(__name__)
 

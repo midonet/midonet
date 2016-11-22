@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from jpype import java, javax
-import jvm
 import jpype
+from jpype import java
+from jpype import javax
+import jvm
 import logging
 
 LOG = logging.getLogger(__name__)

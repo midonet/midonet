@@ -15,9 +15,8 @@
 """ Unit test module for Chain virtual topology data.
 """
 from mdts.lib.chain import Chain
-from mock import MagicMock
 from mock import call
-
+from mock import MagicMock
 import unittest
 import yaml
 
