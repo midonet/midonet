@@ -28,7 +28,7 @@ import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, ErrorDrop}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.rules.{LiteralRule, Nat64Rule, NatTarget, Rule}
-import org.midonet.midolman.simulation.Simulator.Nat64Action
+import org.midonet.midolman.simulation.Simulator.Fip64Action
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowKeys
@@ -115,7 +115,7 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The result should add a flow")
             result shouldBe AddVirtualWildcardFlow
-            context.virtualFlowActions should contain only Nat64Action(null, 1L)
+            context.virtualFlowActions should contain only Fip64Action(null, 1L)
         }
 
         scenario("Port with other rule") {
@@ -154,7 +154,7 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The result should add a flow")
             result shouldBe AddVirtualWildcardFlow
-            context.virtualFlowActions should contain only Nat64Action(null, 1L)
+            context.virtualFlowActions should contain only Fip64Action(null, 1L)
         }
 
         scenario("Port with multiple NAT64 rules") {
@@ -175,7 +175,7 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The result should add a flow")
             result shouldBe AddVirtualWildcardFlow
-            context.virtualFlowActions should contain only Nat64Action(null, 1L)
+            context.virtualFlowActions should contain only Fip64Action(null, 1L)
         }
 
         scenario("Non-IPv4 packet") {

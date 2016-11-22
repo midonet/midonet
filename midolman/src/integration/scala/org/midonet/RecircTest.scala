@@ -148,6 +148,7 @@ class RecircTest extends FeatureSpec
             override def isVtepTunnellingPort(portNumber: Int): Boolean = false
             override def isOverlayTunnellingPort(portNumber: Int): Boolean = false
             override def vtepTunnellingOutputAction: FlowActionOutput = null
+            override def fip64TunnellingOutputAction: FlowActionOutput = null
             override def tunnelFip64VxLanPort: VxLanTunnelPort = null
             override def isFip64TunnellingPort(portNumber: Int): Boolean = false
 

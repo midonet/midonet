@@ -37,10 +37,10 @@ object Simulator {
 
     /**
       * This action is used has to be forwarded to a VPP-controller host for
-      * NAT64 translation. The action includes the identifier of the VPP host
+      * FIP64 translation. The action includes the identifier of the VPP host
       * and the VNI of the VXLAN tunnel.
       */
-    case class Nat64Action(hostId: UUID, vni: Long)
+    case class Fip64Action(hostId: UUID, vni: Long)
         extends ForwardAction with VirtualFlowAction
 
     /**

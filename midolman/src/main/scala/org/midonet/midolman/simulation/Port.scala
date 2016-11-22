@@ -28,7 +28,7 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.rules.{Nat64Rule, Rule}
-import org.midonet.midolman.simulation.Simulator.{ContinueWith, Nat64Action, SimHook, ToPortAction}
+import org.midonet.midolman.simulation.Simulator.{ContinueWith, Fip64Action, SimHook, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.odp.FlowMatch
 import org.midonet.packets._
@@ -555,7 +555,7 @@ case class RouterPort(override val id: UUID,
                         context.log.debug("Emitting packet to NAT64 gateway " +
                                           s"with tunnel key $tunnelKey")
                         context.calculateActionsFromMatchDiff()
-                        context.addVirtualAction(Nat64Action(null, tunnelKey))
+                        context.addVirtualAction(Fip64Action(null, tunnelKey))
                         context.trackConnection(deviceId)
                         AddVirtualWildcardFlow
                     } else {
