@@ -419,8 +419,6 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
 object DatapathStateDriver {
     final val NoTunnelKey = 0L
-    final val LocalTunnelKeyBit = 1 << 22
-    final val LocalTunnelKeyMask = LocalTunnelKeyBit - 1
 
     case class DpTriad(
         ifname: String,
