@@ -93,7 +93,8 @@ class ArpRequestBrokerTest extends Suite
                           portMac = MY_MAC,
                           routerId = routerId,
                           portAddressV4 = MY_IP,
-                          portSubnetV4 = IPv4Subnet.fromCidr(NW_CIDR))
+                          portSubnetV4 = IPv4Subnet.fromCidr(NW_CIDR),
+                          fip64vxlan = config.fip64.vxlanDownlink)
 
     var router: Router = _
 

@@ -84,7 +84,8 @@ class RoutingHandlerTest extends FeatureSpecLike
             routerId = UUID.randomUUID(),
             portSubnetV4 = IPv4Subnet.fromCidr("192.168.80.0/24"),
             portAddressV4 = IPv4Addr.fromString("192.168.80.1"),
-            portMac = MAC.random())
+            portMac = MAC.random(),
+            fip64vxlan = config.fip64.vxlanDownlink)
 
         bgpd = new MockBgpdProcess
 
