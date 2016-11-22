@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_9c92b456",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-22T00:43:00Z",
+      "side": 1,
+      "message": "will do",
+      "parentUuid": "9aa53dc9_de43946b",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 31
+      },
+      "revId": "b27dfd660bb44c8da19512eb69323d41023e279b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_fe4e5895",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2.java",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-21T17:00:08Z",
       "side": 1,
       "message": "use Collections.emptyList()?",
+      "range": {
+        "startLine": 49,
+        "startChar": 27,
+        "endLine": 49,
+        "endChar": 48
+      },
+      "revId": "b27dfd660bb44c8da19512eb69323d41023e279b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_fcaf807b",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-22T00:43:00Z",
+      "side": 1,
+      "message": "If I use EmptyList, would I then be able to append to it and treat it like a normal ArrayList?\n\nAll of our other model classes use:\n\n(this is from Router)\n    @ZoomField(name \u003d \"routes\")\n    public List\u003cRoute\u003e routes \u003d new ArrayList\u003c\u003e();\n\n(this is from SecurityGroup)\n    @JsonProperty(\"security_group_rules\")\n    @ZoomField(name \u003d \"security_group_rules\")\n    public List\u003cSecurityGroupRule\u003e securityGroupRules \u003d new ArrayList\u003c\u003e();\n\n\nconstructs, so I was just trying to be consistent with the other models.",
+      "parentUuid": "9aa53dc9_fe4e5895",
       "range": {
         "startLine": 49,
         "startChar": 27,
