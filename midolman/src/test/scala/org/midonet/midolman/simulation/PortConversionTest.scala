@@ -59,7 +59,8 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
             val device = Port(port,
                               PortInactive,
                               Lists.newArrayList(port.getInboundFilterId.asJava),
-                              Lists.newArrayList(port.getOutboundFilterId.asJava))
+                              Lists.newArrayList(port.getOutboundFilterId.asJava),
+                              fip64vxlan=true)
 
             device shouldBeDeviceOf port
             device.deviceTag should not be null
@@ -82,7 +83,8 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
             val device = Port(port,
                               PortInactive,
                               Lists.newArrayList(port.getInboundFilterId.asJava),
-                              Lists.newArrayList(port.getOutboundFilterId.asJava))
+                              Lists.newArrayList(port.getOutboundFilterId.asJava),
+                              fip64vxlan=true)
 
             device shouldBeDeviceOf port
             device.deviceTag should not be null
@@ -105,7 +107,8 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
             val device = Port(port,
                               PortInactive,
                               Lists.newArrayList(port.getInboundFilterId.asJava),
-                              Lists.newArrayList(port.getOutboundFilterId.asJava))
+                              Lists.newArrayList(port.getOutboundFilterId.asJava),
+                              fip64vxlan=true)
 
             device shouldBeDeviceOf port
             device.deviceTag should not be null

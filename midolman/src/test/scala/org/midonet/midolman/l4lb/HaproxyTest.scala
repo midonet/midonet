@@ -301,7 +301,8 @@ class HaproxyTest extends MidolmanSpec
                                  portSubnetV4 = HaproxyHealthMonitor.NetSubnet,
                                  portMac = HaproxyHealthMonitor.RouterMAC,
                                  hostId = hostId,
-                                 interfaceName = hmName + "_dp")
+                                 interfaceName = hmName + "_dp",
+                                 fip64vxlan = config.fip64.vxlanDownlink)
         simPort shouldBeDeviceOf port
 
         val routeId = port.getRouteIds(0).asJava
