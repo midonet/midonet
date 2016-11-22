@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_37ee238c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-22T08:59:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_bc02183d",
+      "revId": "793f487b7dfae1d4f25baf0817969b68a1766092",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_dca39c4e",
         "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
         "patchSetId": 5
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_37e9831b",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-22T08:59:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_dca39c4e",
+      "revId": "793f487b7dfae1d4f25baf0817969b68a1766092",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_bc89f8cc",
         "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
         "patchSetId": 5
@@ -47,6 +83,24 @@
       "writtenOn": "2016-11-22T05:11:08Z",
       "side": 1,
       "message": "alignment",
+      "revId": "793f487b7dfae1d4f25baf0817969b68a1766092",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_77494bd0",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-22T08:59:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_bc89f8cc",
       "revId": "793f487b7dfae1d4f25baf0817969b68a1766092",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -76,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_973ccf30",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-22T08:59:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_976f2f92",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 6
+      },
+      "revId": "793f487b7dfae1d4f25baf0817969b68a1766092",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_1c68e4f4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 5
@@ -87,6 +165,24 @@
       "writtenOn": "2016-11-22T05:11:08Z",
       "side": 1,
       "message": "copyright missing",
+      "revId": "793f487b7dfae1d4f25baf0817969b68a1766092",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_37dd0315",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-22T08:59:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_1c68e4f4",
       "revId": "793f487b7dfae1d4f25baf0817969b68a1766092",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
