@@ -33,6 +33,7 @@ object SequenceDispenser {
 
     case object OverlayTunnelKey extends SequenceType("OVERLAY_TUNNEL_KEY", 1)
     case object VxgwVni extends SequenceType("VXGW_TUNNEL_KEY", 10000)
+    case object Fip64TunnelKey extends SequenceType("FIP64_TUNNEL_KEY", 1)
 
     val Sequences = Seq (
         OverlayTunnelKey,
