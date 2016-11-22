@@ -69,7 +69,7 @@ class BindingManager(TopologyManager):
             if mn_vport.get_type() == 'InteriorRouter' or \
                mn_vport.get_type() == 'InteriorBridge':
                 LOG.error("Cannot bind interior port")
-                sys.exit(-1) # TODO: make this fancier
+                sys.exit(-1)  # TODO: make this fancier
 
             # FIXME: some hosts are specified by midonet host_id while others
             # are referenced by hostname. Need a coherent mechanism
@@ -102,7 +102,7 @@ class BindingManager(TopologyManager):
                 iface = host.create_vmguest(**_interface)
             elif _interface['type'] == 'trunk':
                 iface = host.create_trunk(**_interface)
-            else: # provided
+            else:  # provided
                 iface = host.create_provided(**_interface)
 
             self._port_if_map[(device_name, port_id)] = iface

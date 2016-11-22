@@ -54,7 +54,7 @@ binding_multihost = {
 }
 
 
-@nottest # disabling for now
+@nottest  # disabling for now
 @attr(version="v1.2.0")
 @bindings(binding_multihost)
 def test_filter_ipv6():
@@ -139,8 +139,8 @@ def test_dst_mac_masking():
     if1 = BM.get_iface_for_port('bridge-000-001', 1)
     if2 = BM.get_iface_for_port('bridge-000-001', 2)
 
-    if1_hw_addr = if1.get_mac_addr()#interface['hw_addr']
-    if2_hw_addr = if2.get_mac_addr()#interface['hw_addr']
+    if1_hw_addr = if1.get_mac_addr()  # interface['hw_addr']
+    if2_hw_addr = if2.get_mac_addr()  # interface['hw_addr']
 
     if2_ip_addr = if2.get_ip()
 

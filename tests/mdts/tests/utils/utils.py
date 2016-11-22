@@ -395,7 +395,7 @@ def ipv4_int(ipv4_str):
 
 def await_port_active(vport_id, active=True, timeout=120, sleep_period=5):
     midonet_api = get_midonet_api()
-    time.sleep(1) # Initial, hopeful, short sleep
+    time.sleep(1)  # Initial, hopeful, short sleep
     while midonet_api.get_port(vport_id).get_active() != active:
         time.sleep(sleep_period)
         timeout -= sleep_period

@@ -659,7 +659,7 @@ def test_l2insertion_fail_open():
         wait_on_futures([f1, f2, f3])
 
         set_interface_admin_down(service_port1)
-        time.sleep(5) # give midolman a chance to see it
+        time.sleep(5)  # give midolman a chance to see it
 
         LOG.info("Sending dead beef again")
         f1 = async_assert_that(service_port2,
