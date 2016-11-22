@@ -102,7 +102,7 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
 
     abstract override def clear(): Unit = {
         super.clear()
-        conntrackTx.flush()
+        if (conntrackTx ne null) conntrackTx.flush()
         connKey = null
         isConnectionTracked = false
     }

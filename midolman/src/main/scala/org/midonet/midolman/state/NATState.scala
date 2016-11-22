@@ -160,7 +160,7 @@ trait NatState extends FlowState { this: PacketContext =>
 
     abstract override def clear(): Unit = {
         super.clear()
-        natTx.flush()
+        if (natTx ne null) natTx.flush()
     }
 
     def resetNatState(): Unit = {
