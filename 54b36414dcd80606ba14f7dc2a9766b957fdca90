@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_99e76b12",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronUriBuilder.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-22T05:53:36Z",
+      "side": 1,
+      "message": "LB_V2 \u003d \"/lb_v2\" or LBS_v2 \u003d \"/lbs_v2\"",
+      "range": {
+        "startLine": 44,
+        "startChar": 31,
+        "endLine": 44,
+        "endChar": 37
+      },
+      "revId": "54b36414dcd80606ba14f7dc2a9766b957fdca90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_59f1e3cc",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronUriBuilder.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-22T05:53:36Z",
+      "side": 1,
+      "message": "ISTENERS\n\nAlso, should this have the LB_ prefix? None of the other ones do, and you don\u0027t use it in the path.",
+      "range": {
+        "startLine": 45,
+        "startChar": 31,
+        "endLine": 45,
+        "endChar": 45
+      },
+      "revId": "54b36414dcd80606ba14f7dc2a9766b957fdca90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
