@@ -25,9 +25,7 @@ import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
-import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.MidolmanService
 import org.midonet.midolman.util._
@@ -73,10 +71,8 @@ trait MidolmanBenchmark extends MockMidolmanActors
 
     protected def getModules(conf: Config) = {
         List(
-            new SerializationModule(),
             new MidonetBackendTestModule(conf),
             new MockZookeeperConnectionModule(),
-            new LegacyClusterModule(),
             new AbstractModule {
                 override def configure() {
                     bind(classOf[VirtualConfigurationBuilders])

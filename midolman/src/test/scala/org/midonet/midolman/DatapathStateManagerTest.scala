@@ -21,15 +21,16 @@ import java.util.UUID
 import scala.util.Random
 
 import com.typesafe.scalalogging.Logger
+
 import org.junit.runner.RunWith
-import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
-import org.midonet.midolman.topology.devices.TunnelZoneType
-import org.midonet.odp.{Datapath, DpPort}
-import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort}
-import org.midonet.sdn.flows.FlowTagger
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.slf4j.helpers.NOPLogger
+
+import org.midonet.midolman.topology.devices.TunnelZoneType
+import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort}
+import org.midonet.odp.{Datapath, DpPort}
+import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {

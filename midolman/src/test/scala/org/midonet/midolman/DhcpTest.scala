@@ -25,11 +25,11 @@ import scala.collection.mutable
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.midolman.PacketWorkflow.GeneratedLogicalPacket
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Bridge, DhcpValueParser, Router}
+import org.midonet.midolman.topology.devices.Dhcp.Opt121Route
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
 import org.midonet.packets._
@@ -474,8 +474,8 @@ class DhcpTest extends MidolmanSpec {
             classlessRoutesDhcpOption.get) should be (true)
     }
 
-    def getOpt121FromBytes(bytes: Array[Byte]): mutable.ListBuffer[Opt121] = {
-        val opt121Routes = mutable.ListBuffer[Opt121]()
+    def getOpt121FromBytes(bytes: Array[Byte]): mutable.ListBuffer[Opt121Route] = {
+        val opt121Routes = mutable.ListBuffer[Opt121Route]()
         val bb = ByteBuffer.wrap(bytes)
         while (bb.hasRemaining) {
             val maskLen = bb.get
@@ -484,7 +484,7 @@ class DhcpTest extends MidolmanSpec {
                 mask <<= 8
                 if (maskLen > i * 8) mask |= (0xFF & bb.get)
             }
-            opt121Routes += new Opt121(
+            opt121Routes += Opt121Route(
                 new IPv4Subnet(mask, maskLen), new IPv4Addr(bb.getInt))
         }
         opt121Routes
@@ -494,13 +494,13 @@ class DhcpTest extends MidolmanSpec {
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
 
         val univSubnet = IPv4Subnet.fromCidr("0.0.0.0/0")
-        val defaultRoute = new Opt121(IPv4Subnet.fromCidr("0.0.0.0/0"),
-                                      routerIp2.getAddress)
+        val defaultRoute = Opt121Route(IPv4Subnet.fromCidr("0.0.0.0/0"),
+                                       routerIp2.getAddress)
 
         // Defined as routerIp1 above, but the full IP is used
         // (192.168.11.1/24) we compare only the sub.
-        val expectedRoute = new Opt121(IPv4Subnet.fromCidr("192.168.11.0/24"),
-                                       routerIp2.getAddress)
+        val expectedRoute = Opt121Route(IPv4Subnet.fromCidr("192.168.11.0/24"),
+                                        routerIp2.getAddress)
 
         val opt121 = dhcpReply.getOptions
             .filter(_.getCode == DHCPOption.Code.CLASSLESS_ROUTES.value)

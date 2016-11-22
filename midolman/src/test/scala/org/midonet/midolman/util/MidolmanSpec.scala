@@ -35,7 +35,6 @@ import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.{FlowTranslator, DatapathState, MockMidolmanModule}
 import org.midonet.midolman.cluster._
-import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.MidolmanService
@@ -141,7 +140,6 @@ trait MidolmanSpec extends FeatureSpecLike
 
     protected def getModules(conf: Config) =
         List (
-            new SerializationModule(),
             new MidonetBackendTestModule(conf),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
@@ -150,8 +148,7 @@ trait MidolmanSpec extends FeatureSpecLike
                         .to(classOf[ZoomVirtualConfigurationBuilders])
                         .asEagerSingleton()
                 }
-            },
-            new LegacyClusterModule()
+            }
         ).asJava
 
     sealed class TestFlowTranslator(val dpState: DatapathState) extends FlowTranslator {

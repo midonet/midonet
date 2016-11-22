@@ -32,7 +32,6 @@ import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
-import org.midonet.midolman.state.PathBuilder
 
 @ApiResource(version = 1, name = "bridges", template = "bridgeTemplate")
 @Path("bridges")
@@ -48,7 +47,6 @@ import org.midonet.midolman.state.PathBuilder
                    APPLICATION_JSON))
 @AllowDelete
 class BridgeResource @Inject()(resContext: ResourceContext,
-                               pathBuilder: PathBuilder,
                                curator: CuratorFramework)
     extends MidonetResource[Bridge](resContext) {
 
