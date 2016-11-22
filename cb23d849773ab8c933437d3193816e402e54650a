@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_d7b817e8",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronMediaType.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-22T07:35:02Z",
+      "side": 1,
+      "message": "I will change to Listener (although this will also change the previous commit for the models as well).",
+      "parentUuid": "9aa53dc9_b7f913cb",
+      "range": {
+        "startLine": 45,
+        "startChar": 31,
+        "endLine": 45,
+        "endChar": 51
+      },
+      "revId": "cb23d849773ab8c933437d3193816e402e54650a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_b74b532b",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronMediaType.java",
         "patchSetId": 4
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "This is should be its own object, not a versioning of LBaaS V1 Pools.",
       "parentUuid": "9aa53dc9_b74b532b",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 100
+      },
+      "revId": "cb23d849773ab8c933437d3193816e402e54650a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_b7ceb381",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronMediaType.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-22T07:35:02Z",
+      "side": 1,
+      "message": "I will fix these up to be v1 JSONS of V2 objects.",
+      "parentUuid": "9aa53dc9_97f60fd6",
       "range": {
         "startLine": 46,
         "startChar": 0,
