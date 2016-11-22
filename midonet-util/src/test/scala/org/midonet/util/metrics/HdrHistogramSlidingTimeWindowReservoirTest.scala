@@ -29,7 +29,7 @@ class HdrHistogramSlidingTimeWindowReservoirTest extends FeatureSpec with Matche
     class TestClock extends Clock {
         var nanoTime = 0L
 
-        override def getTick(): Long = nanoTime
+        override def getTick: Long = nanoTime
     }
 
     feature("Sliding window histogram") {
