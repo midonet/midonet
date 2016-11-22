@@ -125,7 +125,7 @@ object Port {
             interfaceName = if (p.hasInterfaceName) p.getInterfaceName else null,
             adminStateUp = p.getAdminStateUp,
             portGroups = p.getPortGroupIdsList,
-            isActive = state.isActive,
+            isPortActive = state.isActive,
             containerId = if (p.hasServiceContainerId) p.getServiceContainerId else null,
             routerId = if (p.hasRouterId) p.getRouterId else null,
             portSubnetV4 = ip4Subnet,
@@ -487,7 +487,7 @@ case class RouterPort(override val id: UUID,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
                       override val portGroups: JList[UUID] = emptyList(),
-                      override val isActive: Boolean = false,
+                      isPortActive: Boolean = false,
                       override val containerId: UUID = null,
                       routerId: UUID,
                       portSubnetV4: IPv4Subnet = Port.DefaultIPv4Subnet,
@@ -541,6 +541,25 @@ case class RouterPort(override val id: UUID,
             super.egressCommon(context, next)
         }
     }
+
+    val isFip64: Boolean = {
+        var index = 0
+        var isFip64 = false
+        while (index < fipNatRules.size()) {
+            if (fipNatRules.get(index).isInstanceOf[Nat64Rule]) {
+                isFip64 = true
+            }
+            index += 1
+        }
+        isFip64
+    }
+
+    override def isActive: Boolean = {
+        (fip64vxlan && isFip64) || isPortActive
+    }
+
+    override def isExterior: Boolean =
+        (fip64vxlan && isFip64) || super.isExterior
 
     protected override def emitCommon: SimStep = {
         val emitBase = super.emitCommon

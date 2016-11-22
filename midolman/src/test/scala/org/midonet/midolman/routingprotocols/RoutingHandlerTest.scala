@@ -80,7 +80,7 @@ class RoutingHandlerTest extends FeatureSpecLike
         rport = RouterPort(
             id = UUID.randomUUID(),
             tunnelKey = 1,
-            isActive = true,
+            isPortActive = true,
             routerId = UUID.randomUUID(),
             portSubnetV4 = IPv4Subnet.fromCidr("192.168.80.0/24"),
             portAddressV4 = IPv4Addr.fromString("192.168.80.1"),
@@ -230,7 +230,7 @@ class RoutingHandlerTest extends FeatureSpecLike
         }
 
         scenario("change in the router port address") {
-            val p = rport.copy(isActive = true,
+            val p = rport.copy(isPortActive = true,
                                portAddressV4 = IPv4Addr.fromString("192.168.80.2"))
             routingHandler ! BgpPort(p, baseConfig, Set(peer1Id))
             bgpd.state should be (bgpd.RUNNING)
