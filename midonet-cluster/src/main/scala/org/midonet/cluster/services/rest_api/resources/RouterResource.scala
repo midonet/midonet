@@ -27,7 +27,6 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
-import org.midonet.midolman.state.PathBuilder
 
 @ApiResource(version = 1, name = "routers", template = "routerTemplate")
 @Path("routers")
@@ -41,8 +40,7 @@ import org.midonet.midolman.state.PathBuilder
 @AllowUpdate(Array(APPLICATION_ROUTER_JSON_V3,
                    APPLICATION_JSON))
 @AllowDelete
-class RouterResource @Inject()(resContext: ResourceContext,
-                               pathBuilder: PathBuilder)
+class RouterResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Router](resContext) {
 
     @Path("{id}/ports")

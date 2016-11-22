@@ -55,8 +55,6 @@ import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.LoggerLevelWatcher;
 import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.jna.CLibrary;
-import org.midonet.midolman.cluster.LegacyClusterModule;
-import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.logging.FlowTracingAppender;
@@ -243,9 +241,7 @@ public class Midolman {
             new MidonetBackendModule(config.zookeeper(),
                                      scala.Option.apply(reflections),
                                      metricRegistry),
-            new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
-            new SerializationModule(),
-            new LegacyClusterModule()
+            new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class)
         );
 
         injector = injector.createChildInjector(

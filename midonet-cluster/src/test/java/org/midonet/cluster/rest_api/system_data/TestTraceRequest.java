@@ -32,8 +32,8 @@ import org.junit.Test;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.client.dto.DtoTraceRequest;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.data.TraceRequest.DeviceType;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.rest_api.models.Condition;
 import org.midonet.cluster.rest_api.models.TraceRequest;
@@ -46,7 +46,6 @@ import static java.lang.System.currentTimeMillis;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.midonet.cluster.rest_api.auth.AuthFilter.HEADER_X_AUTH_TOKEN;
-import static org.midonet.cluster.rest_api.conversion.TraceRequestDataConverter.toData;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TRACE_REQUEST_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TRACE_REQUEST_JSON;
 
@@ -100,12 +99,13 @@ public class TestTraceRequest extends RestApiTestBase {
                 .relativize(uri).toString());
     }
 
-    public TraceRequest traceRequest(UUID id, String name, DeviceType devType,
-                        UUID deviceId, Condition condition) {
-        TraceRequest tr = new TraceRequest(id, name, devType, deviceId,
-                                           condition, currentTimeMillis(),
-                                           Long.MAX_VALUE, false);
-        tr.setBaseUri(getBaseURI());
+    private DtoTraceRequest traceRequest(UUID id, String name,
+                                         TraceRequest.DeviceType devType,
+                                         UUID deviceId, Condition condition) {
+        DtoTraceRequest tr = new DtoTraceRequest(id, name, devType, deviceId,
+                                                 condition, currentTimeMillis(),
+                                                 Long.MAX_VALUE, false);
+        tr.uri = getBaseURI();
         return tr;
     }
 
@@ -115,35 +115,36 @@ public class TestTraceRequest extends RestApiTestBase {
     @Test(timeout=60000)
     public void testCRD() throws StateAccessException {
 
-        TraceRequest request = traceRequest(UUID.randomUUID(), "foobar",
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
-                new Condition());
+        DtoTraceRequest request = traceRequest(UUID.randomUUID(), "foobar",
+                                               TraceRequest.DeviceType.PORT,
+                                               topology.getRouterPort(PORT0).getId(),
+                                               new Condition());
         ClientResponse response = traceResource
             .type(APPLICATION_TRACE_REQUEST_JSON())
             .post(ClientResponse.class, request);
         assertThat("Create should have succeeded", response.getStatus(),
                    equalTo(Status.CREATED.getStatusCode()));
         request.id = toUUID(response.getLocation());
-        request.setBaseUri(resource().getURI());
+        request.uri = response.getLocation();
 
-        List<TraceRequest> traces = traceResource
+        List<DtoTraceRequest> traces = traceResource
             .accept(APPLICATION_TRACE_REQUEST_COLLECTION_JSON())
-            .get(new GenericType<List<TraceRequest>>() {});
+            .get(new GenericType<List<DtoTraceRequest>>() {});
         assertThat("The trace request is listed", traces.size(), equalTo(1));
 
-        TraceRequest readRequest = traceResource.uri(request.getUri())
+        DtoTraceRequest readRequest = traceResource.uri(request.uri)
             .accept(APPLICATION_TRACE_REQUEST_JSON())
-            .get(TraceRequest.class);
+            .get(DtoTraceRequest.class);
         assertThat("The object is different", request != readRequest);
 
-        Assert.assertEquals(toData(request), toData(readRequest));
-        assertThat("The content is the same",
-                   toData(request).equals(toData(readRequest)));
+        Assert.assertEquals(request, readRequest);
+        assertThat("The content is the same", request.equals(readRequest));
 
         // create a second
-        TraceRequest request2 = traceRequest(UUID.randomUUID(), "foobar2",
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
-                new Condition());
+        DtoTraceRequest request2 = traceRequest(UUID.randomUUID(), "foobar2",
+                                                TraceRequest.DeviceType.BRIDGE,
+                                                topology.getBridge(BRIDGE0).getId(),
+                                                new Condition());
         ClientResponse response2 = traceResource
             .type(APPLICATION_TRACE_REQUEST_JSON())
             .post(ClientResponse.class, request2);
@@ -153,17 +154,17 @@ public class TestTraceRequest extends RestApiTestBase {
 
         traces = traceResource
             .accept(APPLICATION_TRACE_REQUEST_COLLECTION_JSON())
-            .get(new GenericType<List<TraceRequest>>() {});
+            .get(new GenericType<List<DtoTraceRequest>>() {});
         assertThat("There should be two now", traces.size(), equalTo(2));
 
         // delete one
-        ClientResponse response3 = traceResource.uri(request.getUri())
+        ClientResponse response3 = traceResource.uri(request.uri)
             .delete(ClientResponse.class);
         assertThat("Delete should have succeeded", response3.getStatus(),
                    equalTo(Status.NO_CONTENT.getStatusCode()));
 
         // should not be able to read it now
-        ClientResponse response4 = traceResource.uri(request.getUri())
+        ClientResponse response4 = traceResource.uri(request.uri)
             .accept(APPLICATION_TRACE_REQUEST_JSON())
             .get(ClientResponse.class);
         assertThat("Should be gone", response4.getStatus(),
@@ -171,7 +172,7 @@ public class TestTraceRequest extends RestApiTestBase {
 
         traces = traceResource
             .accept(APPLICATION_TRACE_REQUEST_COLLECTION_JSON())
-            .get(new GenericType<List<TraceRequest>>() {});
+            .get(new GenericType<List<DtoTraceRequest>>() {});
         assertThat("There should be one now", traces.size(), equalTo(1));
     }
 
@@ -180,9 +181,10 @@ public class TestTraceRequest extends RestApiTestBase {
      */
     @Test(timeout=60000)
     public void testDoubleCreate() throws StateAccessException {
-        TraceRequest request = traceRequest(UUID.randomUUID(), "foobar",
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
-                new Condition());
+        DtoTraceRequest request = traceRequest(UUID.randomUUID(), "foobar",
+                                               TraceRequest.DeviceType.PORT,
+                                               topology.getRouterPort(PORT0).getId(),
+                                               new Condition());
         ClientResponse response = traceResource
             .type(APPLICATION_TRACE_REQUEST_JSON())
             .post(ClientResponse.class, request);
@@ -194,9 +196,9 @@ public class TestTraceRequest extends RestApiTestBase {
             .post(ClientResponse.class, request);
         assertThat("Create should not have succeeded", response.getStatus(),
                    equalTo(Status.CONFLICT.getStatusCode()));
-        List<TraceRequest> traces = traceResource
+        List<DtoTraceRequest> traces = traceResource
             .accept(APPLICATION_TRACE_REQUEST_COLLECTION_JSON())
-            .get(new GenericType<List<TraceRequest>>() {});
+            .get(new GenericType<List<DtoTraceRequest>>() {});
         assertThat("The trace request is listed", traces.size(), equalTo(1));
     }
 
@@ -206,12 +208,14 @@ public class TestTraceRequest extends RestApiTestBase {
     @Test(timeout=60000)
     public void testTenantLimitations() throws StateAccessException {
         // create two traces, the tenant owns the port but not the bridge
-        TraceRequest portTrace = traceRequest(UUID.randomUUID(), "foobar",
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
-                new Condition());
-        TraceRequest bridgeTrace = traceRequest(UUID.randomUUID(),
-                "foobar2", DeviceType.BRIDGE,
-                topology.getBridge(BRIDGE0).getId(), new Condition());
+        DtoTraceRequest portTrace = traceRequest(UUID.randomUUID(), "foobar",
+                                                 TraceRequest.DeviceType.PORT,
+                                                 topology.getRouterPort(PORT0).getId(),
+                                                 new Condition());
+        DtoTraceRequest bridgeTrace = traceRequest(UUID.randomUUID(), "foobar2",
+                                                   TraceRequest.DeviceType.BRIDGE,
+                                                   topology.getBridge(BRIDGE0).getId(),
+                                                   new Condition());
         ClientResponse response = traceResource
             .header(HEADER_X_AUTH_TOKEN, ADMIN0)
             .type(APPLICATION_TRACE_REQUEST_JSON())
@@ -219,7 +223,7 @@ public class TestTraceRequest extends RestApiTestBase {
         assertThat("Create should have succeeded", response.getStatus(),
                    equalTo(Status.CREATED.getStatusCode()));
         portTrace.id = toUUID(response.getLocation());
-        portTrace.setBaseUri(resource().getURI());
+        portTrace.uri = response.getLocation();
 
         response = traceResource
             .header(HEADER_X_AUTH_TOKEN, ADMIN0)
@@ -228,7 +232,7 @@ public class TestTraceRequest extends RestApiTestBase {
         assertThat("Create should have succeeded", response.getStatus(),
                    equalTo(Status.CREATED.getStatusCode()));
         bridgeTrace.id = toUUID(response.getLocation());
-        bridgeTrace.setBaseUri(resource().getURI());
+        bridgeTrace.uri = response.getLocation();
 
         // tenant should only see the port trace
         List<TraceRequest> traces = traceResource
@@ -248,7 +252,7 @@ public class TestTraceRequest extends RestApiTestBase {
         assertThat("Both trace requests are listed", traces.size(), equalTo(2));
 
         // tenant can delete port trace but not bridge trace
-        response = traceResource.uri(portTrace.getUri())
+        response = traceResource.uri(portTrace.uri)
             .queryParam("tenant_id", TENANT0)
             .header(HEADER_X_AUTH_TOKEN, TENANT0)
             .delete(ClientResponse.class);
@@ -268,11 +272,10 @@ public class TestTraceRequest extends RestApiTestBase {
         condition.nwDstAddress = "10.0.0.1";
         condition.nwSrcAddress = "10.0.0.2";
 
-        TraceRequest portTrace = traceRequest(
-                UUID.randomUUID(), "foobar",
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
-                condition);
-        portTrace.setBaseUri(resource().getURI());
+        DtoTraceRequest portTrace = traceRequest(
+            UUID.randomUUID(), "foobar",
+            TraceRequest.DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
+            condition);
 
         ClientResponse response = traceResource
             .type(APPLICATION_TRACE_REQUEST_JSON())
@@ -280,13 +283,13 @@ public class TestTraceRequest extends RestApiTestBase {
         assertThat("Create should have succeeded", response.getStatus(),
                    equalTo(Status.CREATED.getStatusCode()));
         portTrace.id = toUUID(response.getLocation());
+        portTrace.uri = response.getLocation();
 
-        TraceRequest readRequest = traceResource.uri(portTrace.getUri())
+        DtoTraceRequest readRequest = traceResource.uri(portTrace.uri)
             .accept(APPLICATION_TRACE_REQUEST_JSON())
-            .get(TraceRequest.class);
+            .get(DtoTraceRequest.class);
         assertThat("The object is different", portTrace != readRequest);
-        assertThat("The content is the same",
-                   toData(portTrace).equals(toData(readRequest)));
+        assertThat("The content is the same", portTrace.equals(readRequest));
         assertThat("Addresses are set correctly",
                    readRequest.condition.nwDstAddress.equals("10.0.0.1") &&
                    readRequest.condition.nwSrcAddress.equals("10.0.0.2"));
@@ -294,9 +297,9 @@ public class TestTraceRequest extends RestApiTestBase {
 
     @Test(timeout=60000)
     public void testCreateWithNonExistantDevice() throws StateAccessException {
-        TraceRequest portTrace = traceRequest(
-                UUID.randomUUID(), "foobar",
-                DeviceType.BRIDGE, UUID.randomUUID(), new Condition());
+        DtoTraceRequest portTrace = traceRequest(
+            UUID.randomUUID(), "foobar",
+            TraceRequest.DeviceType.BRIDGE, UUID.randomUUID(), new Condition());
         ClientResponse response = traceResource
             .type(APPLICATION_TRACE_REQUEST_JSON())
             .post(ClientResponse.class, portTrace);
@@ -306,10 +309,10 @@ public class TestTraceRequest extends RestApiTestBase {
 
     @Test(timeout=60000)
     public void testCreateWithWrongType() throws StateAccessException {
-        TraceRequest portTrace = traceRequest(
-                UUID.randomUUID(), "foobar",
-                DeviceType.BRIDGE, topology.getRouterPort(PORT0).getId(),
-                new Condition());
+        DtoTraceRequest portTrace = traceRequest(
+            UUID.randomUUID(), "foobar",
+            TraceRequest.DeviceType.BRIDGE, topology.getRouterPort(PORT0).getId(),
+            new Condition());
         ClientResponse response = traceResource
             .type(APPLICATION_TRACE_REQUEST_JSON())
             .post(ClientResponse.class, portTrace);
@@ -319,9 +322,10 @@ public class TestTraceRequest extends RestApiTestBase {
 
     @Test(timeout=60000)
     public void testEnableDisable() throws StateAccessException {
-        TraceRequest portTrace = traceRequest(UUID.randomUUID(), "foobar",
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
-                new Condition());
+        DtoTraceRequest portTrace = traceRequest(UUID.randomUUID(), "foobar",
+                                                 TraceRequest.DeviceType.PORT,
+                                                 topology.getRouterPort(PORT0).getId(),
+                                                 new Condition());
 
         ClientResponse response = traceResource
             .header(HEADER_X_AUTH_TOKEN, ADMIN0)
@@ -330,34 +334,34 @@ public class TestTraceRequest extends RestApiTestBase {
         assertThat("Create should have succeeded", response.getStatus(),
                    equalTo(Status.CREATED.getStatusCode()));
         portTrace.id = toUUID(response.getLocation());
-        portTrace.setBaseUri(resource().getURI());
+        portTrace.uri = response.getLocation();
 
-        TraceRequest readRequest = traceResource.uri(portTrace.getUri())
+        TraceRequest readRequest = traceResource.uri(portTrace.uri)
             .accept(APPLICATION_TRACE_REQUEST_JSON())
             .get(TraceRequest.class);
         assertThat("Trace hasn't been enabled",
                    readRequest.enabled, equalTo(false));
 
         portTrace.enabled = false;
-        response = traceResource.uri(portTrace.getUri())
+        response = traceResource.uri(portTrace.uri)
             .type(APPLICATION_TRACE_REQUEST_JSON())
             .put(ClientResponse.class, portTrace);
         assertThat("Got correct http response code", response.getStatus(),
                    equalTo(Status.NO_CONTENT.getStatusCode()));
-        readRequest = traceResource.uri(portTrace.getUri())
+        readRequest = traceResource.uri(portTrace.uri)
             .accept(APPLICATION_TRACE_REQUEST_JSON())
             .get(TraceRequest.class);
         assertThat("Trace still hasn't been enabled",
                    readRequest.enabled, equalTo(false));
 
         portTrace.enabled = true;
-        response = traceResource.uri(portTrace.getUri())
+        response = traceResource.uri(portTrace.uri)
             .type(APPLICATION_TRACE_REQUEST_JSON())
             .put(ClientResponse.class, portTrace);
         assertThat("Got correct http response code", response.getStatus(),
                    equalTo(Status.NO_CONTENT.getStatusCode()));
 
-        readRequest = traceResource.uri(portTrace.getUri())
+        readRequest = traceResource.uri(portTrace.uri)
             .accept(APPLICATION_TRACE_REQUEST_JSON())
             .get(TraceRequest.class);
         assertThat("Trace has been enabled",
@@ -366,9 +370,10 @@ public class TestTraceRequest extends RestApiTestBase {
 
     @Test(timeout=60000)
     public void testEnabledOnCreation() throws StateAccessException {
-        TraceRequest bridgeTrace = traceRequest(UUID.randomUUID(), "foobar",
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
-                new Condition());
+        DtoTraceRequest bridgeTrace = traceRequest(UUID.randomUUID(), "foobar",
+                                                   TraceRequest.DeviceType.BRIDGE,
+                                                   topology.getBridge(BRIDGE0).getId(),
+                                                   new Condition());
         bridgeTrace.creationTimestampMs = currentTimeMillis();
         bridgeTrace.limit = Long.MAX_VALUE;
         bridgeTrace.enabled = true;
@@ -380,11 +385,11 @@ public class TestTraceRequest extends RestApiTestBase {
         assertThat("Create should have succeeded", response.getStatus(),
                    equalTo(Status.CREATED.getStatusCode()));
         bridgeTrace.id = toUUID(response.getLocation());
-        bridgeTrace.setBaseUri(resource().getURI());
+        bridgeTrace.uri = response.getLocation();
 
-        TraceRequest readRequest = traceResource.uri(bridgeTrace.getUri())
+        DtoTraceRequest readRequest = traceResource.uri(bridgeTrace.uri)
             .accept(APPLICATION_TRACE_REQUEST_JSON())
-            .get(TraceRequest.class);
+            .get(DtoTraceRequest.class);
         assertThat("Trace has been enabled",
                    readRequest.enabled, equalTo(true));
     }
@@ -392,9 +397,10 @@ public class TestTraceRequest extends RestApiTestBase {
     @Test(timeout=60000)
     public void testConflictingPut() throws StateAccessException {
 
-        TraceRequest bridgeTrace = traceRequest(UUID.randomUUID(), "foobar",
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
-                new Condition());
+        DtoTraceRequest bridgeTrace = traceRequest(UUID.randomUUID(), "foobar",
+                                                   TraceRequest.DeviceType.BRIDGE,
+                                                   topology.getBridge(BRIDGE0).getId(),
+                                                   new Condition());
         bridgeTrace.creationTimestampMs = currentTimeMillis();
         bridgeTrace.limit = Long.MAX_VALUE;
         bridgeTrace.enabled = true;
@@ -406,11 +412,11 @@ public class TestTraceRequest extends RestApiTestBase {
         assertThat("Create should have succeeded", response.getStatus(),
                    equalTo(Status.CREATED.getStatusCode()));
         bridgeTrace.id = toUUID(response.getLocation());
-        bridgeTrace.setBaseUri(resource().getURI());
+        bridgeTrace.uri = response.getLocation();
 
         bridgeTrace.enabled = true;
         bridgeTrace.deviceId = UUID.randomUUID();
-        response = traceResource.uri(bridgeTrace.getUri())
+        response = traceResource.uri(bridgeTrace.uri)
             .header(HEADER_X_AUTH_TOKEN, ADMIN0)
             .type(APPLICATION_TRACE_REQUEST_JSON())
             .put(ClientResponse.class, bridgeTrace);

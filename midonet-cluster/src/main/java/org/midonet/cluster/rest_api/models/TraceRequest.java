@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 import com.google.protobuf.Message;
 
-import org.midonet.cluster.data.TraceRequest.DeviceType;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
@@ -35,6 +34,10 @@ import org.midonet.cluster.util.UUIDUtil;
 /* Class representing trace info */
 @ZoomClass(clazz = Topology.TraceRequest.class)
 public class TraceRequest extends UriResource {
+
+    public enum DeviceType {
+        BRIDGE, PORT, ROUTER
+    }
 
     @ZoomField(name = "id")
     public UUID id;
@@ -65,21 +68,6 @@ public class TraceRequest extends UriResource {
 
     public TraceRequest() {
         super();
-    }
-
-    public TraceRequest(UUID id, String name, DeviceType deviceType,
-                        UUID deviceId, Condition condition,
-                        long creationTimestampMs,
-                        long limit, boolean enabled) {
-        super();
-        this.id = id;
-        this.name = name;
-        this.deviceType = deviceType;
-        this.deviceId = deviceId;
-        this.condition = condition;
-        this.creationTimestampMs = creationTimestampMs;
-        this.limit = limit;
-        this.enabled = enabled;
     }
 
     @Override

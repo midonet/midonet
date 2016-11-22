@@ -44,8 +44,6 @@ import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWat
 import org.midonet.cluster.services._
 import org.midonet.cluster.storage._
 import org.midonet.conf.{HostIdGenerator, LoggerLevelWatcher, MidoNodeConfigurator}
-import org.midonet.midolman.cluster.LegacyClusterModule
-import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.DirectoryProvider
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
 import org.midonet.minion.MinionService.TargetNode
@@ -55,7 +53,7 @@ import org.midonet.util.eventloop.Reactor
 
 /** Base exception for all MidoNet Cluster errors. */
 class ClusterException(msg: String, cause: Throwable)
-    extends Exception(msg, cause) {}
+    extends Exception(msg, cause)
 
 /** The main application in charge of a Midonet Cluster node. This will consist
   * of a Daemon that will spawn internal subservices ('Minions') based on
@@ -215,10 +213,6 @@ object ClusterNode extends App {
                 .asEagerSingleton()
             bind(classOf[OvsdbVtepConnectionProvider])
                 .asEagerSingleton()
-
-            install(new SerializationModule)
-            install(new LegacyClusterModule)
-            install(new LegacyDataClientModule)
         }
     }
 

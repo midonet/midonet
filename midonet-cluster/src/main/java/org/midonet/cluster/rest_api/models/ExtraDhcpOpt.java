@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.data.dhcp;
+package org.midonet.cluster.rest_api.models;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -49,7 +49,7 @@ public class ExtraDhcpOpt extends ZoomObject {
         final ExtraDhcpOpt other = (ExtraDhcpOpt) obj;
 
         return Objects.equal(optName, other.optName)
-                && Objects.equal(optValue, other.optValue);
+               && Objects.equal(optValue, other.optValue);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class ExtraDhcpOpt extends ZoomObject {
     public String toString() {
 
         return MoreObjects.toStringHelper(this)
-                .add("optName", optName)
-                .add("optValue", optValue).toString();
+            .add("optName", optName)
+            .add("optValue", optValue).toString();
     }
 }
