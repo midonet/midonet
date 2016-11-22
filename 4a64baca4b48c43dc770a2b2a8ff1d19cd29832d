@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_97628ad7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-22T16:44:58Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "9aa53dc9_7206f921",
+      "range": {
+        "startLine": 170,
+        "startChar": 8,
+        "endLine": 171,
+        "endChar": 54
+      },
+      "revId": "4a64baca4b48c43dc770a2b2a8ff1d19cd29832d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_8d3720e3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 4
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_579be2c9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-22T16:44:58Z",
+      "side": 1,
+      "message": "no, it sneaked it when I was splitting this from a dev branch",
+      "parentUuid": "9aa53dc9_8d3720e3",
+      "revId": "4a64baca4b48c43dc770a2b2a8ff1d19cd29832d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_4d3118ec",
         "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
         "patchSetId": 4
@@ -53,6 +95,24 @@
       "writtenOn": "2016-11-22T11:07:49Z",
       "side": 1,
       "message": "work in progress?",
+      "revId": "4a64baca4b48c43dc770a2b2a8ff1d19cd29832d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_17a55a03",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-22T16:44:58Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "9aa53dc9_4d3118ec",
       "revId": "4a64baca4b48c43dc770a2b2a8ff1d19cd29832d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
