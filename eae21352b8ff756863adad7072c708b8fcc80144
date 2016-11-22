@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_122b2d84",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-22T09:21:06Z",
+      "side": 1,
+      "message": "don\u0027t use andThen; andThen returns a future that completes when the partial function returns not when the future returned by the partial function completes",
+      "range": {
+        "startLine": 151,
+        "startChar": 33,
+        "endLine": 151,
+        "endChar": 40
+      },
+      "revId": "eae21352b8ff756863adad7072c708b8fcc80144",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_923e1db7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-22T09:21:06Z",
+      "side": 1,
+      "message": "setup.execute() returns a future, this needs to be a flatMap, right?",
+      "range": {
+        "startLine": 353,
+        "startChar": 40,
+        "endLine": 353,
+        "endChar": 43
+      },
+      "revId": "eae21352b8ff756863adad7072c708b8fcc80144",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_92373de3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-22T09:21:06Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 361,
+        "startChar": 16,
+        "endLine": 361,
+        "endChar": 39
+      },
+      "revId": "eae21352b8ff756863adad7072c708b8fcc80144",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_5248955b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-22T09:21:06Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 376,
+        "startChar": 20,
+        "endLine": 376,
+        "endChar": 43
+      },
+      "revId": "eae21352b8ff756863adad7072c708b8fcc80144",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_1279ed93",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppDownlink.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-22T09:21:06Z",
+      "side": 1,
+      "message": "double space",
+      "range": {
+        "startLine": 81,
+        "startChar": 14,
+        "endLine": 81,
+        "endChar": 15
+      },
+      "revId": "eae21352b8ff756863adad7072c708b8fcc80144",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
