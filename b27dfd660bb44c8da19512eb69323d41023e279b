@@ -168,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_9765efe2",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/HealthMonitorV2.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-22T06:00:09Z",
+      "side": 1,
+      "message": "I guess my point is that every other model object we have that uses a child list initializes it as a new ArrayList\u003c\u003e(), so I feel we should do the same thing here to be consistent, if nothing else (plus, unit tests need this to be initialized to a valid and manipulate-able object).",
+      "parentUuid": "9aa53dc9_1779df93",
+      "range": {
+        "startLine": 49,
+        "startChar": 27,
+        "endLine": 49,
+        "endChar": 48
+      },
+      "revId": "b27dfd660bb44c8da19512eb69323d41023e279b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_7e5b6855",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/resources/HealthMonitorV2Resource.java",
         "patchSetId": 2
