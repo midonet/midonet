@@ -675,15 +675,19 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
 
         scenario("Can create Vxlan ovs port") {
             val datapath = createDatapath("foobar")
-            val ovs = new VppOvs(datapath)
-            ovs.createVxlanDpPort("vxlan_test_port", 5321)
+            try {
+                val ovs = new VppOvs(datapath)
+                ovs.createVxlanDpPort("vxlan_test_port", 5321)
+            } finally {
+                deleteDatapath(datapath)
+            }
         }
 
         scenario("VPP sets up downlink port") {
             setupStorage()
             log.info("Creating downlink")
 
-            val dlinkPrefix = "downlink"
+            val dlinkPrefix = UUID.randomUUID().toString.substring(0, 8)
             val dlinkVppName = s"$dlinkPrefix-vpp"
             val dlinkTunName = s"$dlinkPrefix-tun"
 
