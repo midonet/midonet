@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_abc76744",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 823,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-23T12:51:43Z",
+      "side": 1,
+      "message": "ok, looks better. I will change",
+      "parentUuid": "9aa53dc9_204ff693",
+      "range": {
+        "startLine": 823,
+        "startChar": 8,
+        "endLine": 823,
+        "endChar": 60
+      },
+      "revId": "e62eef2ab7263c9ee7d20f9be0260699cc0caa2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_e03fced4",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-23T11:39:18Z",
       "side": 1,
       "message": "Skip this conversion here and do it below only as needed.",
+      "range": {
+        "startLine": 826,
+        "startChar": 14,
+        "endLine": 826,
+        "endChar": 58
+      },
+      "revId": "e62eef2ab7263c9ee7d20f9be0260699cc0caa2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_cbcaab4f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-23T12:51:43Z",
+      "side": 1,
+      "message": "I thought about it, since it could suffer of less performance penalty, but I think it is not too much as the string comparison is also costly and converting here to IPv4Addr (represented as an Int) cannonizes the IP so if would match correctly all the cases, even unlikely but possible ones that maybe can be passed wrongly in text form (like \"10.0.0.1\" compared to \"10.0.0.01\"). Maybe is cannonized elsewere, but this way I assure it here.",
+      "parentUuid": "9aa53dc9_e03fced4",
       "range": {
         "startLine": 826,
         "startChar": 14,
