@@ -23,7 +23,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
@@ -214,13 +214,17 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         val portId = if (isRemoteSitePort(nPort)) {
             l2gwNetworkPortId(nPort.getNetworkId)
         } else nPort.getId
+
         val macPath = stateTableStorage.bridgeMacEntryPath(
             nPort.getNetworkId, 0, MAC.fromString(nPort.getMacAddress), portId)
-        if (nPort.getFixedIpsCount == 0) {
-            Seq(macPath)
-        } else {
-            Seq(macPath, arpEntryPath(nPort))
-        }
+
+        val arpPaths =
+            for (nPortFixedIp <- nPort.getFixedIpsList.asScala
+                 if nPortFixedIp.getIpAddress.getVersion == IPVersion.V4) yield {
+                arpEntryPath(nPort, IPv4Addr(nPortFixedIp.getIpAddress.getAddress))
+            }
+
+        Seq(macPath) ++ arpPaths
     }
 
     /**
@@ -816,15 +820,20 @@ class PortTranslator(stateTableStorage: StateTableStorage,
     private def updateArpTable(tx: Transaction,
                                oldPort: NeutronPort,
                                newPort: NeutronPort): Unit = {
-        // TODO: Support multiple fixed IPs.
-        val oldIp = if (oldPort.getFixedIpsCount == 0) null
-                    else oldPort.getFixedIps(0).getIpAddress.getAddress
-        val newIp = if (newPort.getFixedIpsCount == 0) null
-                    else newPort.getFixedIps(0).getIpAddress.getAddress
+        val getFixedIPv4Addresses = (port: NeutronPort) => {
+            port.getFixedIpsList.asScala
+              .map(_.getIpAddress).filter(_.getVersion == IPVersion.V4)
+              .map(x => IPv4Addr.fromString(x.getAddress))
+        }
+        val oldIps = getFixedIPv4Addresses(oldPort)
+        val newIps = getFixedIPv4Addresses(newPort)
 
-        if (oldIp != newIp) {
-            if (oldIp != null) tx.deleteNode(arpEntryPath(oldPort))
-            if (newIp != null) tx.createNode(arpEntryPath(newPort))
+        for(oldIp <- oldIps if !newIps.contains(oldIp)) {
+            tx.deleteNode(arpEntryPath(oldPort, oldIp))
+        }
+
+        for(newIp <- newIps if !oldIps.contains(newIp)) {
+            tx.createNode(arpEntryPath(newPort, newIp))
         }
     }
 
@@ -873,10 +882,10 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         }
     }
 
-    private def arpEntryPath(nPort: NeutronPort): String = {
+    private def arpEntryPath(nPort: NeutronPort, address: IPv4Addr): String = {
         stateTableStorage.bridgeArpEntryPath(
             nPort.getNetworkId,
-            IPv4Addr(nPort.getFixedIps(0).getIpAddress.getAddress),
+            address,
             MAC.fromString(nPort.getMacAddress))
     }
 
