@@ -194,7 +194,7 @@ class ArpRequestBrokerTest extends Suite
 
         arpBroker = new ArpRequestBroker(config, backChannel, clock)
         router = new Router(routerId, Router.Config(), null, null,
-                            new HashMap[Int, UUID], arpCache)
+                            new HashMap[Int, UUID], arpCache, config.fip64)
     }
 
     after {
