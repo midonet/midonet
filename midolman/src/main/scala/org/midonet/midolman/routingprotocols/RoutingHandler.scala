@@ -33,10 +33,11 @@ import org.apache.zookeeper.KeeperException
 import rx.{Observer, Subscription}
 
 import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnectionAwareWatcher}
-import org.midonet.cluster.data.Route
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VirtualMachine}
+import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.routingprotocols.RoutingWorkflow.RoutingInfo
@@ -129,8 +130,8 @@ object RoutingHandler {
     case class AddPeerRoutes(destination: IPv4Subnet, paths: Set[ZebraPath])
 
     case class RemovePeerRoute(ribType: RIBType.Value,
-                                       destination: IPv4Subnet,
-                                       gateway: IPv4Addr)
+                               destination: IPv4Subnet,
+                               gateway: IPv4Addr)
 
     case class Update(config: BgpRouter, peerIds: Set[UUID])
 
@@ -385,8 +386,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
         case RemovePeerRoute(ribType, destination, gateway) =>
             log.debug(s"Forgetting route: $ribType, $destination, $gateway")
 
-            val portId = peerRouteToPort.remove(
-                PeerRoute(destination, gateway))
+            val portId = peerRouteToPort.remove(PeerRoute(destination, gateway))
                 .getOrElse(routerPort.id)
             val route = makeRoute(destination, gateway.toString, portId)
             peerRoutes.remove(route) match {
@@ -457,7 +457,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
     private def forgetLearnedRoute(route: Route): Future[Route] = {
         log.debug(s"Forgetting learned route: " +
-                  s"${route.getDstNetworkAddr}/${route.getDstNetworkLength} " +
+                  s"${route.getDstNetworkAddr}/${route.dstNetworkLength} " +
                   s"via ${route.getNextHopGateway}")
         routingStorage.removeRoute(route, routerPort.id)
     }
@@ -469,20 +469,20 @@ abstract class RoutingHandler(var routerPort: RouterPort,
         peerRouteToPort.put(PeerRoute(destination, path.gateway), portId)
 
         val route = makeRoute(destination, path.gateway.toString, portId)
-        route.setWeight(path.distance)
+        route.weight = path.distance
         route
     }
 
     private def makeRoute(destination: IPv4Subnet, gwIp: String,
                           portId: UUID): Route = {
         val route = new Route()
-        route.setRouterId(routerPort.deviceId)
-        route.setDstNetworkAddr(destination.getAddress.toString)
-        route.setDstNetworkLength(destination.getPrefixLen)
-        route.setNextHopGateway(gwIp)
-        route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
-        route.setNextHopPort(portId)
-        route.setLearned(true)
+        route.routerId = routerPort.deviceId
+        route.dstNetworkAddr = destination.getAddress.toInt
+        route.dstNetworkLength = destination.getPrefixLen
+        route.nextHopGateway = IPv4Addr.stringToInt(gwIp)
+        route.nextHop = NextHop.PORT
+        route.nextHopPort = portId
+        route.learned = true
         route
     }
 
@@ -515,8 +515,8 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
         val lostRoutes = mutable.Buffer[Route]()
         for (route <- peerRoutes.keys
-             if route.getDstNetworkAddr == destination.getAddress.toString &&
-                 route.getDstNetworkLength == destination.getPrefixLen &&
+             if route.dstNetworkAddr == destination.getAddress.toInt &&
+                 route.dstNetworkLength == destination.getPrefixLen &&
                  !newRoutes.contains(route) &&
                  (peerRoutes(route) ne null)) {
             lostRoutes.append(peerRoutes(route))
@@ -551,7 +551,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
     private def publishLearnedRoute(route: Route): Future[Route] = {
         log.debug(s"Publishing learned route: " +
-                  s"${route.getDstNetworkAddr}/${route.getDstNetworkLength} " +
+                  s"${route.getDstNetworkAddr}/${route.dstNetworkLength} " +
                   s"via ${route.getNextHopGateway}")
 
         peerRoutes.put(route, null)

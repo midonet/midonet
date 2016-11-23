@@ -28,7 +28,6 @@ import rx.Subscription
 import rx.subscriptions.CompositeSubscription
 
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
-import org.midonet.cluster.data.Route
 import org.midonet.cluster.data.storage.StateStorage
 import org.midonet.cluster.models.Topology.{Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
@@ -37,13 +36,14 @@ import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.containers.Containers
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.services.SelectLoopService.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.devices._
-import org.midonet.midolman.topology.{Converter, VirtualToPhysicalMapper, VirtualTopology}
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ReactiveActor, toFutureOps}
@@ -74,19 +74,18 @@ object RoutingManagerActor extends Referenceable {
                    .asFuture
         }
         override def addRoute(route: Route, portId: UUID): Future[Route] = {
-            storage.addRoute(Converter.toRouteConfig(route), Some(portId))
+            storage.addRoute(route, Some(portId))
                    .map[Route](makeFunc1(_ => route))
                    .asFuture
         }
         override def removeRoute(route: Route, portId: UUID): Future[Route] = {
-            storage.removeRoute(Converter.toRouteConfig(route), Some(portId))
+            storage.removeRoute(route, Some(portId))
                    .map[Route](makeFunc1(_ => route))
                    .asFuture
         }
         override def learnedRoutes(routerId: UUID, portId: UUID, hostId: UUID)
         : Future[Set[Route]] = {
             storage.getPortRoutes(portId, hostId)
-                   .map[Set[Route]](makeFunc1(_.map(Converter.fromRouteConfig)))
                    .asFuture
         }
     }

@@ -33,8 +33,8 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
 import org.midonet.cluster.backend.zookeeper.StateAccessException
-import org.midonet.cluster.data.Route
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.routingprotocols.RoutingHandler.PeerRoute
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortBgpInfos
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
@@ -68,8 +68,8 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     val peer1 = IPv4Addr.fromString("192.168.80.2")
     val peer1Id = UUID.randomUUID()
-    def baseConfig = new BgpRouter(asNumber, rport.portAddressV4,
-                                   Map(peer1 -> Neighbor(peer1, 100)))
+    def baseConfig = BgpRouter(asNumber, rport.portAddressV4,
+                               Map(peer1 -> Neighbor(peer1, 100)))
 
     val peer2 = IPv4Addr.fromString("192.168.80.3")
     val peer2Id = UUID.randomUUID()
@@ -135,7 +135,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             val ifaceName = "TESTING"
             val containerRport = rport.copy(interfaceName = "TESTING",
                                             containerId = UUID.randomUUID())
-            val bgpRouter = new BgpRouter(-1, rport.portAddressV4)
+            val bgpRouter = BgpRouter(-1, rport.portAddressV4)
 
             val containerRoutingHandler = TestActorRef(
                 new TestableRoutingHandler(containerRport,
@@ -173,8 +173,8 @@ class RoutingHandlerTest extends FeatureSpecLike
             containerRoutingHandler ! BgpPort(containerPort, baseConfig, Set(peer1Id))
             bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString)
 
-            val update = new BgpRouter(asNumber, rport.portAddressV4,
-                                       Map(peer1 -> Neighbor(peer1, 100),
+            val update = BgpRouter(asNumber, rport.portAddressV4,
+                                   Map(peer1 -> Neighbor(peer1, 100),
                     peer2 -> Neighbor(peer2, 200)))
             containerRoutingHandler ! PortBgpInfos(Seq(pbi1, pbi2))
             containerRoutingHandler ! BgpPort(containerPort, update, Set(peer1Id, peer2Id))
@@ -287,9 +287,9 @@ class RoutingHandlerTest extends FeatureSpecLike
             val dstNet = IPv4Subnet.fromCidr(dst)
             if (!r.isLearned)
                 false
-            else if (r.getDstNetworkAddr != dstNet.getAddress.toString)
+            else if (r.dstNetworkAddr != dstNet.getAddress.toInt)
                 false
-            else if (r.getDstNetworkLength != dstNet.getPrefixLen)
+            else if (r.dstNetworkLength != dstNet.getPrefixLen)
                 false
             else if (r.getNextHopGateway != gw)
                 false
@@ -420,8 +420,8 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     feature("reacts to changes in the bgp session configuration") {
         scenario("a new peer is added or removed") {
-            val update = new BgpRouter(asNumber, rport.portAddressV4,
-                                       Map(peer1 -> Neighbor(peer1, 100),
+            val update = BgpRouter(asNumber, rport.portAddressV4,
+                                   Map(peer1 -> Neighbor(peer1, 100),
                         peer2 -> Neighbor(peer2, 200)))
 
             routingHandler ! BgpPort(rport, update, Set(peer1Id, peer2Id))
@@ -451,8 +451,8 @@ class RoutingHandlerTest extends FeatureSpecLike
         }
 
         scenario("timer values change") {
-            val update = new BgpRouter(asNumber, rport.portAddressV4,
-                                       Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
+            val update = BgpRouter(asNumber, rport.portAddressV4,
+                                   Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
             routingHandler ! BgpPort(rport, update, Set(peer1Id))
             verify(bgpd.vty).addPeer(asNumber, Neighbor(peer1, 100, Some(29), Some(30), Some(31)))
