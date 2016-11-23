@@ -287,6 +287,7 @@ object MidolmanStat extends App {
         metrics.run(opts.delay.get.get, opts.count.get.get)
     } catch { case e: Throwable =>
         var t = e
+        e.printStackTrace()
         while ((t.getCause ne null) && (t.getMessage eq null))
             t = e.getCause
         System.err.println(s"[\033[31m${opts.printedName}\033[0m] Unexpected error: ${t.getMessage}")
