@@ -146,6 +146,14 @@ class ConntrackStateTest extends MidolmanSpec {
         }
     }
 
+    feature("Regressions") {
+        scenario("Clear after resetContext failure") {
+            val ctx = context()
+            ctx.resetContext()
+            ctx.clear()
+        }
+    }
+
     def transactionValues[K, V](tx: FlowStateTransaction[K, V]): HashMap[K, V] =
        tx.fold(new HashMap[K, V](),
                new Reducer[K, V, HashMap[K, V]] {
