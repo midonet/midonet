@@ -28,7 +28,6 @@ import org.midonet.cluster.models.Topology
 import org.midonet.cluster.state.PortStateStorage.PortState
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.rules.{Nat64Rule, Rule}
 import org.midonet.midolman.simulation.Simulator.{ContinueWith, Fip64Action, SimHook, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
@@ -106,17 +105,23 @@ object Port {
         var address4: IPv4Subnet = null
         var address6: IPv6Subnet = null
 
-        if (addresses.size() == 1) {
+        if (addresses.size() == 1 && p.hasPortAddress) {
             // Forward compatibility: if the port has only one IP address, use
             // that address, converted to a subnet.
             if (p.getPortAddress.getVersion == IPVersion.V4) {
                 val ip = IPv4Addr(p.getPortAddress.getAddress)
                 address4 = new IPv4Subnet(ip, addresses.get(0).getPrefixLen)
+                if (addresses.get(0) != address4) {
+                    addresses.set(0, address4)
+                }
             } else {
                 val ip = IPv6Addr(p.getPortAddress.getAddress)
                 address6 = new IPv6Subnet(ip, addresses.get(0).getPrefixLen)
+                if (addresses.get(0) != address6) {
+                    addresses.set(0, address6)
+                }
             }
-        } else if (addresses.size() > 1) {
+        } else {
             // If the port has multiple IP addresses, select the first IPv4 and
             // first IPv6. Ignore the message IP address since this was set only
             // for backward compatibility.
