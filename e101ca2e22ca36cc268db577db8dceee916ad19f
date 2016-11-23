@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_006d1204",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-23T11:33:18Z",
+      "side": 1,
+      "message": "It should only happen once though, no? Could cause a blip when endpoint changes, but that should be rare. sync I/O here is bad though. What happens when there is too much flow history data to send?",
+      "parentUuid": "9aa53dc9_60f97e4d",
+      "range": {
+        "startLine": 138,
+        "startChar": 16,
+        "endLine": 138,
+        "endChar": 39
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_80e5a2a9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 3
@@ -41,6 +65,76 @@
         "startChar": 20,
         "endLine": 152,
         "endChar": 25
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_40631a1b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-23T11:33:18Z",
+      "side": 1,
+      "message": "info at most.",
+      "parentUuid": "9aa53dc9_80e5a2a9",
+      "range": {
+        "startLine": 152,
+        "startChar": 20,
+        "endLine": 152,
+        "endChar": 25
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_e0710ee2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-23T11:33:18Z",
+      "side": 1,
+      "message": "rename to maybeConnect.",
+      "range": {
+        "startLine": 207,
+        "startChar": 16,
+        "endLine": 207,
+        "endChar": 23
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_c0772ad3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-23T11:33:18Z",
+      "side": 1,
+      "message": "you need to close the old channel.",
+      "range": {
+        "startLine": 208,
+        "startChar": 31,
+        "endLine": 208,
+        "endChar": 38
       },
       "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
