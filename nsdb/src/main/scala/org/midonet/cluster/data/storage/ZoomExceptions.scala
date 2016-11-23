@@ -188,3 +188,10 @@ class StorageNodeNotFoundException private[storage](val path: String,
     extends StorageException(msg) {
     def this(path: String) = this(path, s"There is no node at $path.")
 }
+
+/**
+  * Thrown when a name does not uniquely identify an object
+  */
+class ObjectNameNotUniqueException (val clazz: Class[_], val name: String)
+    extends StorageException(
+        s"There is more than one ${clazz.getSimpleName} with name $name.")
