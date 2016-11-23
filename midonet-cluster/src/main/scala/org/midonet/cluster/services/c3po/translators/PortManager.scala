@@ -21,7 +21,7 @@ import java.util.{List => JList}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
+import org.midonet.cluster.data.storage.{NotFoundException, ObjectNameNotUniqueException, Transaction}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
@@ -80,12 +80,14 @@ trait PortManager extends ChainManager with RouteManager {
         // FIXME: Find host ID by looping through all hosts
         // This is temporary until host ID of MidoNet could be
         // deterministically fetched from the host name.
-        val hosts = tx.getAll(classOf[Host])
-        val host = hosts.find(_.getName == hostName).getOrElse {
-            throw new NotFoundException(classOf[Host], hostName)
-        }
+        val hosts = tx.getAll(classOf[Host]).filter( _.getName == hostName)
 
-        host.getId
+        hosts.size match {
+            case 1 => hosts.head.getId
+            case 0 => throw new NotFoundException(classOf[Host], hostName)
+            case _ => throw new ObjectNameNotUniqueException(classOf[Host],
+                                                             hostName)
+        }
     }
 
     /**
