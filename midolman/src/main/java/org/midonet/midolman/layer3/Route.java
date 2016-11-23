@@ -39,7 +39,6 @@ public class Route extends ZoomObject implements Serializable {
 
     private static final long serialVersionUID = -5913569441176193396L;
     public static final int NO_GATEWAY = 0xffffffff;
-    public static final int DEFAULT_WEIGHT = 100;
 
     @ZoomEnum(clazz = Topology.Route.NextHop.class)
     public enum NextHop {
@@ -158,46 +157,28 @@ public class Route extends ZoomObject implements Serializable {
         this.nextHopGateway = IPv4Addr.stringToInt(addr);
     }
 
-    public boolean isEquivalentRoute(Object other) {
-        if (other == null)
-            return false;
-        if (other == this)
-            return true;
-        if (!(other instanceof Route))
-            return false;
-        Route rt = (Route) other;
-        return (Objects.equal(this.srcNetworkAddr, rt.srcNetworkAddr) &&
-                Objects.equal(this.srcNetworkLength, rt.srcNetworkLength) &&
-                Objects.equal(this.dstNetworkAddr, rt.dstNetworkAddr) &&
-                Objects.equal(this.dstNetworkLength, rt.dstNetworkLength) &&
-                Objects.equal(this.nextHopPort, rt.nextHopPort) &&
-                Objects.equal(this.routerId, rt.routerId));
-    }
-
     @Override
     public final boolean equals(Object obj) {
         if (obj == this) return true;
         if (obj == null) return false;
         if (!(obj instanceof Route)) return false;
         final Route rt = (Route) obj;
-        return (Objects.equal(this.srcNetworkAddr, rt.srcNetworkAddr)
-                && Objects.equal(this.learned, rt.learned)
-                && Objects.equal(this.srcNetworkLength, rt.srcNetworkLength)
-                && Objects.equal(this.dstNetworkAddr, rt.dstNetworkAddr)
-                && Objects.equal(this.dstNetworkLength, rt.dstNetworkLength)
-                && Objects.equal(this.nextHop, rt.nextHop)
-                && Objects.equal(this.nextHopPort, rt.nextHopPort)
-                && Objects.equal(this.nextHopGateway, rt.nextHopGateway)
-                && Objects.equal(this.weight, rt.weight)
-                && Objects.equal(this.attributes, rt.attributes)
-                && Objects.equal(this.routerId, rt.routerId));
+        return srcNetworkAddr == rt.srcNetworkAddr &&
+               srcNetworkLength == rt.srcNetworkLength &&
+               dstNetworkAddr == rt.dstNetworkAddr &&
+               dstNetworkLength == rt.dstNetworkLength &&
+               Objects.equal(nextHop, rt.nextHop) &&
+               Objects.equal(nextHopPort, rt.nextHopPort) &&
+               nextHopGateway == rt.nextHopGateway &&
+               Objects.equal(routerId, rt.routerId) &&
+               learned == rt.learned;
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(srcNetworkAddr, srcNetworkLength,
                                 dstNetworkAddr, dstNetworkLength, nextHop,
-                                nextHopPort, nextHopGateway, weight, attributes,
+                                nextHopPort, nextHopGateway,
                                 routerId, learned);
     }
 
