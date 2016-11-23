@@ -56,7 +56,8 @@ class ColumnGroup(name: String, columns: List[StatColumn]) extends Column {
         for (col <- columns) {
             w += col.width
         }
-        w
+        // Otherwise %0s format throws an exception
+        Math.max(w, 1)
     }
 
     def header: String = {
@@ -86,13 +87,10 @@ class StatColumn(name: String, minWidth: Int, getter: => Double,
 }
 
 object MidolmanMetricCatalog {
+
     val BASE = "metrics:name=org.midonet.midolman.monitoring.metrics"
-
-    val DP_FLOWS_GAUGE = s"$BASE.FlowTablesGauge.currentDatapathFlows"
-
-    val SIM_TIME = s"$BASE.PacketPipelineAccumulatedTime.simulationAccumulatedTime"
-    val SIM_LATENCY = s"$BASE.PacketPipelineHistogram.simulationLatency"
-    val SIM_PACKETS = s"$BASE.PacketPipelineMeter.packetsSimulated.packets"
+    val DP_FLOWS_GAUGE = s"$BASE.FlowTablesGauge"
+    val SIM_LATENCY = s"$BASE.PacketPipelineHistogram"
 
     val CMS_GC= "java.lang:type=GarbageCollector,name=G1 Old Generation"
     val NEW_GC= "java.lang:type=GarbageCollector,name=G1 Young Generation"
@@ -102,9 +100,9 @@ object MidolmanMetricCatalog {
     val EDEN_MEM = "java.lang:type=MemoryPool,name=G1 Eden Space"
 
     class AllMetrics(val mbsc: MBeanServerConnection) {
-        val dpFlowsGauge = new Gauge(mbsc, DP_FLOWS_GAUGE)
-        val latency = new Histogram(mbsc, SIM_LATENCY)
-        val packets = new Meter(mbsc, SIM_PACKETS)
+
+        val dpFlowsGauge = new Gauge(mbsc, DP_FLOWS_GAUGE,
+                                     "currentDatapathFlows")
         val gc = new GC(mbsc)
         val oldmem = new Pool(mbsc, OLD_MEM)
         val survivormem = new Pool(mbsc, SURVIVOR_MEM)
@@ -113,37 +111,55 @@ object MidolmanMetricCatalog {
         val oldGroup = new ColumnGroup("old",
             List(new StatColumn("used", 6, oldmem.used),
                  new StatColumn("total", 6, oldmem.total)))
+
         val survivorGroup = new ColumnGroup("survivor",
             List(new StatColumn("used", 6, survivormem.used),
                  new StatColumn("total", 6, survivormem.total)))
+
         val edenGroup = new ColumnGroup("eden",
             List(new StatColumn("used", 5, edenmem.used),
                  new StatColumn("total", 5, edenmem.total)))
 
-        val latencies = new ColumnGroup("latency (microsecs)",
-            List(new StatColumn("50th", 7, latency.get50th, 1000),
-                 new StatColumn("75th", 7, latency.get75th, 1000),
-                 new StatColumn("95th", 7, latency.get95th, 1000)))
-
-        val columns = List(
+        def getColumns = List(
             new StatColumn("dpflows", 7, dpFlowsGauge.get),
-            latencies,
-            new StatColumn("packets", 7, packets.countDelta),
+            buildLatencies,
             new StatColumn("gc time", 8, gc.getDelta),
             edenGroup, survivorGroup, oldGroup)
 
-        val stat = new StatSet(columns)
-
         def run(delaySecs: Int = 0, count: Int = 1): Unit = {
             var iterations = if (delaySecs > 0) count else 1
-
+            val stat = new StatSet(getColumns)
             stat.printHeader()
             do {
                 stat.printValues()
                 iterations -= 1
-                if (delaySecs > 0 && iterations > 0)
+                if (delaySecs > 0 && iterations > 0) {
                     Thread.sleep(delaySecs * 1000)
+                }
             } while (iterations > 0)
+        }
+
+        private def buildLatency(worker: Int): List[StatColumn] = {
+            val beanName = SIM_LATENCY + s".worker-${worker}.packetsProcessed"
+            val latency  = new Histogram(mbsc, beanName)
+            List(new StatColumn(s"w-${worker}95th", 7, latency.get95th, 1000),
+                 new StatColumn(s"w-${worker}99th", 7, latency.get99th, 1000),
+                 new StatColumn(s"w-${worker}999th", 7, latency.get999th, 1000))
+        }
+
+        private def buildLatencies = {
+            def buildLatenciesHelper(n: Int, numWorkers:Int):
+            List[StatColumn] =
+                if (n >= numWorkers) {
+                    Nil
+                } else {
+                    buildLatency(n) ::: buildLatenciesHelper(n + 1, numWorkers)
+                }
+            var beanName = SIM_LATENCY + "*packetsProcessed"
+            val objectPattern = new ObjectName(beanName)
+            val numWorkers = mbsc.queryNames(objectPattern, null).size()
+            new ColumnGroup("latency (microsecs)",
+                            buildLatenciesHelper(0, numWorkers))
         }
     }
 
@@ -170,11 +186,23 @@ object MidolmanMetricCatalog {
 
     }
 
-    class Gauge(mbsc: MBeanServerConnection, beanName: String) {
-        val objectName = new ObjectName(beanName)
-        val proxy = JMX.newMBeanProxy(mbsc, objectName, classOf[JmxGaugeMBean], true)
+    class Gauge(mbsc: MBeanServerConnection, beanBaseName: String,
+                metricsName: String) {
 
-        def get: Long = proxy.getValue.asInstanceOf[java.lang.Long]
+
+        var beanName = beanBaseName + "*" + metricsName
+        val objectPattern = new ObjectName(beanName)
+
+        def get: Long = {
+            val objectNames = mbsc.queryNames(objectPattern, null)
+            var total:Long = 0
+            for (name <- objectNames.toArray) {
+                val proxy = JMX.newMBeanProxy(mbsc, name.asInstanceOf[ObjectName],
+                                              classOf[JmxGaugeMBean], true)
+                total = total + proxy.getValue.asInstanceOf[java.lang.Long]
+            }
+            total
+        }
     }
 
     class Counter(mbsc: MBeanServerConnection, beanName: String) {
@@ -259,6 +287,7 @@ object MidolmanStat extends App {
         metrics.run(opts.delay.get.get, opts.count.get.get)
     } catch { case e: Throwable =>
         var t = e
+        System.out.println(e.getStackTrace().mkString("\n"))
         while ((t.getCause ne null) && (t.getMessage eq null))
             t = e.getCause
         System.err.println(s"[\033[31m${opts.printedName}\033[0m] Unexpected error: ${t.getMessage}")
