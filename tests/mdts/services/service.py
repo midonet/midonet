@@ -211,6 +211,18 @@ class Service(object):
                   self.get_name(), cmd)
         return self.check_exit_status(exec_id, outputstream)
 
+    def exec_command_and_get_output(self, cmd, timeout = 2):
+        exec_id = cli.exec_create(self.get_name(), cmd,
+                                  stdout=True, stderr=False,
+                                  tty=False)
+        output_stream = cli.exec_start(exec_id, detach=False,
+                                       stream=True)
+        status = self.check_exit_status(exec_id, None, timeout)
+        if conf.containers_file() is None:
+            return (status, ''.join(output_stream))
+        else:
+            return (status, ''.join(output_stream.readline()))
+
     def exec_command(self, cmd, stdout=True, stderr=False, tty=False,
                      detach=False, stream=False):
         """
