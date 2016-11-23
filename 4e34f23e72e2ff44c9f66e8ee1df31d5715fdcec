@@ -16,6 +16,24 @@
       "revId": "4e34f23e72e2ff44c9f66e8ee1df31d5715fdcec",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_c5dbbcec",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-23T09:19:11Z",
+      "side": 1,
+      "message": "not here. This is a guide for fip64, not vpp. Eventually there will be no vpp commands in the quickstart part.",
+      "parentUuid": "9aa53dc9_378dfe31",
+      "revId": "4e34f23e72e2ff44c9f66e8ee1df31d5715fdcec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
