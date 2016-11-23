@@ -185,7 +185,7 @@ object VppDownlink {
             if (fips.add(fip) && isReady) {
                 subject onNext AssociateFip(portId, vrfTable, fip.floatingIp,
                                             fip.fixedIp,
-                                            currentPort.portSubnetV4,
+                                            currentPort.portAddress4,
                                             currentRule.natPool)
             }
         }
@@ -198,7 +198,7 @@ object VppDownlink {
             if (fips.remove(fip) && isReady) {
                 subject onNext DisassociateFip(portId, vrfTable, fip.floatingIp,
                                                fip.fixedIp,
-                                               currentPort.portSubnetV4)
+                                               currentPort.portAddress4)
             }
         }
 
@@ -336,7 +336,7 @@ object VppDownlink {
             val notifications = new Array[Notification](fips.size + 1)
             notifications(0) = CreateDownlink(portId, vrfTable,
                                               port.tunnelKey.toInt,
-                                              currentPort.portSubnetV4,
+                                              currentPort.portAddress4,
                                               rule.portAddress,
                                               rule.natPool,
                                               port.portMac)
@@ -347,7 +347,7 @@ object VppDownlink {
                 notifications(index) = AssociateFip(portId, vrfTable,
                                                     fip.floatingIp,
                                                     fip.fixedIp,
-                                                    currentPort.portSubnetV4,
+                                                    currentPort.portAddress4,
                                                     currentRule.natPool)
                 index += 1
             }
@@ -366,7 +366,7 @@ object VppDownlink {
                     child onNext DisassociateFip(portId, vrfTable,
                                                  fip.floatingIp,
                                                  fip.fixedIp,
-                                                 currentPort.portSubnetV4)
+                                                 currentPort.portAddress4)
                 }
                 child onNext DeleteDownlink(portId,
                                             vrfTable,

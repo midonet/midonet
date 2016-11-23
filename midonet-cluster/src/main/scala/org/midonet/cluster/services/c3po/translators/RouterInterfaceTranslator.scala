@@ -119,7 +119,7 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
         val nextHopAddress = if (isUplink) {
             // Uplink ports use the Neutron port address, either V4 or V6.
             routerPortBuilder.setPortAddress(portAddress)
-            routerPortBuilder.setPortSubnet(nSubnet.getCidr)
+            routerPortBuilder.addPortSubnet(nSubnet.getCidr)
 
             // The port will be bound to a host rather than connected to a
             // network port. Add it to the edge router's port group.
@@ -138,13 +138,13 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
                                             localSubnet.getPrefixLen)
 
             routerPortBuilder.setPortAddress(portAddress.asProto)
-            routerPortBuilder.setPortSubnet(portSubnet.asProto)
+            routerPortBuilder.addPortSubnet(portSubnet.asProto)
 
             assignTunnelKey(routerPortBuilder, sequenceDispenser)
             vppAddress.asProto
         } else {
             routerPortBuilder.setPortAddress(portAddress)
-            routerPortBuilder.setPortSubnet(nSubnet.getCidr)
+            routerPortBuilder.addPortSubnet(nSubnet.getCidr)
 
             val pgId = ensureRouterInterfacePortGroup(tx, routerId)
             routerPortBuilder.addPortGroupIds(pgId)

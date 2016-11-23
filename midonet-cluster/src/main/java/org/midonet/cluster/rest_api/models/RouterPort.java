@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,7 +51,7 @@ public class RouterPort extends Port {
 
     @JsonIgnore
     @ZoomField(name = "port_subnet", converter = IPSubnetUtil.Converter.class)
-    public IPSubnet<?> portSubnet;
+    public List<IPSubnet<?>> portSubnet;
 
     @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
@@ -109,16 +110,19 @@ public class RouterPort extends Port {
 
     @Override
     public void afterFromProto(Message message) {
-        if (null != portSubnet) {
-            networkAddress = portSubnet.getAddress().toString();
-            networkLength = portSubnet.getPrefixLen();
+        if (portSubnet.size() > 0) {
+            networkAddress = portSubnet.get(0).getAddress().toString();
+            networkLength = portSubnet.get(0).getPrefixLen();
         }
     }
 
     @Override
     public void beforeToProto() {
         if (StringUtils.isNotEmpty(networkAddress)) {
-            portSubnet = IPSubnet.fromString(networkAddress, networkLength);
+            // MidoNet 5.2 or earlier API does not support setting multiple
+            // addresses using these fields.
+            portSubnet = new ArrayList<>(1);
+            portSubnet.add(IPSubnet.fromString(networkAddress, networkLength));
         }
     }
 

@@ -34,7 +34,6 @@ import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.NatTarget
@@ -66,8 +65,7 @@ object VppController extends Referenceable {
     private case class BoundPort(setup: VppSetup)
     private type LinksMap = util.Map[UUID, BoundPort]
 
-    private def isIPv6(port: RouterPort) = (port.portAddressV6 ne null) &&
-                                           (port.portSubnetV6 ne null)
+    private def isIPv6(port: RouterPort) = port.portAddress6 ne null
 
     /**
       * Returns the virtual port identifier for the specified tunnel key.
@@ -257,7 +255,8 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
                 val dpNumber = datapathState.getDpPortNumberForVport(portId)
                 attachLink(uplinks, portId,
-                           new VppUplinkSetup(port.id, port.portAddressV6,
+                           new VppUplinkSetup(port.id,
+                                              port.portAddress6.getAddress,
                                               dpNumber, vppApi, vppOvs,
                                               Logger(log.underlying)))
             case _ =>

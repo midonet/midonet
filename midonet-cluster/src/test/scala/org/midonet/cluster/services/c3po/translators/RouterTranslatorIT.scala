@@ -405,7 +405,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             gwPort.getRouterId.asJava shouldBe tenantRouterId
             gwPort.getPortMac shouldBe "04:04:04:04:04:04"
             gwPort.getPortAddress shouldBe IPAddressUtil.toProto("169.254.0.1")
-            gwPort.getPortSubnet shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
+            gwPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
 
             gwPort.getRouteIdsCount shouldBe 2
             gwPort.getFipNatRuleIdsCount shouldBe 1
@@ -419,7 +419,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         uplinkPort.getInterfaceName shouldBe "eth0"
         uplinkPort.getPortMac shouldBe "02:02:02:02:02:02"
         uplinkPort.getPortAddress shouldBe IPAddressUtil.toProto("2001::1")
-        uplinkPort.getPortSubnet shouldBe IPSubnetUtil.toProto("2001:0:0:0:0:0:0:0/64")
+        uplinkPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("2001:0:0:0:0:0:0:0/64")
 
         // TODO: These routes should not be added on the IPv6 port
         uplinkPortRoutes should have size 2
@@ -429,7 +429,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         // TODO: This should be changed for ports that are not gateway ports
         extPort.getPortAddress shouldBe IPAddressUtil.toProto("169.254.0.1")
-        extPort.getPortSubnet shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
+        extPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
         extPort.getFipNatRuleIdsCount should not be 0
 
         // TODO: These routes should not be added on the IPv6 port

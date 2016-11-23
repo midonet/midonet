@@ -24,21 +24,7 @@ import org.scalatest.Matchers
 
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Commons.{Condition => TopologyCondition}
-import org.midonet.cluster.models.Topology.{Chain => TopologyChain,
-                                            HealthMonitor => TopologyHealthMonitor,
-                                            Host => TopologyHost,
-                                            IPAddrGroup => TopologyIpAddrGroup,
-                                            LoadBalancer => TopologyLB,
-                                            Mirror => TopologyMirror,
-                                            Network => TopologyBridge,
-                                            Pool => TopologyPool,
-                                            PoolMember => TopologyPoolMember,
-                                            Port => TopologyPort,
-                                            PortGroup => TopologyPortGroup,
-                                            Route => TopologyRoute,
-                                            Router => TopologyRouter,
-                                            Rule => TopologyRule,
-                                            Vip => TopologyVip}
+import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, Host => TopologyHost, IPAddrGroup => TopologyIpAddrGroup, LoadBalancer => TopologyLB, Mirror => TopologyMirror, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -48,6 +34,7 @@ import org.midonet.midolman.rules._
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, Vip}
 import org.midonet.midolman.state.l4lb
 import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, ConditionMatcher, RouterPortMatcher, _}
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.simulation.{BridgePort, Port, _}
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -90,9 +77,8 @@ object TopologyMatchers {
             super.shouldBeDeviceOf(p)
             port.routerId shouldBe (if (p.hasRouterId)
                 p.getRouterId.asJava else null)
-            port.portSubnetV4 shouldBe (if (p.hasPortSubnet)
-                p.getPortSubnet.asJava else null)
-            port.portAddressV4 shouldBe (if (p.hasPortAddress)
+            port.portAddresses shouldBe IPSubnetUtil.fromProto(p.getPortSubnetList)
+            port.portAddress4.getAddress shouldBe (if (p.hasPortAddress)
                 p.getPortAddress.asIPv4Address else null)
             port.portMac shouldBe (if (p.hasPortMac)
                 MAC.fromString(p.getPortMac) else null)

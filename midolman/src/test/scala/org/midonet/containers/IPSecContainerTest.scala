@@ -769,7 +769,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
@@ -808,7 +807,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             var router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
@@ -846,7 +844,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val path =
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
-                                                 port.getPortSubnet.getPrefixLength)
+                                                 port.getPortSubnet(0).getPrefixLength)
 
             Then("The container should call vpn setup commands")
             container.commands should have size 7
@@ -897,7 +895,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
@@ -933,7 +930,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val path =
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
-                                                 port.getPortSubnet.getPrefixLength)
+                                                 port.getPortSubnet(0).getPrefixLength)
 
             container.commands should have size 7
             container.commands(0) shouldBe
@@ -985,7 +982,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
@@ -1022,7 +1018,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val path =
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
-                                                 port.getPortSubnet.getPrefixLength)
+                                                 port.getPortSubnet(0).getPrefixLength)
 
             container.commands should have size 7
 
@@ -1172,7 +1168,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
@@ -1216,7 +1211,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Then("The container should call the cleanup and setup commands")
             val path = s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
-                                                 port.getPortSubnet.getPrefixLength)
+                                                 port.getPortSubnet(0).getPrefixLength)
 
             Then("The container should call the cleanup and setup commands")
             container.commands should have size 7
@@ -1263,7 +1258,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
@@ -1301,7 +1295,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val path =
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
-                                                 port.getPortSubnet.getPrefixLength)
+                                                 port.getPortSubnet(0).getPrefixLength)
 
             container.commands should have size 7
 
@@ -1457,7 +1451,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
@@ -1497,7 +1490,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val path =
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
-                                                 port.getPortSubnet.getPrefixLength)
+                                                 port.getPortSubnet(0).getPrefixLength)
 
             container.commands should have size 7
 
@@ -1793,7 +1786,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
@@ -1849,7 +1841,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
@@ -1911,7 +1902,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))

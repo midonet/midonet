@@ -735,7 +735,7 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
             val portAddress = port.getPortAddress.asIPv4Address
             val namespaceAddress = portAddress.next
             val namespaceSubnet = new IPv4Subnet(namespaceAddress,
-                                                 port.getPortSubnet
+                                                 port.getPortSubnet(0)
                                                      .getPrefixLength)
             val serviceDef = IPSecServiceDef(port.getInterfaceName,
                                              vpnPath(port.getInterfaceName),
