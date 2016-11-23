@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_7a95a6e2",
+        "filename": "build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-23T17:37:54Z",
+      "side": 1,
+      "message": "make this a separate patch, see:\n\nhttps://github.com/midonet/midonet/commits/hotfix/v5.0.2-hf1",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 40
+      },
+      "revId": "fad1c4d2772eaa78c66ffdd3205c4b170cde49c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
