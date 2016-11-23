@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_7a2c864a",
+        "filename": "nsdb/src/main/scala/org/midonet/management/MidolmanStat.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-23T16:15:51Z",
+      "side": 1,
+      "message": "put the - on the other side of $worker\n\"w$worker-95th\"",
+      "range": {
+        "startLine": 145,
+        "startChar": 34,
+        "endLine": 145,
+        "endChar": 49
+      },
+      "revId": "2af8aa1c37f0e5947dd8b2a1ac886aca496adf0e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
