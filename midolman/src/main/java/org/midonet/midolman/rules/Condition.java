@@ -178,7 +178,7 @@ public class Condition extends BaseConfig {
         public int hashCode() { return matches ? 0 : 1; }
 
         @Override
-        public String toString() { return "Condition[" + matches + "]"; }
+        public String toString() { return String.valueOf(matches); }
     }
 
     // Default constructor for the Jackson deserialization.
@@ -289,7 +289,7 @@ public class Condition extends BaseConfig {
         if (condPorts == null || condPorts.isEmpty())
             return true;
         boolean cond = condPorts.contains(port);
-        return negate? !cond :cond;
+        return negate != cond;
     }
 
     // In the match methods below, note that if the condition field is
@@ -385,75 +385,75 @@ public class Condition extends BaseConfig {
                 negate ^ (null == pktField || range.isInside(pktField));
     }
 
-    private void formatField(StringBuilder sb, boolean inverted, String name, Object value) {
-        if (value != null) {
+    private boolean isNotNullOrEmpty(Object value) {
+        return value != null &&
+               !(value instanceof Set && ((Set) value).isEmpty());
+    }
+
+    private boolean formatField(StringBuilder sb, boolean inverted, String name,
+                                Object value, boolean separator) {
+        if (value instanceof Boolean) {
+            if ((Boolean)value) {
+                if (separator) sb.append(" ");
+                sb.append(name);
+                return true;
+            } else {
+                return separator;
+            }
+        } else if (isNotNullOrEmpty(value)) {
+            if (separator) sb.append(" ");
             sb.append(name);
-            sb.append(inverted ? "=!" : "=");
-            sb.append(value.toString());
-            sb.append(" ");
+            sb.append(inverted ? "!=" : "=");
+            sb.append(value);
+            return true;
+        } else {
+            return separator;
         }
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Condition [");
-        sb.append(conjunctionInv ? "! (" : "(");
+        StringBuilder sb = new StringBuilder(conjunctionInv ? "!(" : "(");
 
-        if (matchForwardFlow)
-            sb.append("forward-flow ");
-
-        if (matchReturnFlow)
-            sb.append("return-flow ");
-
-        if (noVlan)
-            sb.append("no-vlan ");
-
+        boolean s;
+        s = formatField(sb, false, "forward-flow", matchForwardFlow, false);
+        s = formatField(sb, false, "return-flow", matchReturnFlow, s);
+        s = formatField(sb, false, "no-vlan", noVlan, s);
         if (vlan != 0)
-            sb.append("vlan=").append(vlan).append(" ");
+            s = formatField(sb, false, "vlan", vlan, s);
+        s = formatField(sb, inPortInv, "input-ports", inPortIds, s);
+        s = formatField(sb, outPortInv, "output-ports", outPortIds, s);
 
-        if (inPortIds != null && !inPortIds.isEmpty()) {
-            sb.append("input-ports=");
-            sb.append(inPortInv ? "!{" : "{");
-            for (UUID id : inPortIds) {
-                sb.append(id.toString()).append(",");
-            }
-            sb.append("} ");
-        }
-        if (outPortIds != null && !outPortIds.isEmpty()) {
-            sb.append("output-ports=");
-            sb.append(outPortInv ? "!{" : "{");
-            for (UUID id : outPortIds) {
-                sb.append(id.toString()).append(",");
-            }
-            sb.append("} ");
-        }
+        s = formatField(sb, invPortGroup, "port-group", portGroup, s);
+        s = formatField(sb, invInPortGroup, "in-port-group", inPortGroup, s);
+        s = formatField(sb, invOutPortGroup, "out-port-group", outPortGroup, s);
+        s = formatField(sb, invIpAddrGroupIdSrc, "ip-src-group",
+                            ipAddrGroupIdSrc, s);
+        s = formatField(sb, invIpAddrGroupIdDst, "ip-dst-group",
+                            ipAddrGroupIdDst, s);
+        s = formatField(sb, invDlType, "ethertype", unsignShort(etherType), s);
+        s = formatField(sb, invDlSrc, "mac-src", (ethSrcMask != NO_MASK) ?
+                            ethSrc.toString() + "/" + MAC.maskToString(ethSrcMask) :
+                            ethSrc, s);
+        s = formatField(sb, invDlDst, "mac-dst", (dlDstMask != NO_MASK) ?
+                            ethDst.toString() + "/" + MAC.maskToString(dlDstMask) :
+                            ethDst, s);
+        s = formatField(sb, nwTosInv, "tos", nwTos, s);
+        s = formatField(sb, nwProtoInv, "proto", nwProto, s);
+        s = formatField(sb, nwSrcInv, "ip-src", nwSrcIp, s);
+        s = formatField(sb, nwDstInv, "ip-dst", nwDstIp, s);
+        s = formatField(sb, tpSrcInv, "port-src", tpSrc, s);
+        s = formatField(sb, tpDstInv, "port-dst", tpDst, s);
+        s = formatField(sb, traversedDeviceInv, "traversed-dev",
+                            traversedDevice, s);
+        s = formatField(sb, icmpDataSrcIpInv, "icmp-data-src-ip",
+                            icmpDataSrcIp, s);
+        s = formatField(sb, icmpDataDstIpInv, "icmp-data-dst-ip",
+                            icmpDataDstIp, s);
 
-        formatField(sb, invPortGroup, "port-group", portGroup);
-        formatField(sb, invInPortGroup, "in-port-group", inPortGroup);
-        formatField(sb, invOutPortGroup, "out-port-group", outPortGroup);
-        formatField(sb, invIpAddrGroupIdSrc, "ip-src-group", ipAddrGroupIdSrc);
-        formatField(sb, invIpAddrGroupIdDst, "ip-dst-group", ipAddrGroupIdDst);
-        formatField(sb, invDlType, "ethertype", unsignShort(etherType));
-        formatField(sb, invDlSrc, "mac-src", (ethSrcMask != NO_MASK) ?
-                ethSrc.toString() + "/" + MAC.maskToString(ethSrcMask) :
-                ethSrc);
-        formatField(sb, invDlDst, "mac-dst", (dlDstMask != NO_MASK) ?
-                ethDst.toString() + "/" + MAC.maskToString(dlDstMask) :
-                ethDst);
-        formatField(sb, nwTosInv, "tos", nwTos);
-        formatField(sb, nwProtoInv, "proto", nwProto);
-        formatField(sb, nwSrcInv, "ip-src", nwSrcIp);
-        formatField(sb, nwDstInv, "ip-dst", nwDstIp);
-        formatField(sb, tpSrcInv, "port-src", tpSrc);
-        formatField(sb, tpDstInv, "port-dst", tpDst);
-        formatField(sb, traversedDeviceInv, "traversed-dev", traversedDevice);
-        formatField(sb, icmpDataSrcIpInv, "icmp-data-src-ip", icmpDataSrcIp);
-        formatField(sb, icmpDataDstIpInv, "icmp-data-dst-ip", icmpDataDstIp);
+        formatField(sb, false, "nw-dst-rewritten", matchNwDstRewritten, s);
 
-        if (matchNwDstRewritten)
-            sb.append("nw-dst-rewritten ");
-
-        sb.append(")]");
+        sb.append(")");
         return sb.toString();
     }
 
