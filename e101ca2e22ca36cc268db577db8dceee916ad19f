@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_60f97e4d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-23T11:27:27Z",
+      "side": 1,
+      "message": "I\u0027m worried about doing this in the fast path, we\u0027re essentially blocking the packet worker here to connect to the flow history backend, isn\u0027t it? I think everything here should be async\n\nopinions?",
+      "range": {
+        "startLine": 138,
+        "startChar": 16,
+        "endLine": 138,
+        "endChar": 39
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_80e5a2a9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-23T11:27:27Z",
+      "side": 1,
+      "message": "I think we should log at info level or warn at most, we normally use error for severe errors. The same comment below",
+      "range": {
+        "startLine": 152,
+        "startChar": 20,
+        "endLine": 152,
+        "endChar": 25
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
