@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_3ab6fe8a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-23T17:48:04Z",
+      "side": 1,
+      "message": "Shouldn\u0027t it be checked that ip belongs to addresses.get(0) just in case the order of the subnets is not good? Or this can be assured (like addresses.size being 1) in that case. Not sure.",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 17
+      },
+      "revId": "1347a32d0c41c00a9c0325b67636e2810d7fe45e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_1abb3a74",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-23T17:48:04Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 120,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 13
+      },
+      "revId": "1347a32d0c41c00a9c0325b67636e2810d7fe45e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
