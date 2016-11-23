@@ -28,7 +28,6 @@ import org.midonet.cluster.models.Topology
 import org.midonet.cluster.state.PortStateStorage.PortState
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.rules.{Nat64Rule, Rule}
 import org.midonet.midolman.simulation.Simulator.{ContinueWith, Fip64Action, SimHook, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
@@ -112,9 +111,15 @@ object Port {
             if (p.getPortAddress.getVersion == IPVersion.V4) {
                 val ip = IPv4Addr(p.getPortAddress.getAddress)
                 address4 = new IPv4Subnet(ip, addresses.get(0).getPrefixLen)
+                if (addresses.get(0) != address4) {
+                    addresses.set(0, address4)
+                }
             } else {
                 val ip = IPv6Addr(p.getPortAddress.getAddress)
                 address6 = new IPv6Subnet(ip, addresses.get(0).getPrefixLen)
+                if (addresses.get(0) != address6) {
+                    addresses.set(0, address6)
+                }
             }
         } else if (addresses.size() > 1) {
             // If the port has multiple IP addresses, select the first IPv4 and
@@ -522,7 +527,7 @@ case class RouterPort(override val id: UUID,
                       fipNatRules: JList[Rule] = emptyList(),
                       peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
                       override val qosPolicy: QosPolicy = null,
-                      val fip64vxlan: Boolean = false)
+                      fip64vxlan: Boolean = false)
     extends Port {
 
     override val servicePorts: JList[UUID] = emptyList()
