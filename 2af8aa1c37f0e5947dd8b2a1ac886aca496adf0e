@@ -22,6 +22,30 @@
       "revId": "2af8aa1c37f0e5947dd8b2a1ac886aca496adf0e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_bafc4e3f",
+        "filename": "nsdb/src/main/scala/org/midonet/management/MidolmanStat.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-23T17:36:45Z",
+      "side": 1,
+      "message": "As we agreed per slack changed to 95th(w0)",
+      "parentUuid": "9aa53dc9_7a2c864a",
+      "range": {
+        "startLine": 145,
+        "startChar": 34,
+        "endLine": 145,
+        "endChar": 49
+      },
+      "revId": "2af8aa1c37f0e5947dd8b2a1ac886aca496adf0e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
