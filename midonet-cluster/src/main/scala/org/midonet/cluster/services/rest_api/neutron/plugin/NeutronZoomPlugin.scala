@@ -108,6 +108,8 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                 new ConflictHttpException(e, e.getMessage)
             case e: ObjectReferencedException =>
                 new ConflictHttpException(e, e.getMessage)
+            case e: ObjectNameNotUniqueException =>
+                new ConflictHttpException(e, e.getMessage)
             case e: StorageException =>
                 new InternalServerErrorHttpException(e, e.getMessage)
         }
