@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_da3712e2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-11-23T15:30:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_460572c0",
+      "range": {
+        "startLine": 83,
+        "startChar": 52,
+        "endLine": 83,
+        "endChar": 53
+      },
+      "revId": "f9779a5b954c074e9a8f47aba11cde6d0848e21c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_26d82e53",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-23T14:25:37Z",
       "side": 1,
       "message": "the NeutronZoomPlugin needs to handle this exception, and not return a 500 error maybe a conflict",
+      "range": {
+        "startLine": 88,
+        "startChar": 32,
+        "endLine": 88,
+        "endChar": 60
+      },
+      "revId": "f9779a5b954c074e9a8f47aba11cde6d0848e21c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_ba344ede",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-11-23T15:30:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_26d82e53",
       "range": {
         "startLine": 88,
         "startChar": 32,
