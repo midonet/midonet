@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_1a5d7ae9",
+        "filename": "nsdb/src/main/scala/org/midonet/management/MidolmanStat.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-23T16:02:38Z",
+      "side": 1,
+      "message": "why not e.printStackTrace()?\n\nShould print to stderr in any case.",
+      "range": {
+        "startLine": 290,
+        "startChar": 15,
+        "endLine": 290,
+        "endChar": 18
+      },
+      "revId": "c80d555891eb7736a7637a1c39c263ef13e833f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
