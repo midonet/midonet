@@ -22,11 +22,8 @@ import java.util.{ArrayList, List, UUID}
 import uk.co.real_logic.sbe.codec.java._
 
 import org.midonet.cluster.flowhistory.{ActionEncoder, BinarySerialization}
-import org.midonet.cluster.flowhistory.proto.{DeviceType => SbeDeviceType,
-                                              RuleResult => SbeRuleResult,
-                                              SimulationResult => SbeSimResult,
-                                              _}
-import org.midonet.cluster.services.discovery.MidonetDiscovery
+import org.midonet.cluster.flowhistory.proto.{DeviceType => SbeDeviceType, RuleResult => SbeRuleResult, SimulationResult => SbeSimResult, _}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.config.FlowHistoryConfig
@@ -38,8 +35,8 @@ import org.midonet.sdn.flows.FlowTagger._
 
 
 class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig,
-                         discovery: MidonetDiscovery)
-        extends AbstractFlowRecorder(config, discovery) {
+                         backend: MidonetBackend)
+        extends AbstractFlowRecorder(config, backend) {
     val MESSAGE_HEADER = new MessageHeader
     val FLOW_SUMMARY = new FlowSummary
     val buffer = ByteBuffer.allocateDirect(BinarySerialization.BufferSize)

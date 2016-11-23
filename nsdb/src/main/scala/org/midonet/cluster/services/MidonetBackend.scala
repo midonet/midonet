@@ -31,6 +31,7 @@ import org.midonet.cluster.data.storage.{StateStorage, StateTableStorage, Storag
 import org.midonet.cluster.models.Neutron.{TapService, VpnService, _}
 import org.midonet.cluster.models.Topology.{TunnelZone, Vip, Vtep, _}
 import org.midonet.cluster.services.c3po.C3POState
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.util.eventloop.Reactor
 
@@ -324,6 +325,8 @@ abstract class MidonetBackend extends AbstractService {
     def failFastCurator: CuratorFramework
     /** Provides an executor for handing of asynchronous storage events. */
     def reactor: Reactor
+    /** Provides access to Service Discovery */
+    def discovery: MidonetDiscovery
 
     /** Emits notifications with the current connection state for
       * [[curator]]. */

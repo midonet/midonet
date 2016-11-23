@@ -30,6 +30,7 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{FakeDiscovery, MidonetDiscovery}
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
@@ -73,6 +74,7 @@ class DatapathBoundContainerDelegateTest extends FeatureSpec with Matchers
             override def reactor: Reactor = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
+            override val discovery: MidonetDiscovery = discovery
         }
         MidonetBackend.setupBindings(storage, storage)
     }

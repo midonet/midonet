@@ -77,6 +77,7 @@ class DisruptorPacketWorker(packetWorkflow: PacketWorkflow,
 
     def shutdown(): Unit = {
         eventProcessor.halt()
+        packetWorkflow.stopAsync().awaitTerminated()
     }
 
     def shutdownNow(): Unit = {
@@ -84,7 +85,10 @@ class DisruptorPacketWorker(packetWorkflow: PacketWorkflow,
         interrupt()
     }
 
-    override def run(): Unit = eventProcessor.run()
+    override def run(): Unit = {
+        packetWorkflow.startAsync().awaitRunning()
+        eventProcessor.run()
+    }
 
     override def handleEventException(e: Throwable, sequence: Long,
                                       event: Object): Unit = {

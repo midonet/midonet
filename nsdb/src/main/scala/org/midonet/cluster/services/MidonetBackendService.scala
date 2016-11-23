@@ -56,8 +56,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
                             override val curator: CuratorFramework,
                             override val failFastCurator: CuratorFramework,
                             metricRegistry: MetricRegistry,
-                            reflections: Option[Reflections],
-                            customDiscovery: Option[MidonetDiscovery] = None)
+                            reflections: Option[Reflections])
     extends MidonetBackend {
 
     private val log = Logger(LoggerFactory.getLogger("org.midonet.nsdb"))
@@ -133,6 +132,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
     override def stateTableStore: StateTableStorage = zoom
 
     override def stateTableClient: StateTableClient = stateProxyClient
+    override def discovery: MidonetDiscovery = discoveryService
 
     protected def setup(stateTableStorage: StateTableStorage): Unit = { }
 
@@ -146,12 +146,11 @@ class MidonetBackendService(config: MidonetBackendConfig,
                 failFastCurator.start()
             }
 
-            discoveryService = customDiscovery.getOrElse {
-                discoveryServiceExecutor = Executors.singleThreadScheduledExecutor(
-                    "discovery-service", isDaemon = true, Executors.CallerRunsPolicy)
-                new MidonetDiscoveryImpl(curator, discoveryServiceExecutor,
-                                         config)
-            }
+            discoveryServiceExecutor = Executors.singleThreadScheduledExecutor(
+                "discovery-service", isDaemon = true, Executors.CallerRunsPolicy)
+            discoveryService = new MidonetDiscoveryImpl(curator,
+                                                        discoveryServiceExecutor,
+                                                        config)
 
             if (config.stateClient.enabled) {
                 stateProxyClientExecutor = Executors
@@ -213,12 +212,8 @@ class MidonetBackendService(config: MidonetBackendConfig,
             stateProxyClientExecutor.shutdown()
         }
 
-        // If we have our own discovery, shut it down. If it's a custom one
-        // that was provided to us, don't touch it.
-        if (discoveryServiceExecutor != null) {
-            discoveryService.stop()
-            discoveryServiceExecutor.shutdown()
-        }
+        discoveryService.stop()
+        discoveryServiceExecutor.shutdown()
 
         notifyStopped()
     }

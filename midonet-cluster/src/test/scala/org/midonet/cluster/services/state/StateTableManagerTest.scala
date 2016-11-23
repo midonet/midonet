@@ -45,6 +45,7 @@ import org.midonet.cluster.rpc.State.ProxyResponse
 import org.midonet.cluster.rpc.State.ProxyResponse.{Acknowledge, Notify}
 import org.midonet.cluster.rpc.State.ProxyResponse.Error.Code
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{FakeDiscovery, MidonetDiscovery}
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.services.state.server.{ClientHandler, ClientUnregisteredException}
 import org.midonet.cluster.util.UUIDUtil._
@@ -82,6 +83,7 @@ class StateTableManagerTest extends FeatureSpec with Matchers
         override def doStop(): Unit = ???
         override def doStart(): Unit = ???
         override def stateTableClient: StateTableClient = ???
+        override val discovery: MidonetDiscovery = new FakeDiscovery
     }
 
     private val config = new StateProxyConfig(ConfigFactory.parseString(
