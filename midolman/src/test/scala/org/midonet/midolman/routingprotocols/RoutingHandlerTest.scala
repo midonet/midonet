@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OFdrive ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -34,8 +34,8 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
 import org.midonet.cluster.backend.zookeeper.StateAccessException
-import org.midonet.cluster.data.Route
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.routingprotocols.RoutingHandler.PeerRoute
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortBgpInfos
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
@@ -290,9 +290,9 @@ class RoutingHandlerTest extends FeatureSpecLike
             val dstNet = IPv4Subnet.fromCidr(dst)
             if (!r.isLearned)
                 false
-            else if (r.getDstNetworkAddr != dstNet.getAddress.toString)
+            else if (r.dstNetworkAddr != dstNet.getAddress.toInt)
                 false
-            else if (r.getDstNetworkLength != dstNet.getPrefixLen)
+            else if (r.dstNetworkLength != dstNet.getPrefixLen)
                 false
             else if (r.getNextHopGateway != gw)
                 false
