@@ -48,7 +48,7 @@ object Port {
               fipNatRules: JList[Rule] = emptyList(),
               peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
               qosPolicy: QosPolicy = null,
-              fip64vxlan: Boolean = false): Port = {
+              fip64vxlan: Boolean): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
             servicePort(proto, state, inFilters)
         else if (proto.hasVtepId)
@@ -522,7 +522,7 @@ case class RouterPort(override val id: UUID,
                       fipNatRules: JList[Rule] = emptyList(),
                       peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
                       override val qosPolicy: QosPolicy = null,
-                      val fip64vxlan: Boolean = false)
+                      val fip64vxlan: Boolean)
     extends Port {
 
     override val servicePorts: JList[UUID] = emptyList()
