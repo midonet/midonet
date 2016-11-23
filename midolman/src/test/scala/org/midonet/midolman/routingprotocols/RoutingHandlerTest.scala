@@ -87,8 +87,7 @@ class RoutingHandlerTest extends FeatureSpecLike
                 List[IPSubnet[_]](IPv4Subnet.fromCidr("192.168.80.1/24")).asJava,
             portAddress4 = IPv4Subnet.fromCidr("192.168.80.1/24"),
             portAddress6 = null,
-            portMac = MAC.random(),
-            fip64vxlan = config.fip64.vxlanDownlink)
+            portMac = MAC.random())
 
         bgpd = new MockBgpdProcess
 

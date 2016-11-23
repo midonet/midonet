@@ -53,8 +53,7 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
              PortActive(UUID.randomUUID(), Some(1L)),
              Collections.emptyList(),
              Collections.emptyList(),
-             fipNatRules = rules.asJava,
-             fip64vxlan=true)
+             fipNatRules = rules.asJava)
     }
 
     private def packet(src: String, dst: String): EthBuilder = {

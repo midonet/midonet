@@ -96,8 +96,7 @@ class ArpRequestBrokerTest extends Suite
                           routerId = routerId,
                           portAddress4 = MY_SUBNET,
                           portAddress6 = null,
-                          portAddresses = List[IPSubnet[_]](MY_SUBNET).asJava,
-                          fip64vxlan = true)
+                          portAddresses = List[IPSubnet[_]](MY_SUBNET).asJava)
 
     var router: Router = _
 

@@ -492,46 +492,6 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
         }
     }
 
-    feature("VPP downlink Setup") {
-        scenario("VPP sets up downlink port") {
-            setupStorage()
-            log.info("Creating dummy tenant router with one port")
-            val routerId: Option[UUID] = Some(UUID.randomUUID())
-            val router = this.createRouter(routerId.get, None, Some("tenant1"))
-            backend.store.create(router)
-
-            val routerPortId = UUID.randomUUID()
-            val port = this.createRouterPort(routerPortId, routerId)
-            backend.store.create(port)
-            val ovsDownlink = "ovs-"+ routerPortId.toString.substring(0, 8)
-
-            val currentHostId = HostIdGenerator.getHostId
-            log info "Adding current host to the storage"
-            val host = this.createHost(currentHostId)
-            backend.store.create(host)
-
-            val proc = startVpp()
-            Thread.sleep(1000)
-            val api = new VppApi("test")
-
-            var setup: Option[VppDownlinkSetup] = None
-            try {
-                val ip4 = IPv4Subnet.fromCidr("169.254.0.1/30")
-                val ip6 = IPv6Subnet.fromCidr("2001::3/64")
-                setup = Some(new VppDownlinkSetup(routerPortId, 0,
-                                                  ip4, ip6, api, backend, log))
-                setup foreach { s => Await.result(s.execute(), 1 minute) }
-                assertCmd(s"ip a add 169.254.0.2/30 dev $ovsDownlink")
-                log info "Pinging vpp interface"
-                assertCmd(s"ping -c 5 ${ip4.getAddress}")
-            } finally {
-                setup foreach { s => Await.result(s.rollback(), 1 minute) }
-                api.close()
-                proc.destroy()
-            }
-        }
-    }
-
     feature("VXLan downlink") {
         scenario("ping6 through vxlan") {
             val nsIPv6 = "ip6"

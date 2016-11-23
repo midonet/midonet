@@ -113,27 +113,14 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
         new IPv6Subnet(IPv6Addr.random, 64)
     }
 
-    private def createDownlink(port: Port, rule: Rule, vrf: Int, vni: Int,
-                               downlinkMac: MAC)
-    : CreateDownlink = {
-        CreateDownlink(
+    private def createTunnel(port: Port, rule: Rule, vrf: Int, vni: Int,
+                             downlinkMac: MAC)
+    : CreateTunnel = {
+        CreateTunnel(
             portId = port.getId,
             vrfTable = vrf,
             vni = vni,
-            portAddress4 = fromV4Proto(port.getPortSubnet(0)),
-            portAddress6 = fromV6Proto(rule.getNat64RuleData.getPortAddress),
-            natPool = ZoomConvert.fromProto(rule.getNat64RuleData.getNatPool,
-                                            classOf[NatTarget]),
             routerPortMac=downlinkMac)
-    }
-
-    private def updateDownlink(port: Port, oldRule: Rule, newRule: Rule, vrf: Int)
-    : UpdateDownlink = {
-        UpdateDownlink(
-            portId = port.getId,
-            vrfTable = vrf,
-            oldAddress = fromV6Proto(oldRule.getNat64RuleData.getPortAddress),
-            newAddress = fromV6Proto(newRule.getNat64RuleData.getPortAddress))
     }
 
     private def associateFip(port: Port, rule: Rule, entry: Fip64Entry, vrf: Int)
@@ -197,8 +184,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive a Create and AssociateFip notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createDownlink(port, rule, 1, 1234,
-                                                        downlinkMac)
+            actor.messages.head shouldBe createTunnel(port, rule, 1, 1234,
+                                                      downlinkMac)
             actor.messages(1) shouldBe associateFip(port, rule, entry, 1)
 
             gracefulStop(ref, 5 seconds)
@@ -239,7 +226,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The actor should receive a Delete notification")
             actor.messages should have size 4
             actor.messages(2) shouldBe disassociateFip(port, entry, 1)
-            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1, 1)
+            actor.messages(3) shouldBe DeleteTunnel(port.getId, 1, 1)
         }
 
         scenario("Port deleted for non-existing downlink") {
@@ -282,8 +269,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive a Create and AssociateFip notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createDownlink(port1, rule1, 1, 1234,
-                                                        downlinkMac1)
+            actor.messages.head shouldBe createTunnel(port1, rule1, 1, 1234,
+                                                      downlinkMac1)
             actor.messages(1) shouldBe associateFip(port1, rule1, entry1, 1)
 
             When("Adding a new port")
@@ -299,8 +286,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive a Create and AssociateFip notification")
             actor.messages should have size 4
-            actor.messages(2) shouldBe createDownlink(port2, rule2, 2, 1235,
-                                                      downlinkMac2)
+            actor.messages(2) shouldBe createTunnel(port2, rule2, 2, 1235,
+                                                    downlinkMac2)
             actor.messages(3) shouldBe associateFip(port2, rule2, entry2, 2)
 
             When("The first port is deleted")
@@ -309,7 +296,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The actor should receive a Delete notification")
             actor.messages should have size 6
             actor.messages(4) shouldBe disassociateFip(port1, entry1, 1)
-            actor.messages(5) shouldBe DeleteDownlink(port1.getId, 1, 1234)
+            actor.messages(5) shouldBe DeleteTunnel(port1.getId, 1, 1234)
 
             When("Adding a new port")
             val downlinkMac3 = MAC.random()
@@ -324,8 +311,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive a Create notification with 1 VRF")
             actor.messages should have size 8
-            actor.messages(6) shouldBe createDownlink(port3, rule3, 1, 1236,
-                                                      downlinkMac3)
+            actor.messages(6) shouldBe createTunnel(port3, rule3, 1, 1236,
+                                                    downlinkMac3)
             actor.messages(7) shouldBe associateFip(port3, rule3, entry3, 1)
 
             gracefulStop(ref, 5 seconds)
@@ -354,7 +341,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The actor should receive a DisassociateFip and Delete notification")
             actor.messages should have size 4
             actor.messages(2) shouldBe disassociateFip(port, entry, 1)
-            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1, 1234)
+            actor.messages(3) shouldBe DeleteTunnel(port.getId, 1, 1234)
         }
 
         scenario("Deleted downlink frees VRF numbers") {
@@ -384,8 +371,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should receive 0 VRF")
             actor.messages should have size 6
-            actor.messages(4) shouldBe createDownlink(port, rule, 1, 1234,
-                                                      downlinkMac)
+            actor.messages(4) shouldBe createTunnel(port, rule, 1, 1234,
+                                                    downlinkMac)
             actor.messages(5) shouldBe associateFip(port, rule, entry, 1)
 
             gracefulStop(ref, 5 seconds)
@@ -448,8 +435,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive a Create notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createDownlink(port, rule, 1, 1234,
-                                                        downlinkMac)
+            actor.messages.head shouldBe createTunnel(port, rule, 1, 1234,
+                                                      downlinkMac)
             actor.messages(1) shouldBe associateFip(port, rule, entry, 1)
 
             gracefulStop(ref, 5 seconds)
@@ -476,36 +463,6 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive additional notifications")
             actor.messages should have size 2
-
-            gracefulStop(ref, 5 seconds)
-        }
-
-        scenario("NAT64 rule updated with port address changed") {
-            Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
-
-            And("A port")
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId))
-            val rule1 = createNat64Rule(portId = Some(port.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule1)))
-
-            When("Adding a new port to the downlink table")
-            addEntry(port.getId, router.getId)
-
-            And("The rule is update with a new port address")
-            val rule2 = createNat64Rule(id = rule1.getId,
-                                        portId = Some(port.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.update(rule2)
-
-            Then("The actor should receive an Update notification")
-            actor.messages should have size 3
-            actor.messages(2) shouldBe updateDownlink(port, rule1, rule2, 1)
 
             gracefulStop(ref, 5 seconds)
         }
@@ -637,7 +594,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The actor should receive DownlinkDeleted")
             actor.messages should have size 6
             actor.messages(4) shouldBe disassociateFip(port, entry2, 1)
-            actor.messages(5) shouldBe DeleteDownlink(port.getId, 1, 1234)
+            actor.messages(5) shouldBe DeleteTunnel(port.getId, 1, 1234)
         }
 
         scenario("All FIP entries are cleared when port deleted") {
@@ -672,7 +629,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
                 disassociateFip(port, entry1, 1),
                 disassociateFip(port, entry2, 1),
                 disassociateFip(port, entry3, 1))
-            actor.messages(7) shouldBe DeleteDownlink(port.getId, 1, 1234)
+            actor.messages(7) shouldBe DeleteTunnel(port.getId, 1, 1234)
         }
     }
 
@@ -709,7 +666,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             Then("The VPP downlink should cleanup")
             actor.messages should have size 4
             actor.messages(2) shouldBe disassociateFip(port, entry, 1)
-            actor.messages(3) shouldBe DeleteDownlink(port.getId, 1, 1234)
+            actor.messages(3) shouldBe DeleteTunnel(port.getId, 1, 1234)
         }
     }
 
@@ -764,8 +721,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive a Create notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createDownlink(port, rule, 1, 1234,
-                                                        downlinkMac)
+            actor.messages.head shouldBe createTunnel(port, rule, 1, 1234,
+                                                      downlinkMac)
             actor.messages(1) shouldBe associateFip(port, rule, entry, 1)
 
             gracefulStop(ref, 5 seconds)
@@ -811,8 +768,8 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should only receive the second port")
             actor.messages should have size 6
-            actor.messages(4) shouldBe createDownlink(port2, rule2, 1, 1234,
-                                                      downlinkMac)
+            actor.messages(4) shouldBe createTunnel(port2, rule2, 1, 1234,
+                                                    downlinkMac)
             actor.messages(5) shouldBe associateFip(port2, rule2, entry2, 1)
 
             gracefulStop(ref, 5 seconds)

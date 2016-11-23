@@ -69,8 +69,7 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
         BgpPort(Port(port,
                      PortInactive,
                      Lists.newArrayList(),
-                     Lists.newArrayList(),
-                     fip64vxlan=config.fip64.vxlanDownlink).asInstanceOf[RouterPort],
+                     Lists.newArrayList()).asInstanceOf[RouterPort],
                 BgpRouter(
                     as = router.getAsNumber,
                     id = IPAddressUtil.toIPv4Addr(port.getPortAddress),
