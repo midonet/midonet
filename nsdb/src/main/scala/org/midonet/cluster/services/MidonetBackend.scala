@@ -101,6 +101,7 @@ object MidonetBackend {
              classOf[NeutronFirewall],
              classOf[NeutronHealthMonitor],
              classOf[NeutronLoadBalancerPool],
+             classOf[NeutronLoadBalancerV2],
              classOf[NeutronLoadBalancerPoolMember],
              classOf[NeutronLoggingResource],
              classOf[NeutronNetwork],
