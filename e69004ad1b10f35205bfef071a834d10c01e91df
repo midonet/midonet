@@ -164,6 +164,30 @@
       "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_84736d4d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-24T16:04:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_c9106e51",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 51
+      },
+      "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
