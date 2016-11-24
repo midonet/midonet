@@ -23,14 +23,20 @@ import java.util.function.Consumer
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
+
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+
+import rx.Subscription
 import rx.subscriptions.CompositeSubscription
+
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
+import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
@@ -59,6 +65,7 @@ object VppController extends Referenceable {
     private val VppConnectionName = "midonet"
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
+    private var routerPortSubscribers = mutable.Map[UUID, Subscription]()
 
     private[vpp] val tunnelKeyToPort = new ConcurrentHashMap[Long, UUID]
 
@@ -170,6 +177,18 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     }
 
     override def receive: Receive = super.receive orElse {
+        case port: RouterPort =>
+            log info s"Recieved router port update for port ${port.id} router "
+
+            for (id <- port.routeIds) {
+                vt.store.get(classOf[Route], id) map {
+                    route =>
+                        log info "Destination: " + route.getDstSubnet
+                        log info "Next Hop: " + route.getNextHopGateway
+                }
+                Future.successful(None)
+            }
+
         case m if eventHandler.isDefinedAt(m) =>
             belt.handle(() => eventHandler(m))
         case m =>
@@ -219,12 +238,21 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
                 }
 
                 val dpNumber = datapathState.getDpPortNumberForVport(portId)
-                attachLink(uplinks, portId,
+                val res = attachLink(uplinks, portId,
                            new VppUplinkSetup(port.id,
                                               port.portAddress6.getAddress,
                                               dpNumber, vppApi, vppOvs,
                                               Logger(log.underlying)))
-            case _ =>
+                routerPortSubscribers +=
+                    portId -> VirtualTopology.observable(classOf[RouterPort],
+                                                         portId)
+                        .subscribe(this)
+                res
+            case port: RouterPort =>
+                log debug "Got IPv4 port: " + port.portAddress4.toString
+                Future.successful(None)
+            case x =>
+                log info "Got message " + x.getClass
                 Future.successful(None)
         } andThen {
             case Success(Some(_)) =>
