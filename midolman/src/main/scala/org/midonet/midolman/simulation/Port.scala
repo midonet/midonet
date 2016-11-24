@@ -47,8 +47,7 @@ object Port {
               servicePorts: JList[UUID] = emptyList(),
               fipNatRules: JList[Rule] = emptyList(),
               peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
-              qosPolicy: QosPolicy = null,
-              fip64vxlan: Boolean = false): Port = {
+              qosPolicy: QosPolicy = null): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
             servicePort(proto, state, inFilters)
         else if (proto.hasVtepId)
@@ -58,7 +57,7 @@ object Port {
                        servicePorts, qosPolicy)
         else if (proto.hasRouterId)
             routerPort(proto, state, inFilters, outFilters, fipNatRules,
-                       peeringTable, qosPolicy, fip64vxlan)
+                       peeringTable, qosPolicy)
         else
             throw new ConvertException("Unknown port type")
     }
@@ -96,8 +95,7 @@ object Port {
                            outFilters: JList[UUID],
                            fipNatRules: JList[Rule],
                            peeringTable: StateTable[MAC, IPv4Addr],
-                           qosPolicy: QosPolicy,
-                           fip64vxlan: Boolean) = {
+                           qosPolicy: QosPolicy) = {
 
         // Compute the port addresses: this distinguishes between ports created
         // in a previous version of MidoNet that have only one IP address, and
@@ -160,8 +158,7 @@ object Port {
             tunnelIp = if (p.hasTunnelIp) toIPv4Addr(p.getTunnelIp) else null,
             fipNatRules = fipNatRules,
             peeringTable = peeringTable,
-            qosPolicy = qosPolicy,
-            fip64vxlan = fip64vxlan)
+            qosPolicy = qosPolicy)
     }
 
     private def vxLanPort(p: Topology.Port,
@@ -521,8 +518,7 @@ case class RouterPort(override val id: UUID,
                       tunnelIp: IPv4Addr = null,
                       fipNatRules: JList[Rule] = emptyList(),
                       peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
-                      override val qosPolicy: QosPolicy = null,
-                      val fip64vxlan: Boolean = false)
+                      override val qosPolicy: QosPolicy = null)
     extends Port {
 
     override val servicePorts: JList[UUID] = emptyList()
@@ -572,17 +568,14 @@ case class RouterPort(override val id: UUID,
     }
 
     override def isActive: Boolean = {
-        (fip64vxlan && isFip64) || isPortActive
+        isFip64 || isPortActive
     }
 
     override def isExterior: Boolean =
-        (fip64vxlan && isFip64) || super.isExterior
+        isFip64 || super.isExterior
 
     protected override def emitCommon: SimStep = {
         val emitBase = super.emitCommon
-        if (!fip64vxlan) {
-            return emitBase
-        }
         var index = 0
         while (index < fipNatRules.size()) {
             if (fipNatRules.get(index).isInstanceOf[Nat64Rule]) {

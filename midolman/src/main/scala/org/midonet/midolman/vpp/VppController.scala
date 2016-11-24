@@ -120,31 +120,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
     }
 
-    private val eventHandlerWithoutVxlan: PartialFunction[Any, Future[_]] = {
-        case LocalPortActive(portId, portNumber, true) =>
-            attachUplink(portId)
-        case LocalPortActive(portId, portNumber, false) =>
-            detachUplink(portId)
-        case create@CreateDownlink(portId, vrf, vni,
-                                   ip4Address, ip6Address, natPool, routerPortMac) =>
-            attachDownlink(portId, vrf, create.vppAddress4, ip6Address, natPool)
-        case UpdateDownlink(portId, vrf, oldAddress, newAddress) =>
-            // TODO
-            Future.successful(())
-        case DeleteDownlink(portId, vrf, vni) =>
-            detachDownlink(portId)
-        case AssociateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool) =>
-            associateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool)
-        case DisassociateFip(portId, vrf, floatingIp, fixedIp, localIp) =>
-            disassociateFip(portId, vrf, floatingIp, fixedIp, localIp)
-        case OnCompleted =>
-            Future.successful(())
-        case OnError(e) =>
-            log.error("Exception on active ports observable", e)
-            Future.failed(e)
-    }
-
-    private val eventHandlerWithVxlan: PartialFunction[Any, Future[_]] = {
+    private val eventHandler: PartialFunction[Any, Future[_]] = {
         case LocalPortActive(portId, portNumber, true) =>
             attachUplink(portId) flatMap {
                 _ match {
@@ -156,15 +132,19 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             detachUplink(portId).flatMap {
                 case _ => detachDownlinkVxlan()
             }
-        case create@CreateDownlink(portId, vrf, vni,
-                                   ip4Address, ip6Address, natPool, routerPortMac) =>
-            createDownlinkTunnel(portId, vrf, vni, routerPortMac)
-
-        case UpdateDownlink(portId, vrf, oldAddress, newAddress) =>
-            log.error("Updating downlink in FIP64 vxlan downlink mode")
+        case CreateTunnel(portId, vrf, vni, routerPortMac) =>
+            createTunnel(portId, vrf, vni, routerPortMac)
+        case DeleteTunnel(portId, vrf, vni) =>
+            deleteTunnel(portId, vni)
+        case AssociateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool) =>
+            associateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool)
+        case DisassociateFip(portId, vrf, floatingIp, fixedIp, localIp) =>
+            disassociateFip(portId, vrf, floatingIp, fixedIp, localIp)
+        case OnCompleted =>
             Future.successful(())
-        case DeleteDownlink(portId, vrf, vni) =>
-            deleteDownlinkTunnel(portId, vni)
+        case OnError(e) =>
+            log.error("Exception on active ports observable", e)
+            Future.failed(e)
     }
 
     override def preStart(): Unit = {
@@ -187,21 +167,6 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         uplinks.clear()
         downlinks.clear()
         super.postStop()
-    }
-
-    var fip64Vxlan = vt.config.fip64.vxlanDownlink
-    var eventHandler = getEventHandler()
-
-    def getEventHandler(): PartialFunction[Any, Future[_]] = {
-        if (fip64Vxlan) {
-            eventHandlerWithVxlan orElse eventHandlerWithoutVxlan
-        } else {
-            eventHandlerWithoutVxlan
-        }
-    }
-
-    def resetEventHandler(): Unit = {
-        eventHandler = getEventHandler
     }
 
     override def receive: Receive = super.receive orElse {
@@ -282,29 +247,6 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
     }
 
-    private def attachDownlink(portId: UUID, vrf: Int, vppAddress4: IPv4Subnet,
-                               portAddress6: IPv6Subnet, natPool: NatTarget)
-    : Future[_] = {
-
-        log debug s"Attach downlink port $portId (VRF $vrf): " +
-                  s"network=$portAddress6 vppAddress=$vppAddress4 pool=$natPool"
-
-        if (vppProcess eq null) {
-            startVppProcess()
-            vppApi = createApiConnection(VppConnectMaxRetries)
-        }
-
-        attachLink(downlinks, portId,
-                   new VppDownlinkSetup(portId, vrf, vppAddress4, portAddress6,
-                                        vppApi, vt.backend,
-                                        Logger(log.underlying)))
-    }
-
-    private def detachDownlink(portId: UUID): Future[_] = {
-        log debug s"Detaching downlink port $portId"
-        detachLink(downlinks, portId)
-    }
-
     private def attachDownlinkVxlan(): Future[_] = {
         log debug s"Attach downlink VXLAN port"
 
@@ -335,9 +277,9 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
     }
 
-    private def createDownlinkTunnel(portId: UUID,
-                                     vrf: Int, vni: Int,
-                                     routerPortMac: MAC) : Future[_] = {
+    private def createTunnel(portId: UUID,
+                             vrf: Int, vni: Int,
+                             routerPortMac: MAC) : Future[_] = {
         log debug s"Creating downlink tunnel for port:$portId, vrf:$vrf, vni:$vni"
         val setup = new VppVxlanTunnelSetup(vt.config.fip64,
                                             vni, vrf, routerPortMac,
@@ -362,7 +304,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
     }
 
-    private def deleteDownlinkTunnel(portId: UUID, vni: Int) : Future[_] = {
+    private def deleteTunnel(portId: UUID, vni: Int) : Future[_] = {
         log debug s"Deleting downlink tunnel for port:$portId"
         vxlanTunnels.remove(portId) match {
             case setup: VppVxlanTunnelSetup =>

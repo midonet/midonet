@@ -339,7 +339,7 @@ class Router(override val id: UUID,
         if (outPort == null)
             return null
 
-        if (outPort.isFip64 && fip64Config.vxlanDownlink) {
+        if (outPort.isFip64) {
             context.log.debug("Next hop is fip64 translation")
             return fip64Config.vtepVppMac
         }

@@ -51,58 +51,27 @@ object VppDownlink {
     trait Notification { def portId: UUID }
 
     /**
-      * A message to create a veth pair for the specified virtual port. This is
-      * the port on the tenant router used for IPv6 traffic for all the floating
-      * IPs associated with this tenant router. Upon receiving this message,
-      * the [[VppController]] must create a veth pair, where one interface is
-      * called `vpp-[portId]` and the other `ovs-[portId]`. The VPP interface
-      * is configured with a link-local IP address from the same subnet as the
-      * router port (169.254.x.y/30).
-      *
-      * The message also includes the following: (i) the router port IPv6
-      * address, (ii) the XLAT-ed IPv4 subnet configured for this tenant router
-      * port and (ii) the L4 port range.
+      * A message to create a downlink tunnel, which is used to communicate
+      * between a tenant router in the virtual topology and a virtual routing
+      * function in VPP.
       */
-    case class CreateDownlink(portId: UUID,
-                              vrfTable: Int,
-                              vni: Int,
-                              portAddress4: IPv4Subnet,
-                              portAddress6: IPv6Subnet,
-                              natPool: NatTarget,
-                              routerPortMac: MAC) extends Notification {
-
-        lazy val vppAddress4 = new IPv4Subnet(portAddress4.getIntAddress + 1,
-                                              portAddress4.getPrefixLen)
-
+    case class CreateTunnel(portId: UUID,
+                            vrfTable: Int,
+                            vni: Int,
+                            routerPortMac: MAC) extends Notification {
         override def toString: String =
-            s"CreateDownlink [port=$portId vrf=$vrfTable vni=$vni " +
-            s"portAddress4=$portAddress4 portAddress6=$portAddress6 " +
-            s"vppAddress4=$vppAddress4 pool=$natPool " +
+            s"CreateTunnel [port=$portId vrf=$vrfTable vni=$vni " +
             s"routerPortMac=$routerPortMac]"
     }
 
     /**
-      * A message to update the IPv6 address of a downlink port. The other
-      * parameters of the downlink port (IPv4 address, XLAT-ed IPv4 address
-      * and L4 port range) are immutable.
+      * A message to delete the downlink tunnel for a tenant router.
       */
-    case class UpdateDownlink(portId: UUID, vrfTable: Int,
-                              oldAddress: IPv6Subnet,
-                              newAddress: IPv6Subnet) extends Notification {
-
-        override def toString: String =
-            s"UpdateDownlink [port=$portId vrf=$vrfTable oldAddress=$oldAddress " +
-            s"newAddress=$newAddress]"
-    }
-
-    /**
-      * A message to delete the veth pair for the tenant router downlink port.
-      */
-    case class DeleteDownlink(portId: UUID, vrfTable: Int, vni: Int)
+    case class DeleteTunnel(portId: UUID, vrfTable: Int, vni: Int)
             extends Notification {
 
         override def toString: String =
-            s"DeleteDownlink [port=$portId vrf=$vrfTable vni=$vni]"
+            s"DeleteTunnel [port=$portId vrf=$vrfTable vni=$vni]"
     }
 
     /**
@@ -297,10 +266,9 @@ object VppDownlink {
                             // notification.
                             log debug s"Port $portId rule ${rule.id} changed " +
                                       s"port address from ${oldRule.portAddress} " +
-                                      s"to ${fipRule.portAddress}"
-                            Observable.just(UpdateDownlink(
-                                portId, vrfTable, oldRule.portAddress,
-                                fipRule.portAddress))
+                                      s"to ${fipRule.portAddress}. " +
+                                      "This is currently unhandled"
+                            Observable.empty()
                         } else {
                             Observable.empty()
                         }
@@ -334,12 +302,9 @@ object VppDownlink {
         private def initialize(port: RouterPort, rule: Nat64Rule)
         : Observable[Notification] = {
             val notifications = new Array[Notification](fips.size + 1)
-            notifications(0) = CreateDownlink(portId, vrfTable,
-                                              port.tunnelKey.toInt,
-                                              currentPort.portAddress4,
-                                              rule.portAddress,
-                                              rule.natPool,
-                                              port.portMac)
+            notifications(0) = CreateTunnel(portId, vrfTable,
+                                            port.tunnelKey.toInt,
+                                            port.portMac)
             var index = 1
             val iterator = fips.iterator
             while (iterator.hasNext) {
@@ -368,9 +333,9 @@ object VppDownlink {
                                                  fip.fixedIp,
                                                  currentPort.portAddress4)
                 }
-                child onNext DeleteDownlink(portId,
-                                            vrfTable,
-                                            currentPort.tunnelKey.toInt)
+                child onNext DeleteTunnel(portId,
+                                          vrfTable,
+                                          currentPort.tunnelKey.toInt)
                 child.onCompleted()
             }
         }
@@ -384,11 +349,9 @@ object VppDownlink {
   * floating IPv6 addresses. Upon each notification, the trait will consolidate
   * the updates and send the following messages to the actor:
   *
-  * - [[org.midonet.midolman.vpp.VppDownlink.CreateDownlink]] Emitted when a
+  * - [[org.midonet.midolman.vpp.VppDownlink.CreateTunnel]] Emitted when a
   *   new downlink port is added with a FIP.
-  * - [[org.midonet.midolman.vpp.VppDownlink.UpdateDownlink]] Emitted when the
-  *   IPv6 address of a downlink port changes.
-  * - [[org.midonet.midolman.vpp.VppDownlink.DeleteDownlink]] Emitted when a
+  * - [[org.midonet.midolman.vpp.VppDownlink.DeleteTunnel]] Emitted when a
   *   downlink port is deleted.
   * - [[org.midonet.midolman.vpp.VppDownlink.AssociateFip]] Emitted when a new
   *   floating IPv6 is associated with a downlink port.

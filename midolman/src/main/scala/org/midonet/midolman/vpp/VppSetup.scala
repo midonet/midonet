@@ -210,50 +210,6 @@ private object VppSetup extends MidolmanLogging {
         }
     }
 
-    class OvsBindV4(override val name: String,
-                    tenantRouterPortId: UUID,
-                    ovsDownlinkPortName: String,
-                    backend: MidonetBackend)
-                   (implicit ec: ExecutionContext)
-        extends FutureTaskWithRollback {
-
-        @throws[Exception]
-        override def execute(): Future[Any] = {
-            try {
-                backend.store.tryTransaction(tx =>  {
-                    val hostId = HostIdGenerator.getHostId
-                    val oldPort = tx.get(classOf[Port], tenantRouterPortId)
-                    val newPort = oldPort.toBuilder
-                        .setHostId(toProto(hostId))
-                        .setInterfaceName(ovsDownlinkPortName)
-                        .build()
-                    tx.update(newPort)
-                })
-
-                Future.successful(Unit)
-            } catch {
-                case NonFatal(e) => Future.failed(e)
-            }
-        }
-
-        @throws[Exception]
-        override def rollback(): Future[Any] = {
-            try {
-                backend.store.tryTransaction(tx => {
-                    val currentPort = tx.get(classOf[Port], tenantRouterPortId)
-                    val restoredPort = currentPort.toBuilder
-                        .clearHostId()
-                        .clearInterfaceName()
-                        .build()
-                    tx.update(restoredPort)
-                })
-                Future.successful(Unit)
-            } catch {
-                case NonFatal(e) => Future.failed(e)
-            }
-        }
-    }
-
     class VxlanCreate(override val name: String,
                       src: IPv4Addr, dst: IPv4Addr,
                       vni: Int, vrf: Int, vppApi: VppApi)
@@ -429,58 +385,6 @@ class VppUplinkSetup(uplinkPortId: UUID,
     add(ipAddrVpp)
     add(ovsBind)
     add(ovsFlows)
-}
-
-/**
-  * @param downlinkPortId port id of the tenant router port that has IP6
-  *                              address associated
-  * @param vppApi handler for the JVPP
-  * @param ec Execution context for futures
-  */
-class VppDownlinkSetup(downlinkPortId: UUID,
-                       vrf: Int,
-                       ip4Address: IPv4Subnet,
-                       ip6Address: IPv6Subnet,
-                       vppApi: VppApi,
-                       backEnd: MidonetBackend,
-                       log: Logger)
-                       (implicit ec: ExecutionContext)
-    extends VppSetup("VPP downlink setup", log)(ec) {
-
-    import VppSetup._
-
-    private val dlinkSuffix = downlinkPortId.toString.substring(0, 8)
-    private val dlinkVppName = s"vpp-$dlinkSuffix"
-    private val dlinkOvsName = s"ovs-$dlinkSuffix"
-
-    private val dlinkVeth = new VethPairSetup("downlink interface setup",
-                                              dlinkVppName,
-                                              dlinkOvsName)
-
-    private val dlinkVpp = new VppDevice("downlink VPP interface setup",
-                                          dlinkVppName,
-                                          vppApi,
-                                          dlinkVeth,
-                                          vrf)
-
-    private val ipAddrVpp = new VppIpAddr("downlink VPP IPv6 setup",
-                                          vppApi,
-                                          dlinkVpp,
-                                          ip4Address.getAddress,
-                                          ip4Address.getPrefixLen.toByte)
-
-    private val ovsBind = new OvsBindV4("downlink OVS binding",
-                                        downlinkPortId,
-                                        dlinkOvsName,
-                                        backEnd)
-
-    /*
-     * setup the tasks, in execution order
-     */
-    add(dlinkVeth)
-    add(dlinkVpp)
-    add(ipAddrVpp)
-    add(ovsBind)
 }
 
 /**

@@ -278,5 +278,4 @@ class Fip64Config(val conf: Config, val schema: Config) {
     val vtepKernAddr = IPv4Subnet.fromCidr("169.254.124.2/30")
 
     val vtepVppMac = MAC.fromString("de:ad:be:ef:00:05")
-    val vxlanDownlink = false
 }
