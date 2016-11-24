@@ -45,6 +45,30 @@
       "revId": "d683edebdbe1a9b4d1e2809ab68419cf8f6bc656",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_702b87ec",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-24T07:39:04Z",
+      "side": 1,
+      "message": "good point, will update",
+      "parentUuid": "9aa53dc9_50d88353",
+      "range": {
+        "startLine": 153,
+        "startChar": 53,
+        "endLine": 153,
+        "endChar": 61
+      },
+      "revId": "d683edebdbe1a9b4d1e2809ab68419cf8f6bc656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
