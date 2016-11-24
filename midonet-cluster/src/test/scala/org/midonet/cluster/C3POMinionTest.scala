@@ -542,7 +542,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                 node.put("destination",
                          IPSubnetUtil.fromProto(route.getDestination).toString)
                 node.put("nexthop",
-                         IPAddressUtil.toIPv4Addr(route.getNexthop).toString)
+                         IPAddressUtil.toIPAddr(route.getNexthop).toString)
                 routesNode.add(node)
             }
         }

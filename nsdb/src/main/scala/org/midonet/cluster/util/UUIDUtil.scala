@@ -17,14 +17,16 @@ package org.midonet.cluster.util
 
 import java.lang.reflect.Type
 import java.nio.ByteBuffer
-import java.util.{UUID => JUUID, ArrayList => JArrayList}
+import java.util.{ArrayList => JArrayList, UUID => JUUID}
+
 import javax.annotation.Nonnull
 
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Commons.{UUID => PUUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID => PUUID}
+import org.midonet.packets.{IPv4Addr, IPv6Addr}
 
 object UUIDUtil {
 
@@ -133,6 +135,25 @@ object UUIDUtil {
             msbMask = msbMask & 0xffffffffffff0fffL
             lsbMask = lsbMask & 0x3fffffffffffffffL
             toProto(uuid.getMsb ^ msbMask, uuid.getLsb ^ lsbMask)
+        }
+
+        def xorWith(address: IPAddress): PUUID = {
+            if (address.getVersion == IPVersion.V4) {
+                xorWith(0L, IPv4Addr.stringToInt(address.getAddress).toLong)
+            } else {
+                val ip = IPv6Addr.fromString(address.getAddress)
+                xorWith(ip.upperWord, ip.lowerWord)
+            }
+        }
+
+        def xorWith(subnet: IPSubnet): PUUID = {
+            if (subnet.getVersion == IPVersion.V4) {
+                xorWith((IPv4Addr.stringToInt(subnet.getAddress).toLong << 32) |
+                        subnet.getPrefixLength, 0L)
+            } else {
+                val ip = IPv6Addr.fromString(subnet.getAddress)
+                xorWith(ip.upperWord, ip.lowerWord ^ subnet.getPrefixLength)
+            }
         }
     }
 
