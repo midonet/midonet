@@ -548,8 +548,8 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
 
             val datapath = createDatapath(datapathName)
 
-            val vtepVpp = IPv4Addr.fromString("169.254.0.1")
-            val vtepKern = IPv4Addr.fromString("169.254.0.2")
+            val vtepVpp = IPv4Addr.fromString("169.254.124.1")
+            val vtepKern = IPv4Addr.fromString("169.254.124.2")
 
             var cleanupNs = Seq[String]()
             try {
@@ -587,7 +587,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
                              1 minute)
                 Await.result(api.addDeviceAddress(
                                  downlinkDev,
-                                 IPv4Addr.fromString("169.254.0.1"), 24),
+                                 IPv4Addr.fromString("169.254.124.1"), 24),
                              1 minute)
                 assertCmd(s"ip a add ${vtepKern}/24 dev ${vethDownlink}-left")
 
@@ -691,8 +691,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder {
             val dlinkVppName = s"$dlinkPrefix-vpp"
             val dlinkTunName = s"$dlinkPrefix-tun"
 
-            val vppAddress = IPv4Subnet.fromCidr("169.254.0.1/30")
-            val tunAddress = IPv4Subnet.fromCidr("169.254.0.2/30")
+            val tunAddress = IPv4Subnet.fromCidr("169.254.124.2/30")
 
             val currentHostId = HostIdGenerator.getHostId
             log info "Adding current host to the storage"
