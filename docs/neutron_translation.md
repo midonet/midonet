@@ -955,6 +955,64 @@ Deleting a health monitor that has a pool association is prohibited.
 
 Delete the MidoNet health monitor.
 
+## LOADBALANCERV2
+
+### CREATE
+
+By the time this translation is executed, the port which will be used for
+the VIP (with `device_owner` set to `neutron:LOADBALANCERV2`) *must* be
+already created and the MidoNet port also created (i.e. the
+PortTranslator must have already been executed for the VIP port).
+
+Create a new MidoNet router with an ID derived from the given neutron
+load balancer V2 object.  Create a MidoNet load balancer object with
+an ID equal to the neutron load balancer V2 object.  Create a new
+MidoNet port on the new MidoNet router with an ID derived from the given
+VIP port's ID and an IP address equal to the VIP address given in the
+neutron load blanacer v2 object.  This new port will have its peer ID
+set to the VIP port ID given in the neutron load balancer v2 object
+(which is also equal to the MidoNet port object ID which was created
+during the VIP port's translation).
+
+The new MidoNet router will have the following fields set:
+
+ * Derivation function on LB object's id => id
+ * LB object's admin_state_up => adminStateUp 
+
+The new MidoNet load balancer will have the following fields set:
+
+ * id => id
+ * admin_state_up => adminStateUp
+ * Derivation function on id => routerId
+
+The new port on the new MidoNet router will have the following fields
+set:
+
+ * Derivation function on LB object's vip_port_id => id
+ * admin_state_up => adminStateUp
+ * vip_address => portAddress
+ * vip_port_id => peerId
+ * Derivation function on LB object's id => routerId
+
+### UPDATE
+
+Only the `adminStateUp` field may be updated.  All other fields are
+locked and cannot be updated on the LB object once created.
+
+The update will set the `adminStateUp` field to the given LB object's
+`admin_state_up` value.
+
+### DELETE
+
+Delete the MidoNet load balancer object corresponding to the given id.
+
+Delete the MidoNet router object create for the corresponding MidoNet
+load balancer object.  This will also delete the router port that was
+created to be a peer for the VIP port.
+
+The VIP port itself will *not* be deleted and must be deleted
+separately.
+
 ## BGPSPEAKER
 
 ### CREATE
