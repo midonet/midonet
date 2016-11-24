@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_066e4ac9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-24T10:57:59Z",
+      "side": 1,
+      "message": "Taking your feedback into configuration and some pointers by Alex, this new change has the sending done by a FlowSenderWorker that lives on a thread of its own and workers submit encoded records to it via a Disruptor RingBuffer.",
+      "parentUuid": "9aa53dc9_006d1204",
+      "range": {
+        "startLine": 138,
+        "startChar": 16,
+        "endLine": 138,
+        "endChar": 39
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_80e5a2a9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 3
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_0ecf7cb1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-24T10:57:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_40631a1b",
+      "range": {
+        "startLine": 152,
+        "startChar": 20,
+        "endLine": 152,
+        "endChar": 25
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_e0710ee2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 3
@@ -119,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_eec45893",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-24T10:57:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_e0710ee2",
+      "range": {
+        "startLine": 207,
+        "startChar": 16,
+        "endLine": 207,
+        "endChar": 23
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_c0772ad3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 3
@@ -130,6 +202,30 @@
       "writtenOn": "2016-11-23T11:33:18Z",
       "side": 1,
       "message": "you need to close the old channel.",
+      "range": {
+        "startLine": 208,
+        "startChar": 31,
+        "endLine": 208,
+        "endChar": 38
+      },
+      "revId": "e101ca2e22ca36cc268db577db8dceee916ad19f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_0e465c23",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-24T10:57:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_c0772ad3",
       "range": {
         "startLine": 208,
         "startChar": 31,
