@@ -31,7 +31,8 @@ public enum DeviceOwner {
     @ZoomEnumValue("ROUTER_INTERFACE") ROUTER_INTF("network:router_interface"),
     @ZoomEnumValue("COMPUTE") COMPUTE("compute:nova"),
     @ZoomEnumValue("LOADBALANCER") LOADBALANCER("neutron:LOADBALANCER"),
-    @ZoomEnumValue("REMOTE_SITE") REMOTE_SITE("network:remote_site");
+    @ZoomEnumValue("REMOTE_SITE") REMOTE_SITE("network:remote_site"),
+    @ZoomEnumValue("LOADBALANCERV2") LOADBALANCERV2("neutron:LOADBALANCERV2");
 
     static public final String COMPUTE_PREFIX = "compute:";
 
