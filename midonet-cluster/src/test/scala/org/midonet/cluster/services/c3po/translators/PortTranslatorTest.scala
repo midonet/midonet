@@ -104,6 +104,7 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
 
     protected val portWithPeerId = randomUuidProto
     protected val peerRouterPortId = randomUuidProto
+    protected val portForVipId = randomUuidProto
 
     // This below is so the translators can generate overlay tunnel keys
     protected val backendCfg = new MidonetBackendConfig(
@@ -1399,6 +1400,17 @@ class VipPortTranslationTest extends VifPortTranslationTest {
     protected val vipPortDown = nPortFromTxt(portBaseDown + """
         device_owner: LOADBALANCER
         """)
+    protected val vipPortNewIp = nPortFromTxt(s"""
+        $portBaseUp
+        fixed_ips {
+          ip_address {
+            version: V4
+            address: '$ipv4Addr1Txt'
+          }
+          subnet_id { $nIpv4Subnet1Id }
+        }
+        device_owner: LOADBALANCER
+        """)
 
     "VIP port CREATE" should "create a MidoNet port" in {
         translator.translate(transaction, CreateOp(vipPortUp))
@@ -1420,6 +1432,11 @@ class VipPortTranslationTest extends VifPortTranslationTest {
         bind(portId, vipPortUp)
         translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain(DeleteOp(classOf[Port], portId))
+    }
+
+    "VIP port UPDATE of IP" should "throw an error" in {
+        bind(portId, vipPortUp)
+        translator.translate(transaction, UpdateOp(vipPortNewIp))
     }
 }
 
