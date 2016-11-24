@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_4ee224d7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-24T11:26:50Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 99,
+        "startChar": 25,
+        "endLine": 99,
+        "endChar": 30
+      },
+      "revId": "d88d1795bd716f2d7adecb19fbd601c22f4e52e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_aead308a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-24T11:26:50Z",
+      "side": 1,
+      "message": "why don\u0027t you write directly to the buffer? btw, do you know if there is any specific byte order, should you convert to network byte order first?",
+      "range": {
+        "startLine": 189,
+        "startChar": 12,
+        "endLine": 190,
+        "endChar": 37
+      },
+      "revId": "d88d1795bd716f2d7adecb19fbd601c22f4e52e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
