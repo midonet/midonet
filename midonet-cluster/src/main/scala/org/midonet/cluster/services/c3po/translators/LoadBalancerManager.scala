@@ -28,4 +28,10 @@ trait LoadBalancerManager {
     protected def loadBalancerId(routerId: UUID) =
         routerId.xorWith(0xaab2c5dea7bc8deaL, 0x2ac7bb0371eee6d7L)
 
+    /** Deterministically generate router ID from load balancer V2 ID.
+      * This must be different from above, so that the router ID that gets
+      * created will be different from the tenant router associated with older
+      * V1 LBs, to prevent nasty conflicts. */
+    protected def lbV2RouterId(lbId: UUID) =
+        lbId.xorWith(0xed1225ed739945eaL, 0x8fd972a26f18632fL)
 }
