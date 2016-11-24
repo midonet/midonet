@@ -111,7 +111,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         }
     }
 
-    it should "handle extra routes CRUD" in {
+    it should "handle IPv4 extra routes CRUD" in {
 
         // Create external network.
         val extNwId = createTenantNetwork(2, external = true)
@@ -172,6 +172,65 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             // Validate that route2 is gone
             val rtId = RouteManager.extraRouteId(routerId, route2)
             storage.exists(classOf[Route], rtId).await() shouldBe false
+        }
+    }
+
+    it should "handle IPv6 extra route CRUD" in {
+
+        val hostId = UUID.randomUUID()
+
+        // Create uplink network.
+        val networkId = createUplinkNetwork(2)
+        val subnetId = createSubnet(3, networkId, "2001::/64",
+                                          ipVersion = 6)
+
+        createHost(hostId)
+
+        // Create edge router.
+        val routerId = createRouter(4)
+        val uplinkPortId = createRouterInterfacePort(
+            5, networkId, subnetId, routerId, "2001::1",
+            "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
+        createRouterInterface(6, routerId, uplinkPortId, subnetId)
+
+        // Update with extra routes
+        val route1 = NeutronRoute.newBuilder()
+            .setDestination(IPSubnetUtil.toProto("2002::/64"))
+            .setNexthop(IPAddressUtil.toProto("2001::2")).build()
+        val route2 = NeutronRoute.newBuilder()
+            .setDestination(IPSubnetUtil.toProto("2003::/64"))
+            .setNexthop(IPAddressUtil.toProto("2001::3")).build()
+        var routerWithRoutes = routerJson(routerId,
+                                          enableSnat = false,
+                                          routes = List(route1, route2))
+        insertUpdateTask(7, RouterType, routerWithRoutes, routerId)
+
+        eventually {
+            validateExtraRoute(routerId, route1,
+                               PortManager.routerInterfacePortPeerId(uplinkPortId))
+            validateExtraRoute(routerId, route2,
+                               PortManager.routerInterfacePortPeerId(uplinkPortId))
+        }
+
+        // Replace a route (add/remove)
+        val route3 = NeutronRoute.newBuilder()
+            .setDestination(IPSubnetUtil.toProto("2004::/64"))
+            .setNexthop(IPAddressUtil.toProto("2001::2")).build
+
+        routerWithRoutes = routerJson(routerId,
+                                      enableSnat = false,
+                                      routes = List(route1, route3))
+        insertUpdateTask(8, RouterType, routerWithRoutes, routerId)
+
+        eventually {
+            validateExtraRoute(routerId, route1,
+                               PortManager.routerInterfacePortPeerId(uplinkPortId))
+            validateExtraRoute(routerId, route3,
+                               PortManager.routerInterfacePortPeerId(uplinkPortId))
+
+            // Validate that route2 is gone
+            val routeId = RouteManager.extraRouteId(routerId, route2)
+            storage.exists(classOf[Route], routeId).await() shouldBe false
         }
     }
 
