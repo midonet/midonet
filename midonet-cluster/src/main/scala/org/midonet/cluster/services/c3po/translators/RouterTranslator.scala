@@ -362,7 +362,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
 
         // Create a map of routeID and the route itself
         val routes = nRouter.getRoutesList.asScala
-            .map(r => (extraRouteId(nRouter.getId, r), r)).toMap
+            .map(nr => (extraRouteId(nRouter.getId, nr), nr)).toMap
 
         // Process deletion
         val delRouteIds = oldNRouteIds -- routes.keys
@@ -381,19 +381,25 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         val bgpConfigured = isBgpSpeakerConfigured(tx, nRouter.getId)
         newRoutes foreach { case (rId, r) =>
 
-            if (r.getDestination.getVersion == IPVersion.V6 ||
+            /*if (r.getDestination.getVersion == IPVersion.V6 ||
                 r.getNexthop.getVersion == IPVersion.V6) {
                 throw new IllegalArgumentException(
                     "IPv6 is not supported in this version of MidoNet.")
-            }
+            }*/
 
             val nextHopPort = ports.find(isValidRouteOnPort(r.getNexthop, _))
                 .getOrElse(
                     throw new IllegalArgumentException(
                         "No valid port was found to add route: " + r))
 
+            val srcSubnet = if (r.getNexthop.getVersion == IPVersion.V6) {
+                AnyIPv6Subnet
+            } else {
+                AnyIPv4Subnet
+            }
             val newRoute = newNextHopPortRoute(nextHopPort.getId, id = rId,
                                                dstSubnet = r.getDestination,
+                                               srcSubnet = srcSubnet,
                                                nextHopGwIpAddr = r.getNexthop)
             if (bgpConfigured) {
                 tx.create(makeBgpNetworkFromRoute(nRouter.getId, r))
