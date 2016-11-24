@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "9aa53dc9_6e8f2824",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkersService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-24T11:33:56Z",
+      "side": 1,
+      "message": "why do you need to await?",
+      "range": {
+        "startLine": 108,
+        "startChar": 38,
+        "endLine": 108,
+        "endChar": 50
+      },
+      "revId": "d88d1795bd716f2d7adecb19fbd601c22f4e52e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_4e946436",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkersService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-24T11:33:56Z",
+      "side": 1,
+      "message": "put in doStart().",
+      "range": {
+        "startLine": 108,
+        "startChar": 25,
+        "endLine": 108,
+        "endChar": 35
+      },
+      "revId": "d88d1795bd716f2d7adecb19fbd601c22f4e52e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_4ee224d7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 5
