@@ -34,6 +34,8 @@ public class MessageProperty {
             "{midokura.javarx.BridgeHasMacPort.message}";
     public static final String BRIDGE_HAS_VLAN =
             "{midokura.javarx.BridgeHasVlan.message}";
+    public static final String BRIDGE_DHCP_HAS_SUBNET =
+            "{midokura.javarx.BridgeDhcpHasSubnet.message}";
     public static final String CONTAINER_UNSCHEDULABLE =
             "{midokura.javarx.ContainerUnschedulable.message}";
     public static final String FRAG_POLICY_INVALID_FOR_L4_RULE =
