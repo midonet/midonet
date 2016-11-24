@@ -765,6 +765,167 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             device.rTable.lookup(flowOf("1.0.0.0", "3.0.0.0")) should contain only route2
                 .setNextHopPortId(port.getId).asJava
         }
+
+        scenario("Port with IPv6 route") {
+            val obs = createObserver()
+            val router = testRouterCreated(obs)._1
+
+            When("Creating an interior port with IPv4 and IPv6 routes")
+            val portId = UUID.randomUUID
+            val route4Id = UUID.randomUUID
+            val route6Id = UUID.randomUUID
+            val peerPortId = UUID.randomUUID
+            val port = createRouterPort(id = portId,
+                                        routerId = Some(router.getId),
+                                        adminStateUp = true)
+            val peerPort = createBridgePort(id = peerPortId)
+            val route4 = createRoute(id = route4Id,
+                                     srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "2.0.0.0/24",
+                                     nextHop = NextHop.PORT)
+            val route6 = createRoute(id = route6Id,
+                                     srcNetwork = "2001::/64",
+                                     dstNetwork = "2002::/64",
+                                     nextHop = NextHop.PORT)
+            store.multi(Seq(CreateOp(port), CreateOp(peerPort),
+                            CreateOp(route4), CreateOp(route6),
+                            UpdateOp(port.setPeerId(peerPortId)),
+                            UpdateOp(route4.setNextHopPortId(portId)),
+                            UpdateOp(route6.setNextHopPortId(portId))))
+
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf router
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route4.setNextHopPortId(portId).asJava
+        }
+
+        scenario("Port with IPv6 route and adding an IPv4 route") {
+            val obs = createObserver()
+            val router = testRouterCreated(obs)._1
+
+            When("Creating an interior port with an IPv6 route")
+            val portId = UUID.randomUUID
+            val route6Id = UUID.randomUUID
+            val peerPortId = UUID.randomUUID
+            val port = createRouterPort(id = portId,
+                                        routerId = Some(router.getId),
+                                        adminStateUp = true)
+            val peerPort = createBridgePort(id = peerPortId)
+            val route6 = createRoute(id = route6Id,
+                                     srcNetwork = "2001::/64",
+                                     dstNetwork = "2002::/64",
+                                     nextHop = NextHop.PORT)
+            store.multi(Seq(CreateOp(port), CreateOp(peerPort),
+                            CreateOp(route6),
+                            UpdateOp(port.setPeerId(peerPortId)),
+                            UpdateOp(route6.setNextHopPortId(portId))))
+
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            var device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf router
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+
+            When("When adding an IPv4 ")
+            val route4Id = UUID.randomUUID
+            val route4 = createRoute(id = route4Id,
+                                     srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "2.0.0.0/24",
+                                     nextHopPortId = Some(portId),
+                                     nextHop = NextHop.PORT)
+            store.create(route4)
+
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            device = obs.getOnNextEvents.get(2)
+            device shouldBeDeviceOf router
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route4.setNextHopPortId(portId).asJava
+        }
+
+        scenario("Port with IPv4 route and adding an IPv6 route") {
+            val obs = createObserver()
+            val router = testRouterCreated(obs)._1
+
+            When("Creating an interior port with an IPv6 route")
+            val portId = UUID.randomUUID
+            val route4Id = UUID.randomUUID
+            val peerPortId = UUID.randomUUID
+            val port = createRouterPort(id = portId,
+                                        routerId = Some(router.getId),
+                                        adminStateUp = true)
+            val peerPort = createBridgePort(id = peerPortId)
+            val route4 = createRoute(id = route4Id,
+                                     srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "2.0.0.0/24",
+                                     nextHop = NextHop.PORT)
+            store.multi(Seq(CreateOp(port), CreateOp(peerPort),
+                            CreateOp(route4),
+                            UpdateOp(port.setPeerId(peerPortId)),
+                            UpdateOp(route4.setNextHopPortId(portId))))
+
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            var device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf router
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route4.setNextHopPortId(portId).asJava
+
+            When("When adding an IPv4 ")
+            val route6Id = UUID.randomUUID
+            val route6 = createRoute(id = route6Id,
+                                     srcNetwork = "2001::/64",
+                                     dstNetwork = "2002::/64",
+                                     nextHopPortId = Some(portId),
+                                     nextHop = NextHop.PORT)
+            store.create(route6)
+
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            device = obs.getOnNextEvents.get(2)
+            device shouldBeDeviceOf router
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route4.setNextHopPortId(portId).asJava
+        }
+
+        scenario("Removing a port with an IPv6 route") {
+            val obs = createObserver()
+            val router = testRouterCreated(obs)._1
+
+            When("Creating an interior port with IPv4 and IPv6 routes")
+            val portId = UUID.randomUUID
+            val route4Id = UUID.randomUUID
+            val route6Id = UUID.randomUUID
+            val peerPortId = UUID.randomUUID
+            val port = createRouterPort(id = portId,
+                                        routerId = Some(router.getId),
+                                        adminStateUp = true)
+            val peerPort = createBridgePort(id = peerPortId)
+            val route4 = createRoute(id = route4Id,
+                                     srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "2.0.0.0/24",
+                                     nextHop = NextHop.PORT)
+            val route6 = createRoute(id = route6Id,
+                                     srcNetwork = "2001::/64",
+                                     dstNetwork = "2002::/64",
+                                     nextHop = NextHop.PORT)
+            store.multi(Seq(CreateOp(port), CreateOp(peerPort),
+                            CreateOp(route4), CreateOp(route6),
+                            UpdateOp(port.setPeerId(peerPortId)),
+                            UpdateOp(route4.setNextHopPortId(portId)),
+                            UpdateOp(route6.setNextHopPortId(portId))))
+
+            And("Deleting the port")
+            store.delete(classOf[TopologyPort], portId)
+
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(2)
+            device shouldBeDeviceOf router
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+        }
     }
 
     feature("Test router route updates") {
