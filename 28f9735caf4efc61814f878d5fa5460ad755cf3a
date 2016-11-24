@@ -19,6 +19,69 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_9348555d",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T08:54:13Z",
+      "side": 1,
+      "message": "what is this trying to confirm?",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 49
+      },
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_73827154",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T08:54:13Z",
+      "side": 1,
+      "message": "i want to see some ascii-art diagram to explain what topology it creates.",
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_739b91ca",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T08:54:13Z",
+      "side": 1,
+      "message": "restart_ha?",
+      "range": {
+        "startLine": 114,
+        "startChar": 21,
+        "endLine": 114,
+        "endChar": 27
+      },
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_70d02754",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 6
