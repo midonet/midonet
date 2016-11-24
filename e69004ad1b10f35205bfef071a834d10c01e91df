@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_8e902cee",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-24T11:56:31Z",
+      "side": 1,
+      "message": "oops, fixed",
+      "parentUuid": "9aa53dc9_eedb38ec",
+      "range": {
+        "startLine": 119,
+        "startChar": 60,
+        "endLine": 119,
+        "endChar": 65
+      },
+      "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_8ee26c9e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_6ebcc86c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-24T11:56:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_8ee26c9e",
+      "range": {
+        "startLine": 123,
+        "startChar": 60,
+        "endLine": 123,
+        "endChar": 71
+      },
+      "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_8e4b8cb0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2016-11-24T11:45:51Z",
       "side": 1,
       "message": "i suspect there can be addresses with only these bits different, resulting the same uuid.",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 51
+      },
+      "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_eeb0d88d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-24T11:56:31Z",
+      "side": 1,
+      "message": "I\u0027m open to suggestions for this one.\n\nIn our use case this will only affect IPv6 addresses that have changing bits at those positions, and this applies only to router port addresses. We can include adjacent bytes in the xor, but maybe the we should change the method to:\n\n  xorWith(address: IPAddress)\n\nWhat do you think?",
+      "parentUuid": "9aa53dc9_8e4b8cb0",
       "range": {
         "startLine": 126,
         "startChar": 0,
