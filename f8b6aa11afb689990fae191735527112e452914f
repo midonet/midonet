@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_10143bf3",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronUriBuilder.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T03:39:08Z",
+      "side": 1,
+      "message": "is this intended?",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 216,
+        "endChar": 16
+      },
+      "revId": "f8b6aa11afb689990fae191735527112e452914f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_d0f6d3d6",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/Neutron.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T03:39:08Z",
+      "side": 1,
+      "message": "you don\u0027t need templates?",
+      "revId": "f8b6aa11afb689990fae191735527112e452914f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_b0034fb8",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/Neutron.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T03:39:08Z",
+      "side": 1,
+      "message": "why did you remove firewalls?",
+      "revId": "f8b6aa11afb689990fae191735527112e452914f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_5031a3a1",
+        "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/neutron/TestPoolMemberV2Resource.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T03:39:08Z",
+      "side": 1,
+      "message": "there seems to be a few copy of these.\nit\u0027s better to put them in a single place.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 5
+      },
+      "revId": "f8b6aa11afb689990fae191735527112e452914f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
