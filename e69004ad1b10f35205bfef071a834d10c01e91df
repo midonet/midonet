@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_eedb38ec",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T11:45:51Z",
+      "side": 1,
+      "message": "(index * 8) you mean?",
+      "range": {
+        "startLine": 119,
+        "startChar": 60,
+        "endLine": 119,
+        "endChar": 65
+      },
+      "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_8ee26c9e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T11:45:51Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 123,
+        "startChar": 60,
+        "endLine": 123,
+        "endChar": 71
+      },
+      "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_8e4b8cb0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T11:45:51Z",
+      "side": 1,
+      "message": "i suspect there can be addresses with only these bits different, resulting the same uuid.",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 51
+      },
+      "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
