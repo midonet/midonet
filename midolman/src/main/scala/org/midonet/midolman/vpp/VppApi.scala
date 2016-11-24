@@ -33,7 +33,9 @@ import org.midonet.packets._
   * Midonet wrapper for VPP java API
   */
 object VppApi {
-    case class Device(name: String, swIfIndex: Int)
+    case class Device(name: String, swIfIndex: Int) {
+        override def toString = name + s" swid: $swIfIndex"
+    }
 
     object Device {
         def apply(swIfId: Int):Device = new Device("", swIfId)
@@ -273,8 +275,9 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext)
     def addRoute(subnet: IPSubnet[_ <: IPAddr],
                  nextHop: Option[IPAddr] = None,
                  device: Option[Device] = None,
-                 vrf: Int = 0): Future[Any] = {
-        addDelRoute(subnet, nextHop, device, vrf, isAdd=true)
+                 vrf: Int = 0,
+                 multipath: Boolean = false): Future[Any] = {
+        addDelRoute(subnet, nextHop, device, vrf, isAdd=true, multipath)
     }
 
     def deleteRoute(subnet: IPSubnet[_ <: IPAddr],
