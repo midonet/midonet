@@ -28,6 +28,7 @@ import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
@@ -44,6 +45,8 @@ import org.midonet.util.functors._
 import org.midonet.util.logging.Logger
 
 object RouterMapper {
+
+    private val Route6 = new Route
 
     private val EmptyRouteSet = Set.empty[Route]
     private val EmptyRouteUpdates = RouteUpdates(EmptyRouteSet, EmptyRouteSet)
@@ -178,7 +181,7 @@ object RouterMapper {
             for ((routeId, routeState) <- routes.toList
                  if !port.routeIds.contains(routeId)) {
                 routes -= routeId
-                if (routeState.isReady) {
+                if (routeState.isReady && (routeState.route ne Route6)) {
                     removedRoutes += routeState.route
                     routesCache -= routeState.route
                 }
@@ -222,10 +225,15 @@ object RouterMapper {
             vt.assertThread()
             log.debug("Port route updated: {}", updates)
 
-            routesCache ++= updates.added
-            routesCache --= updates.removed
+            if (updates eq EmptyRouteUpdates) {
+                updates
+            } else {
 
-            if (isPublishingRoutes) updates else EmptyRouteUpdates
+                routesCache ++= updates.added
+                routesCache --= updates.removed
+
+                if (isPublishingRoutes) updates else EmptyRouteUpdates
+            }
         }
 
         /** A method called when the set of learned routes is updated. It
@@ -297,6 +305,12 @@ object RouterMapper {
 
         /** Generates a route update when the route changes. */
         private def routeUpdated(tr: TopologyRoute): Observable[RouteUpdates] = {
+            if (!isIp4(tr)) {
+                log.debug(s"Route $routeId is IPv6: ignoring")
+                currentRoute = Route6
+                return Observable.just(EmptyRouteUpdates)
+            }
+
             val route = ZoomConvert.fromProto(tr, classOf[Route])
             log.debug("Route updated: {}", route)
 
@@ -320,6 +334,18 @@ object RouterMapper {
             if (isReady) Observable.just(RouteUpdates(EmptyRouteSet,
                                                       routeAsSet(currentRoute)))
             else Observable.empty()
+        }
+
+        /**
+          * @return True if the route is an IPv4 route.
+          */
+        private def isIp4(route: TopologyRoute): Boolean = {
+            (!route.hasSrcSubnet ||
+                route.getSrcSubnet.getVersion == IPVersion.V4) &&
+            (!route.hasDstSubnet ||
+                route.getDstSubnet.getVersion == IPVersion.V4) &&
+            (!route.hasNextHopGateway ||
+                route.getNextHopGateway.getVersion == IPVersion.V4)
         }
     }
 
