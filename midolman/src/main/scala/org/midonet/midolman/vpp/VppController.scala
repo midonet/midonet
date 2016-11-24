@@ -32,12 +32,15 @@ import scala.util.{Failure, Success}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
+import org.openvpp.jvpp.core.dto.IpAddDelRouteReply
+
 import rx.Subscription
 import rx.subscriptions.CompositeSubscription
 
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
 import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
@@ -48,9 +51,9 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.{DatapathState, Midolman, Referenceable}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
+import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
-import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
+import org.midonet.util.concurrent.{ConveyorBelt, FutureSequenceWithRollback, FutureTaskWithRollback, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.process.ProcessHelper.OutputStreams._
 import org.midonet.util.process.{MonitoredDaemonProcess, ProcessHelper}
 
@@ -69,7 +72,7 @@ object VppController extends Referenceable {
 
     private[vpp] val tunnelKeyToPort = new ConcurrentHashMap[Long, UUID]
 
-    private case class BoundPort(setup: VppSetup)
+    private case class BoundPort(val setup: VppSetup)
     private type LinksMap = util.Map[UUID, BoundPort]
 
     private def isIPv6(port: RouterPort) = port.portAddress6 ne null
@@ -213,13 +216,33 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
     override def receive: Receive = super.receive orElse {
         case port: RouterPort =>
-            log info s"Recieved router port update for port ${port.id} router "
+            log info s"Recieved router port update for port ${port.id}"
 
             for (id <- port.routeIds) {
                 vt.store.get(classOf[Route], id) map {
                     route =>
-                        log info "Destination: " + route.getDstSubnet
-                        log info "Next Hop: " + route.getNextHopGateway
+                        val dst = route.getDstSubnet
+                        val nextHop = route.getNextHopGateway
+                        log info "Destination: " + dst
+                        log info "Next Hop: " + nextHop
+                        if ((dst ne null) && (nextHop ne null)) {
+                            val uplink = uplinks.get(port.id).setup
+                            val dstTmp = IPSubnetUtil.fromProto(dst)
+                            val nextHopTmp = IPAddressUtil.toIPAddr(nextHop)
+                            log info "Adding route to " + dstTmp +
+                                " via " + nextHopTmp
+                            log info "Vpp device: " + uplink.getVppUplinkDevice
+
+                            vppApi.addRoute(dstTmp,
+                                            Some(nextHopTmp),
+                                            uplink.getVppUplinkDevice, 0) flatMap {
+                                result  =>
+                                    val actualResult = result.asInstanceOf[IpAddDelRouteReply]
+                                    log info "Successfully terminated " + actualResult.context
+                                    Future.successful(None)
+
+                            }
+                        }
                 }
                 Future.successful(None)
             }

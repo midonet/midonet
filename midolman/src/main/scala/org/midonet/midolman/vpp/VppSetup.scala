@@ -379,7 +379,10 @@ private object VppSetup extends MidolmanLogging {
 
 class VppSetup(setupName: String, log: Logger)
               (implicit ec: ExecutionContext)
-    extends FutureSequenceWithRollback(setupName, log)(ec)
+    extends FutureSequenceWithRollback(setupName, log)(ec) {
+
+    def getVppUplinkDevice:Option[VppApi.Device] = None
+}
 
 class VppUplinkSetup(uplinkPortId: UUID,
                      uplinkPortAddress: IPv6Addr,
@@ -391,6 +394,8 @@ class VppUplinkSetup(uplinkPortId: UUID,
     extends VppSetup("VPP uplink setup", log) {
 
     import VppSetup._
+
+    override def getVppUplinkDevice:Option[VppApi.Device] =uplinkVpp.vppInterface
 
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
