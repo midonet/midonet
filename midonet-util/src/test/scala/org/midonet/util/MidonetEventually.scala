@@ -26,6 +26,6 @@ import org.scalatest.concurrent.Eventually
  * the timeout used in tests, update the expiration value below.
  */
 trait MidonetEventually extends Eventually {
-    val expiration: Duration = 5 seconds
+    val expiration: Duration = 15 seconds
     override implicit val patienceConfig = PatienceConfig(timeout = scaled(expiration))
 }
