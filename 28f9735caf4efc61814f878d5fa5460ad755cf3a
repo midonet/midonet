@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_50d52341",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-24T01:23:20Z",
+      "side": 1,
+      "message": "Would be nice to have a list here what is actually included in this patch.",
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_70d02754",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-24T01:23:20Z",
+      "side": 1,
+      "message": "I wonder if you want to still add something here in debug (or warn).  After all, in most cases it is expected that this succeeds.  Without some log, it may hide actual unexpected errors.  Thoughts?",
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
