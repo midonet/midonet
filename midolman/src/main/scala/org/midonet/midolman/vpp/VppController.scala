@@ -23,15 +23,24 @@ import java.util.function.Consumer
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.collection.Set
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
+
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+
+import rx.Subscription
 import rx.subscriptions.CompositeSubscription
+
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
+import org.midonet.cluster.models.Commons.IPVersion
+import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
@@ -59,6 +68,7 @@ object VppController extends Referenceable {
     private val VppConnectionName = "midonet"
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
+    private var routerPortSubscribers = mutable.Map[UUID, Subscription]()
 
     private[vpp] val tunnelKeyToPort = new ConcurrentHashMap[Long, UUID]
 
@@ -132,6 +142,11 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             detachUplink(portId).flatMap {
                 case _ => detachDownlinkVxlan()
             }
+        case port: RouterPort =>
+            log info s"Recieved router port update for port ${port.id}"
+            handleExternalRoutesUpdate(port)
+            Future.successful(None)
+
         case CreateTunnel(portId, vrf, vni, routerPortMac) =>
             createTunnel(portId, vrf, vni, routerPortMac)
         case DeleteTunnel(portId, vrf, vni) =>
@@ -219,13 +234,16 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
                 }
 
                 val dpNumber = datapathState.getDpPortNumberForVport(portId)
-                attachLink(uplinks, portId,
+                val res = attachLink(uplinks, portId,
                            new VppUplinkSetup(port.id,
                                               port.portAddress6.getAddress,
                                               dpNumber, vppApi, vppOvs,
                                               Logger(log.underlying)))
-            case _ =>
-                Future.successful(None)
+                routerPortSubscribers +=
+                    portId -> VirtualTopology.observable(classOf[RouterPort],
+                                                         portId)
+                        .subscribe(this)
+                res
         } andThen {
             case Success(Some(_)) =>
                 if (shouldStartDownlink && !uplinks.isEmpty) {
@@ -239,7 +257,19 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
     private def detachUplink(portId: UUID): Future[_] = {
         log debug s"Local port $portId inactive"
-
+        routerPortSubscribers.remove(portId) match {
+            case None =>
+                log warn s"No subscriber for router port $portId"
+            case Some(s) =>
+                log info s"Stop monitoring router port $portId"
+                s.unsubscribe()
+        }
+        uplinks.get(portId) match {
+            case setupBound: BoundPort =>
+                setupBound.setup.asInstanceOf[VppUplinkSetup].
+                    deleteAllExternalRoutes()
+            case null =>
+        }
         detachLink(uplinks, portId) andThen { case _ =>
             if (uplinks.isEmpty) {
                 stopDownlink()
@@ -404,6 +434,29 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             }
         }
         promise.future
+    }
+
+    private def handleExternalRoutesUpdate(port: RouterPort) = {
+        val vppUplinkSetup = uplinks.get(port.id).setup.asInstanceOf[VppUplinkSetup]
+        val currentRoutes = vppUplinkSetup.getExternalRoutes
+        var newRoutes = new mutable.HashSet[IPv6Subnet]()
+        port.routeIds.foreach { id =>
+            vt.store.get(classOf[Route], id) map {
+                route =>
+                    if ((route.getNextHopGateway ne null)
+                        && (route.getNextHopGateway.getVersion == IPVersion.V6)
+                    ) {
+                        val dst = IPSubnetUtil.fromProto(route.getDstSubnet).
+                            asInstanceOf[IPv6Subnet]
+                        vppUplinkSetup.addExternalRoute(route)
+                        newRoutes.add(dst)
+                    }
+            }
+        }
+        val delRoutes = currentRoutes -- newRoutes
+        delRoutes foreach {
+            dst => vppUplinkSetup.deleteExternalRoute(dst)
+        }
     }
 }
 

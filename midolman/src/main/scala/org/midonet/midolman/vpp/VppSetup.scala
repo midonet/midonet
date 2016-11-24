@@ -18,20 +18,24 @@ package org.midonet.midolman.vpp
 
 import java.util.UUID
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.mutable
+import scala.collection.Set
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
-import org.midonet.packets._
+import org.midonet.packets.{IPSubnet, _}
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
 
 private object VppSetup extends MidolmanLogging {
@@ -308,26 +312,21 @@ private object VppSetup extends MidolmanLogging {
         }
     }
 
-    class VxlanAddRoute(override val name: String,
+    class VppAddRoute(override val name: String,
+                        dst: IPSubnet[_ <: IPAddr],
+                        nextHop: Option[IPAddr] = None,
+                        nextDevice: Option[VppApi.Device] = None,
                         vrf: Int,
                         vppApi: VppApi)
                        (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
 
         override def execute(): Future[Any] = {
-            vppApi.addRoute(IPSubnet.fromCidr("0.0.0.0/0").
-                asInstanceOf[IPv4Subnet],
-                               nextHop = Some(IPv4Addr.fromString("172.16.0.1")),
-                                None,
-                                vrf)
+            vppApi.addRoute(dst, nextHop, nextDevice, vrf)
         }
 
         override def rollback(): Future[Any] = {
-            vppApi.deleteRoute(IPSubnet.fromCidr("0.0.0.0/0").
-                asInstanceOf[IPv4Subnet],
-                               nextHop = Some(IPv4Addr.fromString("172.16.0.1")),
-                               None,
-                               vrf)
+            vppApi.deleteRoute(dst, nextHop, nextDevice, vrf)
         }
     }
 
@@ -347,6 +346,44 @@ class VppUplinkSetup(uplinkPortId: UUID,
     extends VppSetup("VPP uplink setup", log) {
 
     import VppSetup._
+
+    def addExternalRoute(neutronRoute: Topology.Route): Unit = {
+        require(uplinkVpp.vppInterface.isDefined)
+        val dst = IPSubnetUtil.fromProto(neutronRoute.getDstSubnet).
+            asInstanceOf[IPv6Subnet]
+        externalRoutes.get(dst) match {
+            case None =>
+                val nextHop = IPAddressUtil.toIPAddr(neutronRoute.getNextHopGateway)
+                val newVppRoute = new VppAddRoute("Add external route to vpp",
+                                                  dst, Some(nextHop),
+                                                  uplinkVpp.vppInterface,
+                                                  0, vppApi)
+                Await.result(newVppRoute.execute(), 10 seconds)
+                externalRoutes.put(dst, newVppRoute)
+                log info "External route: destination: " + dst +
+                    ", nextHop: " + nextHop + " vppdevice: " +
+                         uplinkVpp.vppInterface
+
+            case _ =>
+                deleteExternalRoute(dst)
+                addExternalRoute(neutronRoute)
+        }
+    }
+
+    def deleteExternalRoute(dst: IPv6Subnet): Unit = {
+        externalRoutes.get(dst) match {
+            case None =>
+            case Some(vppRoute) =>
+                Await.result(vppRoute.rollback(), 10 seconds)
+                externalRoutes.remove(dst)
+        }
+    }
+
+    def getExternalRoutes: Set[IPv6Subnet] = externalRoutes.keySet
+
+    def deleteAllExternalRoutes(): Unit = externalRoutes.foreach {
+        case (id, _) => deleteExternalRoute(id)
+    }
 
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
@@ -385,6 +422,8 @@ class VppUplinkSetup(uplinkPortId: UUID,
     add(ipAddrVpp)
     add(ovsBind)
     add(ovsFlows)
+
+    private val externalRoutes = new mutable.HashMap[IPv6Subnet, VppAddRoute]()
 }
 
 /**
@@ -482,7 +521,11 @@ class VppVxlanTunnelSetup(config: Fip64Config,
                                  vrf, routerPortMac, vppApi)
 
     private val routefip64ToBridge =
-        new VxlanAddRoute("Add default route to forward fip64 to vxlan bridge",
+        new VppAddRoute("Add default route to forward fip64 to vxlan bridge",
+                          dst = IPSubnet.fromCidr("0.0.0.0/0").
+                              asInstanceOf[IPv4Subnet],
+                          nextHop = Some(IPv4Addr.fromString("172.16.0.1")),
+                          nextDevice = None,
                           vrf, vppApi)
 
     add(vxlanDevice)
