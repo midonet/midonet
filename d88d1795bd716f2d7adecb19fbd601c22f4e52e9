@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_ee0c5844",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkersService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-24T12:09:06Z",
+      "side": 1,
+      "message": "If I just call .startAsync() without .awaitRunning() and an error occurs, we won\u0027t know about it. With awaitRunning(), the error will be rethrown and propagated. Unless you want things to fail silently if the flow sender fails to start for some reason.",
+      "parentUuid": "9aa53dc9_6e8f2824",
+      "range": {
+        "startLine": 108,
+        "startChar": 38,
+        "endLine": 108,
+        "endChar": 50
+      },
+      "revId": "d88d1795bd716f2d7adecb19fbd601c22f4e52e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_4ee224d7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
         "patchSetId": 5
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_4ec104e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-24T12:09:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_4ee224d7",
+      "range": {
+        "startLine": 99,
+        "startChar": 25,
+        "endLine": 99,
+        "endChar": 30
+      },
+      "revId": "d88d1795bd716f2d7adecb19fbd601c22f4e52e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_aead308a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
         "patchSetId": 5
@@ -82,6 +130,30 @@
       "writtenOn": "2016-11-24T11:26:50Z",
       "side": 1,
       "message": "why don\u0027t you write directly to the buffer? btw, do you know if there is any specific byte order, should you convert to network byte order first?",
+      "range": {
+        "startLine": 189,
+        "startChar": 12,
+        "endLine": 190,
+        "endChar": 37
+      },
+      "revId": "d88d1795bd716f2d7adecb19fbd601c22f4e52e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_2e6da004",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-24T12:09:06Z",
+      "side": 1,
+      "message": "* Writing to the buffer directly (and not using the sizeBuffer helper) would require shifting the entire contents of buffer: ByteBuffer (since the length has to appear before the data). I think this way is much faster.\n* Bytebuffers all work on BigEndian unless otherwise specified.",
+      "parentUuid": "9aa53dc9_aead308a",
       "range": {
         "startLine": 189,
         "startChar": 12,
