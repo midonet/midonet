@@ -140,6 +140,30 @@
       "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_c9106e51",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-24T12:10:43Z",
+      "side": 1,
+      "message": "maybe use some hash function, for which dropping these bits doesn\u0027t affect uniqueness much?\nusing bytes given by user (ip addresses) as it is seems dangerous.",
+      "parentUuid": "9aa53dc9_eeb0d88d",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 51
+      },
+      "revId": "e69004ad1b10f35205bfef071a834d10c01e91df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
