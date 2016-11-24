@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -566,7 +566,7 @@ def addCopyrightHeader(ipr) {
 
     def mido = copyright.appendNode('copyright')
     mido.appendNode('option', [name: 'notice', value: """\
-Copyright 2015 Midokura SARL
+Copyright \$today.year Midokura SARL
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
