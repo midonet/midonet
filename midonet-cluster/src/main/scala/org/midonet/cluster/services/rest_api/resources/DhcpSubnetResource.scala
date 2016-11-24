@@ -28,6 +28,7 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.ResponseUtils._
+import org.midonet.cluster.rest_api.ConflictHttpException
 import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
@@ -100,7 +101,13 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
     protected override def createFilter(subnet: DhcpSubnet,
                                         tx: ResourceTransaction): Unit = {
         subnet.create(bridgeId)
-        tx.create(subnet)
+        val subnetAddress = subnet.subnetAddress.asInstanceOf[IPv4Subnet]
+        getSubnet(subnetAddress, tx) match {
+            case Some(_) => throw new ConflictHttpException(
+                getMessage(BRIDGE_DHCP_HAS_SUBNET, subnetAddress))
+            case None =>
+                tx.create(subnet)
+        }
     }
 
     private def getSubnet(subnetAddress: IPv4Subnet, tx: ResourceTransaction = null)
