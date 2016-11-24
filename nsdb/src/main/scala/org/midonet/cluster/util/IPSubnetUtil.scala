@@ -27,6 +27,11 @@ object IPSubnetUtil {
         .setAddress("0.0.0.0")
         .setPrefixLength(0).build()
 
+    final val AnyIPv6Subnet = Commons.IPSubnet.newBuilder()
+        .setVersion(IPVersion.V6)
+        .setAddress("::")
+        .setPrefixLength(0).build()
+
     @throws[IllegalArgumentException]
     implicit def toProto(subnet: IPSubnet[_]): Commons.IPSubnet = {
         val version = subnet match {
