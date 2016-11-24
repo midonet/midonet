@@ -28,4 +28,8 @@ trait LoadBalancerManager {
     protected def loadBalancerId(routerId: UUID) =
         routerId.xorWith(0xaab2c5dea7bc8deaL, 0x2ac7bb0371eee6d7L)
 
+    /** Deterministically generate router ID from load balancer ID. */
+    protected def lbRouterId(lbId: UUID) =
+        lbId.xorWith(0xaab2c5dea7bc8deaL, 0x2ac7bb0371eee6d7L)
+
 }

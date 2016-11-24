@@ -87,7 +87,8 @@ message NeutronPort {
         ROUTER_INTERFACE = 3;
         COMPUTE = 4;
         LOADBALANCER = 5;
-        REMOTE_SITE = 6;
+        LOADBALANCERV2 = 6;
+        REMOTE_SITE = 7;
     }
     optional DeviceOwner device_owner = 8 [default = COMPUTE];
     // Device ID may be a composite ID.
