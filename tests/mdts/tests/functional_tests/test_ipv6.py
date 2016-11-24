@@ -263,14 +263,16 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
 
         self.await_vpp_initialized('midolman1', uplink_port_name, 180)
-        self.add_route_to_vpp('midolman1',
-                              prefix='bbbb::/64',
-                              via='2001::2',
-                              port=uplink_port_name)
-        self.add_route_to_vpp('midolman1',
-                              prefix='eeee::/64',
-                              via='2001::3',
-                              port=uplink_port_name)
+        neutron = service.get_container_by_hostname('neutron')
+        neutron.try_command_blocking("bash -c '. keystonerc; neutron router-update --route destination=0::/0,nexthop=2001::2 edge'")
+        #self.add_route_to_vpp('midolman1',
+        #                      prefix='bbbb::/64',
+        #                      via='2001::2',
+        #                      port=uplink_port_name)
+        #self.add_route_to_vpp('midolman1',
+        #                      prefix='eeee::/64',
+        #                      via='2001::3',
+        #                      port=uplink_port_name)
 
     def addTenant(self, name, pubnet, mac, port_name):
 
@@ -626,6 +628,7 @@ def test_neutron_fip6():
     Title: create and associates a IPv6 FIP in neutron checking connectivity
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
+    import ipdb; ipdb.set_trace()
 
 BM=BindingManager(vtm=MultiTenantAndUplinkWithVPP())
 @attr(version="v1.2.0")
