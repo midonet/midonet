@@ -78,7 +78,7 @@
 
     <!-- Fine grained settings for specific classes -->
     <!-- Third party libraries -->
-    <logger name="org.apache.zookeeper" level="INFO" />
+    <logger name="org.apache.zookeeper" level="WARN" />
     <logger name="org.apache.cassandra" level="INFO" />
     <logger name="me.prettyprint.cassandra" level="INFO" />
     <logger name="org.eclipse.jetty" level="INFO" />
