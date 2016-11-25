@@ -16,10 +16,12 @@
 
 package org.midonet.midolman.haproxy
 
-import java.io.{File, PrintWriter}
+import java.util.UUID
 
 import scala.sys.process._
 import org.junit.runner.RunWith
+import org.midonet.midolman.l4lb.{HealthMonitorConfig, PoolConfig, PoolMemberConfig, VipConfig}
+import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, ShouldMatchers}
@@ -30,6 +32,8 @@ import org.slf4j.LoggerFactory
 class HaproxyHelperTest extends FeatureSpec
                         with Eventually
                         with ShouldMatchers {
+
+    import HaproxyHelper._
 
     val log = LoggerFactory.getLogger(classOf[HaproxyHelperTest])
 
@@ -59,67 +63,95 @@ class HaproxyHelperTest extends FeatureSpec
         }
     }
 
+    def verifyConfFile(poolConfig: PoolConfig, confFile: String): Unit = {
+        eventually {
+            val contents = s"cat $confFile".!!
+            for (member <- poolConfig.members) {
+                contents should include (member.address)
+            }
+            contents should include (poolConfig.vip.id.toString)
+        }
+    }
+
+    val vipConfig = new VipConfig(true, UUID.randomUUID(), "10.0.0.10", 80,
+                                  VipSessionPersistence.SOURCE_IP)
+    val healthMonitor = new HealthMonitorConfig(true, 10, 20, 30)
+    val member1 = new PoolMemberConfig(true, UUID.randomUUID(), 100,
+                                       "10.0.0.1", 80)
+    val member2 = new PoolMemberConfig(true, UUID.randomUUID(), 100,
+                                       "10.0.0.2", 80)
+    val member3 = new PoolMemberConfig(true, UUID.randomUUID(), 100,
+                                       "10.0.0.3", 80)
+    val pool1 = new PoolConfig(UUID.randomUUID(), UUID.randomUUID(),
+                              Set(vipConfig), Set(member1, member2),
+                              healthMonitor, true, "", "")
+    val pool2 = new PoolConfig(UUID.randomUUID(), UUID.randomUUID(),
+                               Set(vipConfig), Set(member1, member2),
+                               healthMonitor, true, "", "")
+    val pool1Updated = new PoolConfig(pool1.id, pool1.loadBalancerId,
+                                     Set(vipConfig),
+                                     Set(member1, member2, member3),
+                                     healthMonitor, true, "", "")
+
     val haproxyScript = "../midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper"
 
-    val name = "TEST"
-    val ifaceName = "iface"
-    val mac = "aa:bb:cc:aa:bb:cc"
-    val ip = "10.0.0.10"
-    val routerIp = "10.0.0.9"
-    val haproxyHelper = new HaproxyHelper(haproxyScript)
-    val defaultConf =
-        s"""global
-            |    daemon
-            |    user nobody
-            |    group daemon
-            |    log /dev/log    local0
-            |defaults
-            |    log     global
-            |    timeout connect 5000
-            |    timeout client 5000
-            |    timeout server 5000
-            |frontend A
-            |    option tcplog
-            |    bind *:8080
-            |    default_backend B
-            |backend B
-            |    server X 10.0.0.1:5000
-            |    server Y 10.0.0.2:5000
-               """.stripMargin
 
-    feature("creates namespace") {
-        scenario("namespace is created") {
+    feature("deploys haproxy") {
+        scenario("haproxy is started and restarted in a namespace") {
+            val ifaceName = "iface"
+            val nsName = namespaceName(pool1.id.toString)
+            val haproxy = new HaproxyHelper(haproxyScript)
             try {
-                haproxyHelper.makens(name, ifaceName, mac, ip, routerIp)
-                verifyIpNetns(name, ifaceName)
+                haproxy.deploy(pool1, ifaceName, "50:46:5d:a3:6d:f4",
+                               "20.0.0.1", "20.0.0.2")
+                verifyIpNetns(nsName, ifaceName)
+                verifyHaproxyRunning(nsName)
+                verifyConfFile(pool1, haproxy.confLoc)
+
+                haproxy.restart(pool1Updated)
+                verifyIpNetns(nsName, ifaceName)
+                verifyHaproxyRunning(nsName)
+                verifyConfFile(pool1Updated, haproxy.confLoc)
             } finally {
-                haproxyHelper.cleanns(name, ifaceName)
-                verifyNoIpNetns(name, ifaceName)
+                haproxy.undeploy(nsName, ifaceName)
+                verifyNoIpNetns(nsName, ifaceName)
             }
         }
 
-        scenario("haproxy starts") {
-            val tmpPid = File.createTempFile("haproxy", ".pid")
-            val tmpConf = File.createTempFile("haproxy", ".conf")
-            val writer = new PrintWriter(tmpConf.getAbsolutePath, "UTF-8")
-            writer.println(defaultConf)
-            writer.close()
+        scenario("two separate deployments do not interfere with each other") {
+            val name1 = namespaceName(pool1.id.toString)
+            val ifaceName1 = "iface1"
+            val name2 = namespaceName(pool2.id.toString)
+            val ifaceName2 = "iface2"
+            val haproxy1 = new HaproxyHelper(haproxyScript)
+            val haproxy2 = new HaproxyHelper(haproxyScript)
             try {
-                haproxyHelper.makens(name, ifaceName, mac, ip, routerIp)
-                verifyIpNetns(name, ifaceName)
+                haproxy1.deploy(pool1, ifaceName1, "50:46:5d:a3:6d:f4",
+                                "20.0.0.1", "20.0.0.2")
+                haproxy2.deploy(pool2, ifaceName2, "50:46:5d:a3:6d:f4",
+                                "20.0.0.1", "20.0.0.2")
+                verifyIpNetns(name1, ifaceName1)
+                verifyIpNetns(name2, ifaceName2)
+                verifyHaproxyRunning(name1)
+                verifyHaproxyRunning(name2)
+                verifyConfFile(pool1, haproxy1.confLoc)
+                verifyConfFile(pool2, haproxy2.confLoc)
 
-                haproxyHelper.restartHaproxy(name, tmpConf.getAbsolutePath)
-                verifyHaproxyRunning(name)
+                haproxy1.restart(pool1Updated)
+
+                verifyIpNetns(name1, ifaceName1)
+                verifyIpNetns(name2, ifaceName2)
+                verifyHaproxyRunning(name1)
+                verifyHaproxyRunning(name2)
+                verifyConfFile(pool1Updated, haproxy1.confLoc)
+                verifyConfFile(pool2, haproxy2.confLoc)
             } finally {
-                haproxyHelper.cleanns(name, ifaceName)
-                verifyNoIpNetns(name, ifaceName)
-            }
-        }
+                haproxy1.undeploy(name1, ifaceName1)
+                verifyNoIpNetns(name1, ifaceName1)
 
-        scenario("cleaning non-existent namespace is a no-op") {
-            verifyNoIpNetns(name, ifaceName)
-            haproxyHelper.cleanns(name, ifaceName)
-            verifyNoIpNetns(name, ifaceName)
+                haproxy2.undeploy(name2, ifaceName2)
+                verifyNoIpNetns(name2, ifaceName2)
+            }
         }
     }
 }
