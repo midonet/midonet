@@ -16,6 +16,7 @@
 package org.midonet.midolman;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.nio.file.Paths;
@@ -78,6 +79,11 @@ public class Midolman {
     private static final int MINION_PROCESS_FAILING_PERIOD = 180000;
     private static final int MINION_PROCESS_WAIT_TIMEOUT = 10;
 
+    public static final String VERSION =
+        Midolman.class.getPackage().getImplementationVersion();
+    public static final String VENDOR =
+        Midolman.class.getPackage().getImplementationVendor();
+
     private Injector injector;
 
     private WatchedProcess watchedProcess = new WatchedProcess();
@@ -135,17 +141,24 @@ public class Midolman {
     }
 
     private void initialize(String[] args) throws IOException {
-        // log git commit info
-        Properties properties = new Properties();
-        properties.load(
-            getClass().getClassLoader().getResourceAsStream("git.properties"));
-        log.info("MidoNet Agent main start... ---------");
-        log.info("branch: {}", properties.get("git.branch"));
-        log.info("commit.time: {}", properties.get("git.commit.time"));
-        log.info("commit.id: {}", properties.get("git.commit.id"));
-        log.info("commit.user: {}", properties.get("git.commit.user.name"));
-        log.info("build.time: {}", properties.get("git.build.time"));
-        log.info("build.user: {}", properties.get("git.build.user.name"));
+        log.info("MidoNet Agent {} starting...", VERSION);
+        log.info("-------------------------------------");
+
+        // Log version, vendor and GIT commit information.
+        log.info("Version: {}", VERSION);
+        log.info("Vendor: {}", VENDOR);
+        InputStream gitStream =
+            getClass().getClassLoader().getResourceAsStream("git.properties");
+        if (gitStream != null) {
+            Properties properties = new Properties();
+            properties.load(gitStream);
+            log.info("Branch: {}", properties.get("git.branch"));
+            log.info("Commit time: {}", properties.get("git.commit.time"));
+            log.info("Commit id: {}", properties.get("git.commit.id"));
+            log.info("Commit user: {}", properties.get("git.commit.user.name"));
+            log.info("Build time: {}", properties.get("git.build.time"));
+            log.info("Build user: {}", properties.get("git.build.user.name"));
+        }
         log.info("-------------------------------------");
 
         // log cmdline and JVM info
