@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_9e2cd54b",
+        "filename": "docs/openstack-lbaasv2.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-25T11:06:31Z",
+      "side": 1,
+      "message": "it would be useful to have a description of the path of an example request response and document where changes to the 5tuple take place",
+      "revId": "421596814a2849892eee72a42aaac96fa64b466d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
