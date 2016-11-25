@@ -64,6 +64,8 @@ public class MessageProperty {
             "{midokura.javarx.HostIsNotInAnyTunnelZone.message}";
     public static final String IP_ADDR_GROUP_ID_EXISTS =
             "{midokura.javarx.IpAddrGroupIdExists.message}";
+    public static final String IP_ADDR_GROUP_HAS_IP =
+            "{midokura.javarx.IpAddrGroupHasIp.message}";
     public static final String IP_ADDR_INVALID =
             "{midokura.javarx.IpAddrInvalid.message}";
     public static final String IP_ADDR_INVALID_WITH_PARAM =
