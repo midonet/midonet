@@ -832,6 +832,19 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         midoOps should contain (UpdateOp(ipAddrGrp2))
     }
 
+    "A created VIF port" should "have qos policy id" in {
+        val qosPolicyId = randomUuidProto
+        val vifPortWithQos = vifPortWithFipsAndSgs.toBuilder
+                                                  .setQosPolicyId(qosPolicyId)
+                                                  .build()
+        val mPortWithQos = mPortWithChains.toBuilder
+                                          .setQosPolicyId(qosPolicyId)
+                                          .build()
+        seqDispenser.reset()
+        translator.translate(transaction, CreateOp(vifPortWithQos))
+        midoOps should contain (CreateOp(mPortWithQos))
+    }
+
     // TODO test that VIF port CREATE creates an external network route if the
     //      port is attached to an external network.
     // TODO test that VIF/DHCP/interface/router GW port CREATE creates a tunnel
@@ -915,6 +928,18 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         val vifPortDown = nPortFromTxt(s"$portBaseDown")
         translator.translate(transaction, UpdateOp(vifPortDown))
         midoOps should contain (UpdateOp(mPortDownWithChains))
+    }
+
+    "VIF port UPDATE" should "update qos policy id" in {
+        val qosPolicyId = randomUuidProto
+        val vifPortWithQos = vifPortUp.toBuilder
+                                      .setQosPolicyId(qosPolicyId)
+                                      .build()
+        val mPortWithQos = mPortWithChains.toBuilder
+                                          .setQosPolicyId(qosPolicyId)
+                                          .build()
+        translator.translate(transaction, UpdateOp(vifPortWithQos))
+        midoOps should contain (UpdateOp(mPortWithQos))
     }
 
     val updatedFixedIpTxt = "127.0.0.2"

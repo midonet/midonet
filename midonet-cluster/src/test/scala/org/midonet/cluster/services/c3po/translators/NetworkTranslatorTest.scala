@@ -61,6 +61,23 @@ class NetworkTranslatorTest extends TranslatorTestBase {
         midoOps should contain only Create(midoNetwork)
     }
 
+    "Network CREATE with qos policy" should "produce Mido Network CREATE" in {
+        initMockStorage()
+        val id = UUIDUtil.fromProto(sampleNetwork.getId)
+        val qosPolicyId = genId()
+        val networkWithQos = sampleNeutronNetwork.toBuilder
+                                                 .setQosPolicyId(qosPolicyId)
+                                                 .build()
+        translator.translate(transaction, Create(networkWithQos))
+        val midoNetwork = Network.newBuilder().setId(sampleNetwork.getId)
+                                              .setTenantId(tenantId)
+                                              .setName(networkName)
+                                              .setAdminStateUp(adminStateUp)
+                                              .setQosPolicyId(qosPolicyId)
+                                              .build()
+        midoOps should contain only Create(midoNetwork)
+    }
+
     // TODO Test that NetworkTranslator ensures the provider router if
     // the network is external
     // TODO Test that NetworkTranslator creates and persists a new
@@ -86,6 +103,32 @@ class NetworkTranslatorTest extends TranslatorTestBase {
                                                 .setTenantId(tenantId)
                                                 .setName(newName)
                                                 .setAdminStateUp(newAdminStateUp)
+                                                .build)
+
+        // TODO Verify external network is updated.
+    }
+
+    "Network UPDATE with qos policy" should "produce a corresponding Mido Network UPDATE" in {
+        initMockStorage()
+        val newName = "name2"
+        val newTenantId = "neutron tenant2"
+        val newAdminStateUp = !adminStateUp
+        val qosPolicyId = genId()
+        bind(sampleNetwork.getId, sampleNetwork)
+        translator.translate(transaction, Update(sampleNeutronNetwork.toBuilder
+                                                     .setName(newName)
+                                                     .setAdminStateUp(newAdminStateUp)
+                                                     .setTenantId(newTenantId)
+                                                     .setQosPolicyId(qosPolicyId)
+                                                     .build))
+
+        // Test that name is updated but not tenant ID
+        midoOps should contain only Update(Network.newBuilder()
+                                                .setId(sampleNetwork.getId)
+                                                .setTenantId(tenantId)
+                                                .setName(newName)
+                                                .setAdminStateUp(newAdminStateUp)
+                                                .setQosPolicyId(qosPolicyId)
                                                 .build)
 
         // TODO Verify external network is updated.

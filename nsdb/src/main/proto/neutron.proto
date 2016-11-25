@@ -30,6 +30,7 @@ message NeutronNetwork {
     repeated UUID subnets = 7;
     optional bool external = 8;
     optional NetworkType network_type = 9;
+    optional UUID qos_policy_id = 10;
 
     enum NetworkType {
         LOCAL = 0;
@@ -117,6 +118,7 @@ message NeutronPort {
     }
 
     repeated ExtraDhcpOpts extra_dhcp_opts = 16;
+    optional UUID qos_policy_id = 17;
 
     // Backreferences
     repeated UUID floating_ip_ids = 101;
