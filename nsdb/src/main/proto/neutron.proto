@@ -144,6 +144,7 @@ message NeutronRouterInterface {
     optional string tenant_id = 2;
     optional UUID port_id = 3;
     optional UUID subnet_id = 4;
+    repeated UUID subnet_ids = 5;
 }
 
 message FloatingIp {
