@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_9fc85476",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-25T03:20:54Z",
+      "side": 1,
+      "message": "maybe this comment needs an update.",
+      "range": {
+        "startLine": 115,
+        "startChar": 10,
+        "endLine": 119,
+        "endChar": 42
+      },
+      "revId": "47bf3bb4c54e4397ec08cc1d0a879f9ffeef1ba0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
