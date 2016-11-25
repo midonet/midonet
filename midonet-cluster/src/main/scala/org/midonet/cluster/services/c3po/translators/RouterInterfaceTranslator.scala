@@ -37,7 +37,11 @@ import org.midonet.packets.IPv4Subnet
 
 object RouterInterfaceTranslator {
 
-    val Nat64Pool = IPSubnetUtil.toProto("20.0.0.1/32")
+    /**
+      * The default NAT64 pool uses the IANA-reserved IPv4 prefix for shared
+      * address space that accommodates carrier-grade NAT (RFC 6598).
+      */
+    val Nat64Pool = IPSubnetUtil.toProto("100.64.0.0/10")
 
     /**
       * Deterministically generate 'same subnet' SNAT rule ID from chain ID
