@@ -25,6 +25,52 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_dbf14fcf",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T09:56:33Z",
+      "side": 1,
+      "message": "\"contents should contain member.address\" gives a better error message in case of failure (\"List(addr1, addr2o ...) did not contain addr0\" instead of the more existentialist \"false was not equal to true\")",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 64
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_bbee8bea",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T09:56:33Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 73,
+        "startChar": 12,
+        "endLine": 73,
+        "endChar": 72
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_1f444472",
         "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
         "patchSetId": 1
@@ -42,6 +88,29 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_bbefabaf",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T09:56:33Z",
+      "side": 1,
+      "message": "You don\u0027t need these checks anymore, do you? Same with the other two functions.",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 6
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_9f06141f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 1
@@ -53,6 +122,24 @@
       "writtenOn": "2016-11-25T08:51:33Z",
       "side": 1,
       "message": "just curious, is this the coding standard?  It seems that doing import HaproxyHelper._ will make life easier later.",
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_7b300357",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T09:56:33Z",
+      "side": 1,
+      "message": "I believe it\u0027s standard to just import the whole companion object.",
+      "parentUuid": "9aa53dc9_9f06141f",
       "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -93,6 +180,29 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_5b5adf84",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T09:56:33Z",
+      "side": 1,
+      "message": "Unnecessary; just use the File object. Or don\u0027t create a File object and just use the path from the line above.",
+      "range": {
+        "startLine": 58,
+        "startChar": 45,
+        "endLine": 58,
+        "endChar": 61
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_5b577f02",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 1
@@ -110,6 +220,29 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_1b8a17c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T09:56:33Z",
+      "side": 1,
+      "message": "Is it necessary to do this before you create the namespace? Can you remove this line and then replace the last line with restart(poolConfig)?",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 33
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_bb5fab0d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 1
@@ -121,6 +254,29 @@
       "writtenOn": "2016-11-25T08:51:33Z",
       "side": 1,
       "message": "Do we need to check isConfigurable?  What happens when admin state is changed to down?",
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_fb51b363",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T09:56:33Z",
+      "side": 1,
+      "message": "That\u0027s a lot of lines for something fairly simple. Why not just:\n\n  val sockFileLoc \u003d if (sockFile !\u003d null) sockFile else haProxySockFileLoc\n\nAlternatively, you can make sockFile an Option[String], and then it\u0027s just:\n\n  val sockFileLoc \u003d sockFile.getOrElse(haProxySockFileLoc)",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 9
+      },
       "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
