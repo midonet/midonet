@@ -285,6 +285,10 @@ class PortTranslator(stateTableStorage: StateTableStorage,
                     bldr.clearHostId().clearInterfaceName()
                 }
             }
+            if (nPort.hasQosPolicyId)
+                bldr.setQosPolicyId(nPort.getQosPolicyId)
+            else
+                bldr.clearQosPolicyId()
 
             val port = bldr.build()
             mPortOp = Some(Update(port))
@@ -448,14 +452,14 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         np.hasHostId && np.hasProfile && np.getProfile.hasInterfaceName
 
     /**
-      * Returns true if a port has changed in a way relevant to a port update,
-      * i.e. whether the admin state or host binding has changed.
+      * Returns true if a port has changed in a way relevant to a port update.
       */
     private def portChanged(newPort: NeutronPort,
                             curPort: NeutronPort): Boolean = {
         if (newPort.getAdminStateUp != curPort.getAdminStateUp ||
             newPort.getDeviceOwner != curPort.getDeviceOwner ||
-            hasBinding(newPort) != hasBinding(curPort)) return true
+            hasBinding(newPort) != hasBinding(curPort) ||
+            newPort.getQosPolicyId != curPort.getQosPolicyId) return true
 
         hasBinding(newPort) &&
             (newPort.getHostId != curPort.getHostId ||
@@ -794,6 +798,10 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         val bldr = Port.newBuilder.setId(nPort.getId)
             .setNetworkId(nPort.getNetworkId)
             .setAdminStateUp(nPort.getAdminStateUp)
+        if (nPort.hasQosPolicyId)
+            bldr.setQosPolicyId(nPort.getQosPolicyId)
+        else
+            bldr.clearQosPolicyId()
 
         if (hasBinding(nPort)) {
             bldr.setHostId(getHostIdByName(tx, nPort.getHostId))
