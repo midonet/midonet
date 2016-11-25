@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9aa53dc9_3bf83be5",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-25T09:05:04Z",
+      "side": 1,
+      "message": "does this change belong to this patch?",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 18
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_1f444472",
         "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
         "patchSetId": 1
@@ -47,6 +70,23 @@
       "writtenOn": "2016-11-25T08:51:33Z",
       "side": 1,
       "message": "Why is this a member variable?  It\u0027s expected to have one HaproxyHelper instance per namespace (thus one config)?",
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_7b3c8393",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-25T09:05:04Z",
+      "side": 1,
+      "message": "use\n\njava.nio.file.Files.createTempDirectory\n\nor\n\ncom.google.common.io.Files.createTempDir",
       "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
