@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,11 +33,12 @@ public class RouterInterface extends ZoomObject {
     public RouterInterface() {}
 
     public RouterInterface(UUID id, String tenantId, UUID portId,
-                           UUID subnetId) {
+                           UUID subnetId, List<UUID> subnetIds) {
         this.id = id;
         this.tenantId = tenantId;
         this.portId = portId;
         this.subnetId = subnetId;
+        this.subnetIds = subnetIds;
     }
 
     @ZoomField(name = "id")
@@ -54,6 +56,10 @@ public class RouterInterface extends ZoomObject {
     @ZoomField(name = "subnet_id")
     public UUID subnetId;
 
+    @JsonProperty("subnet_ids")
+    @ZoomField(name = "subnet_ids")
+    public List<UUID> subnetIds;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -65,12 +71,13 @@ public class RouterInterface extends ZoomObject {
         return Objects.equal(id, other.id)
                 && Objects.equal(portId, other.portId)
                 && Objects.equal(subnetId, other.subnetId)
+                && Objects.equal(subnetIds, other.subnetIds)
                 && Objects.equal(tenantId, other.tenantId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, portId, subnetId, tenantId);
+        return Objects.hashCode(id, portId, subnetId, subnetIds, tenantId);
     }
 
     @Override
@@ -80,6 +87,7 @@ public class RouterInterface extends ZoomObject {
                 .add("id", id)
                 .add("portId", portId)
                 .add("subnetId", subnetId)
+                .add("subnetIds", subnetIds)
                 .add("tenantId", tenantId).toString();
     }
 }
