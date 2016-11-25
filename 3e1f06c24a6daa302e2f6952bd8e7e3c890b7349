@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_1f120463",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-11-25T08:32:09Z",
+      "side": 1,
+      "message": "This is probably null at this time, must pass backend",
+      "range": {
+        "startLine": 92,
+        "startChar": 52,
+        "endLine": 92,
+        "endChar": 69
+      },
+      "revId": "3e1f06c24a6daa302e2f6952bd8e7e3c890b7349",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
