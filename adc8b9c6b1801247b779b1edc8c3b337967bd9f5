@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_5bb65f8b",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 8
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T10:22:09Z",
+      "side": 1,
+      "message": "You can delete these checks, since you check the number of arguments and this won\u0027t detect any problem other than having too few arguments. Same with the other two functions.",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 6
+      },
+      "revId": "adc8b9c6b1801247b779b1edc8c3b337967bd9f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_7e523115",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 8
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T10:22:09Z",
+      "side": 1,
+      "message": "What\u0027s this for?",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 113,
+        "endChar": 14
+      },
+      "revId": "adc8b9c6b1801247b779b1edc8c3b337967bd9f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_9e4df574",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 8
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-25T10:22:09Z",
+      "side": 1,
+      "message": "Since you shifted, $# will evaluate to one fewer than the number actually supplied. $(($# + 1)) seems to work.",
+      "range": {
+        "startLine": 130,
+        "startChar": 17,
+        "endLine": 130,
+        "endChar": 56
+      },
+      "revId": "adc8b9c6b1801247b779b1edc8c3b337967bd9f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
