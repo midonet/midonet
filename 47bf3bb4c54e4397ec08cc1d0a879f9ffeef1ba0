@@ -22,6 +22,30 @@
       "revId": "47bf3bb4c54e4397ec08cc1d0a879f9ffeef1ba0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_1b4c5741",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-25T09:04:12Z",
+      "side": 1,
+      "message": "Will update in a next, where I\u0027m introducing 2 more methods like this.",
+      "parentUuid": "9aa53dc9_9fc85476",
+      "range": {
+        "startLine": 115,
+        "startChar": 10,
+        "endLine": 119,
+        "endChar": 42
+      },
+      "revId": "47bf3bb4c54e4397ec08cc1d0a879f9ffeef1ba0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
