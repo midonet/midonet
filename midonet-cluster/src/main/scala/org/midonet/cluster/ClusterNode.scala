@@ -68,22 +68,27 @@ object ClusterNode extends App {
     private val metrics = new MetricRegistry()
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()
 
-    // Log GIT commit information.
-    log info "MidoNet Cluster starting..."
+    def version = getClass.getPackage.getImplementationVersion
+    def vendor = getClass.getPackage.getImplementationVendor
+
+    log info s"MidoNet Cluster $version starting..."
     log info "-------------------------------------"
 
+    // Log version, vendor and GIT commit information.
+    log info s"Version: $version"
+    log info s"Vendor: $vendor"
     val gitStream = getClass.getClassLoader.getResourceAsStream("git.properties")
     if (gitStream ne null) {
         val properties = new Properties
         properties.load(gitStream)
-        log info s"branch: ${properties.get("git.branch")}"
-        log info s"commit.time: ${properties.get("git.commit.time")}"
-        log info s"commit.id: ${properties.get("git.commit.id")}"
-        log info s"commit.user: ${properties.get("git.commit.user.name")}"
-        log info s"build.time: ${properties.get("git.build.time")}"
-        log info s"build.user: ${properties.get("git.build.user.name")}"
-        log info "-------------------------------------"
+        log info s"Branch: ${properties.get("git.branch")}"
+        log info s"Commit time: ${properties.get("git.commit.time")}"
+        log info s"Commit id: ${properties.get("git.commit.id")}"
+        log info s"Commit user: ${properties.get("git.commit.user.name")}"
+        log info s"Build time: ${properties.get("git.build.time")}"
+        log info s"Build user: ${properties.get("git.build.user.name")}"
     }
+    log info "-------------------------------------"
 
     // Log command line and JVM info.
     log info "Command-line arguments: " +
@@ -98,7 +103,7 @@ object ClusterNode extends App {
 
     // Load cluster node configuration
     private val nodeId = HostIdGenerator.getHostId
-    private val nodeContext = new Context(nodeId)
+    private val nodeContext = Context(nodeId)
     MidonetBackend.isCluster = true
 
     // Install the SLF4J handler for the legacy loggers used in the API.
