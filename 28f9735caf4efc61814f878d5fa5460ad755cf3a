@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_bf92f855",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-25T04:20:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_50d52341",
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_9348555d",
         "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
         "patchSetId": 6
@@ -30,6 +48,30 @@
       "writtenOn": "2016-11-24T08:54:13Z",
       "side": 1,
       "message": "what is this trying to confirm?",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 49
+      },
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_ffaf6092",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-25T04:20:06Z",
+      "side": 1,
+      "message": "The link that was associated with the namespace (but resides on the host) should also be deleted when the namespace is cleaned.",
+      "parentUuid": "9aa53dc9_9348555d",
       "range": {
         "startLine": 49,
         "startChar": 0,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_3fa6e8c1",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-25T04:20:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_73827154",
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_739b91ca",
         "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
         "patchSetId": 6
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_5fa1aca8",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-25T04:20:06Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "9aa53dc9_739b91ca",
+      "range": {
+        "startLine": 114,
+        "startChar": 21,
+        "endLine": 114,
+        "endChar": 27
+      },
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_70d02754",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 6
@@ -93,6 +177,24 @@
       "writtenOn": "2016-11-24T01:23:20Z",
       "side": 1,
       "message": "I wonder if you want to still add something here in debug (or warn).  After all, in most cases it is expected that this succeeds.  Without some log, it may hide actual unexpected errors.  Thoughts?",
+      "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_1fab248b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-25T04:20:06Z",
+      "side": 1,
+      "message": "I changed the script so that \"cleanns\" is a no-op if the namespace does not already exist. This is the only \"expected\" error condition so all other errors bubble up.",
+      "parentUuid": "9aa53dc9_70d02754",
       "revId": "28f9735caf4efc61814f878d5fa5460ad755cf3a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
