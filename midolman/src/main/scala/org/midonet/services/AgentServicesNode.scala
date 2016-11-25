@@ -17,6 +17,7 @@
 package org.midonet.services
 
 import java.nio.file.{Files, Paths}
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConversions._
@@ -51,11 +52,31 @@ object AgentServicesNode extends App {
     private val metrics = new MetricRegistry()
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()
 
-    log info "Agent Services node starting..." // TODO show build.properties
+    def version = getClass.getPackage.getImplementationVersion
+    def vendor = getClass.getPackage.getImplementationVendor
+
+    log info "Agent Services node starting..."
+    log info "-------------------------------------"
+
+    // Log version, vendor and GIT commit information.
+    log info s"Version: $version"
+    log info s"Vendor: $vendor"
+    val gitStream = getClass.getClassLoader.getResourceAsStream("git.properties")
+    if (gitStream ne null) {
+        val properties = new Properties
+        properties.load(gitStream)
+        log info s"Branch: ${properties.get("git.branch")}"
+        log info s"Commit time: ${properties.get("git.commit.time")}"
+        log info s"Commit id: ${properties.get("git.commit.id")}"
+        log info s"Commit user: ${properties.get("git.commit.user.name")}"
+        log info s"Build time: ${properties.get("git.build.time")}"
+        log info s"Build user: ${properties.get("git.build.user.name")}"
+    }
+    log info "-------------------------------------"
 
     // Load node configuration
     private val nodeId = HostIdGenerator.getHostId
-    private val nodeContext = new Context(nodeId)
+    private val nodeContext = Context(nodeId)
 
     val configurator = if (args.length > 0) {
         val configFile = args(0)
