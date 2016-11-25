@@ -27,8 +27,9 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.BadRequestHttpException
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException}
 import org.midonet.cluster.rest_api.models._
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr}
@@ -63,15 +64,19 @@ class IpAddrGroupAddrResource @Inject()(ipAddrGroupId: UUID,
             }
 
         val ipAddrGroup = getResource(classOf[IpAddrGroup], ipAddrGroupId)
+
         if (!ipAddrGroup.ipAddrPorts.asScala.exists(_.ipAddress == ipAddress)) {
             ipAddrGroup.ipAddrPorts.add(new IpAddrPort(ipAddress))
             tx.update(ipAddrGroup)
-        }
 
-        addr.create(ipAddrGroupId)
-        addr.setBaseUri(uriInfo.getBaseUri)
-        addr.ipAddrGroupId = ipAddrGroupId
-        MidonetResource.OkCreated(addr.getUri)
+            addr.create(ipAddrGroupId)
+            addr.setBaseUri(uriInfo.getBaseUri)
+            addr.ipAddrGroupId = ipAddrGroupId
+            MidonetResource.OkCreated(addr.getUri)
+        } else {
+            throw new ConflictHttpException(
+                getMessage(IP_ADDR_GROUP_HAS_IP, ipAddress))
+        }
     }
 
     private def toAddrGroupAddr(from: IpAddrPort): IpAddrGroupAddr = {
