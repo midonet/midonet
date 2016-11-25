@@ -63,10 +63,17 @@ class PoolConfig(val id: UUID,
         vip != null && loadBalancerId != null && healthMonitor.isConfigurable &&
         members.forall (_.isConfigurable)
 
-    def generateConfigFile(): String = {
+    def generateConfigFile(sockFile: String = null): String = {
         if (!isConfigurable) {
             log.error("haproxy config not complete")
             return ""
+        }
+        val sockFileLocation = {
+            if (sockFile == null) {
+                haproxySockFileLoc
+            } else {
+                sockFile
+            }
         }
         val conf = new StringBuilder()
         conf append
@@ -76,7 +83,7 @@ s"""global
         group daemon
         log /dev/log local0
         log /dev/log local1 notice
-        stats socket $haproxySockFileLoc mode 0666 level user
+        stats socket $sockFileLocation mode 0666 level user
 defaults
         log global
         retries 3

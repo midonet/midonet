@@ -81,11 +81,11 @@ restart_ha() {
         echo "no configuration file specified"
         exit 1
     fi
-    if [ -z ${PID} ]; then
-        echo "no pid file specified"
-        exit 1
-    fi
-    ip netns exec $NAME haproxy -f $CONF -p $PID
+    for pid in $(ip netns pids $NAME)
+    do
+        kill -9 $pid
+    done
+    ip netns exec $NAME haproxy -f $CONF
 }
 
 cleanns() {
@@ -136,9 +136,8 @@ case $ACTION in
     restart_ha)
         NAME=$1
         CONF=$2
-        PID=$3
-        if [ "$#" -ne 3 ]; then
-            echo "expected 4 arguments, but $# supplied"
+        if [ "$#" -ne 2 ]; then
+            echo "expected 3 arguments, but $# supplied"
             echo "$0 restart_ha NAME CONF_FILE PID_FILE"
             exit 1
         fi
@@ -148,7 +147,7 @@ case $ACTION in
         NAME=$1
         IFACE=$2
         if [ "$#" -ne 2 ]; then
-            echo "expected 2 arguments, but $# supplied"
+            echo "expected 3 arguments, but $# supplied"
             echo "$0 cleanns NAME IFACE"
             exit 1
         fi
