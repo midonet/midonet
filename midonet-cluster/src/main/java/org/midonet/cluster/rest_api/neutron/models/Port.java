@@ -127,6 +127,10 @@ public class Port extends ZoomObject {
     @ZoomField(name = "extra_dhcp_opts")
     public List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
 
+    @JsonProperty("qos_policy_id")
+    @ZoomField(name = "qos_policy_id")
+    public UUID qosPolicyId;
+
     @Override
     public final boolean equals(Object obj) {
         if (obj == this) return true;
@@ -148,7 +152,8 @@ public class Port extends ZoomObject {
                 && Objects.equal(bindingProfile, other.bindingProfile)
                 && securityEnabled == other.securityEnabled
                 && isEqualList(allowedAddrPairs, other.allowedAddrPairs)
-                && isEqualList(extraDhcpOpts, other.extraDhcpOpts);
+                && isEqualList(extraDhcpOpts, other.extraDhcpOpts)
+                && Objects.equal(qosPolicyId, other.qosPolicyId);
     }
 
     @Override
@@ -158,7 +163,8 @@ public class Port extends ZoomObject {
             deviceOwner, tenantId, status, hashCodeForList(fixedIps),
             hashCodeForList(securityGroups), hashCodeForList(extraDhcpOpts),
             hostId, bindingProfile, securityEnabled,
-            hashCodeForList(allowedAddrPairs), hashCodeForList(extraDhcpOpts));
+            hashCodeForList(allowedAddrPairs), hashCodeForList(extraDhcpOpts),
+            qosPolicyId);
     }
 
     @Override
@@ -181,6 +187,7 @@ public class Port extends ZoomObject {
                 .add("securityGroups", ListUtil.toString(securityGroups))
                 .add("dhcpExtraOpts", ListUtil.toString(extraDhcpOpts))
                 .add("allowedAddrPairs", ListUtil.toString(allowedAddrPairs))
+                .add("qosPolicyId", qosPolicyId)
                 .toString();
     }
 }
