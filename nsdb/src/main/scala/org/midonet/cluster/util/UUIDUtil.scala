@@ -110,6 +110,30 @@ object UUIDUtil {
             val lsbMask = lsb & 0x3fffffffffffffffL
             toProto(uuid.getMsb ^ msbMask, uuid.getLsb ^ lsbMask)
         }
+
+        /**
+          * Can be used to deterministically generate UUIDs derived from
+          * another UUID. For example, see inChainId() and outChainId() in
+          * the ChainManager trait, which each XOR a device ID with a different
+          * statically-generated UUID in order to generate unique, predictable
+          * UUIDs for the device's chains.
+          */
+        def xorWith(bytes: Array[Byte]): PUUID = {
+            var msbMask = 1L
+            var lsbMask = 1L
+            var index = 0
+            while (index < 8 && index < bytes.length) {
+                msbMask = 31 * msbMask + bytes(index)
+                index += 1
+            }
+            while (index < 16 && index < bytes.length) {
+                lsbMask = 31 * lsbMask + bytes(index)
+                index += 1
+            }
+            msbMask = msbMask & 0xffffffffffff0fffL
+            lsbMask = lsbMask & 0x3fffffffffffffffL
+            toProto(uuid.getMsb ^ msbMask, uuid.getLsb ^ lsbMask)
+        }
     }
 
     def toString(id: PUUID) = if (id == null) "null" else fromProto(id).toString

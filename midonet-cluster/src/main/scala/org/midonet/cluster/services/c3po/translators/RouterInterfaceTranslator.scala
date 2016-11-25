@@ -87,13 +87,6 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
         // Router ID is given as the router interface's id.
         val routerId = ri.getId
 
-        val routerPortId = routerInterfacePortPeerId(nPort.getId)
-        val routerInterfaceRouteId =
-            RouteManager.routerInterfaceRouteId(routerPortId)
-        val routerPortBuilder = newRouterPortBuilder(routerPortId, routerId)
-
-        routerPortBuilder.setPortMac(nPort.getMacAddress)
-
         // Set the router port address. The port should have at most one IP
         // address. If it has none, use the subnet's default gateway.
         val portAddress = if (nPort.getFixedIpsCount > 0) {
@@ -105,6 +98,12 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
             }
             nPort.getFixedIps(0).getIpAddress
         } else nSubnet.getGatewayIp
+
+        val routerPortId = routerInterfacePortPeerId(nPort.getId)
+        val routerInterfaceRouteId =
+            RouteManager.routerInterfaceRouteId(routerPortId, portAddress)
+        val routerPortBuilder = newRouterPortBuilder(routerPortId, routerId)
+        routerPortBuilder.setPortMac(nPort.getMacAddress)
 
         val isV6 = portAddress.getVersion == IPVersion.V6
 

@@ -310,7 +310,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         rules.count(VpnServiceTranslator.isUDP4500Rule) shouldBe 1
 
         val localRt = storage.get(classOf[Route],
-                                     localRouteId(container.getPortId)).await()
+                                  localRouteId(container.getPortId, rtrPort.getPortAddress)).await()
         val vpnRt = storage.get(classOf[Route],
                                 vpnContainerRouteId(container.getId)).await()
         val scg = storage.get(classOf[ServiceContainerGroup],
