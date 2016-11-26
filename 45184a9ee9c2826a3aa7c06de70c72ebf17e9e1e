@@ -1,0 +1,225 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_84d80855",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "any reason why you used the same value as the one above?",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_64dd0442",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "nit: 2016",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_44e20005",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "remove",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_24e81ce2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "I don\u0027t think this is necessary.  ZOOM will later throw conflict exception back to the user.  I prefer to rely on that instead of making a trip to ZK here.",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_04e51808",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_e4f114cf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_c4ee10ec",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "zoom does this automatically (i.e. idempotent deletion), so no need to do this check here.",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_84bfe8cf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "routerId should be deterministically retrieved from the loadbalancer ID so the \u0027get\u0027 is unnecessary above.",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_64b4e4f1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "unnecessary",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_44b9e0e8",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 968,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "nit: alignment",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_24cffc80",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "nit: 2016",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_04ccf887",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "could you explain what this is for?",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_e4c8f476",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-26T11:21:01Z",
+      "side": 1,
+      "message": "I don\u0027t think we store this numerical value in ZK so it should be ok but why not just add to the bottom?",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
