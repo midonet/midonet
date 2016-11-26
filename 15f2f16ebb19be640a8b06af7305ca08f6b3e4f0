@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa53dc9_e4ad9489",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/RouterInterface.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-26T13:51:21Z",
+      "side": 1,
+      "message": "subnetIds",
+      "range": {
+        "startLine": 90,
+        "startChar": 34,
+        "endLine": 90,
+        "endChar": 42
+      },
+      "revId": "15f2f16ebb19be640a8b06af7305ca08f6b3e4f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
