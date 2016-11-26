@@ -205,7 +205,7 @@ def delete_binding(vtep_name, port_name):
 
 
 def ping_to_vtep(bridge_name, port_index, dest_ip,
-                 interval=2, count=10, retries=0):
+                 interval=0.5, count=4, retries=1):
     try:
         time.sleep(2)
         sender = BM.get_iface_for_port(bridge_name, port_index)
