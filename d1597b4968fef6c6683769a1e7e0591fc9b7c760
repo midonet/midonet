@@ -16,6 +16,24 @@
       "revId": "d1597b4968fef6c6683769a1e7e0591fc9b7c760",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_8487e860",
+        "filename": "docs/openstack-lbaasv2.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-26T02:13:25Z",
+      "side": 1,
+      "message": "have you looked at L83-84?",
+      "parentUuid": "9aa53dc9_04ad18e9",
+      "revId": "d1597b4968fef6c6683769a1e7e0591fc9b7c760",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
