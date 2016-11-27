@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_9e163d54",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/NetworkTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-27T19:48:38Z",
+      "side": 1,
+      "message": "i think this is redundant",
+      "range": {
+        "startLine": 46,
+        "startChar": 7,
+        "endLine": 47,
+        "endChar": 38
+      },
+      "revId": "944c445436ed0e90403a4188d97c2af5804c29e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_7e0c9142",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 804,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-27T19:48:38Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 803,
+        "startChar": 7,
+        "endLine": 804,
+        "endChar": 35
+      },
+      "revId": "944c445436ed0e90403a4188d97c2af5804c29e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
