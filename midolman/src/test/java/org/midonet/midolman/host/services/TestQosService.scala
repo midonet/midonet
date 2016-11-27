@@ -82,13 +82,13 @@ class TestQosService extends MidolmanSpec
         handler = new TestableTcRequestHandler()
         handler.processingThread.start()
         qosService = QosService(scanner, hostId, handler)
-        qosService.start()
+        qosService.startAsync().awaitRunning()
     }
 
     override protected def afterTest(): Unit = {
         handler.reqs.clear()
         scanner.stop()
-        qosService.stop()
+        qosService.stopAsync().awaitTerminated()
         handler.processingThread.interrupt()
     }
 

@@ -20,12 +20,16 @@ import java.util.UUID
 import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.collection.{breakOut, mutable => m}
+
 import com.google.common.util.concurrent.AbstractService
+
 import rx.schedulers.Schedulers
 import rx.{Observable, Observer, Subscription}
+
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
+import org.midonet.midolman.host.services.QosService.TcConf
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology.devices.Host
@@ -48,9 +52,9 @@ object QosService {
         new QosService(scanner, hostId, reqHandler)
 
     }
-}
 
-case class TcConf(ifindex: Int, rate: Int, burst: Int)
+    case class TcConf(ifindex: Int, rate: Int, burst: Int)
+}
 
 class QosService(scanner: InterfaceScanner,
                  hostId: java.util.UUID,
@@ -69,7 +73,7 @@ class QosService(scanner: InterfaceScanner,
 
     var hostsSubscription: Subscription = _
 
-    def generateRequests(): Unit = {
+    private def generateRequests(): Unit = {
 
         def hasLocalInterface(p: Port): Boolean = {
             ifaceNameToId.contains(p.interfaceName)
@@ -99,14 +103,14 @@ class QosService(scanner: InterfaceScanner,
 
         val removeConfs = currentConfs diff tcConfs
         removeConfs.foreach { c =>
-            log.info(s"Removing TC configuration for interface ${c.ifindex}")
+            log.debug(s"Removing TC configuration for interface ${c.ifindex}")
             requestHandler.delTcConfig(c.ifindex)
         }
 
         val addConfs = tcConfs diff currentConfs
         addConfs.foreach { c =>
-            log.info(s"adding TC configuration for interface ${c.ifindex} " +
-                     s"rate: ${c.rate}, burst: ${c.burst}")
+            log.debug(s"Adding TC configuration for interface ${c.ifindex} " +
+                     s"rate: ${c.rate} burst: ${c.burst}")
             requestHandler.addTcConfig(c.ifindex, c.rate, c.burst)
         }
         currentConfs = tcConfs
@@ -118,7 +122,7 @@ class QosService(scanner: InterfaceScanner,
         log.info("QoS Service has stopped")
     }
 
-    def stop(): Unit = {
+    protected def stop(): Unit = {
         hostsSubscription.unsubscribe()
         hostsSubscription = null
     }
@@ -129,17 +133,16 @@ class QosService(scanner: InterfaceScanner,
         log.info("QoS Service has started")
     }
 
-    def start(): Unit = {
+    protected def start(): Unit = {
         scanner.subscribe(new Observer[Set[InterfaceDescription]] {
             override def onCompleted(): Unit = {
                 //TODO: handle this error. This is not expected
-                log.error(s"InterfaceScanner for $hostId has stopped")
+                log.warn(s"Interface scanner for $hostId has stopped")
             }
 
             override def onError(t: Throwable): Unit = {
                 //TODO: handle this error. This is not expected
-                log.error(s"InterfaceScanner has thrown an error: " +
-                          s"${t.getMessage}, ${t.getStackTrace}")
+                log.warn("Interface scanner error", t)
             }
 
             override def onNext(data: Set[InterfaceDescription]): Unit = {
@@ -155,16 +158,16 @@ class QosService(scanner: InterfaceScanner,
         val observer: Observer[Host] = new Observer[Host] {
             override def onCompleted(): Unit = {
                 //TODO: This should never happen. How do we handle?
-                log.error(s"Host $hostId observer completed.")
+                log.warn(s"Host $hostId observable completed")
             }
 
             override def onError(e: Throwable) = {
-                log.error(s"Error subscribing to host $hostId")
+                log.warn(s"Host $hostId error", e)
                 throw e
             }
 
             override def onNext(h: Host): Unit = {
-                log.debug(s"received update for host: $h")
+                log.debug(s"Host $hostId updated: $h")
                 processHost(h)
             }
         }
@@ -175,7 +178,7 @@ class QosService(scanner: InterfaceScanner,
             obs.flatMap(makeFunc1[Throwable, Observable[java.lang.Long]]({
                 case e: NotYetException =>
                     log.warn(s"Error subscribing to $hostId " +
-                      s"notifications. Retrying in $sleep ms.")
+                             s"notifications, retrying in $sleep milliseconds")
                     sleep = (sleep * 1.25).toInt
                     Observable.timer(sleep, TimeUnit.MILLISECONDS)
                 case e: Throwable =>
@@ -189,25 +192,24 @@ class QosService(scanner: InterfaceScanner,
                                 .subscribe(observer)
     }
 
-    def stopFollowingPort(id: UUID): Unit = {
+    private def stopFollowingPort(id: UUID): Unit = {
         boundPortSubs.remove(id)
         portIdToPort.remove(id)
         generateRequests()
     }
 
-    def subscribeToPort(id: UUID): Unit = {
+    private def subscribeToPort(id: UUID): Unit = {
         val pObs = new Observer[Port] {
             override def onCompleted(): Unit = {
-                log.info(s"received removal request for port: $id")
+                log.debug(s"Port $id deleted")
                 stopFollowingPort(id)
             }
             override def onError(e: Throwable): Unit = {
-                log.error(s"port observer for $id has thrown an error: " +
-                          s"${e.getMessage}, ${e.getStackTrace}")
+                log.warn(s"Port $id error", e)
                 stopFollowingPort(id)
             }
             override def onNext(p: Port): Unit = {
-                log.info(s"received update to port: $p")
+                log.debug(s"Port $id updated: $p")
                 portIdToPort.put(p.id, p)
                 generateRequests()
             }
@@ -218,7 +220,7 @@ class QosService(scanner: InterfaceScanner,
         boundPortSubs.put(id, subscription)
     }
 
-    def processHost(h: Host): Unit = {
+    private def processHost(h: Host): Unit = {
         val bindings = h.portBindings.keySet
 
         bindings.filterNot(boundPortSubs.keySet)
@@ -226,7 +228,7 @@ class QosService(scanner: InterfaceScanner,
 
         boundPortSubs.keySet
             .filterNot(bindings)
-            .foreach{ id =>
+            .foreach { id =>
                 boundPortSubs(id).unsubscribe()
                 stopFollowingPort(id)
             }
