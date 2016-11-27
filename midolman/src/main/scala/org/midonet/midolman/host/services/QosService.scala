@@ -17,7 +17,7 @@
 package org.midonet.midolman.host.services
 
 import java.util.UUID
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.TimeUnit
 
 import scala.collection.{breakOut, mutable => m}
 
@@ -34,6 +34,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.topology.{VirtualTopology, VirtualToPhysicalMapper => VTPM}
+import org.midonet.util.concurrent.Executors
 import org.midonet.util.functors.makeFunc1
 
 /*
@@ -46,11 +47,11 @@ import org.midonet.util.functors.makeFunc1
  * configuration request to the kernel.
  */
 object QosService {
+
     def apply(scanner: InterfaceScanner,
               hostId: java.util.UUID,
               reqHandler: TcRequestHandler): QosService = {
         new QosService(scanner, hostId, reqHandler)
-
     }
 
     case class TcConf(ifindex: Int, rate: Int, burst: Int)
@@ -62,16 +63,17 @@ class QosService(scanner: InterfaceScanner,
         extends AbstractService
         with MidolmanLogging {
 
-    val executor = Executors.newSingleThreadExecutor()
-    val scheduler = Schedulers.from(executor)
+    private val executor = Executors.singleThreadScheduledExecutor(
+        "qos-service", isDaemon = true, Executors.CallerRunsPolicy)
+    private val scheduler = Schedulers.from(executor)
 
-    val boundPortSubs = new m.HashMap[UUID, Subscription]()
-    var ifaceNameToId = new m.HashMap[String, Int]()
-    val portIdToPort = new m.HashMap[UUID, Port]()
+    private val boundPortSubs = new m.HashMap[UUID, Subscription]()
+    private var ifaceNameToId = new m.HashMap[String, Int]()
+    private val portIdToPort = new m.HashMap[UUID, Port]()
 
-    var currentConfs = Set[TcConf]()
+    private var currentConfs = Set[TcConf]()
 
-    var hostsSubscription: Subscription = _
+    private var hostsSubscription: Subscription = _
 
     private def generateRequests(): Unit = {
 
@@ -116,6 +118,12 @@ class QosService(scanner: InterfaceScanner,
         currentConfs = tcConfs
     }
 
+    override def doStart() = {
+        start()
+        notifyStarted()
+        log.info("QoS Service has started")
+    }
+
     override def doStop(): Unit = {
         stop()
         notifyStopped()
@@ -125,12 +133,10 @@ class QosService(scanner: InterfaceScanner,
     protected def stop(): Unit = {
         hostsSubscription.unsubscribe()
         hostsSubscription = null
-    }
 
-    override def doStart() = {
-        start()
-        notifyStarted()
-        log.info("QoS Service has started")
+        Executors.shutdown(executor) { _ =>
+            log warn s"Exception while stopping QoS Service executor"
+        }
     }
 
     protected def start(): Unit = {
@@ -180,7 +186,8 @@ class QosService(scanner: InterfaceScanner,
                     log.warn(s"Error subscribing to $hostId " +
                              s"notifications, retrying in $sleep milliseconds")
                     sleep = (sleep * 1.25).toInt
-                    Observable.timer(sleep, TimeUnit.MILLISECONDS)
+                    Observable.timer(sleep, TimeUnit.MILLISECONDS,
+                                     scheduler)
                 case e: Throwable =>
                     Observable.error(e)
             }))
