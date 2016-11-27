@@ -108,9 +108,4 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
         new MidonetTestBackend
     }
 
-    override protected def bindDiscovery(curator: CuratorFramework) = {
-        val discovery = new FakeDiscovery
-        bind(classOf[MidonetDiscovery]).toInstance(discovery)
-        discovery
-    }
 }

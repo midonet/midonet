@@ -113,16 +113,6 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
                 conf.retryMs.toInt, conf.maxRetries))
     }
 
-    protected def bindDiscovery(curator: CuratorFramework): MidonetDiscovery = {
-        val discoveryExecutor = Executors.newSingleThreadExecutor(
-            new NamedThreadFactory("discovery", true))
-        val discovery = new MidonetDiscoveryImpl(curator, discoveryExecutor,
-                                                 conf)
-        bind(classOf[MidonetDiscovery]).toInstance(discovery)
-
-        discovery
-    }
-
     private def configureClientBuffer(): Unit = {
         // Try configure the buffer size using the system property.
         System.setProperty("jute.maxbuffer", Integer.toString(conf.bufferSize))
