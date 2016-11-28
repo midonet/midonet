@@ -74,7 +74,8 @@ object PacketWorkflow {
     }
 
     case class HandlePackets(packet: Array[Packet])
-    case class RestartWorkflow(context: PacketContext, error: Throwable)
+    case class RestartWorkflow(cookie: Long, context: PacketContext,
+                               error: Throwable)
         extends BackChannelMessage
 
     sealed trait GeneratedPacket extends BackChannelMessage {
@@ -355,7 +356,7 @@ class PacketWorkflow(
     private def handle(msg: BackChannelMessage): Unit = msg match {
         case m: InvalidateFlows => invalidateRoutedFlows(m)
         case tag: FlowTag => invalidateFlowsFor(tag)
-        case RestartWorkflow(pktCtx, error) => restart(pktCtx, error)
+        case RestartWorkflow(cookie, pktCtx, error) => restart(cookie, pktCtx, error)
         case m: GeneratedPacket => startWorkflow(generatedPacketContext(m))
         case m: FlowStateBatch => replicator.importFromStorage(m)
         case DuplicateFlow(index) => duplicateFlow(index)
@@ -442,15 +443,15 @@ class PacketWorkflow(
                 case _ => null
             }
             if (pktCtx.cookie == cookie) {
-                backChannel.tell(RestartWorkflow(pktCtx, error))
+                backChannel.tell(RestartWorkflow(cookie, pktCtx, error))
             }
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         waitingRoom enter pktCtx
     }
 
-    private def restart(pktCtx: PacketContext, error: Throwable): Unit =
-        if (pktCtx.idle) {
+    private def restart(cookie: Long, pktCtx: PacketContext, error: Throwable): Unit =
+        if (pktCtx.cookie == cookie && pktCtx.idle) {
             metrics.packetsOnHold.dec()
             pktCtx.log.debug("Restarting workflow")
             MDC.put("cookie", pktCtx.cookieStr)
