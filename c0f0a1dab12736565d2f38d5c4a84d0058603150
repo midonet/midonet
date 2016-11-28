@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "7aaa499b_321d18be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T13:39:17Z",
+      "side": 1,
+      "message": "Looks like this is supposed to be equivalent to IpsecConfig used in IPSecContainer.  Perhaps designing this class similarly will make it easier for the consumer of this class.",
+      "revId": "c0f0a1dab12736565d2f38d5c4a84d0058603150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_84026a3d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 2
