@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_84026a3d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T09:55:32Z",
+      "side": 1,
+      "message": "Since writeConfFile is the only place this gets set and used, maybe it doesn\u0027t make sense to make it a member var?",
+      "revId": "c0f0a1dab12736565d2f38d5c4a84d0058603150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_e4cb6e1d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T09:55:32Z",
+      "side": 1,
+      "message": "should this be private?",
+      "revId": "c0f0a1dab12736565d2f38d5c4a84d0058603150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_44aa221b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T09:55:32Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "c0f0a1dab12736565d2f38d5c4a84d0058603150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_04c77a13",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T09:55:32Z",
+      "side": 1,
+      "message": "This creates a new directory every time.  That sounds incorrect. I thought something like \u0027ensureConfFile()\u0027 would be appropriate here (creates one if it doesn\u0027t exist).",
+      "revId": "c0f0a1dab12736565d2f38d5c4a84d0058603150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_64ad1e31",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T09:55:32Z",
+      "side": 1,
+      "message": "Don\u0027t you need something equivalent for clean?  To remove the config file and stop haproxy?",
+      "revId": "c0f0a1dab12736565d2f38d5c4a84d0058603150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_84db8aed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T09:55:32Z",
+      "side": 1,
+      "message": "wrong alignment",
+      "revId": "c0f0a1dab12736565d2f38d5c4a84d0058603150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
