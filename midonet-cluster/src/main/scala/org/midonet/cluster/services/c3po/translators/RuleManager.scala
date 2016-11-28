@@ -104,7 +104,7 @@ trait RuleManager {
             .addNatTargets(target).build()
     }
 
-    protected def revNatRuleData(dnat: Boolean): NatRuleData = {
+    protected def reverseNatRuleData(dnat: Boolean): NatRuleData = {
         NatRuleData.newBuilder.setDnat(dnat).setReverse(true).build()
     }
 

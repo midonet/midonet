@@ -103,9 +103,9 @@ class IPSecSiteConnectionTranslator
         localPeerCidrPairs.map { case (localCidr, peerCidr) =>
             newNextHopPortRoute(
                 id = UUIDUtil.randomUuidProto,
-                ipSecSiteCnxnId = cnxn.getId,
+                ipSecSiteConnectionId = cnxn.getId,
                 nextHopPortId = routerPortId,
-                nextHopGwIpAddr =
+                nextHopGateway =
                     containers.containerPortAddress(routerPortSubnet).asProto,
                 srcSubnet = localCidr,
                 dstSubnet = peerCidr)
