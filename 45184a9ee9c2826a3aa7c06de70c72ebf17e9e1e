@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_21b6e83d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-28T02:22:04Z",
+      "side": 1,
+      "message": "Yes, because of how XORs work, LBId \u003d RouterId ^ MAGIC, and RouterId \u003d LBId ^ MAGIC.  So, the magic number must be the same to get the complemented value.  I could use the same function, but I felt having a new function with a relevant name was clearer than double-using an existing function for a different situation.",
+      "parentUuid": "9aa53dc9_84d80855",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_64dd0442",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
         "patchSetId": 2
@@ -70,6 +88,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_0182cc52",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-28T02:22:04Z",
+      "side": 1,
+      "message": "Okay, it\u0027s just how the old load balancer used to work.  but I will change this.",
+      "parentUuid": "9aa53dc9_24e81ce2",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_04e51808",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
         "patchSetId": 2
@@ -115,6 +151,24 @@
       "writtenOn": "2016-11-26T11:21:01Z",
       "side": 1,
       "message": "zoom does this automatically (i.e. idempotent deletion), so no need to do this check here.",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_e186c064",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-28T02:22:04Z",
+      "side": 1,
+      "message": "kk for all these",
+      "parentUuid": "9aa53dc9_c4ee10ec",
       "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -206,6 +260,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_c17bc47a",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-28T02:22:04Z",
+      "side": 1,
+      "message": "I cannot.  Because I myself do not know. :)  I copied the old LB translators, which is probably where this came from.  I will remove.",
+      "parentUuid": "9aa53dc9_04ccf887",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_e4c8f476",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 2
@@ -217,6 +289,24 @@
       "writtenOn": "2016-11-26T11:21:01Z",
       "side": 1,
       "message": "I don\u0027t think we store this numerical value in ZK so it should be ok but why not just add to the bottom?",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_a180b847",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-28T02:22:04Z",
+      "side": 1,
+      "message": "Just for clarity\u0027s sake.  I thought it would be better to keep them together (and honestly, I felt that someone would comment on the review to keep them together, if I had put it at the bottom from the start ;)).",
+      "parentUuid": "9aa53dc9_e4c8f476",
       "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
