@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_18e91d1b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-28T18:01:51Z",
+      "side": 1,
+      "message": "so here, we begin detachLink while the deletion is still in progress, is this okay?",
+      "range": {
+        "startLine": 271,
+        "startChar": 20,
+        "endLine": 271,
+        "endChar": 45
+      },
+      "revId": "d1e0a83c6aa1eb7e05eea7cf773b298b9dab287d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_388df97b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-28T18:01:51Z",
+      "side": 1,
+      "message": "here we won\u0027t wait for this ops to complete",
+      "range": {
+        "startLine": 386,
+        "startChar": 3,
+        "endLine": 388,
+        "endChar": 5
+      },
+      "revId": "d1e0a83c6aa1eb7e05eea7cf773b298b9dab287d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
