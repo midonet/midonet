@@ -106,7 +106,9 @@ directly:
  * network_id => networkId
  * admin_state_up => adminStateUp
 
-If the port is not a VIP port:
+If the port is not a VIP V1 port (Unlike VIP ports of LBaaS v1, VIP
+ports for LBaaS v2 are real bridge ports, and hence will proceed with
+the following steps):
 
  * Add a MidoNet network MAC table entry:
 
