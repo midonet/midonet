@@ -139,6 +139,30 @@
       "revId": "59593dc3529b64852269a9c53224252958564f20",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_92686cbc",
+        "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/neutron/TestLoadBalancerV2Resource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T12:11:19Z",
+      "side": 1,
+      "message": "These tests are useful for checking code paths that are difficult to reach or set up (like some runtime exceptions).  I\u0027m on board with replacing these tests with the ones that make end to end API calls as they provide even more coverage.  Looks like you and micucci are co-authoring this patch.  Will one of you upload a new one with a new set of tests or do you prefer to merge this and clean up the tests on a separate patch?  I\u0027m fine either way.",
+      "parentUuid": "7aaa499b_87726c7b",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 5
+      },
+      "revId": "59593dc3529b64852269a9c53224252958564f20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
