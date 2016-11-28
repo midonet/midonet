@@ -318,6 +318,10 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
 
         testLogging {
             events "started", "passed", "skipped", "failed"
+            if (project.hasProperty('consoleTestOutput')) {
+                testLogging.showStandardStreams = true
+                testLogging.exceptionFormat = 'full'
+            }
         }
     }
 
