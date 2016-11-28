@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_b2a928e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T12:58:57Z",
+      "side": 1,
+      "message": "Why not use makeChannel() from HaproxyHealthMonitor?",
+      "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_92af4ce3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T12:58:57Z",
+      "side": 1,
+      "message": "Would be nice to have a comment describing the output for this method.",
+      "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_b2800848",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T12:58:57Z",
+      "side": 1,
+      "message": "nit, won\u0027t -1 for this but more concisely:\n\nisMemberEntry(entry) \u0026\u0026 entry(StatusPos) \u003d\u003d StatusUp",
+      "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_92962c93",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T12:58:57Z",
+      "side": 1,
+      "message": "same comment",
+      "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
