@@ -136,7 +136,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
     }
 
     private def createGatewayPort(tx: Transaction, nRouter: NeutronRouter,
-                                  router : Router): Unit = {
+                                  router: Router): Unit = {
         if (nRouter.hasGwPortId) {
 
             /* There's a bit of a quirk in the translation here. We actually
@@ -163,7 +163,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
             val nPort = tx.get(classOf[NeutronPort], nRouter.getGwPortId)
 
             // Create the generic router port builder without IP configuration.
-            val builder = createGatewayPort(tx, nRouter, router, nPort)
+            val builder = createGatewayPort(nRouter, nPort)
 
             val addresses = for (fixedIp <- nPort.getFixedIpsList.asScala
                                  if fixedIp.hasIpAddress &&
@@ -180,8 +180,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         }
     }
 
-    private def createGatewayPort(tx: Transaction, nRouter: NeutronRouter,
-                                  router: Router, nPort: NeutronPort)
+    private def createGatewayPort(nRouter: NeutronRouter, nPort: NeutronPort)
     : Port.Builder = {
         val routerPortId = tenantGwPortId(nRouter.getGwPortId)
         val routerPortMac = if (nPort.hasMacAddress) nPort.getMacAddress
@@ -318,7 +317,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
                                             id = portRouteId,
                                             srcSubnet = AnyIPv4Subnet,
                                             dstSubnet = Nat64Pool,
-                                            nextHopGwIpAddr = vppAddress.asProto)
+                                            nextHopGateway = vppAddress.asProto)
 
         tx.create(portRoute)
         tx.create(localRoute)
@@ -431,7 +430,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
             val newRoute = newNextHopPortRoute(nextHopPort.getId, id = rId,
                                                srcSubnet = srcSubnet,
                                                dstSubnet = r.getDestination,
-                                               nextHopGwIpAddr = r.getNexthop)
+                                               nextHopGateway = r.getNexthop)
             if (bgpConfigured) {
                 tx.create(makeBgpNetworkFromRoute(nRouter.getId, r))
             }
@@ -448,7 +447,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
             if (dhcp.hasDefaultGateway) dhcp.getDefaultGateway else null
         newNextHopPortRoute(portId, id = gatewayRouteId(portId, address),
                             gatewayDhcpId = dhcp.getId,
-                            nextHopGwIpAddr = nextHopIp)
+                            nextHopGateway = nextHopIp)
     }
 
     private def createSnatRules(tx: Transaction, nRouter: NeutronRouter,
@@ -502,7 +501,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
                  .setType(Rule.Type.NAT_RULE)
                  .setAction(Action.ACCEPT)
                  .setCondition(inRuleConditionBuilder)
-                 .setNatRuleData(revNatRuleData(dnat = false)),
+                 .setNatRuleData(reverseNatRuleData(dnat = false)),
              inRuleBuilder(inDropWrongPortTrafficRuleId(nRouter.getId))
                  .setType(Rule.Type.LITERAL_RULE)
                  .setAction(Action.DROP)
@@ -538,6 +537,24 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
 }
 
 object RouterTranslator {
+
+    /**
+      * The default NAT64 pool uses the IANA-reserved IPv4 prefix for shared
+      * address space that accommodates carrier-grade NAT (RFC 6598).
+      */
+    val Nat64Pool = IPSubnet.newBuilder()
+        .setAddress("100.64.0.0")
+        .setPrefixLength(10)
+        .setVersion(IPVersion.V4)
+        .build()
+    val Nat64PoolStart = IPAddress.newBuilder()
+        .setAddress("100.64.0.1")
+        .setVersion(IPVersion.V4)
+        .build()
+    val Nat64PoolEnd = IPAddress.newBuilder()
+        .setAddress("100.127.255.254")
+        .setVersion(IPVersion.V4)
+        .build()
 
     case class PortAddress(subnet: IPSubnet, address: IPAddress, subnetId: UUID,
                            internalSubnet: Option[IPv4Subnet])

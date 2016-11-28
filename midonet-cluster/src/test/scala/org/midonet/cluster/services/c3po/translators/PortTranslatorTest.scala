@@ -1274,7 +1274,7 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
 
         midoOps.size shouldBe 4
         midoOps.head shouldBe CreateOp(mRouteFromTxt(s"""
-            id { ${RouteManager.metadataServiceRouteId(peerRouterPortId)} }
+            id { ${RouteManager.metadataServiceRouteId(peerRouterPortId, ipv4Addr1)} }
             src_subnet { $ipv4Subnet1 }
             dst_subnet { ${IPSubnetUtil.toProto("169.254.169.254/32")} }
             next_hop: PORT
@@ -1658,7 +1658,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
         midoOps should contain (UpdateOp(mPort))
 
         val rifRouteId = RouteManager.routerInterfaceRouteId(
-            peerPortId)
+            peerPortId, newIfPortIp)
         val rifRoute = mRouteFromTxt(s"""
             id: { $rifRouteId }
             src_subnet {
