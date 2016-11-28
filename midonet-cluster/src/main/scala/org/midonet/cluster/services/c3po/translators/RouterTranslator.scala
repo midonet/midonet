@@ -422,19 +422,17 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         val ports = tx.getAll(classOf[Port], portIds)
         val bgpConfigured = isBgpSpeakerConfigured(tx, nRouter.getId)
         newRoutes foreach { case (rId, r) =>
-
-            if (r.getDestination.getVersion == IPVersion.V6 ||
-                r.getNexthop.getVersion == IPVersion.V6) {
-                throw new IllegalArgumentException(
-                    "IPv6 is not supported in this version of MidoNet.")
-            }
-
             val nextHopPort = ports.find(isValidRouteOnPort(r.getNexthop, _))
                 .getOrElse(
                     throw new IllegalArgumentException(
                         "No valid port was found to add route: " + r))
 
+            val srcSubnet =
+                if (r.getDestination.getVersion == IPVersion.V4) AnyIPv4Subnet
+                else AnyIPv6Subnet
+
             val newRoute = newNextHopPortRoute(nextHopPort.getId, id = rId,
+                                               srcSubnet = srcSubnet,
                                                dstSubnet = r.getDestination,
                                                nextHopGwIpAddr = r.getNexthop)
             if (bgpConfigured) {

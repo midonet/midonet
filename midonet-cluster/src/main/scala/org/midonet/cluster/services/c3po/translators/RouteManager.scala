@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
@@ -27,7 +27,7 @@ import org.midonet.cluster.rest_api.neutron.models.MetaDataService
 import org.midonet.cluster.util.IPSubnetUtil.AnyIPv4Subnet
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{IPv4Addr, IPv6Addr}
 
 trait RouteManager {
     import RouteManager._
@@ -107,7 +107,7 @@ trait RouteManager {
                                      port: Port): Boolean = {
         if (port.getPortAddress == address)
             return false
-        val a = IPAddressUtil.toIPv4Addr(address)
+        val a = IPAddressUtil.toIPAddr(address)
         for (subnet <- port.getPortSubnetList.asScala) {
             val s = IPSubnetUtil.fromProto(subnet)
             if (s.containsAddress(a) && s.getAddress != a) {
@@ -208,10 +208,6 @@ object RouteManager {
     // Deterministically generate the extra route IDs based on the router ID
     // and the route attributes.
     def extraRouteId(routerId:UUID, route: NeutronRoute): UUID = {
-        val destIp = IPv4Addr.stringToInt(route.getDestination.getAddress)
-        val prefixLen = route.getDestination.getPrefixLength
-        routerId.xorWith(
-            destIp.asInstanceOf[Long] << 32 | prefixLen,
-            IPv4Addr.stringToInt(route.getNexthop.getAddress))
+        routerId.xorWith(route.getDestination).xorWith(route.getNexthop)
     }
 }
