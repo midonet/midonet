@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_a1b8b8e6",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-28T04:53:08Z",
+      "side": 1,
+      "message": "Yes.  I\u0027m just getting the LB translation working in a relative vacuum now.  When we start to assemble more pieces and get an idea for what needs to be added, we will add to this doc in later patches.",
+      "parentUuid": "7aaa499b_012c0c49",
+      "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_210028aa",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
         "patchSetId": 4
@@ -70,6 +88,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_c1b3c409",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-28T04:53:08Z",
+      "side": 1,
+      "message": "So, after discussion, I will change the magic number because the old LBv1 was a hidden MN object related to a real neutron tenant router ID.  The new LBv2 is a real neutron object and we are instead creating a hidden router, so if a migration tries to create a new LB with the same ID as the old V1 LB, it will generate the same router ID as the already-existing neutron tenant router, thus creating a conflict.",
+      "parentUuid": "7aaa499b_210028aa",
+      "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_c125045d",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
         "patchSetId": 4
@@ -81,6 +117,24 @@
       "writtenOn": "2016-11-28T04:25:54Z",
       "side": 1,
       "message": "is this related?",
+      "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_81cedc81",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 1440,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-28T04:53:08Z",
+      "side": 1,
+      "message": "This could go into its own patch.",
+      "parentUuid": "7aaa499b_c125045d",
       "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
