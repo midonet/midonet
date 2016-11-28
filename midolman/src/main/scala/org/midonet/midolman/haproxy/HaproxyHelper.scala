@@ -15,11 +15,16 @@
  */
 package org.midonet.midolman.haproxy
 
-import java.io.PrintWriter
 import java.nio.file.{Files, Path}
+import java.io.{File, PrintWriter}
+import java.nio.channels.IllegalSelectorException
+import java.nio.channels.spi.SelectorProvider
+import java.util.UUID
 
-import org.midonet.midolman.l4lb.PoolConfig
+import org.midonet.midolman.l4lb.{HaproxyHealthMonitor, PoolConfig}
 import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
+import org.midonet.util.AfUnix
 
 import scala.sys.process._
 
@@ -32,6 +37,7 @@ object HaproxyHelper {
 class HaproxyHelper(haproxyScript: String) extends MidolmanLogging {
 
     import HaproxyHelper._
+    import HaproxyHealthMonitor._
 
     var confPath: Path = _
 
@@ -75,5 +81,21 @@ class HaproxyHelper(haproxyScript: String) extends MidolmanLogging {
         }
         writeConfFile(poolConfig)
         restartHaproxy(namespaceName(poolConfig.id.toString))
+    }
+
+    def makeChannel(): UnixDomainChannel = SelectorProvider.provider() match {
+        case nl: NetlinkSelectorProvider =>
+            nl.openUnixDomainSocketChannel(AfUnix.Type.SOCK_STREAM)
+        case other =>
+            log.error("Invalid selector type: {} => jdk-bootstrap shadowing " +
+              "may have failed ?", other.getClass)
+            throw new IllegalSelectorException
+    }
+
+    def getStatus: (Set[UUID], Set[UUID]) = {
+        val channel = makeChannel()
+        val sockLoc = sockLocation(confPath.toString)
+        val statusInfo = getHaproxyStatus(sockLoc, channel)
+        parseResponse(statusInfo)
     }
 }

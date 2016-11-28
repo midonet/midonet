@@ -75,9 +75,18 @@ class HaproxyHelperTest extends FeatureSpec
         }
     }
 
+    def verifyStatus(haproxy: HaproxyHelper, poolConfig: PoolConfig): Unit = {
+        eventually {
+            val (upNodes, downNodes) = haproxy.getStatus
+            val memberIds = poolConfig.members map {m => m.id.toString}
+            val nodes = (upNodes++downNodes) map (_.toString)
+            nodes should contain theSameElementsAs memberIds
+        }
+    }
+
     val vipConfig = new VipConfig(true, UUID.randomUUID(), "10.0.0.10", 80,
                                   VipSessionPersistence.SOURCE_IP)
-    val healthMonitor = new HealthMonitorConfig(true, 10, 20, 30)
+    val healthMonitor = new HealthMonitorConfig(true, 1, 1, 1)
     val member1 = new PoolMemberConfig(true, UUID.randomUUID(), 100,
                                        "10.0.0.1", 80)
     val member2 = new PoolMemberConfig(true, UUID.randomUUID(), 100,
@@ -170,6 +179,28 @@ class HaproxyHelperTest extends FeatureSpec
                 verifyIpNetns(nsName, ifaceName)
                 verifyHaproxyRunning(nsName)
                 verifyConfFile(poolUpdated, haproxy.confPath)
+            } finally {
+                haproxy.cleanns(nsName, ifaceName)
+                verifyNoIpNetns(nsName, ifaceName)
+            }
+        }
+
+        scenario("status is returned") {
+            val nsName = namespaceName(pool.id.toString)
+            val haproxy = new HaproxyHelper(haproxyScript)
+            try {
+                haproxy.deploy(pool, ifaceName, "50:46:5d:a3:6d:f4",
+                               "20.0.0.1", "20.0.0.2")
+                verifyIpNetns(nsName, ifaceName)
+                verifyHaproxyRunning(nsName)
+                verifyConfFile(pool, haproxy.confPath)
+                verifyStatus(haproxy, pool)
+
+                haproxy.restart(poolUpdated)
+                verifyIpNetns(nsName, ifaceName)
+                verifyHaproxyRunning(nsName)
+                verifyConfFile(poolUpdated, haproxy.confPath)
+                verifyStatus(haproxy, poolUpdated)
             } finally {
                 haproxy.cleanns(nsName, ifaceName)
                 verifyNoIpNetns(nsName, ifaceName)
