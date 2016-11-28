@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_d2b39409",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 980,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T13:13:47Z",
+      "side": 1,
+      "message": "trailing white space",
+      "revId": "fa4db50ca64ed27d587117cba43d2034de904749",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
