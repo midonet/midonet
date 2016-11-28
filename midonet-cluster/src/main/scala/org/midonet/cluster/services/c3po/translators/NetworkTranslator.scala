@@ -36,12 +36,14 @@ class NetworkTranslator extends Translator[NeutronNetwork] {
             return
         }
 
-        tx.create(Network.newBuilder()
+        val builder = Network.newBuilder()
                       .setId(network.getId)
                       .setTenantId(network.getTenantId)
                       .setName(network.getName)
                       .setAdminStateUp(network.getAdminStateUp)
-                      .build)
+        if (network.hasQosPolicyId)
+            builder.setQosPolicyId(network.getQosPolicyId)
+        tx.create(builder.build)
     }
 
     override protected def translateUpdate(tx: Transaction,
@@ -56,7 +58,10 @@ class NetworkTranslator extends Translator[NeutronNetwork] {
         val builder = mNetwork.toBuilder
             .setName(nNetwork.getName)
             .setAdminStateUp(nNetwork.getAdminStateUp)
-
+        if (nNetwork.hasQosPolicyId)
+            builder.setQosPolicyId(nNetwork.getQosPolicyId)
+        else
+            builder.clearQosPolicyId()
         tx.update(builder.build())
     }
 
