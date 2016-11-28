@@ -17,17 +17,10 @@ package org.midonet.midolman.l4lb
 
 import java.io._
 import java.nio.ByteBuffer
-import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
-import scala.collection.JavaConversions._
-import scala.collection.mutable
-import scala.concurrent.duration._
-import scala.util.control.NonFatal
-
 import akka.actor._
-
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
@@ -38,11 +31,16 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, SequenceDispenser}
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{CheckHealth, ConfigUpdate, _}
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
+import org.midonet.netlink.NetlinkSelectorProvider
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.AfUnix
 import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.process.ProcessHelper
+
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 /**
  * Actor that represents the interaction with Haproxy for health monitoring.
@@ -95,6 +93,68 @@ object HaproxyHealthMonitor {
     val StatusDown = "DOWN"
     val FieldName = "svname"
     val ShowStat = "show stat\n"
+
+    /*
+     * Asks the given socket for haproxy info. This creates a new channel
+     * Everytime because Haproxy will close the connection after a write/read
+     * If necessary, we can get around this by maintaining a connection
+     * by operation in "command line mode" for haproxy.
+     */
+    def getHaproxyStatus(path: String) : String = {
+        val channel = SelectorProvider.provider()
+            .asInstanceOf[NetlinkSelectorProvider]
+            .openUnixDomainSocketChannel(AfUnix.Type.SOCK_STREAM)
+        val socketFile = new File(path)
+        val socketAddress = new AfUnix.Address(socketFile.getAbsolutePath)
+        channel.connect(socketAddress)
+        val wb = ByteBuffer.wrap(ShowStat.getBytes)
+        while(wb.hasRemaining)
+            channel.write(wb)
+        val data = new StringBuilder
+        val buf = ByteBuffer.allocate(1024)
+        while (channel.read(buf) > 0) {
+            data append new String(buf.array(), "ASCII")
+            buf.clear()
+        }
+        channel.close()
+        data.toString()
+    }
+
+    /*
+     * Take the output from the haproxy response and turn it into a set
+     * of UP member ids. Assumes the following:
+     * 1) The names of the hosts are the id's of the members.
+     * 2) The format is "show stat" response.
+     * Example of a line of the output:
+     * backend_id,name_of_server,0,0,0,0,,0,0,0,,0,,0,0,0,0,DOWN,1,1,0,0,1,
+     * 2411,2411,,1,2,2,,0,,2,0,,0,L4CON,,1999,,,,,,,0,,,,0,0,
+     */
+    def parseResponse(resp: String): (Set[UUID], Set[UUID]) = {
+        val upNodes = new mutable.HashSet[UUID]()
+        val downNodes = new mutable.HashSet[UUID]()
+
+        def isMemberEntry(entry: Array[String]): Boolean =
+            entry.length > StatusPos &&
+              entry(NamePos) != Backend &&
+              entry(NamePos) != Frontend &&
+              entry(NamePos) != FieldName
+
+        def isUp(entry: Array[String]) =
+            isMemberEntry(entry) && entry(StatusPos) == StatusUp
+
+        def isDown(entry: Array[String]) =
+            isMemberEntry(entry) && entry(StatusPos) == StatusDown
+
+        val entries = resp split "\n" map (_.split(","))
+        entries foreach {
+            case entry if isUp(entry) =>
+                upNodes add UUID.fromString(entry(NamePos))
+            case entry if isDown(entry) =>
+                downNodes add UUID.fromString(entry(NamePos))
+            case _ => // Nothing we care about
+        }
+        (upNodes.toSet, downNodes.toSet)
+    }
 }
 
 class HaproxyHealthMonitor(var config: PoolConfig,
@@ -210,7 +270,10 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         case CheckHealth =>
             try {
                 val statusInfo = getHaproxyStatus(config.haproxySockFileLoc)
-                val (upNodes, downNodes) = parseResponse(statusInfo)
+                val (upNodes, downNodes) = statusInfo match {
+                    case null => (currentUpNodes, currentDownNodes)
+                    case _ => parseResponse(statusInfo)
+                }
                 val newUpNodes = upNodes diff currentUpNodes
                 val newDownNodes = downNodes diff currentDownNodes
 
@@ -268,54 +331,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 tx.update(inactiveMember.toBuilder.setStatus(LBStatus.INACTIVE).build)
             }
         }
-    }
-
-    /*
-     * Take the output from the haproxy response and turn it into a set
-     * of UP member ids. Assumes the following:
-     * 1) The names of the hosts are the id's of the members.
-     * 2) The format is "show stat" response.
-     * Example of a line of the output:
-     * backend_id,name_of_server,0,0,0,0,,0,0,0,,0,,0,0,0,0,DOWN,1,1,0,0,1,
-     * 2411,2411,,1,2,2,,0,,2,0,,0,L4CON,,1999,,,,,,,0,,,,0,0,
-     */
-    protected def parseResponse(resp: String): (Set[UUID], Set[UUID]) = {
-        if (resp == null) {
-            return (currentUpNodes, currentDownNodes)
-        }
-
-        val upNodes = new mutable.HashSet[UUID]()
-        val downNodes = new mutable.HashSet[UUID]()
-
-        def isMemberEntry(entry: Array[String]): Boolean =
-            entry.length > StatusPos &&
-            entry(NamePos) != Backend &&
-            entry(NamePos) != Frontend &&
-            entry(NamePos) != FieldName
-
-        def isUp(entry: Array[String]): Boolean = {
-            if (isMemberEntry(entry))
-                entry(StatusPos) == StatusUp
-            else
-                false
-        }
-
-        def isDown(entry: Array[String]): Boolean = {
-            if (isMemberEntry(entry))
-                entry(StatusPos) == StatusDown
-            else
-                false
-        }
-
-        val entries = resp split "\n" map (_.split(","))
-        entries foreach {
-            case entry if isUp(entry) =>
-                upNodes add UUID.fromString(entry(NamePos))
-            case entry if isDown(entry) =>
-                downNodes add UUID.fromString(entry(NamePos))
-            case _ => // Nothing we care about
-        }
-        (upNodes.toSet, downNodes.toSet)
     }
 
     /* ======================================================================
@@ -420,40 +435,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                        pidFileLoc: String) {
         killHaproxyIfRunning(name, confFileLoc, pidFileLoc)
         startHaproxy(name)
-    }
-
-    def makeChannel(): UnixDomainChannel = SelectorProvider.provider() match {
-        case nl: NetlinkSelectorProvider =>
-            nl.openUnixDomainSocketChannel(AfUnix.Type.SOCK_STREAM)
-        case other =>
-          log.error("Invalid selector type: {} => jdk-bootstrap shadowing " +
-                    "may have failed ?", other.getClass)
-          setPoolMappingStatus(config.id, ERROR)
-          throw new IllegalSelectorException
-    }
-
-    /*
-     * Asks the given socket for haproxy info. This creates a new channel
-     * Everytime because Haproxy will close the connection after a write/read
-     * If necessary, we can get around this by maintaining a connection
-     * by operation in "command line mode" for haproxy.
-     */
-    def getHaproxyStatus(path: String) : String = {
-        val socketFile = new File(path)
-        val socketAddress = new AfUnix.Address(socketFile.getAbsolutePath)
-        val chan = makeChannel()
-        chan.connect(socketAddress)
-        val wb = ByteBuffer.wrap(ShowStat.getBytes)
-        while(wb.hasRemaining)
-            chan.write(wb)
-        val data = new StringBuilder
-        val buf = ByteBuffer.allocate(1024)
-        while (chan.read(buf) > 0) {
-            data append new String(buf.array(), "ASCII")
-            buf.clear()
-        }
-        chan.close()
-        data.toString()
     }
 
     def createVipRoute(ip: String): Route = {
