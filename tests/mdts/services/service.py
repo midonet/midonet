@@ -211,7 +211,7 @@ class Service(object):
                   self.get_name(), cmd)
         return self.check_exit_status(exec_id, outputstream)
 
-    def exec_command_and_get_output(self, cmd, timeout = 2):
+    def exec_command_and_get_output(self, cmd, timeout=2):
         exec_id = cli.exec_create(self.get_name(), cmd,
                                   stdout=True, stderr=False,
                                   tty=False)

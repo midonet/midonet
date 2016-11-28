@@ -44,7 +44,7 @@ class PortGroupTest(unittest.TestCase):
                 'port_group')
         self._port_group = PortGroup(self._api, self._context,
                                      self._port_group_data)
-        self._port_group._get_tenant_id = MagicMock(return_value = 'tenant_0')
+        self._port_group._get_tenant_id = MagicMock(return_value='tenant_0')
         self._port_group.build()
 
     def test_load_empty_group(self):
@@ -101,7 +101,7 @@ class PortGroupTest(unittest.TestCase):
     @patch('mdts.lib.port_group_port.PortGroupPort.build')
     def test_add_port_group_port(self, mock_build):
         """ Tests add_port_group_add correctly adds a PortGroupPort. """
-        mock_ini = MagicMock(return_value = None)
+        mock_ini = MagicMock(return_value=None)
         with patch('mdts.lib.port_group_port.PortGroupPort.__init__', mock_ini):
             self.load_port_group_data("""
                 port_groups:

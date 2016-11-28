@@ -25,8 +25,6 @@ from mdts.tests.utils.asserts import *
 from mdts.tests.utils.utils import bindings, get_neutron_api
 from mdts.tests.utils.utils import wait_on_futures
 
-import neutronclient.neutron.client as neutron
-
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -320,7 +318,7 @@ BM = BindingManager(PTM2, VTM2)
 @nottest
 @bindings(binding_singlehost,
           binding_multihost,
-          binding_manager = BM)
+          binding_manager=BM)
 def test_icmp_autobind():
     vm1 = BM.get_interface_on_vport('port1')
     vm2 = BM.get_interface_on_vport('port2')

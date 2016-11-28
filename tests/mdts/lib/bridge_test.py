@@ -27,7 +27,7 @@ class BridgeTest(unittest.TestCase):
         self._api = MagicMock()
         self._context = MagicMock()
         self._mock_bridge = MagicMock()
-        self._chain =  MagicMock()
+        self._chain = MagicMock()
         self._chain._mn_resource.get_id.return_value = 'chain_0'
 
         # Mock Bridge MidoNet Client resource.
@@ -41,7 +41,7 @@ class BridgeTest(unittest.TestCase):
         virtual_topology_data = yaml.load(yaml_vt_data)
         self._bridge_data = virtual_topology_data['bridges'][0].get('bridge')
         self._bridge = Bridge(self._api, self._context, self._bridge_data)
-        self._bridge._get_tenant_id = MagicMock(return_value = 'tenant_0')
+        self._bridge._get_tenant_id = MagicMock(return_value='tenant_0')
         self._bridge.build()
 
     def test_assign_filters_on_build_no_filters(self):

@@ -13,12 +13,9 @@
 # limitations under the License.
 
 import commands
-import datetime
 import sys
-import time
 
 from wsgiref.simple_server import make_server, WSGIRequestHandler, WSGIServer
-import CGIHTTPServer
 
 """
 nsinfo (namespace info) web server
@@ -63,6 +60,6 @@ if __name__ == '__main__':
         server = make_server("0.0.0.0",
                              miniserver.port_num,
                              miniserver.app,
-                             server_class = DevServer,
-                             handler_class = MyHandler)
+                             server_class=DevServer,
+                             handler_class=MyHandler)
         server.serve_forever()

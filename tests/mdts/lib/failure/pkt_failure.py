@@ -31,7 +31,7 @@ class PktFailure(FailureBase):
     def __init__(self, service_hostname, iface_name, wait_time=0):
         super(PktFailure, self).__init__("%s failure" % service_hostname)
         self.service_hostname = service_hostname
-        self.iface_name  = iface_name
+        self.iface_name = iface_name
         self.wait_time = wait_time
         self.service = service.get_container_by_hostname(service_hostname)
 

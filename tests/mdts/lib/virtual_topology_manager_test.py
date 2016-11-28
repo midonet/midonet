@@ -41,13 +41,13 @@ class VirtualTopologyManagerTest(unittest.TestCase):
 
     def load_topology_data(self, data):
         """Loads topology data but does not build."""
-        self._vtm = VirtualTopologyManager(data = data,
-                                           midonet_api = self._mock_api)
+        self._vtm = VirtualTopologyManager(data=data,
+                                           midonet_api=self._mock_api)
 
     def load_topology_from_file(self, topology_yaml_file):
         """Loads virtual topology data from a file but does not build."""
-        self._vtm = VirtualTopologyManager(filename = topology_yaml_file,
-                                           midonet_api = self._mock_api)
+        self._vtm = VirtualTopologyManager(filename=topology_yaml_file,
+                                           midonet_api=self._mock_api)
 
     def load_empty_topology_data(self):
         """Loads empty topology data but does not build."""
@@ -72,7 +72,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         if build: resource.build.assert_called_with()
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
-           MagicMock(return_value = 'f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
+           MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     @patch('mdts.lib.chain.Chain.build', MagicMock())
     def test_add_chain(self):
         self.build_empty_topology()
@@ -109,14 +109,14 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         mock_port_a.link.assert_called_with(mock_port_b)
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
-           MagicMock(return_value = 'f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
+           MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     def test_get_chain_no_data(self):
         """Tests if VTM returns None when no matching chain exists."""
         self.build_empty_topology()
         self.assertEqual(None, self._vtm.get_chain('test_filter'))
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
-           MagicMock(return_value = 'f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
+           MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     @patch('mdts.lib.port_group.PortGroup.build', MagicMock())
     def test_add_port_group(self):
         self.build_empty_topology()
@@ -129,7 +129,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         self._validate_resource(port_group_data, port_group)
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
-           MagicMock(return_value = 'f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
+           MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     @patch('mdts.lib.bridge.Bridge.build', MagicMock())
     @patch('mdts.lib.chain.Chain.build', MagicMock())
     @patch('mdts.lib.link.Link.build', MagicMock())
@@ -214,7 +214,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
                          self._vtm._vt.get('tenant_id'))
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
-           MagicMock(return_value = 'f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
+           MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     @patch('mdts.lib.bridge.Bridge.build', MagicMock())
     @patch('mdts.lib.bridge.Bridge.destroy', MagicMock())
     @patch('mdts.lib.chain.Chain.build', MagicMock())
@@ -240,7 +240,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         bridge.destroy.assert_called_with()
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
-           MagicMock(return_value = 'f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
+           MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     def test_get_device_port(self):
         """ Tests VTM returns a correct Bridge/Router for specified device. """
         self.build_empty_topology()
@@ -249,18 +249,18 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         self._vtm._bridge_router['bridge-000-001'] = mock_bridge
         mock_bridge.get_port.return_value = mock_bridge_port
 
-        device_port =  self._vtm.get_device_port('bridge-000-001', 1)
+        device_port = self._vtm.get_device_port('bridge-000-001', 1)
         self.assertEqual(mock_bridge_port, device_port)
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
-           MagicMock(return_value = 'f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
+           MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     def test_get_device_port_no_device(self):
         """ Tests VTM returns None when no corresponding device. """
         self.build_empty_topology()
         self.assertEqual(None, self._vtm.get_device_port('bridge-000-001', 1))
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
-           MagicMock(return_value = 'f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
+           MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     def test_get_device_port_no_port(self):
         """ Tests VTM returns None when a port is not found. """
         self.build_empty_topology()
