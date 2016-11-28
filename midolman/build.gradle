@@ -196,6 +196,9 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/lib/midolman/service_containers/vpn/vpn-helper") {
         into "usr/lib/midolman"
     }
+    from("src/lib/midolman/service_containers/haproxy/haproxy-helper") {
+        into "usr/lib/midolman"
+    }
     from("src/deb/init/midolman-prepare") {
         into "usr/share/midolman"
     }
