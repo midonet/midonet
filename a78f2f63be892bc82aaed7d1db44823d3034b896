@@ -36,6 +36,57 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_012c0c49",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-28T04:25:54Z",
+      "side": 1,
+      "message": "i think these objects will need some more setup.\neg. chains and routes.\nwill they be in later patches?",
+      "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_210028aa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-28T04:25:54Z",
+      "side": 1,
+      "message": "is it intended to use the same value as loadBalancerId?",
+      "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_c125045d",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 1440,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-28T04:25:54Z",
+      "side": 1,
+      "message": "is this related?",
+      "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_c15744c9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
         "patchSetId": 4
