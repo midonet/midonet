@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_04ee5a8b",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-11-28T09:46:56Z",
+      "side": 1,
+      "message": "why not just change subnet_id to repeated?",
+      "range": {
+        "startLine": 146,
+        "startChar": 18,
+        "endLine": 146,
+        "endChar": 27
+      },
+      "revId": "a15e38ccda40d1c1f12940c6b178386a44a0ef9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
