@@ -47,8 +47,6 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.concurrent.toFutureOps
 
-// All the dependants should be reimplemented as TranslatedResource
-@Deprecated
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                                   translatorManager: NeutronTranslatorManager)
     extends L3Api
@@ -67,7 +65,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     private implicit val ec = fromExecutor(MoreExecutors.directExecutor())
 
-    private val timeout = 10.seconds
+    private val timeout = resourceContext.config.requestTimeoutMs millis
     private val store = resourceContext.backend.store
 
     private def tryRead[T](f: => T): T = tryStorageOp(f)
@@ -79,8 +77,12 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     /** Transform StorageExceptions to appropriate HTTP exceptions. */
     private def tryStorageOp[T](f: => T): T = {
         try f catch {
-            case e: StorageException => throw toHttpException(e)
-            case e: TranslationException => throw toHttpException(e)
+            case e: StorageException =>
+                log.debug("Neutron storage operation failed", e)
+                throw toHttpException(e)
+            case e: TranslationException =>
+                log.debug("Neutron storage operation failed", e)
+                throw toHttpException(e)
         }
     }
 
