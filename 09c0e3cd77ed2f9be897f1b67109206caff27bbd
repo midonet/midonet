@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_a171d8e2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1436,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T07:51:36Z",
+      "side": 1,
+      "message": "I don\u0027t think this test checks what it says it does.  If VIP address update is treated the same as VIF port IP address update, this test is not appropriate.",
+      "revId": "09c0e3cd77ed2f9be897f1b67109206caff27bbd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
