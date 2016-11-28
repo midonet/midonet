@@ -115,6 +115,30 @@
       "revId": "59593dc3529b64852269a9c53224252958564f20",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_87726c7b",
+        "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/neutron/TestLoadBalancerV2Resource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-28T10:43:00Z",
+      "side": 1,
+      "message": "These tests don\u0027t cover the Zoom conversions. The NeutronZoomPlugin is mocked out. What we should have are actual API tests, that test the API end-to-end. Those would make these tests redundant, and also test much more. We can\u0027t actually do that right now, because there are no translators, but I believe we have such tests for other Neutron Resource classes.",
+      "parentUuid": "7aaa499b_c40e32e5",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 5
+      },
+      "revId": "59593dc3529b64852269a9c53224252958564f20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
