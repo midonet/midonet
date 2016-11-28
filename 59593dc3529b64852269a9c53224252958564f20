@@ -91,6 +91,30 @@
       "revId": "59593dc3529b64852269a9c53224252958564f20",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_c40e32e5",
+        "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/neutron/TestLoadBalancerV2Resource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-28T09:01:43Z",
+      "side": 1,
+      "message": "I think they are useful for test coverage, and also to test the zoom conversions (all too often we use wrong names or missing converters in the @ZoomField annotations)",
+      "parentUuid": "7aaa499b_61ff5035",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 5
+      },
+      "revId": "59593dc3529b64852269a9c53224252958564f20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
