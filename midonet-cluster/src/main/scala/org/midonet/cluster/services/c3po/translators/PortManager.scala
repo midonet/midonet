@@ -223,6 +223,8 @@ object PortManager {
         nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
     def isVipPort(nPort: NeutronPortOrBuilder) =
         nPort.getDeviceOwner == DeviceOwner.LOADBALANCER
+    def isVipV2Port(nPort: NeutronPortOrBuilder) =
+        nPort.getDeviceOwner == DeviceOwner.LOADBALANCERV2
     def isRemoteSitePort(nPort: NeutronPortOrBuilder) =
         nPort.getDeviceOwner == DeviceOwner.REMOTE_SITE
 
@@ -238,7 +240,8 @@ object PortManager {
     def hasMacAndArpTableEntries(nPort: NeutronPortOrBuilder): Boolean =
         !isIpv6Port(nPort) &&
         (isVifPort(nPort) || isRouterInterfacePort(nPort) ||
-         isRouterGatewayPort(nPort) || isRemoteSitePort(nPort))
+         isRouterGatewayPort(nPort) || isRemoteSitePort(nPort) ||
+         isVipV2Port(nPort))
 
     /** ID of Router Interface port peer. */
     def routerInterfacePortPeerId(portId: UUID): UUID =
