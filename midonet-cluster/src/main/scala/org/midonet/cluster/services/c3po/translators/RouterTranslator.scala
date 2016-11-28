@@ -297,9 +297,6 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
 
         // Create the NAT64 rule containing the port IPv6 address and the
         // NAT64 pool.
-        val natPoolAddress = IPAddress.newBuilder()
-            .setAddress(Nat64Pool.getAddress)
-            .setVersion(IPVersion.V4)
         val nat64Rule = Rule.newBuilder()
             .setId(nat64RuleId(port.getId))
             .setFipPortId(port.getId)
@@ -307,8 +304,8 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
             .setNat64RuleData(Rule.Nat64RuleData.newBuilder()
                                   .setPortAddress(portAddress.subnet)
                                   .setNatPool(NatTarget.newBuilder()
-                                                  .setNwStart(natPoolAddress)
-                                                  .setNwEnd(natPoolAddress)
+                                                  .setNwStart(Nat64PoolStart)
+                                                  .setNwEnd(Nat64PoolEnd)
                                                   .setTpStart(0)
                                                   .setTpEnd(0)))
             .build()

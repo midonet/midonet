@@ -37,7 +37,23 @@ import org.midonet.packets.IPv4Subnet
 
 object RouterInterfaceTranslator {
 
-    val Nat64Pool = IPSubnetUtil.toProto("20.0.0.1/32")
+    /**
+      * The default NAT64 pool uses the IANA-reserved IPv4 prefix for shared
+      * address space that accommodates carrier-grade NAT (RFC 6598).
+      */
+    val Nat64Pool = IPSubnet.newBuilder()
+        .setAddress("100.64.0.0")
+        .setPrefixLength(10)
+        .setVersion(IPVersion.V4)
+        .build()
+    val Nat64PoolStart = IPAddress.newBuilder()
+        .setAddress("100.64.0.1")
+        .setVersion(IPVersion.V4)
+        .build()
+    val Nat64PoolEnd = IPAddress.newBuilder()
+        .setAddress("100.127.255.254")
+        .setVersion(IPVersion.V4)
+        .build()
 
     /**
       * Deterministically generate 'same subnet' SNAT rule ID from chain ID
@@ -175,9 +191,6 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
                 .setAddress(portAddress.getAddress)
                 .setPrefixLength(128)
                 .setVersion(IPVersion.V6)
-            val natPoolAddress = IPAddress.newBuilder()
-                .setAddress(Nat64Pool.getAddress)
-                .setVersion(IPVersion.V4)
             val nat64Rule = Rule.newBuilder()
                 .setId(nat64RuleId(routerPortId))
                 .setFipPortId(routerPortId)
@@ -185,8 +198,8 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
                 .setNat64RuleData(Rule.Nat64RuleData.newBuilder()
                                       .setPortAddress(portSubnet)
                                       .setNatPool(NatTarget.newBuilder()
-                                          .setNwStart(natPoolAddress)
-                                          .setNwEnd(natPoolAddress)
+                                          .setNwStart(Nat64PoolStart)
+                                          .setNwEnd(Nat64PoolEnd)
                                           .setTpStart(0)
                                           .setTpEnd(0)))
                 .build()

@@ -433,7 +433,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             routes should have size 2
 
             routes.head.getSrcSubnet.getAddress shouldBe "0.0.0.0"
-            routes.head.getDstSubnet.getAddress shouldBe "20.0.0.1"
+            routes.head.getDstSubnet shouldBe Nat64Pool
             routes.head.getNextHopPortId shouldBe routerPort.getId
             routes.head.getNextHop shouldBe NextHop.PORT
 
@@ -452,10 +452,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
                 .getAddress shouldBe "2001:0:0:0:0:0:0:2"
             rules.head.getNat64RuleData.getPortAddress
                 .getPrefixLength shouldBe 128
-            rules.head.getNat64RuleData.getNatPool.getNwStart
-                .getAddress shouldBe "20.0.0.1"
-            rules.head.getNat64RuleData.getNatPool.getNwEnd
-                .getAddress shouldBe "20.0.0.1"
+            rules.head.getNat64RuleData.getNatPool.getNwStart shouldBe Nat64PoolStart
+            rules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe Nat64PoolEnd
             rules.head.getNat64RuleData.getNatPool.getTpStart shouldBe 0
             rules.head.getNat64RuleData.getNatPool.getTpEnd shouldBe 0
         }

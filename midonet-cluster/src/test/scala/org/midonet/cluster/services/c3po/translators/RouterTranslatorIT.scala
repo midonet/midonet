@@ -505,10 +505,10 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         gwPortFipRules.head.getNat64RuleData.getPortAddress shouldBe IPSubnetUtil
             .toProto("2002::2/64")
-        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe IPAddressUtil
-            .toProto("20.0.0.1")
-        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe IPAddressUtil
-            .toProto("20.0.0.1")
+        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe
+            RouterInterfaceTranslator.Nat64PoolStart
+        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe
+            RouterInterfaceTranslator.Nat64PoolEnd
 
         // Delete gateway port.
         insertDeleteTask(13, PortType, gwPortId)
@@ -673,10 +673,10 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         // NAT64 rules.
         gwPortFipRules.head.getNat64RuleData.getPortAddress shouldBe IPSubnetUtil
             .toProto("2002::2/64")
-        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe IPAddressUtil
-            .toProto("20.0.0.1")
-        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe IPAddressUtil
-            .toProto("20.0.0.1")
+        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe
+            RouterInterfaceTranslator.Nat64PoolStart
+        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe
+            RouterInterfaceTranslator.Nat64PoolEnd
 
         // Delete gateway port.
         insertDeleteTask(7, PortType, gwPortId)
