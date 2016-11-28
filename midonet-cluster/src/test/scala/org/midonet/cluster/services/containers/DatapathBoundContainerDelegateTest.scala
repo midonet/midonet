@@ -74,7 +74,7 @@ class DatapathBoundContainerDelegateTest extends FeatureSpec with Matchers
             override def reactor: Reactor = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
-            override val discovery: MidonetDiscovery = discovery
+            override val discovery: MidonetDiscovery = new FakeDiscovery
         }
         MidonetBackend.setupBindings(storage, storage)
     }
