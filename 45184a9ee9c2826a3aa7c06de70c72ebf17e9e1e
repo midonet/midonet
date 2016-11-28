@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_215268de",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T03:44:34Z",
+      "side": 1,
+      "message": "loadBalancerId() is used for v1 LB (XORed from the tenant router).  So I was wondering if it was intentional to use the same value when the router ID is the \u0027lb router\u0027 in this change.  Probably not going to cause any problem, but just wanted to make sure it was still intentional since it seemed at first confusing because conceptually they represent different associations.",
+      "parentUuid": "7aaa499b_21b6e83d",
+      "revId": "45184a9ee9c2826a3aa7c06de70c72ebf17e9e1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_64dd0442",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
         "patchSetId": 2
