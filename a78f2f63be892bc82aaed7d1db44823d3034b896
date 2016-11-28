@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_e16240ad",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T03:44:34Z",
+      "side": 1,
+      "message": "remove",
+      "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_015e4ce9",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 982,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T03:44:34Z",
+      "side": 1,
+      "message": "trailing white space",
+      "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_c15744c9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-28T03:44:34Z",
+      "side": 1,
+      "message": "Does this (and others below) need to be included in this patch?",
+      "revId": "a78f2f63be892bc82aaed7d1db44823d3034b896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
