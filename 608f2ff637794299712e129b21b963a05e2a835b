@@ -137,6 +137,52 @@
       "revId": "608f2ff637794299712e129b21b963a05e2a835b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_c1af447c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/resources/LbV2Resource.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-28T05:47:14Z",
+      "side": 1,
+      "message": "I think it would be a bit more readable if you started this expression a new line, rather than breaking it across two lines.",
+      "range": {
+        "startLine": 63,
+        "startChar": 32,
+        "endLine": 64,
+        "endChar": 23
+      },
+      "revId": "608f2ff637794299712e129b21b963a05e2a835b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_81d13cfe",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/resources/LbV2Resource.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-28T05:47:14Z",
+      "side": 1,
+      "message": "I don\u0027t think this is true anymore. These are only thrown by the old ZkManager and JsonVersionZkSerializer, which AFAIK we don\u0027t use anymore. Note that only two of the Neutron resource classes (Subnet and SecurityGroup) still declare these exceptions.",
+      "range": {
+        "startLine": 72,
+        "startChar": 12,
+        "endLine": 72,
+        "endChar": 63
+      },
+      "revId": "608f2ff637794299712e129b21b963a05e2a835b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
