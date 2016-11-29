@@ -42,8 +42,6 @@ import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
-    /* Set up legacy Data Client for testing Replicated Map. */
-    override protected val useLegacyDataClient = true
 
     private def floatingIpJson(id: UUID,
                                floatingNetworkId: UUID,
