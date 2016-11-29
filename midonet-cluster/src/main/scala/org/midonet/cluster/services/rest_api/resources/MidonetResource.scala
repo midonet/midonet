@@ -235,6 +235,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         tryResponse(handleCreate, catchCreate) {
             tryTx { tx =>
                 t.create()
+                validationFilter(t, tx)
                 throwIfViolationsOn(t)
                 createFilter(t, tx)
                 OkCreated(t.getUri)
@@ -253,6 +254,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         tryResponse(handleUpdate, catchUpdate) {
             tryTx { tx =>
                 val current = tx.get(clazz, id)
+                validationFilter(t, tx)
                 throwIfViolationsOn(t)
                 updateFilter(t, current, tx)
                 OkNoContentResponse
@@ -298,6 +300,9 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def deleteFilter(id: String, tx: ResourceTransaction): Unit = {
         tx.delete(tag.runtimeClass.asInstanceOf[Class[T]], id)
+    }
+
+    protected def validationFilter(t: T, tx: ResourceTransaction): Unit = {
     }
 
     protected def handleCreate: PartialFunction[Response, Response] =

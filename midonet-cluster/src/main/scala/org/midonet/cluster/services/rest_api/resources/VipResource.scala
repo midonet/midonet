@@ -125,15 +125,15 @@ class PoolVipResource @Inject()(poolId: UUID, resContext: ResourceContext)
         vips.asJava
     }
 
-    protected override def createFilter(vip: Vip, tx: ResourceTransaction): Unit = {
+    protected override def validationFilter(vip: Vip,
+                                            tx: ResourceTransaction): Unit = {
         val pool = try {
-            tx.get(classOf[Pool], vip.poolId)
+            tx.get(classOf[Pool], poolId)
         } catch {
             case t: NotFoundHttpException =>
                 throw new BadRequestHttpException(t.getMessage)
         }
-        vip.loadBalancerId = pool.loadBalancerId
-        tx.create(vip)
+        vip.create(pool.loadBalancerId, poolId)
     }
 }
 

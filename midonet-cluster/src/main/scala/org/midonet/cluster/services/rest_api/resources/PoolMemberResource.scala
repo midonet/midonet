@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
+
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.{DELETE, Path, PathParam}
@@ -77,10 +78,9 @@ class PoolPoolMemberResource @Inject()(poolId: UUID, resCtx: ResourceContext)
         getResource(classOf[Pool], poolId).poolMemberIds.asScala
     }
 
-    protected override def createFilter(poolMember: PoolMember,
-                                        tx: ResourceTransaction): Unit = {
+    protected override def validationFilter(poolMember: PoolMember,
+                                            tx: ResourceTransaction): Unit = {
         poolMember.create(poolId)
-        tx.create(poolMember)
     }
 
 }

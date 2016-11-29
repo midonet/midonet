@@ -113,6 +113,25 @@ public class TestPoolMember {
         }
 
         @Test
+        public void testChildCrud() throws Exception {
+            // Create a pool member for a pool (does not set the poolId)
+            DtoPoolMember poolMember = getStockPoolMember(pool.getId());
+            poolMember.setPoolId(null);
+
+            // Creating the member for the pool should succeed.
+            poolMember = dtoResource.postAndVerifyCreated(
+                pool.getPoolMembers(), APPLICATION_POOL_MEMBER_JSON(),
+                poolMember, DtoPoolMember.class);
+
+            // Get and check
+            DtoPoolMember getPoolMember = getPoolMember(poolMember.getUri());
+            Assert.assertEquals(poolMember, getPoolMember);
+
+            // Delete
+            deletePoolMember(poolMember.getUri());
+        }
+
+        @Test
         public void assertCreateAddsReferences() {
             DtoPoolMember member2 = createStockPoolMember(pool.getId());
             assertEquals(pool.getUri(), member2.getPool());

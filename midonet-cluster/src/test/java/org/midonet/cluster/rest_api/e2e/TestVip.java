@@ -197,6 +197,24 @@ public class TestVip {
         }
 
         @Test
+        public void testChildCrud() {
+            // Create a VIP for a pool (do not set the poolId).
+            DtoVip vip = getStockVip(pool.getId());
+            vip.setPoolId(null);
+
+            // Creating the VIP for the pool should succeed.
+            vip = dtoResource.postAndVerifyCreated(
+                pool.getVips(), APPLICATION_VIP_JSON(), vip, DtoVip.class);
+
+            // Get and check.
+            DtoVip getVip = getVip(vip.getUri());
+            assertEquals(vip, getVip);
+
+            // Delete.
+            deleteVip(vip.getUri());
+        }
+
+        @Test
         public void testCreateInitializesReferences() {
             DtoLoadBalancer loadBalancer = createStockLoadBalancer();
             DtoPool pool = getStockPool(loadBalancer.getId());
