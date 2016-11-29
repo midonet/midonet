@@ -163,6 +163,30 @@
       "revId": "59593dc3529b64852269a9c53224252958564f20",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_98540d55",
+        "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/neutron/TestLoadBalancerV2Resource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-29T01:58:24Z",
+      "side": 1,
+      "message": "Brandon, won\u0027t the LoadBalancerIT tests do exactly what you are asking for?  And those are coming in the next couple patches with the LB translation (which can then be expanded for different combinations until it becomes a full integration test).  Does that satisfy your concerns?",
+      "parentUuid": "7aaa499b_92686cbc",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 5
+      },
+      "revId": "59593dc3529b64852269a9c53224252958564f20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
