@@ -102,11 +102,9 @@ cleanup_bgps() {
 }
 
 cleanup_vpp() {
-    for INTERFACE in `ip -o link show | awk -F': ' '{print $2}' | grep ^vpp` ; do
-        remove_interface $INTERFACE
-    done
-
-    for INTERFACE in `ip -o link show | awk -F': ' '{print $2}' | grep ^ovs` ; do
+    for INTERFACE in $(ip -o link show | \
+                       awk -F': ' '{print $2}' | \
+                       grep -e ^vpp- -e ^ovs- -e ^tun-dl) ; do
         remove_interface $INTERFACE
     done
 }
