@@ -208,16 +208,16 @@ public class Neutron {
                && Objects.equal(securityGroupRuleTemplate,
                                 other.securityGroupRuleTemplate)
                && Objects.equal(loadBalancer, other.loadBalancer)
-                && Objects.equal(loadBalancersV2, other.loadBalancersV2)
-                && Objects.equal(loadBalancerV2Template, other.loadBalancerV2Template)
-                && Objects.equal(poolsV2, other.poolsV2)
-                && Objects.equal(poolV2Template, other.poolV2Template)
+               && Objects.equal(loadBalancersV2, other.loadBalancersV2)
+               && Objects.equal(loadBalancerV2Template, other.loadBalancerV2Template)
+               && Objects.equal(poolsV2, other.poolsV2)
+               && Objects.equal(poolV2Template, other.poolV2Template)
                && Objects.equal(poolMembersV2, other.poolMembersV2)
-                && Objects.equal(poolMemberV2Template, other.poolMemberV2Template)
-                && Objects.equal(listenersV2, other.listenersV2)
+               && Objects.equal(poolMemberV2Template, other.poolMemberV2Template)
+               && Objects.equal(listenersV2, other.listenersV2)
                && Objects.equal(listenerV2Template, other.listenerV2Template)
-                && Objects.equal(healthMonitorsV2, other.healthMonitorsV2)
-                && Objects.equal(healthMonitorV2Template, other.healthMonitorV2Template)
+               && Objects.equal(healthMonitorsV2, other.healthMonitorsV2)
+               && Objects.equal(healthMonitorV2Template, other.healthMonitorV2Template)
                && Objects.equal(firewalls, other.firewalls)
                && Objects.equal(firewallTemplate, other.firewallTemplate)
                && Objects.equal(vpnServices, other.vpnServices)
@@ -255,13 +255,13 @@ public class Neutron {
                                 floatingIpTemplate, securityGroups,
                                 securityGroupTemplate,
                                 securityGroupRules, securityGroupRuleTemplate,
-                                firewalls, loadBalancer,
+                                loadBalancer,
                                 loadBalancersV2, poolsV2,
                                 poolMembersV2, listenersV2, healthMonitorsV2,
                                 loadBalancerV2Template, poolV2Template,
                                 poolMemberV2Template, listenerV2Template,
                                 healthMonitorV2Template,
-                                firewallTemplate,
+                                firewalls, firewallTemplate,
                                 vpnServices, vpnServiceTemplate,
                                 ipsecSiteConnections,
                                 ipsecSiteConnectionTemplate,
