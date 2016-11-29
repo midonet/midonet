@@ -84,6 +84,13 @@ public class Vip extends UriResource {
     }
 
     @JsonIgnore
+    public void create(UUID loadBalancerId, UUID poolId) {
+        create();
+        this.loadBalancerId = loadBalancerId;
+        this.poolId = poolId;
+    }
+
+    @JsonIgnore
     public void update(Vip from) {
         id = from.id;
     }
