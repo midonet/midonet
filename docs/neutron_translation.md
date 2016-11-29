@@ -1059,6 +1059,44 @@ Delete the MidoNet Pool object corresponding to the given id.
 This will clear the pool ID field on associated MidoNet load balancers
 and Vip objects, but will not delete those objects.
 
+## LISTENERV2
+
+### CREATE
+
+Create a new MidoNet Vip object.  If a `default_pool_id` is set on the
+neutron Listener, set the `poolId` on the Vip object.  Otherwise, the
+Vip will be created with no pool set, and either a pool must be created
+with the Vip's ID set as the `listener_id` field, or the Vip obejct must
+be updated to set the `poolId`.
+
+The Vip object's address will be retrieved by first finding the MidoNet
+Router which was created for the Listener's parent Load Balancer.  Then
+that the first interface port on that Router with a valid peer and has
+a corresponding Neutron Port, will be used to determine the Vip object's
+IP address.
+
+The new MidoNet Vip will have the following fields set:
+
+ * id => id
+ * default_pool_id => poolId
+ * portAddress on LB's associated router interface port => address
+ * protocol_port => protocolPort
+ * admin_state_up => adminStateUp
+ 
+### UPDATE
+
+The `adminStateUp` and `poolId` fields may be updated.  All other fields
+are locked and cannot be updated on the Vip object once created.
+
+The update will set the updated field on the MidoNet Vip object.
+
+### DELETE
+
+Delete the MidoNet Vip object corresponding to the given id.
+
+This will clear the vip ID field on associated MidoNet load balancers
+and Pool objects, but will not delete those objects.
+
 ## BGPSPEAKER
 
 ### CREATE
