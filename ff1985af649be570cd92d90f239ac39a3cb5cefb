@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_c524e9b0",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 1006,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-29T10:05:54Z",
+      "side": 1,
+      "message": "I know it\u0027s only a little extra code, but could you rewrite the overload above to call this instead of reimplementing?",
+      "range": {
+        "startLine": 1006,
+        "startChar": 18,
+        "endLine": 1006,
+        "endChar": 41
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_c572a9ad",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-29T10:05:54Z",
+      "side": 1,
+      "message": "Shouldn\u0027t you check to verify that this is eventually deleted?",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 48
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_a5131d5c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-29T10:05:54Z",
+      "side": 1,
+      "message": "If possible, we\u0027re trying to move away from persisting the Neutron models in Zookeeper. It looks like you don\u0027t need the Neutron model for updates, so you could remove this and then override persistHighLevelModel() in the translator to return an empty list.",
+      "range": {
+        "startLine": 104,
+        "startChar": 13,
+        "endLine": 104,
+        "endChar": 44
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
