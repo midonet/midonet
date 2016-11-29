@@ -35,8 +35,6 @@ import org.midonet.util.concurrent.toFutureOps
 @RunWith(classOf[JUnitRunner])
 class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
     with ChainManager {
-    /* Set up legacy Data Client for testing Replicated Map. */
-    override protected val useLegacyDataClient = true
     import L2GatewayConnectionTranslator._
 
     protected def gatewayDeviceJson(resourceId: UUID,
@@ -354,7 +352,7 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
 
         val peeringTablePath =
             backend.stateTableStore.portPeeringTablePath(rtrPortId.asJava)
-        curator.checkExists().forPath(peeringTablePath) shouldBe null
+        directory.exists(peeringTablePath) shouldBe true
     }
 
     private def checkL2GatewayConnection(cnxnId: UUID,

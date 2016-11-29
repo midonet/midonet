@@ -35,8 +35,6 @@ import org.midonet.util.concurrent.toFutureOps
  */
 @RunWith(classOf[JUnitRunner])
 class NetworkIT extends C3POMinionTestBase {
-    /* Set up legacy Data Client for testing Replicated Map. */
-    override protected val useLegacyDataClient = true
 
     "C3PO" should "execute CRUD on the Network data and its associated state " +
     "table node children" in {
@@ -55,7 +53,6 @@ class NetworkIT extends C3POMinionTestBase {
         network1.getId shouldBe toProto(network1Uuid)
         network1.getName shouldBe network1Name
         network1.getAdminStateUp shouldBe true
-        eventually(getLastProcessedIdFromTable shouldBe Some(2))
 
         // Below we'll test the integration between ZOOM with ReplicatedMap:
         // Add an ARP entry node under the ARP replicated map node by
@@ -67,7 +64,7 @@ class NetworkIT extends C3POMinionTestBase {
         val ipMacPath1 = stateTableStorage.bridgeArpEntryPath(
             network1Uuid, ipAddr1, mac1)
         storage.multi(Seq(CreateNodeOp(ipMacPath1, null)))
-        curator.checkExists.forPath(ipMacPath1) shouldNot be(null)
+        directory.exists(ipMacPath1) shouldBe true
 
         // Create a legacy ReplicatedMap for the ARP table.
         val arpTable = stateTableStorage.bridgeArpTable(network1Uuid)
@@ -84,7 +81,7 @@ class NetworkIT extends C3POMinionTestBase {
         val ipMacPath2 = stateTableStorage.bridgeArpEntryPath(
             network1Uuid, ipAddr2, mac2)
         storage.multi(Seq(CreateNodeOp(ipMacPath2, null)))
-        curator.checkExists.forPath(ipMacPath2) shouldNot be(null)
+        directory.exists(ipMacPath2) shouldBe true
         eventually {
             // The ARP table should pick up the new mac.
             arpTable.getLocal(ipAddr2) shouldBe MAC.fromString(mac2)
@@ -114,14 +111,12 @@ class NetworkIT extends C3POMinionTestBase {
             network1a.getId shouldBe toProto(network1Uuid)
             network1a.getName shouldBe "public-network"
             network1a.getAdminStateUp shouldBe false
-            getLastProcessedIdFromTable shouldBe Some(4)
         }
 
         // Deletes Network 1
         insertDeleteTask(5, NetworkType, network1Uuid)
         eventually {
             storage.exists(classOf[Network], network1Uuid).await() shouldBe false
-            getLastProcessedIdFromTable shouldBe Some(5)
         }
 
         eventually {
