@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool
