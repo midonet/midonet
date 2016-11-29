@@ -53,7 +53,7 @@ abstract class LoadBalancerV2TestBase extends ResourceTest {
 
     public static ListenerV2 listener(LoadBalancerV2 lb, UUID id) {
         ListenerV2 l = new ListenerV2();
-        l.loadBalancers.add(lb.id);
+        l.loadBalancerId = lb.id;
         l.id = id;
         lb.listeners.add(id);
         return l;

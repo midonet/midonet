@@ -138,6 +138,36 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         lb
     }
 
+    protected def lbV2Json(id: UUID,
+                           vipPortId: UUID,
+                           vipAddress: String,
+                           adminStateUp: Boolean = true): JsonNode = {
+        val lb = nodeFactory.objectNode
+        lb.put("id", id.toString)
+        lb.put("admin_state_up", adminStateUp)
+        lb.put("vip_port_id", vipPortId.toString)
+        lb.put("vip_address", vipAddress)
+        lb
+    }
+
+
+    protected def lbv2ListenerJson(
+            id: UUID = UUID.randomUUID(),
+            loadBalancerId: UUID,
+            defaultPoolId: Option[UUID] = None,
+            tenantId: String = "tenant",
+            adminStateUp: Boolean = true,
+            protocolPort: Int = 10000): JsonNode = {
+        val pm = nodeFactory.objectNode
+        pm.put("id", id.toString)
+        pm.put("load_balancer_id", loadBalancerId.toString)
+        defaultPoolId.foreach(id => pm.put("default_pool_id", id.toString))
+        pm.put("tenant_id", tenantId)
+        pm.put("admin_state_up", adminStateUp)
+        pm.put("protocol_port", protocolPort)
+        pm
+    }
+
     case class IPAlloc(ipAddress: String, subnetId: UUID)
     case class AddrPair(cidr: String, mac: String)
     protected def portJson(id: UUID,
