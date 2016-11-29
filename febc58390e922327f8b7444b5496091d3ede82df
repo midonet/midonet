@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_73928259",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-29T09:10:33Z",
+      "side": 1,
+      "message": "There\u0027s no need to continue the numbering across tests. The transaction table gets cleared between tests.\n\nAlso, I\u0027ve started numbering the transactions 10, 20, 30..., like with BASIC line numbers way back when. This makes it easy to add transactions in between existing ones if I need to.",
+      "range": {
+        "startLine": 101,
+        "startChar": 25,
+        "endLine": 101,
+        "endChar": 26
+      },
+      "revId": "febc58390e922327f8b7444b5496091d3ede82df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_53c8a674",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-29T09:10:33Z",
+      "side": 1,
+      "message": "This doesn\u0027t work. \"Eventually\" runs the code in the block either until it completes without throwing an exception (shouldBe throws a TestFailed exception if the actual value doesn\u0027t match the expected one), or the timer runs out.\n\nWith that in mind, suppose that the code above actually does create a LoadBalancer with ID lbId. As long as there\u0027s enough of a delay in getting that change committed to call storage.exists(...) once, the test will pass, even though the code is wrong, because the first time this check is run.\n\nThe opposite of eventually(condition shouldBe true) is not eventually(condition shouldBe false), but rather never(condition shouldBe true). I don\u0027t think never() actually exists (for one, it would take a long time to run), so I guess the closest equivalent would be to sleep for a while and then check that exists(...) is still false. This still takes a relatively long time, though, and I\u0027m not sure the best length of time to wait.",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 105,
+        "endChar": 9
+      },
+      "revId": "febc58390e922327f8b7444b5496091d3ede82df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_1388de21",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-29T09:10:33Z",
+      "side": 1,
+      "message": "Need to modify org.midonet.cluster.rest_api.neutron.models.DeviceOwner as well.",
+      "range": {
+        "startLine": 91,
+        "startChar": 8,
+        "endLine": 91,
+        "endChar": 22
+      },
+      "revId": "febc58390e922327f8b7444b5496091d3ede82df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
