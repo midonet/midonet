@@ -16,20 +16,14 @@
 
 package org.midonet.cluster.rest_api.neutron.models;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.data.ZoomClass;
-import org.midonet.cluster.data.ZoomEnum;
-import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
@@ -45,65 +39,21 @@ public class ListenerV2 extends ZoomObject {
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
-    @JsonProperty("connection_limit")
-    @ZoomField(name = "connection_limit")
-    public Integer connectionLimit;
-
-    @ZoomField(name = "protocol")
-    public ListenerV2Protocol protocol;
-
-    @ZoomField(name = "description")
-    public String description;
-
     @JsonProperty("admin_state_up")
     @ZoomField(name = "admin_state_up")
     public Boolean adminStateUp;
 
-    @JsonProperty("default_tls_container_ref")
-    @ZoomField(name = "default_tls_container_ref")
-    public String defaultTlsContainerRef;
-
-    @JsonProperty("sni_container_refs")
-    @ZoomField(name = "sni_container_refs")
-    public List<String> sniContainerRefs = new ArrayList<>();
-
-    @JsonProperty("loadbalancers")
-    @ZoomField(name = "loadbalancers")
-    public List<UUID> loadBalancers = new ArrayList<>();
+    @JsonProperty("loadbalancer_id")
+    @ZoomField(name = "loadbalancer_id")
+    public UUID loadBalancerId;
 
     @JsonProperty("default_pool_id")
     @ZoomField(name = "default_pool_id")
     public UUID defaultPoolId;
 
-    @ZoomField(name = "name")
-    public String name;
-
     @JsonProperty("protocol_port")
     @ZoomField(name = "protocol_port")
     public Integer protocolPort;
-
-    @ZoomEnum(clazz = Neutron.NeutronLoadBalancerV2Listener.ListenerV2Protocol.class)
-    public enum ListenerV2Protocol {
-        @ZoomEnumValue("HTTP") HTTP,
-        @ZoomEnumValue("HTTPS") HTTPS,
-        @ZoomEnumValue("HTTPS_TERMINATED") HTTPS_TERMINATED,
-        @ZoomEnumValue("TCP") TCP;
-
-        @JsonCreator
-        @SuppressWarnings("unused")
-        public static ListenerV2Protocol forValue(String v) {
-            if (v == null) {
-                return null;
-            }
-            try {
-                return valueOf(v.toUpperCase());
-            } catch (IllegalArgumentException ex) {
-                LoggerFactory.getLogger(ListenerV2.class)
-                        .warn("Unknown protocol enum value {}", v);
-                return null;
-            }
-        }
-    }
 
     @Override
     public String toString() {
@@ -112,15 +62,9 @@ public class ListenerV2 extends ZoomObject {
                 .add("id", id)
                 .add("tenantId", tenantId)
                 .add("protocolPort", protocolPort)
-                .add("name", name)
-                .add("description", description)
-                .add("connectionLimit", connectionLimit)
                 .add("adminStateUp", adminStateUp)
-                .add("defaultTlsContainerRef", defaultTlsContainerRef)
-                .add("sniContainerRefs", sniContainerRefs)
-                .add("loadBalancers", loadBalancers)
+                .add("loadBalancerId", loadBalancerId)
                 .add("defaultPoolId", defaultPoolId)
-                .add("protocol", protocol)
                 .toString();
     }
 
@@ -132,21 +76,14 @@ public class ListenerV2 extends ZoomObject {
         return Objects.equal(id, that.id) &&
                 Objects.equal(tenantId, that.tenantId) &&
                 Objects.equal(protocolPort, that.protocolPort) &&
-                Objects.equal(connectionLimit, that.connectionLimit) &&
-                Objects.equal(protocol, that.protocol) &&
-                Objects.equal(description, that.description) &&
                 Objects.equal(adminStateUp, that.adminStateUp) &&
-                Objects.equal(defaultTlsContainerRef, that.defaultTlsContainerRef) &&
-                Objects.equal(sniContainerRefs, that.sniContainerRefs) &&
-                Objects.equal(loadBalancers, that.loadBalancers) &&
-                Objects.equal(defaultPoolId, that.defaultPoolId) &&
-                Objects.equal(name, that.name);
+                Objects.equal(loadBalancerId, that.loadBalancerId) &&
+                Objects.equal(defaultPoolId, that.defaultPoolId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, tenantId, protocolPort, connectionLimit,
-                protocol, description, adminStateUp, defaultTlsContainerRef,
-                sniContainerRefs, loadBalancers, defaultPoolId, name);
+        return Objects.hashCode(id, tenantId, protocolPort, adminStateUp,
+                                loadBalancerId, defaultPoolId);
     }
 }
