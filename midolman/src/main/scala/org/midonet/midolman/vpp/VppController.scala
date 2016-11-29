@@ -90,7 +90,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
     override def logSource = "org.midonet.vpp-controller"
 
-    private implicit val ec: ExecutionContext = singleThreadExecutionContext
+    private implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
     private var vppProcess: MonitoredDaemonProcess = _
     private var vppApi: VppApi = _
