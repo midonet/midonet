@@ -16,26 +16,34 @@
 
 package org.midonet.cluster.rest_api.neutron.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+
+import org.slf4j.LoggerFactory;
+
 import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool;
 
 @ZoomClass(clazz = Neutron.NeutronRouter.ExternalGatewayInfo.class)
 public class LBV2SessionPersistenceAlgorithm extends ZoomObject {
 
     public LBV2SessionPersistenceAlgorithm() {}
 
-    public LBV2SessionPersistenceAlgorithm(String type, String cookieName) {
+    public LBV2SessionPersistenceAlgorithm(
+        LoadBalancerV2SessionPersistenceType type, String cookieName) {
         this.type = type;
         this.cookieName = cookieName;
     }
 
     @ZoomField(name = "type")
-    public String type;
+    public LoadBalancerV2SessionPersistenceType type;
 
     @JsonProperty("cookie_name")
     @ZoomField(name = "cookie_name")
@@ -62,5 +70,27 @@ public class LBV2SessionPersistenceAlgorithm extends ZoomObject {
     @Override
     public int hashCode() {
         return Objects.hashCode(type, cookieName);
+    }
+
+    @ZoomEnum(clazz = NeutronLoadBalancerV2Pool.LBV2SessionPersistenceType.class)
+    public enum LoadBalancerV2SessionPersistenceType {
+        @ZoomEnumValue("SOURCE_IP") SOURCE_IP,
+        @ZoomEnumValue("HTTP_COOKIE") HTTP_COOKIE,
+        @ZoomEnumValue("APP_COOKIE") APP_COOKIE;
+
+        @JsonCreator
+        @SuppressWarnings("unused")
+        public static LoadBalancerV2SessionPersistenceType forValue(String v) {
+            if (v == null) {
+                return null;
+            }
+            try {
+                return valueOf(v.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                LoggerFactory.getLogger(LBV2SessionPersistenceAlgorithm.class)
+                    .warn("Unknown session persistence enum value {}", v);
+                return null;
+            }
+        }
     }
 }

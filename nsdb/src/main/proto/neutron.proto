@@ -254,6 +254,12 @@ message NeutronLoadBalancerV2Pool {
         HTTPS = 3;
     }
 
+    enum LBV2SessionPersistenceType {
+        SOURCE_IP = 1;
+        HTTP_COOKIE = 2;
+        APP_COOKIE = 3;
+    }
+
     optional UUID id = 1;
     optional string tenant_id = 2;
     optional string name = 3;
@@ -266,7 +272,7 @@ message NeutronLoadBalancerV2Pool {
     repeated UUID listeners = 10;
     optional LoadBalancerV2Protocol protocol = 11;
     message LBV2SessionPersistenceAlgorithm {
-        optional string type = 1;
+        optional LBV2SessionPersistenceType type = 1;
         optional string cookie_name = 2;
     }
     optional LBV2SessionPersistenceAlgorithm session_persistence = 12;
