@@ -339,8 +339,8 @@ class Router(override val id: UUID,
         if (outPort == null)
             return null
 
-        if (outPort.isFip64) {
-            context.log.debug("Next hop is fip64 translation")
+        if (outPort.fipNat64Match(context)) {
+            context.log.debug("Next hop is NAT64 translation")
             return fip64Config.vtepVppMac
         }
 

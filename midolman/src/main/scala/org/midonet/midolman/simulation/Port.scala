@@ -147,7 +147,7 @@ object Port {
             interfaceName = if (p.hasInterfaceName) p.getInterfaceName else null,
             adminStateUp = p.getAdminStateUp,
             portGroups = p.getPortGroupIdsList,
-            isPortActive = state.isActive,
+            isActive = state.isActive,
             containerId = if (p.hasServiceContainerId) p.getServiceContainerId else null,
             routerId = if (p.hasRouterId) p.getRouterId else null,
             portAddresses = addresses,
@@ -507,7 +507,7 @@ case class RouterPort(override val id: UUID,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
                       override val portGroups: JList[UUID] = emptyList(),
-                      isPortActive: Boolean = false,
+                      override val isActive: Boolean = false,
                       override val containerId: UUID = null,
                       routerId: UUID,
                       portAddresses: JList[IPSubnet[_]],
@@ -560,32 +560,13 @@ case class RouterPort(override val id: UUID,
         }
     }
 
-    val isFip64: Boolean = {
-        var index = 0
-        var isFip64 = false
-        while (index < fipNatRules.size()) {
-            if (fipNatRules.get(index).isInstanceOf[Nat64Rule]) {
-                isFip64 = true
-            }
-            index += 1
-        }
-        isFip64
-    }
-
-    override def isActive: Boolean = {
-        isFip64 || isPortActive
-    }
-
-    override def isExterior: Boolean =
-        isFip64 || super.isExterior
-
     protected override def emitCommon: SimStep = {
         val emitBase = super.emitCommon
         var index = 0
         while (index < fipNatRules.size()) {
             if (fipNatRules.get(index).isInstanceOf[Nat64Rule]) {
                 return context => {
-                    if (fipNatMatch(context)) {
+                    if (fipNat64Match(context)) {
                         context.log.debug("Emitting packet to NAT64 gateway " +
                                           s"with tunnel key $tunnelKey")
                         context.calculateActionsFromMatchDiff()
@@ -602,7 +583,7 @@ case class RouterPort(override val id: UUID,
         emitBase
     }
 
-    private def fipNatMatch(context: PacketContext): Boolean = {
+    def fipNat64Match(context: PacketContext): Boolean = {
         val address: Int = context.wcmatch.getNetworkDstIP match {
             case ip4: IPv4Addr => ip4.addr
             case _ => return false
