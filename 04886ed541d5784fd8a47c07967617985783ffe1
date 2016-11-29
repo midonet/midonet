@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_01376cb1",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "Moved to the previous patch.",
+      "parentUuid": "9aa53dc9_3bf83be5",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 18
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_dbf14fcf",
         "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-25T09:56:33Z",
       "side": 1,
       "message": "\"contents should contain member.address\" gives a better error message in case of failure (\"List(addr1, addr2o ...) did not contain addr0\" instead of the more existentialist \"false was not equal to true\")",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 64
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_c140640a",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_dbf14fcf",
       "range": {
         "startLine": 71,
         "startChar": 16,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_e13b609b",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa53dc9_bbee8bea",
+      "range": {
+        "startLine": 73,
+        "startChar": 12,
+        "endLine": 73,
+        "endChar": 72
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_1f444472",
         "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
         "patchSetId": 1
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_a1455818",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "Moved to previous patch.",
+      "parentUuid": "9aa53dc9_1f444472",
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_bbefabaf",
         "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
         "patchSetId": 1
@@ -99,6 +189,30 @@
       "writtenOn": "2016-11-25T09:56:33Z",
       "side": 1,
       "message": "You don\u0027t need these checks anymore, do you? Same with the other two functions.",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 6
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_814b7c2b",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "Removed in previous patch.",
+      "parentUuid": "9aa53dc9_bbefabaf",
       "range": {
         "startLine": 92,
         "startChar": 0,
@@ -146,6 +260,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_6148702e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "Done. Do we have a scala standard reference?",
+      "parentUuid": "9aa53dc9_7b300357",
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_fb109350",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 1
@@ -163,6 +295,24 @@
     },
     {
       "key": {
+        "uuid": "9aa53dc9_dbbeeffe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "2 reasons:\n1) When we need to restart we want to reuse the same config file, so we need access to the path. It is not strictly necessary to reuse the file, but better to not create a file per restart.\n2) It is helpful to access this during tests so we can read back and verify the contents.",
+      "parentUuid": "9aa53dc9_fb109350",
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_7b3c8393",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 1
@@ -174,6 +324,24 @@
       "writtenOn": "2016-11-25T09:05:04Z",
       "side": 1,
       "message": "use\n\njava.nio.file.Files.createTempDirectory\n\nor\n\ncom.google.common.io.Files.createTempDir",
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_81e7fc11",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "9aa53dc9_7b3c8393",
       "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -203,6 +371,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_61e4f00c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "I changed this to use the Path object instead.",
+      "parentUuid": "9aa53dc9_5b5adf84",
+      "range": {
+        "startLine": 58,
+        "startChar": 45,
+        "endLine": 58,
+        "endChar": 61
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_5b577f02",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 1
@@ -214,6 +406,24 @@
       "writtenOn": "2016-11-25T08:51:33Z",
       "side": 1,
       "message": "Shouldn\u0027t we log this at least?  Or even throw an exception and let the caller make sure the input is ready?",
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_fb48932f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "This is actually not an error case. Someone could have a config that is missing the vip, in which case we would not want to deploy. This treats the deploy as a no-op until all of the config is ready, which simplifies the code of the caller. An alternative approach would be to keep this check in the caller. Either way is fine, IMO.",
+      "parentUuid": "9aa53dc9_5b577f02",
       "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -243,6 +453,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_a1e1d800",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "Good point. Fixed.",
+      "parentUuid": "9aa53dc9_1b8a17c0",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 33
+      },
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa53dc9_bb5fab0d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 1
@@ -254,6 +488,24 @@
       "writtenOn": "2016-11-25T08:51:33Z",
       "side": 1,
       "message": "Do we need to check isConfigurable?  What happens when admin state is changed to down?",
+      "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_c1dce448",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:40:02Z",
+      "side": 1,
+      "message": "Yes, we need this here as well. Fixed.",
+      "parentUuid": "9aa53dc9_bb5fab0d",
       "revId": "04886ed541d5784fd8a47c07967617985783ffe1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
