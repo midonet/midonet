@@ -42,7 +42,7 @@ import org.midonet.midolman.services.MidolmanActorsService.{ChildActorStartTimeo
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.{StoreObjectReferenceTracker, VirtualTopology}
 import org.midonet.midolman.vpp.VppDownlink.{DownlinkState, Notification}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, MAC}
 import org.midonet.util.functors.{makeAction0, makeFunc1, makeRunnable}
 import org.midonet.util.logging.Logger
 
@@ -207,7 +207,7 @@ object VppDownlink {
         /**
           * Handles updates for the downlink the port. The method updates the
           * tracked FIP NAT rules, and if both the port and the rule are ready,
-          * it will emit a [[CreateDownlink]] notification.
+          * it will emit a [[CreateTunnel]] notification.
           */
         private def portUpdated(port: RouterPort): Observable[Notification] = {
             log debug s"Port updated: $port"
@@ -296,7 +296,7 @@ object VppDownlink {
 
         /**
           * Returns an observable that emits the initial set of notifications
-          * for this downlink port, which includes a [[CreateDownlink]] and
+          * for this downlink port, which includes a [[CreateTunnel]] and
           * an [[AssociateFip]] for every floating IP that has been added.
           */
         private def initialize(port: RouterPort, rule: Nat64Rule)

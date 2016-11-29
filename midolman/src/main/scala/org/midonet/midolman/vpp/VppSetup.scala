@@ -18,19 +18,15 @@ package org.midonet.midolman.vpp
 
 import java.util.UUID
 
-import scala.collection.mutable
-import scala.collection.Set
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.collection.{Set, mutable}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
-import org.midonet.cluster.util.UUIDUtil.toProto
-import org.midonet.conf.HostIdGenerator
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink.rtnetlink.LinkOps
@@ -347,46 +343,6 @@ class VppUplinkSetup(uplinkPortId: UUID,
 
     import VppSetup._
 
-    def addExternalRoute(route: Topology.Route): Future[Any] = {
-        require(uplinkVpp.vppInterface.isDefined)
-        val dst = IPSubnetUtil.fromProto(route.getDstSubnet).
-            asInstanceOf[IPv6Subnet]
-        externalRoutes.get(route) match {
-            case None =>
-                val nextHop = IPAddressUtil.toIPAddr(route.getNextHopGateway)
-                val newVppRoute = new VppAddRoute("Add external route to vpp",
-                                                  dst, Some(nextHop),
-                                                  uplinkVpp.vppInterface,
-                                                  0, vppApi)
-                externalRoutes.put(route, newVppRoute)
-                log debug s"Adding uplink route. $route " +
-                          " vppdevice: " + uplinkVpp.vppInterface.get
-                newVppRoute.execute()
-
-            case _ =>
-                deleteExternalRoute(route) flatMap {
-                    _ => addExternalRoute(route)
-                }
-        }
-    }
-
-    def deleteExternalRoute(route: Topology.Route): Future[Any] = {
-        externalRoutes.get(route) match {
-            case None =>
-                Future.successful(None)
-            case Some(vppRoute) =>
-                externalRoutes.remove(route)
-                log debug s"Deleting external route: $route"
-                vppRoute.rollback()
-        }
-    }
-
-    def getExternalRoutes: Set[Topology.Route] = externalRoutes.keySet
-
-    def deleteAllExternalRoutes(): Unit = externalRoutes.foreach {
-        case (id, _) => deleteExternalRoute(id)
-    }
-
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
     private val uplinkOvsName = s"ovs-$uplinkSuffix"
@@ -416,6 +372,8 @@ class VppUplinkSetup(uplinkPortId: UUID,
                                            () => { ovsBind.getPortNo },
                                            () => { uplinkPortDpNo })
 
+    private val externalRoutes = new mutable.HashMap[Topology.Route, VppAddRoute]()
+
     /*
      * setup the tasks, in execution order
      */
@@ -425,7 +383,48 @@ class VppUplinkSetup(uplinkPortId: UUID,
     add(ovsBind)
     add(ovsFlows)
 
-    private val externalRoutes = new mutable.HashMap[Topology.Route, VppAddRoute]()
+    def addExternalRoute(route: Topology.Route): Future[Any] = {
+        require(uplinkVpp.vppInterface.isDefined)
+        val dst = IPSubnetUtil.fromProto(route.getDstSubnet).
+            asInstanceOf[IPv6Subnet]
+        externalRoutes.get(route) match {
+            case None =>
+                val nextHop = IPAddressUtil.toIPAddr(route.getNextHopGateway)
+                val newVppRoute = new VppAddRoute("Add external route to VPP",
+                                                  dst, Some(nextHop),
+                                                  uplinkVpp.vppInterface,
+                                                  0, vppApi)
+                externalRoutes.put(route, newVppRoute)
+                log debug s"Adding uplink route ${route.getId.asJava} " +
+                          s"to interface ${uplinkVpp.vppInterface.get}"
+                newVppRoute.execute()
+
+            case _ =>
+                deleteExternalRoute(route) flatMap {
+                    _ => addExternalRoute(route)
+                }
+        }
+    }
+
+    def deleteExternalRoute(route: Topology.Route): Future[Any] = {
+        externalRoutes.get(route) match {
+            case None =>
+                Future.successful(None)
+            case Some(vppRoute) =>
+                externalRoutes.remove(route)
+                log debug s"Deleting external route ${route.getId.asJava}"
+                vppRoute.rollback()
+        }
+    }
+
+    def getExternalRoutes: Set[Topology.Route] = externalRoutes.keySet
+
+    def deleteAllExternalRoutes(): Future[Any] = {
+        val futures = for (route <- externalRoutes.keys) yield {
+            deleteExternalRoute(route)
+        }
+        Future.sequence(futures)
+    }
 }
 
 /**
@@ -437,7 +436,7 @@ class VppDownlinkVxlanSetup(config: Fip64Config,
                             vppApi: VppApi,
                             log: Logger)
                            (implicit ec: ExecutionContext)
-    extends VppSetup("VPP downlink Vxlan setup", log)(ec) {
+    extends VppSetup("VPP downlink VXLAN setup", log)(ec) {
 
     import VppSetup._
 
@@ -445,13 +444,13 @@ class VppDownlinkVxlanSetup(config: Fip64Config,
     private val dlinkVppName = s"vpp-dl-$dlinkSuffix"
     private val dlinkTunName = s"tun-dl-$dlinkSuffix"
 
-    private val dlinkVeth = new VethPairSetup("downlink vxlan interface setup",
+    private val dlinkVeth = new VethPairSetup("downlink VXLAN interface setup",
                                               dlinkVppName,
                                               dlinkTunName,
                                               None,
                                               Some(config.vtepKernAddr))
 
-    private val dlinkVpp = new VppDevice("downlink vxlan VPP interface setup",
+    private val dlinkVpp = new VppDevice("downlink VXLAN VPP interface setup",
         dlinkVppName,
         vppApi,
         dlinkVeth)
@@ -487,19 +486,19 @@ class VppVxlanTunnelSetup(config: Fip64Config,
                           vni: Int, vrf: Int, routerPortMac: MAC,
                           vppApi: VppApi, log: Logger)
                          (implicit ec: ExecutionContext)
-    extends VppSetup("Vxlan tunnel setup",  log)(ec) {
+    extends VppSetup("VXLAN tunnel setup",  log)(ec) {
 
     import VppSetup._
 
     val bridgeDomain = vrf
 
-    private val vxlanDevice = new VxlanCreate("Create vxlan tunnel",
+    private val vxlanDevice = new VxlanCreate("Create VXLAN tunnel",
                                               config.vtepVppAddr.getAddress,
                                               config.vtepKernAddr.getAddress,
                                               vni, vrf, vppApi)
 
     private val vxlanToBridge =
-        new VxlanSetBridge("Set bridge domain for vxlan device",
+        new VxlanSetBridge("Set bridge domain for VXLAN device",
                            vxlanDevice,
                            bridgeDomain, false, vppApi)
 
@@ -518,12 +517,12 @@ class VppVxlanTunnelSetup(config: Fip64Config,
                            vrf, vppApi)
 
     private val addLoopArpNeighbour =
-        new VxlanAddArpNeighbour("Add arp neighbour for loop interface",
+        new VxlanAddArpNeighbour("Add ARP neighbour for loop interface",
                                  loopBackDevice,
                                  vrf, routerPortMac, vppApi)
 
     private val routefip64ToBridge =
-        new VppAddRoute("Add default route to forward fip64 to vxlan bridge",
+        new VppAddRoute("Add default route to forward FIP64 to VXLAN bridge",
                           dst = IPSubnet.fromCidr("0.0.0.0/0").
                               asInstanceOf[IPv4Subnet],
                           nextHop = Some(IPv4Addr.fromString("172.16.0.1")),
