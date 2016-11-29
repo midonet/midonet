@@ -36,8 +36,6 @@ import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
-    /* Set up legacy Data Client for testing Replicated Map. */
-    override protected val useLegacyDataClient = true
 
     private def lbPoolJson(id: UUID,
                            routerId: UUID,

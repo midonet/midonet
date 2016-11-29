@@ -36,7 +36,6 @@ import org.midonet.util.concurrent.toFutureOps
  */
 @RunWith(classOf[JUnitRunner])
 class SubnetTranslatorIT extends C3POMinionTestBase {
-    override protected val useLegacyDataClient = true
 
     it should "produce an equivalent Dhcp Object" in {
         val cidr = "10.0.0.0/24"

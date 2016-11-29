@@ -16,55 +16,42 @@
 
 package org.midonet.cluster
 
-import java.io.PrintWriter
-import java.sql.{Connection, DriverManager, Statement}
 import java.util.UUID
-import java.util.concurrent.TimeUnit
-import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.{ArrayBuffer => ABuf}
-import scala.util.Try
-import com.codahale.metrics.MetricRegistry
+import scala.concurrent.Future
+
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode}
-import com.google.inject.{Guice, Inject, Injector, PrivateModule}
+import com.google.protobuf.Message
 import com.typesafe.config.ConfigFactory
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
-import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.curator.test.TestingServer
-import org.apache.zookeeper.KeeperException.NoNodeException
+
 import org.junit.runner.RunWith
+import org.mockito.Matchers.any
+import org.mockito.Mockito
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionWatcher}
+
+import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.data.neutron.NeutronResourceType
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, BgpPeer => BgpPeerType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
-import org.midonet.cluster.data.neutron.TaskType._
-import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
-import org.midonet.cluster.data.storage.StateTableStorage
-import org.midonet.cluster.data.storage.model.ArpEntry
+import org.midonet.cluster.data.storage.{InMemoryStorage, StateTableStorage, Storage}
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronRoute, NeutronRouter}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.neutron.models.BgpPeer.AuthType
 import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
-import org.midonet.cluster.services.c3po.C3POMinion
-import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.{NeutronDeserializer, NeutronTranslatorManager}
 import org.midonet.cluster.storage._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
-import org.midonet.cluster.{DataClient => LegacyDataClient}
-import org.midonet.conf.MidoTestConfigurator
-import org.midonet.midolman.cluster.LegacyClusterModule
-import org.midonet.midolman.cluster.serialization.SerializationModule
-import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
-import org.midonet.midolman.state.PathBuilder
-import org.midonet.minion.Context
-import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, SequenceDispenser}
+import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -76,319 +63,64 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected val log = LoggerFactory.getLogger(this.getClass)
 
-    private val DB_CONNECT_STR =
-        "jdbc:sqlite:file:taskdb?mode=memory&cache=shared"
-
-    private val DROP_TASK_TABLE = "DROP TABLE IF EXISTS midonet_tasks"
-    private val EMPTY_TASK_TABLE = "DELETE FROM midonet_tasks"
-    private val CREATE_TASK_TABLE =
-        "CREATE TABLE midonet_tasks (" +
-        "    id int(11) NOT NULL," +
-        "    type varchar(36) NOT NULL," +
-        "    data_type varchar(36) DEFAULT NULL," +
-        "    data longtext," +
-        "    resource_id varchar(36) DEFAULT NULL," +
-        "    transaction_id varchar(40) NOT NULL," +
-        "    created_at datetime NOT NULL," +
-        "    PRIMARY KEY (id)" +
-        ")"
-
-    private val DROP_STATE_TABLE = "DROP TABLE IF EXISTS midonet_data_state"
-    private val EMPTY_STATE_TABLE = "DELETE FROM midonet_data_state"
-    private val CREATE_STATE_TABLE =
-        "CREATE TABLE midonet_data_state (" +
-        "    id int(11) NOT NULL," +
-        "    last_processed_task_id int(11) DEFAULT NULL," +
-        "    updated_at datetime NOT NULL," +
-        "    PRIMARY KEY (id)" +
-        ")"
-    private val INIT_STATE_ROW =
-        "INSERT INTO midonet_data_state values(1, NULL, datetime('now'))"
-    private val LAST_PROCESSED_ID =
-        "SELECT last_processed_task_id FROM midonet_data_state WHERE id = 1"
-    private val LAST_PROCESSED_ID_COL = 1
-
-    val rootPath = "/test"
-
-    private val zk: TestingServer = new TestingServer()
-    private val ZK_HOST = s"127.0.0.1:${zk.getPort}"
-
-    val C3PO_CFG_OBJECT = ConfigFactory.parseString(
-        s"""
-          |cluster.neutron_importer.period : 100ms
-          |cluster.neutron_importer.delay : 0
-          |cluster.neutron_importer.enabled : true
-          |cluster.neutron_importer.with : ${classOf[C3POMinion].getName}
-          |cluster.neutron_importer.threads : 1
-          |cluster.neutron_importer.connection_string : "$DB_CONNECT_STR"
-          |cluster.neutron_importer.user : ""
-          |cluster.neutron_importer.password : ""
-          |cluster.neutron_importer.jdbc_driver_class : "org.sqlite.JDBC"
-          |zookeeper.root_key : "$rootPath"
-          |# The following is for legacy Data Client
-          |zookeeper.zookeeper_hosts : "$ZK_HOST"
-          |state_proxy.enabled : false
-        """.stripMargin)
-
-    private val clusterCfg = ClusterConfig.forTests(C3PO_CFG_OBJECT)
-    MidonetBackend.isCluster = true
-
-    // Data sources
-
     protected val nodeFactory = new JsonNodeFactory(true)
 
-    protected var pathBldr: PathBuilder = _
-    @Inject protected var dataClient: LegacyDataClient = _
-    protected var injector: Injector = _
+    protected var config: ClusterConfig = _
+    protected var backend: MidonetBackend = _
+    protected var sequenceDispenser: SequenceDispenser = _
+    protected var manager: NeutronTranslatorManager = _
 
-    // Adapt the DriverManager interface to DataSource interface.
-    // SQLite doesn't seem to provide JDBC 2.0 API.
-    private val dataSrc = new DataSource() {
-        override def getConnection =
-            DriverManager.getConnection(DB_CONNECT_STR)
-
-        override def getConnection(username: String, password: String) = null
-
-        override def getLoginTimeout = -1
-
-        override def getLogWriter = null
-
-        override def setLoginTimeout(seconds: Int) {}
-
-        override def setLogWriter(out: PrintWriter) {}
-
-        override def getParentLogger = null
-
-        override def isWrapperFor(clazz: Class[_]) = false
-
-        override def unwrap[T](x: Class[T]): T = null.asInstanceOf[T]
-    }
-
-    // We need to keep one connection open to maintain the shared in-memory DB
-    // during the test.
-    private val dummyConnection: Connection = dataSrc.getConnection
-
-    // ---------------------
-    // DATA FIXTURES
-    // ---------------------
-
-    private def withStatement[T](fn: Statement => T) = {
-        var c: Connection = null
-        try {
-            c = eventually(dataSrc.getConnection)
-            val stmt = c.createStatement()
-            val t = fn(stmt)
-            stmt.close()
-            t
-        } finally {
-            if (c != null) c.close()
-        }
-    }
-
-    private def executeSqlStmts(sqls: String*): Unit = withStatement { stmt =>
-        for (sql <- sqls) eventually(stmt.executeUpdate(sql))
-    }
-
-    protected def getLastProcessedIdFromTable: Option[Int] =
-        withStatement { stmt =>
-            val rs = stmt.executeQuery(LAST_PROCESSED_ID)
-            if (rs.next()) Some(rs.getInt(LAST_PROCESSED_ID_COL)) else None
-        }
-
-    private def createTaskTable() = {
-        // Just in case an old DB file / table exits.
-        executeSqlStmts(DROP_TASK_TABLE)
-        executeSqlStmts(CREATE_TASK_TABLE)
-        log.info("Created the midonet_tasks table.")
-    }
-
-    private def createStateTable() = {
-        executeSqlStmts(DROP_STATE_TABLE)
-        executeSqlStmts(CREATE_STATE_TABLE)
-        executeSqlStmts(INIT_STATE_ROW)
-        log.info("Created and initialized the midonet_data_state table.")
-    }
-
-    protected def clearReplMaps(): Unit = {
-        // All the maps are under these two.
-        for (path <- List(pathBldr.getBridgesPath, pathBldr.getRoutersPath)) {
-            try curator.delete.deletingChildrenIfNeeded.forPath(path) catch {
-                case _: NoNodeException => // Already gone/never created.
-            }
-        }
-    }
-
-    private def insertTaskSql(id: Int, taskType: TaskType,
-                              dataType: NeutronResourceType[_],
-                              json: JsonNode, resourceId: UUID,
-                              txnId: String): String = {
-        val taskTypeStr = if (taskType != null) s"'${taskType.id}'" else "NULL"
-        val dataTypeStr = if (dataType != null) s"'${dataType.id}'" else "NULL"
-        val rsrcIdStr = if (resourceId != null) s"'$resourceId'" else "NULL"
-        val jsonStr = if (json != null) json.toString else ""
-
-        "INSERT INTO midonet_tasks values(" +
-        s"$id, $taskTypeStr, $dataTypeStr, '$jsonStr', $rsrcIdStr, '$txnId', " +
-        "datetime('now'))"
-    }
-
-    protected def insertCreateTask(taskId: Int,
-                                   rsrcType: NeutronResourceType[_],
-                                   json: JsonNode, rsrcId: UUID): Unit = {
-        executeSqlStmts(insertTaskSql(
-            taskId, Create, rsrcType, json, rsrcId, "txn-" + taskId))
-    }
-
-    protected def insertUpdateTask(taskId: Int,
-                                   rsrcType: NeutronResourceType[_],
-                                   json: JsonNode, rsrcId: UUID): Unit = {
-        executeSqlStmts(insertTaskSql(
-            taskId, Update, rsrcType, json, rsrcId, "txn-" + taskId))
-    }
-
-    protected def insertDeleteTask(taskId: Int,
-                                   rsrcType: NeutronResourceType[_],
-                                   rsrcId: UUID): Unit = {
-        executeSqlStmts(insertTaskSql(
-            taskId, Delete, rsrcType, null, rsrcId, "txn-" + taskId))
-    }
-
-    protected var curator: CuratorFramework = _
-    protected var backendCfg: MidonetBackendConfig = _
-    protected var backend: MidonetBackendService = _
-    private var c3po: C3POMinion = _
-
-    // ---------------------
-    // TEST SETUP
-    // ---------------------
-
-    /* Override this val to call injectLegacyDataClient if the test uses legacy
-     * Data Client. */
-    protected val useLegacyDataClient = false
-
-    private def injectLegacyDataClient() {
-        injector = Guice.createInjector(
-                new SerializationModule(),
-                new ZookeeperConnectionModule(
-                        classOf[ZookeeperConnectionWatcher]),
-                new PrivateModule() {
-                    override def configure() {
-                        bind(classOf[MidonetBackendConfig])
-                            .toInstance(backendCfg)
-                        expose(classOf[MidonetBackendConfig])
-                        bind(classOf[MidonetBackend])
-                            .toInstance(backend)
-                        expose(classOf[MidonetBackend])
-                    }
-                },
-                new LegacyDataClientModule(),
-                new LegacyClusterModule()
-        )
-        injector.injectMembers(this)
-    }
-
-    override protected def beforeAll() {
-        try {
-            val retryPolicy = new ExponentialBackoffRetry(1000, 10)
-            curator = CuratorFrameworkFactory.newClient(ZK_HOST, retryPolicy)
-
-            // Initialize tasks and state tables.
-            createTaskTable()
-            createStateTable()
-
-            zk.start()
-        } catch {
-            case e: Throwable =>
-                log.error("Failing setting up environment", e)
-                cleanup()
-        }
-    }
-
-    protected def storage = backend.store
-    protected def stateTableStorage = backend.stateTableStore
+    protected def storage: Storage = backend.store
+    protected def stateTableStorage: StateTableStorage = backend.stateTableStore
+    protected def directory: Directory =
+        backend.store.asInstanceOf[InMemoryStorage].tablesDirectory
 
     before {
-        curator = CuratorFrameworkFactory.newClient(ZK_HOST,
-            new ExponentialBackoffRetry(1000, 10)
-        )
-        backendCfg = new MidonetBackendConfig(
-            MidoTestConfigurator.forClusters(C3PO_CFG_OBJECT)
-        )
+        config = ClusterConfig.forTests(ConfigFactory.empty())
+        backend = new MidonetTestBackend()
+        sequenceDispenser = Mockito.mock(classOf[SequenceDispenser])
 
-        pathBldr = new PathBuilder(backendCfg.rootKey)
-        backend = new MidonetBackendService(backendCfg, curator, curator,
-                                            new MetricRegistry, None) {
-            override protected def setup(stateTableStorage: StateTableStorage)
-            : Unit = {
-                super.setup(stateTableStorage)
-                stateTableStore.registerTable(
-                    classOf[Network], classOf[MAC],
-                    classOf[UUID], MidonetBackend.MacTable,
-                    classOf[MacIdStateTable])
-                stateTableStore.registerTable(
-                    classOf[Topology.Port], classOf[MAC],
-                    classOf[IPv4Addr], MidonetBackend.PeeringTable,
-                    classOf[MacIp4StateTable])
-                stateTableStore.registerTable(
-                    classOf[Topology.Network], classOf[IPv4Addr],
-                    classOf[MAC], MidonetBackend.Ip4MacTable,
-                    classOf[Ip4MacStateTable])
-                stateTableStore.registerTable(
-                    classOf[Router], classOf[IPv4Addr],
-                    classOf[ArpEntry], MidonetBackend.ArpTable,
-                    classOf[ArpStateTable])
-            }
-        }
+        Mockito.when(sequenceDispenser.next(any()))
+               .thenReturn(Future.successful(1))
+        Mockito.when(sequenceDispenser.current(any()))
+               .thenReturn(Future.successful(1))
+
+        manager = new NeutronTranslatorManager(config, backend, sequenceDispenser)
+
         backend.startAsync().awaitRunning()
-        curator.blockUntilConnected()
-
-        // Set up a legacy Data Client if necessary.
-        if (useLegacyDataClient) injectLegacyDataClient()
-
-        val nodeCtx = new Context(UUID.randomUUID())
-        c3po = new C3POMinion(nodeCtx, clusterCfg, dataSrc, backend, curator,
-                              backendCfg)
-        c3po.startAsync()
-        c3po.awaitRunning(5, TimeUnit.SECONDS)
     }
 
     after {
-
-        // The importer stops
-        c3po.stopAsync()
-        c3po.awaitTerminated(5, TimeUnit.SECONDS)
-
-        // Clean the task table
-        executeSqlStmts(EMPTY_TASK_TABLE)
-        executeSqlStmts(EMPTY_STATE_TABLE)
-        executeSqlStmts(INIT_STATE_ROW)
-
-        log.info("Emptied the task/state tables.")
-
-        // Make sure that ZK is pristine (not only data, but stuff like
-        // nodes used for leader election
-        curator.delete().deletingChildrenIfNeeded().forPath(rootPath)
-        log.info("ZK is clean")
-
-        clearReplMaps()
+        backend.stopAsync().awaitTerminated()
     }
 
-    override protected def afterAll() {
-        cleanup()
+    protected def insertCreateTask(taskId: Int,
+                                   rsrcType: NeutronResourceType[_ <: Message],
+                                   json: JsonNode, rsrcId: UUID): Unit = {
+        val op = Create(NeutronDeserializer.toMessage(json.toString,
+                                                      rsrcType.clazz))
+        storage.tryTransaction { tx =>
+            manager.translate(tx, op)
+        }
     }
 
-    private def cleanup(): Unit = {
-        Try(if (injector != null)
-            injector.getInstance(classOf[ZkConnection]).close())
-        .getOrElse(log.error("Failed closing the ZK Connection"))
-        Try(backend.stopAsync().awaitTerminated())
-                               .getOrElse(log.error("Failed stopping backend"))
-        Try(c3po.stopAsync().awaitTerminated())
-                            .getOrElse(log.error("Failed stopping C3PO"))
-        Try(curator.close()).getOrElse(log.error("Failed stopping curator"))
-        Try(zk.stop()).getOrElse(log.error("Failed stopping zk"))
-        Try(if (dummyConnection != null) dummyConnection.close())
-        .getOrElse(log.error("Failed stopping the keep alive DB cnxn"))
+    protected def insertUpdateTask(taskId: Int,
+                                   rsrcType: NeutronResourceType[_ <: Message],
+                                   json: JsonNode, rsrcId: UUID): Unit = {
+        val op = Update(NeutronDeserializer.toMessage(json.toString,
+                                                      rsrcType.clazz))
+        storage.tryTransaction { tx =>
+            manager.translate(tx, op)
+        }
+    }
+
+    protected def insertDeleteTask(taskId: Int,
+                                   rsrcType: NeutronResourceType[_ <: Message],
+                                   rsrcId: UUID): Unit = {
+        val op = Delete(rsrcType.clazz, rsrcId)
+        storage.tryTransaction { tx =>
+            manager.translate(tx, op)
+        }
     }
 
     protected def poolJson(id: UUID, routerId: UUID,
@@ -891,12 +623,12 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def createHost(hostId: UUID = null): Host = {
         val id = if (hostId != null) hostId else UUID.randomUUID()
         val host = Host.newBuilder.setId(id).setName(id.toString).build()
-        backend.store.create(host)
+        storage.create(host)
         host
     }
 
     protected def deleteHost(hostId: UUID): Unit = {
-        backend.store.delete(classOf[Host], hostId)
+        storage.delete(classOf[Host], hostId)
     }
 
     protected def createTenantNetwork(taskId: Int,
@@ -1117,10 +849,8 @@ class C3POMinionTest extends C3POMinionTestBase {
 
         val network1 = storage.get(classOf[Network], network1Uuid).await()
         network1.getPortIdsList should contain (vifPortId)
-
-        eventually(curator.checkExists.forPath(
-            stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac,
-                                                 vifPortUuid)) shouldNot be(null))
+        directory.exists(stateTableStorage.bridgeMacEntryPath(
+            network1Uuid, 0, portMac, vifPortUuid)) shouldBe true
 
         // Update the port admin status and MAC address. Through the Neutron
         // API, you cannot change the Network the port is attached to.
@@ -1129,27 +859,23 @@ class C3POMinionTest extends C3POMinionTestBase {
                                      adminStateUp = false,      // Down now.
                                      macAddr = portMac2.toString)
         insertUpdateTask(4, PortType, vifPortUpdate, vifPortUuid)
-
-        eventually {
-            val updatedVifPort = storage.get(classOf[Port], vifPortId).await()
-            updatedVifPort.getAdminStateUp shouldBe false
-            curator.checkExists.forPath(
-                stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac,
-                                                     vifPortUuid)) shouldBe null
-            curator.checkExists.forPath(
-                stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac2,
-                                                     vifPortUuid)) shouldNot be(null)
-        }
+        val updatedVifPort = storage.get(classOf[Port], vifPortId).await()
+        updatedVifPort.getAdminStateUp shouldBe false
+        directory.exists(
+            stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac,
+                                                 vifPortUuid)) shouldBe false
+        directory.exists(
+            stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac2,
+                                                 vifPortUuid)) shouldBe true
 
         // Delete the VIF port.
         insertDeleteTask(5, PortType, vifPortUuid)
 
-        eventually {
-            storage.exists(classOf[Port], vifPortId).await() shouldBe false
-            curator.checkExists.forPath(
-                stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac2,
-                                                     vifPortUuid)) shouldBe null
-        }
+        storage.exists(classOf[Port], vifPortId).await() shouldBe false
+        directory.exists(
+            stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac2,
+                                                 vifPortUuid)) shouldBe false
+
         // Back reference was cleared.
         val finalNw1 = storage.get(classOf[Network], network1Uuid).await()
         finalNw1.getPortIdsList should not contain vifPortId
@@ -1257,7 +983,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Set up the host.
         val hostId = UUID.randomUUID()
         val host = Host.newBuilder.setId(hostId).build()
-        backend.store.create(host)
+        storage.create(host)
 
         val ipAddress = "192.168.0.1"
         val amJson = agentMembershipJson(hostId, ipAddress)
