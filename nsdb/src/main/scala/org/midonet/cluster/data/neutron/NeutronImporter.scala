@@ -84,6 +84,8 @@ object NeutronResourceType extends Enumeration {
                                        classOf[NeutronLoadBalancerV2Pool])
     val LbV2PoolMember = NeutronResourceType(
         "LBV2POOLMEMBER", classOf[NeutronLoadBalancerV2PoolMember])
+    val ListenerV2 = NeutronResourceType("LOADBALANCERV2LISTENER",
+                                         classOf[NeutronLoadBalancerV2Listener])
     val LoadBalancerV2 = NeutronResourceType("LOADBALANCERV2",
                                              classOf[NeutronLoadBalancerV2])
     val LoggingResource = NeutronResourceType("LOGGINGRESOURCE",
