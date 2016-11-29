@@ -205,25 +205,12 @@ message NeutronLoadBalancerV2 {
 }
 
 message NeutronLoadBalancerV2Listener {
-    enum ListenerV2Protocol {
-        TCP = 1;
-        HTTP = 2;
-        HTTPS = 3;
-        HTTPS_TERMINATED = 4;
-    }
-
     optional UUID id = 1;
     optional string tenant_id = 2;
-    optional int32 connection_limit = 3;
-    optional ListenerV2Protocol protocol = 4;
-    optional string description = 5;
-    optional bool admin_state_up = 6;
-    optional UUID default_tls_container_ref = 7;
-    repeated string sni_container_refs = 8;
-    repeated UUID loadbalancers = 9;
-    optional UUID default_pool_id = 10;
-    optional string name = 11;
-    optional int32 protocol_port = 12;
+    optional bool admin_state_up = 3;
+    optional UUID default_pool_id = 4;
+    repeated UUID loadbalancers = 5;
+    optional int32 protocol_port = 6;
 }
 
 message NeutronLoadBalancerPool {
