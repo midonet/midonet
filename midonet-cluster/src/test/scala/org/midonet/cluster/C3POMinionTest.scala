@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.neutron.NeutronResourceType
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, BgpPeer => BgpPeerType, Config => ConfigType, Firewall => FirewallType, LbV2Pool => LbV2PoolType, LbV2PoolMember => LbV2PoolMemberType, LoadBalancerV2 => LoadBalancerV2Type, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, BgpPeer => BgpPeerType, Config => ConfigType, Firewall => FirewallType, ListenerV2 => ListenerV2Type, LbV2Pool => LbV2PoolType, LbV2PoolMember => LbV2PoolMemberType, LoadBalancerV2 => LoadBalancerV2Type, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateTableStorage, Storage}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons._
@@ -221,6 +221,24 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         sp.put("type", typ.toString)
         cookieName.foreach(sp.put("cookie_name", _))
         sp
+    }
+
+    protected def lbv2ListenerJson(
+            id: UUID = UUID.randomUUID(),
+            loadBalancerId: UUID,
+            defaultPoolId: Option[UUID] = None,
+            tenantId: String = "tenant",
+            adminStateUp: Boolean = true,
+            protocolPort: Int = 10000): JsonNode = {
+        val pm = nodeFactory.objectNode
+        pm.put("id", id.toString)
+        val loadBalancersArr = pm.putArray("loadbalancers")
+        loadBalancersArr.add(loadBalancerId.toString)
+        defaultPoolId.foreach(id => pm.put("default_pool_id", id.toString))
+        pm.put("tenant_id", tenantId)
+        pm.put("admin_state_up", adminStateUp)
+        pm.put("protocol_port", protocolPort)
+        pm
     }
 
     case class IPAlloc(ipAddress: String, subnetId: UUID)
@@ -978,6 +996,22 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                       weight = weight, address = address,
                                       protocolPort = protocolPort)
         insertCreateTask(taskId, LbV2PoolMemberType, json, id)
+        id
+    }
+
+    protected def createLbV2Listener(
+            taskId: Int, loadBalancerId: UUID,
+            defaultPoolId: Option[UUID] = None,
+            id: UUID = UUID.randomUUID(),
+            tenantId: String = "tenant",
+            adminStateUp: Boolean = true,
+            protocolPort: Int = 10000): UUID = {
+        val json = lbv2ListenerJson(id = id, loadBalancerId = loadBalancerId,
+                                    defaultPoolId = defaultPoolId,
+                                    tenantId = tenantId,
+                                    adminStateUp = adminStateUp,
+                                    protocolPort = protocolPort)
+        insertCreateTask(taskId, ListenerV2Type, json, id)
         id
     }
 }
