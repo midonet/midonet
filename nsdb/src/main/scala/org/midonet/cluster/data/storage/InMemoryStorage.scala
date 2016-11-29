@@ -32,6 +32,7 @@ import scala.util.control.NonFatal
 import com.codahale.metrics.MetricRegistry
 
 import org.apache.curator.framework.state.ConnectionState
+import org.apache.zookeeper.CreateMode
 import org.apache.zookeeper.KeeperException.{BadVersionException, Code}
 
 import rx.Observable.OnSubscribe
@@ -46,7 +47,7 @@ import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, serialize}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
-import org.midonet.cluster.data.{getIdString, Obj, ObjId}
+import org.midonet.cluster.data.{Obj, ObjId, getIdString}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
@@ -60,7 +61,8 @@ import org.midonet.util.functors._
  * A simple in-memory implementation of the [[Storage]] trait, equivalent to
  * the [[ZookeeperObjectMapper]] to use within unit tests.
  */
-class InMemoryStorage extends Storage with StateStorage with StateTableStorage with StateTablePaths {
+class InMemoryStorage extends Storage with StateStorage with StateTableStorage
+                              with StateTablePaths {
     override protected val version = new AtomicLong(1)
     override protected val rootPath = "/inMemoryStorage"
     override protected val zoomPath = "/inMemoryStorage"
@@ -518,49 +520,60 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         }
 
         override def commit(): Unit = {
+            val ops = flattenOps
+
             // Validate the transaction ops.
-            for ((key, op) <- ops) {
-                val clazz = classes(key.clazz)
+            for ((Key(clazz, id), op) <- ops) {
                 op match {
                     case TxCreate(obj) =>
-                        clazz.validateCreate(key.id)
+                        classes.get(clazz).validateCreate(id)
                     case TxUpdate(obj, ver) =>
-                        clazz.validateUpdate(key.id, ver)
+                        classes.get(clazz).validateUpdate(id, ver)
                     case TxDelete(ver) =>
-                        clazz.validateDelete(key.id, ver)
-                    case _ => throw new NotImplementedError(op.toString)
+                        classes.get(clazz).validateDelete(id, ver)
+                    case _ =>
                 }
             }
 
             // Apply the transaction ops.
-            for ((key, op) <- ops) {
-                val clazz = classes(key.clazz)
+            for ((Key(clazz, id), op) <- ops) {
                 op match {
                     case TxCreate(obj) =>
-                        clazz.create(key.id, obj)
+                        classes.get(clazz).create(id, obj)
+                        if (tableInfo.contains(clazz)) {
+                            for ((name, provider) <- tableInfo(clazz).tables) {
+                                tablesDirectory.ensureHas(
+                                    tableRootPath(clazz, id, name, version.get),
+                                    null)
+                            }
+                        }
                     case TxUpdate(obj, ver) =>
-                        clazz.update(key.id, obj, ver)
+                        classes.get(clazz).update(id, obj, ver)
                     case TxDelete(ver) =>
-                        clazz.delete(key.id, ver)
+                        classes.get(clazz).delete(id, ver)
+                    case TxCreateNode(value) =>
+                        tablesDirectory.ensureHas(id, asBytes(value))
+                    case TxDeleteNode =>
+                        tablesDirectory.delete(id)
                     case _ => throw new NotImplementedError(op.toString)
                 }
             }
 
             // Emit notifications.
-            for ((key, op) <- ops) {
-                classes(key.clazz).emitUpdates()
+            for ((Key(clazz, _), op) <- ops if clazz ne null) {
+                classes(clazz).emitUpdates()
             }
         }
 
         /** Query the backend store to determine if a node exists at the
           * specified path. */
         override protected def nodeExists(path: String): Boolean =
-            throw new NotImplementedError()
+            tablesDirectory.exists(path)
 
         /** Query the backend store to get the fully-qualified paths of all
           * children of the specified node. */
         override protected def childrenOf(path: String): Seq[String] =
-            throw new NotImplementedError()
+            tablesDirectory.getChildren(path, null).asScala.toSeq
     }
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
@@ -613,6 +626,8 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
                 manager.update(obj, validator)
             case DeleteOp(clazz, id, ignoresNeo) =>
                 manager.delete(clazz, id, ignoresNeo)
+            case CreateNodeOp(path, value) =>
+                tablesDirectory.add(path, asBytes(value), CreateMode.PERSISTENT)
             case op => throw new NotImplementedError(op.toString)
         }
 
@@ -829,11 +844,11 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
                                 args: Any*)
                                (implicit key: ClassTag[K], value: ClassTag[V])
     : StateTable[K, V] = {
-        val path = "/" + (if (args.nonEmpty) {
+        val path = if (args.nonEmpty) {
             tablePath(clazz, id, name, version.longValue(), args: _*)
         } else {
             tableRootPath(clazz, id, name)
-        }).replace('/', '_')
+        }
 
         val provider = getProvider(clazz, key.runtimeClass, value.runtimeClass, name)
         tablesDirectory.ensureHas(path, "".getBytes)
@@ -863,11 +878,11 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
       */
     override def tableArguments(clazz: Class[_], id: ObjId, name: String,
                                 args: Any*): Future[Set[String]] = {
-        val path = "/" + (if (args.nonEmpty) {
+        val path = if (args.nonEmpty) {
             tablePath(clazz, id, name, version.longValue(), args: _*)
         } else {
             tableRootPath(clazz, id, name)
-        }).replace('/', '_')
+        }
 
         Future.fromTry(Try {
             tablesDirectory.getChildren(path, null).asScala.toSet
@@ -895,6 +910,8 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         }
         provider
     }
+
+    private def asBytes(s: String) = if (s != null) s.getBytes else null
 
     protected override def pathExists(path: String): Boolean = false
 }
