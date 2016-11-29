@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_f899d120",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:52:58Z",
+      "side": 1,
+      "message": "I tried to refactor it out but it ended up being pretty awkward for two reasons: (1) can\u0027t use log statements in an object, (2) the makeChannel in HaproxyHealthMonitor uses the error handling here to write the ERROR status into ZK.",
+      "parentUuid": "7aaa499b_b2a928e2",
+      "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_92af4ce3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-11-28T12:58:57Z",
       "side": 1,
       "message": "Would be nice to have a comment describing the output for this method.",
+      "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_d89e1507",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:52:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7aaa499b_92af4ce3",
       "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_38f9794e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:52:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7aaa499b_b2800848",
+      "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_92962c93",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 1
@@ -64,6 +118,24 @@
       "writtenOn": "2016-11-28T12:58:57Z",
       "side": 1,
       "message": "same comment",
+      "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_18959de3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-29T02:52:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7aaa499b_92962c93",
       "revId": "567ea21a1e06e17f0058fab6232848a1305c7597",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
