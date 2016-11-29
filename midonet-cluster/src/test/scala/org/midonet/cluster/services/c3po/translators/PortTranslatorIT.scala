@@ -37,8 +37,6 @@ import org.midonet.util.concurrent.toFutureOps
  */
 @RunWith(classOf[JUnitRunner])
 class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
-    /* Set up legacy Data Client for testing Replicated Map. */
-    override protected val useLegacyDataClient = true
 
     "Port translator" should " handle VIF port CRUD" in {
         // Create a network with two VIF ports.

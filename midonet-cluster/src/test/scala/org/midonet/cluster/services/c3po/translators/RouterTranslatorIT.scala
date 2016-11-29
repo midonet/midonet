@@ -39,8 +39,6 @@ import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
-    /* Set up legacy Data Client for testing Replicated Map. */
-    override protected val useLegacyDataClient = true
 
     "The RouterTranslator" should "handle router CRUD" in {
         val r1Id = UUID.randomUUID()
