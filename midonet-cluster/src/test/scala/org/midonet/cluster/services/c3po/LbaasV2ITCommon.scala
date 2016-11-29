@@ -20,7 +20,7 @@ import java.util.UUID
 
 import com.fasterxml.jackson.databind.JsonNode
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{LbV2Pool => LbV2PoolType, LbV2PoolMember => LbV2PoolMemberType, LoadBalancerV2 => LoadBalancerV2Type, Port => PortType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{LbV2Pool => LbV2PoolType, LbV2PoolMember => LbV2PoolMemberType, ListenerV2 => ListenerV2Type, LoadBalancerV2 => LoadBalancerV2Type, Port => PortType}
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.{LBV2SessionPersistenceType, LoadBalancerV2Protocol}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.rest_api.neutron.models.PoolV2.LoadBalancerV2Algorithm
@@ -196,6 +196,21 @@ trait LbaasV2ITCommon { this: C3POMinionTestBase =>
                                       weight = weight, address = address,
                                       protocolPort = protocolPort)
         insertCreateTask(taskId, LbV2PoolMemberType, json, id)
+        id
+    }
+
+    protected def createLbV2Listener(taskId: Int, loadBalancerId: UUID,
+                                     defaultPoolId: Option[UUID] = None,
+                                     id: UUID = UUID.randomUUID(),
+                                     tenantId: String = "tenant",
+                                     adminStateUp: Boolean = true,
+                                     protocolPort: Int = 10000): UUID = {
+        val json = lbv2ListenerJson(id = id, loadBalancerId = loadBalancerId,
+            defaultPoolId = defaultPoolId,
+            tenantId = tenantId,
+            adminStateUp = adminStateUp,
+            protocolPort = protocolPort)
+        insertCreateTask(taskId, ListenerV2Type, json, id)
         id
     }
 }
