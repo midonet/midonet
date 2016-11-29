@@ -16,16 +16,15 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.Transaction
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.{LBV2SessionPersistenceAlgorithm, LBV2SessionPersistenceType, LoadBalancerV2Algorithm, LoadBalancerV2Protocol}
-import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
-import org.midonet.cluster.models.Topology.SessionPersistence
-import org.midonet.cluster.models.Topology.{Pool, Vip}
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import scala.collection.JavaConverters._
 
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.{LBV2SessionPersistenceType, LoadBalancerV2Algorithm, LoadBalancerV2Protocol}
+import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
+import org.midonet.cluster.models.Topology.{Pool, SessionPersistence, Vip}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 
 class LoadBalancerV2PoolTranslator
     extends Translator[NeutronLoadBalancerV2Pool] {
