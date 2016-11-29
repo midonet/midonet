@@ -57,9 +57,9 @@ import org.midonet.util.concurrent.toFutureOps
 
 /** Tests the service that syncs the Neutron DB into Midonet's backend. */
 class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
-                                          with BeforeAndAfterAll
-                                          with Matchers
-                                          with MidonetEventually {
+                                 with BeforeAndAfterAll
+                                 with Matchers
+                                 with MidonetEventually {
 
     protected val log = LoggerFactory.getLogger(this.getClass)
 
@@ -81,9 +81,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         sequenceDispenser = Mockito.mock(classOf[SequenceDispenser])
 
         Mockito.when(sequenceDispenser.next(any()))
-               .thenReturn(Future.successful(1))
+            .thenReturn(Future.successful(1))
         Mockito.when(sequenceDispenser.current(any()))
-               .thenReturn(Future.successful(1))
+            .thenReturn(Future.successful(1))
 
         manager = new NeutronTranslatorManager(config, backend, sequenceDispenser)
 
@@ -833,7 +833,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                 speakerName: String = "bgp_speaker",
                                 speakerLocalAs: Int = 23456,
                                 ipVersion: Int = 4
-                                ): UUID = {
+                               ): UUID = {
         val speakerJson = bgpSpeakerJson(routerId, speakerId, tenantId,
                                          speakerName, speakerLocalAs,
                                          ipVersion)
@@ -938,19 +938,19 @@ class C3POMinionTest extends C3POMinionTestBase {
         dhcp.getServerAddress.getAddress should be(gatewayIp)
         dhcp.getDnsServerAddressCount shouldBe 1
         dhcp.getDnsServerAddress(0) shouldBe
-            IPAddressUtil.toProto(nameServers(0))
+        IPAddressUtil.toProto(nameServers(0))
         dhcp.getOpt121RoutesCount shouldBe 1
         dhcp.getOpt121Routes(0).getDstSubnet shouldBe
-            IPSubnetUtil.toProto(hrDest)
+        IPSubnetUtil.toProto(hrDest)
         dhcp.getOpt121Routes(0).getGateway shouldBe
-            IPAddressUtil.toProto(hrNexthop)
+        IPAddressUtil.toProto(hrNexthop)
 
         // Create a DHCP port to verify that the metadata opt121 route
         val portId = UUID.randomUUID()
         val dhcpPortIp = "10.0.0.7"
         val pJson = portJson(id = portId, networkId = nId,
-            adminStateUp = true, deviceOwner = DeviceOwner.DHCP,
-            fixedIps = List(IPAlloc(dhcpPortIp, sId)))
+                             adminStateUp = true, deviceOwner = DeviceOwner.DHCP,
+                             fixedIps = List(IPAlloc(dhcpPortIp, sId)))
         insertCreateTask(4, PortType, pJson, portId)
 
         // Update the subnet
