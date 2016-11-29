@@ -57,7 +57,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         val r1Chains = getChains(r1.getInboundFilterId, r1.getOutboundFilterId)
         r1Chains.inChain.getRuleIdsCount shouldBe 0
-        r1Chains.outChain.getRuleIdsCount shouldBe 3  // three jumps
+        r1Chains.outChain.getRuleIdsCount shouldBe 4  // four jumps
         val r1FwdChain = storage.get(classOf[Chain],
                                      r1.getForwardChainId).await()
         r1FwdChain.getRuleIdsCount shouldBe 0
@@ -942,12 +942,12 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         val List(inChain, outChain) =
             storage.getAll(classOf[Chain], chainIds).await()
         inChain.getRuleIdsCount shouldBe 2
-        outChain.getRuleIdsCount shouldBe 6
+        outChain.getRuleIdsCount shouldBe 7
 
         val ruleIds = inChain.getRuleIdsList.asScala.toList ++
                       outChain.getRuleIdsList.asScala
         val List(inRevSnatRule, sameSubnetRev,
-                 jump1, jump2, jump3, outSnatRule, dstRewrittenSnatRule,
+                 jump1, jump2, jump3, jump4, outSnatRule, dstRewrittenSnatRule,
                  sameSubnet) =
             storage.getAll(classOf[Rule], ruleIds).await()
 
@@ -993,7 +993,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             classOf[Chain],
             Seq(r.getInboundFilterId, r.getOutboundFilterId)).await()
         inChain.getRuleIdsCount shouldBe 0
-        outChain.getRuleIdsCount shouldBe 3  // three jumps
+        outChain.getRuleIdsCount shouldBe 4  // Four jumps
         Seq(outSnatRuleId(rtrId), dstRewrittenSnatRuleId(rtrId),
             skipSnatGwPortRuleId(rtrId), inReverseSnatRuleId(rtrId))
             .map(storage.exists(classOf[Rule], _).await()) shouldBe

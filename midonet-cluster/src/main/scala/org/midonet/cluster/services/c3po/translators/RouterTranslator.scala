@@ -20,6 +20,7 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronPort.IPAllocation
@@ -34,7 +35,6 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.Fip64TunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-
 import org.midonet.containers
 import org.midonet.packets.{ICMP, IPv4Subnet, MAC, TunnelKeys}
 import org.midonet.util.concurrent.toFutureOps
@@ -73,6 +73,8 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
                                            floatSnatExactChainName(nRouter.getId))
         val floatSnatChain = newChain(floatSnatChainId(nRouter.getId),
                                       floatSnatChainName(nRouter.getId))
+        val floatNat64Chain = newChain(floatNat64ChainId(nRouter.getId),
+                                       floatNat64ChainName(nRouter.getId))
         val skipSnatChain = newChain(skipSnatChainId(nRouter.getId),
                                      skipSnatChainName(nRouter.getId))
 
@@ -90,9 +92,10 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         val routerInterfacePortGroup = newRouterInterfacePortGroup(
             nRouter.getId, nRouter.getTenantId).build()
 
-        List(floatSnatExactChain, floatSnatChain, skipSnatChain,
+        List(floatSnatExactChain, floatSnatChain, floatNat64Chain, skipSnatChain,
              inChain, outChain, fwdChain, router, portGroup,
              routerInterfacePortGroup,
+             jumpRule(outChain.getId, floatNat64Chain.getId),
              jumpRule(outChain.getId, floatSnatExactChain.getId),
              jumpRule(outChain.getId, floatSnatChain.getId),
              jumpRule(outChain.getId, skipSnatChain.getId)).foreach(tx.create)
@@ -110,6 +113,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
                   ignoresNeo = true)
         tx.delete(classOf[Chain], floatSnatChainId(nRouter.getId), ignoresNeo = true)
         tx.delete(classOf[Chain], skipSnatChainId(nRouter.getId), ignoresNeo = true)
+        tx.delete(classOf[Chain], floatNat64ChainId(nRouter.getId), ignoresNeo = true)
         tx.delete(classOf[PortGroup], PortManager.portGroupId(nRouter.getId),
                   ignoresNeo = true)
         tx.delete(classOf[PortGroup],
@@ -298,8 +302,12 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         // NAT64 pool.
         val nat64Rule = Rule.newBuilder()
             .setId(nat64RuleId(port.getId))
+            .setChainId(floatNat64ChainId(nRouter.getId))
             .setFipPortId(port.getId)
             .setType(Rule.Type.NAT64_RULE)
+            .setCondition(Commons.Condition.newBuilder()
+                              .addOutPortIds(port.getId)
+                              .setNwDstIp(Nat64Pool))
             .setNat64RuleData(Rule.Nat64RuleData.newBuilder()
                                   .setPortAddress(portAddress.subnet)
                                   .setNatPool(NatTarget.newBuilder()
@@ -568,6 +576,8 @@ object RouterTranslator {
     def floatSnatExactChainName(id: UUID) = "OS_FLOAT_SNAT_EXACT_" + id.asJava
 
     def floatSnatChainName(id: UUID) = "OS_FLOAT_SNAT_" + id.asJava
+
+    def floatNat64ChainName(id: UUID) = "OS_FLOAT_NAT64_" + id.asJava
 
     def skipSnatChainName(id: UUID) = "OS_SKIP_SNAT_" + id.asJava
 
