@@ -104,7 +104,8 @@ cleanup_bgps() {
 cleanup_vpp() {
     for INTERFACE in $(ip -o link show | \
                        awk -F': ' '{print $2}' | \
-                       grep -e ^vpp- -e ^ovs- -e ^tun-dl) ; do
+                       grep -e ^vpp- -e ^ovs- -e ^tun-dl | \
+                       sed -e 's/@.*//') ; do
         remove_interface $INTERFACE
     done
 }
