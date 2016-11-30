@@ -57,7 +57,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         val r1Chains = getChains(r1.getInboundFilterId, r1.getOutboundFilterId)
         r1Chains.inChain.getRuleIdsCount shouldBe 0
-        r1Chains.outChain.getRuleIdsCount shouldBe 3  // three jumps
+        r1Chains.outChain.getRuleIdsCount shouldBe 4  // four jumps
         val r1FwdChain = storage.get(classOf[Chain],
                                      r1.getForwardChainId).await()
         r1FwdChain.getRuleIdsCount shouldBe 0
@@ -464,6 +464,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             gwPort.getRouterId.asJava shouldBe tenantRouterId
             gwPort.getPortMac shouldBe "04:04:04:04:04:04"
             gwPort.getPortAddress shouldBe IPAddressUtil.toProto("2002::2")
+            gwPort.getPortSubnetCount shouldBe 2
             gwPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("2002::2/64")
             gwPort.getPortSubnet(1) shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
 
@@ -479,26 +480,25 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         uplinkPort.getInterfaceName shouldBe "eth0"
         uplinkPort.getPortMac shouldBe "02:02:02:02:02:02"
         uplinkPort.getPortAddress shouldBe IPAddressUtil.toProto("2001::1")
-        uplinkPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("2001:0:0:0:0:0:0:0/64")
+        uplinkPort.getPortSubnetCount shouldBe 1
+        uplinkPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("2001:0:0:0:0:0:0:1/64")
 
-        // TODO: These routes should not be added on the IPv6 port
-        uplinkPortRoutes should have size 2
+        uplinkPortRoutes should have size 1
 
         extPort.getRouterId.asJava shouldBe edgeRouterId
         extPort.getPortMac shouldBe "03:03:03:03:03:03"
 
-        // TODO: This should be changed for ports that are not gateway ports
-        extPort.getPortAddress shouldBe IPAddressUtil.toProto("169.254.0.1")
-        extPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
+        extPort.getPortAddress shouldBe IPAddressUtil.toProto("2002::2")
+        extPort.getPortSubnetCount shouldBe 1
+        extPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("2002:0:0:0:0:0:0:2/64")
         extPort.getFipNatRuleIdsCount should not be 0
 
-        // TODO: These routes should not be added on the IPv6 port
         extPortRoutes should have size 2
 
         verifyRouterPortCreated()
 
         gwPortRoutes.head.getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
-        gwPortRoutes.head.getDstSubnet shouldBe RouterInterfaceTranslator.Nat64Pool
+        gwPortRoutes.head.getDstSubnet shouldBe RouterTranslator.Nat64Pool
 
         gwPortRoutes(1).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
         gwPortRoutes(1).getDstSubnet shouldBe IPSubnetUtil.toProto("169.254.0.1/32")
@@ -506,9 +506,9 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         gwPortFipRules.head.getNat64RuleData.getPortAddress shouldBe IPSubnetUtil
             .toProto("2002::2/64")
         gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe
-            RouterInterfaceTranslator.Nat64PoolStart
+            RouterTranslator.Nat64PoolStart
         gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe
-            RouterInterfaceTranslator.Nat64PoolEnd
+            RouterTranslator.Nat64PoolEnd
 
         // Delete gateway port.
         insertDeleteTask(13, PortType, gwPortId)
@@ -663,7 +663,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         // IPv6 NAT pool route.
         gwPortRoutes(3).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
-        gwPortRoutes(3).getDstSubnet shouldBe RouterInterfaceTranslator.Nat64Pool
+        gwPortRoutes(3).getDstSubnet shouldBe RouterTranslator.Nat64Pool
         gwPortRoutes(3).getNextHopGateway shouldBe IPAddressUtil.toProto("169.254.0.2")
 
         // IPv6 local route.
@@ -674,9 +674,9 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         gwPortFipRules.head.getNat64RuleData.getPortAddress shouldBe IPSubnetUtil
             .toProto("2002::2/64")
         gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe
-            RouterInterfaceTranslator.Nat64PoolStart
+            RouterTranslator.Nat64PoolStart
         gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe
-            RouterInterfaceTranslator.Nat64PoolEnd
+            RouterTranslator.Nat64PoolEnd
 
         // Delete gateway port.
         insertDeleteTask(7, PortType, gwPortId)
@@ -942,12 +942,12 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         val List(inChain, outChain) =
             storage.getAll(classOf[Chain], chainIds).await()
         inChain.getRuleIdsCount shouldBe 2
-        outChain.getRuleIdsCount shouldBe 6
+        outChain.getRuleIdsCount shouldBe 7
 
         val ruleIds = inChain.getRuleIdsList.asScala.toList ++
                       outChain.getRuleIdsList.asScala
         val List(inRevSnatRule, sameSubnetRev,
-                 jump1, jump2, jump3, outSnatRule, dstRewrittenSnatRule,
+                 jump1, jump2, jump3, jump4, outSnatRule, dstRewrittenSnatRule,
                  sameSubnet) =
             storage.getAll(classOf[Rule], ruleIds).await()
 
@@ -993,7 +993,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             classOf[Chain],
             Seq(r.getInboundFilterId, r.getOutboundFilterId)).await()
         inChain.getRuleIdsCount shouldBe 0
-        outChain.getRuleIdsCount shouldBe 3  // three jumps
+        outChain.getRuleIdsCount shouldBe 4  // Four jumps
         Seq(outSnatRuleId(rtrId), dstRewrittenSnatRuleId(rtrId),
             skipSnatGwPortRuleId(rtrId), inReverseSnatRuleId(rtrId))
             .map(storage.exists(classOf[Rule], _).await()) shouldBe

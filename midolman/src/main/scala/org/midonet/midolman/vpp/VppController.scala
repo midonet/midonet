@@ -24,7 +24,6 @@ import java.util.function.Consumer
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.collection.Set
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
@@ -40,7 +39,6 @@ import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
 import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
@@ -51,7 +49,7 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.{DatapathState, Midolman, Referenceable}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, MAC}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.process.ProcessHelper.OutputStreams._
@@ -69,21 +67,10 @@ object VppController extends Referenceable {
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
 
-    private[vpp] val tunnelKeyToPort = new ConcurrentHashMap[Long, UUID]
-
     private case class BoundPort(setup: VppSetup)
     private type LinksMap = util.Map[UUID, BoundPort]
 
     private def isIPv6(port: RouterPort) = port.portAddress6 ne null
-
-    /**
-      * Returns the virtual port identifier for the specified tunnel key.
-      * Packets received from tunnels with the specified tunnel key are handled
-      * as ingressing at the specified virtual port.
-      */
-    def portOfTunnelKey(tunnelKey: Long): UUID = {
-        tunnelKeyToPort.get(tunnelKey)
-    }
 }
 
 
@@ -133,14 +120,12 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
     private val eventHandler: PartialFunction[Any, Future[_]] = {
         case LocalPortActive(portId, portNumber, true) =>
             attachUplink(portId) flatMap {
-                _ match {
-                    case Some(_) => attachDownlinkVxlan()
-                    case None => Future.successful(Unit) // not an IPv6 uplink
-                }
+                case Some(_) => attachDownlinkVxlan()
+                case None => Future.successful(Unit) // not an IPv6 uplink
             }
         case LocalPortActive(portId, portNumber, false) =>
             detachUplink(portId).flatMap {
-                case _ => detachDownlinkVxlan()
+                _ => detachDownlinkVxlan()
             }
         case port: RouterPort =>
             log debug s"Received router port update for port ${port.id}"
@@ -155,7 +140,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         case DisassociateFip(portId, vrf, floatingIp, fixedIp, localIp) =>
             disassociateFip(portId, vrf, floatingIp, fixedIp, localIp)
         case OnCompleted =>
-            Future.successful(())
+            Future.successful(Unit)
         case OnError(e) =>
             log.error("Exception on active ports observable", e)
             Future.failed(e)
@@ -210,16 +195,16 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
     }
 
-    private def detachLink(links: LinksMap, portId: UUID): Future[_] = {
+    private def detachLink(links: LinksMap, portId: UUID): Future[Option[BoundPort]] = {
         links remove portId match {
             case boundPort: BoundPort =>
                 log debug s"Port $portId detached"
-                boundPort.setup.rollback()
-            case null => Future.successful(Unit)
+                boundPort.setup.rollback() map { _ => Some(boundPort) }
+            case null => Future.successful(None)
         }
     }
 
-    private def attachUplink(portId: UUID): Future[_] = {
+    private def attachUplink(portId: UUID): Future[Option[BoundPort]] = {
         log debug s"Local port $portId active"
 
         val shouldStartDownlink = uplinks.isEmpty
@@ -256,7 +241,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         }
     }
 
-    private def detachUplink(portId: UUID): Future[_] = {
+    private def detachUplink(portId: UUID): Future[Option[BoundPort]] = {
         log debug s"Local port $portId inactive"
         routerPortSubscribers.remove(portId) match {
             case None =>
@@ -265,13 +250,20 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
                 log debug s"Stop monitoring router port $portId"
                 s.unsubscribe()
         }
-        uplinks.get(portId) match {
-            case setupBound: BoundPort =>
-                setupBound.setup.asInstanceOf[VppUplinkSetup].
-                    deleteAllExternalRoutes()
-            case null =>
+
+        def deleteRoutes(portId: UUID): Future[Option[BoundPort]] = {
+            uplinks.get(portId) match {
+                case boundPort: BoundPort =>
+                    boundPort.setup.asInstanceOf[VppUplinkSetup].
+                        deleteAllExternalRoutes() map { _ => Some(boundPort) }
+                case null =>
+                    Future.successful(None)
+            }
         }
-        detachLink(uplinks, portId) andThen { case _ =>
+
+        deleteRoutes(portId) flatMap { _ =>
+            detachLink(uplinks, portId)
+        } andThen { case _ =>
             if (uplinks.isEmpty) {
                 stopDownlink()
             }
@@ -397,7 +389,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
         exec(s"vppctl ip route table $vrf add $fixedIp/32 " +
              s"via ${localIp.getAddress}") flatMap { _ =>
             exec(s"vppctl fip64 add $floatingIp $fixedIp " +
-                 s"pool ${natPool.nwStart} ${natPool.nwStart} table $vrf")
+                 s"pool ${natPool.nwStart} ${natPool.nwEnd} table $vrf")
         }
     }
 

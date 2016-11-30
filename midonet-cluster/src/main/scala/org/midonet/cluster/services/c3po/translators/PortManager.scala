@@ -61,9 +61,11 @@ trait PortManager extends ChainManager with RouteManager {
     @throws[IllegalStateException]
     protected def bindPort(tx: Transaction, port: Port, hostId: UUID,
                            interfaceName: String): Unit = {
-        if (port.hasHostId)
-            throw new IllegalStateException(s"Port ${port.getId.asJava} is " +
-                                            s"already bound.")
+        if (port.hasHostId) {
+            throw new IllegalStateException(
+                s"Port ${port.getId.asJava} is already bound to host " +
+                s"${port.getHostId.asJava}")
+        }
 
         tx.update(port.toBuilder
                       .setHostId(hostId)

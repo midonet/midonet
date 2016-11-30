@@ -36,9 +36,14 @@ public class Nat64Rule extends Rule {
     @ZoomField(name = "nat_pool")
     public NatTarget natPool;
 
+    public Nat64Rule() {
+        action = RuleResult.Action.ACCEPT;
+    }
+
     @Override
     protected boolean apply(PacketContext pktCtx) {
-        throw new IllegalStateException("NAT64 rules cannot be simulated");
+        pktCtx.jlog().debug("Packet matched NAT64 rule {}", this);
+        return true;
     }
 
     @Override
@@ -63,7 +68,7 @@ public class Nat64Rule extends Rule {
 
     @Override
     public String toString() {
-        return "Nat64Rule [" + super.toString() + "portAddress=" + portAddress
+        return "Nat64Rule [" + super.toString() + " portAddress=" + portAddress
                + " natPool=" + natPool + "]";
     }
 }

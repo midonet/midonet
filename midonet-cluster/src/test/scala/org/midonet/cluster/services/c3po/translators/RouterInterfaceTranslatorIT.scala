@@ -33,6 +33,7 @@ import org.midonet.cluster.services.c3po.translators.PortManager.{routerInterfac
 import org.midonet.cluster.services.c3po.translators.RouteManager.{localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.util.UUIDUtil.RichJavaUuid
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
+import org.midonet.packets.TunnelKeys
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -86,13 +87,14 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
                                                 IPAddressUtil.toProto("10.0.0.1"))
         val rifRoute = routes.find(_.getId == rifRouteId).get
         rifRoute.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
-        rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.0"
+        rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.1"
         rifRoute.getDstSubnet.getPrefixLength shouldBe 24
         rifRoute.getNextHopPortId shouldBe rPort.getId
 
-        val mdsRouteId = metadataServiceRouteId(rPort.getId)
+        val mdsRouteId = metadataServiceRouteId(rPort.getId,
+                                                IPAddressUtil.toProto("10.0.0.1"))
         val mdsRoute = routes.find(_.getId == mdsRouteId).get
-        mdsRoute.getSrcSubnet.getAddress shouldBe "10.0.0.0"
+        mdsRoute.getSrcSubnet.getAddress shouldBe "10.0.0.1"
         mdsRoute.getSrcSubnet.getPrefixLength shouldBe 24
         mdsRoute.getDstSubnet shouldBe RouteManager.META_DATA_SRVC
         mdsRoute.getNextHopGateway.getAddress shouldBe "10.0.0.2"
@@ -349,15 +351,15 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
 
     it should "set DHCP's routerIfPortId iff the router interface's IP is " +
               "the subnet's gateway IP" in {
-        def checkDhcpAndMetadataRoute(rifPortId: UUID)
+        def checkDhcpAndMetadataRoute(rifPortId: UUID, portAddress: String)
         : Unit = eventually {
             val peerPortId = routerInterfacePortPeerId(
                 UUIDUtil.toProto(rifPortId))
-            val metadataRouteId = metadataServiceRouteId(peerPortId)
+            val metadataRouteId = metadataServiceRouteId(
+                peerPortId, IPAddressUtil.toProto(portAddress))
 
-            val dhcpFtr = storage.get(classOf[Dhcp], subnetId)
+            val dhcp = storage.get(classOf[Dhcp], subnetId).await()
             val peerPort = storage.get(classOf[Port], peerPortId).await()
-            val dhcp = dhcpFtr.await()
 
             if (dhcp.getDefaultGateway == peerPort.getPortAddress) {
                 dhcp.getRouterIfPortId shouldBe peerPortId
@@ -382,7 +384,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
         createRouterInterface(50, routerId, rifPortId, subnetId)
 
         val dhcpPortId = createDhcpPort(60, tenantNetworkId, subnetId, "10.0.0.2")
-        eventually(checkDhcpAndMetadataRoute(rifPortId))
+        checkDhcpAndMetadataRoute(rifPortId, "10.0.2.1")
 
         // Now create a router interface with the DHCP's gateway IP.
         val rtr2Id = createRouter(70)
@@ -390,19 +392,20 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             80, tenantNetworkId, subnetId, rtr2Id,
             "10.0.1.1", "ab:ab:ab:ab:ab:ab", subnetId)
         createRouterInterface(90, rtr2Id, rtr2IfPortId, subnetId)
-        eventually(checkDhcpAndMetadataRoute(rtr2IfPortId))
+        checkDhcpAndMetadataRoute(rtr2IfPortId, "10.0.1.1")
 
         // Delete and recreate the DHCP port to make sure the metadata route
         // is deleted and then recreated with the right RIF port.
         insertDeleteTask(100, PortType, dhcpPortId)
         eventually {
-            val mdRouteId= metadataServiceRouteId(
-                routerInterfacePortPeerId(rtr2IfPortId.asProto))
+            val mdRouteId = metadataServiceRouteId(
+                routerInterfacePortPeerId(rtr2IfPortId.asProto),
+                IPAddressUtil.toProto("10.0.0.1"))
             storage.exists(classOf[Route], mdRouteId).await() shouldBe false
         }
 
         createDhcpPort(110, tenantNetworkId, subnetId, "10.0.0.2", dhcpPortId)
-        eventually(checkDhcpAndMetadataRoute(rtr2IfPortId))
+        checkDhcpAndMetadataRoute(rtr2IfPortId, "10.0.0.2")
     }
 
     it should "handle translation for IPv6 neutron ports" in {
@@ -418,13 +421,14 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Verify that NAT64 routes and rules are created correctly.
         val routerPortId = routerInterfacePortPeerId(rifPortId.asProto)
 
-        eventually {
+        Thread.sleep(1000)
+        //eventually {
             val routerPort = storage.get(classOf[Port], routerPortId).await()
 
-            routerPort.getTunnelKey should not be 0
-            routerPort.getPortSubnet(0).getAddress shouldBe "169.254.0.1"
-            routerPort.getPortSubnet(0).getPrefixLength shouldBe 30
-            routerPort.getPortAddress.getAddress shouldBe "169.254.0.1"
+            TunnelKeys.Fip64Type.isOfType(routerPort.getTunnelKey.toInt) shouldBe true
+            routerPort.getPortSubnet(0).getAddress shouldBe "2001:0:0:0:0:0:0:2"
+            routerPort.getPortSubnet(0).getPrefixLength shouldBe 64
+            routerPort.getPortAddress.getAddress shouldBe "2001:0:0:0:0:0:0:2"
             routerPort.getFipNatRuleIdsCount should not be 0
 
             val routes = storage.getAll(classOf[Route],
@@ -433,12 +437,12 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             routes should have size 2
 
             routes.head.getSrcSubnet.getAddress shouldBe "0.0.0.0"
-            routes.head.getDstSubnet shouldBe Nat64Pool
+            routes.head.getDstSubnet shouldBe RouterTranslator.Nat64Pool
             routes.head.getNextHopPortId shouldBe routerPort.getId
             routes.head.getNextHop shouldBe NextHop.PORT
 
             routes(1).getSrcSubnet.getAddress shouldBe "0.0.0.0"
-            routes(1).getDstSubnet.getAddress shouldBe "169.254.0.1"
+            routes(1).getDstSubnet.getAddress shouldBe "2001:0:0:0:0:0:0:2"
             routes(1).getNextHopPortId shouldBe routerPort.getId
             routes(1).getNextHop shouldBe NextHop.LOCAL
 
@@ -451,12 +455,14 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             rules.head.getNat64RuleData.getPortAddress
                 .getAddress shouldBe "2001:0:0:0:0:0:0:2"
             rules.head.getNat64RuleData.getPortAddress
-                .getPrefixLength shouldBe 128
-            rules.head.getNat64RuleData.getNatPool.getNwStart shouldBe Nat64PoolStart
-            rules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe Nat64PoolEnd
+                .getPrefixLength shouldBe 64
+            rules.head.getNat64RuleData.getNatPool.getNwStart shouldBe
+                RouterTranslator.Nat64PoolStart
+            rules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe
+                RouterTranslator.Nat64PoolEnd
             rules.head.getNat64RuleData.getNatPool.getTpStart shouldBe 0
             rules.head.getNat64RuleData.getNatPool.getTpEnd shouldBe 0
-        }
+        //}
 
         insertDeleteTask(60, PortType, rifPortId)
 
@@ -504,7 +510,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             .routerInterfaceRouteId(rPort.getId, IPAddressUtil.toProto("10.0.0.3"))
         rifRoute.getNextHopPortId shouldBe rPort.getId
         rifRoute.getSrcSubnet shouldBe IPSubnetUtil.AnyIPv4Subnet
-        rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.0"
+        rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.3"
         rifRoute.getDstSubnet.getPrefixLength shouldBe 24
 
         val host = storage.get(classOf[Host], hostId).await()

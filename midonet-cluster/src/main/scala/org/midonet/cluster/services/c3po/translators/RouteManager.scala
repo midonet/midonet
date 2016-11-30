@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
@@ -27,7 +27,6 @@ import org.midonet.cluster.rest_api.neutron.models.MetaDataService
 import org.midonet.cluster.util.IPSubnetUtil.AnyIPv4Subnet
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import org.midonet.packets.{IPv4Addr, IPv6Addr}
 
 trait RouteManager {
     import RouteManager._
@@ -65,34 +64,36 @@ trait RouteManager {
     }
 
     def newMetaDataServiceRoute(srcSubnet: IPSubnet, nextHopPortId: UUID,
-                                nextHopGw: IPAddress)
+                                nextHopGateway: IPAddress, portAddress: IPAddress)
     : Route = {
         newNextHopPortRoute(nextHopPortId,
-                            id = metadataServiceRouteId(nextHopPortId),
-                            nextHopGwIpAddr = nextHopGw,
+                            id = metadataServiceRouteId(nextHopPortId, portAddress),
+                            nextHopGateway = nextHopGateway,
                             srcSubnet = srcSubnet,
                             dstSubnet = META_DATA_SRVC)
     }
 
     protected def newNextHopPortRoute(nextHopPortId: UUID,
                                       id: UUID = null,
-                                      nextHopGwIpAddr: IPAddress = null,
+                                      nextHopGateway: IPAddress = null,
                                       srcSubnet: IPSubnet = AnyIPv4Subnet,
                                       dstSubnet: IPSubnet = AnyIPv4Subnet,
                                       gatewayDhcpId: UUID = null,
                                       weight: Int = DEFAULT_WEIGHT,
-                                      ipSecSiteCnxnId: UUID = null): Route = {
-        val bldr = Route.newBuilder
-        bldr.setId(if (id != null) id else UUIDUtil.randomUuidProto)
-        bldr.setNextHop(NextHop.PORT)
-        bldr.setNextHopPortId(nextHopPortId)
-        bldr.setSrcSubnet(srcSubnet)
-        bldr.setDstSubnet(dstSubnet)
-        bldr.setWeight(weight)
-        if (gatewayDhcpId != null) bldr.setGatewayDhcpId(gatewayDhcpId)
-        if (nextHopGwIpAddr != null) bldr.setNextHopGateway(nextHopGwIpAddr)
-        if (ipSecSiteCnxnId != null) bldr.setIpsecSiteConnectionId(ipSecSiteCnxnId)
-        bldr.build()
+                                      ipSecSiteConnectionId: UUID = null)
+    : Route = {
+        val builder = Route.newBuilder
+        builder.setId(if (id != null) id else UUIDUtil.randomUuidProto)
+        builder.setNextHop(NextHop.PORT)
+        builder.setNextHopPortId(nextHopPortId)
+        builder.setSrcSubnet(srcSubnet)
+        builder.setDstSubnet(dstSubnet)
+        builder.setWeight(weight)
+        if (gatewayDhcpId != null) builder.setGatewayDhcpId(gatewayDhcpId)
+        if (nextHopGateway != null) builder.setNextHopGateway(nextHopGateway)
+        if (ipSecSiteConnectionId != null)
+            builder.setIpsecSiteConnectionId(ipSecSiteConnectionId)
+        builder.build()
     }
 
     /**
@@ -145,9 +146,6 @@ object RouteManager {
     /**
      * Deterministically derives an ID for a local route to the port using the
      * port ID. */
-    @Deprecated
-    def localRouteId(portId: UUID): UUID =
-        portId.xorWith(0x13bd079b6c0e43fbL, 0x80fe647e6e718b72L)
     def localRouteId(portId: UUID, address: IPAddress): UUID =
         portId.xorWith(0x13bd079b6c0e43fbL, 0x80fe647e6e718b72L)
               .xorWith(address.getAddressBytes.toByteArray)
@@ -156,9 +154,6 @@ object RouteManager {
      * Deterministically derives an ID for a next-hop route from tenant router
      * to provider router via gateway port, or vice-versa, using the gateway
      * port ID. */
-    @Deprecated
-    def gatewayRouteId(gwPortId: UUID): UUID =
-        gwPortId.xorWith(0x6ba5df84b8a44ab4L, 0x90adb3f665e7850dL)
     def gatewayRouteId(gwPortId: UUID, address: IPAddress): UUID =
         gwPortId.xorWith(0x6ba5df84b8a44ab4L, 0x90adb3f665e7850dL)
                 .xorWith(address.getAddressBytes.toByteArray)
@@ -172,9 +167,6 @@ object RouteManager {
     /**
      * Deterministically derives an ID for a next-hop route to the subnet of the
      * router interface port using the router interface port ID. */
-    @Deprecated
-    def routerInterfaceRouteId(rifPortId: UUID): UUID =
-        rifPortId.xorWith(0xb288abe0c5744762L, 0xb3a04b12442bb179L)
     def routerInterfaceRouteId(rifPortId: UUID, address: IPAddress): UUID =
         rifPortId.xorWith(0xb288abe0c5744762L, 0xb3a04b12442bb179L)
                  .xorWith(address.getAddressBytes.toByteArray)
@@ -182,8 +174,9 @@ object RouteManager {
     /**
      * Deterministically derives an ID for a Metadata Service route using the
      * DHCP port ID. */
-    def metadataServiceRouteId(dhcpPortId: UUID): UUID =
+    def metadataServiceRouteId(dhcpPortId: UUID, address: IPAddress): UUID =
         dhcpPortId.xorWith(0xa0132e5a1583461cL, 0xa752d8609a517a6cL)
+                  .xorWith(address.getAddressBytes.toByteArray)
 
     /**
      * Deterministically derives an ID for the SNAT rule for a Floating IP
