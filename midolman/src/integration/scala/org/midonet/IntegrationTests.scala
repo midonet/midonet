@@ -18,7 +18,7 @@ package org.midonet
 import org.junit.runner.JUnitCore
 
 object IntegrationTests {
-    val defaultTests = List(classOf[org.midonet.RecircTest],
+    val defaultTests = List(/*classOf[org.midonet.RecircTest],*/
                             classOf[org.midonet.midolman.host.scanner.InterfaceScannerTest],
                             classOf[org.midonet.quagga.BgpdTest]) map { _.getCanonicalName }
     def main(args: Array[String]): Unit = {
