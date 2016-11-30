@@ -57,7 +57,7 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
 
         // Create a Load Balancer
-        val lbId = UUID.randomUUID
+        val lbId = createLbV2(40, vipPortId, "10.0.1.4")
         val routerId = lbV2RouterId(lbId)
 
         val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")

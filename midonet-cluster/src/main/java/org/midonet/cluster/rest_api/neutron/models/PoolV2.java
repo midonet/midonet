@@ -73,12 +73,16 @@ public class PoolV2 extends ZoomObject {
     @ZoomField(name = "listeners")
     public List<UUID> listeners = new ArrayList<>();
 
-    @ZoomField(name = "protocol")
-    public LoadBalancerV2Protocol protocol;
+    @JsonProperty("loadbalancer_id")
+    @ZoomField(name = "load_balancer_id")
+    public UUID loadBalancerId;
 
     @JsonProperty("loadbalancers")
-    @ZoomField(name = "loadbalancers")
+    @ZoomField(name = "load_balancers")
     public List<UUID> loadBalancers = new ArrayList<>();
+
+    @ZoomField(name = "protocol")
+    public LoadBalancerV2Protocol protocol;
 
     @JsonProperty("session_persistence")
     @ZoomField(name = "session_persistence")
