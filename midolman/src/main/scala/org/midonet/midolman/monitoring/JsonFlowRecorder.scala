@@ -20,14 +20,11 @@ import java.nio.ByteBuffer
 import java.util.UUID
 
 import org.midonet.cluster.flowhistory.JsonSerialization
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => MMSimRes}
-import org.midonet.midolman.config.FlowHistoryConfig
 import org.midonet.midolman.simulation.PacketContext
 
-class JsonFlowRecorder(hostId: UUID, config: FlowHistoryConfig,
-                       backend: MidonetBackend)
-        extends AbstractFlowRecorder(config, backend) {
+class JsonFlowRecorder(hostId: UUID, flowSenderWorker: FlowSenderWorker)
+        extends AbstractFlowRecorder(flowSenderWorker) {
 
     val serializer = new JsonSerialization
 

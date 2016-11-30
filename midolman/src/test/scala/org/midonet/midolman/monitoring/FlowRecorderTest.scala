@@ -15,29 +15,29 @@
  */
 package org.midonet.midolman.monitoring
 
-import scala.collection.JavaConverters._
-import java.net.{DatagramPacket, DatagramSocket, InetSocketAddress}
 import java.nio.ByteBuffer
 import java.util.{UUID, Map => JMap}
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.codehaus.jackson.map.ObjectMapper
+import scala.collection.JavaConverters._
+
 import com.google.common.io.BaseEncoding
-import com.google.common.net.HostAndPort
+
+import org.codehaus.jackson.map.ObjectMapper
+import org.junit.runner.RunWith
+import org.mockito.{ArgumentCaptor, Matchers, Mockito}
+import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.flowhistory._
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
-import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows._
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets.util.PacketBuilder._
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
@@ -62,128 +62,19 @@ class FlowRecorderTest extends MidolmanSpec {
     }
 
     feature("abstract flow recorder") {
-        scenario("flow recorder endpoint in discovery before start") {
-            val target = HostAndPort.fromString("192.0.2.0:12345")
+        scenario("successful record leads to submission to sender") {
             val confStr =
                 s"""
-                  |agent.flow_history.enabled=true
-                  |agent.flow_history.encoding=none
-                  |agent.flow_history.endpoint_service="$EndpointServiceName"
+                   |agent.flow_history.enabled=true
+                   |agent.flow_history.encoding=none
+                   |agent.flow_history.endpoint_service="$EndpointServiceName"
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
-            val (recorder, discovery) = createTestRecorder(conf)
-            discovery.registerServiceInstance(EndpointServiceName, target)
+            val (recorder, sender) = createTestRecorder(conf)
 
-            recorder.startAsync().awaitRunning()
-
-            recorder.endpoint.get shouldBe hpToSocketAddress(target)
-
-            recorder.stopAsync().awaitTerminated()
-        }
-        scenario("flow recorder endpoint in discovery after start") {
-            val target = HostAndPort.fromString("192.0.2.0:12345")
-            val confStr =
-                s"""
-                  |agent.flow_history.enabled=true
-                  |agent.flow_history.encoding=none
-                  |agent.flow_history.endpoint_service="$EndpointServiceName"
-                """.stripMargin
-            val conf = MidolmanConfig.forTests(confStr)
-            val (recorder, discovery) = createTestRecorder(conf)
-
-            recorder.startAsync().awaitRunning()
-
-            recorder.endpoint shouldBe None
-            discovery.registerServiceInstance(EndpointServiceName,
-                                              target)
-            recorder.endpoint.get shouldBe hpToSocketAddress(target)
-
-            recorder.stopAsync().awaitTerminated()
-        }
-        scenario("flow recorder adapts to changes in discovery") {
-            val target1 = HostAndPort.fromString("192.0.1.0:12345")
-            val target2 = HostAndPort.fromString("192.0.2.0:12345")
-            val confStr =
-                s"""
-                  |agent.flow_history.enabled=true
-                  |agent.flow_history.encoding=none
-                  |agent.flow_history.endpoint_service="$EndpointServiceName"
-                """.stripMargin
-            val conf = MidolmanConfig.forTests(confStr)
-            val (recorder, discovery) = createTestRecorder(conf)
-
-            recorder.startAsync().awaitRunning()
-
-            // Register target1
-            val t1Handle = discovery.registerServiceInstance(
-                EndpointServiceName, target1)
-            // Register target2
-            val t2Handle = discovery.registerServiceInstance(
-                EndpointServiceName, target2)
-
-            val bothTargetAddresses =
-                List(target1, target2).map(hpToSocketAddress).toSet
-
-            val targetHandlers =
-                bothTargetAddresses.zip(List(t1Handle, t2Handle)).toMap
-
-            // Chosen endpoint must be one of the 2
-            bothTargetAddresses.contains(recorder.endpoint.get) shouldBe true
-
-            val expectedFinalTarget =
-                (bothTargetAddresses - recorder.endpoint.get).head
-
-            // Remove the active endpoint from discovery
-            targetHandlers(recorder.endpoint.get).unregister()
-
-            // Should now have the other endpoint as the target
-            recorder.endpoint.get shouldBe expectedFinalTarget
-
-            // Remove the active endpoint from discovery
-            targetHandlers(recorder.endpoint.get).unregister()
-
-            // Should now have no endpoints
-            recorder.endpoint shouldBe None
-
-            recorder.stopAsync().awaitTerminated()
-        }
-        scenario("invalid endpoint doesn't throw error on record()") {
-            val confStr =
-                s"""
-                  |agent.flow_history.enabled=true
-                  |agent.flow_history.encoding=none
-                  |agent.flow_history.endpoint_service="$EndpointServiceName"
-                """.stripMargin
-            val conf = MidolmanConfig.forTests(confStr)
-            val (recorder, discovery) = createTestRecorder(conf)
-
-            recorder.startAsync().awaitRunning()
-
-            val target = HostAndPort.fromString("fake-fake-fake-fake:12345")
-            discovery.registerServiceInstance(EndpointServiceName, target)
-            recorder.endpoint.get shouldBe hpToSocketAddress(target)
             recorder.record(newContext(), PacketWorkflow.NoOp)
 
-            recorder.stopAsync().awaitTerminated()
-        }
-        scenario("unreachable endpoint doesn't throw error on record()") {
-            val confStr =
-                s"""
-                |agent.flow_history.enabled=true
-                |agent.flow_history.encoding=none
-                |agent.flow_history.endpoint_service="$EndpointServiceName"
-                """.stripMargin
-            val conf = MidolmanConfig.forTests(confStr)
-            val (recorder, discovery) = createTestRecorder(conf)
-
-            recorder.startAsync().awaitRunning()
-
-            val target = HostAndPort.fromString("192.0.2.0:12345")
-            discovery.registerServiceInstance(EndpointServiceName, target)
-            recorder.endpoint.get shouldBe hpToSocketAddress(target)
-            recorder.record(newContext(), PacketWorkflow.NoOp)
-
-            recorder.stopAsync().awaitTerminated()
+            Mockito.verify(sender).submit(recorder.buffer)
         }
         scenario("exception in encodeRecord doesn't propagate") {
             val confStr =
@@ -193,22 +84,14 @@ class FlowRecorderTest extends MidolmanSpec {
                 |agent.flow_history.endpoint_service="$EndpointServiceName"
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
-            val (recorder, discovery) = createErrorRecorder(conf)
+            val (recorder, _) = createErrorRecorder(conf)
 
-            recorder.startAsync().awaitRunning()
-
-            val target = HostAndPort.fromString("192.0.2.0:12345")
-            discovery.registerServiceInstance(EndpointServiceName, target)
-            recorder.endpoint.get shouldBe hpToSocketAddress(target)
             recorder.record(newContext(), PacketWorkflow.NoOp)
-
-            recorder.stopAsync().awaitTerminated()
         }
     }
 
     feature("JSON flow recoder") {
         scenario("correct values are shipped, nulls are not") {
-            val target = HostAndPort.fromString("localhost:50022")
             val confStr =
                 s"""
                 |agent.flow_history.enabled=true
@@ -217,53 +100,40 @@ class FlowRecorderTest extends MidolmanSpec {
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
 
-            val (recorder, discovery) = createRecorder(conf)
-
-            recorder.startAsync().awaitRunning()
-
-            discovery.registerServiceInstance(EndpointServiceName, target)
-
-            val data = new Array[Byte](4096)
-            val datagram = new DatagramPacket(data, data.length)
-
-            val sock = getListeningSocket(target)
+            val (recorder, sender) = createRecorder(conf)
 
             val ctx = newContext()
             recorder.record(ctx, PacketWorkflow.NoOp)
-            try {
-                sock.receive(datagram)
-                val mapper = new ObjectMapper()
+            val captor = ArgumentCaptor.forClass(classOf[ByteBuffer])
+            Mockito.verify(sender).submit(captor.capture)
 
-                val result: JMap[String, Object] =
-                    mapper.readValue(new String(data),
-                                     classOf[JMap[String,Object]])
+            val data = byteBufferToArray(captor.getValue)
 
-                val origMatch = ctx.origMatch
-                result.get("flowMatch.networkSrc") should be (
-                    BaseEncoding.base16.encode(origMatch.getNetworkSrcIP.toBytes))
-                result.get("flowMatch.networkDst") should be (
-                    BaseEncoding.base16.encode(origMatch.getNetworkDstIP.toBytes))
-                result.get("flowMatch.ethSrc") should be (
-                    BaseEncoding.base16.encode(origMatch.getEthSrc.getAddress()))
-                result.get("flowMatch.ethDst") should be (
-                    BaseEncoding.base16.encode(origMatch.getEthDst.getAddress()))
+            val mapper = new ObjectMapper()
 
-                for (e <- result.entrySet.asScala) {
-                    log.info(s"${e.getKey} => ${e.getValue}")
-                    e.getValue should not be (null)
-                }
-            } finally {
-                sock.close()
+            val result: JMap[String, Object] =
+                mapper.readValue(new String(data),
+                                 classOf[JMap[String,Object]])
 
-                recorder.stopAsync().awaitTerminated()
+            val origMatch = ctx.origMatch
+            result.get("flowMatch.networkSrc") should be (
+                BaseEncoding.base16.encode(origMatch.getNetworkSrcIP.toBytes))
+            result.get("flowMatch.networkDst") should be (
+                BaseEncoding.base16.encode(origMatch.getNetworkDstIP.toBytes))
+            result.get("flowMatch.ethSrc") should be (
+                BaseEncoding.base16.encode(origMatch.getEthSrc.getAddress()))
+            result.get("flowMatch.ethDst") should be (
+                BaseEncoding.base16.encode(origMatch.getEthDst.getAddress()))
+
+            for (e <- result.entrySet.asScala) {
+                log.info(s"${e.getKey} => ${e.getValue}")
+                e.getValue should not be (null)
             }
         }
     }
 
     feature("Binary flow records") {
         scenario("data is encoded/decoded correctly") {
-            val target = HostAndPort.fromString("localhost:50023")
-
             val confStr =
                 s"""
                 |agent.flow_history.enabled=true
@@ -272,44 +142,36 @@ class FlowRecorderTest extends MidolmanSpec {
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
 
-            val (recorder, discovery) = createRecorder(conf)
-
-            recorder.startAsync().awaitRunning()
-
-            discovery.registerServiceInstance(EndpointServiceName,
-                                              target)
-
-            val data = new Array[Byte](409600)
-            val datagram = new DatagramPacket(data, data.length)
-
-            val sock = getListeningSocket(target)
+            val (recorder, sender) = createRecorder(conf)
 
             val binSerializer = new BinarySerialization
-            try {
-                val ctx1 = newContext()
-                recorder.record(ctx1, PacketWorkflow.NoOp)
+            val ctx1 = newContext()
+            recorder.record(ctx1, PacketWorkflow.NoOp)
 
-                sock.receive(datagram)
+            val captor = ArgumentCaptor.forClass(classOf[ByteBuffer])
+            Mockito.verify(sender).submit(captor.capture)
 
-                val shouldMatch1 = FlowRecordBuilder.buildRecord(
-                    recorder.asInstanceOf[BinaryFlowRecorder].hostId,
-                    ctx1, PacketWorkflow.NoOp)
-                shouldMatch1 should be (binSerializer.bufferToFlowRecord(data))
+            val data1 = byteBufferToArray(captor.getValue.duplicate())
 
-                val ctx2 = newContext()
-                recorder.record(ctx2, PacketWorkflow.GeneratedPacket)
+            val shouldMatch1 = FlowRecordBuilder.buildRecord(
+                recorder.asInstanceOf[BinaryFlowRecorder].hostId,
+                ctx1, PacketWorkflow.NoOp)
+            shouldMatch1 should be (binSerializer.bufferToFlowRecord(data1))
 
-                sock.receive(datagram)
-                val shouldMatch2 = FlowRecordBuilder.buildRecord(
-                    recorder.asInstanceOf[BinaryFlowRecorder].hostId,
-                    ctx2, PacketWorkflow.GeneratedPacket)
+            Mockito.reset(sender)
 
-                shouldMatch2 should be (binSerializer.bufferToFlowRecord(data))
-            } finally {
-                sock.close()
+            val ctx2 = newContext()
+            recorder.record(ctx2, PacketWorkflow.GeneratedPacket)
 
-                recorder.stopAsync().awaitTerminated()
-            }
+            Mockito.verify(sender).submit(captor.capture)
+
+            val data2 = byteBufferToArray(captor.getValue.duplicate())
+
+            val shouldMatch2 = FlowRecordBuilder.buildRecord(
+                recorder.asInstanceOf[BinaryFlowRecorder].hostId,
+                ctx2, PacketWorkflow.GeneratedPacket)
+
+            shouldMatch2 should be (binSerializer.bufferToFlowRecord(data2))
         }
         scenario("Flooding packet is dropped, no exception is generated") {
 
@@ -320,45 +182,16 @@ class FlowRecorderTest extends MidolmanSpec {
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
 
-            val (recorder, discovery) = createRecorder(conf)
+            val (recorder, sender) = createRecorder(conf)
 
-            recorder.startAsync().awaitRunning()
-
-            discovery.registerServiceInstance(EndpointServiceName,
-                                              "localhost:50023")
-
-            val maxNumberOfDevices =  BinarySerialization.BufferSize / 17;
+            val maxNumberOfDevices =  BinarySerialization.BufferSize / 17
             val ctx1 = newContext(2 * maxNumberOfDevices)
             noException should be thrownBy {
                 recorder.record(ctx1, PacketWorkflow.NoOp)
             }
 
-            recorder.stopAsync().awaitTerminated()
-        }
-
-        scenario("Packet that cannot be send as single datagram is dropped") {
-
-            val confStr =
-                """
-                  |agent.flow_history.enabled=true
-                  |agent.flow_history.encoding=binary
-                """.stripMargin
-            val conf = MidolmanConfig.forTests(confStr)
-
-            val (recorder, discovery) = createRecorder(conf)
-
-            recorder.startAsync().awaitRunning()
-
-            discovery.registerServiceInstance(EndpointServiceName,
-                                              "localhost:50023")
-
-            val maxNumberOfDevices =  BinarySerialization.BufferSize / 17;
-            val ctx1 = newContext(maxNumberOfDevices / 5)
-            noException should be thrownBy {
-                recorder.record(ctx1, PacketWorkflow.NoOp)
-            }
-
-            recorder.stopAsync().awaitTerminated()
+            Mockito.verify(sender, Mockito.never).submit(
+                Matchers.any[ByteBuffer])
         }
     }
 
@@ -390,40 +223,39 @@ class FlowRecorderTest extends MidolmanSpec {
         ctx
     }
 
-    private def getListeningSocket(target: HostAndPort): DatagramSocket = {
-        val sock = new DatagramSocket(target.getPort)
-        sock.setSoTimeout(5000)
-        sock
-    }
-
-    private def backend: MidonetBackend =
-        injector.getInstance(classOf[MidonetBackend])
+    private def createMockedSenderWorker =
+        Mockito.mock(classOf[FlowSenderWorker])
 
     private def createRecorder(config: MidolmanConfig) = {
-        val recorder = FlowRecorder(config, hostId, backend)
+        val senderWorker = createMockedSenderWorker
+        val recorder = FlowRecorder(config, hostId, senderWorker)
 
-        (recorder, backend.discovery)
+        (recorder, senderWorker)
     }
 
     private def createTestRecorder(config: MidolmanConfig) = {
-        val recorder = new TestFlowRecorder(config.flowHistory, backend)
+        val senderWorker = createMockedSenderWorker
+        val recorder = new TestFlowRecorder(senderWorker)
 
-        (recorder, backend.discovery)
+        (recorder, senderWorker)
     }
 
     private def createErrorRecorder(config: MidolmanConfig) = {
-        val recorder = new ErrorFlowRecorder(config.flowHistory, backend)
+        val senderWorker = createMockedSenderWorker
+        val recorder = new ErrorFlowRecorder(senderWorker)
 
-        (recorder, backend.discovery)
+        (recorder, senderWorker)
     }
 
-    private def hpToSocketAddress(hp: HostAndPort) =
-        new InetSocketAddress(hp.getHostText, hp.getPort)
+    private def byteBufferToArray(byteBuffer: ByteBuffer): Array[Byte] = {
+        byteBuffer.rewind()
+        val bytes = new Array[Byte](byteBuffer.remaining)
+        byteBuffer.get(bytes)
+        bytes
+    }
 
-
-    class TestFlowRecorder(conf: FlowHistoryConfig,
-                           backend: MidonetBackend)
-            extends AbstractFlowRecorder(conf, backend) {
+    class TestFlowRecorder(senderWorker: FlowSenderWorker)
+            extends AbstractFlowRecorder(senderWorker) {
         val buffer = ByteBuffer.allocate(0)
         override def encodeRecord(pktContext: PacketContext,
                                   simRes: SimulationResult): ByteBuffer = {
@@ -431,9 +263,8 @@ class FlowRecorderTest extends MidolmanSpec {
         }
     }
 
-    class ErrorFlowRecorder(conf: FlowHistoryConfig,
-                            backend: MidonetBackend)
-            extends AbstractFlowRecorder(conf, backend) {
+    class ErrorFlowRecorder(senderWorker: FlowSenderWorker)
+            extends AbstractFlowRecorder(senderWorker) {
         override def encodeRecord(pktContext: PacketContext,
                                   simRes: SimulationResult): ByteBuffer = {
             throw new RuntimeException("foobar")

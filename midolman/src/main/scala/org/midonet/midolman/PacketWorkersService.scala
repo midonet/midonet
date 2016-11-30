@@ -31,7 +31,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.monitoring.FlowRecorder
+import org.midonet.midolman.monitoring.{FlowRecorder, FlowSenderWorker}
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.DhcpConfigFromNsdb
@@ -91,10 +91,13 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
     supervisorThread.setDaemon(true)
     val shutdownLatch = new CountDownLatch(1)
 
+    private val flowSenderWorker = FlowSenderWorker(config, backend)
+
     val workers: IndexedSeq[DisruptorPacketWorker] =
         0 until numWorkers map createWorker
 
     override def doStart(): Unit = {
+        flowSenderWorker.startAsync().awaitRunning()
         supervisorThread.start()
     }
 
@@ -122,6 +125,9 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
                 w.shutdownNow()
             }
         }
+
+        flowSenderWorker.stopAsync().awaitTerminated()
+
         notifyStopped()
     }
 
@@ -148,7 +154,7 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
 
         val metrics = new PacketPipelineMetrics(metricsRegistry, index)
         val flowRecorder = FlowRecorder(config, hostIdProvider.hostId,
-                                        backend)
+                                        flowSenderWorker)
         val workflow = new PacketWorkflow(
             numWorkers, index,
             config, hostIdProvider.hostId, dpState,
