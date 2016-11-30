@@ -16,6 +16,24 @@
       "revId": "06d3ba0ab8d1bca8354084c7032ef3f74beff933",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_39605835",
+        "filename": "python-midonetclient/src/midonetclient/neutron/lbaasv2.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-11-30T09:30:54Z",
+      "side": 1,
+      "message": "Yes you are right. I should have used bgp. Fixed.",
+      "parentUuid": "7aaa499b_59ee84ed",
+      "revId": "06d3ba0ab8d1bca8354084c7032ef3f74beff933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
