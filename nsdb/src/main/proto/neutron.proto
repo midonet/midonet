@@ -271,12 +271,14 @@ message NeutronLoadBalancerV2Pool {
     optional UUID healthmonitor_id = 8;
     optional UUID listener_id = 9;
     repeated UUID listeners = 10;
-    optional LoadBalancerV2Protocol protocol = 11;
+    optional UUID load_balancer_id = 11;
+    repeated UUID load_balancers = 12;
+    optional LoadBalancerV2Protocol protocol = 13;
     message LBV2SessionPersistenceAlgorithm {
         optional LBV2SessionPersistenceType type = 1;
         optional string cookie_name = 2;
     }
-    optional LBV2SessionPersistenceAlgorithm session_persistence = 12;
+    optional LBV2SessionPersistenceAlgorithm session_persistence = 14;
 }
 
 message NeutronLoadBalancerPoolMember {

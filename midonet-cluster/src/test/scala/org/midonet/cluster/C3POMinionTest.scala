@@ -20,16 +20,18 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager, Statement}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.{ArrayBuffer => ABuf}
 import scala.util.Try
+
 import com.codahale.metrics.MetricRegistry
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode}
 import com.google.inject.{Guice, Inject, Injector, PrivateModule}
 import com.typesafe.config.ConfigFactory
+
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
@@ -38,19 +40,22 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionWatcher}
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, BgpPeer => BgpPeerType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, BgpPeer => BgpPeerType, Config => ConfigType, Firewall => FirewallType, LbV2Pool => LbV2PoolType, LbV2PoolMember => LbV2PoolMemberType, LoadBalancerV2 => LoadBalancerV2Type, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.{LBV2SessionPersistenceAlgorithm, LBV2SessionPersistenceType, LoadBalancerV2Protocol}
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronRoute, NeutronRouter}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.neutron.models.BgpPeer.AuthType
+import org.midonet.cluster.rest_api.neutron.models.PoolV2.LoadBalancerV2Algorithm
 import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
@@ -391,6 +396,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         .getOrElse(log.error("Failed stopping the keep alive DB cnxn"))
     }
 
+    implicit def toOption[T](t: T): Option[T] = Option(t)
+
     protected def poolJson(id: UUID, routerId: UUID,
                            adminStateUp: Boolean = true,
                            healthMonitorIds: Seq[UUID] = Nil): JsonNode = {
@@ -404,6 +411,90 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                 hmIds.add(hmId.toString)
         }
         lb
+    }
+
+    protected def lbV2Json(id: UUID,
+                           vipPortId: UUID,
+                           vipAddress: String,
+                           adminStateUp: Boolean = true): JsonNode = {
+        val lb = nodeFactory.objectNode
+        lb.put("id", id.toString)
+        lb.put("admin_state_up", adminStateUp)
+        lb.put("vip_port_id", vipPortId.toString)
+        lb.put("vip_address", vipAddress)
+        lb
+    }
+
+    protected def lbV2PoolJson(
+            id: UUID = UUID.randomUUID(),
+            tenant_id: String = "tenant",
+            name: Option[String] = None,
+            description: Option[String] = None,
+            adminStateUp: Boolean = true,
+            lbAlgorithm: LoadBalancerV2Algorithm = LoadBalancerV2Algorithm.ROUND_ROBIN,
+            members: Seq[UUID] = Seq(),
+            healthMonitorId: Option[UUID] = None,
+            listenerId: Option[UUID] = None,
+            listeners: Seq[UUID] = Seq(),
+            loadBalancerId: Option[UUID] = None,
+            loadBalancers: Seq[UUID] = Seq(),
+            protocol: LoadBalancerV2Protocol = LoadBalancerV2Protocol.TCP,
+            sessionPersistence: Option[JsonNode] = lbV2SessionPersistenceJson())
+    : JsonNode = {
+        val p = nodeFactory.objectNode
+        p.put("id", id.toString)
+        p.put("tenant_id", tenant_id)
+        p.put("name", name.getOrElse(s"lbv2pool-$id"))
+        p.put("description", description.getOrElse(s"LBV2 Pool with id $id"))
+        p.put("admin_state_up", adminStateUp)
+        p.put("lb_algorithm", lbAlgorithm.toString)
+        val membersArr = p.putArray("members")
+        for (m <- members)
+            membersArr.add(m.toString)
+        healthMonitorId.foreach(id => p.put("health_monitor_id", id.toString))
+        listenerId.foreach(id => p.put("listener_id", id.toString))
+        val listenersArr = p.putArray("listeners")
+        for (l <- listeners)
+            listenersArr.add(l.toString)
+        loadBalancerId.foreach(id => p.put("load_balancer_id", id.toString))
+        val loadBalancersArr = p.putArray("load_balancers")
+        for (lb <- loadBalancers)
+            loadBalancersArr.add(lb.toString)
+        p.put("protocol", protocol.toString)
+        sessionPersistence.foreach(n => p.set("session_persistence", n))
+        p
+    }
+
+    protected def lbv2PoolMemberJson(
+            id: UUID = UUID.randomUUID(),
+            tenantId: String = "tenant",
+            address: String = IPv4Addr.random.toString,
+            adminStateUp: Boolean = true,
+            protocolPort: Int = 10000,
+            weight: Int = 1,
+            subnetId: Option[UUID] = None,
+            name: Option[String] = None,
+            poolId: Option[UUID] = None): JsonNode = {
+        val pm = nodeFactory.objectNode
+        pm.put("id", id.toString)
+        pm.put("tenant_id", tenantId)
+        pm.put("address", address)
+        pm.put("admin_state_up", adminStateUp)
+        pm.put("protocol_port", protocolPort)
+        pm.put("weight", weight)
+        subnetId.foreach(id => pm.put("subnet_id", id.toString))
+        pm.put("name", name.getOrElse(s"lbv2poolmember-$id"))
+        poolId.foreach(id => pm.put("pool_id", id.toString))
+        pm
+    }
+
+    protected def lbV2SessionPersistenceJson(
+            typ: LBV2SessionPersistenceType = LBV2SessionPersistenceType.SOURCE_IP,
+            cookieName: Option[String] = None): JsonNode = {
+        val sp = nodeFactory.objectNode
+        sp.put("type", typ.toString)
+        cookieName.foreach(sp.put("cookie_name", _))
+        sp
     }
 
     case class IPAlloc(ipAddress: String, subnetId: UUID)
@@ -1106,6 +1197,49 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         val json = bgpPeerJson(peerIp, speakerJson, id, tenantId, name,
                                remoteAs, authType, password)
         insertCreateTask(taskId, BgpPeerType, json, id)
+        id
+    }
+
+    protected def createLbV2(taskId: Int, vipPortId: UUID, vipAddress: String,
+                             id: UUID = UUID.randomUUID(),
+                             adminStateUp: Boolean = true): UUID = {
+        val json = lbV2Json(id, vipPortId, vipAddress, adminStateUp)
+        insertCreateTask(taskId, LoadBalancerV2Type, json, id)
+        id
+    }
+
+    protected def createLbV2Pool(
+            taskId: Int, loadBalancerId: UUID,
+            id: UUID = UUID.randomUUID(),
+            listenerId: Option[UUID] = None,
+            adminStateUp: Boolean = true,
+            healthMonitorId: Option[UUID] = None,
+            sessionPersistenceType: Option[LBV2SessionPersistenceType] = None)
+    : UUID = {
+        val sessionPersistenceJson = sessionPersistenceType.map(
+            typ => lbV2SessionPersistenceJson(typ))
+        val json = lbV2PoolJson(id = id, adminStateUp = adminStateUp,
+                                healthMonitorId = healthMonitorId,
+                                listenerId = listenerId,
+                                loadBalancerId = loadBalancerId,
+                                sessionPersistence = sessionPersistenceJson)
+        insertCreateTask(taskId, LbV2PoolType, json, id)
+        id
+    }
+
+    protected def createLbV2PoolMember(
+            taskId: Int, poolId: UUID, subnetId: UUID,
+            id: UUID = UUID.randomUUID(),
+            adminStateUp: Boolean = true,
+            address: String = IPv4Addr.random.toString,
+            protocolPort: Int = 10000,
+            weight: Int = 1): UUID = {
+        val json = lbv2PoolMemberJson(id = id, poolId = poolId,
+                                      subnetId = subnetId,
+                                      adminStateUp = adminStateUp,
+                                      weight = weight, address = address,
+                                      protocolPort = protocolPort)
+        insertCreateTask(taskId, LbV2PoolMemberType, json, id)
         id
     }
 }

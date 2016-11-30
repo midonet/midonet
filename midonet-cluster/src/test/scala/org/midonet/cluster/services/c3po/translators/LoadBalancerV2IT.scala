@@ -40,18 +40,6 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
     var vipSubnetId: UUID = _
     var vipPortId: UUID = _
 
-    private def makeLbJson(id: UUID,
-                           vipPortId: UUID,
-                           vipAddress: String,
-                           adminStateUp: Boolean = true): JsonNode = {
-        val lb = nodeFactory.objectNode
-        lb.put("id", id.toString)
-        lb.put("admin_state_up", adminStateUp)
-        lb.put("vip_port_id", vipPortId.toString)
-        lb.put("vip_address", vipAddress)
-        lb
-    }
-
     "C3PO" should "be able to create/delete Load Balancer, Router, and VIP peer port." in {
         vipNetworkId = createTenantNetwork(10, external = false)
         vipSubnetId = createSubnet(20, vipNetworkId, "10.0.1.0/24")
@@ -61,12 +49,8 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
 
         // Create a Load Balancer
-        val lbId = UUID.randomUUID
+        val lbId = createLbV2(40, vipPortId, "10.0.1.4")
         val routerId = lbV2RouterId(lbId)
-
-        val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
-
-        insertCreateTask(40, LoadBalancerV2Type, lbJson, lbId)
 
         val lb = eventually(
             storage.get(classOf[LoadBalancer], lbId).await())
@@ -96,11 +80,7 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
 
     "Creation of LB without VIP port" should
       "fail to create LB" in {
-        val lbId = UUID.randomUUID
-        val routerId = lbV2RouterId(lbId)
-        val lbJson = makeLbJson(lbId, UUID.randomUUID(), "10.0.1.4")
-
-        insertCreateTask(10, LoadBalancerV2Type, lbJson, lbId)
+        val lbId = createLbV2(10, UUID.randomUUID(), "10.0.1.4")
         Thread.sleep(2000)
         storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
     }
@@ -111,8 +91,7 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         val routerId = lbV2RouterId(lbId)
         createRouter(10, routerId)
 
-        val lbJson = makeLbJson(lbId, UUID.randomUUID(), "10.0.1.4")
-        insertCreateTask(20, LoadBalancerV2Type, lbJson, lbId)
+        createLbV2(20, UUID.randomUUID(), "10.0.1.4", id = lbId)
 
         Thread.sleep(2000)
         storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
@@ -122,17 +101,13 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
 
     "Creation of LB with already existing port with same ID as VIP peer port ID" should
       "fail to create LB" in {
-        val lbId = UUID.randomUUID
-        val routerId = lbV2RouterId(lbId)
-
         // Create a VIP port
         val vipPortId = createVipPort(10, vipNetworkId, vipSubnetId, "10.0.1.4")
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
 
         createDhcpPort(20, vipNetworkId, vipSubnetId, "10.0.1.5", vipPeerPortId)
 
-        val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
-        insertCreateTask(30, LoadBalancerV2Type, lbJson, lbId)
+        val lbId = createLbV2(30, vipPortId, "10.0.1.4")
 
         Thread.sleep(2000)
         storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
