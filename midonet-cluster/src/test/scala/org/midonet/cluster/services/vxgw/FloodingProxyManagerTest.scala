@@ -63,7 +63,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
     var fpManager: FloodingProxyManager = _
     var obs: TestAwaitableObserver[FloodingProxy] = _
 
-    val timeout = 1 second
+    val timeout = 5 second
 
     val backendCfg = new MidonetBackendConfig(config)
     override protected def config = MidoTestConfigurator.forClusters(
@@ -164,9 +164,10 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         val h1Id = addHostToZone(tz1Id, ip1, 10)
 
         val herald = new FloodingProxyHerald(backend, Some(h1Id))
-        herald.start()
+
         val obs =  new TestAwaitableObserver[FloodingProxy]
         herald.observable.subscribe(obs)
+        herald.start()
 
         obs.awaitOnNext(1, timeout) shouldBe true
         obs.getOnNextEvents.get(0).hostId shouldBe h1Id
