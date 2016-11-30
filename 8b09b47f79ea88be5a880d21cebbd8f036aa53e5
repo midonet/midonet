@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_6fe5eea6",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppControllerIntegrationTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-30T15:02:49Z",
+      "side": 1,
+      "message": "nit: add parentheses because the method has side-effects",
+      "range": {
+        "startLine": 147,
+        "startChar": 16,
+        "endLine": 147,
+        "endChar": 23
+      },
+      "revId": "8b09b47f79ea88be5a880d21cebbd8f036aa53e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_0f4f8a93",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppControllerIntegrationTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-30T15:02:49Z",
+      "side": 1,
+      "message": "rather than using sleep, you can use an eventually block below",
+      "range": {
+        "startLine": 169,
+        "startChar": 12,
+        "endLine": 169,
+        "endChar": 30
+      },
+      "revId": "8b09b47f79ea88be5a880d21cebbd8f036aa53e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_cf48828a",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppControllerIntegrationTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-30T15:02:49Z",
+      "side": 1,
+      "message": "same here, although you\u0027re not testing anything after this, so I don\u0027t know why we\u0027re sleeping here",
+      "range": {
+        "startLine": 178,
+        "startChar": 12,
+        "endLine": 178,
+        "endChar": 30
+      },
+      "revId": "8b09b47f79ea88be5a880d21cebbd8f036aa53e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
