@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_591a0470",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-30T05:25:15Z",
+      "side": 1,
+      "message": "AH, Joe was of the opinion that the topology will stay for all the scenarios in this test, meaning the next scenario would still have the VIP port created (although really I think deleting the LB will delete the router, will delete the peer port, will delete the VIP port).\n\nIn any case, is this just something I can fix if the gates fail again?  If the gates pass, it\u0027d be nice to check this in and fix this in a new patch, if possible and allowable.",
+      "parentUuid": "7aaa499b_39ff3803",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 48
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_a5131d5c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
         "patchSetId": 9
