@@ -54,6 +54,8 @@ object TunnelKeys {
     val LegacyPortType = new TunnelKeyType(0x0)
     val LocalPortGeneratedType = new TunnelKeyType(0x1)
     val Fip64Type = new TunnelKeyType(0x2)
+    val Fip64ControlSenderTunnelKey: Int = TunnelKeys.Fip64Type.apply(0xffffe)
+    val Fip64controlReceiverTunnelKey: Int = TunnelKeys.Fip64Type.apply(0xfffff)
 
     /* Flow state always uses 0xffffff as tunnel key */
     val FlowStateType = new TunnelKeyType(0x7)
