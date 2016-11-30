@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_59ee84ed",
+        "filename": "python-midonetclient/src/midonetclient/neutron/lbaasv2.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-11-30T08:38:22Z",
+      "side": 1,
+      "message": "i guess you copied qos?\nbut qos isn\u0027t a good example because it talks with non-neutron api endpoint.",
+      "revId": "06d3ba0ab8d1bca8354084c7032ef3f74beff933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
