@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_5990c4ec",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-30T09:43:30Z",
+      "side": 1,
+      "message": "oops, will do! I\u0027ll wait on Joe\u0027s opinion on this and if this is the only change and you agree I will fix it on top of the branch so we can build the packages for QA",
+      "parentUuid": "7aaa499b_996acc19",
+      "revId": "cec1d7bc27018725ddd85069547afbae37f7c555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_79770003",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2016-11-30T09:33:29Z",
       "side": 1,
       "message": "ditto",
+      "revId": "cec1d7bc27018725ddd85069547afbae37f7c555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_79aa601b",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-11-30T09:43:30Z",
+      "side": 1,
+      "message": "will fix",
+      "parentUuid": "7aaa499b_79770003",
       "revId": "cec1d7bc27018725ddd85069547afbae37f7c555",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
