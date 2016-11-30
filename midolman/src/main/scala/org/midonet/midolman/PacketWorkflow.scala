@@ -205,6 +205,11 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     private def handleFromFip64(context: PacketContext): SimulationResult = {
         context.log.debug(s"Received packet matching ${context.origMatch} " +
                           s"from VPP")
+        if (context.wcmatch.getTunnelKey.toInt == TunnelKeys.Fip64ControlSenderTunnelKey) {
+            addActionsForFip64Packet(context, TunnelKeys.Fip64controlReceiverTunnelKey)
+            addTranslatedFlow(context,
+                FlowExpirationIndexer.TUNNEL_FLOW_EXPIRATION)
+        }
         val portId = dpState.getFip64PortForKey(
             context.wcmatch.getTunnelKey.toInt)
         val result = if (portId ne null) {

@@ -17,18 +17,21 @@
 package org.midonet.midolman.vpp
 
 import java.nio.ByteBuffer
-import java.util.ArrayList
+import java.util.{ArrayList, UUID}
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.duration._
+import org.midonet.midolman.{DatapathController, DatapathState, DatapathStateDriver}
 
+import scala.concurrent.duration._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink._
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
+import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKeys}
 import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
-import org.midonet.packets.IPv6Addr
+import org.midonet.packets.{IPv6Addr, TunnelKeys}
+import org.midonet.sdn.flows.FlowTagger
 
 object VppOvs {
     val NullMac = Array[Byte](0, 0, 0, 0, 0, 0)
@@ -36,11 +39,12 @@ object VppOvs {
     val NoProtocol = 0.toByte
 }
 
-class VppOvs(dp: Datapath) extends MidolmanLogging {
+class VppOvs(dpState: DatapathState) extends MidolmanLogging {
     import VppOvs._
 
     override def logSource = s"org.midonet.vpp"
 
+    val dp = dpState.datapath
     val channel = new NetlinkChannelFactory().create(blocking = false)
     val families = OvsNetlinkFamilies.discover(channel)
     val proto = new OvsProtocol(channel.getLocalAddress.getPid, families)
@@ -148,5 +152,41 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         val fmatch = buildFlowMatch(inputPort)
         deleteFlow(dp, fmatch)
     }
+
+    def addVppControlForwarding(gatewayPeer: UUID): Unit = {
+        val routeInfo = dpState.peerTunnelInfo(gatewayPeer)
+
+        if (routeInfo.isEmpty) {
+            log.warn("Unable to tunnel to peer {}, is the peer " +
+              "in the same tunnel zone as the current node?", gatewayPeer)
+        } else {
+            flowMatch.clear()
+            actions.clear()
+            fmask.clear()
+
+            flowMatch.addKey(FlowKeys.tunnel(TunnelKeys.Fip64ControlSenderTunnelKey,
+                routeInfo.get.srcIp, routeInfo.get.dstIp, 0))
+            actions.add(routeInfo.get.output)
+            fmask.calculateFor(flowMatch, actions)
+            createFlow(dp, flowMatch, fmask, actions)
+        }
+    }
+
+    def clearVppControlForwarding(gatewayPeer: UUID): Unit = {
+        val routeInfo = dpState.peerTunnelInfo(gatewayPeer)
+
+        if (routeInfo.isEmpty) {
+            log.warn("Unable to tunnel to peer {}, is the peer " +
+              "in the same tunnel zone as the current node?", gatewayPeer)
+            return
+        } else {
+            flowMatch.clear()
+
+            flowMatch.addKey(FlowKeys.tunnel(TunnelKeys.Fip64ControlSenderTunnelKey,
+                routeInfo.get.srcIp, routeInfo.get.dstIp, 0))
+            deleteFlow(dp, flowMatch)
+        }
+    }
+
 }
 

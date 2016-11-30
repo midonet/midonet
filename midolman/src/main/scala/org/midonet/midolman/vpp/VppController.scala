@@ -90,7 +90,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
 
     private var vppProcess: MonitoredDaemonProcess = _
     private var vppApi: VppApi = _
-    private val vppOvs = new VppOvs(datapathState.datapath)
+    private val vppOvs = new VppOvs(datapathState)
     private val belt = new ConveyorBelt(t => {
         log.error("Error on conveyor belt", t)
     })

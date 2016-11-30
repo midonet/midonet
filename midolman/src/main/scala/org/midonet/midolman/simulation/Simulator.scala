@@ -36,9 +36,14 @@ object Simulator {
         extends ForwardAction with VirtualFlowAction
 
     /**
-      * This action is used has to be forwarded to a VPP-controller host for
-      * FIP64 translation. The action includes the identifier of the VPP host
-      * and the VNI of the VXLAN tunnel.
+      * This action is used when it need to be forwarded to a VPP-controller
+      * host for FIP64 translation. The action includes the identifier of the
+      * VPP host and the VNI of the VXLAN tunnel.
+      *
+      * In case of forwarding a state control update message, the host ID must
+      * be 'null' to forward it to all the gateways, and the VNI should be the
+      * one for state control messages (see
+      * TunnelKeys.Fip64controlReceiverTunnelKey)
       */
     case class Fip64Action(hostId: UUID, vni: Long)
         extends ForwardAction with VirtualFlowAction
