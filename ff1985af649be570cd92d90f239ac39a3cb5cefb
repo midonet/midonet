@@ -216,6 +216,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_f9e790aa",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-30T09:37:04Z",
+      "side": 1,
+      "message": "I got rid of that line already. :)  I\u0027ll clean up the other deletes in the next patch if this finally passes gates.",
+      "parentUuid": "7aaa499b_79f2609c",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 48
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_a5131d5c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
         "patchSetId": 9
