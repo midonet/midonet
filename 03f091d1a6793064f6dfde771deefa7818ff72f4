@@ -22,6 +22,30 @@
       "revId": "03f091d1a6793064f6dfde771deefa7818ff72f4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_4ac1002e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-11-30T16:23:45Z",
+      "side": 1,
+      "message": "Ok, true, I will move it.",
+      "parentUuid": "7aaa499b_ea98cc6c",
+      "range": {
+        "startLine": 209,
+        "startChar": 1,
+        "endLine": 213,
+        "endChar": 9
+      },
+      "revId": "03f091d1a6793064f6dfde771deefa7818ff72f4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
