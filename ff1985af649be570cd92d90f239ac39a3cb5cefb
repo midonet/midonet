@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_5efc2a3e",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 1006,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-30T01:22:34Z",
+      "side": 1,
+      "message": "Are you talking about the createRouterGatewayPort above?  That\u0027s not a part of this patch, and I don\u0027t think it would belong in here, as it\u0027s an unrelated change (I think?)",
+      "parentUuid": "7aaa499b_c524e9b0",
+      "range": {
+        "startLine": 1006,
+        "startChar": 18,
+        "endLine": 1006,
+        "endChar": 41
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_c572a9ad",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
         "patchSetId": 9
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-29T10:05:54Z",
       "side": 1,
       "message": "Shouldn\u0027t you check to verify that this is eventually deleted?",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 48
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_3ef95e4e",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-30T01:22:34Z",
+      "side": 1,
+      "message": "I\u0027m not really testing the PortTranslator here, so I didn\u0027t think I really needed to check, as I assume the port translator is working correctly.",
+      "parentUuid": "7aaa499b_c572a9ad",
       "range": {
         "startLine": 92,
         "startChar": 8,
