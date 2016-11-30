@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_996acc19",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-30T09:33:29Z",
+      "side": 1,
+      "message": "remove?",
+      "revId": "cec1d7bc27018725ddd85069547afbae37f7c555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_79770003",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-30T09:33:29Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "cec1d7bc27018725ddd85069547afbae37f7c555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
