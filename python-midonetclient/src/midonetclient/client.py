@@ -23,6 +23,7 @@ from midonetclient.neutron import firewall_logging as fw_l
 from midonetclient.neutron import gateway_device as gd
 from midonetclient.neutron import l2gw
 from midonetclient.neutron import l3
+from midonetclient.neutron import lbaasv2
 from midonetclient.neutron import loadbalancer as lb
 from midonetclient.neutron import network as net
 from midonetclient.neutron import qos
@@ -39,6 +40,7 @@ class MidonetClient(net.NetworkClientMixin,
                     l2gw.L2GwClientMixin,
                     l3.L3ClientMixin,
                     sg.SecurityGroupClientMixin,
+                    lbaasv2.LBaaSv2ClientMixin,
                     lb.LoadBalancerClientMixin,
                     fw.FirewallClientMixin,
                     fw_l.FirewallLoggingClientMixin,
