@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_5917a4ed",
+        "filename": "midolman/src/deb/init/midolman-prepare",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-11-30T08:31:25Z",
+      "side": 1,
+      "message": "We can remove this",
+      "range": {
+        "startLine": 107,
+        "startChar": 37,
+        "endLine": 107,
+        "endChar": 45
+      },
+      "revId": "8186302155df2a6d4e51fe198ac982182b0eae4e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
