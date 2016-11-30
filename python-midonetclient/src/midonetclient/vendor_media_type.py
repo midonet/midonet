@@ -210,3 +210,25 @@ APPLICATION_QOS_RULE_DSCP_JSON = \
     "application/vnd.org.midonet.QOSRuleDSCP-v1+json"
 APPLICATION_QOS_RULE_DSCP_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.QOSRuleDSCP-v1+json"
+
+# LBaaAv2
+APPLICATION_LOAD_BALANCER_V2_JSON_V1 = \
+    "application/vnd.org.midonet.neutron.lb.LoadBalancerV2-v1+json"
+APPLICATION_LOAD_BALANCERS_V2_JSON_V1 = \
+    "application/vnd.org.midonet.neutron.lb.LoadBalancersV2-v1+json"
+APPLICATION_LISTENER_V2_JSON_V1 = \
+    "application/vnd.org.midonet.neutron.lb.ListenerV2-v1+json"
+APPLICATION_LISTENERS_V2_JSON2_V1 = \
+    "application/vnd.org.midonet.neutron.lb.ListenersV2-v1+json"
+APPLICATION_POOL_V2_JSON_V1 = \
+    "application/vnd.org.midonet.neutron.lb.PoolV2-v1+json"
+APPLICATION_POOLS_V2_JSON_V1 = \
+    "application/vnd.org.midonet.neutron.lb.PoolsV2-v1+json"
+APPLICATION_POOL_MEMBER_V2_JSON_V1 = \
+    "application/vnd.org.midonet.neutron.lb.PoolMemberV2-v1+json"
+APPLICATION_POOL_MEMBERS_V2_JSON_V1 = \
+    "application/vnd.org.midonet.neutron.lb.PoolMembersV2-v1+json"
+APPLICATION_HEALTH_MONITOR_V2_JSON_V1 = \
+    "application/vnd.org.midonet.neutron.lb.HealthMonitorV2-v1+json"
+APPLICATION_HEALTH_MONITORS_V2_JSON_V1 = \
+    "application/vnd.org.midonet.neutron.lb.HealthMonitorsV2-v1+json"
