@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_39ff3803",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-30T05:08:08Z",
+      "side": 1,
+      "message": "In that case, you don\u0027t need to delete it at all. The topology gets wiped between tests.",
+      "parentUuid": "7aaa499b_3ef95e4e",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 48
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_a5131d5c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
         "patchSetId": 9
