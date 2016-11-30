@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_5900c4aa",
+        "filename": "python-midonetclient/tox.ini",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-11-30T08:17:18Z",
+      "side": 1,
+      "message": "python-midonetclient/src/midonetclient/topology/hosts.py isn\u0027t a generated file.",
+      "revId": "61ec190a4876a52c53b8d24a875e5b6e63a4b877",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
