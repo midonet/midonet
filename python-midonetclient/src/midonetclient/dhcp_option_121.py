@@ -13,7 +13,6 @@
 # under the License.
 
 from midonetclient import resource_base
-from midonetclient import vendor_media_type
 
 
 class DhcpOption121(resource_base.ResourceBase):
@@ -41,4 +40,3 @@ class DhcpOption121(resource_base.ResourceBase):
     def gateway(self, address):
         self.dto['gatewayAddr'] = address
         return self
-
