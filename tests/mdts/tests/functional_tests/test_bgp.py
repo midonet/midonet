@@ -173,7 +173,7 @@ def await_internal_route_exported(localAs, peerAs):
             "sh -c \"vtysh -c 'show ip bgp' | grep %s | grep %s\"" % (
                 localAs, peerAs), stream=True)
         exit_code = quagga.check_exit_status(exec_id, output_stream)
-        if exit_code == 0: # The route is learnt from the corresponding uplink
+        if exit_code == 0:  # The route is learnt from the corresponding uplink
             return
         time.sleep(2)
         timeout -= 2
@@ -233,10 +233,10 @@ def test_icmp_multi_add_uplink_1():
 
     """
     add_bgp([uplink1_session1], route_direct)
-    ping_to_inet() # BGP #1 is working
+    ping_to_inet()  # BGP #1 is working
 
     add_bgp([uplink2_session1], route_direct)
-    ping_to_inet() # BGP #1 and #2 working
+    ping_to_inet()  # BGP #1 and #2 working
 
 
 @attr(version="v1.2.0")
@@ -254,10 +254,10 @@ def test_icmp_remove_uplink_1():
     """
     p1 = add_bgp([uplink1_session1], route_direct)
     add_bgp([uplink2_session1], route_direct)
-    ping_to_inet() # BGP #1 and #2 are working
+    ping_to_inet()  # BGP #1 and #2 are working
 
     clear_bgp_peer(p1, 5)
-    ping_to_inet() # only BGP #2 is working
+    ping_to_inet()  # only BGP #2 is working
 
 
 # FIXME: see issue MI-593
@@ -297,23 +297,23 @@ def test_icmp_failback():
     add_bgp([uplink1_session1], route_direct)
     add_bgp([uplink2_session1], route_direct)
 
-    ping_to_inet() # BGP #1 and #2 are working
+    ping_to_inet()  # BGP #1 and #2 are working
 
     failure = PktFailure('quagga1', 'bgp1', 5)
 
     failure.inject()
     try:
-        ping_to_inet() # BGP #1 is lost but continues to work
+        ping_to_inet()  # BGP #1 is lost but continues to work
     finally:
         failure.eject()
 
     await_internal_route_exported(64513, 64511)
-    ping_to_inet() # BGP #1 is back
+    ping_to_inet()  # BGP #1 is back
 
     failure = PktFailure('quagga2', 'bgp1', 5)
     failure.inject()
     try:
-        ping_to_inet() # BGP #2 is lost but continues to work
+        ping_to_inet()  # BGP #2 is lost but continues to work
     finally:
         failure.eject()
 
@@ -387,16 +387,16 @@ def test_multisession_icmp_add_session():
     """
     add_bgp([uplink1_session1], route_direct)
 
-    ping_to_inet() # BGP session #1 is working
+    ping_to_inet()  # BGP session #1 is working
 
-    add_bgp_peer(uplink1_session2) # peerAS 2
+    add_bgp_peer(uplink1_session2)  # peerAS 2
 
-    ping_to_inet() # BGP session #1 is still working and nothing breaks
+    ping_to_inet()  # BGP session #1 is still working and nothing breaks
 
 
 @bindings(binding_multisession)
 @with_setup(None, clear_bgp)
-@nottest #MI-777
+@nottest  # MI-777
 def test_multisession_icmp_remove_session():
     """
     Title: BGP removing one session to existing port
@@ -409,11 +409,11 @@ def test_multisession_icmp_remove_session():
     """
     peers = add_bgp(uplink1_multisession, route_direct)
 
-    ping_to_inet() # BGP session #1 is working
+    ping_to_inet()  # BGP session #1 is working
 
     clear_bgp_peer(peers[0], 5)
 
-    ping_to_inet() # BGP session #2 start forwarding packets
+    ping_to_inet()  # BGP session #2 start forwarding packets
 
     add_bgp_peer(uplink1_session1)
     await_internal_route_exported(64513, 64511)
@@ -458,21 +458,21 @@ def test_multisession_icmp_failback():
 
     """
     add_bgp(uplink1_multisession, route_direct)
-    ping_to_inet() # BGP #1 and #2 are working
+    ping_to_inet()  # BGP #1 and #2 are working
 
     failure = PktFailure('quagga1', 'bgp1', 5)
     failure.inject()
     try:
-        ping_to_inet() # BGP session #1 is lost but continues to work
+        ping_to_inet()  # BGP session #1 is lost but continues to work
     finally:
         failure.eject()
 
-    ping_to_inet() # BGP #1 is back
+    ping_to_inet()  # BGP #1 is back
 
     failure = PktFailure('quagga2', 'bgp2', 5)
     failure.inject()
     try:
-        ping_to_inet() # BGP session #2 is lost but continues to work
+        ping_to_inet()  # BGP session #2 is lost but continues to work
     finally:
         failure.eject()
 
@@ -498,7 +498,7 @@ def test_multisession_icmp_with_redundancy():
 
     failures = []
 
-    ping_to_inet() # Midolman 2 with 2 sessions on uplink & uplink2
+    ping_to_inet()  # Midolman 2 with 2 sessions on uplink & uplink2
 
     # Start failing sessions one by one
     failure1 = PktFailure('quagga1', 'bgp1', 5)

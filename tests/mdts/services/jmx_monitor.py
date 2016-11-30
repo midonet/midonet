@@ -94,7 +94,7 @@ class JMXMonitor(object):
         data = {}
 
         for gc in garbage_collectors:
-            name = str(gc).split("=")[-1] #Take the string after the last equals sign, which is the name
+            name = str(gc).split("=")[-1]  # Take the string after the last equals sign, which is the name
             collection_time = self._connection.getAttribute(gc, 'CollectionTime')
             collection_count = self._connection.getAttribute(gc, 'CollectionCount')
             data[name] = {
