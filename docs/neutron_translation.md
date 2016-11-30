@@ -1042,6 +1042,54 @@ maxRetries, adminStateUp of the given Neutron HealthMonitorV2.
 
 Delete the Midonet HealthMonitor corresponding to the given id.
 
+
+## POOLV2
+
+### CREATE
+
+Create a new MidoNet Pool object and attach it to the given load
+balancer.  The session persistence field, which used to be attached to
+the VIP object will now be stored on the MidoNet Pool.  The session
+persistence field on the VIP will be kept for compatibility with LBaaS
+V1, but the session persistence field on the Pool will take precedence.
+As such, the session persistence field on the Vip object will not be set
+or modified by any LBaaS V2 translations.
+
+If a listener ID is provided with the neutron Pool obejct, the
+corresponding MidoNet Vip object will be retrieved and have its poolId
+field set to this pool.  If it is not provided, the pool will be created
+without attachment to any Vip obejcts.  If this is the case, the Vips
+must be created or updated later with the proper pool ID.
+
+The new MidoNet pool will have the following fields set:
+
+ * id => id
+ * loadbalancers => loadBalancerId
+ * healthmonitor_id => healthMonitorId
+ * lb_algorithm => lbMethod
+ * protocol => protocol
+ * admin_state_up => adminStateUp
+ * session_persistence => sessionPersistence
+ * listener_id => vipIds
+
+### UPDATE
+
+The `adminStateUp`, `lbMethod`, and `sessionPersistence` fields may be
+updated.  All other fields are locked and cannot be updated on the Pool
+object once created.
+
+The update will set the updated field on the MidoNet pool object.  The
+update will clear the `sessionPersistence` field if it is both currently
+set and the updated Pool has the field cleared.
+
+### DELETE
+
+Delete the MidoNet Pool object corresponding to the given id.
+
+This will clear the pool ID field on associated MidoNet load balancers
+and Vip objects, but will not delete those objects.
+
+
 ## BGPSPEAKER
 
 ### CREATE
