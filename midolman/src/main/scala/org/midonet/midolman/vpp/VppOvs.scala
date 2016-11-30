@@ -24,6 +24,7 @@ import scala.concurrent.duration._
 
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink._
+import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKeys}
 import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
@@ -103,6 +104,8 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
                              FlowKeyEtherType.Type.ETH_P_IPV6.value.toShort))
         flowMatch.addKey(FlowKeys.ethernet(NullMac, NullMac))
         flowMatch.addKey(FlowKeys.ipv6(NullIpv6, NullIpv6, NoProtocol))
+        flowMatch.fieldSeen(Field.InputPortNumber)
+        flowMatch.fieldSeen(Field.EtherType)
         flowMatch
     }
 
