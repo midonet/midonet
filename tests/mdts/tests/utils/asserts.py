@@ -12,16 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from concurrent.futures import ThreadPoolExecutor
 
+from concurrent.futures import ThreadPoolExecutor
 from hamcrest import assert_that
 from hamcrest.core.base_matcher import BaseMatcher
-
-from mdts.tests.utils.utils import ipv4_int
-
 import logging
-
-import time
+from mdts.tests.utils.utils import ipv4_int
 
 LOG = logging.getLogger(__name__)
 NUM_WORKERS = 10

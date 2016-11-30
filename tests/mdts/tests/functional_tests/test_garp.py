@@ -12,21 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nose.plugins.attrib import attr
-from mdts.lib.vtm_neutron import NeutronTopologyManager
+import logging
 from mdts.lib.bindings import BindingManager
-from mdts.services import service
-from mdts.tests.utils.asserts import *
+from mdts.lib.vtm_neutron import NeutronTopologyManager
+from mdts.tests.utils.asserts import async_assert_that
+from mdts.tests.utils.asserts import receives
+from mdts.tests.utils.asserts import should_NOT_receive
+from mdts.tests.utils.asserts import within_sec
 from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.utils import wait_on_futures
-
-from hamcrest import *
-from nose.tools import with_setup
-from nose.tools import nottest
-
-import logging
-import time
-import pdb
+from nose.plugins.attrib import attr
 
 LOG = logging.getLogger(__name__)
 
@@ -56,7 +51,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         self.add_port('port_int0', private_net['network']['id'])
         self.add_port('port_int1', private_net['network']['id'],
                       vip=self.virtual_ip, vmac=self.virtual_mac)
-        self.add_port('port_int2', private_net['network']['id'],
+        port2 = self.add_port('port_int2', private_net['network']['id'],
                       vip=self.virtual_ip, vmac=self.virtual_mac)
         vip0 = self.add_port('port_vip0', private_net['network']['id'],
                              subnet_id=private_subnet['subnet']['id'],

@@ -16,11 +16,9 @@
 Unit test module for PortGroup virtual topology data.
 """
 from mdts.lib.port_group import PortGroup
-
-from mock import MagicMock
 from mock import call
+from mock import MagicMock
 from mock import patch
-
 import unittest
 import yaml
 

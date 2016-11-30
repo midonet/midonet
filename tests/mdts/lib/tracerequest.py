@@ -14,8 +14,6 @@
 
 from mdts.lib.resource_base import ResourceBase
 
-from rule import FIELDS
-
 # subset of condition fields (those that are easier to handle)
 CONDFIELDS = [
     'dl_src',

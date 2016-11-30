@@ -12,21 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
-from nose.plugins.attrib import attr
-from mdts.lib.vtm_neutron import NeutronTopologyManager
-from mdts.lib.bindings import BindingManager
-from mdts.services import service
-from mdts.tests.utils.asserts import *
-from mdts.tests.utils.utils import bindings
-
-from hamcrest import *
-from nose.tools import with_setup
-
 import logging
+from mdts.lib.bindings import BindingManager
+from mdts.lib.vtm_neutron import NeutronTopologyManager
+from mdts.services import service
+from mdts.tests.utils.asserts import assert_that
+from mdts.tests.utils.asserts import receives
+from mdts.tests.utils.asserts import within_sec
+from mdts.tests.utils.utils import bindings
+from nose.plugins.attrib import attr
+from nose.tools import with_setup
+import os
 import time
-import pdb
 
 LOG = logging.getLogger(__name__)
 

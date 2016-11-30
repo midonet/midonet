@@ -14,20 +14,14 @@
 # limitations under the License.
 #
 
-import importlib
 import logging
-import os.path
+from mdts.tests.utils import conf
 import paramiko
-import socket
-import yaml
-
 from paramiko.client import AutoAddPolicy
 from paramiko.config import SSHConfig
-from paramiko.hostkeys import HostKeys
-from paramiko.pkey import PKey
 
-from mdts.services.interface import Interface
-from mdts.tests.utils import conf
+import socket
+import yaml
 
 LOG = logging.getLogger(__name__)
 

@@ -12,21 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import xml.etree.ElementTree as ET
-
-from nose.plugins.base import Plugin
-import sys
-from StringIO import StringIO
+import logging
 from mdts.services import service
+from nose.plugins.base import Plugin
+import os
 import shutil
 import subprocess
 import time
-from nose.util import ln
-from nose.pyversion import exc_to_unicode
-from nose.pyversion import force_unicode
+import xml.etree.ElementTree as ET
 
-import logging
 
 LOG = logging.getLogger(__name__)
 

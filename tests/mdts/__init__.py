@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-
 from mdts.services import service
-from mdts.tests.utils.utils import await_port_active
 from mdts.tests.utils import conf
-import os
-
+from mdts.tests.utils.utils import await_port_active
 
 logging.basicConfig(filename='nosetests.log',
                     level=logging.DEBUG,
