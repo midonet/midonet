@@ -192,6 +192,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_79f2609c",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-11-30T09:18:11Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand the relevance of the clear/cascade distinction here. I just mean that there\u0027s no point in deleting something at the end of a test if you\u0027re not going to check that it gets deleted. You don\u0027t need to do any cleanup, so performing an operation without checking its result and without needing it for a later test step accomplishes nothing.",
+      "parentUuid": "7aaa499b_192b5c84",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 48
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_a5131d5c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
         "patchSetId": 9
