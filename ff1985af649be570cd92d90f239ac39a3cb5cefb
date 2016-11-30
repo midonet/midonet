@@ -168,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_192b5c84",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-11-30T05:26:49Z",
+      "side": 1,
+      "message": "Ah, that\u0027s right, it will only CLEAR the peerId, not CASCADE, so the VIP peer will get deleted, but not the main VIP port, that\u0027s why I thought I still needed this.",
+      "parentUuid": "7aaa499b_591a0470",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 48
+      },
+      "revId": "ff1985af649be570cd92d90f239ac39a3cb5cefb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_a5131d5c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
         "patchSetId": 9
