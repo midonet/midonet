@@ -18,21 +18,28 @@ package org.midonet.midolman.vpp
 
 import java.util.UUID
 
+import rx.Subscriber
+
 import scala.collection.{Set, mutable}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
-
 import com.typesafe.scalalogging.Logger
-
+import org.midonet.cluster.data.storage.StateTable.Update
+import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder.DefaultValue
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.topology.{GatewayMappingService}
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
 import org.midonet.packets.{IPSubnet, _}
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
+
+import scala.util.Success
+
+
 
 private object VppSetup extends MidolmanLogging {
 
@@ -326,6 +333,55 @@ private object VppSetup extends MidolmanLogging {
         }
     }
 
+    class VppStateGatewaySynchronization(override val name: String,
+                                         vppOvs: VppOvs)
+                                        (implicit ec: ExecutionContext)
+        extends FutureTaskWithRollback {
+
+        private val gatewaySubscriber = new Subscriber[Update[UUID, AnyRef]] {
+
+            override def onNext(update: Update[UUID, AnyRef]): Unit = {
+                update match {
+                    case Update(hostId, null, _) =>
+                        log debug s"Added gateway $hostId"
+                        vppOvs.addVppControlForwarding(hostId)
+                    case Update(hostId, _, null) =>
+                        log debug s"Removed gateway $hostId"
+                        vppOvs.clearVppControlForwarding(hostId)
+                    case _ =>
+                }
+            }
+
+            override def onError(e: Throwable): Unit = {
+                log.warn("Gateway state table error", e)
+            }
+
+            override def onCompleted(): Unit = {
+                log.warn("Gateway state table observable completed unexpectedly")
+            }
+        }
+
+        override def execute(): Future[Any] = {
+            Future[Any] {
+                val gateways = GatewayMappingService.gateways
+                while (gateways.hasMoreElements){
+                    vppOvs.addVppControlForwarding(gateways.nextElement())
+                }
+                GatewayMappingService.subscribe(gatewaySubscriber)
+            }
+        }
+
+        override def rollback(): Future[Any] = {
+            Future[Any] {
+                gatewaySubscriber.unsubscribe()
+                val gateways = GatewayMappingService.gateways
+                while (gateways.hasMoreElements){
+                    vppOvs.clearVppControlForwarding(gateways.nextElement())
+                }
+            }
+        }
+    }
+
 }
 
 class VppSetup(setupName: String, log: Logger)
@@ -372,6 +428,9 @@ class VppUplinkSetup(uplinkPortId: UUID,
                                            () => { ovsBind.getPortNo },
                                            () => { uplinkPortDpNo })
 
+    private val stateSynchronization = new VppStateGatewaySynchronization(
+        "enabling state synchronization", vppOvs)
+
     private val externalRoutes = new mutable.HashMap[Topology.Route, VppAddRoute]()
 
     /*
@@ -382,6 +441,7 @@ class VppUplinkSetup(uplinkPortId: UUID,
     add(ipAddrVpp)
     add(ovsBind)
     add(ovsFlows)
+    add(stateSynchronization)
 
     def addExternalRoute(route: Topology.Route): Future[Any] = {
         require(uplinkVpp.vppInterface.isDefined)

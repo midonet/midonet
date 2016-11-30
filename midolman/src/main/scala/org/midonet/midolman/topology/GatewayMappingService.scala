@@ -39,6 +39,14 @@ object GatewayMappingService {
         self.gateways
     }
 
+    /**
+      * Subscribe the given subscriber to the gateways observable
+      * @param subscriber
+      */
+    def subscribe(subscriber: Subscriber[Update[UUID, AnyRef]]): Unit = {
+        self.subscribe(subscriber)
+    }
+
     @volatile private var self: GatewayMappingService = _
 
     /**
@@ -98,12 +106,15 @@ class GatewayMappingService(vt: VirtualTopology)
         gatewayMap.keys()
     }
 
+    def subscribe(subscriber: Subscriber[Update[UUID, AnyRef]]): Unit = {
+        vt.stateTables.getTable[UUID, AnyRef](MidonetBackend.GatewayTable)
+          .observable
+          .subscribe(subscriber)
+    }
+
     override protected def doStart(): Unit = {
         log info "Starting gateway mapping service"
-        vt.stateTables.getTable[UUID, AnyRef](MidonetBackend.GatewayTable)
-            .observable
-            .subscribe(gatewaySubscriber)
-
+        subscribe(gatewaySubscriber)
         notifyStarted()
     }
 
