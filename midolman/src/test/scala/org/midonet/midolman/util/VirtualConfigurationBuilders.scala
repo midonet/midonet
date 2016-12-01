@@ -22,7 +22,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, FragmentPolicy, NatTarget}
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
+import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod, SessionPersistence}
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC, TCP}
 
 object VirtualConfigurationBuilders {
@@ -219,6 +219,7 @@ trait VirtualConfigurationBuilders {
                 id: UUID = UUID.randomUUID,
                 adminStateUp: Boolean = true,
                 lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
+                sessionPersistence: SessionPersistence = null,
                 hmId: UUID = null): UUID
     def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit
     def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit
@@ -459,8 +460,9 @@ trait ForwardingVirtualConfigurationBuilders
                          id: UUID = UUID.randomUUID,
                          adminStateUp: Boolean = true,
                          lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
+                         sessionPersistence: SessionPersistence = null,
                          hmId: UUID = null): UUID =
-        virtConfBuilderImpl.newPool(loadBalancer, id, adminStateUp, lbMethod, hmId)
+        virtConfBuilderImpl.newPool(loadBalancer, id, adminStateUp, lbMethod, sessionPersistence, hmId)
     override def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit =
         virtConfBuilderImpl.setPoolHealthMonitor(pool, hmId)
     override def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit =
