@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_ccf88d7f",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-01T02:50:06Z",
+      "side": 1,
+      "message": "Is this needed?  It\u0027s not post or put-able, and I didn\u0027t see it being used in the translation, so I wonder if we can just remove it and ignore it on the cluster side.",
+      "range": {
+        "startLine": 275,
+        "startChar": 4,
+        "endLine": 275,
+        "endChar": 38
+      },
+      "revId": "a1c96221f9c3f64a8024f9bc839e82db3de11673",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
