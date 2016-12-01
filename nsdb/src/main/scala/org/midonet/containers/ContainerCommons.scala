@@ -52,7 +52,7 @@ trait ContainerCommons extends Logging {
       */
     @throws[Exception]
     def execute(command: String, processLine: String => Unit): Int = {
-        log debug s"Execute: $command"
+        log info s"Execute: $command"
         val args = command.split("""\s+""")
         val builder = new ProcessBuilder(args: _*).redirectErrorStream(true)
         val process = builder.start()
@@ -87,7 +87,7 @@ trait ContainerCommons extends Logging {
      */
     @throws[Exception]
     def execute(command: String): Int = {
-        execute(command, line => log.debug(line))
+        execute(command, line => log.info(line))
     }
 
     /**
