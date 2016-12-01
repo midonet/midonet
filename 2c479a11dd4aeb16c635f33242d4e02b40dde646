@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_a00d5439",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-01T18:27:02Z",
+      "side": 1,
+      "message": "Handling this turned out to be messier than expected.  I ended up passing in pools to the constructor.",
+      "parentUuid": "5aa745d1_5dce7b5b",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 68
+      },
+      "revId": "2c479a11dd4aeb16c635f33242d4e02b40dde646",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_9d9d235c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
         "patchSetId": 3
@@ -36,6 +60,24 @@
       "writtenOn": "2016-12-01T16:37:13Z",
       "side": 1,
       "message": "i was thinking to somehow modify vips\u0027 session persistence around here.\nmaybe your approach is better if we want to remove vip\u0027s one in future.",
+      "revId": "2c479a11dd4aeb16c635f33242d4e02b40dde646",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_60106c4f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-01T18:27:02Z",
+      "side": 1,
+      "message": "Yeah wasn\u0027t sure which way to go.  If doing it this way is much easier, I\u0027m all for it.  But yes, I do like to start matching our models to lbaas v2 models.",
+      "parentUuid": "5aa745d1_9d9d235c",
       "revId": "2c479a11dd4aeb16c635f33242d4e02b40dde646",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
