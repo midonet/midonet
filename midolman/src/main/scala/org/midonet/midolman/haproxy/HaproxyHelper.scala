@@ -19,7 +19,7 @@ import java.nio.file.Files
 import java.util.UUID
 
 import org.midonet.containers.ContainerCommons
-import org.midonet.midolman.l4lb.{HaproxyHealthMonitor, PoolConfig}
+import org.midonet.midolman.l4lb.{HaproxyHealthMonitor, LoadBalancerV2Config}
 
 object HaproxyHelper {
     def namespaceName(id: String) = s"hm-${id.substring(0, 8)}"
@@ -48,37 +48,34 @@ class HaproxyHelper(haproxyScript: String) extends ContainerCommons {
         s"$haproxyScript restart_ha $name $confLoc"
     }
 
-    private def ensureConfDir(poolConfig: PoolConfig): Unit = {
+    private def ensureConfDir(lbV2Config: LoadBalancerV2Config): Unit = {
         if (confLoc == null) {
-            val haproxyPath = Files.createTempDirectory(poolConfig.id.toString)
+            val haproxyPath = Files.createTempDirectory(lbV2Config.id.toString)
             confLoc = confLocation(haproxyPath.toString)
             sockLoc = sockLocation(haproxyPath.toString)
         }
     }
 
-    def writeConfFile(poolConfig: PoolConfig): Unit = {
-        ensureConfDir(poolConfig)
-        val contents = poolConfig.generateConfigFile(Some(sockLoc))
+    def writeConfFile(lbV2Config: LoadBalancerV2Config): Unit = {
+        ensureConfDir(lbV2Config)
+        val contents = lbV2Config.generateConfigFile(sockLoc)
         writeFile(contents, confLoc)
     }
 
-    def deploy(poolConfig: PoolConfig, ifaceName: String, mac: String,
-               ip: String, routerIp: String): Unit = {
-        val nsName = namespaceName(poolConfig.id.toString)
+    def deploy(lbV2Config: LoadBalancerV2Config, ifaceName: String,
+               mac: String, ip: String, routerIp: String): Unit = {
+        val nsName = namespaceName(lbV2Config.id.toString)
         val makensCmd = makensStr(nsName, ifaceName, mac, ip, routerIp)
         val cleannsCmd = cleannsStr(nsName, ifaceName)
         executeCommands(Seq((makensCmd, cleannsCmd)))
 
         // restartHaproxy will just start haproxy if its not already running.
-        restart(poolConfig)
+        restart(lbV2Config)
     }
 
-    def restart(poolConfig: PoolConfig): Unit = {
-        if (!poolConfig.isConfigurable) {
-            return
-        }
-        writeConfFile(poolConfig)
-        execute(restartHaproxyStr(namespaceName(poolConfig.id.toString)))
+    def restart(lbV2Config: LoadBalancerV2Config): Unit = {
+        writeConfFile(lbV2Config)
+        execute(restartHaproxyStr(namespaceName(lbV2Config.id.toString)))
     }
 
     def undeploy(name: String, iface: String): Unit = {
