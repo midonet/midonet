@@ -22,7 +22,7 @@ import com.google.protobuf.MessageOrBuilder
 
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.Vip.SessionPersistence
+import org.midonet.cluster.models.Topology.SessionPersistence
 import org.midonet.cluster.models.Commons.{Condition => TopologyCondition}
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, Host => TopologyHost, IPAddrGroup => TopologyIpAddrGroup, LoadBalancer => TopologyLB, Mirror => TopologyMirror, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
 import org.midonet.cluster.util.IPAddressUtil._

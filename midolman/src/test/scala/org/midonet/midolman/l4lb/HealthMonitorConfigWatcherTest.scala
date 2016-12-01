@@ -30,7 +30,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, Vip => SimVip}
-import org.midonet.midolman.state.l4lb.{HealthMonitorType, LBStatus, VipSessionPersistence}
+import org.midonet.midolman.state.l4lb.{HealthMonitorType, LBStatus, SessionPersistence}
 import org.midonet.midolman.topology.devices.{HealthMonitor => SimHealthMonitor, PoolHealthMonitor, PoolHealthMonitorMap}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
@@ -78,8 +78,7 @@ class HealthMonitorConfigWatcherTest
                              poolId,
                              IPv4Addr.random,
                              protocolPort = random.nextInt(65533) + 1,
-                             sessionPersistence =
-                                 VipSessionPersistence.SOURCE_IP)
+                             sessionPersistence = SessionPersistence.SOURCE_IP)
 
         val lb = new SimLoadBalancer(UUID.randomUUID(),
                                      adminStateUp = stateUp,

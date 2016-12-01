@@ -16,7 +16,7 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
-import org.midonet.midolman.state.l4lb.VipSessionPersistence
+import org.midonet.midolman.state.l4lb.SessionPersistence
 
 /**
   * Represents a pool member object local to the host.  The host that acts as a
@@ -24,7 +24,7 @@ import org.midonet.midolman.state.l4lb.VipSessionPersistence
   * run the service.
   */
 class VipConfig(val adminStateUp: Boolean, val id: UUID, val ip: String,
-                val port: Int, val sessionPersistence: VipSessionPersistence) {
+                val port: Int, val sessionPersistence: SessionPersistence) {
     def isConfigurable = adminStateUp && id != null && ip != null && port > 0
 
     override def equals(other: Any) = other match {

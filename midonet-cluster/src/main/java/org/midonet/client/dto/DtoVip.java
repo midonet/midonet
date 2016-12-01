@@ -17,7 +17,7 @@
 package org.midonet.client.dto;
 
 import com.google.common.base.Objects;
-import org.midonet.client.dto.l4lb.VipSessionPersistence;
+import org.midonet.client.dto.l4lb.SessionPersistence;
 
 import java.net.URI;
 import java.util.UUID;
@@ -33,7 +33,7 @@ public class DtoVip {
     private URI pool;
     private String address;
     private int protocolPort;
-    private VipSessionPersistence sessionPersistence;
+    private SessionPersistence sessionPersistence;
     private boolean adminStateUp = true;
 
     public UUID getId() {
@@ -100,11 +100,11 @@ public class DtoVip {
         this.protocolPort = protocolPort;
     }
 
-    public VipSessionPersistence getSessionPersistence() {
+    public SessionPersistence getSessionPersistence() {
         return sessionPersistence;
     }
 
-    public void setSessionPersistence(VipSessionPersistence sessionPersistence) {
+    public void setSessionPersistence(SessionPersistence sessionPersistence) {
         this.sessionPersistence = sessionPersistence;
     }
 

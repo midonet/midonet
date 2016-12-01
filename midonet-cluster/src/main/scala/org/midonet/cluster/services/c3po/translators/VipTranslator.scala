@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.{StateTableStorage, Transaction, UpdateValidator}
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.models.Topology.Vip
+import org.midonet.cluster.models.Topology.{Vip, SessionPersistence}
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.packets.{IPv4Addr, MAC}
 
@@ -35,7 +35,7 @@ class VipTranslator(stateTableStorage: StateTableStorage)
         if (nVip.hasSessionPersistence &&
             nVip.getSessionPersistence.getType ==
                 NeutronVIP.SessionPersistence.Type.SOURCE_IP) {
-            mVipBldr.setSessionPersistence(Vip.SessionPersistence.SOURCE_IP)
+            mVipBldr.setSessionPersistence(SessionPersistence.SOURCE_IP)
         }
         if (nVip.hasPoolId) {
             mVipBldr.setPoolId(nVip.getPoolId)
