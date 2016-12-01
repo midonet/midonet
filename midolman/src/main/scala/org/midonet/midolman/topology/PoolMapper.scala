@@ -21,14 +21,12 @@ import java.util.UUID
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-
 import rx.Observable
 import rx.subjects.PublishSubject
-
 import org.midonet.cluster.models.Topology.{Pool => TopologyPool, PoolMember => TopologyPoolMember, Vip => TopologyVip}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{Pool => SimulationPool, PoolMember => SimulationPoolMember, Vip => SimulationVip}
-import org.midonet.midolman.state.l4lb.PoolLBMethod
+import org.midonet.midolman.state.l4lb.{PoolLBMethod, SessionPersistence}
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
@@ -176,6 +174,7 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
             if (pool.hasLbMethod) PoolLBMethod.fromProto(pool.getLbMethod) else null,
             if (pool.hasHealthMonitorId) pool.getHealthMonitorId else null,
             if (pool.hasLoadBalancerId) pool.getLoadBalancerId else null,
+            if (pool.hasSessionPersistence) SessionPersistence.fromProto(pool.getSessionPersistence) else null,
             allMembers.toArray,
             activePoolMembers.toArray,
             disabledPoolMembers.toArray,
