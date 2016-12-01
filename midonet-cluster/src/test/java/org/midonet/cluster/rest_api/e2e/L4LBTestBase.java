@@ -32,7 +32,7 @@ import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.HealthMonitorType;
 import org.midonet.client.dto.l4lb.PoolProtocol;
-import org.midonet.client.dto.l4lb.VipSessionPersistence;
+import org.midonet.client.dto.l4lb.SessionPersistence;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
 import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 
@@ -213,7 +213,7 @@ public class L4LBTestBase extends RestApiTestBase {
         vip.setPoolId(poolId);
         vip.setAddress("192.168.100.1");
         vip.setProtocolPort(80);
-        vip.setSessionPersistence(VipSessionPersistence.SOURCE_IP);
+        vip.setSessionPersistence(SessionPersistence.SOURCE_IP);
         vip.setAdminStateUp(true);
 
         return vip;

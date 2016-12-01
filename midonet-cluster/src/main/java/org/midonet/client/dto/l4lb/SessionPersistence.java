@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state.l4lb;
+package org.midonet.client.dto.l4lb;
 
-import org.midonet.cluster.data.ZoomEnum;
-import org.midonet.cluster.data.ZoomEnumValue;
-import org.midonet.cluster.models.Topology;
-
-@ZoomEnum(clazz = Topology.Vip.SessionPersistence.class)
-public enum VipSessionPersistence {
-    @ZoomEnumValue("SOURCE_IP") SOURCE_IP
+public enum SessionPersistence {
+    SOURCE_IP
 }

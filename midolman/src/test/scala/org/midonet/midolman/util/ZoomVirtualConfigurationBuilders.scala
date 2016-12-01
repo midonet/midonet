@@ -607,7 +607,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
     override def vipEnableStickySourceIP(vip: UUID): Unit = {
         val v = Await.result(store.get(classOf[Vip], vip), awaitTimeout)
         store.update(v.toBuilder
-                         .setSessionPersistence(Vip.SessionPersistence.SOURCE_IP)
+                         .setSessionPersistence(SessionPersistence.SOURCE_IP)
                          .build())
     }
 

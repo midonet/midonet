@@ -223,7 +223,7 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         vip.getAddress shouldBe IPAddressUtil.toProto("10.0.0.2")
         vip.getProtocolPort shouldBe 12345
         vip.hasSessionPersistence shouldBe true
-        vip.getSessionPersistence shouldBe Vip.SessionPersistence.SOURCE_IP
+        vip.getSessionPersistence shouldBe SessionPersistence.SOURCE_IP
         eventually {
             val lbWithVip = storage.get(classOf[LoadBalancer], lbId).await()
             lbWithVip.getPoolIdsList should contain (toProto(poolId))
@@ -460,7 +460,7 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         vip.getAddress shouldBe IPAddressUtil.toProto("10.10.0.2")
         vip.getProtocolPort shouldBe 12345
         vip.hasSessionPersistence shouldBe true
-        vip.getSessionPersistence shouldBe Vip.SessionPersistence.SOURCE_IP
+        vip.getSessionPersistence shouldBe SessionPersistence.SOURCE_IP
         eventually {
             val lbWithPool = storage.get(classOf[LoadBalancer], lbId).await()
             lbWithPool.getPoolIdsList should contain (toProto(poolId))
@@ -483,7 +483,7 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
             updatedVip.getProtocolPort shouldBe 54321
             updatedVip.hasSessionPersistence shouldBe true
             updatedVip.getSessionPersistence shouldBe
-                    Vip.SessionPersistence.SOURCE_IP
+                SessionPersistence.SOURCE_IP
             val poolWithVipRemoved = storage.get(classOf[Pool], poolId).await()
             poolWithVipRemoved.getVipIdsList shouldBe empty
             val pool2 = storage.get(classOf[Pool], pool2Id).await()
