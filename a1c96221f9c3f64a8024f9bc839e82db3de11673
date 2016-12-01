@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "7aaa499b_af10934f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-01T05:16:55Z",
+      "side": 1,
+      "message": "Looking at Listener translations, it looks like we\u0027ll need to be able to get the session persistence from the pool object if the pool was created prior to the listener (so the VIP\u0027s session persistence wasn\u0027t set during pool creation, but rather needs to be set here).  And since this session persistence only exists on the neutron object, it appears we need the Pool neutron object stored in ZK.",
+      "range": {
+        "startLine": 120,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 79
+      },
+      "revId": "a1c96221f9c3f64a8024f9bc839e82db3de11673",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_ccf88d7f",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 1
