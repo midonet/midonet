@@ -140,3 +140,28 @@ Router +--------+ LoadBalancer +-+----------+ Pool +-+
                                    persistence
 
 </pre>
+
+#### Correspondence between models
+
+|Attribute        |Neutron object |MidoNet object       |
+|:----------------|:--------------|:--------------------|
+|admin_state_up   |LoadBalancer   |Router/LoadBalancer  |
+|frontend address |LoadBalancer   |Vip                  |
+|admin_state_up   |Listener       |Vip                  |
+|frontend port    |Listener       |Vip                  |
+|frontend protocol|Listener       |Pool [1]             |
+|admin_state_up   |Pool           |Pool                 |
+|persistence      |Pool           |Vip                  |
+|LB method [2]    |Pool           |Pool                 |
+|backend protocol |Pool           |Pool [1]             |
+|admin_state_up   |Member         |PoolMember           |
+|backend address  |Member         |PoolMember           |
+|backend port     |Member         |PoolMember           |
+|weight           |Member         |PoolMember           |
+|admin_state_up   |HealthMonitor  |HealthMonitor        |
+
+[1]: MidoNet doesn't have a distinction between frontend protocol and
+backend protocol.  In Neutron model, they can differ for TLS termination
+functionality, which MidoNet doesn't support.
+
+[2]: Round-robin etc.
