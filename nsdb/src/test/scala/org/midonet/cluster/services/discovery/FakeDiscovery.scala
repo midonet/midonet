@@ -98,7 +98,7 @@ class FakeDiscovery extends MidonetDiscovery {
         override val observable = updates.asObservable.distinctUntilChanged
 
         // Subscribe to the set managed by FakeDiscovery
-        discoveryUpdates.subscribe(this)
+        private val discoverySubscription = discoveryUpdates.subscribe(this)
 
         /**
           * @return A sequence of all service instances matching the service
@@ -107,7 +107,10 @@ class FakeDiscovery extends MidonetDiscovery {
         override def instances: Seq[S] =
             asMidonetServices(registeredServices)
 
-        override def stop(): Unit = {}
+        /**
+          * Unsubscribe this client from the discovery service.
+          */
+        override def stop(): Unit = discoverySubscription.unsubscribe()
 
         /**
           * Convert a set of (ServiceName, URI) pairs to a sequence of
