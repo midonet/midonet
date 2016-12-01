@@ -31,14 +31,16 @@ object LoadBalancer {
 }
 
 class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
-                   val vips: Array[Vip]) extends VirtualDevice {
+                   val vips: Array[Vip], val pools: Array[Pool]) extends VirtualDevice {
 
     import LoadBalancer._
 
     override val deviceTag = FlowTagger.tagForLoadBalancer(id)
 
-    val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
-    val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)
+    val hasStickySource: Boolean = vips.exists(_.isStickySourceIP) ||
+        pools.exists(_.isStickySourceIP)
+    val hasNonStickySource: Boolean = vips.exists(!_.isStickySourceIP) ||
+        pools.exists(!_.isStickySourceIP)
 
     def processInbound(context: PacketContext)
     : RuleResult = {
@@ -62,7 +64,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                     packetContext.currentDevice = id
 
                     val pool = tryGet(classOf[Pool], vip.poolId)
-                    val result = if (pool.loadBalance(context, vip.isStickySourceIP))
+                    val isStickySourceIp = vip.isStickySourceIP || pool.isStickySourceIP
+                    val result = if (pool.loadBalance(context, isStickySourceIp))
                                      simpleAcceptRuleResult
                                  else
                                      simpleDropRuleResult
@@ -93,8 +96,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         // port, that is, if they are different connections.
         val callerDevice = packetContext.currentDevice
         packetContext.currentDevice = id
-        if (!(hasNonStickyVips && packetContext.reverseDnat()) &&
-            !(hasStickyVips && packetContext.reverseStickyDnat())) {
+        if (!(hasNonStickySource && packetContext.reverseDnat()) &&
+            !(hasStickySource && packetContext.reverseStickyDnat())) {
             packetContext.currentDevice = callerDevice
             return simpleContinueRuleResult
         }

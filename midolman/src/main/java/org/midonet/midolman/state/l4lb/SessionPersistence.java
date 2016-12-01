@@ -22,5 +22,14 @@ import org.midonet.cluster.models.Topology;
 
 @ZoomEnum(clazz = Topology.SessionPersistence.class)
 public enum SessionPersistence {
-    @ZoomEnumValue("SOURCE_IP") SOURCE_IP
+    @ZoomEnumValue("SOURCE_IP") SOURCE_IP;
+
+    public static SessionPersistence fromProto(
+        Topology.SessionPersistence sessionPersistence) {
+        return SessionPersistence.valueOf(sessionPersistence.toString());
+    }
+
+    public Topology.SessionPersistence toProto() {
+        return Topology.SessionPersistence.valueOf(toString());
+    }
 }

@@ -802,6 +802,7 @@ trait TopologyBuilder {
                    adminStateUp: Option[Boolean] = None,
                    protocol: Option[PoolProtocol] = None,
                    lbMethod: Option[PoolLBMethod] = None,
+                   sessionPersistence: Option[SessionPersistence] = None,
                    poolMemberIds: Set[UUID] = Set.empty): Pool = {
         val builder = Pool.newBuilder
             .setId(id.asProto)
@@ -816,6 +817,8 @@ trait TopologyBuilder {
             builder.setAdminStateUp(adminStateUp.get)
         if (protocol.isDefined) builder.setProtocol(protocol.get)
         if (lbMethod.isDefined) builder.setLbMethod(lbMethod.get)
+        if (sessionPersistence.isDefined)
+            builder.setSessionPersistence(sessionPersistence.get)
         builder.build()
     }
 
@@ -1427,6 +1430,8 @@ object TopologyBuilder {
             pool.toBuilder.setProtocol(protocol).build()
         def setLBMethod(lbMethod: PoolLBMethod): Pool =
             pool.toBuilder.setLbMethod(lbMethod).build()
+        def setSessionPersistence(sessionPersistence: SessionPersistence): Pool =
+            pool.toBuilder.setSessionPersistence(sessionPersistence).build()
         def addPoolMember(poolMemberId: UUID) =
             pool.toBuilder.addPoolMemberIds(poolMemberId.asProto).build()
         def addVip(vipId: UUID) =
