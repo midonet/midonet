@@ -27,7 +27,8 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
-import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLb, Pool => TopologyPool, Vip}
+import org.midonet.cluster.models.Topology.SessionPersistence.SOURCE_IP
+import org.midonet.cluster.models.Topology.{Vip, LoadBalancer => TopologyLb, Pool => TopologyPool}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
@@ -96,7 +97,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             device shouldBeDeviceOf lb
         }
 
-        scenario("The mapper emits new dvice on load-balancer update") {
+        scenario("The mapper emits new device on load-balancer update") {
             Given("A load-balancer")
             val lb1 = createLoadBalancer(adminStateUp = Some(true))
             store.create(lb1)
@@ -418,6 +419,100 @@ class LoadBalancerMapperTest extends MidolmanSpec
                 device.vips(index + 100) shouldBeDeviceOf vips2(index)
             }
         }
+
+        scenario("Tracks pools' source persistence (LBV2)") {
+            Given("A load balancer with two pools, each having one VIP and " +
+                  "no source persistence")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool1 = createPool(loadBalancerId = Some(lb.getId))
+            val vip1 = createVip(poolId = Some(pool1.getId),
+                                address = Some("10.0.0.1"),
+                                protocolPort = Some(1))
+
+            val pool2 = createPool(loadBalancerId = Some(lb.getId))
+            val vip2 = createVip(poolId = Some(pool2.getId),
+                                address = Some("10.0.1.1"),
+                                protocolPort = Some(1))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool1), CreateOp(vip1),
+                            CreateOp(pool2), CreateOp(vip2)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to the observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer with only " +
+                 "non-sticky sources")
+            checkStickySource(obs, 1, hasNonStickySource = true,
+                              hasStickySource = false)
+
+            When("One pool's source persistence is set")
+            store.update(pool1.setSessionPersistence(SOURCE_IP)
+                              .addVip(vip1.getId))
+
+            Then("The observer should receive a load-balancer with both " +
+                 "sticky and non-sticky source")
+            checkStickySource(obs, 2, hasNonStickySource = true,
+                              hasStickySource = true)
+
+            When("The other pool's source persistence is set")
+            store.update(pool2.setSessionPersistence(SOURCE_IP)
+                              .addVip(vip2.getId))
+
+            Then("The observer should receive a load-balancer with only " +
+                 "sticky sources")
+            checkStickySource(obs, 3, hasNonStickySource = false,
+                              hasStickySource = true)
+        }
+
+        scenario("Tracks VIPs' source persistence (LBV2)") {
+            Given("A load balancer with a pool with no source persistence, " +
+                  "having two VIPs, each having no source persistence")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool = createPool(loadBalancerId = Some(lb.getId))
+            val vip1 = createVip(poolId = Some(pool.getId),
+                                 address = Some("10.0.0.1"),
+                                 protocolPort = Some(1))
+            val vip2 = createVip(poolId = Some(pool.getId),
+                                 address = Some("10.0.1.1"),
+                                 protocolPort = Some(1))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool),
+                            CreateOp(vip1), CreateOp(vip2)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to the observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer with only " +
+                 "non-sticky sources")
+            checkStickySource(obs, 1, hasNonStickySource = true,
+                              hasStickySource = false)
+
+            When("One VIP's source persistence is set")
+            store.update(vip1.setSessionPersistence(SOURCE_IP))
+
+            Then("The observer should receive a load-balancer with both " +
+                 "sticky and non-sticky source")
+            checkStickySource(obs, 2, hasNonStickySource = true,
+                              hasStickySource = true)
+
+            When("The other pool's source persistence is set")
+            store.update(vip2.setSessionPersistence(SOURCE_IP))
+
+            Then("The observer should receive a load-balancer with only " +
+                 "sticky sources")
+            checkStickySource(obs, 3, hasNonStickySource = false,
+                              hasStickySource = true)
+        }
     }
 
     feature("The mapper emits updates for VIPs") {
@@ -587,5 +682,15 @@ class LoadBalancerMapperTest extends MidolmanSpec
             device shouldBeDeviceOf lb.addPool(pool1.getId)
                 .addPool(pool2.getId)
         }
+    }
+
+    private def checkStickySource(obs: DeviceObserver[SimulationLb],
+                                  eventSeqNum: Int,
+                                  hasNonStickySource: Boolean,
+                                  hasStickySource: Boolean): Unit = {
+        obs.awaitOnNext(eventSeqNum, timeout)
+        val device = obs.getOnNextEvents.get(eventSeqNum - 1)
+        device.hasNonStickySource shouldBe hasNonStickySource
+        device.hasStickySource shouldBe hasStickySource
     }
 }

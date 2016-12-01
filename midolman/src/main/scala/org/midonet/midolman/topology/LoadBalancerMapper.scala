@@ -18,16 +18,15 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import scala.collection.mutable
+import scala.collection._
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ArrayBuffer
 
 import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLb}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.simulation.{LoadBalancer => SimulationLb, Pool => SimulationPool, Vip}
+import org.midonet.midolman.simulation.{Vip, LoadBalancer => SimulationLb, Pool => SimulationPool}
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.util.functors._
 
@@ -125,16 +124,19 @@ final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology)
 
     /** Builds the load-balancer simulation device. */
     private def buildLoadBalancer: SimulationLb = {
-        // Aggregate the load-balancer VIPs in pool order.
-        val vips = new ArrayBuffer[Vip]()
-        for (pool <- poolIds.flatMap(pools.get)) vips ++= pool.device.vips
+        // Aggregate pools that have at least one vip associated
+        val simPools = for {
+            poolId <- poolIds
+            poolState <- pools.get(poolId)
+            pool = poolState.device if !pool.vips.isEmpty
+        } yield pool
 
         new SimulationLb(loadBalancerId,
                          loadBalancer.getAdminStateUp,
                          if (loadBalancer.hasRouterId)
                              loadBalancer.getRouterId.asJava
                          else null,
-                         vips.toArray)
+                         simPools)
     }
 
 }
