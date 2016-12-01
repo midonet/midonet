@@ -29,8 +29,8 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
-import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, Vip => SimVip}
-import org.midonet.midolman.state.l4lb.{HealthMonitorType, LBStatus, SessionPersistence}
+import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, Pool => SimPool, PoolMember => SimPoolMember, Vip => SimVip}
+import org.midonet.midolman.state.l4lb.{HealthMonitorType, LBStatus, PoolLBMethod, SessionPersistence}
 import org.midonet.midolman.topology.devices.{HealthMonitor => SimHealthMonitor, PoolHealthMonitor, PoolHealthMonitorMap}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
@@ -65,7 +65,8 @@ class HealthMonitorConfigWatcherTest
 
     def generateFakeData(poolId: UUID, stateUp: Boolean = true)
     : PoolHealthMonitor = {
-        val hm = new SimHealthMonitor(UUID.randomUUID(),
+        val hmId = UUID.randomUUID()
+        val hm = new SimHealthMonitor(hmId,
                                       adminStateUp = stateUp,
                                       HealthMonitorType.TCP,
                                       LBStatus.ACTIVE,
@@ -80,17 +81,31 @@ class HealthMonitorConfigWatcherTest
                              protocolPort = random.nextInt(65533) + 1,
                              sessionPersistence = SessionPersistence.SOURCE_IP)
 
-        val lb = new SimLoadBalancer(UUID.randomUUID(),
-                                     adminStateUp = stateUp,
-                                     routerId = UUID.randomUUID(),
-                                     Array(vip))
-
         val lbStatus = if (stateUp) LBStatus.ACTIVE else LBStatus.INACTIVE
         val ip = if (stateUp) IPv4Addr.random else null
         val port = if (stateUp) 42 else -1
         val poolMember = new SimPoolMember(id = UUID.randomUUID(),
                                            adminStateUp = stateUp,
-                                           lbStatus, ip, port, weight = 0)
+                                           lbStatus, ip, port, weight = 1)
+
+        val lbId = UUID.randomUUID()
+        val pool = new SimPool(poolId,
+                               adminStateUp = stateUp,
+                               lbMethod = PoolLBMethod.ROUND_ROBIN,
+                               healthMonitorId = hmId,
+                               loadBalancerId = lbId,
+                               sessionPersistence = SessionPersistence.SOURCE_IP,
+                               members = Array(poolMember),
+                               activePoolMembers = Array(poolMember),
+                               disabledPoolMembers = Array.empty,
+                               vips = Array(vip))
+
+        val lb = new SimLoadBalancer(lbId,
+                                     adminStateUp = stateUp,
+                                     routerId = UUID.randomUUID(),
+                                     Array(vip),
+                                     Array(pool))
+
         PoolHealthMonitor(hm, lb, Array(vip), Array[SimPoolMember](poolMember))
     }
 

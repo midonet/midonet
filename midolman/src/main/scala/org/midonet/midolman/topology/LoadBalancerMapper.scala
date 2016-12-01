@@ -27,7 +27,7 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLb}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.simulation.{LoadBalancer => SimulationLb, Pool => SimulationPool, Vip}
+import org.midonet.midolman.simulation.{Vip, LoadBalancer => SimulationLb, Pool => SimulationPool}
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.util.functors._
 
@@ -127,14 +127,19 @@ final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology)
     private def buildLoadBalancer: SimulationLb = {
         // Aggregate the load-balancer VIPs in pool order.
         val vips = new ArrayBuffer[Vip]()
-        for (pool <- poolIds.flatMap(pools.get)) vips ++= pool.device.vips
+        val simPools = new ArrayBuffer[SimulationPool]()
+        for (pool <- poolIds.flatMap(pools.get)) {
+            vips ++= pool.device.vips
+            simPools += pool.device
+        }
 
         new SimulationLb(loadBalancerId,
                          loadBalancer.getAdminStateUp,
                          if (loadBalancer.hasRouterId)
                              loadBalancer.getRouterId.asJava
                          else null,
-                         vips.toArray)
+                         vips.toArray,
+                         simPools.toArray)
     }
 
 }
