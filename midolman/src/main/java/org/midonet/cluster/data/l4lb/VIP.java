@@ -18,7 +18,7 @@ package org.midonet.cluster.data.l4lb;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
-import org.midonet.midolman.state.l4lb.VipSessionPersistence;
+import org.midonet.midolman.state.l4lb.SessionPersistence;
 
 import java.util.UUID;
 
@@ -75,11 +75,11 @@ public class VIP
         return self();
     }
 
-    public VipSessionPersistence getSessionPersistence() {
+    public SessionPersistence getSessionPersistence() {
         return getData().sessionPersistence;
     }
 
-    public VIP setSessionPersistence(VipSessionPersistence sessionPersistence) {
+    public VIP setSessionPersistence(SessionPersistence sessionPersistence) {
         getData().sessionPersistence = sessionPersistence;
         return self();
     }
@@ -103,7 +103,7 @@ public class VIP
         private UUID poolId;
         private String address;
         private int protocolPort;
-        private VipSessionPersistence sessionPersistence;
+        private SessionPersistence sessionPersistence;
         private boolean adminStateUp = true;
 
         @Override
