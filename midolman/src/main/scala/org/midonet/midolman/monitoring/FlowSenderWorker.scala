@@ -161,7 +161,8 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
             case ex: IOException =>
                 // Close channel on IOException
                 close()
-                log.info("Error sending flow record to endpoint", ex)
+                log.info("Error sending flow record to endpoint: {}",
+                         ex.getMessage)
             case NonFatal(e) =>
                 log.info("Unknown error while recording flow record", e)
         }
@@ -230,7 +231,7 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
                         } else
                             None
                     endpointRef.lazySet(chosenEndpoint)
-                    log.debug("New endpoint chosen: {}" + chosenEndpoint)
+                    log.debug("New endpoint chosen: {}", chosenEndpoint)
                 }
             }
         )
@@ -246,7 +247,7 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
             channel.setOption(StandardSocketOptions.SO_KEEPALIVE,
                               true: java.lang.Boolean)
             channel.socket.connect(address, connectionTimeoutMillis)
-            log.debug("FlowRecordSender connected to {}", current)
+            log.debug("Flow record sender connected to {}", current)
         }
     }
 
