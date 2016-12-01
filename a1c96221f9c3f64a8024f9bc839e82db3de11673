@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "7aaa499b_8cf28599",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-01T02:56:13Z",
+      "side": 1,
+      "message": "I thought the listener ID was essentially the VIP, but this appears to be setting up a pool member?",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 54
+      },
+      "revId": "a1c96221f9c3f64a8024f9bc839e82db3de11673",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_ccf88d7f",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 1
