@@ -18,7 +18,7 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.{Objects, UUID}
 
-import akka.actor.ActorSystem
+import scala.collection.breakOut
 
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
@@ -31,14 +31,26 @@ object LoadBalancer {
 }
 
 class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
-                   val vips: Array[Vip]) extends VirtualDevice {
+                   pools: Seq[Pool]) extends VirtualDevice {
 
     import LoadBalancer._
 
     override val deviceTag = FlowTagger.tagForLoadBalancer(id)
 
-    val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
-    val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)
+    val vips: Array[Vip] = pools.flatMap(_.vips)(breakOut)
+
+    // Session persistence should only ever be set on either pools or VIPs,
+    // never both. Ignore VIP settings if we see a pool with sticky source.
+    val (hasStickySource, hasNonStickySource) =
+        if (vips.isEmpty) {
+            (false, false)
+        } else if (pools.exists(_.isStickySourceIP)) {
+            (true, pools.exists(!_.isStickySourceIP))
+        } else if (vips.exists(_.isStickySourceIP)) {
+            (true, vips.exists(!_.isStickySourceIP))
+        } else {
+            (false, true)
+        }
 
     def processInbound(context: PacketContext)
     : RuleResult = {
@@ -62,7 +74,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                     packetContext.currentDevice = id
 
                     val pool = tryGet(classOf[Pool], vip.poolId)
-                    val result = if (pool.loadBalance(context, vip.isStickySourceIP))
+                    val isStickySourceIp = vip.isStickySourceIP || pool.isStickySourceIP
+                    val result = if (pool.loadBalance(context, isStickySourceIp))
                                      simpleAcceptRuleResult
                                  else
                                      simpleDropRuleResult
@@ -93,8 +106,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         // port, that is, if they are different connections.
         val callerDevice = packetContext.currentDevice
         packetContext.currentDevice = id
-        if (!(hasNonStickyVips && packetContext.reverseDnat()) &&
-            !(hasStickyVips && packetContext.reverseStickyDnat())) {
+        if (!(hasNonStickySource && packetContext.reverseDnat()) &&
+            !(hasStickySource && packetContext.reverseStickyDnat())) {
             packetContext.currentDevice = callerDevice
             return simpleContinueRuleResult
         }
@@ -146,20 +159,24 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
     }
 
     override def equals(obj: Any): Boolean = obj match {
-        case loadBalancer: LoadBalancer =>
-            id == loadBalancer.id &&
-            adminStateUp == loadBalancer.adminStateUp &&
-            routerId == loadBalancer.routerId &&
+        case lb: LoadBalancer =>
+            id == lb.id &&
+            adminStateUp == lb.adminStateUp &&
+            routerId == lb.routerId &&
             util.Arrays.equals(vips.asInstanceOf[Array[AnyRef]],
-                               loadBalancer.vips.asInstanceOf[Array[AnyRef]])
+                               lb.vips.asInstanceOf[Array[AnyRef]]) &&
+            hasStickySource == lb.hasStickySource &&
+            hasNonStickySource == lb.hasNonStickySource
 
         case _ => false
     }
 
     override def hashCode: Int =
-        Objects.hashCode(id, adminStateUp, routerId, vips)
+        Objects.hashCode(id, adminStateUp, routerId, vips,
+                         hasStickySource, hasNonStickySource)
 
     override def toString =
         s"LoadBalancer [id=$id adminStateUp=$adminStateUp routerId=$routerId " +
-        s"vips=${vips.toSeq}]"
+        s"vips=${vips.toSeq} hasStickSource=$hasStickySource " +
+        s"hasNonStickySource=$hasNonStickySource]"
 }
