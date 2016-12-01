@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_5dce7b5b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-01T16:37:13Z",
+      "side": 1,
+      "message": "these needs updates.",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 68
+      },
+      "revId": "2c479a11dd4aeb16c635f33242d4e02b40dde646",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_9d9d235c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-01T16:37:13Z",
+      "side": 1,
+      "message": "i was thinking to somehow modify vips\u0027 session persistence around here.\nmaybe your approach is better if we want to remove vip\u0027s one in future.",
+      "revId": "2c479a11dd4aeb16c635f33242d4e02b40dde646",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
