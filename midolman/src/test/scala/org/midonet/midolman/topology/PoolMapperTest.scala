@@ -28,7 +28,7 @@ import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
 import org.midonet.cluster.models.Commons.LBStatus
-import org.midonet.cluster.models.Topology.{Pool => TopologyPool, Vip, PoolMember}
+import org.midonet.cluster.models.Topology.{Pool => TopologyPool, Vip, PoolMember, SessionPersistence}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
@@ -119,6 +119,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val pool2 = pool1
                 .setAdminStateUp(true)
                 .setHealthMonitorId(hm.getId)
+                .setSessionPersistence(SessionPersistence.SOURCE_IP)
             store.update(pool2)
 
             Then("The observer should receive the update")
