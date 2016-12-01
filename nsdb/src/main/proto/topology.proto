@@ -223,9 +223,15 @@ message LoadBalancer {
     optional UUID id = 1;
     optional bool admin_state_up = 2;
 
+    // This is used only to store the vip addresss from a neutron lbaas_v2
+    // LB obejct, so that we can later use it when we create the VIP during
+    // translation of the neutron listener object.
+    optional IPAddress vip_address = 3;
+
     // Backreference
     optional UUID router_id = 101;
     repeated UUID pool_ids = 102;
+
 }
 
 message LoggingResource {
@@ -307,6 +313,14 @@ message Pool {
     optional PoolLBMethod lb_method = 6 [default = ROUND_ROBIN];
     optional LBStatus status = 7 [default = ACTIVE];
     optional PoolHealthMonitorMappingStatus mapping_status = 8;
+
+    // This is used only to store the session persistence information from a
+    // neutron lbaas_v2 ppol obejct, so that we can later use it when we
+    // create the VIP during translation of the neutron listener object.
+    enum SessionPersistence {
+        SOURCE_IP = 1;
+    }
+    optional SessionPersistence session_persistence = 9;
 
     // Backreferences
     repeated UUID pool_member_ids = 101;
