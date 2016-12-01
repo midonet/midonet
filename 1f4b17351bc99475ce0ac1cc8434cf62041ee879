@@ -16,6 +16,75 @@
       "revId": "1f4b17351bc99475ce0ac1cc8434cf62041ee879",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_0c3b15ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-01T04:58:35Z",
+      "side": 1,
+      "message": "is this check necessary?",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 46
+      },
+      "revId": "1f4b17351bc99475ce0ac1cc8434cf62041ee879",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_4c18fd84",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-01T04:58:35Z",
+      "side": 1,
+      "message": "needs an update",
+      "range": {
+        "startLine": 100,
+        "startChar": 47,
+        "endLine": 100,
+        "endChar": 73
+      },
+      "revId": "1f4b17351bc99475ce0ac1cc8434cf62041ee879",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_2c1db173",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-01T04:58:35Z",
+      "side": 1,
+      "message": "why did you separate makeChannel?",
+      "range": {
+        "startLine": 105,
+        "startChar": 39,
+        "endLine": 105,
+        "endChar": 65
+      },
+      "revId": "1f4b17351bc99475ce0ac1cc8434cf62041ee879",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
