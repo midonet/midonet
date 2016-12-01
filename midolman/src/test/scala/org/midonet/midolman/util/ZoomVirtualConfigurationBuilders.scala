@@ -43,7 +43,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
+import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod, SessionPersistence => StateSessionPersistence}
 import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.concurrent._
 
@@ -662,11 +662,13 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
                          id: UUID = UUID.randomUUID,
                          adminStateUp: Boolean = true,
                          lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
+                         sessionPersistence: StateSessionPersistence = null,
                          hmId: UUID = null): UUID = {
         store.create(createPool(id, healthMonitorId=Option(hmId),
                                 loadBalancerId=Some(loadBalancer),
                                 adminStateUp=Some(adminStateUp),
-                                lbMethod=lbMethod))
+                                lbMethod=lbMethod,
+                                sessionPersistence=sessionPersistence))
         id
     }
 
@@ -850,6 +852,14 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
     }
 
     implicit def convertLbMethod(from: PoolLBMethod): Option[Pool.PoolLBMethod] = {
+        if (from == null) {
+            None
+        } else {
+            Some(from.toProto)
+        }
+    }
+
+    implicit def convertSessionPersistence(from: StateSessionPersistence): Option[SessionPersistence] = {
         if (from == null) {
             None
         } else {
