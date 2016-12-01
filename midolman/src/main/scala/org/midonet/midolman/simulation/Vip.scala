@@ -21,7 +21,7 @@ import java.util.{Objects, UUID}
 import org.midonet.cluster.data.{Zoom, ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
-import org.midonet.midolman.state.l4lb.VipSessionPersistence
+import org.midonet.midolman.state.l4lb.SessionPersistence
 import org.midonet.packets.{IPAddr, TCP}
 
 @ZoomClass(clazz = classOf[Topology.Vip])
@@ -37,7 +37,7 @@ final class Vip @Zoom() (
     @ZoomField(name = "protocol_port")
     val protocolPort: Int,
     @ZoomField(name = "session_persistence")
-    val sessionPersistence: VipSessionPersistence) extends ZoomObject {
+    val sessionPersistence: SessionPersistence) extends ZoomObject {
 
     override def equals(obj: Any): Boolean = obj match {
         case vip: Vip =>
@@ -56,7 +56,7 @@ final class Vip @Zoom() (
         s"address=$address port=$protocolPort " +
         s"sessionPersistence=$sessionPersistence]"
 
-    def isStickySourceIP = sessionPersistence == VipSessionPersistence.SOURCE_IP
+    def isStickySourceIP = sessionPersistence == SessionPersistence.SOURCE_IP
 
     def matches(pktContext: PacketContext) = {
         val pktMatch = pktContext.wcmatch

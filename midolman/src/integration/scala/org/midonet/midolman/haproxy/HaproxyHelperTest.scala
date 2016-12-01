@@ -21,7 +21,7 @@ import java.util.UUID
 import scala.sys.process._
 import org.junit.runner.RunWith
 import org.midonet.midolman.l4lb.{HealthMonitorConfig, PoolConfig, PoolMemberConfig, VipConfig}
-import org.midonet.midolman.state.l4lb.VipSessionPersistence
+import org.midonet.midolman.state.l4lb.SessionPersistence
 import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, ShouldMatchers}
@@ -74,7 +74,7 @@ class HaproxyHelperTest extends FeatureSpec
     }
 
     val vipConfig = new VipConfig(true, UUID.randomUUID(), "10.0.0.10", 80,
-                                  VipSessionPersistence.SOURCE_IP)
+                                  SessionPersistence.SOURCE_IP)
     val healthMonitor = new HealthMonitorConfig(true, 10, 20, 30)
     val member1 = new PoolMemberConfig(true, UUID.randomUUID(), 100,
                                        "10.0.0.1", 80)

@@ -25,7 +25,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology.Vip.SessionPersistence
+import org.midonet.cluster.models.Topology.SessionPersistence
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.midolman.simulation.Vip
 import org.midonet.packets.IPv4Addr

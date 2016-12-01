@@ -28,7 +28,7 @@ import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
-import org.midonet.client.dto.l4lb.VipSessionPersistence;
+import org.midonet.client.dto.l4lb.SessionPersistence;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
@@ -172,9 +172,9 @@ public class TestVip {
             verifyNumberOfVips(vipCounter);
 
             // PUT with the populated `sessionPersistence`.
-            newVip2.setSessionPersistence(VipSessionPersistence.SOURCE_IP);
+            newVip2.setSessionPersistence(SessionPersistence.SOURCE_IP);
             newVip2 = updateVip(newVip2);
-            assertEquals(VipSessionPersistence.SOURCE_IP,
+            assertEquals(SessionPersistence.SOURCE_IP,
                     newVip2.getSessionPersistence());
             verifyNumberOfVips(vipCounter);
 
@@ -182,7 +182,7 @@ public class TestVip {
             DtoVip sessionPersistenceVip = getVip(newVip2.getUri());
             sessionPersistenceVip.setId(UUID.randomUUID());
             sessionPersistenceVip.setSessionPersistence(
-                    VipSessionPersistence.SOURCE_IP);
+                SessionPersistence.SOURCE_IP);
             postVip(sessionPersistenceVip);
             vipCounter++;
             verifyNumberOfVips(vipCounter);
