@@ -20,7 +20,7 @@ import java.util
 import java.util.{Objects, UUID}
 
 import org.midonet.midolman.state.NatState.NatKey
-import org.midonet.midolman.state.l4lb.PoolLBMethod
+import org.midonet.midolman.state.l4lb.{PoolLBMethod, SessionPersistence}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.packets.{ICMP, IPAddr}
 import org.midonet.packets.NatState
@@ -45,6 +45,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
                  val lbMethod: PoolLBMethod,
                  val healthMonitorId: UUID,
                  val loadBalancerId: UUID,
+                 val sessionPersistence: SessionPersistence,
                  val members: Array[PoolMember],
                  val activePoolMembers: Array[PoolMember],
                  val disabledPoolMembers: Array[PoolMember],
@@ -184,6 +185,8 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
     private def isDisabledBackend(ip: IPAddr, port: Int) =
         Pool.findPoolMember(ip, port, disabledPoolMembers)
 
+    def isStickySourceIP = sessionPersistence == SessionPersistence.SOURCE_IP
+
     private def deleteNatEntry(context: PacketContext,
                                stickySourceIP: Boolean): Unit = {
         val natKey = NatKey(context.wcmatch,
@@ -196,6 +199,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
     override def toString =
         s"Pool [id=$id adminStateUp=$adminStateUp lbMethod=$lbMethod " +
         s"healtMonitorId=$healthMonitorId loadBalancerId=$loadBalancerId " +
+        s"sessionPersistence=$sessionPersistence " +
         s"activePoolMembers=${activePoolMembers.toSeq} " +
         s"disabledPoolMembers=${disabledPoolMembers.toSeq} " +
         s"vips=${vips.toSeq}}]"
@@ -206,6 +210,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
             lbMethod == pool.lbMethod &&
             healthMonitorId == pool.healthMonitorId &&
             loadBalancerId == pool.loadBalancerId &&
+            sessionPersistence == pool.sessionPersistence &&
             util.Arrays.equals(members.asInstanceOf[Array[AnyRef]],
                                pool.members.asInstanceOf[Array[AnyRef]]) &&
             util.Arrays.equals(activePoolMembers.asInstanceOf[Array[AnyRef]],
@@ -219,6 +224,6 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
 
     override def hashCode =
         Objects.hash(id, Boolean.box(adminStateUp), lbMethod, healthMonitorId,
-                     loadBalancerId, members, activePoolMembers,
-                     disabledPoolMembers, vips)
+                     loadBalancerId, sessionPersistence, members,
+                     activePoolMembers, disabledPoolMembers, vips)
 }
