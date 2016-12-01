@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_0cb6758a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/haproxy/HaproxyHelper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-01T04:25:47Z",
+      "side": 1,
+      "message": "nit: bad alignment",
+      "revId": "1f4b17351bc99475ce0ac1cc8434cf62041ee879",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
