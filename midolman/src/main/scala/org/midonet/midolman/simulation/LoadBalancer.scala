@@ -62,7 +62,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                     packetContext.currentDevice = id
 
                     val pool = tryGet(classOf[Pool], vip.poolId)
-                    val result = if (pool.loadBalance(context, vip.isStickySourceIP))
+                    val isStickySourceIp = vip.isStickySourceIP || pool.isStickySourceIP
+                    val result = if (pool.loadBalance(context, isStickySourceIp))
                                      simpleAcceptRuleResult
                                  else
                                      simpleDropRuleResult

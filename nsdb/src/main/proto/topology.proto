@@ -308,6 +308,14 @@ message Pool {
     optional LBStatus status = 7 [default = ACTIVE];
     optional PoolHealthMonitorMappingStatus mapping_status = 8;
 
+    // Same field exists in VIP.  The field in VIP is there so that it matches
+    // the LBaaS v1 model. This field was added later to match the LBaaS v2
+    // model.  Depending on the version LBaaS version, only one of them would
+    // be set by the C3PO translator.  As far as the simulation is concerned,
+    // there is no distinction, whichever one set is used.  For simplicty's
+    // sake, this field is settable only from the translator, not REST API.
+    optional SessionPersistence session_persistence = 9;
+
     // Backreferences
     repeated UUID pool_member_ids = 101;
     repeated UUID vip_ids = 102;
