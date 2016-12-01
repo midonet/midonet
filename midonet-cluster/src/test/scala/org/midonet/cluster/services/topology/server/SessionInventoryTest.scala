@@ -100,6 +100,7 @@ class SessionInventoryTest extends FeatureSpec
                 .filterNot(_.getSimpleName == "RuleLogger")
                 .filterNot(_.getSimpleName == "Type")
                 .filterNot(_.getSimpleName == "ServiceContainerPolicy")
+                .filterNot(_.getSimpleName == "SessionPersistence")
             val testObjects: Set[Message] = topologyClasses.map(
                 _.getDeclaredMethod("getDefaultInstance")
                     .invoke(null)
