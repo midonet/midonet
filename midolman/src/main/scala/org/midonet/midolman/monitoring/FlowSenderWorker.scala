@@ -230,7 +230,7 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
                         } else
                             None
                     endpointRef.lazySet(chosenEndpoint)
-                    log.debug("New endpoint chosen: {}" + chosenEndpoint)
+                    log.debug("New endpoint chosen: {}", chosenEndpoint)
                 }
             }
         )
@@ -246,7 +246,7 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
             channel.setOption(StandardSocketOptions.SO_KEEPALIVE,
                               true: java.lang.Boolean)
             channel.socket.connect(address, connectionTimeoutMillis)
-            log.debug("FlowRecordSender connected to {}", current)
+            log.debug("Flow record sender connected to {}", current)
         }
     }
 
