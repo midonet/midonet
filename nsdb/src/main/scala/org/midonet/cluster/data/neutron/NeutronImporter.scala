@@ -75,7 +75,9 @@ object NeutronResourceType extends Enumeration {
     val GatewayDevice = NeutronResourceType("GATEWAYDEVICE",
                                             classOf[Neutron.GatewayDevice])
     val HealthMonitor = NeutronResourceType(
-            "HEALTHMONITOR", classOf[Neutron.NeutronHealthMonitor])
+        "HEALTHMONITOR", classOf[Neutron.NeutronHealthMonitor])
+    val HealthMonitorV2 = NeutronResourceType(
+        "HEALTHMONITORV2", classOf[Neutron.NeutronHealthMonitorV2])
     val IPSecSiteConnection =
         NeutronResourceType("IPSECSITECON", classOf[IPSecSiteConnection])
     val L2GatewayConnection = NeutronResourceType("L2GATEWAYCONNECTION",
@@ -116,6 +118,7 @@ object NeutronResourceType extends Enumeration {
         FloatingIp.id -> FloatingIp,
         GatewayDevice.id -> GatewayDevice,
         HealthMonitor.id -> HealthMonitor,
+        HealthMonitorV2.id -> HealthMonitorV2,
         IPSecSiteConnection.id -> IPSecSiteConnection,
         L2GatewayConnection.id -> L2GatewayConnection,
         LoadBalancerV2.id -> LoadBalancerV2,
