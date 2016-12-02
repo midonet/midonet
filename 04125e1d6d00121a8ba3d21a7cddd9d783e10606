@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_202ca4aa",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-02T04:22:57Z",
+      "side": 1,
+      "message": "It\u0027s not really necessary to do the exists() check. If get() fails with a NotFoundException, that makes it pretty obvious that it doesn\u0027t exist.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 65
+      },
+      "revId": "04125e1d6d00121a8ba3d21a7cddd9d783e10606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_e01c7c79",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-02T04:22:57Z",
+      "side": 1,
+      "message": "Doesn\u0027t really matter, but this would look (sound?) better if you used \"an\" instead of \"a\".",
+      "range": {
+        "startLine": 104,
+        "startChar": 8,
+        "endLine": 104,
+        "endChar": 9
+      },
+      "revId": "04125e1d6d00121a8ba3d21a7cddd9d783e10606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_c011805f",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-02T04:22:57Z",
+      "side": 1,
+      "message": "Spaces around \"\u003d\"",
+      "range": {
+        "startLine": 116,
+        "startChar": 72,
+        "endLine": 116,
+        "endChar": 73
+      },
+      "revId": "04125e1d6d00121a8ba3d21a7cddd9d783e10606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
