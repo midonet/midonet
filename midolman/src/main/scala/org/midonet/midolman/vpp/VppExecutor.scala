@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutorService
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 
-import com.google.common.util.concurrent.AbstractService
+import com.google.common.util.concurrent.{AbstractService, Service}
 
 import org.midonet.midolman.vpp.VppExecutor.Receive
 import org.midonet.util.concurrent.{ConveyorBelt, Executors}
@@ -70,7 +70,9 @@ abstract class VppExecutor extends AbstractService with Logging {
       * be processed until the future returned by a previous one has completed.
       */
     protected def send(message: Any): Future[Any] = {
-        if (!isRunning) {
+        val currentState = state()
+        if (currentState != Service.State.STARTING &&
+            currentState != Service.State.RUNNING) {
             return Future.failed(new IllegalStateException("Service not started"))
         }
         val promise = Promise[Any]

@@ -19,12 +19,6 @@ package org.midonet.midolman.vpp
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.duration._
-
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import akka.pattern.gracefulStop
-import akka.testkit.TestActorRef
-
 import com.codahale.metrics.MetricRegistry
 import com.typesafe.scalalogging.Logger
 
@@ -32,7 +26,6 @@ import org.junit.Assert
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.reflections.Reflections
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
@@ -43,17 +36,13 @@ import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.conf.HostIdGenerator
-import org.midonet.midolman.{DatapathState, SimulationBackChannel}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
-import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
-import org.midonet.odp.Datapath
-import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
-import org.midonet.packets.{IPv6Addr, IPv6Subnet}
-import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.midolman.util.TestDatapathState
+import org.midonet.midolman.{DatapathState, SimulationBackChannel}
+import org.midonet.packets.IPv6Subnet
+import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class VppControllerIntegrationTest extends FeatureSpec with Matchers
@@ -61,16 +50,15 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
                                            with TopologyBuilder
                                            with OvsDatapathHelper {
 
-    private implicit var as: ActorSystem = _
     private var config: MidolmanConfig = _
     private var backend: MidonetBackend = _
     private var metricRegistry: MetricRegistry = _
-    private var dpConnManager: UpcallDatapathConnectionManager = _
     private var dpState: DatapathState = _
     private var vt: VirtualTopology = _
     private var vtpm: VirtualToPhysicalMapper = _
-    private var log = Logger(LoggerFactory.getLogger(classOf[VppControllerIntegrationTest]))
+    private val log = Logger(LoggerFactory.getLogger(getClass))
     private val uplinkDevice = "vpp_uplink_dev"
+    private val hostId = HostIdGenerator.getHostId
 
     class VppTestDatapathState extends TestDatapathState {
 
@@ -79,16 +67,23 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
         private val ovs = new VppOvs(datapath)
         private val dpPort = ovs.createDpPort(uplinkDevice)
 
-        override def getDpPortNumberForVport(vportId: UUID): Integer = dpPort.getPortNo
+        override def getDpPortNumberForVport(vportId: UUID): Integer =
+            dpPort.getPortNo
+    }
+
+    class TestableVppController(datapathState: DatapathState,
+                                vt: VirtualTopology)
+        extends VppController(hostId, datapathState,
+                              new VppOvs(datapathState.datapath), vt) {
+
+        def ! (message: Any) = send(message)
     }
 
     before {
         killVpp()
-        as = ActorSystem.create()
         config = MidolmanConfig.forTests
         backend = new MidonetTestBackend(curatorParam = null)
         metricRegistry = new MetricRegistry
-        dpConnManager = new MockUpcallDatapathConnectionManager(config)
         log info s"Creating test device $uplinkDevice"
         cmd(s"sudo ip link add name $uplinkDevice type dummy", 1)
         cmd(s"sudo ip l set up dev $uplinkDevice")
@@ -101,7 +96,6 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
 
     after {
         log info "Post test clean up"
-        as.shutdown()
         backend.stopAsync().awaitTerminated()
         deleteDatapath(dpState.datapath, log)
         cmd(s"sudo ip link del $uplinkDevice", 1)
@@ -123,12 +117,8 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
                                     HostIdGenerator.getHostId)
     }
 
-    private def createVppContoller(): (Actor, ActorRef) = {
-        val ref = TestActorRef[VppController](
-            Props(new VppController(dpConnManager, dpState, vt)).
-                withDispatcher("akka.test.calling-thread-dispatcher"),
-                "TestVppController")
-        (ref.underlyingActor, ref)
+    private def createVppContoller(): TestableVppController = {
+        new TestableVppController(dpState, vt)
     }
 
     def cmd(line: String, wait_timeout: Int = 24 * 3600): Int = {
@@ -153,7 +143,8 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
     feature("VPP controller handles uplink ports") {
         scenario("VPP controller launches VPP process") {
             Given("A VPP controller")
-            val (vpp, ref) = createVppContoller()
+            val vpp = createVppContoller()
+            vpp.startAsync().awaitRunning()
 
             And("A router port")
             val routerId = UUID.randomUUID
@@ -165,17 +156,20 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
             backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Notifying an uplink port")
-            ref ! LocalPortActive(port.getId, 0, true)
+            (vpp ! LocalPortActive(port.getId, 0, active = true)).await()
+
             Then("Veth-pair interfaces are created")
-            eventually {
-                val portPrefix = edgeRouterPortId.toString.substring(0, 8)
-                val ovsEnd = "ovs-" + portPrefix
-                val vppEnd = "vpp-" + portPrefix
-                assertCmd(s"ifconfig $ovsEnd", wait_timeout = 1)
-                assertCmd(s"ifconfig $vppEnd", wait_timeout = 1)
-            }
-            ref ! LocalPortActive(port.getId, 0, false)
-            Thread.sleep(1000)
+            val portPrefix = edgeRouterPortId.toString.substring(0, 8)
+            val ovsEnd = "ovs-" + portPrefix
+            val vppEnd = "vpp-" + portPrefix
+            assertCmd(s"ifconfig $ovsEnd", wait_timeout = 1)
+            assertCmd(s"ifconfig $vppEnd", wait_timeout = 1)
+            // TODO: We should be able to wait for the next message to complete
+            // TODO: execution. However, we cannot do so now due to a bug in the
+            // TODO: VPP controller, where the rollback fails.
+            vpp ! LocalPortActive(port.getId, 0, active = false)
+
+            vpp.stopAsync().awaitTerminated()
         }
     }
 }

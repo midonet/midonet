@@ -43,7 +43,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.scanner.{DefaultInterfaceScanner, InterfaceScanner}
-import org.midonet.midolman.host.services.{HostService, TcRequestHandler, QosService}
+import org.midonet.midolman.host.services.{HostService, QosService, TcRequestHandler}
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.rule.{DisruptorRuleLogEventChannel, RuleLogEventChannel}
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
@@ -54,6 +54,7 @@ import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
+import org.midonet.midolman.vpp.{VppController, VppOvs}
 import org.midonet.netlink.{NetlinkChannelFactory, NetlinkProtocol, NetlinkUtil}
 import org.midonet.odp.OvsNetlinkFamilies
 import org.midonet.util._
@@ -170,6 +171,7 @@ class MidolmanModule(injector: Injector,
         bind(classOf[DatapathInterface]).toInstance(
             datapathInterface(scanner, dpState, dpConnectionManager))
 
+        bind(classOf[VppController]).toInstance(vppController(host, dpState, vt))
 
         bind(classOf[MidolmanService]).asEagerSingleton()
     }
@@ -445,6 +447,12 @@ class MidolmanModule(injector: Injector,
             vt,
             reflections,
             hostId)
+
+    protected def vppController(hostId: UUID,
+                                datapathState: DatapathState,
+                                vt: VirtualTopology): VppController =
+        new VppController(hostId, datapathState,
+                          new VppOvs(datapathState.datapath), vt)
 
     protected def crashStrategy(): SupervisorStrategy =
         new OneForOneStrategy()({ case t =>

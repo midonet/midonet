@@ -39,7 +39,6 @@ import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService._
-import org.midonet.midolman.vpp.VppController
 
 object MidolmanActorsService {
 
@@ -78,8 +77,7 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[NetlinkCallbackDispatcher]),
                 NetlinkCallbackDispatcher.Name),
             (propsFor(classOf[DatapathController]), DatapathController.Name),
-            (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name),
-            (propsFor(classOf[VppController]), VppController.Name))
+            (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name))
         if (config.healthMonitor.enable)
             actors += (
                 (propsFor(classOf[HealthMonitor])
