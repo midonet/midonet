@@ -26,7 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{LoadBalancerV2 => LoadBalancerV2Type}
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException}
-import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.Topology.{ServiceContainer => SC, ServiceContainerGroup => SCG, _}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.toFutureOps
 
@@ -75,10 +75,32 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         val vipPeerPort = storage.get(classOf[Port], vipPeerPortId).await()
         vipPeerPort.getPeerId shouldBe toProto(vipPortId)
 
+        val lbSCId = lbServiceContainerId(routerId)
+        val lbSCGId = lbServiceContainerGroupId(routerId)
+        val lbSCPId = lbServiceContainerPortId(routerId)
+
+        storage.exists(classOf[SC], lbSCId).await() shouldBe true
+        val sc = storage.get(classOf[SC], lbSCId).await()
+        sc.getPortId shouldBe toProto(lbSCPId)
+        sc.getConfigurationId shouldBe toProto(lb.getId)
+        sc.getServiceGroupId shouldBe toProto(lbSCGId)
+
+        storage.exists(classOf[SCG], lbSCGId).await() shouldBe true
+        val scg = storage.get(classOf[SCG], lbSCGId).await()
+        scg.getServiceContainerIdsCount shouldBe 1
+        scg.getServiceContainerIdsList.get(0) shouldBe lbSCId
+
+        storage.exists(classOf[Port], lbSCPId).await() shouldBe true
+        val scp = storage.get(classOf[Port], lbSCPId).await()
+        scp.getRouterId shouldBe routerId
+
         insertDeleteTask(50, LoadBalancerV2Type, lbId)
         storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
         storage.exists(classOf[Router], routerId).await() shouldBe false
         storage.exists(classOf[Port], vipPeerPortId).await() shouldBe false
+        storage.exists(classOf[SC], lbSCId).await() shouldBe false
+        storage.exists(classOf[SCG], lbSCGId).await() shouldBe false
+        storage.exists(classOf[Port], lbSCPId).await() shouldBe false
     }
 
     "Creation of LB without VIP port" should
