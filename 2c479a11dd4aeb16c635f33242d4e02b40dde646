@@ -81,6 +81,24 @@
       "revId": "2c479a11dd4aeb16c635f33242d4e02b40dde646",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_60d86cf0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-02T01:39:16Z",
+      "side": 1,
+      "message": "If we will end up just modifying the VIP\u0027s session persistence based off the pool\u0027s session persistence anyway, then why not just do it in the translations, rather than complicating the simulation?  It seems simpler, if we were going to treat the Vip object as the source of all infmormation anyway.\n\nIn that vein, I feel Ryu\u0027s change to actually look at both values (priority on pool, fallback to VIP if pool isn\u0027t set) is more useful, because it is one step forward to obsolescing the old V1 model and removing VIP completely when we migrate to V2 model.",
+      "parentUuid": "5aa745d1_9d9d235c",
+      "revId": "2c479a11dd4aeb16c635f33242d4e02b40dde646",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
