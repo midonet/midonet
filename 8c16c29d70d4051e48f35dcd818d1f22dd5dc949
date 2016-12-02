@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5aa745d1_431a1a19",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/l4lb/SessionPersistence.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-02T08:38:29Z",
+      "side": 1,
+      "message": "Why is this necessary now, but not before?",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 5
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_c03aa0e7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
         "patchSetId": 8
@@ -41,6 +64,98 @@
         "startChar": 17,
         "endLine": 151,
         "endChar": 23
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_e3a5a6b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-02T08:38:29Z",
+      "side": 1,
+      "message": "This can be val, right?",
+      "range": {
+        "startLine": 188,
+        "startChar": 4,
+        "endLine": 188,
+        "endChar": 7
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_8395c241",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-02T08:38:29Z",
+      "side": 1,
+      "message": "Do we expect pools not to have entries for some of the UUIDs in poolIds? If not, this can just be poolIds.map(pools).\n\nOr maybe I would do something like this:\n\n  val simPools: Array[SimulationPool] \u003d\n      poolIds.map(id \u003d\u003e pools(id).device)(breakOut)\n  // or poolIds.flatmap(id \u003d\u003e pools.get(id).map(_.device)), if there\u0027s a chance the map won\u0027t have some of them.\n  val vips: Array[Vip] \u003d simPools.flatMap(_.vips)(breakOut)",
+      "range": {
+        "startLine": 131,
+        "startChar": 21,
+        "endLine": 131,
+        "endChar": 47
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_a3b43ed1",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 821,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-02T08:38:29Z",
+      "side": 1,
+      "message": "I guess it doesn\u0027t matter, since the rest of the file does it this way, but the idiomatic way is:\n\n  sessionPersistence.foreach(builder.setSessionPersistence)",
+      "range": {
+        "startLine": 820,
+        "startChar": 0,
+        "endLine": 821,
+        "endChar": 65
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_03dd3214",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 867,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-02T08:38:29Z",
+      "side": 1,
+      "message": "Option(from).map(_.toProto)\n\nOption(from) returns None if from is null, otherwise Some(from). Map(_.toProto) then maps Some(from) to Some(from.toProto) or None to None.",
+      "range": {
+        "startLine": 863,
+        "startChar": 0,
+        "endLine": 867,
+        "endChar": 9
       },
       "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
