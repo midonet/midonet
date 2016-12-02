@@ -130,65 +130,6 @@ class ProcMon(ISelectLoopObserver):
         self.running = True
         self.dump_path = dump_path
 
-    def dump_core(self, pid, pgid):
-        try:
-            if self.dump_path is None:
-                return
-
-            dumps = self.list_dumps()
-            if len(dumps) >= 10:
-                err('SKIPPING MEMORY DUMP, there are already %d dumps in %s' %
-                    (len(dumps), self.dump_path))
-                return
-
-            if self.youngest_dump_age() < 3600:
-                err('SKIPPING MEMORY DUMP, a core was already dumped less than one hour ago')
-                return
-
-            filename = "%s/midolman_%s_%d.core" % (self.dump_path,
-                                                   corefile_timestamp(), pid)
-            core_pattern = open("/proc/sys/kernel/core_pattern").read().strip()
-            core_file = None
-            if core_pattern.startswith("/"):
-                core_file = "%s.%d" % (core_pattern, pid)
-            else:
-                core_file = os.path.join(os.getcwd(), "%s.%d" % (core_pattern, pid))
-
-            err("Dumping core (goes to %s)" % core_file)
-            os.killpg(pgid, signal.SIGABRT)
-
-            # wait for process to exit.
-            # when it exits, os.killpg(pgid, 0) will throw, breaking the loop
-            try:
-                ticks = 100  # each tick is 0.1 second, so 10 seconds in total
-                while ticks > 0:
-                    os.killpg(pgid, 0)
-                    time.sleep(0.1)
-                    ticks -= 1
-            except OSError:
-                pass
-            if os.path.exists(core_file):
-                err("Core dumped into %s, moving to %s" % (core_file, filename))
-                os.rename(core_file, filename)
-            else:
-                err("Core not dumped, process may have exited too soon")
-        except Exception as e:
-            err(e.message)
-            pass
-
-    def list_dumps(self):
-        files = []
-        for (dirpath, dirnames, filenames) in os.walk(self.dump_path):
-            files.extend(filenames)
-            break
-        return filter(lambda f: f.endswith(".core"), files)
-
-    def youngest_dump_age(self):
-        dumps = map(lambda f: os.path.getmtime("%s/%s" % (self.dump_path, f)), self.list_dumps())
-        most_recent = reduce(lambda l,r: l if l > r else r, dumps, 0)
-        current_time = time.mktime(time.localtime())
-        return int(current_time) - int(most_recent)
-
     def run(self):
         self.select_loop = SelectLoop(self)
         try:
@@ -204,7 +145,6 @@ class ProcMon(ISelectLoopObserver):
                     err('Child is unresponsive, killing child processes (pid:%d pgid:%d)' % (
                         self.child_pid, pgid))
                     os.killpg(pgid, signal.SIGQUIT)
-                    self.dump_core(pid, pgid)
                     os.killpg(pgid, signal.SIGKILL)
                     killed = True
         finally:
@@ -250,7 +190,6 @@ class ProcMon(ISelectLoopObserver):
             pgid = os.getpgid(pid)
             msg('Received SIGQUIT, dumping core and delivering signal (pid:%d pgid:%d)' % (
                 pid, pgid))
-            self.dump_core(pid, pgid)
             os.killpg(pgid, signal.SIGQUIT)
 
     def on_sigterm(self):
