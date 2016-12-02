@@ -16,6 +16,52 @@
       "revId": "f0d61c019427e7c0d78e3c301705ee81617b4ce0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_605bcc55",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-02T03:41:39Z",
+      "side": 1,
+      "message": "this change is meant to fix inter-test dependencies?",
+      "range": {
+        "startLine": 47,
+        "startChar": 16,
+        "endLine": 47,
+        "endChar": 29
+      },
+      "revId": "f0d61c019427e7c0d78e3c301705ee81617b4ce0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_a048b488",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-02T03:41:39Z",
+      "side": 1,
+      "message": "looks redundant",
+      "range": {
+        "startLine": 65,
+        "startChar": 62,
+        "endLine": 67,
+        "endChar": 65
+      },
+      "revId": "f0d61c019427e7c0d78e3c301705ee81617b4ce0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
