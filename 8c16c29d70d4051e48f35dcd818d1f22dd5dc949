@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_c03aa0e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-02T04:28:02Z",
+      "side": 1,
+      "message": "does this need to be a val?",
+      "range": {
+        "startLine": 34,
+        "startChar": 41,
+        "endLine": 34,
+        "endChar": 45
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_402fb0a1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-02T04:28:02Z",
+      "side": 1,
+      "message": "this needs to be tweaked to check hasStickySource/hasNonStickySource.\n\n(or pools, but it might end up with more flow invalidations)",
+      "range": {
+        "startLine": 151,
+        "startChar": 17,
+        "endLine": 151,
+        "endChar": 23
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_e0359cf7",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-02T04:28:02Z",
+      "side": 1,
+      "message": "for now?\n\nfor longer term, we want to provide REST API, and make this the primary way to configure session persistence, right?",
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
