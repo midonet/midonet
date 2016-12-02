@@ -24,8 +24,6 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.control.NonFatal
 
-import akka.actor.Actor
-
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
@@ -364,7 +362,7 @@ object VppDownlink {
   * actor, where the actor will act upon them, including serializing their tasks
   * using the conveyor belt and performing I/O operations.
   */
-private[vpp] trait VppDownlink { this: Actor =>
+private[vpp] trait VppDownlink { this: VppExecutor =>
 
     protected def vt: VirtualTopology
 
@@ -405,10 +403,9 @@ private[vpp] trait VppDownlink { this: Actor =>
     }
     private var tableSubscription: Subscription = _
 
-    private val fip64Table = vt.backend.stateTableStore
-        .getTable[Fip64Entry, AnyRef](MidonetBackend.Fip64Table)
-
     private val startRunnable = makeRunnable {
+        val fip64Table = vt.backend.stateTableStore
+            .getTable[Fip64Entry, AnyRef](MidonetBackend.Fip64Table)
         if (tableSubscription ne null) {
             tableSubscription.unsubscribe()
         }
@@ -423,7 +420,7 @@ private[vpp] trait VppDownlink { this: Actor =>
     private def downlinkObserver(portId: UUID) = new Observer[Notification] {
         override def onNext(notification: Notification): Unit = {
             log.debug(s"Downlink port $portId notification: $notification")
-            self ! notification
+            send(notification)
         }
 
         override def onCompleted(): Unit = {
