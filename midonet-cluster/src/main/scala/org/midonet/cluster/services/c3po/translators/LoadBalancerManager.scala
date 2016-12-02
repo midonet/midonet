@@ -34,4 +34,13 @@ trait LoadBalancerManager {
       * V1 LBs, to prevent nasty conflicts. */
     protected def lbV2RouterId(lbId: UUID) =
         lbId.xorWith(0xed1225ed739945eaL, 0x8fd972a26f18632fL)
+
+    protected def lbServiceContainerId(routerId: UUID) =
+        routerId.xorWith(0xad1e25ee739d05eaL, 0x0ed972b36e19612fL)
+
+    protected def lbServiceContainerGroupId(routerId: UUID): UUID =
+        routerId.xorWith(0x7d263d2d55da46d2L, 0xaad282b46129613fL)
+
+    protected def lbServiceContainerPortId(routerId: UUID): UUID =
+        routerId.xorWith(0x1da81cddca3b9ff8L, 0xd966a652de3c9ccaL)
 }

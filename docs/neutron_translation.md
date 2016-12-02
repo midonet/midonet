@@ -976,6 +976,11 @@ set to the VIP port ID given in the neutron load balancer v2 object
 (which is also equal to the MidoNet port object ID which was created
 during the VIP port's translation).
 
+Create a ServiceContainer and associated ServiceContainerGroup that will be
+used in the haproxy instance created for managing the health checks of the
+pools on this load balancer. Create a Port on the MidoNet Router created that
+will be used by the associated service container.
+
 The new MidoNet router will have the following fields set:
 
  * Derivation function on LB object's id => id
