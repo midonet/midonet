@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_23eeeeec",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-02T08:16:02Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "5aa745d1_a3ce7eb2",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 8
+      },
+      "revId": "0f244fb9ed8d30758b5182e23d3979d4e1bc859e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_23bb8e10",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2Translator.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-12-02T07:16:37Z",
       "side": 1,
       "message": "I\u0027ve been using a pattern like this, which avoids accidentally overwriting some field we don\u0027t want to overwrite:\n\n  val bldr \u003d tx.get(classOf[HealthMonitor], nHm.getId)\n  bldr.setAdminStateUp(nHm.getAdminStateUp)\n  bldr.setDelay(nHm.getDelay)\n  // ...Do the same for all other updateable fields...\n  tx.update(bldr.build())\n\nThis seems to be functionally equivalent in this particular case, but IMO this approach is safer.",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 33
+      },
+      "revId": "0f244fb9ed8d30758b5182e23d3979d4e1bc859e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_03bad2e1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-02T08:16:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_23bb8e10",
       "range": {
         "startLine": 50,
         "startChar": 8,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_e3bec6d3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-02T08:16:02Z",
+      "side": 1,
+      "message": "We don\u0027t use the status field, so the default is fine.",
+      "parentUuid": "5aa745d1_033772b1",
+      "revId": "0f244fb9ed8d30758b5182e23d3979d4e1bc859e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_83c4a292",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2Translator.scala",
         "patchSetId": 1
@@ -76,6 +142,30 @@
       "writtenOn": "2016-12-02T07:16:37Z",
       "side": 1,
       "message": "I think hm.addAllPoolIds(nHm.getPoolsList) does this.",
+      "range": {
+        "startLine": 61,
+        "startChar": 8,
+        "endLine": 61,
+        "endChar": 54
+      },
+      "revId": "0f244fb9ed8d30758b5182e23d3979d4e1bc859e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_c3b3ca09",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-02T08:16:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_83c4a292",
       "range": {
         "startLine": 61,
         "startChar": 8,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_239cae68",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2IT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-02T08:16:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_834b822b",
+      "range": {
+        "startLine": 80,
+        "startChar": 8,
+        "endLine": 80,
+        "endChar": 74
+      },
+      "revId": "0f244fb9ed8d30758b5182e23d3979d4e1bc859e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_43557ac4",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2IT.scala",
         "patchSetId": 1
@@ -122,6 +236,30 @@
       "writtenOn": "2016-12-02T07:16:37Z",
       "side": 1,
       "message": "You always do this just before you call verifyHealthMonitor(), so why not move it to the beginning of that function?",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 66
+      },
+      "revId": "0f244fb9ed8d30758b5182e23d3979d4e1bc859e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_03889221",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2IT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-02T08:16:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_43557ac4",
       "range": {
         "startLine": 81,
         "startChar": 8,
