@@ -18,13 +18,10 @@ package org.midonet.midolman.vpp
 
 import java.util
 import java.util.UUID
+import java.util.concurrent.ExecutorService
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration._
-
-import akka.actor.{Actor, ActorRef, Props}
-import akka.pattern.gracefulStop
-import akka.testkit.TestActorRef
+import scala.concurrent.Future
 
 import org.apache.zookeeper.Op
 import org.junit.runner.RunWith
@@ -43,9 +40,10 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.vpp.VppDownlink._
+import org.midonet.midolman.vpp.VppExecutor.Receive
 import org.midonet.packets.{IPv4Addr, IPv6Addr, IPv6Subnet, MAC}
+import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
@@ -57,30 +55,37 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
     private var table: StateTable[Fip64Entry, AnyRef] = _
     private val downlinkMac = MAC.random()
 
-    private class TestableVppDownlink extends Actor with VppDownlink {
+    private class TestableVppDownlink extends VppExecutor with VppDownlink {
         override def vt = VppDownlinkTest.this.vt
         override val log = Logger(LoggerFactory.getLogger("vpp-downlink"))
+        var messages = List[Any]()
+
+        protected override def newExecutor: ExecutorService = {
+            new SameThreadButAfterExecutorService
+        }
 
         override def receive: Receive = {
-            case m => log debug s"Received message $m"
+            case m =>
+                log debug s"Received message $m"
+                messages = messages :+ m
+                Future.successful(Unit)
         }
 
         def start(): Unit = startDownlink()
 
         def stop(): Unit = stopDownlink()
 
-        override def preStart(): Unit = {
-            super.preStart()
+        override def doStart(): Unit = {
             startDownlink()
+            notifyStarted()
         }
 
-        override def postStop(): Unit = {
+        override def doStop(): Unit = {
             stopDownlink()
-            super.postStop()
+            super.doStop()
+            notifyStopped()
         }
     }
-
-    private type TestableVppDownlinkActor = TestableVppDownlink with MessageAccumulator
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
@@ -89,11 +94,10 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             .getTable[Fip64Entry, AnyRef](MidonetBackend.Fip64Table)
     }
 
-    private def createVppDownlink(): (TestableVppDownlinkActor, ActorRef) = {
-        val ref = TestActorRef[TestableVppDownlinkActor](
-            Props(new TestableVppDownlink with MessageAccumulator))
-        val actor = ref.underlyingActor
-        (actor, ref)
+    private def createVppDownlink(): TestableVppDownlink = {
+        val vppDownlink = new TestableVppDownlink
+        vppDownlink.startAsync().awaitRunning()
+        vppDownlink
     }
 
     private def addEntry(portId: UUID, routerId: UUID,
@@ -147,7 +151,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
     feature("VPP downlink handles downlink updates") {
         scenario("Port without NAT64 created after actor started") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -159,13 +163,11 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive any notification")
             actor.messages shouldBe empty
-
-            gracefulStop(ref, 5 seconds)
         }
 
         scenario("Port with NAT64 create after actor started") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val downlinkMac = MAC.random()
@@ -187,13 +189,11 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             actor.messages.head shouldBe createTunnel(port, rule, 1, 1234,
                                                       downlinkMac)
             actor.messages(1) shouldBe associateFip(port, rule, entry, 1)
-
-            gracefulStop(ref, 5 seconds)
         }
 
         scenario("Port does not exist") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             When("Adding a non-existing port to the downlink table")
             val portId = UUID.randomUUID()
@@ -205,7 +205,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
         scenario("Port deleted for existing downlink") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -231,7 +231,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
         scenario("Port deleted for non-existing downlink") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -250,7 +250,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
         scenario("Multiple downlinks use different VRF numbers") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val downlinkMac1 = MAC.random()
@@ -314,13 +314,11 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             actor.messages(6) shouldBe createTunnel(port3, rule3, 1, 1236,
                                                     downlinkMac3)
             actor.messages(7) shouldBe associateFip(port3, rule3, entry3, 1)
-
-            gracefulStop(ref, 5 seconds)
         }
 
         scenario("Downlink deleted when last FIP removed") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -346,7 +344,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
         scenario("Deleted downlink frees VRF numbers") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -374,13 +372,11 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             actor.messages(4) shouldBe createTunnel(port, rule, 1, 1234,
                                                     downlinkMac)
             actor.messages(5) shouldBe associateFip(port, rule, entry, 1)
-
-            gracefulStop(ref, 5 seconds)
         }
 
         scenario("Port updates are filtered") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -403,15 +399,13 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should only receive two notifications")
             actor.messages should have size 2
-
-            gracefulStop(ref, 5 seconds)
         }
     }
 
     feature("VPP downlink handles rule updates") {
         scenario("NAT64 rule added to port") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val downlinkMac = MAC.random()
@@ -438,13 +432,11 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             actor.messages.head shouldBe createTunnel(port, rule, 1, 1234,
                                                       downlinkMac)
             actor.messages(1) shouldBe associateFip(port, rule, entry, 1)
-
-            gracefulStop(ref, 5 seconds)
         }
 
         scenario("NAT64 rule removed from port") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -463,13 +455,11 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive additional notifications")
             actor.messages should have size 2
-
-            gracefulStop(ref, 5 seconds)
         }
 
         scenario("NAT64 rule updated without port address changed") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -493,13 +483,11 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive an Update notification")
             actor.messages should have size 2
-
-            gracefulStop(ref, 5 seconds)
         }
 
         scenario("Multiple NAT64 rules are ignored") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -521,13 +509,11 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive additional notifications")
             actor.messages should have size 2
-
-            gracefulStop(ref, 5 seconds)
         }
 
         scenario("Any other rules are ignored") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -551,15 +537,13 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The actor should not receive additional notifications")
             actor.messages should have size 2
-
-            gracefulStop(ref, 5 seconds)
         }
     }
 
     feature("VPP downlink handles FIP updates") {
         scenario("Adding and removing FIP64 entries") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -599,7 +583,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
         scenario("All FIP entries are cleared when port deleted") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -636,7 +620,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
     feature("VPP downlink handles table completion") {
         scenario("The table is deleted") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -673,7 +657,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
     feature("VPP downlink lifecycle") {
         scenario("Messages are not received after stop") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -696,7 +680,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
         scenario("Messages are received after restart") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val downlinkMac = MAC.random()
@@ -724,13 +708,11 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             actor.messages.head shouldBe createTunnel(port, rule, 1, 1234,
                                                       downlinkMac)
             actor.messages(1) shouldBe associateFip(port, rule, entry, 1)
-
-            gracefulStop(ref, 5 seconds)
         }
 
         scenario("State is cleaned at stop") {
             Given("A VPP downlink actor")
-            val (actor, ref) = createVppDownlink()
+            val actor = createVppDownlink()
 
             And("A port")
             val router = createRouter()
@@ -771,8 +753,6 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             actor.messages(4) shouldBe createTunnel(port2, rule2, 1, 1234,
                                                     downlinkMac)
             actor.messages(5) shouldBe associateFip(port2, rule2, entry2, 1)
-
-            gracefulStop(ref, 5 seconds)
         }
     }
 }

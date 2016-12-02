@@ -35,6 +35,7 @@ import org.midonet.midolman.host.services.TcRequestHandler;
 import org.midonet.midolman.state.PeerResolver;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopology;
+import org.midonet.midolman.vpp.VppController;
 
 /**
  * Basic controller of the internal midolman services.
@@ -76,6 +77,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject
     VirtualToPhysicalMapper virtualToPhysicalMapper;
+
+    @Inject
+    VppController vppController;
 
     @Inject
     PeerResolver resolver;
@@ -171,7 +175,7 @@ public class MidolmanService extends AbstractService {
     }
 
     private List<Service> services() {
-        ArrayList<Service> services = new ArrayList<>(8);
+        ArrayList<Service> services = new ArrayList<>(9);
         services.add(datapathService);
         services.add(selectLoopService);
         if (hostService != null)
@@ -180,8 +184,7 @@ public class MidolmanService extends AbstractService {
         services.add(actorsService);
         services.add(packetWorkersService);
         services.add(tcRequestHandler);
-        // qos service must be started after the VTPM because there
-        // is a direct dependency.
+        services.add(vppController);
         services.add(qosService);
         return services;
     }

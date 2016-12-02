@@ -21,14 +21,17 @@ import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.IndexedSeq
 import scala.concurrent.Future
+
 import akka.actor.ActorSystem
+
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Injector
 import com.lmax.disruptor.{RingBuffer, SequenceBarrier}
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+
 import org.reflections.Reflections
+
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
@@ -44,6 +47,7 @@ import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MockNetlinkChannelFactory
 import org.midonet.midolman.util.mock._
+import org.midonet.midolman.vpp.VppController
 import org.midonet.netlink.NetlinkChannelFactory
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
 import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
@@ -77,6 +81,11 @@ class MockMidolmanModule(override val hostId: UUID,
         override def stop(): Unit = {}
     }
 
+    class MockVppController(datapathState: DatapathState,
+                            vt: VirtualTopology)
+        extends VppController(hostId, datapathState, null, vt) {
+    }
+
     protected override def qosService(
         scanner: InterfaceScanner,
         hostId: UUID,
@@ -95,8 +104,7 @@ class MockMidolmanModule(override val hostId: UUID,
             new MetricRegistry,
             new SameThreadButAfterExecutorService,
             new SameThreadButAfterExecutorService,
-            () => threadId == Thread.currentThread().getId
-            )
+            () => threadId == Thread.currentThread().getId)
     }
 
     protected override def flowTracingAppender()=
@@ -174,6 +182,11 @@ class MockMidolmanModule(override val hostId: UUID,
                                new PortFamily(0),
                                new FlowFamily(0),
                                new PacketFamily(0), 0, 0)
+
+    protected override def vppController(hostId: UUID,
+                                         datapathState: DatapathState,
+                                         vt: VirtualTopology): VppController =
+        new MockVppController(datapathState, vt)
 
     protected override def actorSystem() =
         ActorSystem.create("MidolmanActors", ConfigFactory.load()
