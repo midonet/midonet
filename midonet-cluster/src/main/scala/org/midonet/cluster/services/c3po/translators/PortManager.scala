@@ -227,13 +227,15 @@ object PortManager {
         nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
     def isVipPort(nPort: NeutronPortOrBuilder) =
         nPort.getDeviceOwner == DeviceOwner.LOADBALANCER
+    def isVipV2Port(nPort: NeutronPortOrBuilder) =
+        nPort.getDeviceOwner == DeviceOwner.LOADBALANCERV2
     def isRemoteSitePort(nPort: NeutronPortOrBuilder) =
         nPort.getDeviceOwner == DeviceOwner.REMOTE_SITE
 
     // NOTE(yamamoto): This is intended to be sync with Neutron's
     // is_port_trusted.
     def isTrustedPort(nPort: NeutronPortOrBuilder) =
-        ! (isVifPort(nPort) || isVipPort(nPort))
+        ! (isVifPort(nPort) || isVipPort(nPort) || isVipV2Port(nPort))
 
     def isIpv6Port(nPort: NeutronPortOrBuilder) =
         nPort.getFixedIpsCount > 0 &&
@@ -242,7 +244,8 @@ object PortManager {
     def hasMacAndArpTableEntries(nPort: NeutronPortOrBuilder): Boolean =
         !isIpv6Port(nPort) &&
         (isVifPort(nPort) || isRouterInterfacePort(nPort) ||
-         isRouterGatewayPort(nPort) || isRemoteSitePort(nPort))
+         isRouterGatewayPort(nPort) || isRemoteSitePort(nPort) ||
+         isVipV2Port(nPort))
 
     /** ID of Router Interface port peer. */
     def routerInterfacePortPeerId(portId: UUID): UUID =
