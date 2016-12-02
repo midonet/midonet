@@ -69,7 +69,8 @@ class VirtualTopologyManagerTest(unittest.TestCase):
         if 'name' in resource_dict:
             self.assertEqual(resource_dict['name'], resource._get_name())
         self.assertEqual(resource_dict, resource._data)
-        if build: resource.build.assert_called_with()
+        if build:
+            resource.build.assert_called_with()
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
            MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
