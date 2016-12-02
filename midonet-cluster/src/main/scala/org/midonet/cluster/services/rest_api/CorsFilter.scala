@@ -28,7 +28,7 @@ import org.midonet.util.http.HttpSupport._
 
 object CorsFilter {
     val ALLOWED_ORIGINS = "*"
-    val ALLOWED_HEADERS = "Origin, X-Auth-Token, Content-Type, Accept, Authorization"
+    val ALLOWED_HEADERS = "Origin, X-Auth-Token, X-Auth-Project, Content-Type, Accept, Authorization"
     val EXPOSED_HEADERS = "Location"
     val ALLOWED_METHODS = "GET, POST, PUT, DELETE, OPTIONS"
 }
