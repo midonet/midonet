@@ -1015,6 +1015,28 @@ created to be a peer for the VIP port.
 The VIP port itself will *not* be deleted and must be deleted
 separately.
 
+## HEALTHMONITORV2
+
+The HealthMonitorV2 object has a one-to-one correspondence with a midonet
+HealthMonitor object. Therefore, the translator operations are simply
+creating, updating, and deleting the corresponding Midonet HealthMonitor.
+
+However, the "MappingStatus" field of the Midonet HealthMonitor is not used.
+
+### CREATE
+
+Create a Midonet HealthMonitor with the same id, delay, timeout, maxRetries,
+adminStateUp, and poolIds as the given Neutron HealthMonitorV2.
+
+### UPDATE
+
+Update the corresponding Midonet HealthMonitor with the delay, timeout,
+maxRetries, adminStateUp of the given Neutron HealthMonitorV2.
+
+### DELETE
+
+Delete the Midonet HealthMonitor corresponding to the given id.
+
 ## BGPSPEAKER
 
 ### CREATE
