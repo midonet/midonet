@@ -99,6 +99,24 @@
       "revId": "2c479a11dd4aeb16c635f33242d4e02b40dde646",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_00ee488b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-02T01:47:37Z",
+      "side": 1,
+      "message": "All of these approaches take one step closer to the changes to the data models, just that the size of the step differs.  We should weigh against the level of disruption it causes.  If you feel confident that my change is safe enough, I think we can go ahead with it.  The next step is to mark VIP\u0027s session persistence as deprecated in REST API, add it to Pool, and state that it will be removed when MidoNet stops support for LBaaSv1.",
+      "parentUuid": "5aa745d1_60d86cf0",
+      "revId": "2c479a11dd4aeb16c635f33242d4e02b40dde646",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
