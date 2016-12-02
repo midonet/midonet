@@ -63,7 +63,6 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
 
         insertCreateTask(40, LoadBalancerV2Type, lbJson, lbId)
-        storage.exists(classOf[LoadBalancer], lbId).await() shouldBe true
         val lb = storage.get(classOf[LoadBalancer], lbId).await()
 
         lb.getId shouldBe toProto(lbId)
@@ -101,7 +100,7 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         createRouter(10, routerId)
 
         val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
-        a [ObjectExistsException] should be thrownBy insertCreateTask(
+        an [ObjectExistsException] should be thrownBy insertCreateTask(
             20, LoadBalancerV2Type, lbJson, lbId)
     }
 
@@ -113,7 +112,7 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
 
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
 
-        createDhcpPort(20, vipNetworkId, vipSubnetId, "10.0.1.5", portId=vipPeerPortId)
+        createDhcpPort(20, vipNetworkId, vipSubnetId, "10.0.1.5", portId = vipPeerPortId)
 
         val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
         an [ObjectExistsException] should be thrownBy insertCreateTask(
