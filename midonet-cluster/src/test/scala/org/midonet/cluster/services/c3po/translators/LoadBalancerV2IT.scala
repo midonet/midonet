@@ -24,22 +24,14 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{
-                LoadBalancerV2 => LoadBalancerV2Type,
-                Port => PortType,
-                Router => RouterType,
-                Network => NetworkType,
-                Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{LoadBalancerV2 => LoadBalancerV2Type}
+import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
-    var vipNetworkId: UUID = _
-    var vipSubnetId: UUID = _
-    var vipPortId: UUID = _
-
     private def makeLbJson(id: UUID,
                            vipPortId: UUID,
                            vipAddress: String,
@@ -52,12 +44,16 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         lb
     }
 
-    "C3PO" should "be able to create/delete Load Balancer, Router, and VIP peer port." in {
-        vipNetworkId = createTenantNetwork(10, external = false)
-        vipSubnetId = createSubnet(20, vipNetworkId, "10.0.1.0/24")
+    private def createVipPort(): (UUID, UUID, UUID) = {
+        val vipNetworkId = createTenantNetwork(10, external = false)
+        val vipSubnetId = createSubnet(20, vipNetworkId, "10.0.1.0/24")
+        (createVipPort(30, vipNetworkId, vipSubnetId, "10.0.1.4"),
+            vipNetworkId,
+            vipSubnetId)
+    }
 
-        // Create a VIP port
-        vipPortId = createVipPort(30, vipNetworkId, vipSubnetId, "10.0.1.4")
+    "C3PO" should "be able to create/delete Load Balancer, Router, and VIP peer port." in {
+        val (vipPortId, _, _) = createVipPort()
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
 
         // Create a Load Balancer
@@ -67,9 +63,8 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
 
         insertCreateTask(40, LoadBalancerV2Type, lbJson, lbId)
-
-        val lb = eventually(
-            storage.get(classOf[LoadBalancer], lbId).await())
+        storage.exists(classOf[LoadBalancer], lbId).await() shouldBe true
+        val lb = storage.get(classOf[LoadBalancer], lbId).await()
 
         lb.getId shouldBe toProto(lbId)
         lb.getAdminStateUp shouldBe true
@@ -82,65 +77,46 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         vipPeerPort.getPeerId shouldBe toProto(vipPortId)
 
         insertDeleteTask(50, LoadBalancerV2Type, lbId)
-
-        eventually {
-            storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
-        }
-        eventually {
-            storage.exists(classOf[Router], routerId).await() shouldBe false
-        }
-        eventually {
-            storage.exists(classOf[Port], vipPeerPortId).await() shouldBe false
-        }
+        storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
+        storage.exists(classOf[Router], routerId).await() shouldBe false
+        storage.exists(classOf[Port], vipPeerPortId).await() shouldBe false
     }
 
     "Creation of LB without VIP port" should
-      "fail to create LB" in {
+      "throw NotFoundException" in {
         val lbId = UUID.randomUUID
-        val routerId = lbV2RouterId(lbId)
         val lbJson = makeLbJson(lbId, UUID.randomUUID(), "10.0.1.4")
 
-        insertCreateTask(10, LoadBalancerV2Type, lbJson, lbId)
-        Thread.sleep(2000)
-        storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
+        val ex = the [TranslationException] thrownBy insertCreateTask(
+            10, LoadBalancerV2Type, lbJson, lbId)
+        ex.cause shouldBe a [NotFoundException]
     }
 
     "Creation of LB with already existing router" should
-      "fail to create LB" in {
+      "throw ObjectExistsException" in {
+        val (vipPortId, _, _) = createVipPort()
+
         val lbId = UUID.randomUUID
         val routerId = lbV2RouterId(lbId)
         createRouter(10, routerId)
 
-        val lbJson = makeLbJson(lbId, UUID.randomUUID(), "10.0.1.4")
-        insertCreateTask(20, LoadBalancerV2Type, lbJson, lbId)
-
-        Thread.sleep(2000)
-        storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
-
-        insertDeleteTask(30, RouterType, routerId)
+        val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
+        a [ObjectExistsException] should be thrownBy insertCreateTask(
+            20, LoadBalancerV2Type, lbJson, lbId)
     }
 
     "Creation of LB with already existing port with same ID as VIP peer port ID" should
-      "fail to create LB" in {
-        val lbId = UUID.randomUUID
-        val routerId = lbV2RouterId(lbId)
+      "throw ObjectExistsException" in {
+        val (vipPortId, vipNetworkId, vipSubnetId) = createVipPort()
 
-        // Create a VIP port
-        val vipPortId = createVipPort(10, vipNetworkId, vipSubnetId, "10.0.1.4")
+        val lbId = UUID.randomUUID
+
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
 
-        createDhcpPort(20, vipNetworkId, vipSubnetId, "10.0.1.5", vipPeerPortId)
+        createDhcpPort(20, vipNetworkId, vipSubnetId, "10.0.1.5", portId=vipPeerPortId)
 
         val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
-        insertCreateTask(30, LoadBalancerV2Type, lbJson, lbId)
-
-        Thread.sleep(2000)
-        storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
-
-        insertDeleteTask(40, PortType, vipPortId)
-        insertDeleteTask(50, PortType, vipPeerPortId)
-
-        insertDeleteTask(60, SubnetType, vipSubnetId)
-        insertDeleteTask(70, NetworkType, vipNetworkId)
+        an [ObjectExistsException] should be thrownBy insertCreateTask(
+            30, LoadBalancerV2Type, lbJson, lbId)
     }
 }
