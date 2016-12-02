@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_a3eb1eb0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-02T08:41:11Z",
+      "side": 1,
+      "message": "alignment.",
+      "range": {
+        "startLine": 84,
+        "startChar": 45,
+        "endLine": 84,
+        "endChar": 83
+      },
+      "revId": "81c7cca47eefbba8b25f00aa11e55e083454cc98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
