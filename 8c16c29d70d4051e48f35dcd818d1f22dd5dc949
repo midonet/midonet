@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_172b2ced",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/l4lb/SessionPersistence.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-03T00:32:37Z",
+      "side": 1,
+      "message": "fromProto is used in PortMapper now (\u0027buildPool\u0027).  toProto is used in ZoomVirtualConfigurationBuilders needed for createPool call used in tests.  I just added these to be consistent with LBMethod enum.",
+      "parentUuid": "5aa745d1_431a1a19",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 5
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_c03aa0e7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2016-12-02T04:28:02Z",
       "side": 1,
       "message": "does this need to be a val?",
+      "range": {
+        "startLine": 34,
+        "startChar": 41,
+        "endLine": 34,
+        "endChar": 45
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_d7af047c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-03T00:32:37Z",
+      "side": 1,
+      "message": "As opposed to?",
+      "parentUuid": "5aa745d1_c03aa0e7",
       "range": {
         "startLine": 34,
         "startChar": 41,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_17b68cdc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-03T00:32:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_402fb0a1",
+      "range": {
+        "startLine": 151,
+        "startChar": 17,
+        "endLine": 151,
+        "endChar": 23
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_e3a5a6b5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
         "patchSetId": 8
@@ -82,6 +154,30 @@
       "writtenOn": "2016-12-02T08:38:29Z",
       "side": 1,
       "message": "This can be val, right?",
+      "range": {
+        "startLine": 188,
+        "startChar": 4,
+        "endLine": 188,
+        "endChar": 7
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_97ca9c4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-03T00:32:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_e3a5a6b5",
       "range": {
         "startLine": 188,
         "startChar": 4,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_57f2d49b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-03T00:32:37Z",
+      "side": 1,
+      "message": "Kept get(id) just in case.",
+      "parentUuid": "5aa745d1_8395c241",
+      "range": {
+        "startLine": 131,
+        "startChar": 21,
+        "endLine": 131,
+        "endChar": 47
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_a3b43ed1",
         "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
         "patchSetId": 8
@@ -128,6 +248,30 @@
       "writtenOn": "2016-12-02T08:38:29Z",
       "side": 1,
       "message": "I guess it doesn\u0027t matter, since the rest of the file does it this way, but the idiomatic way is:\n\n  sessionPersistence.foreach(builder.setSessionPersistence)",
+      "range": {
+        "startLine": 820,
+        "startChar": 0,
+        "endLine": 821,
+        "endChar": 65
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_17dd6c14",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 821,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-03T00:32:37Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "5aa745d1_a3b43ed1",
       "range": {
         "startLine": 820,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_37c1882f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 867,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-03T00:32:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_03dd3214",
+      "range": {
+        "startLine": 863,
+        "startChar": 0,
+        "endLine": 867,
+        "endChar": 9
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_e0359cf7",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 8
@@ -174,6 +342,24 @@
       "writtenOn": "2016-12-02T04:28:02Z",
       "side": 1,
       "message": "for now?\n\nfor longer term, we want to provide REST API, and make this the primary way to configure session persistence, right?",
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_f7ba00c0",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-03T00:32:37Z",
+      "side": 1,
+      "message": "right, updated",
+      "parentUuid": "5aa745d1_e0359cf7",
       "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
