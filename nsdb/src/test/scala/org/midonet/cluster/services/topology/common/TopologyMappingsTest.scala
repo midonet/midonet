@@ -34,6 +34,7 @@ class TopologyMappingsTest extends FeatureSpec with Matchers {
         .filterNot(_.getSimpleName == "RuleLogger")
         .filterNot(_.getSimpleName.matches("Type"))
         .filterNot(_.getSimpleName.matches("ServiceContainerPolicy"))
+        .filterNot(_.getSimpleName == "SessionPersistence")
         .asInstanceOf[List[Class[_ <: Message]]]
 
     feature("map topology classes to type ids")

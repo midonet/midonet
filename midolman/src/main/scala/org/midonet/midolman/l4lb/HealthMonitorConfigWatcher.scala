@@ -26,7 +26,7 @@ import akka.actor.{ActorRef, Props}
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, Vip => SimVip}
-import org.midonet.midolman.state.l4lb.VipSessionPersistence
+import org.midonet.midolman.state.l4lb.SessionPersistence
 import org.midonet.midolman.topology.PoolHealthMonitorMapper.PoolHealthMonitorMapKey
 import org.midonet.midolman.topology.TopologyActor
 import org.midonet.midolman.topology.devices.{PoolHealthMonitor, PoolHealthMonitorMap}
@@ -75,7 +75,7 @@ object HealthMonitorConfigWatcher {
                                        else vip.address.toString,
                                        vip.protocolPort,
                                        if (vip.isStickySourceIP)
-                                           VipSessionPersistence.SOURCE_IP
+                                           SessionPersistence.SOURCE_IP
                                        else null)
             }
             val hm = new HealthMonitorConfig(

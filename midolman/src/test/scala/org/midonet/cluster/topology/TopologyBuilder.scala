@@ -32,7 +32,7 @@ import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Type => _, _}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.models.Topology.Vip.SessionPersistence
+import org.midonet.cluster.models.Topology.SessionPersistence
 import org.midonet.cluster.models.Topology.LoggingResource.{Type => LRType}
 import org.midonet.cluster.models.Topology.{LoggingResource, _}
 import org.midonet.cluster.util.IPAddressUtil._
@@ -746,7 +746,7 @@ trait TopologyBuilder {
                   poolId: Option[UUID] = None,
                   address: Option[IPAddr] = None,
                   protocolPort: Option[Int] = None,
-                  sessionPersistence: Option[Vip.SessionPersistence] = None) = {
+                  sessionPersistence: Option[SessionPersistence] = None) = {
         val builder = Vip.newBuilder
             .setId(id.asProto)
         if (adminStateUp.isDefined)

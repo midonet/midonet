@@ -32,7 +32,7 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.midolman.state.l4lb.VipSessionPersistence;
+import org.midonet.midolman.state.l4lb.SessionPersistence;
 import org.midonet.packets.IPv4;
 
 @ZoomClass(clazz = Topology.Vip.class)
@@ -61,7 +61,7 @@ public class Vip extends UriResource {
     public int protocolPort;
 
     @ZoomField(name = "session_persistence")
-    public VipSessionPersistence sessionPersistence;
+    public SessionPersistence sessionPersistence;
 
     public URI getUri() {
         return absoluteUri(ResourceUris.VIPS(), id);

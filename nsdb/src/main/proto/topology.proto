@@ -615,6 +615,10 @@ enum ServiceContainerPolicy {
     LEAST_SCHEDULER = 1;
 }
 
+enum SessionPersistence {
+    SOURCE_IP = 1;
+}
+
 message TraceRequest {
     optional UUID id = 1;
     optional bool enabled = 2;
@@ -652,10 +656,6 @@ message TunnelZone {
 }
 
 message Vip {
-    enum SessionPersistence {
-        SOURCE_IP = 1;
-    }
-
     optional UUID id = 1;
     optional bool admin_state_up = 2;
     optional UUID pool_id = 3;
