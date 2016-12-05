@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_09942c35",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-05T12:21:27Z",
+      "side": 1,
+      "message": "Nit: we could use kth element here instead of complete sorting, but I did not find such function in Scala at al :(",
+      "range": {
+        "startLine": 37,
+        "startChar": 8,
+        "endLine": 37,
+        "endChar": 50
+      },
+      "revId": "7caebf1690e308f2bb09c546ae47abf88f586c60",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
