@@ -19,6 +19,7 @@ from mdts.services import service
 from mdts.tests.utils.utils import bindings
 from nose.plugins.attrib import attr
 import re
+import subprocess
 import time
 import uuid
 
@@ -29,7 +30,7 @@ DOWNLINK_VETH_MAC = '2e:0e:2f:68:00:22'
 DOWNLINK_VETH_MAC_2 = '2e:0e:2f:68:00:33'
 TCP_SERVER_PORT = 9999
 TCP_CLIENT_PORT = 9998
-
+LRU_SIZE_SINGLE_TENANT = 2
 
 class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
     def cleanup_veth(self, container, name):
@@ -344,11 +345,13 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
                              pubnet,
                              DOWNLINK_VETH_MAC,
                              'port1')
+        lru_start = 65
+        lru_end = lru_start + LRU_SIZE_SINGLE_TENANT - 1
         self.setup_fip64("midolman1",
                          ip6fip='cccc:bbbb::2',
                          ip4fixed="20.0.0.2",
-                         ip4PoolStart="20.0.0.65",
-                         ip4PoolEnd="20.0.0.66",
+                         ip4PoolStart="20.0.0.%d" % lru_start,
+                         ip4PoolEnd="20.0.0.%d" % lru_end,
                          tableId=vrf)
 
 
@@ -545,11 +548,8 @@ def stop_server(container):
 def client_prepare(container, namespace):
     cont_services = service.get_container_by_hostname(container)
 
-    # optional: install ethtool
-    # cont_services.try_command_blocking("sh -c 'apt-get update && apt-get -y install ethtool'")
-
     # disable TCP checksums
-    cont_services.try_command_blocking("ip netns exec ip6 ethtool -K ip6ns tx off rx off")
+    cont_services.try_command_blocking("ip netns exec %s ethtool -K ip6ns tx off rx off" % namespace)
 
 
 def client_launch(container, address, server_port, client_port, namespace, count=100):
@@ -591,6 +591,71 @@ def client_check_result(container, stream, count=100):
         wanted = "%s:%d$" % (container, i + 1)
         LOG.info("%s: RESULT: lines[%d] = %s" % (container, i, lines[i]))
         assert(lines[i] == wanted)
+
+class TCPSessionClient:
+    instance_id = 0
+    def __init__(self, container, gateway, address, prefix, server, port):
+        ns = 'client%d' % self.__class__.instance_id
+        self.ns = ns
+        self.container = container
+        self.__class__.instance_id += 1
+        cont = service.get_container_by_hostname(container)
+        cont.exec_command('ip netns add %s' % ns)
+        cont.try_command_blocking(
+            'ip l add name %sdp type veth peer name %sns' % (ns, ns))
+        cont.try_command_blocking('ip l set netns %s dev %sns' % (ns, ns))
+        cont.try_command_blocking('ip l set up dev %sdp' % ns)
+        cont.try_command_blocking('ip a add %s/%d dev %sdp' % (gateway, prefix, ns))
+        cont.try_command_blocking('ip netns exec %s ip link set up dev lo' % ns)
+        cont.try_command_blocking('ip netns exec %s ip link set up dev %sns' % (ns,ns))
+        cont.try_command_blocking(
+            'ip netns exec %s ip a add %s/%d dev %sns' % (ns, address, prefix, ns))
+        cont.try_command_blocking(
+            'ip netns exec %s ip -6 r add default via %s' % (ns, gateway))
+
+        cmd = 'ip netns exec %s /bin/nc %s %d' % (ns, server, port)
+        self.counter = 0
+        self.io = None
+        self.cmd = cmd.split()
+
+    def start(self):
+        self.io = DockerIOExecutor(self.container, self.cmd)
+
+    def verify(self):
+        try:
+            self.counter += 1
+            msg = '%s:%d' % (self, self.counter)
+            output = self.io.request(msg)
+            LOG.debug('Sent: ' + msg)
+            LOG.debug('Out: ' + output)
+            return output == msg + "$\n"
+        except:
+            return False
+
+    def close(self):
+        cont = service.get_container_by_hostname(self.container)
+        cont.try_command_blocking('ip link del %sdp' % self.ns)
+        cont.try_command_blocking('ip netns del %s'% self.ns)
+        self.io.close()
+
+class DockerIOExecutor:
+    def __init__(self, container, command):
+        cont = service.get_container_by_hostname(container)
+        container = cont.get_name()
+        cmdline = ['docker', 'exec', '-i', container] + command
+        LOG.debug('DockerIOExecutor. command=%s' % cmdline)
+        self.subprocess = subprocess.Popen(cmdline,
+                                           stdin=subprocess.PIPE,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE)
+
+    def request(self, msg):
+        self.subprocess.stdin.write(msg + '\n')
+        self.subprocess.stdin.flush()
+        return self.subprocess.stdout.readline()
+
+    def close(self):
+        self.subprocess.terminate()
 
 
 @attr(version="v1.2.0")
@@ -665,3 +730,69 @@ def test_client_server_ipv6():
         client_check_result(host, result[host])
 
     stop_server('midolman2')
+
+@attr(version="v1.2.0")
+@bindings(binding_multihost_singletenant,
+          binding_manager=BindingManager(vtm=SingleTenantAndUplinkWithVPP()))
+def test_lru():
+    """
+    Title: Test LRU behaviour
+    """
+
+    clients = []
+    extra = None
+
+    try:
+        # start a netcat server in midolman2
+        start_server('midolman2', '0.0.0.0', TCP_SERVER_PORT)
+
+        # launch clients
+        fip = 'cccc:bbbb::2'
+        container = 'quagga1'
+
+        cont = service.get_container_by_hostname(container)
+
+        address_counter = [0]
+        def new_client():
+            address_counter[0] += 1
+            idx = address_counter[0]
+            prefix = 112
+            gateway = 'bbbb::%d:1' % idx
+            address = 'bbbb::%d:2' % idx
+            return TCPSessionClient(container, gateway, address, prefix, fip, TCP_SERVER_PORT)
+
+        # validate existing clients
+        for i in range(LRU_SIZE_SINGLE_TENANT):
+            client = new_client()
+            clients.append( client )
+            ping_from_inet(container, fip, 10, namespace=client.ns)
+            client.start()
+            assert(client.verify())
+            time.sleep(1)
+
+        for client in clients:
+            assert(client.verify())
+            time.sleep(1)
+
+        # connect one more client
+        extra = new_client()
+        ping_from_inet(container, fip, 10, namespace=extra.ns)
+        extra.start()
+        assert(extra.verify())
+        time.sleep(1)
+
+        # this must've disconnected clients[0], the least recently used.
+        # We don't check client[0] directly, as this will make it steal
+        # another address and cause more disconnections
+        for client in clients[1:]:
+            assert(client.verify())
+        assert(extra.verify())
+        assert(False == clients[0].verify())
+
+    finally:
+        stop_server('midolman2')
+        for client in clients:
+            if client is not None:
+                client.close()
+        if extra is not None:
+            extra.close()
