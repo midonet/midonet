@@ -22,6 +22,30 @@
       "revId": "de4eae2b8d6f2aab6dcc0f8389d29f86d540f0dd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_06a09bf3",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1009946
+      },
+      "writtenOn": "2016-12-05T06:22:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_8665cbe2",
+      "range": {
+        "startLine": 29,
+        "startChar": 17,
+        "endLine": 29,
+        "endChar": 24
+      },
+      "revId": "de4eae2b8d6f2aab6dcc0f8389d29f86d540f0dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
