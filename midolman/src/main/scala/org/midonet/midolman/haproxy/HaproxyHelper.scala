@@ -16,9 +16,10 @@
 package org.midonet.midolman.haproxy
 
 import java.nio.file.Files
+import java.util.UUID
 
 import org.midonet.containers.ContainerCommons
-import org.midonet.midolman.l4lb.PoolConfig
+import org.midonet.midolman.l4lb.{HaproxyHealthMonitor, PoolConfig}
 
 object HaproxyHelper {
     def namespaceName(id: String) = s"hm-${id.substring(0, 8)}"
@@ -28,6 +29,7 @@ object HaproxyHelper {
 
 class HaproxyHelper(haproxyScript: String) extends ContainerCommons {
 
+    import HaproxyHealthMonitor._
     import HaproxyHelper._
 
     var confLoc: String = _
@@ -82,4 +84,12 @@ class HaproxyHelper(haproxyScript: String) extends ContainerCommons {
     def undeploy(name: String, iface: String): Unit = {
         execute(cleannsStr(name, iface))
     }
+
+    /*
+     * Returns a pair of sets. The left side set is the set of member
+     * nodes that haproxy has detected as UP. The right side set is the
+     * set of member nodes that haproxy has detected as DOWN.
+     */
+    def getStatus(): (Set[UUID], Set[UUID]) =
+        parseResponse(getHaproxyStatus(sockLoc))
 }

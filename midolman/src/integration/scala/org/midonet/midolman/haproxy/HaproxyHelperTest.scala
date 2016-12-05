@@ -18,7 +18,6 @@ package org.midonet.midolman.haproxy
 
 import java.util.UUID
 
-import scala.sys.process._
 import org.junit.runner.RunWith
 import org.midonet.midolman.l4lb.{HealthMonitorConfig, PoolConfig, PoolMemberConfig, VipConfig}
 import org.midonet.midolman.state.l4lb.SessionPersistence
@@ -27,6 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, ShouldMatchers}
 import org.slf4j.LoggerFactory
 
+import scala.sys.process._
 
 @RunWith(classOf[JUnitRunner])
 class HaproxyHelperTest extends FeatureSpec
@@ -73,9 +73,17 @@ class HaproxyHelperTest extends FeatureSpec
         }
     }
 
+    def verifyStatus(haproxy: HaproxyHelper, poolConfig: PoolConfig): Unit = {
+        eventually {
+            val (upNodes, downNodes) = haproxy.getStatus
+            val memberIds = poolConfig.members map {m => m.id}
+            (upNodes ++ downNodes) should contain theSameElementsAs memberIds
+        }
+    }
+
     val vipConfig = new VipConfig(true, UUID.randomUUID(), "10.0.0.10", 80,
                                   SessionPersistence.SOURCE_IP)
-    val healthMonitor = new HealthMonitorConfig(true, 10, 20, 30)
+    val healthMonitor = new HealthMonitorConfig(true, 1, 1, 1)
     val member1 = new PoolMemberConfig(true, UUID.randomUUID(), 100,
                                        "10.0.0.1", 80)
     val member2 = new PoolMemberConfig(true, UUID.randomUUID(), 100,
@@ -107,11 +115,13 @@ class HaproxyHelperTest extends FeatureSpec
                 verifyIpNetns(nsName, ifaceName)
                 verifyHaproxyRunning(nsName)
                 verifyConfFile(pool1, haproxy.confLoc)
+                verifyStatus(haproxy, pool1)
 
                 haproxy.restart(pool1Updated)
                 verifyIpNetns(nsName, ifaceName)
                 verifyHaproxyRunning(nsName)
                 verifyConfFile(pool1Updated, haproxy.confLoc)
+                verifyStatus(haproxy, pool1Updated)
             } finally {
                 haproxy.undeploy(nsName, ifaceName)
                 verifyNoIpNetns(nsName, ifaceName)
@@ -136,6 +146,8 @@ class HaproxyHelperTest extends FeatureSpec
                 verifyHaproxyRunning(name2)
                 verifyConfFile(pool1, haproxy1.confLoc)
                 verifyConfFile(pool2, haproxy2.confLoc)
+                verifyStatus(haproxy1, pool1)
+                verifyStatus(haproxy2, pool2)
 
                 haproxy1.restart(pool1Updated)
 
@@ -145,6 +157,8 @@ class HaproxyHelperTest extends FeatureSpec
                 verifyHaproxyRunning(name2)
                 verifyConfFile(pool1Updated, haproxy1.confLoc)
                 verifyConfFile(pool2, haproxy2.confLoc)
+                verifyStatus(haproxy1, pool1Updated)
+                verifyStatus(haproxy2, pool2)
             } finally {
                 haproxy1.undeploy(name1, ifaceName1)
                 verifyNoIpNetns(name1, ifaceName1)

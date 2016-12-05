@@ -64,6 +64,8 @@ class HaproxyTest extends MidolmanSpec
                           with SpanSugar
                           with MidonetEventually {
 
+    import HaproxyHealthMonitor.parseResponse
+
     var hmSystem: ActorRef = _
     var backend: MidonetBackend = _
     var conf = mock(classOf[MidolmanConfig])
@@ -176,11 +178,6 @@ class HaproxyTest extends MidolmanSpec
                 case HaproxyHealthMonitor.CheckHealth =>
                     checkHealthReceived += 1
             }: Actor.Receive) orElse super.receive
-
-            override def parseResponse(resp: String)
-            : (Set[UUID], Set[UUID]) = {
-                super.parseResponse(resp)
-            }
 
             override def setMembersStatus(activeMembers: Set[UUID],
                                           inactiveMembers: Set[UUID]): Unit = {
@@ -637,7 +634,7 @@ class HaproxyTest extends MidolmanSpec
                 """.stripMargin
 
             Then("The ha proxy responds correctly")
-            haProxy.parseResponse(response) shouldBe (Set(name1), Set(name2))
+            parseResponse(response) shouldBe (Set(name1), Set(name2))
 
             When("Parsing an ha proxy response with backends, frontends, and" +
                  "field names")
@@ -654,7 +651,7 @@ class HaproxyTest extends MidolmanSpec
                  """.stripMargin
 
             Then("The ha proxy ignores backends, frontends, and fields")
-            haProxy.parseResponse(response) shouldBe (Set(name1), Set(name2))
+            parseResponse(response) shouldBe (Set(name1), Set(name2))
 
             val backendId3 = UUID.randomUUID()
             val backendId4 = UUID.randomUUID()
@@ -671,12 +668,7 @@ class HaproxyTest extends MidolmanSpec
                 """.stripMargin
 
             Then("The ha proxy incorrectly formatted lines")
-            haProxy.parseResponse(response) shouldBe (Set(name1, name2),
-                                                      Set.empty)
-
-            When("Making a unix domain channel")
-            Then("No exceptions are raised")
-            haProxy.makeChannel()
+            parseResponse(response) shouldBe (Set(name1, name2), Set.empty)
 
             When("Writing the pool configuration to a file")
             haProxy.shouldWriteConf = true
