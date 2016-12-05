@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_895b9c54",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-05T13:00:05Z",
+      "side": 1,
+      "message": "we use \"loadbalancer\" rather than \"load_balancer\".\n\nbesides that, please consider to accept what the driver sends, unless there\u0027s a strong reason not to.\nhttp://paste.openstack.org/show/590419/",
+      "revId": "1e246b12f658680f851266bca3f9c21feefb7ee9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
