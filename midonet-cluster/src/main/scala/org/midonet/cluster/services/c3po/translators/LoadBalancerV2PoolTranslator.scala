@@ -24,8 +24,7 @@ import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.{Pool, SessionPersistence, Vip}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 
-class LoadBalancerV2PoolTranslator
-    extends Translator[NeutronLoadBalancerV2Pool] {
+class LoadBalancerV2PoolTranslator extends Translator[NeutronLoadBalancerV2Pool]                                            with LbaasV2ITCommon {
 
     override protected def translateCreate(
             tx: Transaction, nPool: NeutronLoadBalancerV2Pool): Unit = {

@@ -27,11 +27,13 @@ import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.util.concurrent.toFutureOps
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import scala.collection.JavaConverters._
+import org.midonet.cluster.services.c3po.LbaasV2ITCommon
 
 import org.midonet.cluster.data.neutron.NeutronResourceType.{LbV2Pool => LbV2PoolType, LbV2PoolMember => LbV2PoolMemberType}
 
 @RunWith(classOf[JUnitRunner])
-class LoadBalancerV2PoolTranslatorIT extends C3POMinionTestBase {
+class LoadBalancerV2PoolTranslatorIT extends C3POMinionTestBase
+                                             with LbaasV2ITCommon {
 
     "LoadBalancerV2PoolTranslator" should "Create, update, and delete pool" in {
         // Create pool.
@@ -106,7 +108,7 @@ class LoadBalancerV2PoolTranslatorIT extends C3POMinionTestBase {
     private def setUpLb(firstTaskId: Int): Boilerplate = {
         val nwId = createTenantNetwork(firstTaskId)
         val snId = createSubnet(firstTaskId + 1, nwId, "10.0.0.0/24")
-        val vipPortId = createVipPort(firstTaskId + 2, nwId, snId, "10.0.0.1")
+        val (vipPortId, _, _) = createVipV2PortAndNetwork("10.0.0.1", "10.0.0.0/24")
         val lbId = createLbV2(firstTaskId + 3, vipPortId, "10.0.0.1")
         Boilerplate(nwId, snId, vipPortId, lbId)
     }
