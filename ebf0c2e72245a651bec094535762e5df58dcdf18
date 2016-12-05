@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_061d3b73",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2Translator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-05T12:49:03Z",
+      "side": 1,
+      "message": "this is not a pool.",
+      "range": {
+        "startLine": 25,
+        "startChar": 44,
+        "endLine": 25,
+        "endChar": 67
+      },
+      "revId": "ebf0c2e72245a651bec094535762e5df58dcdf18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_69aa901b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorV2Translator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-05T12:49:03Z",
+      "side": 1,
+      "message": "is this actually used?",
+      "range": {
+        "startLine": 27,
+        "startChar": 52,
+        "endLine": 27,
+        "endChar": 71
+      },
+      "revId": "ebf0c2e72245a651bec094535762e5df58dcdf18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
