@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_f299ee20",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-05T04:55:03Z",
+      "side": 1,
+      "message": "I think the difference is that vals are publicly accessible (unless explicitly made private). Non-val constructor arguments are not publicly accessible (except for case classes, where val is the default) and are local to the constructor unless referenced in other methods.",
+      "parentUuid": "5aa745d1_970cdc43",
+      "range": {
+        "startLine": 34,
+        "startChar": 41,
+        "endLine": 34,
+        "endChar": 45
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_402fb0a1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
         "patchSetId": 8
