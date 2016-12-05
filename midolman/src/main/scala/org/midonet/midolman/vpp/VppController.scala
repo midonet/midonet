@@ -319,6 +319,7 @@ class VppController @Inject()(upcallConnManager: UpcallDatapathConnectionManager
             }
         } andThen { case _ =>
                 datapathState.setFip64PortKey(portId, vni)
+                vxlanTunnels.put(portId, setup)
         } recoverWith { case e =>
             setup.rollback() map {
                 vxlanTunnels.remove(portId, setup)
