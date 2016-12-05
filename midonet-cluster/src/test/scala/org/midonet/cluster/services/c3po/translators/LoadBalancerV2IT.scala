@@ -31,7 +31,13 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
+class LoadBalancerV2IT extends C3POMinionTestBase
+                       with LoadBalancerManager
+                       with ChainManager {
+
+    val vipAddr = "10.0.1.4"
+    val vipSub = "10.0.1.0/24"
+
     private def makeLbJson(id: UUID,
                            vipPortId: UUID,
                            vipAddress: String,
@@ -44,16 +50,16 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         lb
     }
 
-    private def createVipPort(): (UUID, UUID, UUID) = {
+    private def createVipPort(ip: String, sub: String): (UUID, UUID, UUID) = {
         val vipNetworkId = createTenantNetwork(10, external = false)
-        val vipSubnetId = createSubnet(20, vipNetworkId, "10.0.1.0/24")
-        (createVipPort(30, vipNetworkId, vipSubnetId, "10.0.1.4"),
+        val vipSubnetId = createSubnet(20, vipNetworkId, sub)
+        (createVipPort(30, vipNetworkId, vipSubnetId, ip),
             vipNetworkId,
             vipSubnetId)
     }
 
     "C3PO" should "be able to create/delete Load Balancer, Router, and VIP peer port." in {
-        val (vipPortId, _, _) = createVipPort()
+        val (vipPortId, _, _) = createVipPort(vipAddr, vipSub)
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
 
         // Create a Load Balancer
@@ -71,6 +77,17 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
 
         val router = storage.get(classOf[Router], routerId).await()
         router.getLoadBalancerId shouldBe toProto(lbId)
+
+        val preChain = storage.get(classOf[Chain], router.getInboundFilterId).await()
+        val dnatRule = storage.get(classOf[Rule], preChain.getRuleIds(0)).await()
+        dnatRule.getNatRuleData.getDnat shouldBe true
+        dnatRule.getNatRuleData.getNatTargets(0).getNwEnd.getAddress shouldBe vipAddr
+        dnatRule.getNatRuleData.getNatTargets(0).getNwStart.getAddress shouldBe vipAddr
+
+        val postChain = storage.get(classOf[Chain], router.getOutboundFilterId).await()
+        val snatRule = storage.get(classOf[Rule], postChain.getRuleIds(0)).await()
+        snatRule.getNatRuleData.getDnat shouldBe false
+        snatRule.getCondition.getNwSrcIp.getAddress shouldBe vipAddr
 
         val vipPeerPort = storage.get(classOf[Port], vipPeerPortId).await()
         vipPeerPort.getPeerId shouldBe toProto(vipPortId)
@@ -97,6 +114,10 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
         insertDeleteTask(50, LoadBalancerV2Type, lbId)
         storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
         storage.exists(classOf[Router], routerId).await() shouldBe false
+        storage.exists(classOf[Chain], router.getInboundFilterId).await() shouldBe false
+        storage.exists(classOf[Chain], router.getOutboundFilterId).await() shouldBe false
+        storage.exists(classOf[Rule], lbSnatRule(routerId)).await() shouldBe false
+        storage.exists(classOf[Rule], lbDnatRule(routerId)).await() shouldBe false
         storage.exists(classOf[Port], vipPeerPortId).await() shouldBe false
         storage.exists(classOf[SC], lbSCId).await() shouldBe false
         storage.exists(classOf[SCG], lbSCGId).await() shouldBe false
@@ -115,7 +136,7 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
 
     "Creation of LB with already existing router" should
       "throw ObjectExistsException" in {
-        val (vipPortId, _, _) = createVipPort()
+        val (vipPortId, _, _) = createVipPort(vipAddr, vipSub)
 
         val lbId = UUID.randomUUID
         val routerId = lbV2RouterId(lbId)
@@ -128,7 +149,7 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
 
     "Creation of LB with already existing port with same ID as VIP peer port ID" should
       "throw ObjectExistsException" in {
-        val (vipPortId, vipNetworkId, vipSubnetId) = createVipPort()
+        val (vipPortId, vipNetworkId, vipSubnetId) = createVipPort(vipAddr, vipSub)
 
         val lbId = UUID.randomUUID
 

@@ -981,6 +981,12 @@ used in the haproxy instance created for managing the health checks of the
 pools on this load balancer. Create a Port on the MidoNet Router created that
 will be used by the associated service container.
 
+Create an SNAT rule on the PREROUTING chain of the router to statically
+NAT from the VIP to the service container namespace IP.
+
+Create a DNAT rule on the POSTROUTING chain of the router to statically
+NAT from the service container namespace IP to the VIP.
+
 The new MidoNet router will have the following fields set:
 
  * Derivation function on LB object's id => id

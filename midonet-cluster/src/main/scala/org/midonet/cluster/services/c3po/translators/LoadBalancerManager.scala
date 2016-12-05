@@ -24,6 +24,10 @@ import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
  */
 trait LoadBalancerManager {
 
+    protected def lbRouterInChainName(lbId: UUID) = s"LB_ROUTER_$lbId"
+
+    protected def lbRouterOutChainName(lbId: UUID) = s"LB_ROUTER_$lbId"
+
     /** Deterministically generate loadbalancer ID from router ID. */
     protected def loadBalancerId(routerId: UUID) =
         routerId.xorWith(0xaab2c5dea7bc8deaL, 0x2ac7bb0371eee6d7L)
@@ -43,4 +47,10 @@ trait LoadBalancerManager {
 
     protected def lbServiceContainerPortId(routerId: UUID): UUID =
         routerId.xorWith(0x1da81cddca3b9ff8L, 0xd966a652de3c9ccaL)
+
+    protected def lbSnatRule(routerId: UUID): UUID =
+        routerId.xorWith(0xe401ace2473413aaL, 0x7be4604b146962b6L)
+
+    protected def lbDnatRule(routerId: UUID): UUID =
+        routerId.xorWith(0xd9c8f6962541298dL, 0x7294e027de2b90baL)
 }
