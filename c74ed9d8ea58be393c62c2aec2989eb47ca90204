@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_46aa2372",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 802,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-05T09:05:32Z",
+      "side": 1,
+      "message": "This should take a taskId argument, since you may want to use it somewhere other than at the beginning of a test.\n\nAlternatively, it could just stay in LoadBalancerV2IT, since this particular sequence of three setup steps is unlikely to be broadly reusable.",
+      "range": {
+        "startLine": 796,
+        "startChar": 0,
+        "endLine": 802,
+        "endChar": 5
+      },
+      "revId": "c74ed9d8ea58be393c62c2aec2989eb47ca90204",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
