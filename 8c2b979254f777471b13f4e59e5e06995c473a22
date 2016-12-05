@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_06309b55",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-05T09:22:29Z",
+      "side": 1,
+      "message": "This makes the classes look kind of like template arguments. Is there any reason not to use the actual names?",
+      "range": {
+        "startLine": 29,
+        "startChar": 44,
+        "endLine": 29,
+        "endChar": 96
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_06177ba4",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-05T09:22:29Z",
+      "side": 1,
+      "message": "No point in checking exists() just before calling get(). If it doesn\u0027t exist(), get() will fail with an appropriate error.",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 82,
+        "endChar": 65
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_a6268714",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-05T09:22:29Z",
+      "side": 1,
+      "message": "check configuration type",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 54
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_267957fd",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-05T09:22:29Z",
+      "side": 1,
+      "message": "scg.getServiceContainerIdsList.asScala should contain only lbSCId",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 61
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_866a6b19",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-05T09:22:29Z",
+      "side": 1,
+      "message": "This has a bunch of properties to check, doesn\u0027t it?",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 41
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
