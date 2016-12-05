@@ -192,6 +192,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_72adde30",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-05T05:01:52Z",
+      "side": 1,
+      "message": "Actually making it private makes this line fail in equals method:\n\nloadBalancer.pools.asInstanceOf[Array[AnyRef]]\n\nSo I\u0027m keeping it as val.  Let me know if you want me to look into this bit further.",
+      "parentUuid": "5aa745d1_d2b5d27e",
+      "range": {
+        "startLine": 34,
+        "startChar": 41,
+        "endLine": 34,
+        "endChar": 45
+      },
+      "revId": "8c16c29d70d4051e48f35dcd818d1f22dd5dc949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_402fb0a1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
         "patchSetId": 8
