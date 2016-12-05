@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_c3406a0a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-05T01:03:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_e39fe6b2",
+      "range": {
+        "startLine": 99,
+        "startChar": 7,
+        "endLine": 99,
+        "endChar": 16
+      },
+      "revId": "f90ac954ebe089313d7d161a3a835f19c48bfc2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_8396e292",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2016-12-02T07:03:03Z",
       "side": 1,
       "message": "Should this be allocated statically to avoid garbage generation?",
+      "range": {
+        "startLine": 114,
+        "startChar": 18,
+        "endLine": 114,
+        "endChar": 43
+      },
+      "revId": "f90ac954ebe089313d7d161a3a835f19c48bfc2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_a3455e18",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-05T01:03:43Z",
+      "side": 1,
+      "message": "we need to keep this call thread safe, so I want to avoid the static buffer.",
+      "parentUuid": "5aa745d1_8396e292",
       "range": {
         "startLine": 114,
         "startChar": 18,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_6348762e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-05T01:03:43Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "5aa745d1_03d09252",
+      "range": {
+        "startLine": 274,
+        "startChar": 25,
+        "endLine": 274,
+        "endChar": 29
+      },
+      "revId": "f90ac954ebe089313d7d161a3a835f19c48bfc2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_e3d48648",
         "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2016-12-02T07:03:03Z",
       "side": 1,
       "message": "Can\u0027t this fit on the previous line? If not, it should be aligned.",
+      "range": {
+        "startLine": 672,
+        "startChar": 54,
+        "endLine": 672,
+        "endChar": 63
+      },
+      "revId": "f90ac954ebe089313d7d161a3a835f19c48bfc2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_e33b669b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 672,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-05T01:03:43Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "5aa745d1_e3d48648",
       "range": {
         "startLine": 672,
         "startChar": 54,
