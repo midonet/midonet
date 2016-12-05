@@ -18,8 +18,6 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
 
-import com.fasterxml.jackson.databind.JsonNode
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -29,40 +27,20 @@ import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsExceptio
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.toFutureOps
+import org.midonet.cluster.services.c3po.LbaasV2ITCommon
 
 @RunWith(classOf[JUnitRunner])
-class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
-    private def makeLbJson(id: UUID,
-                           vipPortId: UUID,
-                           vipAddress: String,
-                           adminStateUp: Boolean = true): JsonNode = {
-        val lb = nodeFactory.objectNode
-        lb.put("id", id.toString)
-        lb.put("admin_state_up", adminStateUp)
-        lb.put("vip_port_id", vipPortId.toString)
-        lb.put("vip_address", vipAddress)
-        lb
-    }
-
-    private def createVipPort(): (UUID, UUID, UUID) = {
-        val vipNetworkId = createTenantNetwork(10, external = false)
-        val vipSubnetId = createSubnet(20, vipNetworkId, "10.0.1.0/24")
-        (createVipPort(30, vipNetworkId, vipSubnetId, "10.0.1.4"),
-            vipNetworkId,
-            vipSubnetId)
-    }
-
+class LoadBalancerV2IT extends C3POMinionTestBase
+                               with LoadBalancerManager
+                               with LbaasV2ITCommon {
     "C3PO" should "be able to create/delete Load Balancer, Router, and VIP peer port." in {
-        val (vipPortId, _, _) = createVipPort()
+        val (vipPortId, _, _) = createVipV2PortAndNetwork()
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
 
         // Create a Load Balancer
-        val lbId = UUID.randomUUID
+        val lbId =  createLbV2(40, vipPortId, "10.0.1.4")
         val routerId = lbV2RouterId(lbId)
 
-        val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
-
-        insertCreateTask(40, LoadBalancerV2Type, lbJson, lbId)
         val lb = storage.get(classOf[LoadBalancer], lbId).await()
 
         lb.getId shouldBe toProto(lbId)
@@ -83,39 +61,31 @@ class LoadBalancerV2IT extends C3POMinionTestBase with LoadBalancerManager {
 
     "Creation of LB without VIP port" should
       "throw NotFoundException" in {
-        val lbId = UUID.randomUUID
-        val lbJson = makeLbJson(lbId, UUID.randomUUID(), "10.0.1.4")
-
-        val ex = the [TranslationException] thrownBy insertCreateTask(
-            10, LoadBalancerV2Type, lbJson, lbId)
+        val ex = the [TranslationException] thrownBy createLbV2(
+            40, UUID.randomUUID(), "10.0.1.4")
         ex.cause shouldBe a [NotFoundException]
     }
 
     "Creation of LB with already existing router" should
       "throw ObjectExistsException" in {
-        val (vipPortId, _, _) = createVipPort()
+        val (vipPortId, _, _) = createVipV2PortAndNetwork()
 
         val lbId = UUID.randomUUID
         val routerId = lbV2RouterId(lbId)
         createRouter(10, routerId)
 
-        val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
-        an [ObjectExistsException] should be thrownBy insertCreateTask(
-            20, LoadBalancerV2Type, lbJson, lbId)
+        an [ObjectExistsException] should be thrownBy
+        createLbV2(10, vipPortId, "10.0.1.4", id = lbId)
     }
 
     "Creation of LB with already existing port with same ID as VIP peer port ID" should
       "throw ObjectExistsException" in {
-        val (vipPortId, vipNetworkId, vipSubnetId) = createVipPort()
-
-        val lbId = UUID.randomUUID
+        val (vipPortId, vipNetworkId, vipSubnetId) = createVipV2PortAndNetwork()
 
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
-
         createDhcpPort(20, vipNetworkId, vipSubnetId, "10.0.1.5", portId = vipPeerPortId)
 
-        val lbJson = makeLbJson(lbId, vipPortId, "10.0.1.4")
-        an [ObjectExistsException] should be thrownBy insertCreateTask(
-            30, LoadBalancerV2Type, lbJson, lbId)
+        an [ObjectExistsException] should be thrownBy createLbV2(
+            10, vipPortId, "10.0.1.4")
     }
 }
