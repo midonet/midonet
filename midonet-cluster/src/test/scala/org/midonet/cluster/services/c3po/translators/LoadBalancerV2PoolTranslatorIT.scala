@@ -106,7 +106,7 @@ class LoadBalancerV2PoolTranslatorIT extends C3POMinionTestBase {
     private def setUpLb(firstTaskId: Int): Boilerplate = {
         val nwId = createTenantNetwork(firstTaskId)
         val snId = createSubnet(firstTaskId + 1, nwId, "10.0.0.0/24")
-        val vipPortId = createVipPort(firstTaskId + 2, nwId, snId, "10.0.0.1")
+        val (vipPortId, _, _) = createVipV2Port("10.0.0.1", "10.0.0.0/24")
         val lbId = createLbV2(firstTaskId + 3, vipPortId, "10.0.0.1")
         Boilerplate(nwId, snId, vipPortId, lbId)
     }
