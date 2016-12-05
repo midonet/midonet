@@ -16,21 +16,24 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
-import org.midonet.cluster.util.IPAddressUtil
-import org.midonet.containers
-import org.midonet.packets.{IPv4Subnet, MAC, TCP}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
-import scala.collection.JavaConverters._
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.containers
+import org.midonet.packets.{IPv4Subnet, MAC}
 
 /** Provides a Neutron model translator for NeutronLoadBalancerV2. */
-class LoadBalancerV2Translator
-    extends Translator[NeutronLoadBalancerV2] with LoadBalancerManager {
+class LoadBalancerV2Translator(config: ClusterConfig)
+        extends Translator[NeutronLoadBalancerV2]
+        with LoadBalancerManager
+        with ChainManager
+        with RuleManager {
     /**
       *  Neutron does not maintain the back reference to the Floating IP, so we
       * need to do that by ourselves.
@@ -46,14 +49,54 @@ class LoadBalancerV2Translator
             throw new IllegalArgumentException(
                 "VIP port must be created and specified along with the VIP address.")
 
+        val subnet = containers.findLocalSubnet()
+        val routerAddress = containers.routerPortAddress(subnet)
+        val routerSubnet = new IPv4Subnet(routerAddress, subnet.getPrefixLen)
+
         val newRouterId = lbV2RouterId(nLb.getId)
         val newRouterPortId = PortManager.routerInterfacePortPeerId(nLb.getVipPortId)
+
+        val iChainId = inChainId(newRouterId)
+        val oChainId = outChainId(newRouterId)
+
+        val snatAddr = IPSubnetUtil.fromAddress(nLb.getVipAddress)
+        val snatRule = Rule.newBuilder
+            .setId(lbSnatRule(newRouterId))
+            .setType(Rule.Type.NAT_RULE)
+            .setAction(Rule.Action.ACCEPT)
+            .setCondition(
+                anyFragCondition
+                    .setNwSrcIp(snatAddr)
+                    .setNwSrcInv(true))
+            .setNatRuleData(
+                natRuleData(IPAddressUtil.toProto(nLb.getVipAddress),
+                            dnat = false,
+                            dynamic = true,
+                            config.translators.dynamicNatPortStart,
+                            config.translators.dynamicNatPortEnd))
+            .build()
+
+
+        val revSnatRule = Rule.newBuilder
+            .setId(lbRevSnatRule(newRouterId))
+            .setType(Rule.Type.NAT_RULE)
+            .setAction(Rule.Action.ACCEPT)
+            .setCondition(anyFragCondition)
+            .setNatRuleData(reverseNatRuleData(dnat = false))
+            .build()
 
         // Create the router for this LB
         val newRouter = Router.newBuilder()
                               .setId(newRouterId)
+                              .setInboundFilterId(iChainId)
+                              .setOutboundFilterId(oChainId)
                               .setAdminStateUp(nLb.getAdminStateUp)
                               .build
+
+        val inChain = newChain(iChainId, lbRouterInChainName(nLb.getId),
+                               Seq(revSnatRule.getId))
+        val outChain = newChain(oChainId, lbRouterOutChainName(nLb.getId),
+                                Seq(snatRule.getId))
 
         // Create load balancer object with this new router
         val lb = LoadBalancer.newBuilder()
@@ -71,11 +114,6 @@ class LoadBalancerV2Translator
                           .setPeerId(nLb.getVipPortId)
                           .setRouterId(newRouterId)
                           .build
-
-        val currentPorts = tx.getAll(classOf[Port], newRouter.getPortIdsList.asScala)
-        val subnet = containers.findLocalSubnet(currentPorts)
-        val routerAddress = containers.routerPortAddress(subnet)
-        val routerSubnet = new IPv4Subnet(routerAddress, subnet.getPrefixLen)
 
         val serviceContainerPort = Port.newBuilder
             .setId(lbServiceContainerPortId(newRouter.getId))
@@ -97,6 +135,10 @@ class LoadBalancerV2Translator
             .setConfigurationId(lb.getId)
             .build()
 
+        tx.create(snatRule)
+        tx.create(revSnatRule)
+        tx.create(inChain)
+        tx.create(outChain)
         tx.create(newRouter)
         tx.create(lb)
         tx.create(newPort)
@@ -108,6 +150,8 @@ class LoadBalancerV2Translator
     override protected def translateDelete(tx: Transaction, id: UUID): Unit = {
         val routerId = lbV2RouterId(id)
         val sCGId = lbServiceContainerGroupId(routerId)
+        tx.delete(classOf[Chain], inChainId(routerId), ignoresNeo = true)
+        tx.delete(classOf[Chain], outChainId(routerId), ignoresNeo = true)
         tx.delete(classOf[LoadBalancer], id, ignoresNeo = true)
         tx.delete(classOf[Router], routerId, ignoresNeo = true)
         tx.delete(classOf[ServiceContainerGroup], sCGId, ignoresNeo = true)
