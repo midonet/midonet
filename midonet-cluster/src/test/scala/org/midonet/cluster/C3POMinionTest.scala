@@ -790,6 +790,14 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         portId
     }
 
+    protected def createVipPort(): (UUID, UUID, UUID) = {
+        val vipNetworkId = createTenantNetwork(10, external = false)
+        val vipSubnetId = createSubnet(20, vipNetworkId, "10.0.1.0/24")
+        (createVipPort(30, vipNetworkId, vipSubnetId, "10.0.1.4"),
+            vipNetworkId,
+            vipSubnetId)
+    }
+
     protected def createVifPort(taskId: Int, nwId: UUID,
                                 fixedIps: Seq[IPAlloc] = Seq(),
                                 id: UUID = UUID.randomUUID(),
