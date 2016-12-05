@@ -50,7 +50,7 @@ package object containers {
     private val ContainerAddressOffset = 2
 
     @throws[NoSuchElementException]
-    def findLocalSubnet(ports: Seq[Port]): IPv4Subnet = {
+    def findLocalSubnet(ports: Seq[Port] = Seq()): IPv4Subnet = {
         // Finds an available 169.254.x.y/30 (0xA9FE.x.y/30) subnet within the
         // 169.254.0.0/16 range excluding the subnets of the router ports that
         // already have been allocated within the same range. The method works
