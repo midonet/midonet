@@ -88,6 +88,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_1279fafc",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-05T02:17:17Z",
+      "side": 1,
+      "message": "Pool already existing was going to come after your pool translations went in (at which point I was going to add it here).",
+      "parentUuid": "5aa745d1_63d876f0",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 47
+      },
+      "revId": "81c7cca47eefbba8b25f00aa11e55e083454cc98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_234b8eb2",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
         "patchSetId": 1
@@ -111,6 +135,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_f27d6ee8",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-05T02:17:17Z",
+      "side": 1,
+      "message": "I can, but I will need to base off of your patch, and your patch must go in (i.e. will become a dependency) before this one.",
+      "parentUuid": "5aa745d1_234b8eb2",
+      "range": {
+        "startLine": 56,
+        "startChar": 8,
+        "endLine": 58,
+        "endChar": 64
+      },
+      "revId": "81c7cca47eefbba8b25f00aa11e55e083454cc98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_432fbaa1",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 1
@@ -122,6 +170,30 @@
       "writtenOn": "2016-12-02T09:28:36Z",
       "side": 1,
       "message": "why did you change this?",
+      "range": {
+        "startLine": 212,
+        "startChar": 18,
+        "endLine": 212,
+        "endChar": 34
+      },
+      "revId": "81c7cca47eefbba8b25f00aa11e55e083454cc98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_d28272c8",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-05T02:17:17Z",
+      "side": 1,
+      "message": "Change load_balancer_id?  Or change the entire protobuf definition?\n\nFor the former, load_balancer_id is the field that will be used in translations, so it\u0027s the field that must be sent for the translation to know which LB this listener is getting created on.\n\nFor the latter, several fields are unused in translations, and I thought our policy is to not bother with fields that we won\u0027t use, so I removed them from the protobufs.",
+      "parentUuid": "5aa745d1_432fbaa1",
       "range": {
         "startLine": 212,
         "startChar": 18,
