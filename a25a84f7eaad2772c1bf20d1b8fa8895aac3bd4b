@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_52778202",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 981,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-05T03:13:23Z",
+      "side": 1,
+      "message": "There could be multiple pools.",
+      "range": {
+        "startLine": 980,
+        "startChar": 71,
+        "endLine": 981,
+        "endChar": 4
+      },
+      "revId": "a25a84f7eaad2772c1bf20d1b8fa8895aac3bd4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_3274f6fb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-05T03:13:23Z",
+      "side": 1,
+      "message": "This value should be different from lbServiceContainerGroupId, shouldn\u0027t it?",
+      "revId": "a25a84f7eaad2772c1bf20d1b8fa8895aac3bd4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
