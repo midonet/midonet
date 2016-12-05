@@ -469,6 +469,68 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec with TopologyBuilder
                                                                 portNumber = -1,
                                                                 active = false)
         }
+
+        scenario("Different observers see all active ports") {
+            Given("Several active bridge ports")
+            val bridge = createBridge()
+            val port1 = createBridgePort(bridgeId = Some(bridge.getId))
+            val port2 = createBridgePort(bridgeId = Some(bridge.getId))
+            val port3 = createBridgePort(bridgeId = Some(bridge.getId))
+            store.multi(Seq(CreateOp(bridge), CreateOp(port1), CreateOp(port2),
+                            CreateOp(port3)))
+            VirtualToPhysicalMapper.setPortActive(port1.getId, portNumber = -1,
+                                                  active = true,
+                                                  tunnelKey = 0L)
+
+            And("Two ports status observers")
+            val obs1 = new TestObserver[LocalPortActive]
+            val obs2 = new TestObserver[LocalPortActive]
+
+            When("The first observer subscribes")
+            VirtualToPhysicalMapper.portsActive.subscribe(obs1)
+
+            Then("The first observer should receive to the port status")
+            obs1.getOnNextEvents should have size 1
+            obs1.getOnNextEvents.get(0) shouldBe LocalPortActive(port1.getId,
+                                                                 portNumber = -1,
+                                                                 active = true)
+
+
+            When("The second port becomes active")
+            VirtualToPhysicalMapper.setPortActive(port2.getId, portNumber = -1,
+                                                  active = true,
+                                                  tunnelKey = 0L)
+
+            Then("The first observer should receive the port status")
+            obs1.getOnNextEvents should have size 2
+            obs1.getOnNextEvents.get(1) shouldBe LocalPortActive(port2.getId,
+                                                                 portNumber = -1,
+                                                                 active = true)
+
+            When("The second observer subscribes")
+            VirtualToPhysicalMapper.portsActive.subscribe(obs2)
+
+            Then("The second observer should receive the ports status")
+            obs2.getOnNextEvents should have size 2
+            obs2.getOnNextEvents should contain allOf(
+                LocalPortActive(port1.getId, portNumber = -1, active = true),
+                LocalPortActive(port2.getId, portNumber = -1, active = true))
+
+            When("The third port becomes active")
+            VirtualToPhysicalMapper.setPortActive(port3.getId, portNumber = -1,
+                                                  active = true,
+                                                  tunnelKey = 0L)
+
+            Then("Both observers receive the port")
+            obs1.getOnNextEvents should have size 3
+            obs1.getOnNextEvents.get(2) shouldBe LocalPortActive(port3.getId,
+                                                                 portNumber = -1,
+                                                                 active = true)
+            obs2.getOnNextEvents should have size 3
+            obs2.getOnNextEvents.get(2) shouldBe LocalPortActive(port3.getId,
+                                                                 portNumber = -1,
+                                                                 active = true)
+        }
     }
 
     feature("The virtual to physical mapper manager sub-services") {
