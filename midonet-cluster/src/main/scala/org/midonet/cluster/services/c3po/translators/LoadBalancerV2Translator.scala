@@ -23,7 +23,6 @@ import org.midonet.cluster.models.Topology.{LoadBalancer, Port, Router}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.util.IPAddressUtil
 
-/** Provides a Neutron model translator for NeutronLoadBalancerV2. */
 class LoadBalancerV2Translator
     extends Translator[NeutronLoadBalancerV2] with LoadBalancerManager {
     /**
