@@ -394,16 +394,31 @@ class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
         self.port1 = self.create_port('port1', privnet)
         self.create_sg_rule(self.port1['security_groups'][0])
 
-        self.create_resource(
+        self.fip6 = self.create_resource(
             self.api.create_floatingip(
                 {'floatingip':
                     {'floating_network_id': self.pubnet['id'],
                      'floating_ip_address': 'cccc:bbbb::3',
                      'port_id': self.port1['id'],
-                     'tenant_id': 'admin'}}
+                     'tenant_id': 'admin'}
+                }
             )
         )
 
+
+class FIP6Reuse(SingleTenantWithNeutronIPv6FIP):
+
+    def build(self, binding_data=None):
+        super(FIP6Reuse, self).build(binding_data)
+        privnet = self.get_resource('private-tenant')['network']
+        self.port2 = self.create_port('port2', privnet)
+        fip6id = self.fip6['floatingip']['id']
+        self.api.update_floatingip(fip6id, {'floatingip': {'port_id': None }})
+        self.api.update_floatingip(fip6id,
+            {'floatingip': {'port_id': self.port2['id'] } }
+        )
+        self.addCleanup(self.api.update_floatingip,
+            fip6id, {'floatingip': {'port_id': None }})
 
 # Neutron topology with a 3 tenants and uplink
 # configured
@@ -474,6 +489,24 @@ binding_multihost_singletenant_neutronfip6 = {
          'interface': {
              'definition': {"ipv4_gw": "192.168.0.1"},
              'hostname': 'midolman2',
+             'type': 'vmguest'
+         }}
+    ]
+}
+
+binding_fip6reuse = {
+    'description': 'spanning across 2 midolmans',
+    'bindings': [
+         {'vport': 'port1',
+         'interface': {
+             'definition': {"ipv4_gw": "192.168.0.1"},
+             'hostname': 'midolman2',
+             'type': 'vmguest'
+         }},
+         {'vport': 'port2',
+         'interface': {
+             'definition': {"ipv4_gw": "192.168.0.1"},
+             'hostname': 'midolman1',
              'type': 'vmguest'
          }}
     ]
@@ -705,6 +738,15 @@ def test_neutron_fip6():
     Title: create and associates a IPv6 FIP in neutron checking connectivity
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
+
+@attr(version="v1.2.0")
+@bindings(binding_fip6reuse,
+          binding_manager=BindingManager(vtm=FIP6Reuse()))
+def test_fip6reuse():
+    """
+    Title: create and reassociates a IPv6 FIP in neutron. Ping must work.
+    """
+    ping_from_inet('quagga1', 'cccc:bbbb::3', 4, namespace='ip6')
 
 BM = BindingManager(vtm=MultiTenantAndUplinkWithVPP())
 
