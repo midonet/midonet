@@ -18,6 +18,7 @@ from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
 from mdts.tests.utils.utils import bindings
 from nose.plugins.attrib import attr
+from nose.tools import nottest
 import re
 import subprocess
 import time
@@ -668,6 +669,7 @@ def test_uplink_ipv6():
     ping_from_inet('quagga1', '2001::1', 10)
 
 
+@nottest
 @attr(version="v1.2.0")
 @bindings(binding_multihost_singletenant,
           binding_manager=BindingManager(vtm=SingleTenantAndUplinkWithVPP()))
@@ -678,6 +680,7 @@ def test_ping_vm_ipv6():
     ping_from_inet('quagga1', 'cccc:bbbb::2', 10, namespace='ip6')
 
 
+@nottest
 @attr(version="v1.2.0")
 @bindings(binding_multihost_multitenant,
           binding_manager=BindingManager(vtm=MultiTenantAndUplinkWithVPP()))
@@ -689,6 +692,7 @@ def test_ping_multi_vms_ipv6():
     ping_from_inet('quagga1', 'cccc:cccc::2', 10, namespace='ip6')
 
 
+@nottest
 @attr(version="v1.2.0")
 @bindings(binding_multihost_singletenant_neutronfip6,
           binding_manager=BindingManager(vtm=SingleTenantWithNeutronIPv6FIP()))
@@ -701,6 +705,7 @@ def test_neutron_fip6():
 BM = BindingManager(vtm=MultiTenantAndUplinkWithVPP())
 
 
+@nottest
 @attr(version="v1.2.0")
 @bindings(binding_multihost_multitenant,
           binding_manager=BM)
