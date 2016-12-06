@@ -21,8 +21,7 @@ object IntegrationTests {
     val defaultTests = List(/*classOf[org.midonet.RecircTest],*/
                             classOf[org.midonet.midolman.host.scanner.InterfaceScannerTest],
                             classOf[org.midonet.quagga.BgpdTest],
-                            //TODO: re-enable after finding cause of failure
-                            // classOf[org.midonet.midolman.vpp.VppIntegrationTest],
+                            classOf[org.midonet.midolman.vpp.VppIntegrationTest],
                             classOf[org.midonet.midolman.vpp.VppControllerIntegrationTest],
                             classOf[org.midonet.midolman.tc.TcIntegrationTest]) map { _.getCanonicalName }
 
