@@ -16,6 +16,24 @@
       "revId": "1e246b12f658680f851266bca3f9c21feefb7ee9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_fae660e7",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-06T02:29:47Z",
+      "side": 1,
+      "message": "Okay, now I know what the translator receives, I will update the protobufs and API!",
+      "parentUuid": "5aa745d1_895b9c54",
+      "revId": "1e246b12f658680f851266bca3f9c21feefb7ee9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
