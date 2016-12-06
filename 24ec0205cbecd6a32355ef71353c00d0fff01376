@@ -60,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_0e09c92c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T22:00:51Z",
+      "side": 1,
+      "message": "I guess it\u0027s the protobuf thing?  bldr.setSessionPersistence(null) is to be avoided?",
+      "parentUuid": "5aa745d1_2b947735",
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_0bb09bdc",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
         "patchSetId": 5
