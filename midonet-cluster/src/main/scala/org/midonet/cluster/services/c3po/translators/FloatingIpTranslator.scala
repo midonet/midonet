@@ -30,7 +30,6 @@ import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 
-/** Provides a Neutron model translator for FloatingIp. */
 class FloatingIpTranslator(stateTableStorage: StateTableStorage)
     extends Translator[FloatingIp] with ChainManager with RouteManager
             with RuleManager {

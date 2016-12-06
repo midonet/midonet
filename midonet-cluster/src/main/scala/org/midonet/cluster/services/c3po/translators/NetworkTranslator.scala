@@ -22,9 +22,6 @@ import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 
-/**
-  * Provides a Neutron model translator for Network.
-  */
 class NetworkTranslator extends Translator[NeutronNetwork] {
     import NetworkTranslator._
 

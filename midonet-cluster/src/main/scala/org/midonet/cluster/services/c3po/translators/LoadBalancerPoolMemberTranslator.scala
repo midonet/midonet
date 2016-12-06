@@ -22,9 +22,6 @@ import org.midonet.cluster.models.Commons.LBStatus.ACTIVE
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Topology.PoolMember
 
-/**
-  * Provides a Neutron model translator for NeutronLoadBalancerPoolMember.
-  */
 class LoadBalancerPoolMemberTranslator
     extends Translator[NeutronLoadBalancerPoolMember] {
 
