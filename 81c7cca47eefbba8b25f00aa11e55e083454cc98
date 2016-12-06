@@ -230,6 +230,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_fa81c0fc",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-06T01:41:52Z",
+      "side": 1,
+      "message": "I guess I don\u0027t understand.  Is the loadbalancer_id field not actually sent to the translateCreate function?\n\nFrom the REST API definition: \n\n    \u0027listeners\u0027: {\n        ...\n        \n        \u0027loadbalancer_id\u0027: {\u0027allow_post\u0027: True, \u0027allow_put\u0027: False,\n                            \u0027validate\u0027: {\u0027type:uuid\u0027: None},\n                            \u0027is_visible\u0027: False},\n        \u0027loadbalancers\u0027: {\u0027allow_post\u0027: False, \u0027allow_put\u0027: False,\n                          \u0027is_visible\u0027: True},...\n\n(shared pools only changes the type, not the basic definition).\n\nBut from the data_models code, I can see:\n\n\n    def to_api_dict(self):\n        ret_dict \u003d super(Listener, self).to_dict(\n            loadbalancer\u003dFalse, loadbalancer_id\u003dFalse, default_pool\u003dFalse,\n            operating_status\u003dFalse, provisioning_status\u003dFalse,\n            sni_containers\u003dFalse, default_tls_container\u003dFalse)\n        # NOTE(blogan): Returning a list to future proof for M:N objects\n        # that are not yet implemented.\n        ret_dict[\u0027loadbalancers\u0027] \u003d []\n        if self.loadbalancer:\n            ret_dict[\u0027loadbalancers\u0027].append({\u0027id\u0027: self.loadbalancer.id})\n\nDoes this mean that while, the \"loadbalancers\" list is neither POST or PUTable, and while you MUST send in the \"loadbalancer_id\" UUID upon object creation, that the \"loadbalancers\" field (which is a list of only one member) is the one we will receive from neutron during object creation, and NOT the POSTable \"loadbalancers_id\" field which is more straightforward?  That seems pretty confusing.",
+      "parentUuid": "5aa745d1_a97778d3",
+      "range": {
+        "startLine": 212,
+        "startChar": 18,
+        "endLine": 212,
+        "endChar": 34
+      },
+      "revId": "81c7cca47eefbba8b25f00aa11e55e083454cc98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_a3eb1eb0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
         "patchSetId": 1
