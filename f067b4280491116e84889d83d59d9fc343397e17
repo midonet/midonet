@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "5aa745d1_f56d53cd",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T07:45:03Z",
+      "side": 1,
+      "message": "white space after map.  Also one below",
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_ba6d7834",
         "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
         "patchSetId": 2
@@ -19,6 +36,23 @@
         "endLine": 87,
         "endChar": 34
       },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_1579df93",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T07:45:03Z",
+      "side": 1,
+      "message": "nodes and memberIds can\u0027t be UUIDs?",
       "revId": "f067b4280491116e84889d83d59d9fc343397e17",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
