@@ -22,8 +22,6 @@ import javax.annotation.Nonnull
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{UUID => PUUID}
 
 object UUIDUtil {
@@ -60,7 +58,7 @@ object UUIDUtil {
         new JUUID(uuid.getMsb, uuid.getLsb)
     }
 
-    implicit def fromProtoList(from: java.util.List[Commons.UUID]): JArrayList[JUUID] = {
+    implicit def fromProtoList(from: java.util.List[PUUID]): JArrayList[JUUID] = {
         val res = new JArrayList[JUUID]
         if (from ne null) {
             val it = from.iterator()
@@ -70,7 +68,7 @@ object UUIDUtil {
         res
     }
 
-    implicit def fromProtoListToScala(from: java.util.List[Commons.UUID]): List[JUUID] = {
+    implicit def fromProtoListToScala(from: java.util.List[PUUID]): List[JUUID] = {
         fromProtoList(from).asScala.toList
     }
 
