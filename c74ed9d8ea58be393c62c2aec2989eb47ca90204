@@ -22,6 +22,30 @@
       "revId": "c74ed9d8ea58be393c62c2aec2989eb47ca90204",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_3a884822",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 802,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-06T01:30:13Z",
+      "side": 1,
+      "message": "Actually, I need it in the listener test, hence it\u0027s refactoring.\n\nAnd the taskId is now irrelevant after Alex\u0027s change away from NeutronImporter to straight translation calls.  But if you think it\u0027s still valuable to add the taskId just for consistency with the other funcs, I can add the dummy variable into the prototype and force the callers to just use some basic value (like \"10\") for the parameter.",
+      "parentUuid": "5aa745d1_46aa2372",
+      "range": {
+        "startLine": 796,
+        "startChar": 0,
+        "endLine": 802,
+        "endChar": 5
+      },
+      "revId": "c74ed9d8ea58be393c62c2aec2989eb47ca90204",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
