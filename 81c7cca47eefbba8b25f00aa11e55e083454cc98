@@ -350,6 +350,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_bad1f8fd",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-06T02:32:31Z",
+      "side": 1,
+      "message": "@Yamamoto I see from your post in the Pools patch what gets sent for the pools creation, so I will agree with Ryu that the same should apply here, and will change my patch.\n\n@Ryu: Thanks for the link.  I agree that it probably is consistent from the pools and listeners, as they would both have to have called \"to_api_dict\" in order to even have the `loadbalancers` field set, so I would think both pool and listener would have similar structure in that regard.",
+      "parentUuid": "5aa745d1_3adde814",
+      "range": {
+        "startLine": 212,
+        "startChar": 18,
+        "endLine": 212,
+        "endChar": 34
+      },
+      "revId": "81c7cca47eefbba8b25f00aa11e55e083454cc98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_a3eb1eb0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
         "patchSetId": 1
