@@ -302,6 +302,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_7ac4903f",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T02:16:51Z",
+      "side": 1,
+      "message": "If http://paste.openstack.org/show/590419/ is what gets sent, then we just need loadbalancers.  Might as well go with that.",
+      "parentUuid": "5aa745d1_baca184e",
+      "range": {
+        "startLine": 212,
+        "startChar": 18,
+        "endLine": 212,
+        "endChar": 34
+      },
+      "revId": "81c7cca47eefbba8b25f00aa11e55e083454cc98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_a3eb1eb0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
         "patchSetId": 1
