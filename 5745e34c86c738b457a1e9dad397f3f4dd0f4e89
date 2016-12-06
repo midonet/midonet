@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_10044d13",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ListenerV2Translator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T10:50:38Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "5745e34c86c738b457a1e9dad397f3f4dd0f4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_90105d50",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ListenerV2Translator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T10:50:38Z",
+      "side": 1,
+      "message": "duplicate",
+      "revId": "5745e34c86c738b457a1e9dad397f3f4dd0f4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_10ee8d22",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ListenerV2Translator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T10:50:38Z",
+      "side": 1,
+      "message": "I\u0027m thinking it\u0027s better to get the IP address directly from the midonet router port.  The midonet router port ID should be routerInterfacePortPeerId(peerId).",
+      "revId": "5745e34c86c738b457a1e9dad397f3f4dd0f4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_f0f20106",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T10:50:38Z",
+      "side": 1,
+      "message": "unrelated change",
+      "revId": "5745e34c86c738b457a1e9dad397f3f4dd0f4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_d0f705f4",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T10:50:38Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "5745e34c86c738b457a1e9dad397f3f4dd0f4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_70e71141",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T10:50:38Z",
+      "side": 1,
+      "message": "protocolPort is unnecessary since you are setting it to the default value anyway.",
+      "revId": "5745e34c86c738b457a1e9dad397f3f4dd0f4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_50e4153a",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T10:50:38Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "5745e34c86c738b457a1e9dad397f3f4dd0f4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
