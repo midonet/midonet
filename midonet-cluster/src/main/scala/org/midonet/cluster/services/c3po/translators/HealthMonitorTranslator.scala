@@ -24,7 +24,6 @@ import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus.P
 import org.midonet.cluster.models.Topology.{HealthMonitor, Pool}
 
 
-/** Provides a Neutron model translator for NeutronHealthMonitor. */
 class HealthMonitorTranslator extends Translator[NeutronHealthMonitor]{
 
     private def translate(nhm: NeutronHealthMonitor, setPoolId: Boolean = false)

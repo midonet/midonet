@@ -22,7 +22,6 @@ import org.midonet.cluster.models.Topology.Vip
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.packets.{IPv4Addr, MAC}
 
-/** Provides a Neutron model translator for VIP. */
 class VipTranslator(stateTableStorage: StateTableStorage)
     extends Translator[NeutronVIP] {
 
