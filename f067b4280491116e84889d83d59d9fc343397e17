@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_ba6d7834",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T04:52:25Z",
+      "side": 1,
+      "message": "whitespaces",
+      "range": {
+        "startLine": 87,
+        "startChar": 32,
+        "endLine": 87,
+        "endChar": 34
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_9a6abc19",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/LoadBalancerV2Config.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T04:52:25Z",
+      "side": 1,
+      "message": "2016?",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_da5e0476",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/LoadBalancerV2Config.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T04:52:25Z",
+      "side": 1,
+      "message": "should pool\u0027s admin_state_up\u003dFalse exclude it from healthmonitor?\n\ni couldn\u0027t find code to exclude such a pool in haproxy driver.\nhttps://github.com/openstack/neutron-lbaas/blob/375201edddc39f56044e03062642e04ed869a92d/neutron_lbaas/drivers/haproxy/jinja_cfg.py#L250",
+      "range": {
+        "startLine": 69,
+        "startChar": 24,
+        "endLine": 69,
+        "endChar": 36
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_3ac72814",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T04:52:25Z",
+      "side": 1,
+      "message": "code vs comment mismatch",
+      "range": {
+        "startLine": 86,
+        "startChar": 46,
+        "endLine": 86,
+        "endChar": 72
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_1acc6c34",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T04:52:25Z",
+      "side": 1,
+      "message": "i suspect info is too verbose",
+      "range": {
+        "startLine": 90,
+        "startChar": 37,
+        "endLine": 90,
+        "endChar": 41
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
