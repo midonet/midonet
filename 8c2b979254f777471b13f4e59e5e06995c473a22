@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_ba957841",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-06T02:34:37Z",
+      "side": 1,
+      "message": "It just made some lines very long. Changing back.",
+      "parentUuid": "5aa745d1_06309b55",
+      "range": {
+        "startLine": 29,
+        "startChar": 44,
+        "endLine": 29,
+        "endChar": 96
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_06177ba4",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-12-05T09:22:29Z",
       "side": 1,
       "message": "No point in checking exists() just before calling get(). If it doesn\u0027t exist(), get() will fail with an appropriate error.",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 82,
+        "endChar": 65
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_9a92bc56",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-06T02:34:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_06177ba4",
       "range": {
         "startLine": 82,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_7a9ff05f",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-06T02:34:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_a6268714",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 54
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_267957fd",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_5a9c3469",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-06T02:34:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_267957fd",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 61
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_866a6b19",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
         "patchSetId": 3
@@ -105,6 +201,30 @@
       "writtenOn": "2016-12-05T09:22:29Z",
       "side": 1,
       "message": "This has a bunch of properties to check, doesn\u0027t it?",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 41
+      },
+      "revId": "8c2b979254f777471b13f4e59e5e06995c473a22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_5a73144e",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-06T02:34:37Z",
+      "side": 1,
+      "message": "The three other properties that are set are the Mac, IP, and subnet, but all of those are generated on the spot in the translator so don\u0027t have a value that it \"should\" be.",
+      "parentUuid": "5aa745d1_866a6b19",
       "range": {
         "startLine": 95,
         "startChar": 0,
