@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_ce6881bd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T22:58:12Z",
+      "side": 1,
+      "message": "Why DNAT?  Shouldn\u0027t it be reverse SNAT?",
+      "revId": "6172a024945e71fa7fedf24f348d4c5a9a3779fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_ae6535e2",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/package.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T22:58:12Z",
+      "side": 1,
+      "message": "Why is this included in this patch?",
+      "revId": "6172a024945e71fa7fedf24f348d4c5a9a3779fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
