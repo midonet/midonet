@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5aa745d1_cb951341",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T17:27:14Z",
+      "side": 1,
+      "message": "loadbalancers?",
+      "range": {
+        "startLine": 77,
+        "startChar": 23,
+        "endLine": 77,
+        "endChar": 37
+      },
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_f56c330a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
         "patchSetId": 5
@@ -13,6 +36,104 @@
       "writtenOn": "2016-12-06T10:06:21Z",
       "side": 1,
       "message": "Do you need this check?",
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_2b947735",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T17:27:14Z",
+      "side": 1,
+      "message": "i think you need it.",
+      "parentUuid": "5aa745d1_f56c330a",
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_0bb09bdc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T17:27:14Z",
+      "side": 1,
+      "message": "is this check necessary?\n\nit seems a bit strange because the right side is never null.",
+      "range": {
+        "startLine": 96,
+        "startChar": 12,
+        "endLine": 96,
+        "endChar": 64
+      },
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_cbd193fd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T17:27:14Z",
+      "side": 1,
+      "message": "extra newline",
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_ab3c0730",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslatorIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T17:27:14Z",
+      "side": 1,
+      "message": "i guess you should check pool.hasProtocol first.\nditto for other fields.",
+      "range": {
+        "startLine": 127,
+        "startChar": 13,
+        "endLine": 127,
+        "endChar": 24
+      },
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_cbf8737f",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslatorIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-06T17:27:14Z",
+      "side": 1,
+      "message": "add session persistence check?",
       "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
