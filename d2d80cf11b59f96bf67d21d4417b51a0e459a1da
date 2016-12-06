@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_1552ff13",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 793,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-06T07:24:43Z",
+      "side": 1,
+      "message": "My suggestion is that you make the signature of this method the same as createVipPort where all it does is create a VIP port (no network or subnet):\n\ncreateVipV2Port(taskId: Int, ...)\n\nAnd then define a separate method that does network, subnet and port creation as you do here if you find that to be useful.  It does feel like this sort of stuff should be organized in lbaas test code instead of here though.",
+      "revId": "d2d80cf11b59f96bf67d21d4417b51a0e459a1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
