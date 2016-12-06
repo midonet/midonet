@@ -30,7 +30,6 @@ class FirewallLogTranslator extends Translator[FirewallLog] with ChainManager {
 
     import FirewallLogTranslator._
 
-    /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,
                                            fl: FirewallLog): Unit = {
         ensureLoggerResource(tx, fl.getLoggingResource)
