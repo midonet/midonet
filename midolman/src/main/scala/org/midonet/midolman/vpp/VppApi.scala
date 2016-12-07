@@ -230,7 +230,18 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext)
         msg.isAdd = boolToByte(isAdd)
         msg.isIpv6 = boolToByte(address.isInstanceOf[IPv6Addr])
         msg.swIfIndex = device.swIfIndex
-        execVppRequest(msg, lib.swInterfaceAddDelAddress)
+        val disableIpv6Msg = new SwInterfaceIp6EnableDisable
+        disableIpv6Msg.enable = boolToByte(false)
+        disableIpv6Msg.swIfIndex = device.swIfIndex
+        execVppRequest(msg, lib.swInterfaceAddDelAddress) flatMap {
+            _ => if (msg.isIpv6 == 1 && deleteAll) {
+                // Remove interface from neighbour discovery process
+                // to avoid VPP to crash (https://jira.fd.io/browse/VPP-509)
+                execVppRequest(disableIpv6Msg, lib.swInterfaceIp6EnableDisable)
+            } else {
+                Future.successful(AnyRef)
+            }
+        }
     }
 
     /** equivalent to:
