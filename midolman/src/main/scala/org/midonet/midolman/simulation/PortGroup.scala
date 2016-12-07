@@ -16,17 +16,23 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{ArrayList, UUID}
+import java.util
+import java.util.UUID
 
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.sdn.flows.FlowTagger
 
-class PortGroup(val id: UUID,
-                val name: String,
-                val stateful: Boolean,
-                val members: ArrayList[UUID])
+case class PortGroup(id: UUID,
+                     name: String,
+                     stateful: Boolean,
+                     members: util.List[UUID])
     extends VirtualDevice {
 
-    val deviceTag = FlowTagger.tagForPortGroup(id)
+    override val deviceTag = FlowTagger.tagForPortGroup(id)
     val flowStateTag = FlowTagger.tagForFlowStateDevice(id)
+
+    override def toString = {
+        s"PortGroup [id=$id name=$name stateful=$stateful members=$members]"
+    }
+
 }
