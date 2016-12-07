@@ -140,6 +140,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_0e354945",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-07T03:22:32Z",
+      "side": 1,
+      "message": "That\u0027s a fair point.  I will set to non-default to make sure that the non-default value works as well.",
+      "parentUuid": "5aa745d1_8e0399b8",
+      "revId": "5745e34c86c738b457a1e9dad397f3f4dd0f4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_50e4153a",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
         "patchSetId": 6
