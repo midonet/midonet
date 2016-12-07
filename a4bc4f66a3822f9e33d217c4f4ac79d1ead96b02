@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_ee10ddaa",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T03:30:30Z",
+      "side": 1,
+      "message": "I don\u0027t think it would break but since all IT classes extend this one, it makes sense to keep it here.",
+      "parentUuid": "5aa745d1_cef8817f",
+      "revId": "a4bc4f66a3822f9e33d217c4f4ac79d1ead96b02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_eee1fdff",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/LbaasV2ITCommon.scala",
         "patchSetId": 8
