@@ -104,6 +104,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_ae93f5a2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-07T00:00:15Z",
+      "side": 1,
+      "message": "However, I check for \"10000\" explicitly below in the assertion, so I thought it best for clarity in the test to have the value explicitly called out, so people aren\u0027t left wondering why I am checking for this magic \"10000\".  It might be confusing and force people to go to the function prototype to figure out the default was 10000 after all.\n\nSo, this is mostly for clarity\u0027s sake, and it doesn\u0027t actually functionally change anything, so I\u0027d like to keep it in, if that\u0027s acceptable.",
+      "parentUuid": "5aa745d1_70e71141",
+      "revId": "5745e34c86c738b457a1e9dad397f3f4dd0f4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_50e4153a",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/ListenerV2TranslatorIT.scala",
         "patchSetId": 6
