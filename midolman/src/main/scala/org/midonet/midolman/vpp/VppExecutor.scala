@@ -94,7 +94,7 @@ abstract class VppExecutor extends AbstractService with Logging {
         promise.future
     }
 
-    override def doStop(): Unit = {
+    protected override def doStop(): Unit = {
         Executors.shutdown(executor) { _ =>
             log warn s"Exception while stopping VPP controller executor"
         }
