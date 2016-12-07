@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_4eb6b1dd",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2IT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-07T02:31:28Z",
+      "side": 1,
+      "message": "This is going to conflict with the LbaasV2Common change I had to make for the test update review: https://review.gerrithub.io/#/c/304653/",
+      "range": {
+        "startLine": 51,
+        "startChar": 30,
+        "endLine": 51,
+        "endChar": 53
+      },
+      "revId": "b2fd23e51de694b589e1ba30617f64874794dd69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
