@@ -32,7 +32,6 @@ import scala.util.{Failure, Success}
 import com.typesafe.scalalogging.Logger
 
 import rx.{Observer, Subscription}
-import rx.subscriptions.CompositeSubscription
 
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
 import org.midonet.cluster.models.Commons.IPVersion
@@ -40,21 +39,21 @@ import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
 import org.midonet.midolman.rules.NatTarget
-import org.midonet.midolman.simulation.{Port, RouterPort}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
+import org.midonet.midolman.simulation.RouterPort
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
+import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.midolman.{DatapathState, Midolman}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
 import org.midonet.util.process.ProcessHelper.OutputStreams._
 import org.midonet.util.process.{MonitoredDaemonProcess, ProcessHelper}
 
 object VppController {
 
     val VppProcessMaximumStarts = 3
-    val VppProcessFailingPeriod = 30000
-    val VppRollbackTimeout = 10 seconds
+    val VppProcessTimeout = 2 seconds
+    val VppRollbackTimeout = 5 seconds
     val VppCtlTimeout = 1 minute
 
     private val VppConnectionName = "midonet"
@@ -65,7 +64,6 @@ object VppController {
     private type LinksMap = util.Map[UUID, BoundPort]
     private object Cleanup
 
-    private def isIPv6(port: RouterPort) = port.portAddress6 ne null
 }
 
 
@@ -73,7 +71,7 @@ class VppController(hostId: UUID,
                     datapathState: DatapathState,
                     vppOvs: VppOvs,
                     protected override val vt: VirtualTopology)
-    extends VppExecutor with VppDownlink {
+    extends VppExecutor with VppUplink with VppDownlink {
 
     import VppController._
 
@@ -84,7 +82,6 @@ class VppController(hostId: UUID,
     private var vppProcess: MonitoredDaemonProcess = _
     private var vppApi: VppApi = _
 
-    private val portsSubscription = new CompositeSubscription()
     private var routerPortSubscribers = mutable.Map[UUID, Subscription]()
     private val uplinks: LinksMap = new util.HashMap[UUID, BoundPort]
     private val downlinks: LinksMap = new util.HashMap[UUID, BoundPort]
@@ -95,7 +92,7 @@ class VppController(hostId: UUID,
     private lazy val gatewayTable = vt.backend.stateTableStore
         .getTable[UUID, AnyRef](MidonetBackend.GatewayTable)
 
-    private var vppExiting = false
+    @volatile private var vppExiting = false
     private val vppExitAction = new Consumer[Exception] {
         override def accept(t: Exception): Unit = {
             if (!vppExiting) {
@@ -106,19 +103,14 @@ class VppController(hostId: UUID,
     }
 
     protected override val receive: Receive = {
-        case LocalPortActive(portId, portNumber, true) =>
-            attachUplink(portId) flatMap {
-                case Some(_) => attachDownlinkVxlan()
-                case None => Future.successful(Unit) // not an IPv6 uplink
-            }
-        case LocalPortActive(portId, portNumber, false) =>
-            detachUplink(portId).flatMap {
-                _ => detachDownlinkVxlan()
-            }
         case port: RouterPort =>
             log debug s"Received router port update for port ${port.id}"
             handleExternalRoutesUpdate(port)
 
+        case AddUplink(portId, portAddress, uplinkPortIds) =>
+            addUplink(portId, portAddress)
+        case DeleteUplink(portId) =>
+            deleteUplink(portId)
         case CreateTunnel(portId, vrf, vni, routerPortMac) =>
             createTunnel(portId, vrf, vni, routerPortMac)
         case DeleteTunnel(portId, vrf, vni) =>
@@ -141,18 +133,21 @@ class VppController(hostId: UUID,
         override def onCompleted(): Unit = { /* ignore */ }
     }
 
-    override def doStart(): Unit = {
-        portsSubscription add VirtualToPhysicalMapper.portsActive
-                                                     .subscribe(observer)
+    protected override def doStart(): Unit = {
+        startUplink()
         notifyStarted()
     }
 
-    override def doStop(): Unit = {
+    protected override def doStop(): Unit = {
         // Unsubscribe from all current subscriptions and execute the cleanup
         // on the conveyor belt.
-        portsSubscription.unsubscribe()
-        Await.ready(send(Cleanup), VppRollbackTimeout)
+        stopUplink()
+        try Await.ready(send(Cleanup), VppRollbackTimeout)
+        catch {
+            case NonFatal(e) => log warn s"Cleanup failed ${e.getMessage}"
+        }
 
+        stopVppProcess()
         super.doStop()
         notifyStopped()
     }
@@ -165,15 +160,11 @@ class VppController(hostId: UUID,
         Future.sequence(cleanupFutures) andThen { case _ =>
             uplinks.clear()
             downlinks.clear()
-
-            if ((vppProcess ne null) && vppProcess.isRunning) {
-                stopVppProcess()
-            }
         }
     }
 
     private def attachLink(links: LinksMap, portId: UUID, setup: VppSetup)
-    : Future[Option[BoundPort]] = {
+    : Future[BoundPort] = {
         val boundPort = BoundPort(setup)
 
         {
@@ -183,7 +174,7 @@ class VppController(hostId: UUID,
                     previousBinding.setup.rollback()
             }
         } flatMap { _ =>
-            setup.execute() map { _ => Some(boundPort) }
+            setup.execute() map { _ => boundPort }
         } recoverWith { case e =>
             setup.rollback() map { _ =>
                 links.remove(portId, boundPort)
@@ -201,40 +192,44 @@ class VppController(hostId: UUID,
         }
     }
 
-    private def attachUplink(portId: UUID): Future[Option[BoundPort]] = {
-        log debug s"Local port $portId active"
+    private def addUplink(portId: UUID, portAddress: IPv6Subnet): Future[Any] = {
+        attachUplink(portId, portAddress) flatMap {
+            _ => attachDownlinkVxlan()
+        }
+    }
+
+    private def deleteUplink(portId: UUID): Future[Any] = {
+        detachUplink(portId).flatMap {
+            _ => detachDownlinkVxlan()
+        }
+    }
+
+    private def attachUplink(portId: UUID, portAddress: IPv6Subnet)
+    : Future[BoundPort] = {
+        log debug s"Attaching IPv6 uplink port $portId"
 
         val shouldStartDownlink = uplinks.isEmpty
-        VirtualTopology.get(classOf[Port], portId) flatMap {
-            case port: RouterPort if isIPv6(port) =>
-                log debug s"Attaching IPv6 uplink port $port"
+        if (startVppProcess()) {
+            vppApi = createApiConnection(VppConnectMaxRetries)
+        }
 
-                if (vppProcess eq null) {
-                    startVppProcess()
-                    vppApi = createApiConnection(VppConnectMaxRetries)
-                }
-
-                val dpNumber = datapathState.getDpPortNumberForVport(portId)
-                val uplinkSetup = attachLink(uplinks, portId,
-                                             new VppUplinkSetup(port.id,
-                                                 port.portAddress6.getAddress,
-                                                 dpNumber, vppApi, vppOvs,
-                                                 Logger(log.underlying)))
-                routerPortSubscribers +=
-                    portId -> VirtualTopology.observable(classOf[RouterPort],
-                                                         portId)
-                                             .subscribe(observer)
-                uplinkSetup
-            case _ =>
-                Future.successful(None)
-        } andThen {
-            case Success(Some(_)) =>
+        val dpNumber = datapathState.getDpPortNumberForVport(portId)
+        val uplinkSetup = attachLink(uplinks, portId,
+                                     new VppUplinkSetup(portId,
+                                                        portAddress.getAddress,
+                                                        dpNumber, vppApi, vppOvs,
+                                                        Logger(log.underlying)))
+        routerPortSubscribers +=
+            portId -> VirtualTopology.observable(classOf[RouterPort],
+                                                 portId)
+                                     .subscribe(observer)
+        uplinkSetup andThen {
+            case Success(_) =>
                 if (shouldStartDownlink && !uplinks.isEmpty) {
                     startDownlink()
                 }
-
-            case Failure(err) =>
-                log warn s"Get port $portId failed: $err"
+            case Failure(e) =>
+                log warn s"Attaching uplink port $portId failed: $e"
         }
     }
 
@@ -279,6 +274,7 @@ class VppController(hostId: UUID,
                 case Some(previousSetup) => previousSetup.rollback()
             }
         } flatMap { _ =>
+            downlinkVxlan = Some(setup)
             setup.execute()
         } recoverWith { case e =>
             setup.rollback() map { _ =>
@@ -351,31 +347,46 @@ class VppController(hostId: UUID,
         createApiConnection(retriesLeft - 1)
     }
 
-    private def startVppProcess(): Unit = {
-        if (vppExiting) return
+    @throws[TimeoutException]
+    private def startVppProcess(): Boolean = synchronized {
+        if (vppExiting)
+            return false
+        if (vppProcess ne null)
+            return false
+
         log debug "Starting VPP process"
         vppProcess = new MonitoredDaemonProcess(
             "/usr/share/midolman/vpp-start", log.underlying, "org.midonet.vpp",
-            VppProcessMaximumStarts, VppProcessFailingPeriod, vppExitAction)
-        vppProcess.startAsync()
-            .awaitRunning(VppProcessFailingPeriod, TimeUnit.MILLISECONDS)
+            VppProcessMaximumStarts, VppProcessTimeout.toMillis,
+            vppExitAction)
+        vppProcess.startAsync().awaitRunning(VppProcessTimeout.toMillis,
+                                             TimeUnit.MILLISECONDS)
 
         gatewayTable.start()
         gatewayTable.add(hostId, GatewayHostEncoder.DefaultValue)
 
-        log debug "vpp process started"
+        log debug "VPP process started"
+        true
     }
 
-    private def stopVppProcess(): Unit = {
+    private def stopVppProcess(): Unit = synchronized {
         log debug "Stopping VPP process"
-        // flag vpp exiting so midolman isn't stopped by the exit action
-        vppExiting = true
-        vppProcess.stopAsync()
-            .awaitTerminated(VppProcessFailingPeriod, TimeUnit.MILLISECONDS)
-        vppProcess = null
 
         gatewayTable.remove(hostId)
         gatewayTable.stop()
+
+        // flag vpp exiting so midolman isn't stopped by the exit action
+        vppExiting = true
+        if ((vppProcess ne null) && vppProcess.isRunning) {
+            try vppProcess.stopAsync().awaitTerminated(VppProcessTimeout.toMillis,
+                                                       TimeUnit.MILLISECONDS)
+            catch {
+                case e: TimeoutException =>
+                    log info "Stopping VPP process timed out after " +
+                             s"$VppProcessTimeout"
+            }
+            vppProcess = null
+        }
     }
 
     private def associateFip(portId: UUID, vrf: Int, floatingIp: IPv6Addr,
