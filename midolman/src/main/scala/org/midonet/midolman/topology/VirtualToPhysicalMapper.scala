@@ -17,10 +17,10 @@ package org.midonet.midolman.topology
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.{ConcurrentHashMap, Executors, TimeUnit}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.Service.State
@@ -28,7 +28,8 @@ import com.google.common.util.concurrent.{AbstractService, ThreadFactoryBuilder}
 
 import org.reflections.Reflections
 
-import rx.Observable
+import rx.{Observable, Subscriber}
+import rx.Observable.OnSubscribe
 import rx.functions.Func1
 import rx.subjects.PublishSubject
 
@@ -42,7 +43,7 @@ import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{Host, TunnelZone, TunnelZoneType}
 import org.midonet.packets.IPAddr
 import org.midonet.util.concurrent._
-import org.midonet.util.functors.{makeAction1, makeFunc1}
+import org.midonet.util.functors.{makeAction1, makeFunc1, makeRunnable}
 import org.midonet.util.reactivex._
 
 object VirtualToPhysicalMapper {
@@ -199,8 +200,27 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
         new ContainerService(vt, hostId, containerExecutor, containerExecutors,
                              ioExecutor, reflections)
 
-    private val activePorts = new ConcurrentHashMap[UUID, Int]
+    private val activePorts = new util.HashMap[UUID, Integer]
     private val portsActiveSubject = PublishSubject.create[LocalPortActive]
+    private val portsActiveObservable = Observable.create(new OnSubscribe[LocalPortActive] {
+        override def call(child: Subscriber[_ >: LocalPortActive]): Unit = {
+            // All notifications to the subscribers are sent on the topology
+            // thread so by subscribing on the same thread, everything is
+            // thread-safe.
+            vt.vtExecutor.submit(makeRunnable {
+                if (!activePorts.isEmpty) {
+                    val iterator = activePorts.entrySet().iterator()
+                    while (iterator.hasNext) {
+                        val entry = iterator.next()
+                        child onNext LocalPortActive(entry.getKey,
+                                                     entry.getValue,
+                                                     active = true)
+                    }
+                }
+                portsActiveSubject subscribe child
+            })
+        }
+    })
 
     private implicit val ec = ExecutionContext.fromExecutor(vt.vtExecutor)
 
@@ -309,12 +329,16 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
       * that completes when the update has finished.
       */
     private def clearPortsActive(): Future[_] = {
-        val futures = for (entry <- activePorts.entrySet().asScala) yield {
-            setPortActive(entry.getKey, entry.getValue, active = false,
-                          tunnelKey = 0L)
-        }
-        activePorts.clear()
-        Future.sequence(futures)
+        val promise = Promise[Any]
+        vt.vtExecutor.execute(makeRunnable {
+            val futures = for (entry <- activePorts.entrySet().asScala) yield {
+                setPortActive(entry.getKey, entry.getValue, active = false,
+                              tunnelKey = 0L)
+            }
+            activePorts.clear()
+            promise.tryCompleteWith(Future.sequence(futures))
+        })
+        promise.future
     }
 
     /**
@@ -325,7 +349,7 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
       * topology thread.
       */
     private def portsActive: Observable[LocalPortActive] = {
-        portsActiveSubject.asObservable()
+        portsActiveObservable
     }
 
     private def recoverableObservable[D <: Device](clazz: Class[D], deviceId: UUID)
