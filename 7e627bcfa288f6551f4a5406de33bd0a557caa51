@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_f40d5038",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppDownlink.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-07T10:30:30Z",
+      "side": 1,
+      "message": "No actors any more :)",
+      "range": {
+        "startLine": 348,
+        "startChar": 39,
+        "endLine": 348,
+        "endChar": 61
+      },
+      "revId": "7e627bcfa288f6551f4a5406de33bd0a557caa51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_b43ea8b6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppDownlink.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-07T10:30:30Z",
+      "side": 1,
+      "message": "No actors any more",
+      "range": {
+        "startLine": 361,
+        "startChar": 50,
+        "endLine": 363,
+        "endChar": 58
+      },
+      "revId": "7e627bcfa288f6551f4a5406de33bd0a557caa51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
