@@ -48,6 +48,53 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_f1f7a2f3",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-07T07:33:56Z",
+      "side": 1,
+      "message": "I think I just changed my mind in between writing those two functions about what the better default would be. I guess this should default to None, too.",
+      "parentUuid": "5aa745d1_312bca84",
+      "range": {
+        "startLine": 170,
+        "startChar": 51,
+        "endLine": 170,
+        "endChar": 77
+      },
+      "revId": "bbf73c52bdfb85597dfd7f6f33e4ad3d9c45bcd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_11f32e0c",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-07T07:33:56Z",
+      "side": 1,
+      "message": "This should probably stay as is. I don\u0027t think it\u0027s valid to have a session persistence node with no type.",
+      "range": {
+        "startLine": 218,
+        "startChar": 46,
+        "endLine": 218,
+        "endChar": 82
+      },
+      "revId": "bbf73c52bdfb85597dfd7f6f33e4ad3d9c45bcd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_1120ce9a",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslatorIT.scala",
         "patchSetId": 11
@@ -59,6 +106,24 @@
       "writtenOn": "2016-12-07T06:44:12Z",
       "side": 1,
       "message": "i guess it\u0027s better to have a way to check session persistence is not set.",
+      "revId": "bbf73c52bdfb85597dfd7f6f33e4ad3d9c45bcd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_f180c248",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslatorIT.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-07T07:33:56Z",
+      "side": 1,
+      "message": "Should probably do same as with health monitor ID above, and if sessionPersistence is not defined, assert that pool.hasSessionPersistence is false.",
+      "parentUuid": "5aa745d1_1120ce9a",
       "revId": "bbf73c52bdfb85597dfd7f6f33e4ad3d9c45bcd2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
