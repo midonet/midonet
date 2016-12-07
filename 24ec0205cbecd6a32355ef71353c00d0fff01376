@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_ee2a1d2c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T01:41:29Z",
+      "side": 1,
+      "message": "Pretty sure this should be loadbalancers",
+      "parentUuid": "5aa745d1_2eeec522",
+      "range": {
+        "startLine": 77,
+        "startChar": 23,
+        "endLine": 77,
+        "endChar": 37
+      },
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_f56c330a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
         "patchSetId": 5
@@ -114,6 +138,24 @@
       "side": 1,
       "message": "I think if you set it, then the \"has\" functions will always return true, even if the set value was null.  This means we would lose the capability to determine the difference between it never having been set, and it having explicitly been set to null (i.e. via a \"clear\" operation).  Brandon might have more insight, though.",
       "parentUuid": "5aa745d1_0e09c92c",
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_2e3125a3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T01:41:29Z",
+      "side": 1,
+      "message": "Yeah I kind of remember something like that.  My comment was more to do with curiosity.  Just looked at the code, and looks indeed like null is not used to indicate whether it is set.  Thanks for the explanation.",
+      "parentUuid": "5aa745d1_eef7bdf3",
       "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -195,6 +237,30 @@
       "side": 1,
       "message": "I think the \"get\" will throw if the value isn\u0027t found, so I\u0027m not sure we gain much with a \"has\" check.",
       "parentUuid": "5aa745d1_ab3c0730",
+      "range": {
+        "startLine": 127,
+        "startChar": 13,
+        "endLine": 127,
+        "endChar": 24
+      },
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_0e266968",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslatorIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T01:41:29Z",
+      "side": 1,
+      "message": "I believe the comment was about the fields, not the pool object itself.",
+      "parentUuid": "5aa745d1_2ed5a542",
       "range": {
         "startLine": 127,
         "startChar": 13,
