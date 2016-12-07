@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_4ed0f153",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-07T00:13:05Z",
+      "side": 1,
+      "message": "I will fix.",
+      "parentUuid": "5aa745d1_154f9f93",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 54
+      },
+      "revId": "a1c96221f9c3f64a8024f9bc839e82db3de11673",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aaa499b_af10934f",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
         "patchSetId": 1
