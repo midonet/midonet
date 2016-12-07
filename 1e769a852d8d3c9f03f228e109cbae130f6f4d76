@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_d14b862a",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 1053,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-07T07:59:42Z",
+      "side": 1,
+      "message": "This should make clear that the V2 translators won\u0027t set this field on the Midonet VIP objects it creates.",
+      "range": {
+        "startLine": 1052,
+        "startChar": 56,
+        "endLine": 1053,
+        "endChar": 67
+      },
+      "revId": "1e769a852d8d3c9f03f228e109cbae130f6f4d76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_b16fda91",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-07T07:59:42Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem to do anything. I think you can just delete these two lines.",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 30
+      },
+      "revId": "1e769a852d8d3c9f03f228e109cbae130f6f4d76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_91e73e40",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-07T07:59:42Z",
+      "side": 1,
+      "message": "This comment is out of date now.",
+      "range": {
+        "startLine": 94,
+        "startChar": 11,
+        "endLine": 94,
+        "endChar": 75
+      },
+      "revId": "1e769a852d8d3c9f03f228e109cbae130f6f4d76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_310aaad3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-07T07:59:42Z",
+      "side": 1,
+      "message": "Maybe:\n\n  getSessionPersistence(nPool) match { // or whatever we call it\n      case null \u003d\u003e bldr.clearSessionPersistence()\n      case sp \u003d\u003e bldr.setSessionPersistence(sp)\n  }",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 9
+      },
+      "revId": "1e769a852d8d3c9f03f228e109cbae130f6f4d76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_11268e68",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslatorIT.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-07T07:59:42Z",
+      "side": 1,
+      "message": "Need additional test(s) to verify that we can update session persistence. Start with unset, update to set, update again to clear.",
+      "revId": "1e769a852d8d3c9f03f228e109cbae130f6f4d76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
