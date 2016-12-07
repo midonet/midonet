@@ -19,9 +19,14 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2
-import org.midonet.cluster.models.Topology.{LoadBalancer, Port, Router}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.util.IPAddressUtil
+import org.midonet.containers
+import org.midonet.packets.{IPv4Subnet, MAC, TCP}
+import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.IPSubnetUtil._
+import scala.collection.JavaConverters._
 
 /** Provides a Neutron model translator for NeutronLoadBalancerV2. */
 class LoadBalancerV2Translator
@@ -67,15 +72,45 @@ class LoadBalancerV2Translator
                           .setRouterId(newRouterId)
                           .build
 
+        val currentPorts = tx.getAll(classOf[Port], newRouter.getPortIdsList.asScala)
+        val subnet = containers.findLocalSubnet(currentPorts)
+        val routerAddress = containers.routerPortAddress(subnet)
+        val routerSubnet = new IPv4Subnet(routerAddress, subnet.getPrefixLen)
+
+        val serviceContainerPort = Port.newBuilder
+            .setId(lbServiceContainerPortId(newRouter.getId))
+            .setRouterId(newRouter.getId)
+            .addPortSubnet(routerSubnet.asProto)
+            .setPortAddress(routerAddress.asProto)
+            .setPortMac(MAC.random().toString)
+            .build()
+
+        val serviceContainerGroup = ServiceContainerGroup.newBuilder
+            .setId(lbServiceContainerGroupId(newRouterId))
+            .build()
+
+        val serviceContainer = ServiceContainer.newBuilder
+            .setId(lbServiceContainerId(newRouterId))
+            .setServiceGroupId(serviceContainerGroup.getId)
+            .setPortId(serviceContainerPort.getId)
+            .setServiceType("HAPROXY")
+            .setConfigurationId(lb.getId)
+            .build()
+
         tx.create(newRouter)
         tx.create(lb)
         tx.create(newPort)
+        tx.create(serviceContainerPort)
+        tx.create(serviceContainerGroup)
+        tx.create(serviceContainer)
     }
 
     override protected def translateDelete(tx: Transaction, id: UUID): Unit = {
         val routerId = lbV2RouterId(id)
+        val sCGId = lbServiceContainerGroupId(routerId)
         tx.delete(classOf[LoadBalancer], id, ignoresNeo = true)
         tx.delete(classOf[Router], routerId, ignoresNeo = true)
+        tx.delete(classOf[ServiceContainerGroup], sCGId, ignoresNeo = true)
     }
 
     override protected def translateUpdate(tx: Transaction,
