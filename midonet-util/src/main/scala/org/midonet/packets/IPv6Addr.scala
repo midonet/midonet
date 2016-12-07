@@ -148,6 +148,10 @@ object IPv6Addr {
         }
     }
 
+    def illegalIPv6String(str: String) = new IllegalArgumentException(
+        "IPv6 string must be up to 8 16-bit numbers between 0 and 0xFFFF " +
+        "joined with up to 7 ':' but was " + str)
+
     def illegalIPv6Bytes = new IllegalArgumentException(
         "byte array representing an IPv6 address must have length 16 exactly")
 
@@ -180,12 +184,14 @@ object IPv6Addr {
     // TODO: Verify each piece is valid 1-4 digit hex.
     @JsonCreator
     def fromString(s: String): IPv6Addr = {
+        if (s eq null)
+            throw illegalIPv6String(s)
         val unsplit = if (s.charAt(0) == '[' && s.charAt(s.length - 1) == ']')
                           s.substring(1, s.length - 1)
                       else s
         val longNotation = convertToLongNotation(unsplit)
         val pieces = longNotation.split(":")
-        val ip = if (pieces.size == 8)
+        val ip = if (pieces.length == 8)
                         new IPv6Addr((parseLong(pieces(0), 16) << 48) |
                                      (parseLong(pieces(1), 16) << 32) |
                                      (parseLong(pieces(2), 16) << 16) |
@@ -194,7 +200,7 @@ object IPv6Addr {
                                      (parseLong(pieces(5), 16) << 32) |
                                      (parseLong(pieces(6), 16) << 16) |
                                      (parseLong(pieces(7), 16) << 0))
-                 else null
+                 else throw illegalIPv6String(s)
         ip
     }
 
