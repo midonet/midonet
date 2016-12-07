@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_d496d493",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslatorIT.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-07T10:01:37Z",
+      "side": 1,
+      "message": "Rather than comparing string representations, couldn\u0027t we just pass in the correct type?\n\nSorry I didn\u0027t suggest this earlier, but I didn\u0027t realize that you were asking about this particular situation.",
+      "range": {
+        "startLine": 171,
+        "startChar": 57,
+        "endLine": 171,
+        "endChar": 88
+      },
+      "revId": "12840e7a852f71cffc6268eaa7f0dda8129f792f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
