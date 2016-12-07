@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_2eeec522",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-07T00:13:05Z",
+      "side": 1,
+      "message": "Brandon explicitly set this to load_balancers for the zoom field, so I\u0027m averse to changing it without getting his side of why he set it this way.",
+      "parentUuid": "5aa745d1_cb951341",
+      "range": {
+        "startLine": 77,
+        "startChar": 23,
+        "endLine": 77,
+        "endChar": 37
+      },
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_f56c330a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
         "patchSetId": 5
@@ -72,6 +96,24 @@
       "side": 1,
       "message": "I guess it\u0027s the protobuf thing?  bldr.setSessionPersistence(null) is to be avoided?",
       "parentUuid": "5aa745d1_2b947735",
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_eef7bdf3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-07T00:13:05Z",
+      "side": 1,
+      "message": "I think if you set it, then the \"has\" functions will always return true, even if the set value was null.  This means we would lose the capability to determine the difference between it never having been set, and it having explicitly been set to null (i.e. via a \"clear\" operation).  Brandon might have more insight, though.",
+      "parentUuid": "5aa745d1_0e09c92c",
       "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -129,6 +171,30 @@
       "writtenOn": "2016-12-06T17:27:14Z",
       "side": 1,
       "message": "i guess you should check pool.hasProtocol first.\nditto for other fields.",
+      "range": {
+        "startLine": 127,
+        "startChar": 13,
+        "endLine": 127,
+        "endChar": 24
+      },
+      "revId": "24ec0205cbecd6a32355ef71353c00d0fff01376",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_2ed5a542",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslatorIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-07T00:13:05Z",
+      "side": 1,
+      "message": "I think the \"get\" will throw if the value isn\u0027t found, so I\u0027m not sure we gain much with a \"has\" check.",
+      "parentUuid": "5aa745d1_ab3c0730",
       "range": {
         "startLine": 127,
         "startChar": 13,
