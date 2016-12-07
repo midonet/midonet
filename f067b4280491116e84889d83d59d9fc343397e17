@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_ae6f7591",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-07T01:21:07Z",
+      "side": 1,
+      "message": "Removed the map call.",
+      "parentUuid": "5aa745d1_f56d53cd",
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_ba6d7834",
         "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2016-12-06T04:52:25Z",
       "side": 1,
       "message": "whitespaces",
+      "range": {
+        "startLine": 87,
+        "startChar": 32,
+        "endLine": 87,
+        "endChar": 34
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_ce72c17c",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-07T01:21:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_ba6d7834",
       "range": {
         "startLine": 87,
         "startChar": 32,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_ee5c5def",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/haproxy/HaproxyHelperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-07T01:21:07Z",
+      "side": 1,
+      "message": "They can. This code is wrong because of a rebase. Fixed.",
+      "parentUuid": "5aa745d1_1579df93",
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_9a6abc19",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/LoadBalancerV2Config.scala",
         "patchSetId": 2
@@ -70,6 +130,30 @@
       "writtenOn": "2016-12-06T04:52:25Z",
       "side": 1,
       "message": "2016?",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_6e696d8b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/LoadBalancerV2Config.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-07T01:21:07Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "5aa745d1_9a6abc19",
       "range": {
         "startLine": 2,
         "startChar": 13,
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_8e6cb99d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/LoadBalancerV2Config.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-07T01:21:07Z",
+      "side": 1,
+      "message": "I have removed the filter. It seems weird to health monitor a pool that is admin state down, but I don\u0027t see any real problem.",
+      "parentUuid": "5aa745d1_da5e0476",
+      "range": {
+        "startLine": 69,
+        "startChar": 24,
+        "endLine": 69,
+        "endChar": 36
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_3ac72814",
         "filename": "nsdb/src/main/scala/org/midonet/containers/ContainerCommons.scala",
         "patchSetId": 2
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_4e0591c0",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-07T01:21:07Z",
+      "side": 1,
+      "message": "Changed back to debug.",
+      "parentUuid": "5aa745d1_3ac72814",
+      "range": {
+        "startLine": 86,
+        "startChar": 46,
+        "endLine": 86,
+        "endChar": 72
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_1acc6c34",
         "filename": "nsdb/src/main/scala/org/midonet/containers/ContainerCommons.scala",
         "patchSetId": 2
@@ -139,6 +271,30 @@
       "writtenOn": "2016-12-06T04:52:25Z",
       "side": 1,
       "message": "i suspect info is too verbose",
+      "range": {
+        "startLine": 90,
+        "startChar": 37,
+        "endLine": 90,
+        "endChar": 41
+      },
+      "revId": "f067b4280491116e84889d83d59d9fc343397e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_2e0a45d3",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-07T01:21:07Z",
+      "side": 1,
+      "message": "I have changed back to debug. I don\u0027t have a strong argument for these lines to be info, just a hunch that this will be called infrequently enough, and the output is important enough when problems arise, that an info is justified.",
+      "parentUuid": "5aa745d1_1acc6c34",
       "range": {
         "startLine": 90,
         "startChar": 37,
