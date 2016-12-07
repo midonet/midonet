@@ -244,8 +244,7 @@ class VppUplinkTest extends MidolmanSpec with TopologyBuilder {
                 DeleteUplink(port2.getId.asJava),
                 addUplink(port2, port2.getId.asJava))
         }
-        /* Disable tests, needs stopping support in VppExecutor, to be added in
-           a next patch.
+
         scenario("Uplinks deleted on stop") {
             Given("A VPP uplink instance")
             val vpp = createVppUplink()
@@ -286,7 +285,7 @@ class VppUplinkTest extends MidolmanSpec with TopologyBuilder {
                 DeleteUplink(port1.getId.asJava),
                 DeleteUplink(port2.getId.asJava),
                 DeleteUplink(port3.getId.asJava))
-        }*/
+        }
 
         scenario("Corrupted ports are deleted") {
             Given("A VPP uplink instance")

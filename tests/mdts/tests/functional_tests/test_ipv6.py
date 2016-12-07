@@ -100,19 +100,26 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont.vppctl('set int state host-%s up' % port)
         if vrf != 0:
             cont.vppctl('set int ip table host-%s %d' % (port, vrf))
-        cont.vppctl('set int ip address host-%s %s' % (port, address))
+        self.add_vpp_ip_address(cont, port, address)
 
-    def del_route_from_vpp(self, container, prefix, via, port):
+    def add_vpp_ip_address(self, cont_services, port, address):
+        self.addCleanup(self.del_vpp_ip_address, cont_services, port, address)
+        cont_services.vppctl('set int ip address host-%s %s' % (port, address))
+
+    def del_vpp_ip_address(self, cont_services, port, address):
+        cont_services.vppctl('set int ip address del host-%s %s' % (port, address))
+
+    def del_route_from_vpp(self, container, prefix, via, port, vrf):
         cont = service.get_container_by_hostname(container)
         try:
-            cont.vppctl('ip route del %s' % (prefix))
+            cont.vppctl('ip route del %s table %s' % (prefix, vrf))
         except:
-            LOG.error("Erroring deleting route %s from vpp" % prefix)
+            LOG.error("Erroring deleting route %s from vpp in table %s" % (prefix, vrf))
 
-    def add_route_to_vpp(self, container, prefix, via, port):
+    def add_route_to_vpp(self, container, prefix, via, port, vrf = 0):
         cont = service.get_container_by_hostname(container)
-        self.addCleanup(self.del_route_from_vpp, container, prefix, via, port)
-        cont.vppctl('ip route add %s via %s host-%s' % (prefix, via, port))
+        self.addCleanup(self.del_route_from_vpp, container, prefix, via, port, vrf)
+        cont.vppctl('ip route add %s via %s host-%s table %s' % (prefix, via, port, vrf))
 
     def setup_fip64(self, container, ip6fip, ip4fixed,
                     ip4PoolStart, ip4PoolEnd, tableId=0):
@@ -300,7 +307,8 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         self.add_route_to_vpp('midolman1',
                               prefix="20.0.0.0/26",
                               via="10.0.0.2",
-                              port=dlink_vpp_name)
+                              port=dlink_vpp_name,
+                              vrf=self.vrf)
 
         # hook up downlink to topology
         mn_tenant_downlink = self.add_mn_router_port(name,
