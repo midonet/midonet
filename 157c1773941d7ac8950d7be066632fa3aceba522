@@ -22,6 +22,30 @@
       "revId": "157c1773941d7ac8950d7be066632fa3aceba522",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_7473804e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-07T10:56:31Z",
+      "side": 1,
+      "message": "true, but I added this to prevent the allocation of an entrySet wrapper and iterator when the list is empty (so just for memory usage purposes)",
+      "parentUuid": "5aa745d1_949f2c5f",
+      "range": {
+        "startLine": 211,
+        "startChar": 16,
+        "endLine": 211,
+        "endChar": 43
+      },
+      "revId": "157c1773941d7ac8950d7be066632fa3aceba522",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
