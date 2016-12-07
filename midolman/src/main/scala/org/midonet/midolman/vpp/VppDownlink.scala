@@ -454,7 +454,6 @@ private[vpp] trait VppDownlink { this: VppExecutor =>
             val startFuture = vt.vtExecutor.submit(startRunnable)
 
             // Wait on the start to complete.
-            // Wait on the stop to complete.
             try startFuture.get(ChildActorStartTimeout.toMillis,
                                 TimeUnit.MILLISECONDS)
             catch {
@@ -501,7 +500,6 @@ private[vpp] trait VppDownlink { this: VppExecutor =>
     private def addFip(fip: Fip64Entry): Unit = {
         log debug s"FIP64 entry added: $fip"
         getOrCreateDownlink(fip).addFip(fip)
-
     }
 
     /**
