@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_0edd4942",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T02:02:24Z",
+      "side": 1,
+      "message": "Move this to LbaasV2Common",
+      "revId": "a4bc4f66a3822f9e33d217c4f4ac79d1ead96b02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_eee1fdff",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/LbaasV2ITCommon.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T02:02:24Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "a4bc4f66a3822f9e33d217c4f4ac79d1ead96b02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_8ef159d0",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/LbaasV2ITCommon.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T02:02:24Z",
+      "side": 1,
+      "message": "external \u003d false is unnecessary",
+      "revId": "a4bc4f66a3822f9e33d217c4f4ac79d1ead96b02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_6eee0dee",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/LbaasV2ITCommon.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T02:02:24Z",
+      "side": 1,
+      "message": "alignment",
+      "revId": "a4bc4f66a3822f9e33d217c4f4ac79d1ead96b02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_4eba31e3",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/LbaasV2ITCommon.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T02:02:24Z",
+      "side": 1,
+      "message": "type?",
+      "revId": "a4bc4f66a3822f9e33d217c4f4ac79d1ead96b02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_0eb429f0",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/LbaasV2ITCommon.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T02:02:24Z",
+      "side": 1,
+      "message": "alignment",
+      "revId": "a4bc4f66a3822f9e33d217c4f4ac79d1ead96b02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_eeb8dde7",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/LbaasV2ITCommon.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-07T02:02:24Z",
+      "side": 1,
+      "message": "alignment",
+      "revId": "a4bc4f66a3822f9e33d217c4f4ac79d1ead96b02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
