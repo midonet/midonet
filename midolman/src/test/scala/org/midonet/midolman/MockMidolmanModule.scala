@@ -84,6 +84,10 @@ class MockMidolmanModule(override val hostId: UUID,
     class MockVppController(datapathState: DatapathState,
                             vt: VirtualTopology)
         extends VppController(hostId, datapathState, null, vt) {
+
+        protected override def doStart(): Unit = notifyStarted()
+
+        protected override def doStop(): Unit = notifyStopped()
     }
 
     protected override def qosService(

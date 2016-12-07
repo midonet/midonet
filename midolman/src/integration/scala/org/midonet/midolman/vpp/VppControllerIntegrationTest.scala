@@ -19,6 +19,9 @@ package org.midonet.midolman.vpp
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 import com.codahale.metrics.MetricRegistry
 import com.typesafe.scalalogging.Logger
 
@@ -43,12 +46,14 @@ import org.midonet.midolman.util.TestDatapathState
 import org.midonet.midolman.{DatapathState, SimulationBackChannel}
 import org.midonet.packets.IPv6Subnet
 import org.midonet.util.concurrent._
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
 class VppControllerIntegrationTest extends FeatureSpec with Matchers
                                            with GivenWhenThen with BeforeAndAfter
                                            with TopologyBuilder
-                                           with OvsDatapathHelper {
+                                           with OvsDatapathHelper
+                                           with MidonetEventually {
 
     private var config: MidolmanConfig = _
     private var backend: MidonetBackend = _
@@ -156,19 +161,27 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
             backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Notifying an uplink port")
-            (vpp ! LocalPortActive(port.getId, 0, active = true)).await()
+            Await.result(VirtualToPhysicalMapper.setPortActive(port.getId.asJava, 0,
+                                                  active = true, 0), 1 minute)
 
             Then("Veth-pair interfaces are created")
             val portPrefix = edgeRouterPortId.toString.substring(0, 8)
             val ovsEnd = "ovs-" + portPrefix
             val vppEnd = "vpp-" + portPrefix
-            assertCmd(s"ifconfig $ovsEnd", wait_timeout = 1)
-            assertCmd(s"ifconfig $vppEnd", wait_timeout = 1)
+            eventually {
+                cmd(s"ifconfig $ovsEnd", wait_timeout = 1) shouldBe 0
+                cmd(s"ifconfig $vppEnd", wait_timeout = 1) shouldBe 0
+            }
             // TODO: We should be able to wait for the next message to complete
             // TODO: execution. However, we cannot do so now due to a bug in the
             // TODO: VPP controller, where the rollback fails.
-            vpp ! LocalPortActive(port.getId, 0, active = false)
-
+            Await.result(VirtualToPhysicalMapper.setPortActive(port.getId.asJava, 0,
+                                                  active = false, 0), 1 minute)
+            eventually {
+                Thread.sleep(1)
+                cmd(s"ifconfig $ovsEnd", wait_timeout = 1) shouldBe 1
+                cmd(s"ifconfig $vppEnd", wait_timeout = 1) shouldBe 1
+            }
             vpp.stopAsync().awaitTerminated()
         }
     }
