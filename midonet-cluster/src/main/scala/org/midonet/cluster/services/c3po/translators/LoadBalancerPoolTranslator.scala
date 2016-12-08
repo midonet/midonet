@@ -20,7 +20,6 @@ import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 
-/** Provides a Neutron model translator for NeutronLoadBalancerPool. */
 class LoadBalancerPoolTranslator
     extends Translator[NeutronLoadBalancerPool] with LoadBalancerManager {
 

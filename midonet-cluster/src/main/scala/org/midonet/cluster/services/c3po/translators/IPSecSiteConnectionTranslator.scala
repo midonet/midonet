@@ -36,7 +36,6 @@ import org.midonet.packets.IPv4Subnet
 class IPSecSiteConnectionTranslator
     extends Translator[IPSecSiteConnection] with RouteManager {
 
-    /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,
                                            cnxn: IPSecSiteConnection): Unit = {
         val vpn = tx.get(classOf[VpnService], cnxn.getVpnserviceId)

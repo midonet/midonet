@@ -28,7 +28,6 @@ import org.midonet.packets.{IPv4Addr, MAC}
 class RemoteMacEntryTranslator(stateTableStorage: StateTableStorage)
     extends Translator[RemoteMacEntry] {
 
-    /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,
                                            rm: RemoteMacEntry): Unit = {
         // Get the ports on the gateway device's router.

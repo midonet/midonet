@@ -28,7 +28,6 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import scala.collection.JavaConverters._
 
-/** Provides a Neutron model translator for NeutronLoadBalancerV2. */
 class LoadBalancerV2Translator
     extends Translator[NeutronLoadBalancerV2] with LoadBalancerManager {
     /**
