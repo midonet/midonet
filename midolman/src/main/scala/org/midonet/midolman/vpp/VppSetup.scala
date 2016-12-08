@@ -34,7 +34,7 @@ import org.midonet.odp.DpPort
 import org.midonet.packets.{IPSubnet, _}
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
 
-private object VppSetup extends MidolmanLogging {
+object VppSetup extends MidolmanLogging {
 
     override def logSource = s"org.midonet.vpp-controller"
 
@@ -335,6 +335,8 @@ class VppSetup(setupName: String, log: Logger)
 class VppUplinkSetup(uplinkPortId: UUID,
                      uplinkPortAddress: IPv6Addr,
                      uplinkPortDpNo: Int,
+                     fip64Conf: Fip64Config,
+                     flowStateConf: VppFlowStateConfig,
                      vppApi: VppApi,
                      vppOvs: VppOvs,
                      log: Logger)
@@ -374,6 +376,15 @@ class VppUplinkSetup(uplinkPortId: UUID,
 
     private val externalRoutes = new mutable.HashMap[Topology.Route, VppAddRoute]()
 
+    private val flowStateOut = new VppFlowStateOutVxlanTunnelSetup(fip64Conf,
+                                                                   flowStateConf,
+                                                                   vppApi, log)
+
+    private val flowStateIn = new VppFlowStateInVxlanTunnelSetup(fip64Conf,
+                                                                 flowStateConf,
+                                                                 vppApi, log)
+
+
     /*
      * setup the tasks, in execution order
      */
@@ -382,6 +393,8 @@ class VppUplinkSetup(uplinkPortId: UUID,
     add(ipAddrVpp)
     add(ovsBind)
     add(ovsFlows)
+    add(flowStateOut)
+    add(flowStateIn)
 
     def addExternalRoute(route: Topology.Route): Future[Any] = {
         require(uplinkVpp.vppInterface.isDefined)
@@ -479,14 +492,12 @@ class VppDownlinkVxlanSetup(config: Fip64Config,
         set int l2 bridge vxlan_tunnel0 <vni>
         set int l2 bridge loop0 <vni>  bvi
         set int ip table loop0 <vrf>
-        set ip arp fib-id <vrf> loop0 172.16.0.1 dead.beef.0003
-        ip route add table <vrf> 0.0.0.0/0 via 172.16.0.1
   */
-class VppVxlanTunnelSetup(config: Fip64Config,
-                          vni: Int, vrf: Int, routerPortMac: MAC,
-                          vppApi: VppApi, log: Logger)
-                         (implicit ec: ExecutionContext)
-    extends VppSetup("VXLAN tunnel setup",  log)(ec) {
+class VppVxlanTunnelSetupPartial(name: String, config: Fip64Config,
+                                 vni: Int, vrf: Int, vppApi: VppApi,
+                                 log: Logger)
+                                (implicit ec: ExecutionContext)
+    extends VppSetup(name, log)(ec) {
 
     import VppSetup._
 
@@ -502,9 +513,9 @@ class VppVxlanTunnelSetup(config: Fip64Config,
                            vxlanDevice,
                            bridgeDomain, false, vppApi)
 
-    private val loopBackDevice = new LoopBackCreate("Create loopback interface",
-                                                    vni, vrf, config.vtepVppMac,
-                                                    vppApi)
+    protected val loopBackDevice = new LoopBackCreate("Create loopback interface",
+                                                      vni, vrf, config.vtepVppMac,
+                                                      vppApi)
 
     private val loopToBridge =
         new VxlanSetBridge("Set bridge domain for loopback device",
@@ -515,6 +526,30 @@ class VppVxlanTunnelSetup(config: Fip64Config,
         new VxlanLoopToVrf(s"Move loopback interface to VRF $vrf",
                            loopBackDevice,
                            vrf, vppApi)
+
+    add(vxlanDevice)
+    add(vxlanToBridge)
+    add(loopBackDevice)
+    add(loopToBridge)
+    add(loopToVrf)
+}
+
+/**
+  * @param vni VNI for this VXLAN
+  * @param vrf VRF for the corresponding tenant router
+  * Executes the following sequence of VPP commands:
+  *     [commands from VppVxlanTunnelSetupPartial]
+  *        - plus -
+        set ip arp fib-id <vrf> loop0 172.16.0.1 dead.beef.0003
+        ip route add table <vrf> 0.0.0.0/0 via 172.16.0.1
+  */
+class VppVxlanTunnelSetupBase(name: String, config: Fip64Config,
+                              vni: Int, vrf: Int, routerPortMac: MAC,
+                              vppApi: VppApi, log: Logger)
+                             (implicit ec: ExecutionContext)
+    extends VppVxlanTunnelSetupPartial(name, config, vni, vrf, vppApi, log)(ec) {
+
+    import VppSetup._
 
     private val addLoopArpNeighbour =
         new VxlanAddArpNeighbour("Add ARP neighbour for loop interface",
@@ -529,11 +564,54 @@ class VppVxlanTunnelSetup(config: Fip64Config,
                           nextDevice = None,
                           vrf, vppApi)
 
-    add(vxlanDevice)
-    add(vxlanToBridge)
-    add(loopBackDevice)
-    add(loopToBridge)
-    add(loopToVrf)
     add(addLoopArpNeighbour)
     add(routefip64ToBridge)
+}
+
+/**
+  * Sets up the vxlan to tunnel traffic to a particular tenant router
+  */
+class VppVxlanTunnelSetup(config: Fip64Config,
+                          vni: Int, vrf: Int, routerPortMac: MAC,
+                          vppApi: VppApi, log: Logger)
+                         (implicit ec: ExecutionContext)
+    extends VppVxlanTunnelSetupBase("VXLAN tunnel setup", config, vni, vrf,
+                                    routerPortMac, vppApi, log)(ec)
+
+
+case class VppFlowStateConfig(vniOut: Int, vrfOut: Int,
+                              vniIn: Int, vrfIn: Int)
+/**
+  * Same operations as VppVxlanTunnelSetup, just with a different log label.
+  */
+class VppFlowStateOutVxlanTunnelSetup(fip64conf: Fip64Config,
+                                      fsConf: VppFlowStateConfig,
+                                      vppApi: VppApi, log: Logger)
+                                     (implicit ec: ExecutionContext)
+    extends VppVxlanTunnelSetupBase("FlowState-out VXLAN tunnel setup",
+                                    fip64conf, fsConf.vniOut, fsConf.vrfOut,
+                                    fip64conf.portVppMac, vppApi, log)(ec)
+
+/** Sets up the tunnel for incoming (into vpp) flow-state
+  * Executes the following sequence of VPP commands:
+  *     [commands from VppVxlanTunnelSetupPartial]
+  *        - plus -
+        set int ip address loopN 172.16.0.1/30
+  */
+class VppFlowStateInVxlanTunnelSetup(fip64conf: Fip64Config,
+                                     fsConf: VppFlowStateConfig,
+                                     vppApi: VppApi, log: Logger)
+                                    (implicit ec: ExecutionContext)
+    extends VppVxlanTunnelSetupPartial("FlowState-in VXLAN tunnel setup",
+                                       fip64conf, fsConf.vniIn, fsConf.vrfIn,
+                                       vppApi, log)(ec) {
+
+    import VppSetup._
+
+    private val setIpAddress = new VppIpAddr("Add loopback IP address",
+                                             vppApi,
+                                             loopBackDevice,
+                                             IPv4Addr.fromString("172.16.0.1"),
+                                             prefixLen = 30)
+    add(setIpAddress)
 }
