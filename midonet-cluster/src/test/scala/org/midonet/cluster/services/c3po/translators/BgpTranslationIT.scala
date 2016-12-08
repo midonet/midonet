@@ -45,21 +45,18 @@ class BgpTranslationIT extends C3POMinionTestBase {
         val rtrId = createRouter(10)
         val rifPortId = createNetworkAndRouterInterface(
             20, rtrId, "10.0.0.0/24", "10.0.0.1")
-        eventually {
-            val peerPortId = routerInterfacePortPeerId(rifPortId.asProto)
-            storage.exists(classOf[Port], peerPortId).await() shouldBe true
-        }
+
+        val peerPortId = routerInterfacePortPeerId(rifPortId.asProto)
+        storage.exists(classOf[Port], peerPortId).await() shouldBe true
 
         checkNoQuaggaContainer(rtrId)
 
         val peerId = createBgpPeer(30, rtrId, "20.0.0.1")
-        eventually {
-            checkQuaggaContainer(rtrId)
-            checkBgpPeer(rtrId, peerId)
-        }
+        checkQuaggaContainer(rtrId)
+        checkBgpPeer(rtrId, peerId)
 
         val peer2Id = createBgpPeer(40, rtrId, "30.0.0.1")
-        eventually(checkBgpPeer(rtrId, peer2Id))
+        checkBgpPeer(rtrId, peer2Id)
 
         storage.getAll(classOf[ServiceContainer]).await().size shouldBe 1
     }
@@ -72,25 +69,22 @@ class BgpTranslationIT extends C3POMinionTestBase {
         // Create two peers.
         val peerId = createBgpPeer(30, rtrId, "20.0.0.1")
         val peer2Id = createBgpPeer(40, rtrId, "30.0.0.1")
-        eventually {
-            checkQuaggaContainer(rtrId)
-            checkBgpPeer(rtrId, peerId)
-            checkBgpPeer(rtrId, peer2Id)
-        }
+
+        checkQuaggaContainer(rtrId)
+        checkBgpPeer(rtrId, peerId)
+        checkBgpPeer(rtrId, peer2Id)
 
         // Delete one peer. Container should remain.
         insertDeleteTask(50, BgpPeerType, peerId)
-        eventually {
-            checkNoBgpPeer(rtrId, peerId)
-            checkQuaggaContainer(rtrId)
-        }
+
+        checkNoBgpPeer(rtrId, peerId)
+        checkQuaggaContainer(rtrId)
 
         // Delete the other peer. Container should be deleted.
         insertDeleteTask(60, BgpPeerType, peer2Id)
-        eventually {
-            checkNoBgpPeer(rtrId, peer2Id)
-            checkQuaggaContainer(rtrId)
-        }
+
+        checkNoBgpPeer(rtrId, peer2Id)
+        checkQuaggaContainer(rtrId)
     }
 
     it should "update BgpPeer's password" in {
@@ -98,19 +92,19 @@ class BgpTranslationIT extends C3POMinionTestBase {
         createNetworkAndRouterInterface(20, rtrId, "10.0.0.0/24", "10.0.0.1")
 
         val peerId = createBgpPeer(30, rtrId, "20.0.0.1", password = "password")
-        eventually(checkBgpPeer(rtrId, peerId))
+
+        checkBgpPeer(rtrId, peerId)
 
         // Update password.
         val speakerJson = bgpSpeakerJson(rtrId)
         val updatedPeerJson = bgpPeerJson("20.0.0.1", speakerJson, id = peerId,
                                           password = "p@ssword") // more secure
         insertUpdateTask(40, BgpPeerType, updatedPeerJson, peerId)
-        eventually {
-            val mPeer = storage.get(classOf[BgpPeer], peerId).await()
-            mPeer.getPassword shouldBe "p@ssword"
-            val nPeer = storage.get(classOf[NeutronBgpPeer], peerId).await()
-            nPeer.getPassword shouldBe "p@ssword"
-        }
+
+        val mPeer = storage.get(classOf[BgpPeer], peerId).await()
+        mPeer.getPassword shouldBe "p@ssword"
+        val nPeer = storage.get(classOf[NeutronBgpPeer], peerId).await()
+        nPeer.getPassword shouldBe "p@ssword"
     }
 
     it should "create BgpNetworks for all router interfaces" in {
@@ -119,20 +113,17 @@ class BgpTranslationIT extends C3POMinionTestBase {
             20, rtrId, "10.0.0.0/24", "10.0.0.1")
         val rifPort2Id = createNetworkAndRouterInterface(
             30, rtrId, "10.0.1.0/24", "10.0.1.1")
-        eventually {
-            val peerPortId =
-                routerInterfacePortPeerId(rifPort2Id.asProto)
-            storage.exists(classOf[Port], peerPortId).await() shouldBe true
-        }
+
+        val peerPortId = routerInterfacePortPeerId(rifPort2Id.asProto)
+        storage.exists(classOf[Port], peerPortId).await() shouldBe true
 
         checkNoBgpNetwork(rifPortId)
         checkNoBgpNetwork(rifPort2Id)
 
         createBgpPeer(40, rtrId, "20.0.0.1")
-        eventually {
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
-            checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
-        }
+
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+        checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
     }
 
     it should "not delete all BgpNetworks when the router's last BgpPeer is " +
@@ -146,26 +137,23 @@ class BgpTranslationIT extends C3POMinionTestBase {
         // Create two peers.
         val peerId = createBgpPeer(40, rtrId, "20.0.0.1")
         val peer2Id = createBgpPeer(50, rtrId, "30.0.0.1")
-        eventually {
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
-            checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
-        }
+
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+        checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
 
         // Delete one peer. Networks should not be deleted.
         insertDeleteTask(60, BgpPeerType, peerId)
-        eventually {
-            checkNoBgpPeer(rtrId, peerId)
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
-            checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
-        }
+
+        checkNoBgpPeer(rtrId, peerId)
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+        checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
 
         // Delete the second peer. Networks should be deleted.
         insertDeleteTask(70, BgpPeerType, peer2Id)
-        eventually {
-            checkNoBgpPeer(rtrId, peer2Id)
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
-            checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
-        }
+
+        checkNoBgpPeer(rtrId, peer2Id)
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+        checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
     }
 
     "RouterInterfaceTranslator" should
@@ -173,20 +161,18 @@ class BgpTranslationIT extends C3POMinionTestBase {
     "at least one BgpPeer" in {
         val rtrId = createRouter(10)
         val peerId = createBgpPeer(20, rtrId, "20.0.0.1")
-        eventually {
-            storage.exists(classOf[BgpPeer], peerId).await() shouldBe true
-            storage.get(classOf[Router], rtrId).await()
-                .getBgpNetworkIdsCount shouldBe 0
-        }
+
+        storage.exists(classOf[BgpPeer], peerId).await() shouldBe true
+        storage.get(classOf[Router], rtrId).await()
+            .getBgpNetworkIdsCount shouldBe 0
 
         val rifPortId = createNetworkAndRouterInterface(
             30, rtrId, "10.0.0.0/24", "10.0.0.1")
-        eventually {
-            val bgpNwId = bgpNetworkId(rifPortId.asProto)
-            val rtr = storage.get(classOf[Router], rtrId).await()
-            rtr.getBgpNetworkIdsList should contain only bgpNwId
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
-        }
+
+        val bgpNwId = bgpNetworkId(rifPortId.asProto)
+        val rtr = storage.get(classOf[Router], rtrId).await()
+        rtr.getBgpNetworkIdsList should contain only bgpNwId
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
     }
 
     "PortTranslator" should "delete a BgpNetwork when deleting the " +
@@ -202,27 +188,23 @@ class BgpTranslationIT extends C3POMinionTestBase {
             40, rtrId, "10.0.1.0/24", "10.0.1.1")
         val bgpNw2Id = bgpNetworkId(rifPort2Id.asProto)
 
-        eventually {
-            val rtr = storage.get(classOf[Router], rtrId).await()
-            rtr.getBgpNetworkIdsList should contain only(bgpNwId, bgpNw2Id)
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
-            checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
-        }
+        var rtr = storage.get(classOf[Router], rtrId).await()
+        rtr.getBgpNetworkIdsList should contain only(bgpNwId, bgpNw2Id)
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+        checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
 
         insertDeleteTask(50, PortType, rifPortId)
-        eventually {
-            val rtr = storage.get(classOf[Router], rtrId).await()
-            rtr.getBgpNetworkIdsList should contain only bgpNw2Id
-            checkNoBgpNetwork(rifPortId)
-            checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
-        }
+
+        rtr = storage.get(classOf[Router], rtrId).await()
+        rtr.getBgpNetworkIdsList should contain only bgpNw2Id
+        checkNoBgpNetwork(rifPortId)
+        checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
 
         insertDeleteTask(60, PortType, rifPort2Id)
-        eventually {
-            val rtr = storage.get(classOf[Router], rtrId).await()
-            rtr.getBgpNetworkIdsCount shouldBe 0
-            checkNoBgpNetwork(rifPort2Id)
-        }
+
+        rtr = storage.get(classOf[Router], rtrId).await()
+        rtr.getBgpNetworkIdsCount shouldBe 0
+        checkNoBgpNetwork(rifPort2Id)
     }
 
     "BgpSpeakerTranslator" should "delete specified BgpPeers on update" in {
@@ -232,38 +214,34 @@ class BgpTranslationIT extends C3POMinionTestBase {
         val peer2Id = createBgpPeer(40, rtrId, "40.0.0.1")
         val peer3Id = createBgpPeer(50, rtrId, "50.0.0.1")
         val peer4Id = createBgpPeer(60, rtrId, "60.0.0.1")
-        eventually {
-            Seq(peerId, peer2Id, peer3Id, peer4Id)
-                .map(storage.exists(classOf[BgpPeer], _))
-                .map(_.await()) shouldBe Seq(true, true, true, true)
-        }
+
+        Seq(peerId, peer2Id, peer3Id, peer4Id)
+            .map(storage.exists(classOf[BgpPeer], _))
+            .map(_.await()) shouldBe Seq(true, true, true, true)
 
         val speakerId = UUID.randomUUID()
         val speakerJson = bgpSpeakerJson(
             rtrId, id = speakerId, delBgpPeerIds = Seq(peerId, peer3Id))
         insertUpdateTask(70, BgpSpeakerType, speakerJson, speakerId)
-        eventually {
-            val rtr = storage.get(classOf[Router], rtrId).await()
-            rtr.getBgpPeerIdsList should contain only(
-                peer2Id.asProto, peer4Id.asProto)
 
-            checkNoBgpPeer(rtrId, peerId)
-            checkBgpPeer(rtrId, peer2Id)
-            checkNoBgpPeer(rtrId, peer3Id)
-            checkBgpPeer(rtrId, peer2Id)
-        }
+        var rtr = storage.get(classOf[Router], rtrId).await()
+        rtr.getBgpPeerIdsList should contain only(
+            peer2Id.asProto, peer4Id.asProto)
+
+        checkNoBgpPeer(rtrId, peerId)
+        checkBgpPeer(rtrId, peer2Id)
+        checkNoBgpPeer(rtrId, peer3Id)
+        checkBgpPeer(rtrId, peer2Id)
 
         val speakerJson2 = bgpSpeakerJson(
             rtrId, id = speakerId, delBgpPeerIds = Seq(peer2Id, peer4Id))
         insertUpdateTask(80, BgpSpeakerType, speakerJson2, speakerId)
-        eventually {
-            val rtr = storage.get(classOf[Router], rtrId).await()
-            rtr.getBgpPeerIdsCount shouldBe 0
+        rtr = storage.get(classOf[Router], rtrId).await()
+        rtr.getBgpPeerIdsCount shouldBe 0
 
-            checkNoBgpPeer(rtrId, peer2Id)
-            checkNoBgpPeer(rtrId, peer2Id)
-            checkQuaggaContainer(rtrId)
-        }
+        checkNoBgpPeer(rtrId, peer2Id)
+        checkNoBgpPeer(rtrId, peer2Id)
+        checkQuaggaContainer(rtrId)
     }
 
     "RouterTranslator" should "delete a router's container, container group, " +
@@ -276,24 +254,22 @@ class BgpTranslationIT extends C3POMinionTestBase {
             30, rtrId, "10.0.1.0/24", "10.0.1.1")
         val peerId = createBgpPeer(40, rtrId, "30.0.0.1")
         val peer2Id = createBgpPeer(50, rtrId, "40.0.0.1")
-        eventually {
-            checkQuaggaContainer(rtrId)
-            checkBgpPeer(rtrId, peerId)
-            checkBgpPeer(rtrId, peer2Id)
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
-            checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
-        }
+
+        checkQuaggaContainer(rtrId)
+        checkBgpPeer(rtrId, peerId)
+        checkBgpPeer(rtrId, peer2Id)
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+        checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
 
         insertDeleteTask(60, BgpPeerType, peerId)
         insertDeleteTask(70, BgpPeerType, peer2Id)
         insertDeleteTask(80, RouterType, rtrId)
-        eventually {
-            checkNoBgpPeer(rtrId, peerId)
-            checkNoBgpPeer(rtrId, peer2Id)
-            checkNoQuaggaContainer(rtrId)
-            checkNoBgpNetwork(rifPortId)
-            checkNoBgpNetwork(rifPort2Id)
-        }
+
+        checkNoBgpPeer(rtrId, peerId)
+        checkNoBgpPeer(rtrId, peer2Id)
+        checkNoQuaggaContainer(rtrId)
+        checkNoBgpNetwork(rifPortId)
+        checkNoBgpNetwork(rifPort2Id)
     }
 
     "RouterTranslator" should "update bgp networks on the router according" +
@@ -305,9 +281,7 @@ class BgpTranslationIT extends C3POMinionTestBase {
 
         createBgpPeer(30, rId, "10.0.0.2")
 
-        eventually {
-            checkBgpNetwork(rId, rifPortId, sub1)
-        }
+        checkBgpNetwork(rId, rifPortId, sub1)
 
         val route1 = makeRoute("10.0.2.0/24", "10.0.0.3")
         val route2 = makeRoute("10.0.1.0/24", "10.0.0.3")
@@ -316,18 +290,14 @@ class BgpTranslationIT extends C3POMinionTestBase {
 
         insertUpdateTask(40, RouterType, rtrWithRoutes, rId)
 
-        eventually {
-            checkRoutesAndNetworks(rId, 2)
-        }
+        checkRoutesAndNetworks(rId, 2)
 
         val nr = storage.get(classOf[NeutronRouter], rId).await()
         val routes = nr.getRoutesList.asScala
 
         insertUpdateTask(50, RouterType, routerJson(rId), rId)
 
-        eventually {
-            checkRoutesAndNetworks(rId, 0, Some(routes), false)
-        }
+        checkRoutesAndNetworks(rId, 0, Some(routes), false)
     }
 
     "RouterTranslator" should "update bgp networks on the router according " +
@@ -346,18 +316,14 @@ class BgpTranslationIT extends C3POMinionTestBase {
 
         val peerId = createBgpPeer(40, rId, "10.0.0.2")
 
-        eventually {
-            checkRoutesAndNetworks(rId, 2)
-        }
+        checkRoutesAndNetworks(rId, 2)
 
         val nr = storage.get(classOf[NeutronRouter], rId).await()
         val routes = nr.getRoutesList.asScala
 
         insertDeleteTask(50, BgpPeerType, peerId)
 
-        eventually {
-            checkRoutesAndNetworks(rId, 2, Some(routes), false)
-        }
+        checkRoutesAndNetworks(rId, 2, Some(routes), false)
     }
 
     "BgpPeerTranslator" should "not add external networks to " +
@@ -369,13 +335,12 @@ class BgpTranslationIT extends C3POMinionTestBase {
             30, rtrId, "10.0.1.0/24", "10.0.1.1", external = true)
         val peerId = createBgpPeer(40, rtrId, "30.0.0.1")
         val peer2Id = createBgpPeer(50, rtrId, "40.0.0.1")
-        eventually {
-            checkQuaggaContainer(rtrId)
-            checkBgpPeer(rtrId, peerId)
-            checkBgpPeer(rtrId, peer2Id)
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
-            checkNoBgpNetwork(rifPort2Id)
-        }
+
+        checkQuaggaContainer(rtrId)
+        checkBgpPeer(rtrId, peerId)
+        checkBgpPeer(rtrId, peer2Id)
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+        checkNoBgpNetwork(rifPort2Id)
     }
 
     "BgpPeerTranslator" should "not add external networks to " +
@@ -387,22 +352,21 @@ class BgpTranslationIT extends C3POMinionTestBase {
             20, rtrId, "10.0.0.0/24", "10.0.0.1")
         val peerId = createBgpPeer(40, rtrId, "30.0.0.1")
         val peer2Id = createBgpPeer(50, rtrId, "40.0.0.1")
-        eventually {
-            checkQuaggaContainer(rtrId)
-            checkBgpPeer(rtrId, peerId)
-            checkBgpPeer(rtrId, peer2Id)
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
-        }
+
+        checkQuaggaContainer(rtrId)
+        checkBgpPeer(rtrId, peerId)
+        checkBgpPeer(rtrId, peer2Id)
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+
         val rifPort2Id = createNetworkAndRouterInterface(
             30, rtrId, "10.0.1.0/24", "10.0.1.1", external = true)
-        eventually {
-            checkQuaggaContainer(rtrId)
-            checkBgpPeer(rtrId, peerId)
-            checkBgpPeer(rtrId, peer2Id)
-            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+
+        checkQuaggaContainer(rtrId)
+        checkBgpPeer(rtrId, peerId)
+        checkBgpPeer(rtrId, peer2Id)
+        checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
             // TODO: Bug introduced in router interface translator
             // checkNoBgpNetwork(rifPort2Id)
-        }
     }
 
     "BgpPeerTranslator" should "not clear AS number if there are" +
@@ -413,19 +377,15 @@ class BgpTranslationIT extends C3POMinionTestBase {
         val peerId2 = createBgpPeer(30, rtrId, "40.0.0.1",
                                     speakerLocalAs = 40000)
 
-        eventually {
-            checkRouterASnumber(rtrId, 40000)
-            checkBgpPeer(rtrId, peerId)
-            checkBgpPeer(rtrId, peerId2)
-        }
+        checkRouterASnumber(rtrId, 40000)
+        checkBgpPeer(rtrId, peerId)
+        checkBgpPeer(rtrId, peerId2)
 
         insertDeleteTask(40, BgpPeerType, peerId)
 
-        eventually {
-            checkRouterASnumber(rtrId, 40000)
-            checkNoBgpPeer(rtrId, peerId)
-            checkBgpPeer(rtrId, peerId2)
-        }
+        checkRouterASnumber(rtrId, 40000)
+        checkNoBgpPeer(rtrId, peerId)
+        checkBgpPeer(rtrId, peerId2)
     }
 
     "BgpPeerTranslator" should "clear AS number if there are" +
@@ -434,17 +394,13 @@ class BgpTranslationIT extends C3POMinionTestBase {
         val peerId = createBgpPeer(20, rtrId, "30.0.0.1",
             speakerLocalAs = 40000)
 
-        eventually {
-            checkRouterASnumber(rtrId, 40000)
-            checkBgpPeer(rtrId, peerId)
-        }
+        checkRouterASnumber(rtrId, 40000)
+        checkBgpPeer(rtrId, peerId)
 
         insertDeleteTask(40, BgpPeerType, peerId)
 
-        eventually {
-            checkRouterASnumber(rtrId)
-            checkNoBgpPeer(rtrId, peerId)
-        }
+        checkRouterASnumber(rtrId)
+        checkNoBgpPeer(rtrId, peerId)
     }
 
     "BgpPeerTranslator" should "change AS number" in {
@@ -452,24 +408,18 @@ class BgpTranslationIT extends C3POMinionTestBase {
         val peerId = createBgpPeer(20, rtrId, "30.0.0.1",
                                    speakerLocalAs = 40000)
 
-        eventually {
-            checkRouterASnumber(rtrId, 40000)
-            checkBgpPeer(rtrId, peerId)
-        }
+        checkRouterASnumber(rtrId, 40000)
+        checkBgpPeer(rtrId, peerId)
 
         insertDeleteTask(30, BgpPeerType, peerId)
 
-        eventually {
-            checkRouterASnumber(rtrId, -1)
-        }
+        checkRouterASnumber(rtrId, -1)
 
         val peerId2 = createBgpPeer(40, rtrId, "30.0.0.1",
                                     speakerLocalAs = 50000)
 
-        eventually {
-            checkRouterASnumber(rtrId, 50000)
-            checkBgpPeer(rtrId, peerId2)
-        }
+        checkRouterASnumber(rtrId, 50000)
+        checkBgpPeer(rtrId, peerId2)
     }
 
     "BgpPeerTranslator" should "create speaker for uplink net" in {
