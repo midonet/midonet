@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_2594a035",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ListenerV2Translator.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-08T01:09:58Z",
+      "side": 1,
+      "message": "So can we just use midonet router port which would reflect the actual IP set on this router?  We can do it in the next patch but wondering if this was looked into.",
+      "revId": "358d80ad655a4d74eda67ddf8ff3abf0143c7702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
