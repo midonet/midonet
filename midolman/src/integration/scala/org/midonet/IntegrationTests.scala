@@ -19,7 +19,8 @@ import org.junit.runner.JUnitCore
 
 object IntegrationTests {
     val defaultTests = List(/*classOf[org.midonet.RecircTest],*/
-                            classOf[org.midonet.midolman.host.scanner.InterfaceScannerTest],
+                            // REVISIT(Ryu): Re-enable when flake is fixed (MI-1879)
+                            //classOf[org.midonet.midolman.host.scanner.InterfaceScannerTest],
                             classOf[org.midonet.quagga.BgpdTest],
                             classOf[org.midonet.midolman.vpp.VppIntegrationTest],
                             classOf[org.midonet.midolman.vpp.VppControllerIntegrationTest],
