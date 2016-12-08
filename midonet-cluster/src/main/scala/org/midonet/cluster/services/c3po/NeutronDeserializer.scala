@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.C3poNeutronDeserializerLog
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.L2Gateway.L2GatewayDevice
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.LBV2SessionPersistenceAlgorithm
 import org.midonet.cluster.models.Neutron.{SecurityGroupRule => NeutronSecurityGroupRule, _}
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
@@ -142,6 +143,8 @@ object NeutronDeserializer {
                 toMessage(node, classOf[NeutronBgpSpeaker])
             case "org.midonet.cluster.models.NeutronFirewallRule" =>
                 toMessage(node, classOf[NeutronFirewallRule])
+            case "org.midonet.cluster.models.NeutronLoadBalancerV2Pool.LBV2SessionPersistenceAlgorithm" =>
+                toMessage(node, classOf[LBV2SessionPersistenceAlgorithm])
             case "org.midonet.cluster.models.NeutronLoggingResource" =>
                 toMessage(node, classOf[NeutronLoggingResource])
             case "org.midonet.cluster.models.NeutronHealthMonitor.Pool" =>
