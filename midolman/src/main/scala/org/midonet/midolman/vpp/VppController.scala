@@ -45,7 +45,7 @@ import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.midolman.{DatapathState, Midolman}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC, TunnelKeys}
 import org.midonet.util.process.ProcessHelper.OutputStreams._
 import org.midonet.util.process.{MonitoredDaemonProcess, ProcessHelper}
 
@@ -59,6 +59,12 @@ object VppController {
     private val VppConnectionName = "midonet"
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
+
+    val VppFlowStateCfg = VppFlowStateConfig(
+        vniOut  = TunnelKeys.Fip64FlowStateSendKey,
+        vniIn   = TunnelKeys.Fip64FlowStateReceiveKey,
+        vrfOut  = VppVrfs.FlowStateOutput.id,
+        vrfIn   = VppVrfs.FlowStateInput.id)
 
     private object Cleanup
 
@@ -181,7 +187,11 @@ class VppController(hostId: UUID,
         val dpNumber = datapathState.getDpPortNumberForVport(portId)
         val uplinkSetup = new VppUplinkSetup(portId,
                                              portAddress.getAddress,
-                                             dpNumber, vppApi, vppOvs,
+                                             dpNumber,
+                                             vt.config.fip64,
+                                             VppFlowStateCfg,
+                                             vppApi,
+                                             vppOvs,
                                              Logger(log.underlying))
 
         val result = {
@@ -190,7 +200,11 @@ class VppController(hostId: UUID,
                 case previousSetup => previousSetup.rollback()
             }
         } flatMap { _ =>
-            uplinkSetup.execute() map { _ => uplinkSetup }
+            uplinkSetup.execute() flatMap {
+                _ => enableVppFlowState()
+            } map {
+                _ => uplinkSetup
+            }
         } recoverWith { case e =>
             uplinkSetup.rollback() map { _ =>
                 uplinks.remove(portId, uplinkSetup)
@@ -443,6 +457,10 @@ class VppController(hostId: UUID,
 
             Future.sequence(addedFutures ++ removedFutures)
         }
+    }
+
+    private def enableVppFlowState(): Future[Any] = {
+        exec(s"vppctl fip64 sync ${VppFlowStateCfg.vrfOut}")
     }
 }
 

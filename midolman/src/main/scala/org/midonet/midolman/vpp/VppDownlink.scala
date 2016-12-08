@@ -18,7 +18,7 @@ package org.midonet.midolman.vpp
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{TimeUnit, TimeoutException}
-import java.util.{UUID, BitSet => JBitSet}
+import java.util.UUID
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -372,10 +372,7 @@ private[vpp] trait VppDownlink { this: VppExecutor =>
     private val downlinks = new mutable.HashMap[UUID, DownlinkState]
     private val scheduler = Schedulers.from(vt.vtExecutor)
 
-    // We pre-allocate the VRF bit set with for up to 16,384 downlink ports.
-    // VRF 0 is reserved.
-    private val vrfs = new JBitSet(0x4000)
-    vrfs.set(0)
+    private val vrfs = VppVrfs.getBitSet()
 
     private val tableObserver = new Observer[Update[Fip64Entry, AnyRef]] {
         override def onNext(update: Update[Fip64Entry, AnyRef]): Unit = {

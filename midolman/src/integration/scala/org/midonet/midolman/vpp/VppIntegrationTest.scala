@@ -41,7 +41,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{MidonetBackendTestModule, MidonetTestBackend}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.conf.HostIdGenerator
-import org.midonet.midolman.config.Fip64Config
+import org.midonet.midolman.config.{Fip64Config, MidolmanConfig}
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
@@ -57,6 +57,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
     private var backend: MidonetBackend = _
     private val log = Logger(LoggerFactory.getLogger(classOf[VppIntegrationTest]))
     private var config: Config = _
+    private val fip64config = new Fip64Config(config, config)
 
     def setupStorage(): Unit = {
         zkServer = new TestingServer
@@ -420,6 +421,8 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
                 setup = Some(new VppUplinkSetup(UUID.randomUUID,
                                                 IPv6Addr("2001::1"),
                                                 uplinkDp.getPortNo,
+                                                fip64config,
+                                                VppController.VppFlowStateCfg,
                                                 api, ovs, log))
                 assertCmdInNs(uplinkns, s"ip a add 2001::2/64 dev ${uplinkns}ns")
 
@@ -549,8 +552,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
                                  + s"table ${id}")
 
                     val setupVxlan = new VppVxlanTunnelSetup(
-                        new Fip64Config(config, config), id, id,
-                        nsMac, api, log)
+                        fip64config, id, id, nsMac, api, log)
                     setupVxlan.execute()
 
                     fip
