@@ -57,6 +57,24 @@
       "revId": "358d80ad655a4d74eda67ddf8ff3abf0143c7702",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_a53c3030",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ListenerV2Translator.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-08T03:51:40Z",
+      "side": 1,
+      "message": "Sure, no objection to merging.  I was thinking something like this:\n\n        // In typical cases, we expect only two ports to be returned\n        val rPorts \u003d tx.getAll(classOf[Port], lbRouter.getPortIdsList.asScala)\n        val rPort \u003d rPorts.find { p \u003d\u003e\n            p.hasPeerId \u0026\u0026 p.getPeerId \u003d\u003d routerInterfacePortPeerId(p.getId)\n        }.getOrElse {\n            throw new IllegalStateException(\n                \"LB router has no router interface port which links \" +\n                \"to the VIP port\")\n        }\n        \n        bldr.setAddress(rPort.getPortAddress)\n\nBut it\u0027s making an assumption that routerInterfacePortPeerId is not used to create other ports on this router (basically, created by a translator).  Neutron doesn\u0027t see this router so it feels safe enough to me.  Change if you think it\u0027s worth changing.",
+      "parentUuid": "5aa745d1_25e260d6",
+      "revId": "358d80ad655a4d74eda67ddf8ff3abf0143c7702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
