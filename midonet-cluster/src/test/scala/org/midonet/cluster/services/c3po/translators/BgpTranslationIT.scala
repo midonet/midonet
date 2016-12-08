@@ -20,20 +20,20 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import scala.collection.JavaConverters._
-
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{BgpPeer => BgpPeerType, BgpSpeaker => BgpSpeakerType, Port => PortType, Router => RouterType}
 import org.midonet.cluster.models.Neutron.{NeutronBgpPeer, NeutronRoute, NeutronRouter}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouteManager.extraRouteId
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{IPv4Subnet, TCP}
 import org.midonet.util.concurrent.toFutureOps
+import org.scalatest.junit.JUnitRunner
+
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class BgpTranslationIT extends C3POMinionTestBase {
@@ -470,6 +470,33 @@ class BgpTranslationIT extends C3POMinionTestBase {
             checkRouterASnumber(rtrId, 50000)
             checkBgpPeer(rtrId, peerId2)
         }
+    }
+
+    "BgpPeerTranslator" should "create speaker for uplink net" in {
+
+        val hostId = UUID.randomUUID()
+
+        // Create uplink network.
+        val uplNetworkId = createUplinkNetwork(2)
+        val uplNwSubnetId = createSubnet(3, uplNetworkId, "10.0.0.0/24")
+
+        createHost(hostId)
+
+        // Create edge router.
+        val edgeRtrId = createRouter(5)
+        val edgeRtrUplNwIfPortId = createRouterInterfacePort(
+            6, uplNetworkId, uplNwSubnetId, edgeRtrId, "10.0.0.2",
+            "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
+        createRouterInterface(7, edgeRtrId, edgeRtrUplNwIfPortId, uplNwSubnetId)
+
+
+        val rifPortId = createNetworkAndRouterInterface(
+            10, edgeRtrId, "20.0.0.0/24", "20.0.0.1")
+
+        createBgpPeer(20, edgeRtrId, "10.0.0.1", speakerLocalAs = 40000)
+
+        checkNoBgpNetwork(edgeRtrUplNwIfPortId)
+        checkBgpNetwork(edgeRtrId, rifPortId, "20.0.0.0/24")
     }
 
     def checkRouterASnumber(rId: UUID, as: Int = -1): Unit = {

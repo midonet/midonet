@@ -133,8 +133,11 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
     private def addNetworks(tx: Transaction, router: Router): Unit = {
         val routerPorts = tx.getAll(classOf[Port], router.getPortIdsList.asScala)
 
-        val neutronPorts = tx.getAll(classOf[NeutronPort],
-                                     routerPorts.map(_.getPeerId))
+        // Not all ports on the router will have peers. The exception is ports
+        // on an uplink network, which we want to exclude from the advertised
+        // networks.
+        val neutronPortIds = routerPorts.filter(_.hasPeerId).map(_.getPeerId)
+        val neutronPorts = tx.getAll(classOf[NeutronPort], neutronPortIds)
 
         val networks = tx.getAll(classOf[NeutronNetwork],
                                  neutronPorts.map(_.getNetworkId))
