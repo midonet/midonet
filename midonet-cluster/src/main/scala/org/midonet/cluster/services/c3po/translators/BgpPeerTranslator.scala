@@ -36,6 +36,7 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
             with ChainManager {
 
     import BgpPeerTranslator._
+    import PortManager._
 
     override protected def translateCreate(tx: Transaction,
                                            bgpPeer: NeutronBgpPeer): Unit = {
@@ -133,8 +134,16 @@ class BgpPeerTranslator(stateTableStorage: StateTableStorage,
     private def addNetworks(tx: Transaction, router: Router): Unit = {
         val routerPorts = tx.getAll(classOf[Port], router.getPortIdsList.asScala)
 
-        val neutronPorts = tx.getAll(classOf[NeutronPort],
-                                     routerPorts.map(_.getPeerId))
+        // Not all ports on the router will have peers. The exception is ports
+        // on an uplink network, which will be directly attached to the router
+        // with the routerInterfacePortPeerId
+        val neutronPortIds = routerPorts map { p =>
+            p.hasPeerId match {
+                case true => p.getPeerId
+                case false => routerInterfacePortPeerId(p.getId)
+            }
+        }
+        val neutronPorts = tx.getAll(classOf[NeutronPort], neutronPortIds)
 
         val networks = tx.getAll(classOf[NeutronNetwork],
                                  neutronPorts.map(_.getNetworkId))
