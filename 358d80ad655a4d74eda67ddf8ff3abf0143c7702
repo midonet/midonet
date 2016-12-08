@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5aa745d1_05e764e5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ListenerV2Translator.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-08T02:20:12Z",
+      "side": 1,
+      "message": "This is superfluous, however.  Removing.",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 91
+      },
+      "revId": "358d80ad655a4d74eda67ddf8ff3abf0143c7702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_2594a035",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ListenerV2Translator.scala",
         "patchSetId": 14
@@ -13,6 +36,24 @@
       "writtenOn": "2016-12-08T01:09:58Z",
       "side": 1,
       "message": "So can we just use midonet router port which would reflect the actual IP set on this router?  We can do it in the next patch but wondering if this was looked into.",
+      "revId": "358d80ad655a4d74eda67ddf8ff3abf0143c7702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_25e260d6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ListenerV2Translator.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-08T02:20:12Z",
+      "side": 1,
+      "message": "The actual fetch below IS of the MidoNet Port on the router, so it is actually fetching the set address on the router port (the peer to the VIP port).  The exists check is just to make sure the peer (i.e. the VIP port) is an actual port that exists in neutron.\n\nThe reason I check for the existence of a Neutron Port, is that there could be router ports with peers that are not neutron ports (I\u0027m thinking like maybe the HM port which goes to userspace, or any other port which was attached to this router through the CLI), which we do NOT want to consider, because that might pull either a faulty address, or be missing the address altogether.  Unless someone does something VERY crazy, the only interface port on this router whose peer is a valid neutron port, would be the vip peer.  But dropping the check for the neutron port opens this up to incorrectly find many other ports on the router, such as host interface ports, user-added midonet ports, etc.\n\nHowever, if the point is to stop relying on any neutron data being in ZK, we can maybe contrive a better check, or store more valuable information with the MidoNet port (such as whether it is a vip port or not, or, more simply, the device owner, as that would be enough to determine the correct router port purely from midonet information.  But device_owner is not stored in the midonet port right now, so I can\u0027t use it).\n\nHowever we do it, I think we should go with this for now and file a JIRA to add device_owner to midonet Port (or however we decide to do it) and then remove this NeutronPort dependency from here.",
+      "parentUuid": "5aa745d1_2594a035",
       "revId": "358d80ad655a4d74eda67ddf8ff3abf0143c7702",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
