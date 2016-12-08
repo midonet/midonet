@@ -20,7 +20,7 @@ import java.util.UUID
 
 import com.fasterxml.jackson.databind.JsonNode
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{LbV2Pool => LbV2PoolType, LbV2PoolMember => LbV2PoolMemberType, ListenerV2 => ListenerV2Type, LoadBalancerV2 => LoadBalancerV2Type, Port => PortType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{HealthMonitorV2 => HealthMonitorV2Type, LbV2Pool => LbV2PoolType, LbV2PoolMember => LbV2PoolMemberType, ListenerV2 => ListenerV2Type, LoadBalancerV2 => LoadBalancerV2Type, Port => PortType}
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.{LBV2SessionPersistenceType, LoadBalancerV2Protocol}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.rest_api.neutron.models.PoolV2.LoadBalancerV2Algorithm
@@ -41,6 +41,29 @@ trait LbaasV2ITCommon { this: C3POMinionTestBase =>
         lb.put("vip_port_id", vipPortId.toString)
         lb.put("vip_address", vipAddress)
         lb
+    }
+
+    private def healthMonitorV2Json(id: UUID,
+                                    delay: Int,
+                                    timeout: Int,
+                                    maxRetries: Int,
+                                    poolIds: Set[UUID],
+                                    adminStateUp: Boolean): JsonNode = {
+        val hm = nodeFactory.objectNode
+        hm.put("id", id.toString)
+        hm.put("delay", delay)
+        hm.put("timeout", timeout)
+        hm.put("max_retries", maxRetries)
+        hm.put("admin_state_up", adminStateUp)
+        if (poolIds.nonEmpty) {
+            val pools = hm.putArray("pools")
+            poolIds foreach { pId =>
+                val poolNode = nodeFactory.objectNode
+                poolNode.put("id", pId.toString)
+                pools.add(poolNode)
+            }
+        }
+        hm
     }
 
     protected def lbV2PoolJson(id: UUID = UUID.randomUUID(),
@@ -166,6 +189,30 @@ trait LbaasV2ITCommon { this: C3POMinionTestBase =>
         val json = lbV2Json(id, vipPortId, vipAddress, adminStateUp)
         insertCreateTask(taskId, LoadBalancerV2Type, json, id)
         id
+    }
+
+    protected def createHealthMonitorV2(taskId: Int,
+                                        id: UUID = UUID.randomUUID(),
+                                        delay: Int = 1,
+                                        timeout: Int = 2,
+                                        maxRetries: Int = 3,
+                                        poolIds: Set[UUID] = Set(),
+                                        adminStateUp: Boolean = true): UUID = {
+        val json = healthMonitorV2Json(id, delay, timeout, maxRetries,
+                                       poolIds, adminStateUp)
+        insertCreateTask(taskId, HealthMonitorV2Type, json, id)
+        id
+    }
+
+    protected def updateHealthMonitorV2(taskId: Int,
+                                        id: UUID,
+                                        delay: Int = 1,
+                                        timeout: Int = 2,
+                                        maxRetries: Int = 3,
+                                        adminStateUp: Boolean = true): Unit = {
+        val json = healthMonitorV2Json(id, delay, timeout, maxRetries, Set(),
+                                       adminStateUp)
+        insertUpdateTask(taskId, HealthMonitorV2Type, json, id)
     }
 
     protected def createLbV2Pool(taskId: Int, loadBalancerId: UUID,
