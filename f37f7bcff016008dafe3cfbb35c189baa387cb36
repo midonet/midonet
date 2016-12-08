@@ -22,6 +22,30 @@
       "revId": "f37f7bcff016008dafe3cfbb35c189baa387cb36",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_4012fab5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-08T09:12:10Z",
+      "side": 1,
+      "message": "I\u0027m trying to wrap my head around what would be the consequence of this.  The only case I think of is if the edge router is connected to two uplink networks (and peer routers), and want to advertise a route to the uplink network to the router connected to the other uplink network.  Certainly doesn\u0027t seem like a common case, but does that add value?",
+      "parentUuid": "5aa745d1_e0afc692",
+      "range": {
+        "startLine": 154,
+        "startChar": 22,
+        "endLine": 154,
+        "endChar": 36
+      },
+      "revId": "f37f7bcff016008dafe3cfbb35c189baa387cb36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
