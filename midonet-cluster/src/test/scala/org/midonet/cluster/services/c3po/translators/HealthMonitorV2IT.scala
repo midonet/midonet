@@ -18,39 +18,20 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
 
-import com.fasterxml.jackson.databind.JsonNode
 import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{HealthMonitorV2 => HealthMonitorV2Type}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.LbaasV2ITCommon
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.toFutureOps
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class HealthMonitorV2IT extends C3POMinionTestBase {
-
-    private def makeHmJson(id: UUID,
-                           delay: Int,
-                           maxRetries: Int,
-                           timeout: Int,
-                           poolIds: Set[UUID],
-                           adminStateUp: Boolean): JsonNode = {
-        val hm = nodeFactory.objectNode
-        hm.put("id", id.toString)
-        hm.put("delay", delay)
-        hm.put("timeout", timeout)
-        hm.put("max_retries", maxRetries)
-        hm.put("admin_state_up", adminStateUp)
-        if (poolIds.nonEmpty) {
-            val pools = hm.putArray("pools")
-            poolIds foreach (p => pools.add(p.toString))
-        }
-        hm
-    }
+class HealthMonitorV2IT extends C3POMinionTestBase with LbaasV2ITCommon {
 
     private def verifyHealthMonitor(id: UUID, delay: Int,
-                                    maxRetries: Int, timeout: Int,
+                                    timeout: Int, maxRetries: Int,
                                     poolIds: Set[UUID],
                                     adminStateUp: Boolean): Unit = {
         val hm = storage.get(classOf[HealthMonitor], id).await()
@@ -63,32 +44,28 @@ class HealthMonitorV2IT extends C3POMinionTestBase {
     }
 
     "HealthMonitorV2Translator" should "add, update, and delete HM" in {
-        val poolId = UUID.randomUUID
-        val poolId2 = UUID.randomUUID
-        val pools = Set(poolId, poolId2)
-        val hmId = UUID.randomUUID()
-        var delay = 1
-        var timeout = 1
-        var maxRetries = 1
+        val (vipPortId, _, _) = createVipV2PortAndNetwork(1)
 
-        storage.create(Pool.newBuilder.setId(poolId).build())
-        storage.create(Pool.newBuilder.setId(poolId2).build())
+        val lbId = createLbV2(10, vipPortId, "10.0.1.4")
 
-        var hmJson = makeHmJson(hmId, delay, timeout, maxRetries, pools, true)
+        val pool1Id = createLbV2Pool(20, lbId)
+        val pool2Id = createLbV2Pool(30, lbId)
+        val pools = Set(pool1Id, pool2Id)
 
-        insertCreateTask(10, HealthMonitorV2Type, hmJson, hmId)
+        val hmId = createHealthMonitorV2(40, poolIds = pools)
 
-        verifyHealthMonitor(hmId, delay, maxRetries, timeout, pools, true)
+        verifyHealthMonitor(hmId, 1, 1, 1, pools, true)
 
-        delay = 2
-        timeout = 3
-        maxRetries = 4
-        hmJson = makeHmJson(hmId, delay, maxRetries, timeout, pools, true)
+        val pool1 = storage.get(classOf[Pool], pool1Id).await()
+        pool1.getHealthMonitorId shouldBe toProto(hmId)
 
-        insertUpdateTask(20, HealthMonitorV2Type, hmJson, hmId)
-        verifyHealthMonitor(hmId, delay, maxRetries, timeout, pools, true)
+        val pool2 = storage.get(classOf[Pool], pool1Id).await()
+        pool2.getHealthMonitorId shouldBe toProto(hmId)
 
-        insertDeleteTask(30, HealthMonitorV2Type, hmId)
+        updateHealthMonitorV2(50, hmId, 2, 3, 4, true)
+        verifyHealthMonitor(hmId, 2, 3, 4, pools, true)
+
+        insertDeleteTask(60, HealthMonitorV2Type, hmId)
         storage.exists(classOf[HealthMonitor], hmId).await() shouldBe false
     }
 }
