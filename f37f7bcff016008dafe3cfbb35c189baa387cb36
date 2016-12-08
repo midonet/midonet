@@ -46,6 +46,30 @@
       "revId": "f37f7bcff016008dafe3cfbb35c189baa387cb36",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_4a2b3483",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1005043
+      },
+      "writtenOn": "2016-12-08T14:10:03Z",
+      "side": 1,
+      "message": "You shouldn\u0027t announce anything automatically, it should be the operator who decides what networks want to announce. IMHO the only network that could be announced automatically is the FIP network, because it\u0027s how openstack and our architecture is designed to work.",
+      "parentUuid": "5aa745d1_4012fab5",
+      "range": {
+        "startLine": 154,
+        "startChar": 22,
+        "endLine": 154,
+        "endChar": 36
+      },
+      "revId": "f37f7bcff016008dafe3cfbb35c189baa387cb36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
