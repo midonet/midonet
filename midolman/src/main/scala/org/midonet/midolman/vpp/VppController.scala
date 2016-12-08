@@ -61,6 +61,13 @@ object VppController {
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
 
+    private val VppFlowStateCfg = VppFlowStateConfig(
+        vniOut  = 0x2FFFFE,
+        vniIn   = 0x2FFFFF,
+        vrfOut  = 1,
+        vrfIn   = 2,
+        portMac = MAC.fromString("de:ad:be:ef:00:03"))
+
     private case class BoundPort(setup: VppSetup)
     private type LinksMap = util.Map[UUID, BoundPort]
     private object Cleanup
@@ -183,7 +190,9 @@ class VppController(hostId: UUID,
                     previousBinding.setup.rollback()
             }
         } flatMap { _ =>
-            setup.execute() map { _ => Some(boundPort) }
+            setup.execute() flatMap { _ => enableVppFlowState() } map {
+                _ => Some(boundPort)
+            }
         } recoverWith { case e =>
             setup.rollback() map { _ =>
                 links.remove(portId, boundPort)
@@ -218,7 +227,11 @@ class VppController(hostId: UUID,
                 val uplinkSetup = attachLink(uplinks, portId,
                                              new VppUplinkSetup(port.id,
                                                  port.portAddress6.getAddress,
-                                                 dpNumber, vppApi, vppOvs,
+                                                 dpNumber,
+                                                 vt.config.fip64,
+                                                 VppFlowStateCfg,
+                                                 vppApi,
+                                                 vppOvs,
                                                  Logger(log.underlying)))
                 routerPortSubscribers +=
                     portId -> VirtualTopology.observable(classOf[RouterPort],
@@ -449,6 +462,10 @@ class VppController(hostId: UUID,
 
             Future.sequence(addedFutures ++ removedFutures)
         }
+    }
+
+    private def enableVppFlowState(): Future[Any] = {
+        exec(s"vppctl fip64 sync ${VppFlowStateCfg.vrfOut}")
     }
 }
 

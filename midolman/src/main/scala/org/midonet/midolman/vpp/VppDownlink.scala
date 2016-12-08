@@ -373,9 +373,11 @@ private[vpp] trait VppDownlink { this: VppExecutor =>
     private val scheduler = Schedulers.from(vt.vtExecutor)
 
     // We pre-allocate the VRF bit set with for up to 16,384 downlink ports.
-    // VRF 0 is reserved.
+    // VRF 0, 1 and 2 are reserved.
     private val vrfs = new JBitSet(0x4000)
-    vrfs.set(0)
+    vrfs.set(0) // default table, used for incoming traffic (IPv6)
+    vrfs.set(1) // reserved for flow state output
+    vrfs.set(2) // reserved for flow state input
 
     private val tableObserver = new Observer[Update[Fip64Entry, AnyRef]] {
         override def onNext(update: Update[Fip64Entry, AnyRef]): Unit = {
