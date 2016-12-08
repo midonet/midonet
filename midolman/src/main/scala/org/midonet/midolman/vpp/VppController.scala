@@ -46,7 +46,7 @@ import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
 import org.midonet.midolman.{DatapathState, Midolman}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, MAC, TunnelKeys}
 import org.midonet.util.process.ProcessHelper.OutputStreams._
 import org.midonet.util.process.{MonitoredDaemonProcess, ProcessHelper}
 
@@ -60,6 +60,12 @@ object VppController {
     private val VppConnectionName = "midonet"
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
+
+    val VppFlowStateCfg = VppFlowStateConfig(
+        vniOut  = TunnelKeys.Fip64FlowStateSendKey,
+        vniIn   = TunnelKeys.Fip64FlowStateReceiveKey,
+        vrfOut  = VppVrfs.FlowStateOutput.id,
+        vrfIn   = VppVrfs.FlowStateInput.id)
 
     private case class BoundPort(setup: VppSetup)
     private type LinksMap = util.Map[UUID, BoundPort]
@@ -183,7 +189,9 @@ class VppController(hostId: UUID,
                     previousBinding.setup.rollback()
             }
         } flatMap { _ =>
-            setup.execute() map { _ => Some(boundPort) }
+            setup.execute() flatMap { _ => enableVppFlowState() } map {
+                _ => Some(boundPort)
+            }
         } recoverWith { case e =>
             setup.rollback() map { _ =>
                 links.remove(portId, boundPort)
@@ -218,7 +226,11 @@ class VppController(hostId: UUID,
                 val uplinkSetup = attachLink(uplinks, portId,
                                              new VppUplinkSetup(port.id,
                                                  port.portAddress6.getAddress,
-                                                 dpNumber, vppApi, vppOvs,
+                                                 dpNumber,
+                                                 vt.config.fip64,
+                                                 VppFlowStateCfg,
+                                                 vppApi,
+                                                 vppOvs,
                                                  Logger(log.underlying)))
                 routerPortSubscribers +=
                     portId -> VirtualTopology.observable(classOf[RouterPort],
@@ -302,8 +314,8 @@ class VppController(hostId: UUID,
                              routerPortMac: MAC) : Future[_] = {
         log debug s"Creating downlink tunnel for port:$portId, vrf:$vrf, vni:$vni"
         val setup = new VppVxlanTunnelSetup(vt.config.fip64,
-                                            vni, vrf, routerPortMac,
-                                            vppApi, Logger(log.underlying))
+                                            vni, vrf, routerPortMac, vppApi,
+                                            Logger(log.underlying))
 
         {
             vxlanTunnels.replace(portId, setup) match {
@@ -449,6 +461,10 @@ class VppController(hostId: UUID,
 
             Future.sequence(addedFutures ++ removedFutures)
         }
+    }
+
+    private def enableVppFlowState(): Future[Any] = {
+        exec(s"vppctl fip64 sync ${VppFlowStateCfg.vrfOut}")
     }
 }
 
