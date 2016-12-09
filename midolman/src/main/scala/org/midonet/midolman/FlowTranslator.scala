@@ -174,17 +174,28 @@ trait FlowTranslator {
             val src = routeInfo.get.srcIp
             val dst = routeInfo.get.dstIp
             context.addFlowTag(FlowTagger.tagForTunnelRoute(src, dst))
+            val tunnelTOS = if (config.datapath.setTosOnTunnelHeader) {
+                // Apply the inner packet TOS field to the tunnelled packet
+                // masking the ECN bits, to avoid falsely indicating ECN
+                // capability.
+                context.wcmatch
+                    .setTunnelTOS((context.wcmatch.getNetworkTOS & 0xfc).toByte)
+                    .getTunnelTOS
+            } else {
+                // Default to best effort
+                0.toByte
+            }
             // Each FlowActionSetKey must be followed by a corresponding
             // FlowActionOutput.
             if (context.tracingEnabled) {
                 context.flowActions.add(
-                    setKey(FlowKeys.tunnel(key, src, dst, 0)))
+                    setKey(FlowKeys.tunnel(key, src, dst, tunnelTOS)))
                 context.packetActions.add(
                     setKey(FlowKeys.tunnel(context.setTraceTunnelBit(key),
-                                           src, dst, 0)))
+                                           src, dst, tunnelTOS)))
             } else {
                 addFlowAndPacketAction(context,
-                    setKey(FlowKeys.tunnel(key, src, dst, 0)))
+                    setKey(FlowKeys.tunnel(key, src, dst, tunnelTOS)))
             }
             addFlowAndPacketAction(context, routeInfo.get.output)
         }
