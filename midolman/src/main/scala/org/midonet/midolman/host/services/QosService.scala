@@ -95,7 +95,7 @@ class QosService(scanner: InterfaceScanner,
              * in a new configuration.
              */
             val r = p.qosPolicy.bandwidthRules.head
-            TcConf(ifindex, r.maxKbps, r.maxBurstKbps)
+            TcConf(ifindex, r.maxKbps, r.maxBurstKb)
         }
 
         val tcConfs: Set[TcConf] = portIdToPort.values

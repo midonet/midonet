@@ -289,7 +289,7 @@ class TestQosService extends MidolmanSpec
             verifyRequests(TcReq(ADDFILTER, 1))
 
             var newRule = qosPolicyRule.toBuilder
-                .setMaxBurstKbps(DefaultBurst + 1)
+                .setMaxBurstKb(DefaultBurst + 1)
                 .build()
             store.update(newRule)
             verifyRequests(TcReq(REMQDISC, 1),
@@ -300,7 +300,7 @@ class TestQosService extends MidolmanSpec
             verifyRequests(TcReq(ADDFILTER, 2))
 
             newRule = qosPolicyRule.toBuilder
-                .setMaxBurstKbps(DefaultBurst + 2)
+                .setMaxBurstKb(DefaultBurst + 2)
                 .build()
             store.update(newRule)
             verifyRequests(TcReq(REMQDISC, 1),

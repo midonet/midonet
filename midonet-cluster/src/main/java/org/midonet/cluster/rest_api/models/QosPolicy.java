@@ -49,9 +49,9 @@ public class QosPolicy extends UriResource {
         @JsonProperty("max_kbps")
         public Integer maxKbps = null;
 
-        @ZoomField(name = "max_burst_kbps")
+        @ZoomField(name = "max_burst_kb")
         @JsonProperty("max_burst_kbps")
-        public Integer maxBurstKbps = null;
+        public Integer maxBurstKb = null;
 
         @ZoomField(name = "dscp_mark")
         @JsonProperty("dscp_mark")
