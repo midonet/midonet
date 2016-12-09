@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_e3722b7c",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-09T11:18:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_48bfbcd0",
+      "revId": "33839f8adfce67d97fd27f17378383f54cbde0b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_88c5c45c",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_8369278e",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-09T11:18:42Z",
+      "side": 1,
+      "message": "There is no such a bit :)",
+      "parentUuid": "5aa745d1_88c5c45c",
+      "revId": "33839f8adfce67d97fd27f17378383f54cbde0b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_2899106f",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -47,6 +83,30 @@
       "writtenOn": "2016-12-09T09:08:38Z",
       "side": 1,
       "message": "Delete is unnecessary for now, but no harm in keeping it in.",
+      "range": {
+        "startLine": 311,
+        "startChar": 54,
+        "endLine": 311,
+        "endChar": 65
+      },
+      "revId": "33839f8adfce67d97fd27f17378383f54cbde0b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_6305fbc0",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-09T11:18:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_2899106f",
       "range": {
         "startLine": 311,
         "startChar": 54,
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_430affd3",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-09T11:18:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_28ab508b",
+      "range": {
+        "startLine": 312,
+        "startChar": 11,
+        "endLine": 312,
+        "endChar": 12
+      },
+      "revId": "33839f8adfce67d97fd27f17378383f54cbde0b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_889ca46a",
         "filename": "docs/ipv6-fip.md",
         "patchSetId": 1
@@ -93,6 +177,30 @@
       "writtenOn": "2016-12-09T09:01:41Z",
       "side": 1,
       "message": "what is the UUID for?",
+      "range": {
+        "startLine": 313,
+        "startChar": 0,
+        "endLine": 317,
+        "endChar": 41
+      },
+      "revId": "33839f8adfce67d97fd27f17378383f54cbde0b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_230ff3e2",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-09T11:18:42Z",
+      "side": 1,
+      "message": "Changed to VNI",
+      "parentUuid": "5aa745d1_889ca46a",
       "range": {
         "startLine": 313,
         "startChar": 0,
