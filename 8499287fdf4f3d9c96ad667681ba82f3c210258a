@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_8def16b0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 545,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-09T03:50:01Z",
+      "side": 1,
+      "message": "does this need to be synchronous?",
+      "revId": "8499287fdf4f3d9c96ad667681ba82f3c210258a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
