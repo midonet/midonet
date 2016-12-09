@@ -57,4 +57,10 @@ object TunnelKeys {
 
     /* Flow state always uses 0xffffff as tunnel key */
     val FlowStateType = new TunnelKeyType(0x7)
+
+    // for legacy reasons, the trace bit has to be set so that the
+    // key is 0xffffff
+    val FlowStateTunnelKey = TraceBit.set(FlowStateType(0xFFFFF))
+    val Fip64FlowStateSendKey = FlowStateType(0xFFFFE)
+    val Fip64FlowStateReceiveKey = FlowStateType(0xFFFFD)
 }

@@ -64,7 +64,8 @@ class TunnelKeysTest extends FeatureSpecLike
         }
 
         scenario("flow state key is detected correctly") {
-            FlowStateType.isOfType(FlowStatePackets.TUNNEL_KEY) shouldBe true
+            FlowStateType.isOfType(FlowStateTunnelKey) shouldBe true
+            FlowStateTunnelKey shouldBe 0xFFFFFF
         }
     }
 
