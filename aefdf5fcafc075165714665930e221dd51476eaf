@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_9e817e92",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppUplink.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-09T15:28:09Z",
+      "side": 1,
+      "message": "Why do we have to delete this uplink in this case?",
+      "range": {
+        "startLine": 187,
+        "startChar": 24,
+        "endLine": 187,
+        "endChar": 63
+      },
+      "revId": "aefdf5fcafc075165714665930e221dd51476eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
