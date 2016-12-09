@@ -52,7 +52,8 @@ class ListenerV2Translator
         }
         bldr.setProtocolPort(nL.getProtocolPort)
 
-        val lbRouter = tx.get(classOf[Router], lbV2RouterId(nL.getLoadbalancers(0)))
+        val lbRouter = tx.get(classOf[Router],
+            lbV2RouterId(nL.getLoadbalancers(0).getId))
 
         val routerPortList = tx.getAll(classOf[Port], lbRouter.getPortIdsList.asScala)
         val vipPeerPort = routerPortList find { p =>

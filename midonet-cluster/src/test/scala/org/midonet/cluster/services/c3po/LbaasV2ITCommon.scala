@@ -77,7 +77,9 @@ trait LbaasV2ITCommon { this: C3POMinionTestBase =>
             listenersArr.add(l.toString)
         }
         val loadBalancersArr = p.putArray("loadbalancers")
-        loadBalancersArr.add(loadBalancerId.toString)
+        val lbNode = nodeFactory.objectNode
+        lbNode.put("id", loadBalancerId.toString)
+        loadBalancersArr.add(lbNode)
         p.put("protocol", protocol.toString)
         sessionPersistence.foreach(n => p.set("session_persistence", n))
         p
@@ -123,7 +125,9 @@ trait LbaasV2ITCommon { this: C3POMinionTestBase =>
         val pm = nodeFactory.objectNode
         pm.put("id", id.toString)
         val loadBalancersArr = pm.putArray("loadbalancers")
-        loadBalancersArr.add(loadBalancerId.toString)
+        val lbNode = nodeFactory.objectNode
+        lbNode.put("id", loadBalancerId.toString)
+        loadBalancersArr.add(lbNode)
         defaultPoolId.foreach(id => pm.put("default_pool_id", id.toString))
         pm.put("tenant_id", tenantId)
         pm.put("admin_state_up", adminStateUp)

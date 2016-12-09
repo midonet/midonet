@@ -46,7 +46,7 @@ public class ListenerV2 extends ZoomObject {
 
     @JsonProperty("loadbalancers")
     @ZoomField(name = "loadbalancers")
-    public List<UUID> loadBalancers = new ArrayList<UUID>();
+    public List<LoadBalancerV2> loadBalancers = new ArrayList<>();
 
     @JsonProperty("default_pool_id")
     @ZoomField(name = "default_pool_id")
