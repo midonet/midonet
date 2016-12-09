@@ -224,13 +224,14 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    def createDhcp(networkId: UUID,
+    def createDhcp(networkId: UUID = UUID.randomUUID,
                    id: UUID = UUID.randomUUID,
                    defaultGw: IPAddr = IPv4Addr.random,
                    serverAddr: IPAddr = IPv4Addr.random,
-                   subnetAddr: IPSubnet[_] = IPv4Addr.random.subnet(24),
+                   subnetAddr: IPv4Subnet = IPv4Addr.random.subnet(24),
                    dns: List[IPv4Addr] = List(),
                    opt121routes: List[Dhcp.Opt121Route] = List(),
+                   hosts: List[Dhcp.Host] = List(),
                    enabled: Boolean = true,
                    mtu: Int = 1024): Dhcp = {
         val builder = Dhcp.newBuilder()
@@ -243,15 +244,39 @@ trait TopologyBuilder {
             .setServerAddress(serverAddr.asProto)
             .addAllDnsServerAddress(dns.map(_.asProto).asJava)
             .addAllOpt121Routes(opt121routes.asJavaCollection)
+            .addAllHosts(hosts.asJava)
         builder.build()
     }
 
-    def createDhcpHost(name: String, mac: MAC, ip: IPAddr): Dhcp.Host = {
-        val builder = Dhcp.Host.newBuilder()
-                               .setName(name)
-                               .setMac(mac.toString)
-                               .setIpAddress(ip.asProto)
-        builder.build()
+    def createOpt121Route(destinationSubnet: IPv4Subnet = IPv4Addr.random.subnet(24),
+                          gateway: IPv4Addr = IPv4Addr.random)
+    : Dhcp.Opt121Route = {
+        Dhcp.Opt121Route.newBuilder()
+            .setDstSubnet(destinationSubnet.asProto)
+            .setGateway(gateway.asProto)
+            .build()
+    }
+
+    def createDhcpHost(name: String = random.nextString(10),
+                       mac: MAC = MAC.random(),
+                       ip: IPv4Addr = IPv4Addr.random,
+                       options: List[Dhcp.Host.ExtraDhcpOpt] = List())
+    : Dhcp.Host = {
+        Dhcp.Host.newBuilder()
+            .setName(name)
+            .setMac(mac.toString)
+            .setIpAddress(ip.asProto)
+            .addAllExtraDhcpOpts(options.asJava)
+            .build()
+    }
+
+    def createExtraDhcpOption(name: String = random.nextString(10),
+                              value: String = random.nextString(10))
+    : Dhcp.Host.ExtraDhcpOpt = {
+        Dhcp.Host.ExtraDhcpOpt.newBuilder()
+            .setName(name)
+            .setValue(value)
+            .build()
     }
 
     def createRouter(id: UUID = UUID.randomUUID,
