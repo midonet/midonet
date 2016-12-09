@@ -405,7 +405,7 @@ class QosPolicyMapperTest extends MidolmanSpec
         }
     }
 
-    case class BwData(maxKbps: Int, maxBurstKbps: Option[Int])
+    case class BwData(maxKbps: Int, maxBurstKb: Option[Int])
     private def createQosPolicyAndRules(bwData: Seq[BwData],
                                         dscpMarks: Seq[Int]): UUID = {
         val pol = createQosPolicy()
@@ -414,7 +414,7 @@ class QosPolicyMapperTest extends MidolmanSpec
         val polId = pol.getId.asJava
         for (bw <- bwData) {
             vt.store.create(
-                createQosRuleBWLimit(polId, bw.maxKbps, bw.maxBurstKbps))
+                createQosRuleBWLimit(polId, bw.maxKbps, bw.maxBurstKb))
         }
 
         for (mark <- dscpMarks) {
@@ -453,7 +453,7 @@ class QosPolicyMapperTest extends MidolmanSpec
             pol.getDscpMarkingRuleIdsList.asScala.map(_.asJava)
 
         val simPolBwData =
-            simPol.bandwidthRules.map(r => BwData(r.maxKbps, r.maxBurstKbps))
+            simPol.bandwidthRules.map(r => BwData(r.maxKbps, r.maxBurstKb))
         simPolBwData should contain theSameElementsAs bwData
 
         val simPolDscpMarks = simPol.dscpRules.map(_.dscpMark)

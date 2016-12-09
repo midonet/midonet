@@ -1181,13 +1181,13 @@ trait TopologyBuilder {
 
     def createQosRuleBWLimit(policyId: UUID,
                              maxKbps: Int,
-                             maxBurstKbps: Option[Int],
+                             maxBurstKb: Option[Int],
                              id: UUID = UUID.randomUUID()): QosRuleBandwidthLimit = {
         val bldr = QosRuleBandwidthLimit.newBuilder
             .setId(id.asProto)
             .setPolicyId(policyId.asProto)
             .setMaxKbps(maxKbps)
-        maxBurstKbps.foreach(bldr.setMaxBurstKbps)
+        maxBurstKb.foreach(bldr.setMaxBurstKbps)
         bldr.build()
     }
 

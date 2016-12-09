@@ -36,8 +36,8 @@ class QOSRuleBWLimit(resource_base.ResourceBase):
     def get_max_kbps(self):
         return self.dto['maxKbps']
 
-    def get_max_burst_kbps(self):
-        return self.dto['maxBurstKbps']
+    def get_max_burst_kb(self):
+        return self.dto['maxBurstKb']
 
     def id(self, id):
         self.dto['id'] = id
@@ -51,6 +51,6 @@ class QOSRuleBWLimit(resource_base.ResourceBase):
         self.dto['maxKbps'] = kbps
         return self
 
-    def max_burst_kbps(self, kbps):
-        self.dto['maxBurstKbps'] = kbps
+    def max_burst_kb(self, kbps):
+        self.dto['maxBurstKb'] = kbps
         return self

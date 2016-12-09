@@ -622,7 +622,7 @@ class MidonetApi(object):
     def add_qos_bw_limit_rule(self, qos_policy, max_kbps=0, max_burst=0):
         return (qos_policy.add_bw_limit_rule()
                 .max_kbps(max_kbps)
-                .max_burst_kbps(max_burst)
+                .max_burst_kb(max_burst)
                 .create())
 
     def _ensure_application(self):
@@ -894,7 +894,7 @@ if __name__ == '__main__':
                             .create()
 
     qos_bw_limit_rule1 = p.add_bw_limit_rule().max_kbps(100)\
-                                              .max_burst_kbps(1000)\
+                                              .max_burst_kb(1000)\
                                               .create()
 
     qos_dscp_rule1 = api.add_qos_dscp_rule(p, mark=11)
@@ -905,7 +905,7 @@ if __name__ == '__main__':
 
     for br in p.get_bw_limit_rules():
         print('------- QOS BW Limit Rule: %s/%s' %
-              (str(br.get_max_kbps()), str(br.get_max_burst_kbps())))
+              (str(br.get_max_kbps()), str(br.get_max_burst_kb())))
 
     for dr in p.get_dscp_rules():
         print('------- QOS DSCP Rule: %s' % str(dr.get_dscp_mark()))
