@@ -17,15 +17,20 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import org.midonet.odp.FlowMatch
-
 import scala.collection.JavaConversions._
+
+import com.typesafe.config.{Config, ConfigFactory}
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
+import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.flows.{FlowActionSetKey, FlowKey, FlowKeyIPv4}
+import org.midonet.midolman.util.{MidolmanSpec, TestDatapathState}
+import org.midonet.odp.FlowMatch
+import org.midonet.odp.flows.{FlowActionSetKey, FlowKey, FlowKeyIPv4, FlowKeyTunnel}
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
@@ -39,22 +44,37 @@ class QosSimulationTest extends MidolmanSpec {
     private var dscpRule1: UUID = _
 
     private var port1OnHost1WithQos: UUID = _
+    private var port1OnHost2: UUID = _
 
     private var bridge: UUID = _
     private var bridgeDevice: Bridge = _
 
-
     val host1Ip = IPv4Addr("192.168.100.1")
+    val host2Ip = IPv4Addr("192.168.100.2")
 
     val port2OnHost1Mac = "0a:fe:88:70:33:ab"
 
-    override def beforeTest(): Unit ={
+    var translator: FlowTranslator = _
+    var datapath: TestDatapathState = _
 
+    var host1: UUID = hostId
+    var host2: UUID = _
+
+    var tunnelZone: UUID = _
+
+    override def fillConfig(config: Config) : Config = {
+        val defaults = """agent.datapath.set_tos_on_tunnel_header = true"""
+
+        config.withFallback(ConfigFactory.parseString(defaults))
+    }
+
+    override def beforeTest(): Unit ={
         vt = injector.getInstance(classOf[VirtualTopology])
 
-        val tunnelZone = greTunnelZone("default")
+        tunnelZone = greTunnelZone("default")
 
-        val host1 = hostId
+        datapath = new TestDatapathState
+        translator = new TestFlowTranslator(datapath)
 
         bridge = newBridge("bridge")
 
@@ -87,7 +107,7 @@ class QosSimulationTest extends MidolmanSpec {
 
         val (result, ctxOut) = simulate(ctx)
 
-        verifyDSCP(ctxOut, 22)
+        verifyDSCP(ctxOut, 22, requireTunnelAction = false)
     }
 
     scenario("dscp mark is added to IPv4 packets with ECN set") {
@@ -126,7 +146,34 @@ class QosSimulationTest extends MidolmanSpec {
 
         val (result, ctxOut) = simulate(ctx)
 
-        verifyDSCP(ctxOut, 22, requireSetKeyAction = false)
+        verifyDSCP(ctxOut, 22,
+                   requireSetKeyAction = false,
+                   requireTunnelAction = false)
+    }
+
+    scenario("dscp mark is set on the tunneled packet") {
+        Given("A second second host with a port bound")
+        host2 = newHost("host2", UUID.randomUUID(), Set(tunnelZone))
+        addTunnelZoneMember(tunnelZone, host2, host2Ip)
+        datapath.peerTunnels += (host2 -> Route(
+            host2Ip.addr, host1Ip.addr, output(datapath.vxlanPortNumber)))
+        port1OnHost2 = newBridgePort(bridge)
+        materializePort(port1OnHost2, host2, "port7")
+        fetchPorts(port1OnHost2)
+
+        When("Sending a packet from a port with a QoS policy")
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 0 } <<
+          { udp src 10 dst 11 } << payload("My UDP packet")
+
+        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
+
+        val (result, ctxOut) = simulate(ctx)
+
+        Then("The translated actions contain a tunnel flow key with the same DSCP mark")
+        translator.translateActions(ctxOut)
+        verifyDSCP(ctxOut, 22)
     }
 
     scenario("dscp mark is not added to non-IPv4 packets") {
@@ -142,7 +189,8 @@ class QosSimulationTest extends MidolmanSpec {
     }
 
     private def verifyDSCP(ctx: PacketContext, dscpMark: Int,
-                           requireSetKeyAction: Boolean = true) : Unit = {
+                           requireSetKeyAction: Boolean = true,
+                           requireTunnelAction: Boolean = true) : Unit = {
         ctx.calculateActionsFromMatchDiff()
 
         ctx.wcmatch.isSeen(FlowMatch.Field.NetworkTOS) shouldBe true
@@ -159,6 +207,22 @@ class QosSimulationTest extends MidolmanSpec {
 
             val tosActions = flowActions filter (key =>
                 (key.asInstanceOf[FlowKeyIPv4].ipv4_tos >> 2) == dscpMark.toByte)
+            tosActions should not be empty
+        }
+
+        if (requireTunnelAction) {
+            ctx.wcmatch.isSeen(FlowMatch.Field.TunnelTOS) shouldBe true
+            ctx.wcmatch.getTunnelTOS shouldBe dscpMark
+
+            val flowActions: Set[FlowKey] = ctx.flowActions filter
+              (_.isInstanceOf[FlowActionSetKey]) filter
+              (_.asInstanceOf[FlowActionSetKey].getFlowKey.isInstanceOf[FlowKeyTunnel]) map
+              (_.asInstanceOf[FlowActionSetKey].getFlowKey) toSet
+
+            flowActions should not be empty
+
+            val tosActions = flowActions filter (key =>
+                (key.asInstanceOf[FlowKeyTunnel].ipv4_tos >> 2) == dscpMark.toByte)
 
             tosActions should not be empty
         }
@@ -167,6 +231,7 @@ class QosSimulationTest extends MidolmanSpec {
     private def verifyNoDSCP(ctx: PacketContext) : Unit = {
         ctx.calculateActionsFromMatchDiff()
         ctx.wcmatch.isSeen(FlowMatch.Field.NetworkTOS) shouldBe false
+        ctx.wcmatch.isSeen(FlowMatch.Field.TunnelTOS) shouldBe false
         ctx.virtualFlowActions filter
           (_.isInstanceOf[FlowActionSetKey]) filter
           (_.asInstanceOf[FlowActionSetKey].getFlowKey.isInstanceOf[FlowKeyIPv4]) map
