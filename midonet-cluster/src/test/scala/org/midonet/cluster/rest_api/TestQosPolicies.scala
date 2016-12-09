@@ -85,7 +85,7 @@ class TestQosPolicies extends FeatureSpec
         rule.id = id
         rule.`type` = `type`
         rule.maxKbps = maxKbps
-        rule.maxBurstKbps = maxBurst
+        rule.maxBurstKb = maxBurst
         rule.dscpMark = dscpMark
         rule
     }
@@ -96,7 +96,7 @@ class TestQosPolicies extends FeatureSpec
         val bwLimitRule = new QosRuleBandwidthLimit()
         bwLimitRule.id = id
         bwLimitRule.maxKbps = maxKbps
-        bwLimitRule.maxBurstKbps = maxBurst
+        bwLimitRule.maxBurstKb = maxBurst
         bwLimitRule.setBaseUri(baseUri)
         bwLimitRule
     }
@@ -120,7 +120,7 @@ class TestQosPolicies extends FeatureSpec
                 rule.`type` match {
                     case QosRule.QOS_RULE_TYPE_BW_LIMIT =>
                         bwLimitRuleList.add(createTopLevelBwLimitRule(
-                            rule.maxKbps, rule.maxBurstKbps, rule.id))
+                            rule.maxKbps, rule.maxBurstKb, rule.id))
                     case QosRule.QOS_RULE_TYPE_DSCP =>
                         dscpRuleList.add(createTopLevelDSCPRule(
                             rule.dscpMark, rule.id))
@@ -140,7 +140,7 @@ class TestQosPolicies extends FeatureSpec
                                  controlRule: QosRuleBandwidthLimit)
     : Unit = {
         testRule.maxKbps shouldBe controlRule.maxKbps
-        testRule.maxBurstKbps shouldBe controlRule.maxBurstKbps
+        testRule.maxBurstKb shouldBe controlRule.maxBurstKb
         testRule.id shouldBe controlRule.id
     }
 
@@ -314,7 +314,7 @@ class TestQosPolicies extends FeatureSpec
         val bwRuleUri = postAndAssertOk(bwRule, bwRes.getURI)
 
         val bwRuleResult = getAndAssertOk[QosRuleBandwidthLimit](bwRuleUri)
-        bwRuleResult.maxBurstKbps shouldBe null
+        bwRuleResult.maxBurstKb shouldBe null
     }
 
     scenario("Create, Read, Update, Delete BW Limit Rules") {
