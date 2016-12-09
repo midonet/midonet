@@ -810,12 +810,12 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
     }
 
     override def newQosBWLimitRule(policyId: UUID,
-                          maxKbps: Int,
-                          maxBurstKbps: Option[Int]): UUID = {
+                                   maxKbps: Int,
+                                   maxBurstKb: Option[Int]): UUID = {
         val id = UUID.randomUUID
         store.create(createQosRuleBWLimit(policyId = policyId,
                                           maxKbps = maxKbps,
-                                          maxBurstKbps = maxBurstKbps,
+                                          maxBurstKb = maxBurstKb,
                                           id = id))
         Await.result(store.get(classOf[QosRuleBandwidthLimit], id), awaitTimeout)
         id

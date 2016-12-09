@@ -37,11 +37,11 @@ case class QosPolicy(id: UUID,
 
 case class QosMaxBandwidthRule(id: UUID,
                                maxKbps: Int,
-                               maxBurstKbps: Int) {
+                               maxBurstKb: Int) {
 
     override def toString = {
         s"QosMaxBandwidthRule [id=$id maxKbps=$maxKbps " +
-        s"maxBurstKbps=$maxBurstKbps]"
+        s"maxBurstKb=$maxBurstKb]"
     }
 }
 

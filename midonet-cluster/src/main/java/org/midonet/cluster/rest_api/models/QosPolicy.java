@@ -49,9 +49,14 @@ public class QosPolicy extends UriResource {
         @JsonProperty("max_kbps")
         public Integer maxKbps = null;
 
-        @ZoomField(name = "max_burst_kbps")
+        // The expected JSON will still have 'max_burst_kbps' as that is what
+        // neutron is set to send.  However, with all the midonet code, we will
+        // expect to use 'max_burst_kb' in ZK, the API, the PMC< and in internal
+        // code.  So, set the JsonProperty to 'max_burst_kbps' and everything
+        // else to use 'max_burst_kb'.
+        @ZoomField(name = "max_burst_kb")
         @JsonProperty("max_burst_kbps")
-        public Integer maxBurstKbps = null;
+        public Integer maxBurstKb = null;
 
         @ZoomField(name = "dscp_mark")
         @JsonProperty("dscp_mark")
