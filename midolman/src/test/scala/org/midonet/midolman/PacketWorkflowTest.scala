@@ -661,7 +661,6 @@ class PacketWorkflowTest extends MidolmanSpec {
             extends PacketWorkflow(1, 0, injector.getInstance(classOf[MidolmanConfig]),
                                    hostId, dpState,
                                    cookieGen, clock, dpChannel,
-                                   mockDhcpConfig,
                                    simBackChannel,
                                    flowProcessor,
                                    conntrackTable, natTable,

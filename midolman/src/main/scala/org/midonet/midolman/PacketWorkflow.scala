@@ -52,7 +52,6 @@ import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStateReplicator, NatLeaser, _}
 import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
 import org.midonet.midolman.topology.{VirtualTopology, VxLanPortMappingService}
-import org.midonet.midolman.vpp.VppController
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowActions.output
@@ -228,7 +227,6 @@ class PacketWorkflow(
             val cookieGen: CookieGenerator,
             val clock: NanoClock,
             val dpChannel: DatapathChannel,
-            val dhcpConfigProvider: DhcpConfig,
             val backChannel: SimulationBackChannel,
             val flowProcessor: FlowProcessor,
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
@@ -733,7 +731,7 @@ class PacketWorkflow(
     private def processDhcp(context: PacketContext, inPort: Port,
                             dhcp: DHCP): Boolean = {
         val srcMac = context.origMatch.getEthSrc
-        DhcpImpl(dhcpConfigProvider, inPort, dhcp, srcMac,
+        DhcpImpl(vt, inPort, dhcp, srcMac,
                  DatapathController.minMtu, config.dhcpMtu, context.log) match {
             case Some(dhcpReply) =>
                 context.log.debug(
