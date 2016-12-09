@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_c3adef32",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-09T12:50:04Z",
+      "side": 1,
+      "message": "remove white space at start of line.\n\nPut a blank link between paragraphs and heading etc.",
+      "range": {
+        "startLine": 278,
+        "startChar": 0,
+        "endLine": 278,
+        "endChar": 2
+      },
+      "revId": "523e4fce6d394bda9aefd2a48d6ceba2d6a4ed54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_e377cbd2",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-09T12:50:04Z",
+      "side": 1,
+      "message": "is a corner, should have +",
+      "range": {
+        "startLine": 285,
+        "startChar": 23,
+        "endLine": 285,
+        "endChar": 24
+      },
+      "revId": "523e4fce6d394bda9aefd2a48d6ceba2d6a4ed54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_0372b7e5",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-09T12:50:04Z",
+      "side": 1,
+      "message": "only put + at corners",
+      "range": {
+        "startLine": 285,
+        "startChar": 35,
+        "endLine": 285,
+        "endChar": 36
+      },
+      "revId": "523e4fce6d394bda9aefd2a48d6ceba2d6a4ed54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_236db304",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-09T12:50:04Z",
+      "side": 1,
+      "message": "Remove the lines between the blocks and only put CLIENT_IPV6 once, so it looks like a big block. Otherwise it looks like 4 CLIENT_IPv6 fields are sent.\n\n+---------------------------------------------------------------+\n|                                                               |\n|                            CLIENT_IPV6 (16)                   |\n|                                                               |\n|                                                               |\n+---------------------------------------------------------------+",
+      "range": {
+        "startLine": 289,
+        "startChar": 5,
+        "endLine": 294,
+        "endChar": 65
+      },
+      "revId": "523e4fce6d394bda9aefd2a48d6ceba2d6a4ed54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
