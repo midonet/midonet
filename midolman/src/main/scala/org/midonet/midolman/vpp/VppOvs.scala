@@ -28,7 +28,7 @@ import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKeys}
 import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
-import org.midonet.packets.IPv6Addr
+import org.midonet.packets.{IPv6Addr, TunnelKeys}
 
 object VppOvs {
     val NullMac = Array[Byte](0, 0, 0, 0, 0, 0)
@@ -97,7 +97,7 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         writeRead(buf, Flow.buildFrom)
     }
 
-    private def buildFlowMatch(inputPort: Int) = {
+    private def buildIpv6FlowMatch(inputPort: Int) = {
         flowMatch.clear()
         flowMatch.addKey(FlowKeys.inPort(inputPort))
         flowMatch.addKey(FlowKeys.etherType(
@@ -135,7 +135,7 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         fmask.clear()
         actions.clear()
 
-        val fmatch = buildFlowMatch(inputPort)
+        val fmatch = buildIpv6FlowMatch(inputPort)
         actions.add(FlowActions.output(outputPort))
 
         fmask.calculateFor(fmatch, actions)
@@ -145,7 +145,46 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
     def clearIpv6Flow(inputPort: Int, outputPort: Int): Unit = {
         buf.clear()
 
-        val fmatch = buildFlowMatch(inputPort)
+        val fmatch = buildIpv6FlowMatch(inputPort)
+        deleteFlow(dp, fmatch)
+    }
+
+
+    private def buildFlowStateSendingFlowMatch(inputPort: Int): FlowMatch = {
+        flowMatch.clear()
+        flowMatch.addKey(FlowKeys.inPort(inputPort))
+        flowMatch.addKey(FlowKeys.tunnel(TunnelKeys.Fip64FlowStateSendKey,
+                                         1, 1, 0))
+        flowMatch.addKey(FlowKeys.etherType(
+                             FlowKeyEtherType.Type.ETH_P_IP.value.toShort))
+        flowMatch.addKey(FlowKeys.ethernet(NullMac, NullMac))
+        flowMatch.addKey(FlowKeys.ipv4(0, 0, 0.toByte,
+                                       0.toByte, 0.toByte, 0.toByte))
+        flowMatch.fieldSeen(Field.InputPortNumber)
+        flowMatch.fieldSeen(Field.TunnelKey)
+        flowMatch
+    }
+
+    def addFlowStateSendingTunnelFlow(inputPort: Int, outputPort: Int,
+                                      srcIp: Int, dstIps: Seq[Int]): Unit = {
+        buf.clear()
+        fmask.clear()
+        actions.clear()
+
+        val fmatch = buildFlowStateSendingFlowMatch(inputPort)
+        dstIps foreach { ip =>
+            actions.add(FlowActions.setKey(
+                            FlowKeys.tunnel(TunnelKeys.Fip64FlowStateReceiveKey,
+                                            srcIp, ip, 0)))
+            actions.add(FlowActions.output(outputPort))
+        }
+        fmask.calculateFor(fmatch, actions)
+        createFlow(dp, fmatch, fmask, actions)
+    }
+
+    def clearFlowStateSendingTunnelFlow(inputPort: Int): Unit = {
+        buf.clear()
+        val fmatch = buildFlowStateSendingFlowMatch(inputPort)
         deleteFlow(dp, fmatch)
     }
 }
