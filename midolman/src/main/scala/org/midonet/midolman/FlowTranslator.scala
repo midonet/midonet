@@ -24,6 +24,7 @@ import org.midonet.midolman.simulation.Simulator.{Fip64Action, ToPortAction}
 import org.midonet.midolman.simulation.{PacketContext, Port, VxLanPort}
 import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.topology.{GatewayMappingService, VirtualTopology, VxLanPortMappingService}
+import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows._
@@ -174,17 +175,21 @@ trait FlowTranslator {
             val src = routeInfo.get.srcIp
             val dst = routeInfo.get.dstIp
             context.addFlowTag(FlowTagger.tagForTunnelRoute(src, dst))
+            // Apply the same DSCP rule to the tunnelled packet for now.
+            val networkTOS = context.wcmatch.getNetworkTOS
+            context.wcmatch.fieldSeen(FlowMatch.Field.TunnelTOS)
+            context.wcmatch.setTunnelTOS(networkTOS)
             // Each FlowActionSetKey must be followed by a corresponding
             // FlowActionOutput.
             if (context.tracingEnabled) {
                 context.flowActions.add(
-                    setKey(FlowKeys.tunnel(key, src, dst, 0)))
+                    setKey(FlowKeys.tunnel(key, src, dst, networkTOS)))
                 context.packetActions.add(
                     setKey(FlowKeys.tunnel(context.setTraceTunnelBit(key),
                                            src, dst, 0)))
             } else {
                 addFlowAndPacketAction(context,
-                    setKey(FlowKeys.tunnel(key, src, dst, 0)))
+                    setKey(FlowKeys.tunnel(key, src, dst, networkTOS)))
             }
             addFlowAndPacketAction(context, routeInfo.get.output)
         }
