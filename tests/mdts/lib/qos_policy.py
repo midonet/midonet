@@ -52,7 +52,7 @@ class QOSPolicy(ResourceBase):
     def add_bw_limit_rule(self, rule):
         qos_rule = self._mn_resource.add_bw_limit_rule()
         qos_rule.max_kbps(rule['max_kbps'])
-        qos_rule.max_burst_kbps(rule['max_burst_kbps'])
+        qos_rule.max_burst_kb(rule['max_burst_kb'])
         qos_rule.create()
         return qos_rule
 

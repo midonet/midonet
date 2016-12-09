@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -39,7 +40,7 @@ public class QosRuleBandwidthLimit extends UriResource {
     public int maxKbps;
 
     @ZoomField(name = "max_burst_kbps")
-    public Integer maxBurstKbps;
+    public Integer maxBurstKb;
 
     @ZoomField(name = "policy_id")
     public UUID policyId;
@@ -63,7 +64,7 @@ public class QosRuleBandwidthLimit extends UriResource {
                 .omitNullValues()
                 .add("id", id)
                 .add("maxKbps", maxKbps)
-                .add("maxBurstKbps", maxBurstKbps)
+                .add("maxBurstKb", maxBurstKb)
                 .add("policyId", policyId)
                 .toString();
     }
