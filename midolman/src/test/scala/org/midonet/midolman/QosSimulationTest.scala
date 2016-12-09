@@ -17,15 +17,18 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import org.midonet.odp.FlowMatch
-
 import scala.collection.JavaConversions._
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
+import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.flows.{FlowActionSetKey, FlowKey, FlowKeyIPv4}
+import org.midonet.midolman.util.{MidolmanSpec, TestDatapathState}
+import org.midonet.odp.FlowMatch
+import org.midonet.odp.flows.{FlowActionSetKey, FlowKey, FlowKeyIPv4, FlowKeyTunnel}
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
@@ -39,22 +42,30 @@ class QosSimulationTest extends MidolmanSpec {
     private var dscpRule1: UUID = _
 
     private var port1OnHost1WithQos: UUID = _
+    private var port1OnHost2: UUID = _
 
     private var bridge: UUID = _
     private var bridgeDevice: Bridge = _
 
-
     val host1Ip = IPv4Addr("192.168.100.1")
+    val host2Ip = IPv4Addr("192.168.100.2")
 
     val port2OnHost1Mac = "0a:fe:88:70:33:ab"
 
-    override def beforeTest(): Unit ={
+    var translator: FlowTranslator = _
 
+    override def beforeTest(): Unit ={
         vt = injector.getInstance(classOf[VirtualTopology])
 
         val tunnelZone = greTunnelZone("default")
 
         val host1 = hostId
+        val host2 = newHost("host2", UUID.randomUUID(), Set(tunnelZone))
+
+        val datapath = new TestDatapathState
+        datapath.peerTunnels += (host2 -> Route(
+            host2Ip.addr,host1Ip.addr,output(datapath.vxlanPortNumber)))
+        translator = new TestFlowTranslator(datapath)
 
         bridge = newBridge("bridge")
 
@@ -63,15 +74,18 @@ class QosSimulationTest extends MidolmanSpec {
 
         port1OnHost1WithQos = newBridgePort(bridge,
             qosPolicyId = Some(qosPolicy1))
+        port1OnHost2 = newBridgePort(bridge)
 
         materializePort(port1OnHost1WithQos, host1, "port6")
+        materializePort(port1OnHost2, host2, "port7")
 
-        List(host1).zip(List(host1Ip)).foreach{
+        List(host1, host2).zip(List(host1Ip, host2Ip)).foreach{
             case (host, ip) =>
                 addTunnelZoneMember(tunnelZone, host, ip)
         }
 
         fetchPorts(port1OnHost1WithQos)
+        fetchPorts(port1OnHost2)
 
         bridgeDevice = fetchDevice[Bridge](bridge)
 
@@ -87,6 +101,7 @@ class QosSimulationTest extends MidolmanSpec {
 
         val (result, ctxOut) = simulate(ctx)
 
+        translator.translateActions(ctxOut)
         verifyDSCP(ctxOut, 22)
     }
 
@@ -120,25 +135,39 @@ class QosSimulationTest extends MidolmanSpec {
 
         ctx.wcmatch.isSeen(FlowMatch.Field.NetworkTOS) shouldBe true
         ctx.wcmatch.getNetworkTOS shouldBe dscpMark
+        ctx.wcmatch.isSeen(FlowMatch.Field.TunnelTOS) shouldBe true
+        ctx.wcmatch.getTunnelTOS shouldBe dscpMark
 
         if (requireSetKeyAction) {
-            val flowActions: Set[FlowKey] = ctx.virtualFlowActions filter
+            val flowActions: Set[FlowKey] = ctx.flowActions filter
               (_.isInstanceOf[FlowActionSetKey]) filter
               (_.asInstanceOf[FlowActionSetKey].getFlowKey.isInstanceOf[FlowKeyIPv4]) map
               (_.asInstanceOf[FlowActionSetKey].getFlowKey) toSet
 
             flowActions should not be empty
 
-            val tosActions = flowActions filter
+            val innerMark = flowActions filter
               (_.asInstanceOf[FlowKeyIPv4].ipv4_tos == dscpMark.toByte)
+            innerMark should not be empty
 
-            tosActions should not be empty
+            val tunnelActions: Set[FlowKey] = ctx.flowActions filter
+              (_.isInstanceOf[FlowActionSetKey]) filter
+              (_.asInstanceOf[FlowActionSetKey].getFlowKey.isInstanceOf[FlowKeyTunnel]) map
+              (_.asInstanceOf[FlowActionSetKey].getFlowKey) toSet
+
+            tunnelActions should not be empty
+
+            val outerMark = tunnelActions filter
+              (_.asInstanceOf[FlowKeyTunnel].ipv4_tos == dscpMark.toByte)
+
+            outerMark should not be empty
         }
     }
 
     private def verifyNoDSCP(ctx: PacketContext) : Unit = {
         ctx.calculateActionsFromMatchDiff()
         ctx.wcmatch.isSeen(FlowMatch.Field.NetworkTOS) shouldBe false
+        ctx.wcmatch.isSeen(FlowMatch.Field.TunnelTOS) shouldBe false
         ctx.virtualFlowActions filter
           (_.isInstanceOf[FlowActionSetKey]) filter
           (_.asInstanceOf[FlowActionSetKey].getFlowKey.isInstanceOf[FlowKeyIPv4]) map

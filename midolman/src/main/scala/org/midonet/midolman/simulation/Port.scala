@@ -416,8 +416,12 @@ case class BridgePort(override val id: UUID,
             // filters and qualifiers might be added on later to allow for
             // multiple DSCP rules, each of which would affect a different
             // type of packet.  But for now, just get the 'head' of the array
-            context.wcmatch.setNetworkTOS(qosPolicy.dscpRules.head.dscpMark)
+            val dscpMark = qosPolicy.dscpRules.head.dscpMark
+            context.wcmatch.setNetworkTOS(dscpMark)
             context.wcmatch.fieldSeen(FlowMatch.Field.NetworkTOS)
+            // Apply the same DSCP rule to the tunnelled packet for now.
+            context.wcmatch.setTunnelTOS(dscpMark)
+            context.wcmatch.fieldSeen(FlowMatch.Field.TunnelTOS)
         }
         super.ingressCommon(context)
     }

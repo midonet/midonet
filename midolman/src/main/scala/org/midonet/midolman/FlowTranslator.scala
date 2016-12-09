@@ -173,18 +173,19 @@ trait FlowTranslator {
         } else {
             val src = routeInfo.get.srcIp
             val dst = routeInfo.get.dstIp
+            val tos = context.wcmatch.getTunnelTOS
             context.addFlowTag(FlowTagger.tagForTunnelRoute(src, dst))
             // Each FlowActionSetKey must be followed by a corresponding
             // FlowActionOutput.
             if (context.tracingEnabled) {
                 context.flowActions.add(
-                    setKey(FlowKeys.tunnel(key, src, dst, 0)))
+                    setKey(FlowKeys.tunnel(key, src, dst, tos)))
                 context.packetActions.add(
                     setKey(FlowKeys.tunnel(context.setTraceTunnelBit(key),
                                            src, dst, 0)))
             } else {
                 addFlowAndPacketAction(context,
-                    setKey(FlowKeys.tunnel(key, src, dst, 0)))
+                    setKey(FlowKeys.tunnel(key, src, dst, tos)))
             }
             addFlowAndPacketAction(context, routeInfo.get.output)
         }
