@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa745d1_48bfbcd0",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-09T09:01:41Z",
+      "side": 1,
+      "message": "\u003cp\u003e is unneeded in markdown.",
+      "revId": "33839f8adfce67d97fd27f17378383f54cbde0b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_88c5c45c",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-09T09:01:41Z",
+      "side": 1,
+      "message": "missing the last 2",
+      "revId": "33839f8adfce67d97fd27f17378383f54cbde0b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_28ab508b",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-09T09:01:41Z",
+      "side": 1,
+      "message": "only 2 bits are needed, or even only 1, since the trailing 21 are reserved.",
+      "range": {
+        "startLine": 312,
+        "startChar": 11,
+        "endLine": 312,
+        "endChar": 12
+      },
+      "revId": "33839f8adfce67d97fd27f17378383f54cbde0b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_889ca46a",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-09T09:01:41Z",
+      "side": 1,
+      "message": "what is the UUID for?",
+      "range": {
+        "startLine": 313,
+        "startChar": 0,
+        "endLine": 317,
+        "endChar": 41
+      },
+      "revId": "33839f8adfce67d97fd27f17378383f54cbde0b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
