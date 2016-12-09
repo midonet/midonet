@@ -142,6 +142,7 @@ class DatapathConfig(val conf: Config, val schema: Config) extends TypeFailureFa
     def vtepIncomingBurstCapacity = getInt(s"$PREFIX.vtep_incoming_burst_capacity")
 
     def controlPacketTos: Byte = getInt(s"$PREFIX.control_packet_tos").toByte
+    def setTosOnTunnelHeader: Boolean = getBoolean(s"$PREFIX.set_tos_on_tunnel_header")
 }
 
 class RecircConfig(recircCidr: IPv4Subnet) {
