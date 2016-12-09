@@ -130,13 +130,13 @@ def test_qos_bw_limit_on_port_with_burst():
                                  allowed_lead=1.0)
 
         VTM.qos_pol1.add_bw_limit_rule({'max_kbps': 100,
-                                        'max_burst_kbps': 1000})
+                                        'max_burst_kb': 1000})
         VTM.vm1.verify_bandwidth(target_iface=VTM.vm2,
                                  max_kbps=100, burst_kb=1000)
 
         rule1 = VTM.qos_pol1.get_bw_limit_rules()[0]
         rule1.max_kbps(400)
-        rule1.max_burst_kbps(2000)
+        rule1.max_burst_kb(2000)
         rule1.update()
 
         VTM.vm1.verify_bandwidth(target_iface=VTM.vm2,
@@ -171,13 +171,13 @@ def test_qos_bw_limit_on_port_with_network_policy():
         VTM.build(ptm=PTM)
 
         VTM.qos_pol2.add_bw_limit_rule({'max_kbps': 200,
-                                        'max_burst_kbps': 2000})
+                                        'max_burst_kb': 2000})
 
         # This should override pol2's settings, meaning portA, which uses
         # pol1, should act according to pol1's settings, NOT the pol2 on the
         # network
         VTM.qos_pol1.add_bw_limit_rule({'max_kbps': 100,
-                                        'max_burst_kbps': 1000})
+                                        'max_burst_kb': 1000})
 
         VTM.main_bridge.set_qos_policy(VTM.qos_pol2)
         VTM.vm1_port.set_qos_policy(VTM.qos_pol1)
