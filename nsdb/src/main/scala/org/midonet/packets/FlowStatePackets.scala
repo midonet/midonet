@@ -24,13 +24,9 @@ import uk.co.real_logic.sbe.codec.java.DirectBuffer
 import org.midonet.cluster.flowstate.proto.FlowState.{Trace, Nat}
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, MessageHeader, InetAddrType, NatKeyType}
 import org.midonet.packets.ConnTrackState.{ConnTrackKeyAllocator, ConnTrackKeyStore}
-import org.midonet.packets.NatState.{NatKeyStore, NatBinding}
-import org.midonet.packets.TraceState.{TraceKeyAllocator, TraceKeyStore}
 import org.midonet.packets.NatState._
-
-object FlowStatePackets {
-    val TUNNEL_KEY = 0xFFFFFF
-}
+import org.midonet.packets.TraceState.{TraceKeyAllocator, TraceKeyStore}
+import org.midonet.packets.TunnelKeys.FlowStateTunnelKey
 
 trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
                        NatKeyT <: NatKeyStore,
@@ -50,7 +46,7 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
      *     | Tunnel encap (key = 0xFFFFFF)         |
      *     +---------------------------------------+
      */
-    val TUNNEL_KEY = FlowStatePackets.TUNNEL_KEY
+    val TUNNEL_KEY = FlowStateTunnelKey
     val SRC_MAC = MAC.fromString("AC:CA:BA:00:15:01")
     val DST_MAC = MAC.fromString("AC:CA:BA:00:15:02")
     val SRC_IP = IPv4Addr.fromString("169.254.15.1")
