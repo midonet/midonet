@@ -16,15 +16,19 @@
 package org.midonet.midolman.simulation
 
 import java.nio.{BufferOverflowException, ByteBuffer}
-import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.duration._
 
-import org.midonet.cluster.data.dhcp.{Host, Opt121, Subnet}
+import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.models.Topology
+import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.topology.devices.Dhcp
+import org.midonet.midolman.topology.devices.Dhcp.{Host, Opt121Route}
 import org.midonet.packets._
+import org.midonet.util.concurrent._
 import org.midonet.util.logging.Logger
 
 /**
@@ -480,10 +484,10 @@ object DhcpValueParser {
 }
 
 object DhcpImpl {
-    def apply(dhcpCfg: DhcpConfig, inPort: Port, request: DHCP,
+    def apply(vt: VirtualTopology, inPort: Port, request: DHCP,
               sourceMac: MAC, underlayMtu: Int, configMtu: Int,
               log: Logger) = {
-        new DhcpImpl(dhcpCfg, request, sourceMac, underlayMtu, configMtu, log)
+        new DhcpImpl(vt, request, sourceMac, underlayMtu, configMtu, log)
             .handleDHCP(inPort)
     }
 }
@@ -495,26 +499,19 @@ class DhcpException extends Exception {
 object UnsupportedDhcpRequestException extends DhcpException {}
 object MalformedDhcpRequestException extends DhcpException {}
 
-/** Configurations required to handle a DHCP request that must be provided based
-  * on whatever storage is active.
-  */
-trait DhcpConfig {
-    def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet]
-    def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String): Option[Host]
-}
-
-class DhcpImpl(val dhcpConfig: DhcpConfig,
+class DhcpImpl(val vt: VirtualTopology,
                val request: DHCP, val sourceMac: MAC,
                val underlayMtu: Int, val configMtu: Int,
                val log: Logger) {
     import DhcpValueParser._
 
+    private final val timeout = 3 seconds
     private var serverAddr: IPv4Addr = _
     private var serverMac: MAC = _
     private var routerAddr: IPv4Addr = _
     private var yiaddr: IPv4Addr = _
     private var yiAddrMaskLen: Int = 0
-    private var opt121Routes: mutable.Buffer[Opt121] = _
+    private var opt121Routes: mutable.Buffer[Opt121Route] = _
     private var dnsServerAddrsBytes: List[Array[Byte]] = Nil
     private var interfaceMtu: Int = 0
 
@@ -536,53 +533,56 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         }
     }
 
-    private type HostAndSubnetOptPair = (Option[Host], Option[Subnet])
+    private type HostAndDhcpOptPair = (Option[Host], Option[Dhcp])
 
-    private def getHostAndAssignedSubnet(port: BridgePort): HostAndSubnetOptPair = {
+    private def getHostAndAssignedSubnet(port: BridgePort): HostAndDhcpOptPair = {
         // TODO(pino): use an async API
-        val subnets = dhcpConfig.bridgeDhcpSubnets(port.deviceId)
+        val bridge = vt.tryGet(classOf[Bridge], port.deviceId)
+        val dhcps = vt.store.getAll(classOf[Topology.Dhcp], bridge.subnetIds)
+            .recover { case _ => Seq.empty } (CallingThreadExecutionContext)
+            .map { d => d.map(ZoomConvert.fromProto(_, classOf[Dhcp]))} (
+                CallingThreadExecutionContext)
+            .await(timeout)
 
         // Look for the DHCP's source MAC in the list of hosts in each subnet
         var host: Option[Host] = None
-        val assignment = subnets.find { subnet =>
+        val assignment = dhcps.find { dhcp =>
             log.debug(s"Looking up assignment for MAC $sourceMac on subnet " +
-                      s"${subnet.getId}")
-            if (subnet.getServerAddr == null) {
-                subnet.setServerAddr(IPv4Addr.fromString("0.0.0.0"))
-            }
-            host = dhcpConfig.dhcpHost(port.deviceId, subnet,
-                                       sourceMac.toString)
-            host.isDefined && (host.get.getIp != null)
+                      s"${dhcp.id}")
+            host = dhcp.hosts.find(_.mac == sourceMac)
+            host.isDefined && (host.get.address != null)
         }
         (host, assignment)
     }
 
     private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
         getHostAndAssignedSubnet(port) match {
-            case (_, Some(subnet)) if !subnet.isEnabled =>
-                log.debug(s"DHCP disabled for subnet ${subnet.getId}")
+            case (_, Some(subnet)) if !subnet.enabled =>
+                log.debug(s"DHCP disabled for subnet ${subnet.id}")
                 None
             case (Some(host), Some(subnet)) =>
                 log.debug(s"Found DHCP static assignment for MAC $sourceMac for " +
-                          s"${host.getName} address ${host.getIp}")
+                          s"${host.name} address ${host.address}")
 
                 // TODO(pino): the server MAC should be in configuration.
                 serverMac = MAC.fromString("02:a8:9c:de:39:27")
-                serverAddr = subnet.getServerAddr
-                routerAddr = subnet.getDefaultGateway
-                yiaddr = host.getIp
-                yiAddrMaskLen = subnet.getSubnetAddr.getPrefixLen
+                serverAddr =
+                    if (subnet.serverAddress ne null) subnet.serverAddress
+                    else IPv4Addr.AnyAddress
+                routerAddr = subnet.defautGateway
+                yiaddr = host.address
+                yiAddrMaskLen = subnet.subnetAddress.getPrefixLen
 
                 dnsServerAddrsBytes =
-                    Option(subnet.getDnsServerAddrs).map{ _.toList}.getOrElse(Nil)
+                    Option(subnet.dnsServerAddress).map{ _.toList}.getOrElse(Nil)
                         .map { _.toBytes }
-                opt121Routes = subnet.getOpt121Routes
+                opt121Routes = subnet.opt121Routes
 
                 // NOTES on MTU:
                 // - We should never send a DHCP offer MTU option higher than the underlayMtu.
                 // - Subnet mtu takes precedence over global configuration
 
-                (subnet.getInterfaceMTU match {
+                (subnet.interfaceMtu match {
                     case 0 =>
                         Some(Math.min(configMtu, underlayMtu))
                     case subnetMtu =>
@@ -605,19 +605,19 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         }
     }
 
-    private def opt121ToByteArray(opt121: Opt121): mutable.ListBuffer[Byte] = {
+    private def opt121ToByteArray(opt121: Opt121Route): mutable.ListBuffer[Byte] = {
         val bytes = mutable.ListBuffer[Byte]()
         // First append the destination subnet's maskLength
-        val maskLen = opt121.getRtDstSubnet.getPrefixLen.toByte
+        val maskLen = opt121.destinationSubnet.getPrefixLen.toByte
         bytes.append(maskLen)
         // Now append the significant octets of the subnet.
-        val dstBytes = opt121.getRtDstSubnet.getAddress.toBytes
+        val dstBytes = opt121.destinationSubnet.getAddress.toBytes
         if (maskLen > 0) bytes.append(dstBytes(0))
         if (maskLen > 8) bytes.append(dstBytes(1))
         if (maskLen > 16) bytes.append(dstBytes(2))
         if (maskLen > 24) bytes.append(dstBytes(3))
         // Now append the 4 octets of the gateway.
-        val gwBytes = opt121.getGateway.toBytes
+        val gwBytes = opt121.gateway.toBytes
         bytes.appendAll(gwBytes.toList)
         bytes
     }
@@ -811,11 +811,9 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                 // being provided, then the router option should be ignored.
                 // In this case we want to provide the default route with
                 // option 121 in addition to option 3.
-                val opt121DefaultRoute = new Opt121()
-                val univSubnet = IPv4Subnet.fromCidr("0.0.0.0/0")
-
-                opt121DefaultRoute.setGateway(routerAddr)
-                opt121DefaultRoute.setRtDstSubnet(univSubnet)
+                val opt121DefaultRoute = Opt121Route(
+                    destinationSubnet = IPv4Addr.AnyAddress.subnet(0),
+                    gateway = routerAddr)
 
                 log.debug("Found router address: adding default route " +
                           s"to $opt121DefaultRoute")
@@ -870,23 +868,23 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
     private
     def setExtraDhcpOptions(host: Host,
                             optMap: mutable.Map[Byte, DHCPOption]): Unit =
-        for (opt <- host.getExtraDhcpOpts if host != null) {
+        for (opt <- host.extraDhcpOptions if host != null) {
             val dhcpOptOption: Option[DHCPOption] = for {
-                code <- parseDhcpOptionCode(opt.optName)
+                code <- parseDhcpOptionCode(opt.name)
                 option <- CodeToOption.get(code)
-                value <- parseDhcpOptionValue(code, opt.optValue)
+                value <- parseDhcpOptionValue(code, opt.value)
                 if (value.length != 0) &&
                     (value.length % option.length == 0)
             } yield new DHCPOption(
                     code, value.length.toByte, value)
             if (dhcpOptOption.isDefined) {
-                log.debug(s"Add extra DHCP Option ${opt.optName} " +
-                          s"with value ${opt.optValue}")
+                log.debug(s"Add extra DHCP Option ${opt.name} " +
+                          s"with value ${opt.value}")
                 val dhcpOption = dhcpOptOption.get
                 optMap.put(dhcpOption.getCode, dhcpOption)
             } else {
-                log.info(s"Invalid DHCP Option: ${opt.optName} " +
-                         s"with value ${opt.optValue}: will be handled as " +
+                log.info(s"Invalid DHCP Option: ${opt.name} " +
+                         s"with value ${opt.value}: will be handled as " +
                          "unknown")
             }
         }

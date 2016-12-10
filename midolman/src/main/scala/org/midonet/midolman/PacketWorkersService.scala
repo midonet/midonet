@@ -34,7 +34,6 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.monitoring.{FlowRecorder, FlowSenderWorker}
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProvider
-import org.midonet.midolman.simulation.DhcpConfigFromNsdb
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -134,12 +133,6 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
     private def shardLogger(t: AnyRef) =
         Logger(LoggerFactory.getLogger("org.midonet.state.table"))
 
-    private def dhcpConfig = {
-        implicit val as = actorSystem
-        implicit val ec = actorSystem.dispatcher
-        new DhcpConfigFromNsdb(vt)
-    }
-
     protected def createWorker(index: Int): DisruptorPacketWorker = {
         val cookieGen = new CookieGenerator(index, numWorkers)
         val connTrackShard = connTrackStateTable.addShard(
@@ -158,7 +151,7 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
         val workflow = new PacketWorkflow(
             numWorkers, index,
             config, hostIdProvider.hostId, dpState,
-            cookieGen, clock, dpChannel, dhcpConfig,
+            cookieGen, clock, dpChannel,
             backChannelProcessor, flowProcessor,
             connTrackShard, natShard, traceShard,
             peerResolver, natLeaser,

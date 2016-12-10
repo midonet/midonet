@@ -18,19 +18,13 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
-import akka.actor.ActorSystem
-import org.midonet.midolman.topology.VirtualTopology
-
 import scala.concurrent.ExecutionContext
+
+import akka.actor.ActorSystem
 
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
 import com.google.inject.Injector
-import org.midonet.midolman.state.PeerResolver
 
-import com.typesafe.scalalogging.Logger
-import org.slf4j.helpers.NOPLogger
-
-import org.midonet.cluster.data.dhcp.{Host, Subnet}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.midolman.ShardedSimulationBackChannel
@@ -39,7 +33,8 @@ import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.simulation.DhcpConfig
+import org.midonet.midolman.state.PeerResolver
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockUpcallDatapathConnectionManager}
 import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory}
 import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
@@ -67,11 +62,6 @@ trait MidolmanServices {
         injector.getInstance(classOf[MidonetBackend]).stateStore
                 .setPortActive(portId, hostId, active, 0L)
                 .toBlocking.first()
-    }
-
-    def mockDhcpConfig = new DhcpConfig() {
-        override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = List()
-        override def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String): Option[Host] = None
     }
 
     def metricRegistry = injector.getInstance(classOf[MetricRegistry])
