@@ -30,7 +30,7 @@ import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.IPAddressUtil;
 
 
-@ZoomClass(clazz = Neutron.NeutronLoadBalancerPoolMember.class)
+@ZoomClass(clazz = Neutron.NeutronLoadBalancerV2PoolMember.class)
 public class PoolMemberV2 extends ZoomObject {
 
     @ZoomField(name = "id")
