@@ -46,10 +46,6 @@ public class HealthMonitorV2 extends ZoomObject {
     @ZoomField(name = "admin_state_up")
     public Boolean adminStateUp;
 
-    @JsonProperty("pool_id")
-    @ZoomField(name = "pool_id")
-    public UUID poolId;
-
     @ZoomField(name = "pools")
     public List<UUID> pools = new ArrayList<>();
 
@@ -113,7 +109,6 @@ public class HealthMonitorV2 extends ZoomObject {
                 .add("name", name)
                 .add("adminStateUp", adminStateUp)
                 .add("pools", pools)
-                .add("poolId", poolId)
                 .add("expectedCodes", expectedCodes)
                 .add("httpMethod", httpMethod)
                 .add("urlPath", urlPath)
@@ -134,7 +129,6 @@ public class HealthMonitorV2 extends ZoomObject {
                 Objects.equal(name, that.name) &&
                 Objects.equal(adminStateUp, that.adminStateUp) &&
                 Objects.equal(pools, that.pools) &&
-                Objects.equal(poolId, that.poolId) &&
                 Objects.equal(expectedCodes, that.expectedCodes) &&
                 Objects.equal(httpMethod, that.httpMethod) &&
                 Objects.equal(urlPath, that.urlPath) &&
@@ -147,7 +141,7 @@ public class HealthMonitorV2 extends ZoomObject {
     @Override
     public int hashCode() {
         return Objects.hashCode(id, tenantId, name, adminStateUp,
-                pools, poolId, expectedCodes, httpMethod, urlPath, delay,
+                pools, expectedCodes, httpMethod, urlPath, delay,
                 maxRetries, timeout, type);
     }
 }
