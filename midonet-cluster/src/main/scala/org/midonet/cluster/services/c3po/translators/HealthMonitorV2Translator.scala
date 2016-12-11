@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitorV2
@@ -57,7 +59,7 @@ class HealthMonitorV2Translator extends Translator[NeutronHealthMonitorV2] {
             .setDelay(nHm.getDelay)
             .setMaxRetries(nHm.getMaxRetries)
             .setTimeout(nHm.getTimeout)
-            .addAllPoolIds(nHm.getPoolsList)
+            .addAllPoolIds(nHm.getPoolsList.asScala.map(_.getId).asJava)
             .setId(nHm.getId)
 
         hm.build

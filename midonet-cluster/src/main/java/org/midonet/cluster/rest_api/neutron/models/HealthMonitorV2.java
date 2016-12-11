@@ -47,7 +47,7 @@ public class HealthMonitorV2 extends ZoomObject {
     public Boolean adminStateUp;
 
     @ZoomField(name = "pools")
-    public List<UUID> pools = new ArrayList<>();
+    public List<PoolV2> pools = new ArrayList<>();
 
     @JsonProperty("expected_codes")
     @ZoomField(name = "expected_codes")
