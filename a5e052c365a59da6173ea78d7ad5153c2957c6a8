@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_02a1aea9",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 2
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-11T23:39:12Z",
+      "side": 1,
+      "message": "you mean pid here? otherwise i don\u0027t understand what\u0027s the point of the following killpg.",
+      "range": {
+        "startLine": 215,
+        "startChar": 37,
+        "endLine": 215,
+        "endChar": 41
+      },
+      "revId": "a5e052c365a59da6173ea78d7ad5153c2957c6a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
