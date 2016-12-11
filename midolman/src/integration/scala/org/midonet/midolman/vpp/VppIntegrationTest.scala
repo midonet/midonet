@@ -605,9 +605,9 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
             Thread.sleep(1000)
             val api = new VppApi("test")
 
-            var setup: Option[VppDownlinkVxlanSetup] = None
+            var setup: Option[VppDownlinkSetup] = None
             try {
-                setup = Some(new VppDownlinkVxlanSetup(
+                setup = Some(new VppDownlinkSetup(
                     new Fip64Config(config, config), api, log))
                 setup foreach { s => Await.result(s.execute(), 1 minute) }
                 log info "Pinging vpp interface"

@@ -31,7 +31,6 @@ import scala.util.{Failure, Success}
 
 import com.typesafe.scalalogging.Logger
 
-import rx.subscriptions.CompositeSubscription
 import rx.{Observer, Subscription}
 
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
@@ -61,8 +60,6 @@ object VppController {
     private val VppConnectMaxRetries = 10
     private val VppConnectDelayMs = 1000
 
-    private case class BoundPort(setup: VppSetup)
-    private type LinksMap = util.Map[UUID, BoundPort]
     private object Cleanup
 
 }
@@ -84,9 +81,8 @@ class VppController(hostId: UUID,
     private var vppApi: VppApi = _
 
     private var routerPortSubscribers = mutable.Map[UUID, Subscription]()
-    private val uplinks: LinksMap = new util.HashMap[UUID, BoundPort]
-    private val downlinks: LinksMap = new util.HashMap[UUID, BoundPort]
-    private var downlinkVxlan: Option[VppDownlinkVxlanSetup] = None
+    private val uplinks = new util.HashMap[UUID, VppUplinkSetup]
+    private var downlink: Option[VppDownlinkSetup] = None
 
     private val vxlanTunnels = new util.HashMap[UUID, VppVxlanTunnelSetup]
 
@@ -154,59 +150,27 @@ class VppController(hostId: UUID,
     }
 
     private def cleanup(): Future[Any] = {
-        val cleanupFutures =
-            uplinks.values().asScala.map(_.setup.rollback()) ++
-            downlinks.values().asScala.map(_.setup.rollback())
+        val cleanupFutures = uplinks.values().asScala.map(_.rollback())
 
         Future.sequence(cleanupFutures) andThen { case _ =>
             uplinks.clear()
-            downlinks.clear()
-        }
-    }
-
-    private def attachLink(links: LinksMap, portId: UUID, setup: VppSetup)
-    : Future[BoundPort] = {
-        val boundPort = BoundPort(setup)
-
-        {
-            links.put(portId, boundPort) match {
-                case null => Future.successful(Unit)
-                case previousBinding: BoundPort =>
-                    previousBinding.setup.rollback()
-            }
-        } flatMap { _ =>
-            setup.execute() map { _ => boundPort }
-        } recoverWith { case e =>
-            setup.rollback() map { _ =>
-                links.remove(portId, boundPort)
-                throw e
-            }
-        }
-    }
-
-    private def detachLink(links: LinksMap, portId: UUID): Future[Option[BoundPort]] = {
-        links remove portId match {
-            case boundPort: BoundPort =>
-                log debug s"Port $portId detached"
-                boundPort.setup.rollback() map { _ => Some(boundPort) }
-            case null => Future.successful(None)
         }
     }
 
     private def addUplink(portId: UUID, portAddress: IPv6Subnet): Future[Any] = {
         attachUplink(portId, portAddress) flatMap {
-            _ => attachDownlinkVxlan()
+            _ => attachDownlink()
         }
     }
 
     private def deleteUplink(portId: UUID): Future[Any] = {
         detachUplink(portId).flatMap {
-            _ => detachDownlinkVxlan()
+            _ => detachDownlink()
         }
     }
 
     private def attachUplink(portId: UUID, portAddress: IPv6Subnet)
-    : Future[BoundPort] = {
+    : Future[VppUplinkSetup] = {
         log debug s"Attaching IPv6 uplink port $portId"
 
         val shouldStartDownlink = uplinks.isEmpty
@@ -215,16 +179,24 @@ class VppController(hostId: UUID,
         }
 
         val dpNumber = datapathState.getDpPortNumberForVport(portId)
-        val uplinkSetup = attachLink(uplinks, portId,
-                                     new VppUplinkSetup(portId,
-                                                        portAddress.getAddress,
-                                                        dpNumber, vppApi, vppOvs,
-                                                        Logger(log.underlying)))
-        routerPortSubscribers +=
-            portId -> VirtualTopology.observable(classOf[RouterPort],
-                                                 portId)
-                                     .subscribe(observer)
-        uplinkSetup andThen {
+        val uplinkSetup = new VppUplinkSetup(portId,
+                                             portAddress.getAddress,
+                                             dpNumber, vppApi, vppOvs,
+                                             Logger(log.underlying))
+
+        val result = {
+            uplinks.put(portId, uplinkSetup) match {
+                case null => Future.successful(Unit)
+                case previousSetup => previousSetup.rollback()
+            }
+        } flatMap { _ =>
+            uplinkSetup.execute() map { _ => uplinkSetup }
+        } recoverWith { case e =>
+            uplinkSetup.rollback() map { _ =>
+                uplinks.remove(portId, uplinkSetup)
+                throw e
+            }
+        } andThen {
             case Success(_) =>
                 if (shouldStartDownlink && !uplinks.isEmpty) {
                     startDownlink()
@@ -232,9 +204,15 @@ class VppController(hostId: UUID,
             case Failure(e) =>
                 log warn s"Attaching uplink port $portId failed: $e"
         }
+
+        routerPortSubscribers +=
+            portId -> VirtualTopology.observable(classOf[RouterPort],
+                                                 portId)
+                                     .subscribe(observer)
+        result
     }
 
-    private def detachUplink(portId: UUID): Future[Option[BoundPort]] = {
+    private def detachUplink(portId: UUID): Future[Option[VppUplinkSetup]] = {
         log debug s"Local port $portId inactive"
         routerPortSubscribers.remove(portId) match {
             case None =>
@@ -244,18 +222,22 @@ class VppController(hostId: UUID,
                 s.unsubscribe()
         }
 
-        def deleteRoutes(portId: UUID): Future[Option[BoundPort]] = {
+        def deleteRoutes(portId: UUID): Future[Option[VppUplinkSetup]] = {
             uplinks.get(portId) match {
-                case boundPort: BoundPort =>
-                    boundPort.setup.asInstanceOf[VppUplinkSetup].
-                        deleteAllExternalRoutes() map { _ => Some(boundPort) }
+                case setup: VppUplinkSetup =>
+                    setup.deleteAllExternalRoutes() map { _ => Some(setup) }
                 case null =>
                     Future.successful(None)
             }
         }
 
         deleteRoutes(portId) flatMap { _ =>
-            detachLink(uplinks, portId)
+            uplinks remove portId match {
+                case setup: VppUplinkSetup =>
+                    log debug s"Port $portId detached"
+                    setup.rollback() map { _ => Some(setup) }
+                case null => Future.successful(None)
+            }
         } andThen { case _ =>
             if (uplinks.isEmpty) {
                 stopDownlink()
@@ -263,42 +245,42 @@ class VppController(hostId: UUID,
         }
     }
 
-    private def attachDownlinkVxlan(): Future[_] = {
+    private def attachDownlink(): Future[_] = {
         log debug s"Attach downlink VXLAN port"
 
-        val setup = new VppDownlinkVxlanSetup(vt.config.fip64,
-                                              vppApi,
-                                              Logger(log.underlying));
+        val setup = new VppDownlinkSetup(vt.config.fip64,
+                                         vppApi,
+                                         Logger(log.underlying));
         {
-            downlinkVxlan match {
+            downlink match {
                 case None => Future.successful(Unit)
                 case Some(previousSetup) => previousSetup.rollback()
             }
         } flatMap { _ =>
-            downlinkVxlan = Some(setup)
+            downlink = Some(setup)
             setup.execute()
         } recoverWith { case e =>
             setup.rollback() map { _ =>
-                downlinkVxlan = None
+                downlink = None
                 throw e
             }
         }
     }
 
-    private def detachDownlinkVxlan() : Future[_] = {
+    private def detachDownlink() : Future[_] = {
         log debug s"Detaching downlink VXLAN port"
-        val oldDownlinkSetup = downlinkVxlan
-        downlinkVxlan = None
-        oldDownlinkSetup match {
+        downlink match {
             case None => Future.failed(null)
-            case Some(previousSetup) => previousSetup.rollback()
+            case Some(previousSetup) =>
+                downlink = None
+                previousSetup.rollback()
         }
     }
 
     private def createTunnel(portId: UUID,
                              vrf: Int, vni: Int,
                              routerPortMac: MAC) : Future[_] = {
-        log debug s"Creating downlink tunnel for port:$portId, vrf:$vrf, vni:$vni"
+        log debug s"Creating downlink tunnel for port:$portId VRF:$vrf VNI:$vni"
         val setup = new VppVxlanTunnelSetup(vt.config.fip64,
                                             vni, vrf, routerPortMac,
                                             vppApi, Logger(log.underlying))
@@ -443,8 +425,7 @@ class VppController(hostId: UUID,
     private def handleExternalRoutesUpdate(port: RouterPort): Future[_] = {
 
         vt.store.getAll(classOf[Route], port.routeIds.toSeq) flatMap { routes =>
-            val vppUplinkSetup = uplinks.get(port.id).setup
-                .asInstanceOf[VppUplinkSetup]
+            val vppUplinkSetup = uplinks.get(port.id)
             val oldRoutes = vppUplinkSetup.getExternalRoutes
             val newRoutes = routes.filter { route =>
                 route.hasNextHopGateway &&
