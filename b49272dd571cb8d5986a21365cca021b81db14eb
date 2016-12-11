@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_42c8d674",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-11T23:32:04Z",
+      "side": 1,
+      "message": "doesn\u0027t this cause a wrong match for non tunnel flows?",
+      "revId": "b49272dd571cb8d5986a21365cca021b81db14eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
