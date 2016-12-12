@@ -16,6 +16,24 @@
       "revId": "b49272dd571cb8d5986a21365cca021b81db14eb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_90d184fe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-12-12T11:59:30Z",
+      "side": 1,
+      "message": "Right, I added the match in the flow translation so only tunnelled packets are matched.",
+      "parentUuid": "3ab451fb_42c8d674",
+      "revId": "b49272dd571cb8d5986a21365cca021b81db14eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
