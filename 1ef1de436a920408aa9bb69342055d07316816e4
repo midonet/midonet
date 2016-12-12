@@ -22,6 +22,30 @@
       "revId": "1ef1de436a920408aa9bb69342055d07316816e4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_82a37e9e",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/LbaasV2ITCommon.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-12T02:40:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_883144ef",
+      "range": {
+        "startLine": 187,
+        "startChar": 40,
+        "endLine": 188,
+        "endChar": 60
+      },
+      "revId": "1ef1de436a920408aa9bb69342055d07316816e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
