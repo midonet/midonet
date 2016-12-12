@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_65cbdc73",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppControllerIntegrationTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-12T09:25:24Z",
+      "side": 1,
+      "message": "ifconfig? what are you asserting? that the interface exists?\nchange to \"ip link show dev $ovsEnd\".",
+      "range": {
+        "startLine": 172,
+        "startChar": 22,
+        "endLine": 172,
+        "endChar": 30
+      },
+      "revId": "c32d42cce5a1cf74babe50656c7dc792c201c1ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
