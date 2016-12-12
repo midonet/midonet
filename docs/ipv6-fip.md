@@ -270,6 +270,47 @@ the following actions:
      uplink
 </pre>
 
+### State sharing
+Several uplink ports of the same PR might be attached to different
+VPPs. For resilent connection these VPPs must share the information
+about all ipv6<->ipv4 mappings. When one midolman goes down, another
+one can still translate its packets.
+
+To accomplish this on each new ipv4 allocation VPP will send to
+ "all another vpps that share same PR" a UDP packet with the following body:
+<pre>
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     ver (1)   |op |             Reserved (22bits)             |
+   +---------------+---+-------------------------------------------+
+   |                            VNI (4)                            |
+   +---------------------------------------------------------------+
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +                            CLIENT_IPV6 (16)                   +
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +---------------------------------------------------------------+
+   |                            ALLOCATED_IPV4 (4)                 |
+   +---------------------------------------------------------------+
+   |                            FIXED_IPV4 (4)                     |
+   +---------------------------------------------------------------+
+</pre>
+The version field is equal to 1 for now and will be increased for any future
+ updates.
+Two operations are supported for now: 0 - ADD mapping, 1 - DELETE mapping.
+We make operation field 2 bits wide to accomplish possible new operations (
+ for example: UPDATE)
+The VNI of downlink port will be provided by "fip64 add" command so all VPPs
+ share the same set of VNIs. The VNI is used by remote VPP to find a
+ corresponding downlink port. We cannot guaranty the downlink ports will have
+ the same VRF on different midolmans. The fixed ipv4 address is included
+ to allow remote VPP figure out which fip6 is accessed by this ipv6 client.
+Some packets might be lost on the way, but it is not a big deal given
+ most of them will reach its destination.
 
 ## Configuration
 
