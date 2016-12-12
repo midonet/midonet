@@ -61,14 +61,6 @@ object VppUplink {
     case class DeleteUplink(portId: UUID) extends Notification
 
     /**
-      * The routes to the hosts with ports in the same port group
-      * have changed
-      */
-    case class UplinkTunnelRoutesChanged(
-        portId: UUID, tunnelRoutes: Seq[UnderlayResolver.Route])
-            extends Notification
-
-    /**
       * Maintains the state for an uplink port, which includes monitoring the
       * port's stateful port groups in order to maintain the list of other
       * ports that share the port's NAT64 state and NAT64 pools.
