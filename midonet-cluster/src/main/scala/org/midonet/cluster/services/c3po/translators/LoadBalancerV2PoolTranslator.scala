@@ -38,7 +38,7 @@ class LoadBalancerV2PoolTranslator
         if (nPool.hasHealthmonitorId)
             bldr.setHealthMonitorId(nPool.getHealthmonitorId)
         bldr.setId(nPool.getId)
-        bldr.setLoadBalancerId(nPool.getLoadbalancers(0))
+        bldr.setLoadBalancerId(nPool.getLoadbalancers(0).getId)
         bldr.setLbMethod(toLbMethod(nPool.getLbAlgorithm))
         bldr.setProtocol(toPoolProtocol(nPool.getProtocol))
 

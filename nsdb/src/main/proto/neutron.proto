@@ -209,7 +209,7 @@ message NeutronLoadBalancerV2Listener {
     optional string tenant_id = 2;
     optional bool admin_state_up = 3;
     optional UUID default_pool_id = 4;
-    repeated UUID loadbalancers = 5;
+    repeated NeutronLoadBalancerV2 loadbalancers = 5;
     optional int32 protocol_port = 6;
 }
 
@@ -258,7 +258,7 @@ message NeutronLoadBalancerV2Pool {
     optional UUID healthmonitor_id = 8;
     optional UUID listener_id = 9;
     repeated UUID listeners = 10;
-    repeated UUID loadbalancers = 11;
+    repeated NeutronLoadBalancerV2 loadbalancers = 11;
     optional LoadBalancerV2Protocol protocol = 12;
     message LBV2SessionPersistenceAlgorithm {
         optional LBV2SessionPersistenceType type = 1;
