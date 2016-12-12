@@ -432,11 +432,11 @@ class VppUplinkSetup(uplinkPortId: UUID,
   * @param log logger
   * @param ec Execution context for futures
   */
-class VppDownlinkVxlanSetup(config: Fip64Config,
-                            vppApi: VppApi,
-                            log: Logger)
-                           (implicit ec: ExecutionContext)
-    extends VppSetup("VPP downlink VXLAN setup", log)(ec) {
+class VppDownlinkSetup(config: Fip64Config,
+                       vppApi: VppApi,
+                       log: Logger)
+                      (implicit ec: ExecutionContext)
+    extends VppSetup("VPP downlink setup", log)(ec) {
 
     import VppSetup._
 
