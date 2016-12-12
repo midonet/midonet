@@ -41,7 +41,8 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{MidonetBackendTestModule, MidonetTestBackend}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.conf.HostIdGenerator
-import org.midonet.midolman.config.{Fip64Config, MidolmanConfig}
+import org.midonet.midolman.config.Fip64Config
+import org.midonet.midolman.UnderlayResolver
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
@@ -630,9 +631,12 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
                 val vpp = ovs.createVxlanDpPort("vpp", 5321)
                 val overlay = ovs.createVxlanDpPort("overlay", 5322)
 
-                ovs.addFlowStateSendingTunnelFlow(vpp.getPortNo,
-                                                  overlay.getPortNo,
-                                                  123, Seq(345, 678, 912))
+                val output = FlowActions.output(overlay.getPortNo)
+                val routes = Seq(
+                    UnderlayResolver.Route(123, 234, output),
+                    UnderlayResolver.Route(123, 567, output),
+                    UnderlayResolver.Route(123, 890, output))
+                ovs.addFlowStateSendingTunnelFlow(vpp.getPortNo, routes)
                 ovs.clearFlowStateSendingTunnelFlow(vpp.getPortNo)
             } finally {
                 deleteDatapath(datapath, log)

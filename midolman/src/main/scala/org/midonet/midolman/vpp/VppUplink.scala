@@ -32,6 +32,7 @@ import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber, Subscription}
 
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.services.MidolmanActorsService._
 import org.midonet.midolman.simulation.{PortGroup, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
@@ -58,6 +59,14 @@ object VppUplink {
       * A message to delete a configured IPv6 uplink port.
       */
     case class DeleteUplink(portId: UUID) extends Notification
+
+    /**
+      * The routes to the hosts with ports in the same port group
+      * have changed
+      */
+    case class UplinkTunnelRoutesChanged(
+        portId: UUID, tunnelRoutes: Seq[UnderlayResolver.Route])
+            extends Notification
 
     /**
       * Maintains the state for an uplink port, which includes monitoring the
