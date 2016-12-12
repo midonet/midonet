@@ -140,6 +140,30 @@
       "revId": "a7411030e9793cdad82f987a464cc3dbd11189d8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_8b25d9c3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-12T15:17:29Z",
+      "side": 1,
+      "message": "Yes and no :) Alex clarified me how everything is supposed to work. First, all uplinks from the same group will be deleted and created again. The fips should be \"auto re-added\" after VppDownlink will re-subsribe to Fip64 table observable.",
+      "parentUuid": "3ab451fb_4b20f1f7",
+      "range": {
+        "startLine": 458,
+        "startChar": 3,
+        "endLine": 458,
+        "endChar": 36
+      },
+      "revId": "a7411030e9793cdad82f987a464cc3dbd11189d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
