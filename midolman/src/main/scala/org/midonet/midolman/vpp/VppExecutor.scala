@@ -72,7 +72,8 @@ abstract class VppExecutor extends AbstractService with Logging {
     protected def send(message: Any): Future[Any] = {
         val currentState = state()
         if (currentState != Service.State.STARTING &&
-            currentState != Service.State.RUNNING) {
+            currentState != Service.State.RUNNING &&
+            currentState != Service.State.STOPPING) {
             return Future.failed(new IllegalStateException("Service not started"))
         }
         val promise = Promise[Any]
