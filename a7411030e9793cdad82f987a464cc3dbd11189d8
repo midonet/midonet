@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_6b23ad06",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-12T14:39:42Z",
+      "side": 1,
+      "message": "will change.",
+      "parentUuid": "3ab451fb_eb621dad",
+      "range": {
+        "startLine": 159,
+        "startChar": 12,
+        "endLine": 159,
+        "endChar": 48
+      },
+      "revId": "a7411030e9793cdad82f987a464cc3dbd11189d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_6b796d2f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_8b26f914",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-12T14:39:42Z",
+      "side": 1,
+      "message": "I want it to run regardless of whether the previous step failed.",
+      "parentUuid": "3ab451fb_6b796d2f",
+      "range": {
+        "startLine": 162,
+        "startChar": 16,
+        "endLine": 162,
+        "endChar": 23
+      },
+      "revId": "a7411030e9793cdad82f987a464cc3dbd11189d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_cbfd2170",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2016-12-12T14:33:10Z",
       "side": 1,
       "message": "We also shall \"reconfigure\" all fips of the PR too use disjoint pools, right?\nWhere are we supposed to do it?",
+      "range": {
+        "startLine": 458,
+        "startChar": 3,
+        "endLine": 458,
+        "endChar": 36
+      },
+      "revId": "a7411030e9793cdad82f987a464cc3dbd11189d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_4b20f1f7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-12T14:39:42Z",
+      "side": 1,
+      "message": "I don\u0027t understand the question? Is this for a different review?",
+      "parentUuid": "3ab451fb_cbfd2170",
       "range": {
         "startLine": 458,
         "startChar": 3,
