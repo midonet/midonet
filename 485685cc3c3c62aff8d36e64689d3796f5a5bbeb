@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_a23f9ad5",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QosPolicy.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-12T07:12:12Z",
+      "side": 1,
+      "message": "NVM, I see.  I got confused, because it was the topology file which was wrong, but the comment was in this file instead.",
+      "parentUuid": "3ab451fb_625bd255",
+      "range": {
+        "startLine": 52,
+        "startChar": 27,
+        "endLine": 52,
+        "endChar": 39
+      },
+      "revId": "485685cc3c3c62aff8d36e64689d3796f5a5bbeb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_8277fed3",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QosRuleBandwidthLimit.java",
         "patchSetId": 3
