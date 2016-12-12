@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_b0800048",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-12T10:57:41Z",
+      "side": 1,
+      "message": "this seems breaking compilation",
+      "range": {
+        "startLine": 135,
+        "startChar": 32,
+        "endLine": 135,
+        "endChar": 38
+      },
+      "revId": "5f13b4fd5a890ca1b6903da61593af82a656c879",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
