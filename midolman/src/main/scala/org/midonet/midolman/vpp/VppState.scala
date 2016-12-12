@@ -23,8 +23,14 @@ import javax.annotation.concurrent.NotThreadSafe
 
 import com.google.common.collect.ImmutableList
 
+import rx.schedulers.Schedulers
+import rx.{Observer, Subscription}
+
+import org.midonet.cluster.data.storage.StateTable.Update
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.rules.NatTarget
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppState.UplinkState
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.logging.Logging
@@ -35,15 +41,52 @@ object VppState {
 
 }
 
-private[vpp] trait VppState extends Logging {
-
+private[vpp] trait VppState extends Logging { this: VppExecutor =>
     private val uplinks = new util.HashMap[UUID, UplinkState]
+
+    private val scheduler = Schedulers.from(executor)
+    private val gateways = new util.HashSet[UUID]
+    private var gatewaySubscription: Subscription = _
+    private val gatewayObserver = new Observer[Update[UUID, AnyRef]] {
+        override def onNext(update: Update[UUID, AnyRef]): Unit = {
+            update match {
+                case Update(hostId, null, _) =>
+                    log debug s"Added gateway $hostId"
+                    addGateway(hostId)
+                case Update(hostId, _, null) =>
+                    log debug s"Removed gateway $hostId"
+                    removeGateway(hostId)
+                case _ =>
+            }
+        }
+
+        override def onError(e: Throwable): Unit = {
+            // Ignore this because already logged at warning in the gateway
+            // mapping service.
+        }
+
+        override def onCompleted(): Unit = {
+            // Ignore this because already logged at warning in the gateway
+            // mapping service.
+        }
+    }
+
+    protected def vt: VirtualTopology
 
     /**
       * Adds an uplink port.
       */
     @NotThreadSafe
     protected def addUplink(portId: UUID, groupPortIds: JList[UUID]): Unit = {
+        if (uplinks.isEmpty) {
+            if (gatewaySubscription ne null) {
+                gatewaySubscription.unsubscribe()
+            }
+            gatewaySubscription = vt.stateTables
+                .getTable[UUID, AnyRef](MidonetBackend.GatewayTable)
+                .observable.observeOn(scheduler)
+                .subscribe(gatewayObserver)
+        }
         uplinks.put(portId, UplinkState(groupPortIds))
     }
 
@@ -53,6 +96,10 @@ private[vpp] trait VppState extends Logging {
     @NotThreadSafe
     protected def removeUplink(portId: UUID): Unit = {
         uplinks.remove(portId)
+        if (uplinks.isEmpty && (gatewaySubscription ne null)) {
+            gatewaySubscription.unsubscribe()
+            removeGateways()
+        }
     }
 
     /**
@@ -113,6 +160,46 @@ private[vpp] trait VppState extends Logging {
                       IPv4Addr.fromInt(rangeEnd),
                       natPool.tpStart,
                       natPool.tpEnd)
+    }
+
+    /**
+      * Adds a new gateway to the state forwarding.
+      */
+    private def addGateway(hostId: UUID): Unit = {
+        if (gateways.contains(hostId)) {
+            return
+        }
+
+        // TODO: Currently we only support one uplink per physical gateway,
+        // TODO: and therefore assume this uplink must send state to all
+        // TODO: other physical gateways. Eventually, we would like to match
+        // TODO: one uplink port with only a subset of gateways using the
+        // TODO: uplink port's stateful port group. However, this implies
+        // TODO: monitoring the ports in the port group and their alive status.
+
+        gateways.add(hostId)
+
+        // TODO: Update the state datapath flow.
+    }
+
+    /**
+      * Removes an existing gateway from the state forwarding.
+      */
+    private def removeGateway(hostId: UUID): Unit = {
+        if (!gateways.contains(hostId)) {
+            return
+        }
+        gateways.remove(hostId)
+
+        // TODO: Update the state datapath flow.
+    }
+
+    /**
+      * Removes all gateways from the state forwarding, when there are no
+      * more uplink ports.
+      */
+    private def removeGateways(): Unit = {
+        // TODO: Remove the state datapath flow.
     }
 
 }
