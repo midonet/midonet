@@ -17,16 +17,16 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 
 /**
  * Contains loadbalancer-related operations shared by multiple translators.
  */
 trait LoadBalancerManager {
 
-    protected def lbRouterInChainName(lbId: UUID) = s"LB_ROUTER_$lbId"
+    protected def lbRouterInChainName(lbId: UUID) = s"LB_ROUTER_${lbId.asJava}"
 
-    protected def lbRouterOutChainName(lbId: UUID) = s"LB_ROUTER_$lbId"
+    protected def lbRouterOutChainName(lbId: UUID) = s"LB_ROUTER_${lbId.asJava}"
 
     /** Deterministically generate loadbalancer ID from router ID. */
     protected def loadBalancerId(routerId: UUID) =
