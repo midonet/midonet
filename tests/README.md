@@ -92,6 +92,7 @@ in a virtual environment. For that, just create a virtual environment and instal
 everything on it:
 
 ```
+sudo pip install --upgrade pip setuptools virtualenv
 virtualenv venv
 source venv/bin/activate
 pushd tests && pip install -r mdts.dependencies && popd
