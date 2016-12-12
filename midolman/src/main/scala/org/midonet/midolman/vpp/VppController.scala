@@ -75,7 +75,7 @@ class VppController(hostId: UUID,
                     datapathState: DatapathState,
                     vppOvs: VppOvs,
                     protected override val vt: VirtualTopology)
-    extends VppExecutor with VppUplink with VppDownlink {
+    extends VppExecutor with VppUplink with VppDownlink with VppState {
 
     import VppController._
 
@@ -111,7 +111,7 @@ class VppController(hostId: UUID,
             handleExternalRoutesUpdate(port)
 
         case AddUplink(portId, portAddress, uplinkPortIds) =>
-            addUplink(portId, portAddress)
+            addUplink(portId, portAddress, uplinkPortIds)
         case DeleteUplink(portId) =>
             deleteUplink(portId)
         case CreateTunnel(portId, vrf, vni, routerPortMac) =>
@@ -163,8 +163,9 @@ class VppController(hostId: UUID,
         }
     }
 
-    private def addUplink(portId: UUID, portAddress: IPv6Subnet): Future[Any] = {
-        attachUplink(portId, portAddress) flatMap {
+    private def addUplink(portId: UUID, portAddress: IPv6Subnet,
+                          uplinkPortIds: util.List[UUID]): Future[Any] = {
+        attachUplink(portId, portAddress, uplinkPortIds) flatMap {
             _ => attachDownlink()
         }
     }
@@ -175,7 +176,8 @@ class VppController(hostId: UUID,
         }
     }
 
-    private def attachUplink(portId: UUID, portAddress: IPv6Subnet)
+    private def attachUplink(portId: UUID, portAddress: IPv6Subnet,
+                             uplinkPortIds: util.List[UUID])
     : Future[VppUplinkSetup] = {
         log debug s"Attaching IPv6 uplink port $portId"
 
@@ -212,6 +214,7 @@ class VppController(hostId: UUID,
             }
         } andThen {
             case Success(_) =>
+                addUplink(portId, uplinkPortIds)
                 if (shouldStartDownlink && !uplinks.isEmpty) {
                     startDownlink()
                 }
@@ -253,6 +256,7 @@ class VppController(hostId: UUID,
                 case null => Future.successful(None)
             }
         } andThen { case _ =>
+            removeUplink(portId)
             if (uplinks.isEmpty) {
                 stopDownlink()
             }
@@ -393,10 +397,18 @@ class VppController(hostId: UUID,
         log debug s"Associating FIP at port $portId (VRF $vrf): " +
                   s"$floatingIp -> $fixedIp"
 
-        exec(s"vppctl ip route table $vrf add $fixedIp/32 " +
-             s"via ${localIp.getAddress}") flatMap { _ =>
-            exec(s"vppctl fip64 add $floatingIp $fixedIp " +
-                 s"pool ${natPool.nwStart} ${natPool.nwEnd} table $vrf")
+        val pool = poolFor(portId, natPool)
+        if (pool.nonEmpty) {
+            log debug s"Allocated NAT pool at port $portId is ${pool.get}"
+            exec(s"vppctl ip route table $vrf add $fixedIp/32 " +
+                 s"via ${localIp.getAddress}") flatMap { _ =>
+                exec(s"vppctl fip64 add $floatingIp $fixedIp " +
+                     s"pool ${pool.get.nwStart} ${pool.get.nwEnd} table $vrf")
+            }
+        } else {
+            // We complete the future successfully, since there is nothing to
+            // rollback.
+            Future.successful(Unit)
         }
     }
 
