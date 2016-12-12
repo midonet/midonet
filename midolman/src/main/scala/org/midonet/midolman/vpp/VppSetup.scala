@@ -569,7 +569,6 @@ class VppVxlanTunnelSetupBase(name: String, config: Fip64Config,
     add(routefip64ToBridge)
 }
 
-<<<<<<< 9af3ec898e08da33fca72a107969c8245ed94865
 /**
   * Sets up the vxlan to tunnel traffic to a particular tenant router
   */

@@ -25,12 +25,20 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.rules.NatTarget
+import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.vpp.VppExecutor.Nothing
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
+class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
 
-    class TestableVppState extends VppState {
+    private var vt: VirtualTopology = _
+
+    class TestableVppState extends VppExecutor with VppState {
+
+        protected override def vt: VirtualTopology = VppStateTest.this.vt
+
         def splitPool(natPool: NatTarget, portId: UUID, portIds: Seq[UUID])
         : NatTarget = {
             super.splitPool(natPool, portId, portIds.asJava)
@@ -47,8 +55,18 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
         def get(portId: UUID, natPool: NatTarget): Option[NatTarget] = {
             poolFor(portId, natPool)
         }
+
+        protected override def doStart(): Unit = {
+        }
+        protected def receive: VppExecutor.Receive = {
+            Nothing
+        }
     }
     object TestableVppState extends TestableVppState
+
+    protected override def beforeTest(): Unit = {
+        vt = injector.getInstance(classOf[VirtualTopology])
+    }
 
     feature("NAT pool is split between multiple gateways") {
         scenario("Gateways receive disjoint equal partitions") {
