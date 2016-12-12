@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_62ad1231",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolMemberV2.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-12T06:37:02Z",
+      "side": 1,
+      "message": "it\u0027s unused now?",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 42
+      },
+      "revId": "ce4d421a0b1a38bdbb03f31c9a64f25c0351bef7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
