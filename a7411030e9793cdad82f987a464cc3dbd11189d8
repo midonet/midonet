@@ -45,6 +45,29 @@
       "revId": "a7411030e9793cdad82f987a464cc3dbd11189d8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_cbfd2170",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-12T14:33:10Z",
+      "side": 1,
+      "message": "We also shall \"reconfigure\" all fips of the PR too use disjoint pools, right?\nWhere are we supposed to do it?",
+      "range": {
+        "startLine": 458,
+        "startChar": 3,
+        "endLine": 458,
+        "endChar": 36
+      },
+      "revId": "a7411030e9793cdad82f987a464cc3dbd11189d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
