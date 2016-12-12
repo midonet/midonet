@@ -64,9 +64,8 @@ object VppUplink {
       * The routes to the hosts with ports in the same port group
       * have changed
       */
-    case class UplinkTunnelRoutesChanged(
-        portId: UUID, tunnelRoutes: Seq[UnderlayResolver.Route])
-            extends Notification
+    case class UplinkTunnelRoutesChanged(portId: UUID, gatewayHosts: Seq[UUID])
+        extends Notification
 
     /**
       * Maintains the state for an uplink port, which includes monitoring the
