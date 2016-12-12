@@ -20,7 +20,7 @@ import java.util
 import java.util.{Collections, UUID, List => JList}
 
 import javax.annotation.concurrent.NotThreadSafe
-
+import scala.collection.mutable
 import com.google.common.collect.ImmutableList
 
 import rx.schedulers.Schedulers
@@ -32,6 +32,7 @@ import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppState.UplinkState
+import org.midonet.midolman.vpp.VppUplink.UplinkTunnelRoutesChanged
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.logging.Logging
 
@@ -45,7 +46,7 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
     private val uplinks = new util.HashMap[UUID, UplinkState]
 
     private val scheduler = Schedulers.from(executor)
-    private val gateways = new util.HashSet[UUID]
+    private val gateways = new mutable.HashSet[UUID]
     private var gatewaySubscription: Subscription = _
     private val gatewayObserver = new Observer[Update[UUID, AnyRef]] {
         override def onNext(update: Update[UUID, AnyRef]): Unit = {
@@ -179,7 +180,7 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
 
         gateways.add(hostId)
 
-        // TODO: Update the state datapath flow.
+        send(UplinkTunnelRoutesChanged(null, gateways.toSeq))
     }
 
     /**
@@ -191,7 +192,7 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
         }
         gateways.remove(hostId)
 
-        // TODO: Update the state datapath flow.
+        send(UplinkTunnelRoutesChanged(null, gateways.toSeq))
     }
 
     /**
@@ -199,7 +200,7 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
       * more uplink ports.
       */
     private def removeGateways(): Unit = {
-        // TODO: Remove the state datapath flow.
+        send(UplinkTunnelRoutesChanged(null, Seq()))
     }
 
 }
