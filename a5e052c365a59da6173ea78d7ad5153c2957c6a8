@@ -22,6 +22,30 @@
       "revId": "a5e052c365a59da6173ea78d7ad5153c2957c6a8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_05d09852",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 2
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T08:57:15Z",
+      "side": 1,
+      "message": "yes, but they are the same for the parent process, the setsid below ensures that. to make this correct, we should change to pid, though",
+      "parentUuid": "3ab451fb_02a1aea9",
+      "range": {
+        "startLine": 215,
+        "startChar": 37,
+        "endLine": 215,
+        "endChar": 41
+      },
+      "revId": "a5e052c365a59da6173ea78d7ad5153c2957c6a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
