@@ -27,6 +27,7 @@ import com.typesafe.scalalogging.Logger
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink.rtnetlink.LinkOps
@@ -568,6 +569,7 @@ class VppVxlanTunnelSetupBase(name: String, config: Fip64Config,
     add(routefip64ToBridge)
 }
 
+<<<<<<< 9af3ec898e08da33fca72a107969c8245ed94865
 /**
   * Sets up the vxlan to tunnel traffic to a particular tenant router
   */
@@ -614,4 +616,38 @@ class VppFlowStateInVxlanTunnelSetup(fip64conf: Fip64Config,
                                              IPv4Addr.fromString("172.16.0.1"),
                                              prefixLen = 30)
     add(setIpAddress)
+}
+
+class Fip64FlowStateFlows(vppOvs: VppOvs,
+                          vppPort: Int,
+                          tunnelRoutes: Seq[UnderlayResolver.Route],
+                          log: Logger)
+                         (implicit ec: ExecutionContext)
+        extends VppSetup("Fip64 flow state",  log)(ec) {
+
+    class FlowStateSending
+        extends FutureTaskWithRollback {
+        override val name = "Flows for sending"
+
+        override def execute(): Future[Any] = {
+            try {
+                vppOvs.addFlowStateSendingTunnelFlow(
+                    vppPort, tunnelRoutes)
+                Future.successful(Unit)
+            } catch {
+                case NonFatal(e) => Future.failed(e)
+            }
+        }
+
+        override def rollback(): Future[Any] = {
+            try {
+                vppOvs.clearFlowStateSendingTunnelFlow(vppPort)
+                Future.successful(Unit)
+            } catch {
+                case NonFatal(e) => Future.failed(e)
+            }
+        }
+    }
+
+    add(new FlowStateSending)
 }
