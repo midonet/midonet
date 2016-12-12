@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_e293624e",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 1190,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-12T02:27:03Z",
+      "side": 1,
+      "message": "Should this be changed also?",
+      "range": {
+        "startLine": 1190,
+        "startChar": 32,
+        "endLine": 1190,
+        "endChar": 47
+      },
+      "revId": "54e580c4a67d46bc881d913952a19c79b799f19d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
