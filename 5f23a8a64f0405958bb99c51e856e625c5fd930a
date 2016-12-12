@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_65107c4f",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QosRuleBandwidthLimit.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-12T07:54:03Z",
+      "side": 1,
+      "message": "Doesn\u0027t seem to be used.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 53
+      },
+      "revId": "5f23a8a64f0405958bb99c51e856e625c5fd930a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
