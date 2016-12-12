@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_a271dae2",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QosPolicy.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-12T06:47:18Z",
+      "side": 1,
+      "message": "mismatch with proto",
+      "range": {
+        "startLine": 52,
+        "startChar": 27,
+        "endLine": 52,
+        "endChar": 39
+      },
+      "revId": "485685cc3c3c62aff8d36e64689d3796f5a5bbeb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_8277fed3",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QosRuleBandwidthLimit.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-12T06:47:18Z",
+      "side": 1,
+      "message": "mismatch with proto",
+      "range": {
+        "startLine": 42,
+        "startChar": 23,
+        "endLine": 42,
+        "endChar": 37
+      },
+      "revId": "485685cc3c3c62aff8d36e64689d3796f5a5bbeb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
