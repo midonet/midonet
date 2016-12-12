@@ -18,6 +18,8 @@ package org.midonet.midolman.vpp
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import org.junit.runner.RunWith
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
@@ -28,7 +30,25 @@ import org.midonet.packets.IPv4Addr
 @RunWith(classOf[JUnitRunner])
 class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
 
-    object TestableVppSate extends VppState
+    class TestableVppState extends VppState {
+        def splitPool(natPool: NatTarget, portId: UUID, portIds: Seq[UUID])
+        : NatTarget = {
+            super.splitPool(natPool, portId, portIds.asJava)
+        }
+
+        def add(portId: UUID, portIds: Seq[UUID]): Unit = {
+            addUplink(portId, portIds.asJava)
+        }
+
+        def remove(portId: UUID): Unit = {
+            removeUplink(portId)
+        }
+
+        def get(portId: UUID, natPool: NatTarget): Option[NatTarget] = {
+            poolFor(portId, natPool)
+        }
+    }
+    object TestableVppState extends TestableVppState
 
     feature("NAT pool is split between multiple gateways") {
         scenario("Gateways receive disjoint equal partitions") {
@@ -44,19 +64,19 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
             val ids = Seq(id2, id3, id1, id4)
 
             Then("First gateway should get the first partition")
-            TestableVppSate.splitPool(pool, id1, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id1, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(1), IPv4Addr.fromInt(25), 0, 0)
 
             And("Second gateway should get the second partition")
-            TestableVppSate.splitPool(pool, id2, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id2, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(26), IPv4Addr.fromInt(50), 0, 0)
 
             And("Third gateway should get the third partition")
-            TestableVppSate.splitPool(pool, id3, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id3, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(51), IPv4Addr.fromInt(75), 0, 0)
 
             And("Fourth gateway should get the fourth partition")
-            TestableVppSate.splitPool(pool, id4, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id4, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(76), IPv4Addr.fromInt(100), 0, 0)
         }
 
@@ -72,15 +92,15 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
             val ids = Seq(id2, id3, id1)
 
             Then("First gateway should get the first partition")
-            TestableVppSate.splitPool(pool, id1, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id1, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(1), IPv4Addr.fromInt(6), 0, 0)
 
             And("Second gateway should get the second partition")
-            TestableVppSate.splitPool(pool, id2, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id2, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(7), IPv4Addr.fromInt(13), 0, 0)
 
             And("Third gateway should get the third partition")
-            TestableVppSate.splitPool(pool, id3, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id3, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(14), IPv4Addr.fromInt(20), 0, 0)
         }
 
@@ -98,15 +118,15 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
             val ids3 = Seq(id1, id3, id2)
 
             Then("First gateway should get the first partition")
-            TestableVppSate.splitPool(pool, id1, ids2) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id1, ids2) shouldBe new NatTarget(
                 IPv4Addr.fromInt(1), IPv4Addr.fromInt(33), 0, 0)
 
             And("Second gateway should get the second partition")
-            TestableVppSate.splitPool(pool, id2, ids3) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id2, ids3) shouldBe new NatTarget(
                 IPv4Addr.fromInt(34), IPv4Addr.fromInt(66), 0, 0)
 
             And("Third gateway should get the third partition")
-            TestableVppSate.splitPool(pool, id3, ids1) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id3, ids1) shouldBe new NatTarget(
                 IPv4Addr.fromInt(67), IPv4Addr.fromInt(100), 0, 0)
         }
 
@@ -123,20 +143,102 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
             val ids = Seq(id2, id3, id1, id4)
 
             Then("First gateway should get no address")
-            TestableVppSate.splitPool(pool, id1, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id1, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(1), IPv4Addr.fromInt(0), 0, 0)
 
             And("Second gateway should get the first address")
-            TestableVppSate.splitPool(pool, id2, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id2, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(1), IPv4Addr.fromInt(1), 0, 0)
 
             And("Third gateway should get no address")
-            TestableVppSate.splitPool(pool, id3, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id3, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(2), IPv4Addr.fromInt(1), 0, 0)
 
             And("Fourth gateway should get the second address")
-            TestableVppSate.splitPool(pool, id4, ids) shouldBe new NatTarget(
+            TestableVppState.splitPool(pool, id4, ids) shouldBe new NatTarget(
                 IPv4Addr.fromInt(2), IPv4Addr.fromInt(2), 0, 0)
+        }
+    }
+
+    feature("VPP state maintains uplink ports and returns allocated NAT pool") {
+        scenario("No uplink port") {
+            Given("A VPP state")
+            val vpp = new TestableVppState
+
+            And("A port with a NAT pool")
+            val portId = UUID.randomUUID()
+            val pool = new NatTarget(IPv4Addr.fromInt(0),
+                                     IPv4Addr.fromInt(100), 0, 0)
+
+            When("Requesting the allocated NAT pool")
+            val allocated = vpp.get(portId, pool)
+
+            Then("The allocation should return no NAT pool")
+            allocated shouldBe None
+        }
+
+        scenario("A single uplink port in a port group") {
+            Given("A VPP state")
+            val vpp = new TestableVppState
+
+            And("An uplink port")
+            val uplinkPortId = new UUID(0L, 0L)
+            vpp.add(uplinkPortId, Seq(uplinkPortId))
+
+            And("A port with a NAT pool")
+            val portId = UUID.randomUUID()
+            val pool = new NatTarget(IPv4Addr.fromInt(1),
+                                     IPv4Addr.fromInt(100), 0, 0)
+
+            When("Requesting the allocated NAT pool")
+            val allocated = vpp.get(portId, pool)
+
+            Then("The allocation should return the NAT pool")
+            allocated shouldBe Some(pool)
+        }
+
+        scenario("A single uplink port in a port group of four") {
+            Given("A VPP state")
+            val vpp = new TestableVppState
+
+            And("An uplink port")
+            val uplinkPortId = new UUID(0L, 2L)
+            vpp.add(uplinkPortId, Seq(uplinkPortId,
+                                      new UUID(0L, 0L),
+                                      new UUID(0L, 1L),
+                                      new UUID(0L, 3L)))
+
+            And("A port with a NAT pool")
+            val portId = UUID.randomUUID()
+            val pool = new NatTarget(IPv4Addr.fromInt(1),
+                                     IPv4Addr.fromInt(100), 0, 0)
+
+            When("Requesting the allocated NAT pool")
+            val allocated = vpp.get(portId, pool)
+
+            Then("The allocation should return a slice of the NAT pool")
+            allocated shouldBe Some(new NatTarget(IPv4Addr.fromInt(51),
+                                                  IPv4Addr.fromInt(75), 0, 0))
+        }
+
+        scenario("Multiple uplink ports") {
+            Given("A VPP state")
+            val vpp = new TestableVppState
+
+            And("An uplink port")
+            vpp.add(new UUID(0L, 0L), Seq(new UUID(0L, 0L)))
+            vpp.add(new UUID(0L, 1L), Seq(new UUID(0L, 1L)))
+
+            And("A port with a NAT pool")
+            val portId = UUID.randomUUID()
+            val pool = new NatTarget(IPv4Addr.fromInt(1),
+                                     IPv4Addr.fromInt(100), 0, 0)
+
+            When("Requesting the allocated NAT pool")
+            val allocated = vpp.get(portId, pool)
+
+            Then("The allocation should return no NAT pool")
+            allocated shouldBe None
         }
     }
 

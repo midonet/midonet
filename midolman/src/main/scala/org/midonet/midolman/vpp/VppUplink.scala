@@ -17,26 +17,29 @@
 package org.midonet.midolman.vpp
 
 import java.util
-import java.util.{Collections, UUID, List => JList}
-import java.util.concurrent.{TimeUnit, TimeoutException}
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{TimeUnit, TimeoutException}
+import java.util.{Collections, UUID, List => JList}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.control.NonFatal
 
+import com.google.common.collect.ImmutableList
+
 import rx.Observable.OnSubscribe
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber, Subscription}
 
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.services.MidolmanActorsService._
 import org.midonet.midolman.simulation.{PortGroup, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{ObjectReferenceTracker, VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.VppUplink.{Notification, UplinkState}
 import org.midonet.packets.IPv6Subnet
-import org.midonet.util.logging.Logger
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeRunnable}
+import org.midonet.util.logging.Logger
 
 object VppUplink {
 
@@ -169,8 +172,6 @@ object VppUplink {
             } else {
                 if (currentPort.portAddress6 ne null) {
                     val uplinkPortIds = uplinkPorts
-                    val oldPortIds = new util.HashSet[UUID](last.uplinkPortIds)
-                    val newPortIds = new util.HashSet[UUID](uplinkPortIds)
                     if (last.portAddress != currentPort.portAddress6) {
                         log debug s"Uplink port $portId IPv6 address has " +
                                   s"changed from ${last.portAddress} to " +
@@ -178,10 +179,10 @@ object VppUplink {
                         last = AddUplink(portId, currentPort.portAddress6,
                                          uplinkPortIds)
                         Observable.just(DeleteThisUplink, last)
-                    } else if (oldPortIds != newPortIds) {
+                    } else if (last.uplinkPortIds != uplinkPortIds) {
                         log debug s"Uplink port $portId port group membership " +
-                                  s"has changed from $oldPortIds to " +
-                                  s"$newPortIds"
+                                  s"has changed from ${last.uplinkPortIds} to " +
+                                  s"$uplinkPortIds"
                         last = AddUplink(portId, currentPort.portAddress6,
                                          uplinkPortIds)
                         Observable.just(DeleteThisUplink, last)
@@ -240,7 +241,9 @@ object VppUplink {
                 for (portGroup <- portGroups.values if portGroup.stateful) {
                     portIds.addAll(portGroup.members)
                 }
-                new util.ArrayList(portIds)
+                val array = portIds.toArray(new Array[UUID](portIds.size()))
+                util.Arrays.sort(array, UUIDUtil.Comparator)
+                ImmutableList.copyOf(array)
             }
         }
     }
