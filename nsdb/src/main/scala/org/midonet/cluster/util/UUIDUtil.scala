@@ -15,15 +15,15 @@
  */
 package org.midonet.cluster.util
 
-import java.lang.reflect.Type
 import java.nio.ByteBuffer
-import java.util.{ArrayList => JArrayList, UUID => JUUID}
+import java.util.{Comparator, ArrayList => JArrayList, UUID => JUUID}
 
 import javax.annotation.Nonnull
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.ZoomConvert
+import com.google.common.collect.{Ordering => GuavaOrdering}
+
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID => PUUID}
 import org.midonet.packets.{IPv4Addr, IPv6Addr}
@@ -156,6 +156,12 @@ object UUIDUtil {
             }
         }
     }
+
+    object Comparator extends Comparator[JUUID] {
+        override def compare(o1: JUUID, o2: JUUID): Int = o1.compareTo(o2)
+    }
+
+    final val Ordering = GuavaOrdering.from(UUIDUtil.Comparator)
 
     def toString(id: PUUID) = if (id == null) "null" else fromProto(id).toString
 

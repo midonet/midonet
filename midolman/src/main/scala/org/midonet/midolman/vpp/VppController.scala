@@ -69,7 +69,7 @@ class VppController(hostId: UUID,
                     datapathState: DatapathState,
                     vppOvs: VppOvs,
                     protected override val vt: VirtualTopology)
-    extends VppExecutor with VppUplink with VppDownlink {
+    extends VppExecutor with VppUplink with VppDownlink with VppState {
 
     import VppController._
 
@@ -379,10 +379,18 @@ class VppController(hostId: UUID,
         log debug s"Associating FIP at port $portId (VRF $vrf): " +
                   s"$floatingIp -> $fixedIp"
 
-        exec(s"vppctl ip route table $vrf add $fixedIp/32 " +
-             s"via ${localIp.getAddress}") flatMap { _ =>
-            exec(s"vppctl fip64 add $floatingIp $fixedIp " +
-                 s"pool ${natPool.nwStart} ${natPool.nwEnd} table $vrf")
+        val pool = poolFor(portId, natPool)
+        if (pool.nonEmpty) {
+            log debug s"Allocated NAT pool at port $portId is ${pool.get}"
+            exec(s"vppctl ip route table $vrf add $fixedIp/32 " +
+                 s"via ${localIp.getAddress}") flatMap { _ =>
+                exec(s"vppctl fip64 add $floatingIp $fixedIp " +
+                     s"pool ${pool.get.nwStart} ${pool.get.nwEnd} table $vrf")
+            }
+        } else {
+            // We complete the future successfully, since there is nothing to
+            // rollback.
+            Future.successful(Unit)
         }
     }
 

@@ -132,7 +132,7 @@ class IPSecSiteConnectionTranslator
 
 object IPSecSiteConnectionTranslator {
 
-    private val routeOrdering = Ordering.fromLessThan[Route](
+    private val routeOrdering = scala.Ordering.fromLessThan[Route](
         (a: Route, b: Route) => {
             a.getSrcSubnet != b.getSrcSubnet ||
             a.getDstSubnet != b.getDstSubnet
