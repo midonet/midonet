@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_43a0bff4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-12-12T09:29:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_481d7c72",
+      "range": {
+        "startLine": 65,
+        "startChar": 18,
+        "endLine": 65,
+        "endChar": 26
+      },
+      "revId": "448b0dc29464576e99b7673799457f70d4d29e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_08177452",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "5aa745d1_2326d368",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-12-12T09:29:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_08177452",
+      "revId": "448b0dc29464576e99b7673799457f70d4d29e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aa745d1_08409455",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 1
@@ -53,6 +95,30 @@
       "writtenOn": "2016-12-09T10:15:25Z",
       "side": 1,
       "message": "This should be configured in MidolmanConfig.scala (Fip64Config)",
+      "range": {
+        "startLine": 69,
+        "startChar": 22,
+        "endLine": 69,
+        "endChar": 32
+      },
+      "revId": "448b0dc29464576e99b7673799457f70d4d29e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aa745d1_e3e7cb10",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-12-12T09:29:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa745d1_08409455",
       "range": {
         "startLine": 69,
         "startChar": 22,
