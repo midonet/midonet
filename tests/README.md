@@ -92,12 +92,16 @@ in a virtual environment. For that, just create a virtual environment and instal
 everything on it:
 
 ```
+sudo pip install --upgrade pip setuptools virtualenv
 virtualenv venv
 source venv/bin/activate
 pushd tests && pip install -r mdts.dependencies && popd
 pushd midonet-sandbox && python setup.py install && popd
 pushd python-midonetclient && python setup.py install && popd
 ```
+
+The first line is needed since docker-py seems to fail with old versions of
+setuptools.
 
 If the protobufs compiler is not installed, the last command may fail.  If so,
 please install the protobufs compiler as documented above.

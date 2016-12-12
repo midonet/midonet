@@ -33,6 +33,7 @@ git submodule update --init --recursive
 find . -name "*.deb" | xargs sudo dpkg -i
 
 # Install virtual env and activate
+sudo pip install --upgrade pip setuptools virtualenv
 virtualenv venv
 source venv/bin/activate
 
