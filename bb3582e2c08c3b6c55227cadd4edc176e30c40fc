@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_11ba16e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T20:59:30Z",
+      "side": 1,
+      "message": "flatMap",
+      "range": {
+        "startLine": 164,
+        "startChar": 31,
+        "endLine": 164,
+        "endChar": 38
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_31ee32ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 490,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T20:59:30Z",
+      "side": 1,
+      "message": "add to previous line",
+      "range": {
+        "startLine": 490,
+        "startChar": 12,
+        "endLine": 490,
+        "endChar": 29
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_91950642",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T20:59:30Z",
+      "side": 1,
+      "message": "if you use scala collections, this could be something like\n\nval routes \u003d hosts.flatMap(datapathState.peerTunnelInfo)",
+      "range": {
+        "startLine": 494,
+        "startChar": 12,
+        "endLine": 498,
+        "endChar": 31
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_71cb9a73",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T20:59:30Z",
+      "side": 1,
+      "message": "java collections have less overhead",
+      "range": {
+        "startLine": 49,
+        "startChar": 31,
+        "endLine": 49,
+        "endChar": 38
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_51c89e74",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T20:59:30Z",
+      "side": 1,
+      "message": "this could be a java Set, no need to convert it to a seq since we\u0027re just iterating over it in the end,\n\nbtw, the gateway map could be protected in the first place, such that is accessible from the VppController and the UplinkTunnelRoutesChanged could be an object",
+      "range": {
+        "startLine": 183,
+        "startChar": 45,
+        "endLine": 183,
+        "endChar": 59
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_31c5125b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T20:59:30Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 195,
+        "startChar": 44,
+        "endLine": 195,
+        "endChar": 59
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_d1b38e09",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppUplink.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T20:59:30Z",
+      "side": 1,
+      "message": "is the portId used?",
+      "range": {
+        "startLine": 67,
+        "startChar": 41,
+        "endLine": 67,
+        "endChar": 53
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_f1be8ad3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppUplink.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T20:59:30Z",
+      "side": 1,
+      "message": "maybe rename this then to GatewaysChanged, etc, also you could move it to VppState",
+      "range": {
+        "startLine": 67,
+        "startChar": 15,
+        "endLine": 67,
+        "endChar": 40
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
