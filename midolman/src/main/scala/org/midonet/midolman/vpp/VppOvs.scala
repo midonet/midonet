@@ -151,10 +151,11 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
     }
 
 
-    private def buildFlowStateSendingFlowMatch(inputPort: Int): FlowMatch = {
+    private def buildFlowStateFlowMatch(inputPort: Int,
+                                        tunnelKey: Int): FlowMatch = {
         flowMatch.clear()
         flowMatch.addKey(FlowKeys.inPort(inputPort))
-        flowMatch.addKey(FlowKeys.tunnel(TunnelKeys.Fip64FlowStateSendKey,
+        flowMatch.addKey(FlowKeys.tunnel(tunnelKey,
                                          1, 1, 0))
         flowMatch.addKey(FlowKeys.etherType(
                              FlowKeyEtherType.Type.ETH_P_IP.value.toShort))
@@ -172,7 +173,8 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
         fmask.clear()
         actions.clear()
 
-        val fmatch = buildFlowStateSendingFlowMatch(inputPort)
+        val fmatch = buildFlowStateFlowMatch(inputPort,
+                                             TunnelKeys.Fip64FlowStateSendKey)
         routes foreach { r =>
             actions.add(FlowActions.setKey(
                             FlowKeys.tunnel(TunnelKeys.Fip64FlowStateReceiveKey,
@@ -185,7 +187,28 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
 
     def clearFlowStateSendingTunnelFlow(inputPort: Int): Unit = {
         buf.clear()
-        val fmatch = buildFlowStateSendingFlowMatch(inputPort)
+        val fmatch = buildFlowStateFlowMatch(inputPort,
+                                             TunnelKeys.Fip64FlowStateSendKey)
+        deleteFlow(dp, fmatch)
+    }
+
+    def addFlowStateReceivingTunnelFlow(inputPort: Int,
+                                        outputPort: Int): Unit = {
+        buf.clear()
+        fmask.clear()
+        actions.clear()
+
+        val fmatch = buildFlowStateFlowMatch(inputPort,
+                                             TunnelKeys.Fip64FlowStateReceiveKey)
+        actions.add(FlowActions.output(outputPort))
+        fmask.calculateFor(fmatch, actions)
+        createFlow(dp, fmatch, fmask, actions)
+    }
+
+    def clearFlowStateReceivingTunnelFlow(inputPort: Int): Unit = {
+        buf.clear()
+        val fmatch = buildFlowStateFlowMatch(inputPort,
+                                             TunnelKeys.Fip64FlowStateReceiveKey)
         deleteFlow(dp, fmatch)
     }
 }
