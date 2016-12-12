@@ -17,20 +17,38 @@
 package org.midonet.midolman.vpp
 
 import java.util.UUID
+import java.util.concurrent.ExecutorService
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 import org.junit.runner.RunWith
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder.DefaultValue
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.rules.NatTarget
+import org.midonet.midolman.topology.{GatewayMappingService, VirtualTopology}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.vpp.VppState.GatewaysChanged
 import org.midonet.packets.IPv4Addr
+import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 
 @RunWith(classOf[JUnitRunner])
-class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
+class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
 
-    class TestableVppState extends VppState {
+    private var vt: VirtualTopology = _
+
+    class TestableVppState extends VppExecutor with VppState {
+
+        protected override def vt: VirtualTopology = VppStateTest.this.vt
+        var messages = List[Any]()
+
+        protected override def newExecutor: ExecutorService = {
+            new SameThreadButAfterExecutorService
+        }
+
         def splitPool(natPool: NatTarget, portId: UUID, portIds: Seq[UUID])
         : NatTarget = {
             super.splitPool(natPool, portId, portIds.asJava)
@@ -47,8 +65,23 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
         def get(portId: UUID, natPool: NatTarget): Option[NatTarget] = {
             poolFor(portId, natPool)
         }
+
+        override def doStart(): Unit = {
+            notifyStarted()
+        }
+
+        protected def receive: VppExecutor.Receive = {
+            case msg:Any =>
+                log debug s"Recieved message: $msg"
+                messages = messages :+ msg
+                Future.successful(None)
+        }
     }
     object TestableVppState extends TestableVppState
+
+    protected override def beforeTest(): Unit = {
+        vt = injector.getInstance(classOf[VirtualTopology])
+    }
 
     feature("NAT pool is split between multiple gateways") {
         scenario("Gateways receive disjoint equal partitions") {
@@ -239,6 +272,38 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
 
             Then("The allocation should return no NAT pool")
             allocated shouldBe None
+        }
+
+        scenario("On new gateway VPP reconfigure control vxlan OVS flows") {
+            Given("A gateway mapping service")
+            val service = new GatewayMappingService(vt)
+
+            And("A gateway table")
+            val table = vt.stateTables
+                .getTable[UUID, AnyRef](MidonetBackend.GatewayTable)
+            table.start()
+
+            And("The service is started")
+            service.startAsync().awaitRunning()
+
+            Then("The gateway table should be empty")
+            service.gateways.hasMoreElements shouldBe false
+
+            When("Adding a gateway")
+            val id = UUID.randomUUID()
+            table.add(id, DefaultValue)
+
+            Then("The service should return the gateway")
+            service.gateways.nextElement() shouldBe id
+
+            Given("A VPP state")
+            val vpp = new TestableVppState
+            vpp.startAsync().awaitRunning()
+            And("An uplink port")
+            vpp.add(new UUID(0L, 0L), Seq(new UUID(0L, 0L)))
+
+            vpp.messages should have size 1
+            vpp.messages(0) shouldBe GatewaysChanged
         }
     }
 
