@@ -20,7 +20,7 @@ import java.util
 import java.util.{Collections, UUID, List => JList}
 
 import javax.annotation.concurrent.NotThreadSafe
-
+import scala.collection.mutable
 import com.google.common.collect.ImmutableList
 
 import rx.schedulers.Schedulers
@@ -31,21 +31,28 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.vpp.VppState.UplinkState
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.logging.Logging
 
 object VppState {
 
     case class UplinkState(groupPortIds: JList[UUID])
+    /**
+      * The gateway hosts have changed.
+      * TODO: Check port group and inlcude only ports in the same group
+      *  to the message
+      */
+    object GatewaysChanged
 
+    object RemoveAllGateways
 }
 
 private[vpp] trait VppState extends Logging { this: VppExecutor =>
+    import VppState._
     private val uplinks = new util.HashMap[UUID, UplinkState]
 
     private val scheduler = Schedulers.from(executor)
-    private val gateways = new util.HashSet[UUID]
+    protected val gateways = new util.HashSet[UUID]
     private var gatewaySubscription: Subscription = _
     private val gatewayObserver = new Observer[Update[UUID, AnyRef]] {
         override def onNext(update: Update[UUID, AnyRef]): Unit = {
@@ -179,7 +186,7 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
 
         gateways.add(hostId)
 
-        // TODO: Update the state datapath flow.
+        send(GatewaysChanged)
     }
 
     /**
@@ -191,7 +198,7 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
         }
         gateways.remove(hostId)
 
-        // TODO: Update the state datapath flow.
+        send(GatewaysChanged)
     }
 
     /**
@@ -199,7 +206,7 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
       * more uplink ports.
       */
     private def removeGateways(): Unit = {
-        // TODO: Remove the state datapath flow.
+        send(RemoveAllGateways)
     }
 
 }
