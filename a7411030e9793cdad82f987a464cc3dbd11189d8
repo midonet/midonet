@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_b186c211",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-12T21:17:33Z",
+      "side": 1,
+      "message": "oh, i think then you would need to use recover and flat map, otherwise this won\u0027t wait on the cleanupFutures to complete",
+      "parentUuid": "3ab451fb_8b26f914",
+      "range": {
+        "startLine": 162,
+        "startChar": 16,
+        "endLine": 162,
+        "endChar": 23
+      },
+      "revId": "a7411030e9793cdad82f987a464cc3dbd11189d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_cbfd2170",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 2
