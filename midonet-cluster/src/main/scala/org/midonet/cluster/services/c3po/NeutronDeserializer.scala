@@ -151,6 +151,8 @@ object NeutronDeserializer {
                 toMessage(node, classOf[NeutronHealthMonitor.Pool])
             case "org.midonet.cluster.models.NeutronLoadBalancerV2" =>
                 toMessage(node, classOf[NeutronLoadBalancerV2])
+            case "org.midonet.cluster.models.NeutronLoadBalancerV2Pool" =>
+                toMessage(node, classOf[NeutronLoadBalancerV2Pool])
             case "org.midonet.cluster.models.NeutronPort.AllowedAddressPair" =>
                 toMessage(node, classOf[NeutronPort.AllowedAddressPair])
             case "org.midonet.cluster.models.NeutronPort.BindingProfile" =>

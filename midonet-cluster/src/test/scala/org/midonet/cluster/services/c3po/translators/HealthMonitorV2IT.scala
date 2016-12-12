@@ -19,13 +19,15 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import com.fasterxml.jackson.databind.JsonNode
+
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{HealthMonitorV2 => HealthMonitorV2Type}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.toFutureOps
-import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class HealthMonitorV2IT extends C3POMinionTestBase {
@@ -44,7 +46,11 @@ class HealthMonitorV2IT extends C3POMinionTestBase {
         hm.put("admin_state_up", adminStateUp)
         if (poolIds.nonEmpty) {
             val pools = hm.putArray("pools")
-            poolIds foreach (p => pools.add(p.toString))
+            poolIds foreach { pId =>
+                val poolNode = nodeFactory.objectNode
+                poolNode.put("id", pId.toString)
+                pools.add(poolNode)
+            }
         }
         hm
     }

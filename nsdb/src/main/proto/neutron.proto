@@ -347,7 +347,7 @@ message NeutronHealthMonitorV2 {
     optional UUID id = 1;
     optional string tenant_id = 2;
     optional bool admin_state_up = 3;
-    repeated UUID pools = 4;
+    repeated NeutronLoadBalancerV2Pool pools = 4;
     optional string expected_codes = 5;
     optional string http_method = 6;
     optional string url_path = 7;
