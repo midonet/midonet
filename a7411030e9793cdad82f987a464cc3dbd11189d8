@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_eb621dad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-12T14:20:10Z",
+      "side": 1,
+      "message": "We should set uplinkFlowStateFlows to None here just for a case",
+      "range": {
+        "startLine": 159,
+        "startChar": 12,
+        "endLine": 159,
+        "endChar": 48
+      },
+      "revId": "a7411030e9793cdad82f987a464cc3dbd11189d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
