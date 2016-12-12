@@ -45,6 +45,30 @@
       "revId": "54e580c4a67d46bc881d913952a19c79b799f19d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_8226de14",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QosPolicy.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-12T05:15:02Z",
+      "side": 1,
+      "message": "I will change the protobufs, and make sure the @JsonProperty is set.  That way, all the midonet side is changed and we just map to `max_burst_kbps` from the neutron JSON.",
+      "parentUuid": "3ab451fb_22c14a2f",
+      "range": {
+        "startLine": 52,
+        "startChar": 27,
+        "endLine": 52,
+        "endChar": 39
+      },
+      "revId": "54e580c4a67d46bc881d913952a19c79b799f19d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
