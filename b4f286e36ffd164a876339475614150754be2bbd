@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_f1c0cae2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-12T23:43:42Z",
+      "side": 1,
+      "message": "does this description still make sense?",
+      "range": {
+        "startLine": 11,
+        "startChar": 28,
+        "endLine": 13,
+        "endChar": 20
+      },
+      "revId": "b4f286e36ffd164a876339475614150754be2bbd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_11bc566b",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QosPolicy.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-12T23:43:42Z",
+      "side": 1,
+      "message": "put a comment to explain why this looks different.",
+      "range": {
+        "startLine": 53,
+        "startChar": 23,
+        "endLine": 53,
+        "endChar": 37
+      },
+      "revId": "b4f286e36ffd164a876339475614150754be2bbd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
