@@ -175,15 +175,20 @@ class VppController(hostId: UUID,
     : Future[VppUplinkSetup] = {
         log debug s"Attaching IPv6 uplink port $portId"
 
+        val dpNumber = datapathState.getDpPortNumberForVport(portId)
+        if (dpNumber eq null) {
+            return Future.failed(new IllegalArgumentException(
+                s"No datapath port for uplink port $portId"))
+        }
+
         val shouldStartDownlink = uplinks.isEmpty
         if (startVppProcess()) {
             vppApi = createApiConnection(VppConnectMaxRetries)
         }
 
-        val dpNumber = datapathState.getDpPortNumberForVport(portId)
         val uplinkSetup = new VppUplinkSetup(portId,
                                              portAddress.getAddress,
-                                             dpNumber, vppApi, vppOvs,
+                                             dpNumber.intValue(), vppApi, vppOvs,
                                              Logger(log.underlying))
 
         val result = {

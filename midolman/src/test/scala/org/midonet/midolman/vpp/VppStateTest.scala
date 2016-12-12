@@ -25,12 +25,16 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.rules.NatTarget
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
 
     class TestableVppState extends VppState {
+
+        protected override def vt: VirtualTopology = ???
+
         def splitPool(natPool: NatTarget, portId: UUID, portIds: Seq[UUID])
         : NatTarget = {
             super.splitPool(natPool, portId, portIds.asJava)
