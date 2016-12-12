@@ -38,12 +38,14 @@ import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
+import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
+import org.midonet.midolman.vpp.VppUplink.UplinkTunnelRoutesChanged
 import org.midonet.midolman.{DatapathState, Midolman}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
 import org.midonet.util.process.ProcessHelper.OutputStreams._
@@ -85,6 +87,7 @@ class VppController(hostId: UUID,
     private var downlink: Option[VppDownlinkSetup] = None
 
     private val vxlanTunnels = new util.HashMap[UUID, VppVxlanTunnelSetup]
+    private var uplinkFlowStateFlows: Option[Fip64FlowStateFlows] = None
 
     private lazy val gatewayTable = vt.backend.stateTableStore
         .getTable[UUID, AnyRef](MidonetBackend.GatewayTable)
@@ -108,6 +111,8 @@ class VppController(hostId: UUID,
             addUplink(portId, portAddress)
         case DeleteUplink(portId) =>
             deleteUplink(portId)
+        case UplinkTunnelRoutesChanged(_, routes) =>
+            updateFlowStateFlows(routes)
         case CreateTunnel(portId, vrf, vni, routerPortMac) =>
             createTunnel(portId, vrf, vni, routerPortMac)
         case DeleteTunnel(portId, vrf, vni) =>
@@ -150,9 +155,14 @@ class VppController(hostId: UUID,
     }
 
     private def cleanup(): Future[Any] = {
-        val cleanupFutures = uplinks.values().asScala.map(_.rollback())
-
-        Future.sequence(cleanupFutures) andThen { case _ =>
+        val fsFlows = uplinkFlowStateFlows match {
+            case Some(setup) => setup.rollback()
+            case _ => Future.successful(Unit)
+        }
+        fsFlows andThen { case _ =>
+            val cleanupFutures = uplinks.values().asScala.map(_.rollback())
+            Future.sequence(cleanupFutures)
+        } andThen { case _ =>
             uplinks.clear()
         }
     }
@@ -442,6 +452,26 @@ class VppController(hostId: UUID,
                 }
 
             Future.sequence(addedFutures ++ removedFutures)
+        }
+    }
+
+    private def updateFlowStateFlows(tunnelRoutes: Seq[UnderlayResolver.Route])
+            : Future[Any] = {
+        val vppPort = datapathState.tunnelFip64VxLanPort.getPortNo
+
+        val newSetup = new Fip64FlowStateFlows(vppOvs, vppPort,
+                                               tunnelRoutes,
+                                               Logger(log.underlying))
+        val previous = uplinkFlowStateFlows
+        uplinkFlowStateFlows = Some(newSetup)
+
+        previous match {
+            case Some(flows) =>
+                flows.rollback() flatMap { _ =>
+                    newSetup.execute()
+                }
+            case None =>
+                newSetup.execute()
         }
     }
 }
