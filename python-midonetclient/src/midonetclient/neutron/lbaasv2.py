@@ -63,7 +63,7 @@ class LBaaSv2ClientMixin(LBaaSv2UrlProviderMixin):
 
     def create_loadbalancerv2(self, data):
         return self.client.post(self.loadbalancersv2_url(),
-                                mt.LOAD_BALANCERS_V2, body=data)
+                                mt.LOAD_BALANCER_V2, body=data)
 
     def update_loadbalancerv2(self, id, data):
         return self.client.put(self.loadbalancerv2_url(id),
@@ -73,7 +73,7 @@ class LBaaSv2ClientMixin(LBaaSv2UrlProviderMixin):
         self.client.delete(self.loadbalancerv2_url(id))
 
     def create_poolv2(self, data):
-        return self.client.post(self.poolsv2_url(), mt.POOLS_V2, body=data)
+        return self.client.post(self.poolsv2_url(), mt.POOL_V2, body=data)
 
     def update_poolv2(self, id, data):
         return self.client.put(self.poolv2_url(id), mt.POOL_V2, data)
@@ -82,7 +82,7 @@ class LBaaSv2ClientMixin(LBaaSv2UrlProviderMixin):
         self.client.delete(self.poolv2_url(id))
 
     def create_memberv2(self, data):
-        return self.client.post(self.membersv2_url(), mt.POOL_MEMBERS_V2,
+        return self.client.post(self.membersv2_url(), mt.POOL_MEMBER_V2,
                                 body=data)
 
     def update_memberv2(self, id, data):
@@ -92,7 +92,7 @@ class LBaaSv2ClientMixin(LBaaSv2UrlProviderMixin):
         self.client.delete(self.memberv2_url(id))
 
     def create_listenerv2(self, data):
-        return self.client.post(self.listenersv2_url(), mt.LISTENERS_V2,
+        return self.client.post(self.listenersv2_url(), mt.LISTENER_V2,
                                 body=data)
 
     def update_listenerv2(self, id, data):
@@ -103,7 +103,7 @@ class LBaaSv2ClientMixin(LBaaSv2UrlProviderMixin):
 
     def create_healthmonitorv2(self, data):
         return self.client.post(self.healthmonitorsv2_url(),
-                                mt.HEALTH_MONITORS_V2, body=data)
+                                mt.HEALTH_MONITOR_V2, body=data)
 
     def update_healthmonitorv2(self, id, data):
         return self.client.put(self.healthmonitorv2_url(id),

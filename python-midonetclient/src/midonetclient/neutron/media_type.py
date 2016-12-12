@@ -90,21 +90,11 @@ LOGGING_RESOURCES = ("application/vnd.org.midonet.neutron"
 # LBaaSv2
 LOAD_BALANCER_V2 = ("application/vnd.org.midonet.neutron.lb"
                     ".LoadBalancerV2-v1+json")
-LOAD_BALANCERS_V2 = ("application/vnd.org.midonet.neutron.lb."
-                     "LoadBalancersV2-v1+json")
 LISTENER_V2 = ("application/vnd.org.midonet.neutron.lb."
                "ListenerV2-v1+json")
-LISTENERS_V2 = ("application/vnd.org.midonet.neutron.lb."
-                "ListenersV2-v1+json")
 POOL_V2 = ("application/vnd.org.midonet.neutron.lb."
            "PoolV2-v1+json")
-POOLS_V2 = ("application/vnd.org.midonet.neutron.lb."
-            "PoolsV2-v1+json")
 POOL_MEMBER_V2 = ("application/vnd.org.midonet.neutron.lb."
                   "PoolMemberV2-v1+json")
-POOL_MEMBERS_V2 = ("application/vnd.org.midonet.neutron.lb."
-                   "PoolMembersV2-v1+json")
 HEALTH_MONITOR_V2 = ("application/vnd.org.midonet.neutron.lb."
                      "HealthMonitorV2-v1+json")
-HEALTH_MONITORS_V2 = ("application/vnd.org.midonet.neutron.lb."
-                      "HealthMonitorsV2-v1+json")
