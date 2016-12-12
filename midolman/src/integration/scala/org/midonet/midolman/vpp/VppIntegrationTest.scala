@@ -642,5 +642,25 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
                 deleteDatapath(datapath, log)
             }
         }
+
+        scenario("State receiving flows") {
+            val datapath = createDatapath("foobar")
+            try {
+                val ovs = new VppOvs(datapath)
+                val vpp = ovs.createVxlanDpPort("vpp", 5321)
+                val overlay1 = ovs.createVxlanDpPort("overlay1", 5322)
+                val overlay2 = ovs.createVxlanDpPort("overlay2", 5323)
+
+                ovs.addFlowStateReceivingTunnelFlow(overlay1.getPortNo,
+                                                    vpp.getPortNo)
+                ovs.addFlowStateReceivingTunnelFlow(overlay2.getPortNo,
+                                                    vpp.getPortNo)
+                ovs.clearFlowStateReceivingTunnelFlow(overlay1.getPortNo)
+                ovs.clearFlowStateReceivingTunnelFlow(overlay2.getPortNo)
+            } finally {
+                deleteDatapath(datapath, log)
+            }
+        }
+
     }
 }
