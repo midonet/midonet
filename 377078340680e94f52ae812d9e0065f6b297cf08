@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_119576e3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-12T23:37:42Z",
+      "side": 1,
+      "message": "how about this?",
+      "range": {
+        "startLine": 189,
+        "startChar": 53,
+        "endLine": 189,
+        "endChar": 54
+      },
+      "revId": "377078340680e94f52ae812d9e0065f6b297cf08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
