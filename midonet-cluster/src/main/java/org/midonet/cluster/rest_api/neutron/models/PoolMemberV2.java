@@ -41,7 +41,7 @@ public class PoolMemberV2 extends ZoomObject {
     public String tenantId;
 
     @ZoomField(name = "address", converter = IPAddressUtil.Converter.class)
-    public Commons.IPAddress address;
+    public String address;
 
     @JsonProperty("admin_state_up")
     @ZoomField(name = "admin_state_up")
