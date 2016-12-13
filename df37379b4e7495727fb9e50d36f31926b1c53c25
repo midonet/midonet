@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_92098134",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T20:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_f2dc4548",
+      "revId": "df37379b4e7495727fb9e50d36f31926b1c53c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_7255d5c4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
         "patchSetId": 6
@@ -48,6 +66,30 @@
       "writtenOn": "2016-12-13T17:02:59Z",
       "side": 1,
       "message": "private",
+      "range": {
+        "startLine": 55,
+        "startChar": 4,
+        "endLine": 55,
+        "endChar": 13
+      },
+      "revId": "df37379b4e7495727fb9e50d36f31926b1c53c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_7206f521",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T20:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_7255d5c4",
       "range": {
         "startLine": 55,
         "startChar": 4,
@@ -83,6 +125,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_5203f90f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T20:53:24Z",
+      "side": 1,
+      "message": "SafeSubscriber is just a wrapper over Subscriber, so still requires all three methods implemented. I reduced a bit code by using Observer.create() methods that creates subscriber from actions",
+      "parentUuid": "3ab451fb_9248612f",
+      "range": {
+        "startLine": 57,
+        "startChar": 38,
+        "endLine": 57,
+        "endChar": 46
+      },
+      "revId": "df37379b4e7495727fb9e50d36f31926b1c53c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_f2c9e5ad",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
         "patchSetId": 6
@@ -94,6 +160,24 @@
       "writtenOn": "2016-12-13T17:02:59Z",
       "side": 1,
       "message": "shouldn\u0027t gateways be cleared?",
+      "revId": "df37379b4e7495727fb9e50d36f31926b1c53c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_2dfff202",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T20:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_f2c9e5ad",
       "revId": "df37379b4e7495727fb9e50d36f31926b1c53c25",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -123,6 +207,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_0d043613",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T20:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_d2cee9b3",
+      "range": {
+        "startLine": 187,
+        "startChar": 8,
+        "endLine": 187,
+        "endChar": 28
+      },
+      "revId": "df37379b4e7495727fb9e50d36f31926b1c53c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_b2c47d92",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
         "patchSetId": 6
@@ -134,6 +242,30 @@
       "writtenOn": "2016-12-13T17:02:59Z",
       "side": 1,
       "message": "remove also returns boolean",
+      "range": {
+        "startLine": 199,
+        "startChar": 17,
+        "endLine": 199,
+        "endChar": 23
+      },
+      "revId": "df37379b4e7495727fb9e50d36f31926b1c53c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_ed08ea2a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T20:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_b2c47d92",
       "range": {
         "startLine": 199,
         "startChar": 17,
