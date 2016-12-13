@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_43b6953e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-13T04:11:53Z",
+      "side": 1,
+      "message": "If you\u0027re submitting another patch, it would be preferable to not have JIRA ticket ID in the commit subject line but add it the body, esp since this information is useless for those outside of midokura.",
+      "revId": "ed7e2020dc156529a7ab732623898a82ac7df065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
