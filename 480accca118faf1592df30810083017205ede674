@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_a3af99e2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ListenerV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-13T04:04:39Z",
+      "side": 1,
+      "message": "Don\u0027t you have to clear it also?",
+      "revId": "480accca118faf1592df30810083017205ede674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
