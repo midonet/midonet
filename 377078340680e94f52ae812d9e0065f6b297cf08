@@ -22,6 +22,30 @@
       "revId": "377078340680e94f52ae812d9e0065f6b297cf08",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_4669038b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-12-13T08:58:53Z",
+      "side": 1,
+      "message": "right, I didn\u0027t understand what the packet actions were doing and I forgot to update after I looked it up. Will change in the next patchset.",
+      "parentUuid": "3ab451fb_119576e3",
+      "range": {
+        "startLine": 189,
+        "startChar": 53,
+        "endLine": 189,
+        "endChar": 54
+      },
+      "revId": "377078340680e94f52ae812d9e0065f6b297cf08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
