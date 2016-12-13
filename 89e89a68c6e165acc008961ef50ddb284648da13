@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_43a7b54f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-13T07:49:12Z",
+      "side": 1,
+      "message": "Do I? For what?",
+      "parentUuid": "3ab451fb_e3e6c1e7",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_431d75bc",
         "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-12-13T06:48:00Z",
       "side": 1,
       "message": "You will use HaProxyContainerConfig to set this interval in the later patch?",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_03688df4",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-13T07:49:12Z",
+      "side": 1,
+      "message": "Oh, right. I guess I should do it in a new version of this patch. I\u0027m still working on unit tests, so I\u0027ll add this in the next version.",
+      "parentUuid": "3ab451fb_431d75bc",
       "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -64,6 +100,24 @@
       "writtenOn": "2016-12-13T06:48:00Z",
       "side": 1,
       "message": "Not a comment but a question.  How does createPromise get set to null?",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_c37185e2",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-13T07:49:12Z",
+      "side": 1,
+      "message": "That was supposed to happen two lines up. I\u0027ll add it.",
+      "parentUuid": "3ab451fb_a3267914",
       "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -105,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_437e95af",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-13T07:49:12Z",
+      "side": 1,
+      "message": "PoolHealthMonitorEntry doesn\u0027t have an adminStateUp for the pool. I thought it was because it just didn\u0027t emit entries for pools that are down, but on closer inspection, it looks like it does. I don\u0027t know why that is. Maybe this is correct, and for this purpose we just don\u0027t care whether it\u0027s up or down.",
+      "parentUuid": "3ab451fb_437455fc",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_83237d05",
         "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
         "patchSetId": 1
@@ -116,6 +188,24 @@
       "writtenOn": "2016-12-13T06:48:00Z",
       "side": 1,
       "message": "Why not just import at the top of the file?",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_a35e7943",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-13T07:49:12Z",
+      "side": 1,
+      "message": "I could, but this is the only place it\u0027s used, and Code seems like a generic enough type name that I thought it would be clearer to import here, so that the import statement and uses are visible at the same time.",
+      "parentUuid": "3ab451fb_83237d05",
       "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
