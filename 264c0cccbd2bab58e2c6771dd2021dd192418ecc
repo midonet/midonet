@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_4331f5eb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-13T03:49:19Z",
+      "side": 1,
+      "message": "you added getNetworkTOS L422 in this patch.\nit made this line redundant.",
+      "parentUuid": "3ab451fb_2326e9ba",
+      "range": {
+        "startLine": 426,
+        "startChar": 12,
+        "endLine": 426,
+        "endChar": 65
+      },
+      "revId": "264c0cccbd2bab58e2c6771dd2021dd192418ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_3103d211",
         "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
         "patchSetId": 1
