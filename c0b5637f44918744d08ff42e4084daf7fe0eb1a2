@@ -99,6 +99,30 @@
       "revId": "c0b5637f44918744d08ff42e4084daf7fe0eb1a2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_63c87175",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-13T05:41:03Z",
+      "side": 1,
+      "message": "ok, it makes sense.\nin that case, i\u0027d suggest to leave comments to explain these are workarounds for a possible bug, probably with a jira reference.",
+      "parentUuid": "3ab451fb_83e49d0d",
+      "range": {
+        "startLine": 102,
+        "startChar": 36,
+        "endLine": 102,
+        "endChar": 38
+      },
+      "revId": "c0b5637f44918744d08ff42e4084daf7fe0eb1a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
