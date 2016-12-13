@@ -47,7 +47,7 @@ abstract class VppExecutor extends AbstractService with Logging {
 
     private val belt = new ConveyorBelt(t => {
         log.error("Error on conveyor belt", t)
-    })
+    })(ec)
 
     protected def newExecutor: ExecutorService = {
         Executors.singleThreadScheduledExecutor(

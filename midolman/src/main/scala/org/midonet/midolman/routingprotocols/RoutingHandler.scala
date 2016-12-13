@@ -313,7 +313,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
     protected val belt = new ConveyorBelt(e => {
         log.error("Error while processing message ", e)
-    })
+    })(singleThreadExecutionContext)
     private val learnedRoutesHandler = new Runnable {
         override def run(): Unit = {self ! SyncPeerRoutes }
     }
