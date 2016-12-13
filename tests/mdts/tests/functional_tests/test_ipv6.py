@@ -132,24 +132,19 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
                                                              ip4PoolEnd,
                                                              tableId))
 
-    def cleanup_remote_host(self, container, interface, address):
+    def cleanup_remote_host_common(self, container):
         cont = service.get_container_by_hostname(container)
         cont.exec_command('ip r del 100.0.0.0/8')
-        cont.exec_command('ip a del %s/64 dev %s' % (address, interface))
         cont.exec_command('ip -6 r del cccc:bbbb::/32')
         cont.exec_command('ip -6 r del cccc:cccc::/32')
 
         cont.exec_command('ip netns delete ip6')
 
-    def setup_remote_host(self, container, interface, gw_address,
-                          local_address, local_router):
-        self.addCleanup(self.cleanup_remote_host, container, interface, gw_address)
+    def setup_remote_host_common(self, container, local_address, local_router):
+        self.addCleanup(self.cleanup_remote_host_common, container)
         cont = service.get_container_by_hostname(container)
 
         cont.try_command_blocking('ip r add 100.0.0.0/8 via 10.1.0.1')
-        cont.try_command_blocking('ip a add %s/64 dev %s' % (gw_address, interface))
-        cont.try_command_blocking('ip -6 r add cccc:bbbb::/32 via 2001::1')
-        cont.try_command_blocking('ip -6 r add cccc:cccc::/32 via 2001::1')
 
         # enable ip6 forwarding
         cont.try_command_blocking('sysctl net.ipv6.conf.all.forwarding=1')
@@ -168,6 +163,18 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
             'ip netns exec ip6 ip a add %s/48 dev ip6ns' % local_address)
         cont.try_command_blocking(
             'ip netns exec ip6 ip -6 r add default via %s' % local_router)
+
+    def cleanup_remote_host_per_uplink(self, container, interface, address, gw_address):
+        cont = service.get_container_by_hostname(container)
+        cont.exec_command('ip a del %s/64 dev %s' % (address, interface))
+
+    def setup_remote_host_per_uplink(self, container, interface, address, gw_address, set_as_fip_gateway=True):
+        self.addCleanup(self.cleanup_remote_host_per_uplink, container, interface, address, gw_address)
+        cont = service.get_container_by_hostname(container)
+        cont.try_command_blocking('ip a add %s/64 dev %s' % (address, interface))
+        if set_as_fip_gateway:
+            cont.try_command_blocking('ip -6 r add cccc:bbbb::/32 via %s' % (gw_address))
+            cont.try_command_blocking('ip -6 r add cccc:cccc::/32 via %s' % (gw_address))
 
     def add_mn_router_port(self, name, router_id, port_address,
                            network_addr, network_len):
@@ -229,52 +236,70 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
             timeout -= curr_moment
         raise RuntimeError("Timed out waiting vpp to initialize")
 
+class PeerInterface:
+    def __init__(self, container, interface, ip, local_cidr):
+        self.container = container
+        self.interface = interface
+        self.ip = ip
+        self.local_cidr = local_cidr
 
 class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
     def __init__(self):
         super(UplinkWithVPP, self).__init__()
-        self.uplink_port = {}
         self.vrf = 0
 
     def build(self, binding_data=None):
         self._edgertr = self.create_router("edge")
-        uplinknet = self.create_network("uplink", uplink=True)
-        self.create_subnet("uplinksubnet6", uplinknet, "2001::/64",
+
+        self.setup_remote_host_common('quagga1', 'bbbb::2', 'bbbb::1')
+        self.setup_remote_host_common('quagga2', 'eeee::2', 'eeee::1')
+
+        self._addUplink("midolman1", "2001::/64", "2001::1",
+                        [PeerInterface('quagga1', 'bgp1', '2001::2', 'bbbb::/64'),
+                         PeerInterface('quagga2', 'bgp2', '2001::3', 'eeee::/64')])
+        #self._addUplink("midolman2", "2002::/64", "2002::1",
+        #                [
+                        # PeerInterface('quagga1', 'bgp2', '2002::2', 'bbbb::/64'),
+                        # PeerInterface('quagga2', 'bgp1', '2002::3', 'eeee::/64')
+        #                ], set_as_fip_gateway=False)
+
+    def _addUplink(self, container, cidr, ip, peers, set_as_fip_gateway=True):
+        uplinknet = self.create_network("uplink-%s" % (container), uplink=True)
+        self.create_subnet("uplinksubnet6-%s" % (container), uplinknet, cidr,
                            enable_dhcp=False, version=6)
 
-        self.uplink_port = self.create_port("uplinkport", uplinknet,
-                                            host_id="midolman1",
+        uplink_port = {}
+        uplink_port = self.create_port("uplinkport", uplinknet,
+                                            host_id=container,
                                             interface="bgp0",
-                                            fixed_ips=["2001::1"])
-        self.add_router_interface(self._edgertr, port=self.uplink_port)
+                                            fixed_ips=[ip])
+        self.add_router_interface(self._edgertr, port=uplink_port)
 
         # setup quagga1
-        self.setup_remote_host('quagga1', 'bgp1',
-            gw_address="2001::2",
-            local_address="bbbb::2",
-            local_router="bbbb::1")
-        self.setup_remote_host('quagga2', 'bgp2',
-            gw_address="2001::3",
-            local_address="eeee::2",
-            local_router="eeee::1")
+        for peer in peers:
+            self.setup_remote_host_per_uplink(
+                peer.container,
+                peer.interface,
+                peer.ip,
+                ip,
+                set_as_fip_gateway)
 
-        self.flush_neighbours('quagga1', 'bgp1')
-        self.flush_neighbours('quagga2', 'bgp2')
-        self.flush_neighbours('midolman1', 'bgp0')
+        for peer in peers:
+            self.flush_neighbours(peer.container, peer.interface)
 
-        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
+        self.flush_neighbours(container, 'bgp0')
+
+        uplink_port_id = self.get_mn_uplink_port_id(uplink_port)
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
 
-        self.await_vpp_initialized('midolman1', uplink_port_name, 180)
-        self.add_route_to_vpp('midolman1',
-                              prefix='bbbb::/64',
-                              via='2001::2',
-                              port=uplink_port_name)
-        self.add_route_to_vpp('midolman1',
-                              prefix='eeee::/64',
-                              via='2001::3',
-                              port=uplink_port_name)
+        self.await_vpp_initialized(container, uplink_port_name, 180)
+
+        for peer in peers:
+            self.add_route_to_vpp(container,
+                                  prefix=peer.local_cidr,
+                                  via=peer.ip,
+                                  port=uplink_port_name)
 
     def addTenant(self, name, pubnet, mac, port_name):
 
@@ -473,7 +498,7 @@ binding_multihost_singletenant_neutronfip6 = {
          {'vport': 'port1',
          'interface': {
              'definition': {"ipv4_gw": "192.168.0.1"},
-             'hostname': 'midolman2',
+             'hostname': 'midolman3',
              'type': 'vmguest'
          }}
     ]
@@ -704,6 +729,7 @@ def test_neutron_fip6():
     """
     Title: create and associates a IPv6 FIP in neutron checking connectivity
     """
+    import ipdb; ipdb.set_trace() # ip netns exec ip6 ping6 cccc:bbbb::3 -c 10
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
 
 BM = BindingManager(vtm=MultiTenantAndUplinkWithVPP())
