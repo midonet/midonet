@@ -258,7 +258,7 @@ trait VirtualConfigurationBuilders {
     def newQosPolicy(): UUID
     def newQosBWLimitRule(policyId: UUID,
                           maxKbps: Int,
-                          maxBurstKbps: Option[Int]): UUID
+                          maxBurstKb: Option[Int]): UUID
     def newQosDscpRule(policyId: UUID,
                        dscpMark: Int): UUID
 
@@ -505,8 +505,8 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.newQosPolicy()
     override def newQosBWLimitRule(policyId: UUID,
                                    maxKbps: Int,
-                                   maxBurstKbps: Option[Int]): UUID =
-        virtConfBuilderImpl.newQosBWLimitRule(policyId, maxKbps, maxBurstKbps)
+                                   maxBurstKb: Option[Int]): UUID =
+        virtConfBuilderImpl.newQosBWLimitRule(policyId, maxKbps, maxBurstKb)
     override def newQosDscpRule(policyId: UUID,
                                 dscpMark: Int): UUID =
         virtConfBuilderImpl.newQosDscpRule(policyId, dscpMark)

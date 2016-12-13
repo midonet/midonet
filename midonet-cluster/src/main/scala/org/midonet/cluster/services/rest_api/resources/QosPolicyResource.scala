@@ -67,8 +67,8 @@ class QosPolicyResource @Inject()(resContext: ResourceContext)
                 val newRule = new QosRuleBandwidthLimit
                 newRule.id = rule.id
                 if (rule.maxKbps != null) newRule.maxKbps = rule.maxKbps
-                if (rule.maxBurstKbps != null)
-                    newRule.maxBurstKbps = rule.maxBurstKbps
+                if (rule.maxBurstKb != null)
+                    newRule.maxBurstKb = rule.maxBurstKb
                 newRule.policyId = pol.id
                 tx.create(newRule)
             case QosPolicy.QosRule.QOS_RULE_TYPE_DSCP =>
@@ -88,9 +88,9 @@ class QosPolicyResource @Inject()(resContext: ResourceContext)
             case QosPolicy.QosRule.QOS_RULE_TYPE_BW_LIMIT =>
                 val zoomRule = tx.get(classOf[QosRuleBandwidthLimit], ruleId)
                 if (zoomRule.maxKbps != newRule.maxKbps
-                  || zoomRule.maxBurstKbps != newRule.maxBurstKbps) {
+                  || zoomRule.maxBurstKb != newRule.maxBurstKb) {
                     zoomRule.maxKbps = newRule.maxKbps
-                    zoomRule.maxBurstKbps = newRule.maxBurstKbps
+                    zoomRule.maxBurstKb = newRule.maxBurstKb
                     tx.update(zoomRule)
                 }
             case QosPolicy.QosRule.QOS_RULE_TYPE_DSCP =>

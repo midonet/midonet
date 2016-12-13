@@ -423,7 +423,7 @@ message PortGroup {
 message QosRuleBandwidthLimit {
     optional UUID id = 1;
     optional int32 max_kbps = 2;
-    optional int32 max_burst_kbps = 3;
+    optional int32 max_burst_kb = 3;
 
     // Backreferences
     optional UUID policy_id = 101;
@@ -447,7 +447,7 @@ message QosPolicy {
         optional UUID id = 1;
         optional string type = 2;
         optional int32 max_kbps = 3;
-        optional int32 max_burst_kbps = 4;
+        optional int32 max_burst_kb = 4;
         optional int32 dscp_mark = 5;
     }
 

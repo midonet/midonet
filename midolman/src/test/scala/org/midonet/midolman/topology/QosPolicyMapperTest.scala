@@ -377,14 +377,14 @@ class QosPolicyMapperTest extends MidolmanSpec
             val bwRuleId = simPol.bandwidthRules.head.id
             val tpBwRule =
                 vt.store.get(classOf[QosRuleBandwidthLimit], bwRuleId).await()
-            vt.store.update(tpBwRule.toBuilder.setMaxBurstKbps(2000).build())
+            vt.store.update(tpBwRule.toBuilder.setMaxBurstKb(2000).build())
             obs.awaitOnNext(2, timeout)
 
             val simPolBurstSet = obs.getOnNextEvents.get(1).qosPolicy
             checkSimPolicy(simPolBurstSet, Seq(BwData(1000, 2000)), Seq(12))
 
             // Update rule to clear burst and let default take over again.
-            tpBwRule.hasMaxBurstKbps shouldBe false
+            tpBwRule.hasMaxBurstKb shouldBe false
             vt.store.update(tpBwRule)
             obs.awaitOnNext(3, timeout)
 
@@ -405,7 +405,7 @@ class QosPolicyMapperTest extends MidolmanSpec
         }
     }
 
-    case class BwData(maxKbps: Int, maxBurstKbps: Option[Int])
+    case class BwData(maxKbps: Int, maxBurstKb: Option[Int])
     private def createQosPolicyAndRules(bwData: Seq[BwData],
                                         dscpMarks: Seq[Int]): UUID = {
         val pol = createQosPolicy()
@@ -414,7 +414,7 @@ class QosPolicyMapperTest extends MidolmanSpec
         val polId = pol.getId.asJava
         for (bw <- bwData) {
             vt.store.create(
-                createQosRuleBWLimit(polId, bw.maxKbps, bw.maxBurstKbps))
+                createQosRuleBWLimit(polId, bw.maxKbps, bw.maxBurstKb))
         }
 
         for (mark <- dscpMarks) {
@@ -453,7 +453,7 @@ class QosPolicyMapperTest extends MidolmanSpec
             pol.getDscpMarkingRuleIdsList.asScala.map(_.asJava)
 
         val simPolBwData =
-            simPol.bandwidthRules.map(r => BwData(r.maxKbps, r.maxBurstKbps))
+            simPol.bandwidthRules.map(r => BwData(r.maxKbps, r.maxBurstKb))
         simPolBwData should contain theSameElementsAs bwData
 
         val simPolDscpMarks = simPol.dscpRules.map(_.dscpMark)
