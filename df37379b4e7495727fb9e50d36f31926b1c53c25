@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_f2dc4548",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-13T17:31:10Z",
+      "side": 1,
+      "message": "this was my suggestion in order to generate fewer objects, but yeah - now there are several messages maybe you\u0027re right, it should be better to just create a case class",
+      "parentUuid": "3ab451fb_12d57142",
+      "revId": "df37379b4e7495727fb9e50d36f31926b1c53c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_7255d5c4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
         "patchSetId": 6
