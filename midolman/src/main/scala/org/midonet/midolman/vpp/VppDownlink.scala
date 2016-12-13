@@ -76,9 +76,10 @@ object VppDownlink {
       * A message that instructs the VPP controller to install a NAT64
       * translation rule for a new floating IP.
       */
-    case class AssociateFip(portId: UUID, vrfTable: Int, floatingIp: IPv6Addr,
-                            fixedIp: IPv4Addr, localIp: IPv4Subnet,
-                            natPool: NatTarget) extends Notification {
+    case class AssociateFip(portId: UUID, vrfTable: Int, vni: Int,
+                            floatingIp: IPv6Addr, fixedIp: IPv4Addr,
+                            localIp: IPv4Subnet, natPool: NatTarget)
+        extends Notification {
 
         override def toString: String =
             s"AssociateFip [port=$portId vrf=$vrfTable floatingIp=$floatingIp " +
@@ -150,7 +151,9 @@ object VppDownlink {
         def addFip(fip: Fip64Entry): Unit = {
             require(fip.portId == portId)
             if (fips.add(fip) && isReady) {
-                subject onNext AssociateFip(portId, vrfTable, fip.floatingIp,
+                subject onNext AssociateFip(portId, vrfTable,
+                                            currentPort.tunnelKey.toInt,
+                                            fip.floatingIp,
                                             fip.fixedIp,
                                             currentPort.portAddress4,
                                             currentRule.natPool)
@@ -308,6 +311,7 @@ object VppDownlink {
             while (iterator.hasNext) {
                 val fip = iterator.next()
                 notifications(index) = AssociateFip(portId, vrfTable,
+                                                    port.tunnelKey.toInt,
                                                     fip.floatingIp,
                                                     fip.fixedIp,
                                                     currentPort.portAddress4,

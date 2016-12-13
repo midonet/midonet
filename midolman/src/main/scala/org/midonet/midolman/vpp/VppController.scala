@@ -123,8 +123,8 @@ class VppController(hostId: UUID,
             createTunnel(portId, vrf, vni, routerPortMac)
         case DeleteTunnel(portId, vrf, vni) =>
             deleteTunnel(portId, vni)
-        case AssociateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool) =>
-            associateFip(portId, vrf, floatingIp, fixedIp, localIp, natPool)
+        case AssociateFip(portId, vrf, vni, floatingIp, fixedIp, localIp, natPool) =>
+            associateFip(portId, vrf, vni, floatingIp, fixedIp, localIp, natPool)
         case DisassociateFip(portId, vrf, floatingIp, fixedIp, localIp) =>
             disassociateFip(portId, vrf, floatingIp, fixedIp, localIp)
         case Cleanup =>
@@ -396,10 +396,11 @@ class VppController(hostId: UUID,
         }
     }
 
-    private def associateFip(portId: UUID, vrf: Int, floatingIp: IPv6Addr,
-                             fixedIp: IPv4Addr, localIp: IPv4Subnet,
-                             natPool: NatTarget): Future[_] = {
-        log debug s"Associating FIP at port $portId (VRF $vrf): " +
+    private def associateFip(portId: UUID, vrf: Int, vni: Int,
+                             floatingIp: IPv6Addr, fixedIp: IPv4Addr,
+                             localIp: IPv4Subnet, natPool: NatTarget)
+    : Future[_] = {
+        log debug s"Associating FIP at port $portId (VRF $vrf, VNI $vni): " +
                   s"$floatingIp -> $fixedIp"
 
         val pool = poolFor(portId, natPool)
@@ -408,7 +409,8 @@ class VppController(hostId: UUID,
             exec(s"vppctl ip route table $vrf add $fixedIp/32 " +
                  s"via ${localIp.getAddress}") flatMap { _ =>
                 exec(s"vppctl fip64 add $floatingIp $fixedIp " +
-                     s"pool ${pool.get.nwStart} ${pool.get.nwEnd} table $vrf")
+                     s"pool ${pool.get.nwStart} ${pool.get.nwEnd}" +
+                     s" table $vrf vni $vni")
             }
         } else {
             // We complete the future successfully, since there is nothing to

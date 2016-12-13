@@ -133,6 +133,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
                                             classOf[NatTarget])
         AssociateFip(portId = port.getId,
                      vrfTable = vrf,
+                     vni = port.getTunnelKey.toInt,
                      floatingIp = entry.floatingIp,
                      fixedIp = entry.fixedIp,
                      localIp = fromV4Proto(port.getPortSubnet(0)),
