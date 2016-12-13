@@ -16,9 +16,6 @@
 
 package org.midonet.util;
 
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,11 +32,10 @@ import static java.util.Arrays.copyOf;
 public class TokenBucket {
     public static final int UNLINKED = -1;
 
-    protected static final Logger log = LoggerFactory
-            .getLogger("org.midonet.io.htb");
-    protected static final boolean isTraceEnabled = log.isTraceEnabled();
+    static final Logger log = LoggerFactory.getLogger("org.midonet.io.htb");
+    static final boolean isTraceEnabled = log.isTraceEnabled();
 
-    protected final PaddedAtomicInteger numTokens = new PaddedAtomicInteger();
+    final PaddedAtomicInteger numTokens = new PaddedAtomicInteger();
     protected final String name;
     private final RootTokenBucket root;
     private final TokenBucket parent;
@@ -63,7 +59,7 @@ public class TokenBucket {
     // This field enables round-robin distributions, needed for fairness
     private int distributionIndex;
 
-    protected TokenBucket(int capacity, String name, TokenBucket parent) {
+    TokenBucket(int capacity, String name, TokenBucket parent) {
         this.capacity = capacity;
         this.name = name;
         this.parent = parent;
@@ -81,8 +77,7 @@ public class TokenBucket {
     }
 
     public void dumpToLog() {
-        log.info("name:{} cap:{} tokens:{}",
-            new Object[] { name, capacity, numTokens.get() });
+        log.info("name:{} cap:{} tokens:{}", name, capacity, numTokens.get());
 
         for (TokenBucket child : children) {
             if (child != null)
@@ -187,8 +182,8 @@ public class TokenBucket {
 
         int acquired = tokens - remaining;
         if (isTraceEnabled) {
-            log.trace("[{}|{}] got {}/{} tokens", new Object[] {
-                    Thread.currentThread().getId(), name, acquired, tokens });
+            log.trace("[{}|{}] got {}/{} tokens",
+                      Thread.currentThread().getId(), name, acquired, tokens);
         }
         return acquired;
     }
@@ -224,7 +219,7 @@ public class TokenBucket {
         return numTokens.get() == UNLINKED;
     }
 
-    protected final int tryTakeTokens(int tokens) {
+    private int tryTakeTokens(int tokens) {
         int ts;
         while ((ts = numTokens.get()) > 0) {
             int nts = Math.max(0, ts - tokens);
@@ -238,7 +233,7 @@ public class TokenBucket {
      * among this bucket's children. It returns any excess tokens that couldn't
      * be distributed.
      */
-    protected final int doDistribution(int tokens) {
+    final int doDistribution(int tokens) {
         boolean hasNonFullChildren;
         do {
             /* Give tokens to each non-full bucket. Note that a full bucket
@@ -293,10 +288,10 @@ public class TokenBucket {
      * will be space for the reserved tokens. We are also guaranteed buckets
      * aren't concurrently unlinked.
      */
-    protected final void applyReserved() {
+    final void applyReserved() {
         if (isTraceEnabled) {
-            log.trace("[{}|{}] got {} new tokens", new Object[] {
-                    Thread.currentThread().getId(), name, reservedTokens });
+            log.trace("[{}|{}] got {} new tokens",
+                    Thread.currentThread().getId(), name, reservedTokens);
         }
 
         if (reservedTokens > 0) {
@@ -435,8 +430,8 @@ final class RootTokenBucket extends TokenBucket {
             int newTokens = rate.getNewTokens() + numTokens.get();
             if (newTokens > 0) {
                 if (isTraceEnabled) {
-                    log.trace("[{}|{}] distributing {} new tokens", new Object[] {
-                            Thread.currentThread().getId(), name, newTokens });
+                    log.trace("[{}|{}] distributing {} new tokens",
+                              Thread.currentThread().getId(), name, newTokens);
                 }
 
                 int excess = doDistribution(newTokens);
@@ -449,7 +444,7 @@ final class RootTokenBucket extends TokenBucket {
 
                 if (isTraceEnabled) {
                     log.trace("[{}|{}] finished distribution with {} excess tokens",
-                            new Object[] { Thread.currentThread().getId(), name, excess });
+                              Thread.currentThread().getId(), name, excess);
                 }
             }
 
