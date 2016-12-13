@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_e3e6c1e7",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-13T06:48:00Z",
+      "side": 1,
+      "message": "Don\u0027t you need to create an ExecutionContext from this executor?\n\n    private implicit val ec \u003d ExecutionContext.fromExecutor(containerExecutor)",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_431d75bc",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-13T06:48:00Z",
+      "side": 1,
+      "message": "You will use HaProxyContainerConfig to set this interval in the later patch?",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_23ddc914",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-13T06:48:00Z",
+      "side": 1,
+      "message": "Logging here would be useful",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_a3267914",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-13T06:48:00Z",
+      "side": 1,
+      "message": "Not a comment but a question.  How does createPromise get set to null?",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_231269b5",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-13T06:48:00Z",
+      "side": 1,
+      "message": "Shouldn\u0027t adminStateUp arg be set to match pool\u0027s adminStateUp?",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_83237d05",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-13T06:48:00Z",
+      "side": 1,
+      "message": "Why not just import at the top of the file?",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
