@@ -257,7 +257,7 @@ message NeutronLoadBalancerV2Pool {
     repeated UUID members = 7;
     optional UUID healthmonitor_id = 8;
     optional UUID listener_id = 9;
-    repeated UUID listeners = 10;
+    repeated NeutronLoadBalancerV2Listener listeners = 10;
     repeated NeutronLoadBalancerV2 loadbalancers = 11;
     optional LoadBalancerV2Protocol protocol = 12;
     message LBV2SessionPersistenceAlgorithm {

@@ -71,7 +71,7 @@ public class PoolV2 extends ZoomObject {
     public UUID listenerId;
 
     @ZoomField(name = "listeners")
-    public List<UUID> listeners = new ArrayList<>();
+    public List<ListenerV2> listeners = new ArrayList<>();
 
     @JsonProperty("loadbalancers")
     @ZoomField(name = "loadbalancers")
