@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_2326e9ba",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-13T03:47:02Z",
+      "side": 1,
+      "message": "But it\u0027s not a part of this patch, so I think I should not change it here.  Instead let\u0027s change it in a subsequent patch so as not to introduce unrelated changes/unintended effects.  Is that okay?",
+      "parentUuid": "3ab451fb_a313195c",
+      "range": {
+        "startLine": 426,
+        "startChar": 12,
+        "endLine": 426,
+        "endChar": 65
+      },
+      "revId": "264c0cccbd2bab58e2c6771dd2021dd192418ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_3103d211",
         "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
         "patchSetId": 1
@@ -59,6 +83,24 @@
       "writtenOn": "2016-12-13T03:42:50Z",
       "side": 1,
       "message": "you should verify if ecn bits are preserved",
+      "revId": "264c0cccbd2bab58e2c6771dd2021dd192418ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_e31fe159",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-13T03:47:02Z",
+      "side": 1,
+      "message": "Unfortunately, they are not; I already checked.  The entire TOS field seems to be erased in the originating packet during the midolman simulation.  I have no control over that.  FlowKeys code apparently just sets the TOS field to 0 at the start of simulation.  So, this is a way bigger issue than just this patch and I would suggest we fix it separately, if that\u0027s okay.",
+      "parentUuid": "3ab451fb_3103d211",
       "revId": "264c0cccbd2bab58e2c6771dd2021dd192418ecc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
