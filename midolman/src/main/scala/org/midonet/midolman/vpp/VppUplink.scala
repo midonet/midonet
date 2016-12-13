@@ -34,7 +34,7 @@ import rx.{Observable, Observer, Subscriber, Subscription}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.services.MidolmanActorsService._
-import org.midonet.midolman.simulation.{PortGroup, RouterPort}
+import org.midonet.midolman.simulation.{Port, PortGroup, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{ObjectReferenceTracker, VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.VppUplink.{Notification, UplinkState}
@@ -88,8 +88,9 @@ object VppUplink {
             vt, classOf[PortGroup], log)
 
         private val portObservable = VirtualTopology
-            .observable(classOf[RouterPort], portId)
+            .observable(classOf[Port], portId)
             .takeUntil(mark)
+            .takeWhile(makeFunc1(isRouterPort))
             .doOnCompleted(makeAction0(portDeleted()))
             .doOnNext(makeAction1(portUpdated))
 
@@ -133,10 +134,17 @@ object VppUplink {
         }
 
         /**
+          * Returns true if the port is a router port with an IPv6 address.
+          */
+        @inline private def isRouterPort(port: Port): Boolean = {
+            port.isInstanceOf[RouterPort]
+        }
+
+        /**
           * Handles the port deletion, by completing the output observable.
           */
         private def portDeleted(): Unit = {
-            log debug s"Port $portId deleted"
+            log debug s"Port $portId deleted or not a router port"
             portGroupTracker.completeRefs()
         }
 
@@ -145,12 +153,12 @@ object VppUplink {
           * port groups, and when both the port and the port groups are ready,
           * it will emit a [[AddUplink]] notification.
           */
-        private def portUpdated(port: RouterPort): Unit = {
+        private def portUpdated(port: Port): Unit = {
             log debug s"Port updated $port"
 
             // Track the current port groups.
             portGroupTracker.requestRefs(port.portGroups.asScala: _*)
-            currentPort = port
+            currentPort = port.asInstanceOf[RouterPort]
         }
 
         /**

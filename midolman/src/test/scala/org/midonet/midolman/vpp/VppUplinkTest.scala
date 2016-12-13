@@ -116,6 +116,23 @@ class VppUplinkTest extends MidolmanSpec with TopologyBuilder {
             vpp.messages shouldBe empty
         }
 
+        scenario("Non-router ports are ignored") {
+            Given("A VPP uplink instance")
+            val vpp = createVppUplink()
+
+            And("A port")
+            val bridge = createBridge()
+            val port = createBridgePort(bridgeId = Some(bridge.getId.asJava))
+            backend.store.multi(Seq(CreateOp(bridge), CreateOp(port)))
+
+            When("The port becomes active")
+            VirtualToPhysicalMapper.setPortActive(port.getId.asJava, 0,
+                                                  active = true, 0)
+
+            Then("The controller should ignore the port")
+            vpp.messages shouldBe empty
+        }
+
         scenario("Port with IPv6 address becomes active and inactive") {
             Given("A VPP uplink instance")
             val vpp = createVppUplink()
