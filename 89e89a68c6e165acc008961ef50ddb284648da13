@@ -87,6 +87,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_437455fc",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-13T06:56:07Z",
+      "side": 1,
+      "message": "Oh is it because health monitor config is not affected by pool\u0027s adminStateUp?  In that case, do you even need adminStateUp in PoolV2Config?",
+      "parentUuid": "3ab451fb_231269b5",
+      "revId": "89e89a68c6e165acc008961ef50ddb284648da13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_83237d05",
         "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
         "patchSetId": 1
