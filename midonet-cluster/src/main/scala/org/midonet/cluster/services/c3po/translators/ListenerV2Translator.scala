@@ -79,7 +79,9 @@ class ListenerV2Translator
     : Unit = {
         val oldBldr = tx.get(classOf[Vip], nL.getId).toBuilder
         oldBldr.setAdminStateUp(nL.getAdminStateUp)
-        oldBldr.setPoolId(nL.getDefaultPoolId)
+        if (nL.hasDefaultPoolId) {
+            oldBldr.setPoolId(nL.getDefaultPoolId)
+        }
         tx.update(oldBldr.build())
     }
 
