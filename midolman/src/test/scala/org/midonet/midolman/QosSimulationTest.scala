@@ -80,8 +80,8 @@ class QosSimulationTest extends MidolmanSpec {
     scenario("dscp mark is added to IPv4 packets") {
         val srcMac = "02:11:22:33:44:10"
         val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
-          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 0 } <<
-          { udp src 10 dst 11 } << payload("My UDP packet")
+                     { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 0 } <<
+                     { udp src 10 dst 11 } << payload("My UDP packet")
 
         val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
 
@@ -90,10 +90,24 @@ class QosSimulationTest extends MidolmanSpec {
         verifyDSCP(ctxOut, 22)
     }
 
+    scenario("dscp mark is added to IPv4 packets with ECN set") {
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+                     { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 1 } <<
+                     { udp src 10 dst 11 } << payload("My UDP packet")
+
+        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
+
+        val (result, ctxOut) = simulate(ctx)
+
+        verifyDSCP(ctxOut, 22)
+    }
+
+
     scenario("dscp mark is kept on IPv4 packets when ToS is same as DSCP mark") {
         val srcMac = "02:11:22:33:44:10"
         val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
-          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 22 } <<
+          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 88 } <<
           { udp src 10 dst 11 } << payload("My UDP packet")
         val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
 
@@ -119,7 +133,8 @@ class QosSimulationTest extends MidolmanSpec {
         ctx.calculateActionsFromMatchDiff()
 
         ctx.wcmatch.isSeen(FlowMatch.Field.NetworkTOS) shouldBe true
-        ctx.wcmatch.getNetworkTOS shouldBe dscpMark
+        // Must shift away the ECN field
+        ctx.wcmatch.getNetworkTOS >> 2 shouldBe dscpMark
 
         if (requireSetKeyAction) {
             val flowActions: Set[FlowKey] = ctx.virtualFlowActions filter
@@ -129,8 +144,8 @@ class QosSimulationTest extends MidolmanSpec {
 
             flowActions should not be empty
 
-            val tosActions = flowActions filter
-              (_.asInstanceOf[FlowKeyIPv4].ipv4_tos == dscpMark.toByte)
+            val tosActions = flowActions filter (key =>
+                (key.asInstanceOf[FlowKeyIPv4].ipv4_tos >> 2) == dscpMark.toByte)
 
             tosActions should not be empty
         }
