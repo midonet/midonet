@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_03d88d52",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-13T05:36:12Z",
+      "side": 1,
+      "message": "Ryu just told me not to include midonet-specific bug information in the commit message (?)",
+      "parentUuid": "3ab451fb_63be3101",
+      "revId": "c0b5637f44918744d08ff42e4084daf7fe0eb1a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_83481d2f",
         "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
         "patchSetId": 4
@@ -30,6 +48,30 @@
       "writtenOn": "2016-12-13T05:17:16Z",
       "side": 1,
       "message": "isn\u0027t it easier to fix fromEthernetPacket than working around?",
+      "range": {
+        "startLine": 102,
+        "startChar": 36,
+        "endLine": 102,
+        "endChar": 38
+      },
+      "revId": "c0b5637f44918744d08ff42e4084daf7fe0eb1a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_83e49d0d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-13T05:36:12Z",
+      "side": 1,
+      "message": "I\u0027d rather not risk unforeseen side-effects, when it\u0027s only these two tests that even care about pre-setting a TOS field, anyway.  My motto is to try and change the most specific and least intrusive place possible unless there\u0027s some benefit to be gained by the general change, and in this case, I didn\u0027t think there was a greater benefit.\n\nI would suggest that if another test happens to need to preset the TOS field prior to a simulation, at that point we can move to fixing up the general function and dealing with any possible side-effects then.  Does that sound okay?",
+      "parentUuid": "3ab451fb_83481d2f",
       "range": {
         "startLine": 102,
         "startChar": 36,
