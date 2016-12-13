@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_79cb8073",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T11:36:26Z",
+      "side": 1,
+      "message": "Done by Ivan in another patch",
+      "parentUuid": "3ab451fb_11ba16e2",
+      "range": {
+        "startLine": 164,
+        "startChar": 31,
+        "endLine": 164,
+        "endChar": 38
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_31ee32ed",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-12-12T20:59:30Z",
       "side": 1,
       "message": "add to previous line",
+      "range": {
+        "startLine": 490,
+        "startChar": 12,
+        "endLine": 490,
+        "endChar": 29
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_59f1e4cc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 490,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T11:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_31ee32ed",
       "range": {
         "startLine": 490,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_b9b8e8e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T11:36:26Z",
+      "side": 1,
+      "message": "Went back to java util.HashSet, since it more memory efficient :)",
+      "parentUuid": "3ab451fb_91950642",
+      "range": {
+        "startLine": 494,
+        "startChar": 12,
+        "endLine": 498,
+        "endChar": 31
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_71cb9a73",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2016-12-12T20:59:30Z",
       "side": 1,
       "message": "java collections have less overhead",
+      "range": {
+        "startLine": 49,
+        "startChar": 31,
+        "endLine": 49,
+        "endChar": 38
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_399cd868",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T11:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_71cb9a73",
       "range": {
         "startLine": 49,
         "startChar": 31,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_39c5f85a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T11:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_51c89e74",
+      "range": {
+        "startLine": 183,
+        "startChar": 45,
+        "endLine": 183,
+        "endChar": 59
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_31c5125b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2016-12-12T20:59:30Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 195,
+        "startChar": 44,
+        "endLine": 195,
+        "endChar": 59
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_b9afc893",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T11:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_31c5125b",
       "range": {
         "startLine": 195,
         "startChar": 44,
@@ -174,6 +318,30 @@
       "writtenOn": "2016-12-12T20:59:30Z",
       "side": 1,
       "message": "maybe rename this then to GatewaysChanged, etc, also you could move it to VppState",
+      "range": {
+        "startLine": 67,
+        "startChar": 15,
+        "endLine": 67,
+        "endChar": 40
+      },
+      "revId": "bb3582e2c08c3b6c55227cadd4edc176e30c40fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_d98174fd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppUplink.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-13T11:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_f1be8ad3",
       "range": {
         "startLine": 67,
         "startChar": 15,
