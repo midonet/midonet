@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_5181be8e",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QosPolicy.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-13T02:02:20Z",
+      "side": 1,
+      "message": "is this \"\u003c\" a typo?",
+      "range": {
+        "startLine": 54,
+        "startChar": 63,
+        "endLine": 54,
+        "endChar": 64
+      },
+      "revId": "4d06cca724291ac8b722a16db12b1054c37fd1ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
