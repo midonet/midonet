@@ -250,6 +250,20 @@ trait LbaasV2ITCommon { this: C3POMinionTestBase =>
         id
     }
 
+    protected def updateLbV2Listener(taskId: Int, loadBalancerId: UUID,
+                                     defaultPoolId: Option[UUID] = None,
+                                     id: UUID = UUID.randomUUID(),
+                                     tenantId: String = "tenant",
+                                     adminStateUp: Boolean = true,
+                                     protocolPort: Int = 10000): Unit = {
+        val json = lbv2ListenerJson(id = id, loadBalancerId = loadBalancerId,
+            defaultPoolId = defaultPoolId,
+            tenantId = tenantId,
+            adminStateUp = adminStateUp,
+            protocolPort = protocolPort)
+        insertUpdateTask(taskId, ListenerV2Type, json, id)
+    }
+
     protected def createLbV2Listener(taskId: Int, loadBalancerId: UUID,
                                      defaultPoolId: Option[UUID] = None,
                                      id: UUID = UUID.randomUUID(),
