@@ -26,13 +26,16 @@ object ConveyorBelt {
 }
 
 /**
- * This class in a generalization over an actor. It ensures only one, possibly
- * asynchronous computation is executing at any given time. Note that while a
- * computation is ongoing, new items are accepted and queued.
- * ¡¡¡ The thread completing the computation (i.e., the future) must be the same
- *     as the one submitting the work items. This class is not thread-safe. !!!
- */
-class ConveyorBelt(exceptionHandler: Throwable => Unit) {
+  * This class in a generalization over an actor. It ensures only one, possibly
+  * asynchronous computation is executing at any given time. Note that while a
+  * computation is ongoing, new items are accepted and queued.
+  *
+  * If an execution context is not specified, then the thread completing the
+  * computation (i.e., the future) must be the same as the one submitting the
+  * work items. This class is not thread-safe. !!!
+  */
+class ConveyorBelt(exceptionHandler: Throwable => Unit)
+                  (implicit ec: ExecutionContext) {
     import ConveyorBelt._
 
     var handling = false
@@ -53,7 +56,7 @@ class ConveyorBelt(exceptionHandler: Throwable => Unit) {
                 tryHandleCargo()
             case Success(_) =>
                 tryHandleCargo()
-        }(ExecutionContext.callingThread)
+        }(ec)
 
     private def tryHandleCargo(): Unit =
         if (goods.isEmpty) {
@@ -70,7 +73,8 @@ class ConveyorBelt(exceptionHandler: Throwable => Unit) {
  * there are no more scheduled computations and that it can be cancelled if
  * a computation is scheduled after it.
  */
-sealed class MultiLaneConveyorBelt[K](exceptionHandler: Throwable => Unit) {
+sealed class MultiLaneConveyorBelt[K](exceptionHandler: Throwable => Unit)
+                                     (implicit ec: ExecutionContext) {
     import ConveyorBelt._
 
     val lanes = new HashMap[K, ConveyorBelt]()
@@ -95,7 +99,7 @@ sealed class MultiLaneConveyorBelt[K](exceptionHandler: Throwable => Unit) {
     def containsLane(key: K) = lanes containsKey key
 
     private def scheduleShutdown(key: K): Unit =
-        if (lanes.get(key).goods.size == 0) {
+        if (lanes.get(key).goods.isEmpty) {
             lanes remove key
         }
 }

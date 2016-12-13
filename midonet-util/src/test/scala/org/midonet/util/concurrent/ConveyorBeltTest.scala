@@ -16,14 +16,11 @@
 package org.midonet.util.concurrent
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Promise, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import org.junit.runner.RunWith
-
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{OneInstancePerTest, Matchers, FeatureSpec}
-
-import org.midonet.util.concurrent._
+import org.scalatest.{FeatureSpec, Matchers}
 
 @RunWith(classOf[JUnitRunner])
 class ConveyorBeltTest extends FeatureSpec with Matchers {
