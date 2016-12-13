@@ -44,7 +44,7 @@ import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.Host
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
-import org.midonet.odp.ports.{InternalPort, NetDevPort, VxLanTunnelPort}
+import org.midonet.odp.ports.{GreTunnelPort, InternalPort, NetDevPort, VxLanTunnelPort}
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
@@ -256,6 +256,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                                 tunnelKey.toInt)
             override def getDpPortNumberForVport(vportId: UUID): Integer =
                 (dpPortToVport map (_.swap)) get vportId map Integer.valueOf orNull
+
+            override def tunnelOverlayGrePort: GreTunnelPort = null
+            override def tunnelOverlayVxLanPort: VxLanTunnelPort = null
 
             override def tunnelRecircVxLanPort: VxLanTunnelPort = null
             override def hostRecircPort: NetDevPort = null

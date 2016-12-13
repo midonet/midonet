@@ -619,6 +619,7 @@ class VppFlowStateInVxlanTunnelSetup(fip64conf: Fip64Config,
 
 class Fip64FlowStateFlows(vppOvs: VppOvs,
                           vppPort: Int,
+                          underlayPorts: Seq[Int],
                           tunnelRoutes: Seq[UnderlayResolver.Route],
                           log: Logger)
                          (implicit ec: ExecutionContext)
@@ -648,5 +649,33 @@ class Fip64FlowStateFlows(vppOvs: VppOvs,
         }
     }
 
+    class FlowStateReceiving
+            extends FutureTaskWithRollback {
+        override val name = "Flows for receiving"
+
+        override def execute(): Future[Any] = {
+            try {
+                underlayPorts foreach { p =>
+                    vppOvs.addFlowStateReceivingTunnelFlow(p, vppPort)
+                }
+                Future.successful(Unit)
+            } catch {
+                case NonFatal(e) => Future.failed(e)
+            }
+        }
+
+        override def rollback(): Future[Any] = {
+            try {
+                underlayPorts foreach { p =>
+                    vppOvs.clearFlowStateReceivingTunnelFlow(p)
+                }
+                Future.successful(Unit)
+            } catch {
+                case NonFatal(e) => Future.failed(e)
+            }
+        }
+    }
+
     add(new FlowStateSending)
+    add(new FlowStateReceiving)
 }

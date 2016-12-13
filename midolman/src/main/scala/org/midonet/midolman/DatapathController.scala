@@ -110,6 +110,9 @@ trait DatapathState extends VirtualPortsResolver
     def datapath: Datapath
     def tunnelRecircVxLanPort: VxLanTunnelPort
 
+    def tunnelOverlayGrePort: GreTunnelPort
+    def tunnelOverlayVxLanPort: VxLanTunnelPort
+
     def hostRecircPort: NetDevPort
 }
 
@@ -232,13 +235,13 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         makePort(OverlayTunnel) { () =>
             GreTunnelPort make "tngre-overlay"
         } flatMap { gre =>
-            driver.tunnelOverlayGre = gre
+            driver.tunnelOverlayGrePort = gre
             makePort(OverlayTunnel) { () =>
                 val overlayUdpPort = config.datapath.vxlanOverlayUdpPort
                 VxLanTunnelPort make("tnvxlan-overlay", overlayUdpPort)
             }
         } flatMap { vxlan =>
-            driver.tunnelOverlayVxLan = vxlan
+            driver.tunnelOverlayVxLanPort = vxlan
             makePort(VtepTunnel) { () =>
                 val vtepUdpPort = config.datapath.vxlanVtepUdpPort
                 VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
@@ -445,8 +448,8 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
 
     val log = Logger(LoggerFactory.getLogger("org.midonet.datapath-control"))
 
-    var tunnelOverlayGre: GreTunnelPort = _
-    var tunnelOverlayVxLan: VxLanTunnelPort = _
+    var tunnelOverlayGrePort: GreTunnelPort = _
+    var tunnelOverlayVxLanPort: VxLanTunnelPort = _
     var tunnelVtepVxLan: VxLanTunnelPort = _
     var tunnelRecircVxLanPort: VxLanTunnelPort = _
     var tunnelFip64VxLanPort: VxLanTunnelPort = _
@@ -470,8 +473,8 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     }
 
     override def isOverlayTunnellingPort(portNumber: Int): Boolean = {
-        tunnelOverlayGre.getPortNo == portNumber ||
-        tunnelOverlayVxLan.getPortNo == portNumber
+        tunnelOverlayGrePort.getPortNo == portNumber ||
+        tunnelOverlayVxLanPort.getPortNo == portNumber
     }
 
     override def isFip64TunnellingPort(portNumber: Int): Boolean = {
@@ -513,8 +516,8 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
                 srcIp: Int, dstIp: Int, t: TunnelZoneType): Seq[FlowTag] = {
         val outputAction = t match {
             case TunnelZoneType.VTEP => return Seq.empty[FlowTag]
-            case TunnelZoneType.GRE => tunnelOverlayGre.toOutputAction
-            case TunnelZoneType.VXLAN => tunnelOverlayVxLan.toOutputAction
+            case TunnelZoneType.GRE => tunnelOverlayGrePort.toOutputAction
+            case TunnelZoneType.VXLAN => tunnelOverlayVxLanPort.toOutputAction
         }
 
         val newRoute = Route(srcIp, dstIp, outputAction)

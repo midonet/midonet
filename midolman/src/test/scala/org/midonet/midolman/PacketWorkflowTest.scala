@@ -70,8 +70,8 @@ class PacketWorkflowTest extends MidolmanSpec {
                              vtepVxlanPort: Int = 11,
                              fip64VxlanPort: Int = 12): Unit = {
         val dpState = new DatapathStateDriver(new Datapath(0, "midonet"))
-        dpState.tunnelOverlayGre = new GreTunnelPort("overlay-gre")
-        dpState.tunnelOverlayVxLan = new VxLanTunnelPort("overlay-vxlan", 4700,
+        dpState.tunnelOverlayGrePort = new GreTunnelPort("overlay-gre")
+        dpState.tunnelOverlayVxLanPort = new VxLanTunnelPort("overlay-vxlan", 4700,
                                                          overlayVxlanPort)
         dpState.tunnelVtepVxLan = new VxLanTunnelPort("vtep-vxlan", 4701,
                                                       vtepVxlanPort)

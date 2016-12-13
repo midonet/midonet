@@ -18,7 +18,7 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
+import org.midonet.odp.ports.{GreTunnelPort, NetDevPort, VxLanTunnelPort}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.Await
@@ -416,6 +416,8 @@ class AdminStateTest extends MidolmanSpec {
             override def setFip64PortKey(port: UUID, key: Int): Unit = {}
             override def clearFip64PortKey(port: UUID, key: Int): Unit = {}
             override def getFip64PortForKey(key: Int): UUID = null
+            override def tunnelOverlayGrePort: GreTunnelPort = null
+            override def tunnelOverlayVxLanPort: VxLanTunnelPort = null
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {

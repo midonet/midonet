@@ -247,14 +247,14 @@ class DatapathControllerTest extends MidolmanSpec {
     feature("The datapath controller handles port bindings") {
         scenario("Port creation fails")
         {
-            dpc.driver.tunnelOverlayGre should be(null)
-            dpc.driver.tunnelOverlayVxLan should be(null)
+            dpc.driver.tunnelOverlayGrePort should be(null)
+            dpc.driver.tunnelOverlayVxLanPort should be(null)
             dpc.driver.tunnelVtepVxLan should be(null)
 
             initialize()
 
-            dpc.driver.tunnelOverlayGre should not be null
-            dpc.driver.tunnelOverlayVxLan should not be null
+            dpc.driver.tunnelOverlayGrePort should not be null
+            dpc.driver.tunnelOverlayVxLanPort should not be null
             dpc.driver.tunnelVtepVxLan should not be null
         }
     }
@@ -278,7 +278,7 @@ class DatapathControllerTest extends MidolmanSpec {
         DatapathController.getAndClear() should have size 3
 
         val output = dpc.driver.asInstanceOf[DatapathStateDriver]
-            .tunnelOverlayGre.toOutputAction
+            .tunnelOverlayGrePort.toOutputAction
         val route1 = UnderlayResolver
             .Route(srcIp.toInt, dstIp1.toInt, output)
         dpc.driver.peerTunnelInfo(host2) should be(Some(route1))

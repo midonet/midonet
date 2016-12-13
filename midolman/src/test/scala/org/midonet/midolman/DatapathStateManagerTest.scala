@@ -55,11 +55,11 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
     before {
         stateMgr = new DatapathStateDriver(new Datapath(0, "midonet"))
-        stateMgr.tunnelOverlayGre shouldBe null
-        stateMgr.tunnelOverlayVxLan shouldBe null
+        stateMgr.tunnelOverlayGrePort shouldBe null
+        stateMgr.tunnelOverlayVxLanPort shouldBe null
         stateMgr.tunnelVtepVxLan shouldBe null
-        stateMgr.tunnelOverlayGre shouldBe null
-        stateMgr.tunnelOverlayVxLan shouldBe null
+        stateMgr.tunnelOverlayGrePort shouldBe null
+        stateMgr.tunnelOverlayVxLanPort shouldBe null
         stateMgr.tunnelVtepVxLan shouldBe null
         for (p <- peers) { (stateMgr peerTunnelInfo p) shouldBe None }
     }
@@ -67,7 +67,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     def testAddRemoveOnePeer {
         val port = DpPort fakeFrom (GreTunnelPort make "bla", 1)
         val output = port.toOutputAction
-        stateMgr.tunnelOverlayGre = port.asInstanceOf[GreTunnelPort]
+        stateMgr.tunnelOverlayGrePort = port.asInstanceOf[GreTunnelPort]
         (1 to 100) foreach { _ => {
             val r = Random
             val peer = peers(r nextInt peers.length)
@@ -89,8 +89,8 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         val port2 = DpPort fakeFrom (VxLanTunnelPort make "meh", 2)
         val output1 = port1.toOutputAction
         val output2 = port2.toOutputAction
-        stateMgr.tunnelOverlayGre = port1.asInstanceOf[GreTunnelPort]
-        stateMgr.tunnelOverlayVxLan = port2.asInstanceOf[VxLanTunnelPort]
+        stateMgr.tunnelOverlayGrePort = port1.asInstanceOf[GreTunnelPort]
+        stateMgr.tunnelOverlayVxLanPort = port2.asInstanceOf[VxLanTunnelPort]
         (1 to 100) foreach { _ => {
             val r = Random
             val peer = peers(r nextInt peers.length)
@@ -124,8 +124,8 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         val port2 = DpPort fakeFrom (VxLanTunnelPort make "meh", 2)
         val output1 = port1.toOutputAction
         val output2 = port2.toOutputAction
-        stateMgr.tunnelOverlayGre = port1.asInstanceOf[GreTunnelPort]
-        stateMgr.tunnelOverlayVxLan = port2.asInstanceOf[VxLanTunnelPort]
+        stateMgr.tunnelOverlayGrePort = port1.asInstanceOf[GreTunnelPort]
+        stateMgr.tunnelOverlayVxLanPort = port2.asInstanceOf[VxLanTunnelPort]
         (1 to 100) foreach { _ => {
             val r = Random
             val peerI = r nextInt peers.length
@@ -164,7 +164,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     def testAddMultipleRoutesToPeer1 {
         val port = DpPort fakeFrom (GreTunnelPort make "bla", 1)
         val output = port.toOutputAction
-        stateMgr.tunnelOverlayGre = port.asInstanceOf[GreTunnelPort]
+        stateMgr.tunnelOverlayGrePort = port.asInstanceOf[GreTunnelPort]
         (1 to 100) foreach { _ => {
             val r = Random
             val peer = peers(r nextInt peers.length)
@@ -200,7 +200,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     def testAddMultipleRoutesToPeer2 {
         val port = DpPort fakeFrom (GreTunnelPort make "bla", 1)
         val output = port.toOutputAction
-        stateMgr.tunnelOverlayGre = port.asInstanceOf[GreTunnelPort]
+        stateMgr.tunnelOverlayGrePort = port.asInstanceOf[GreTunnelPort]
         (1 to 100) foreach { _ => {
             val r = Random
             val peer = peers(r.nextInt(peers.length))

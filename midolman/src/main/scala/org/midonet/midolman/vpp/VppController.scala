@@ -483,8 +483,11 @@ class VppController(hostId: UUID,
     private def updateFlowStateFlows(tunnelRoutes: Seq[UnderlayResolver.Route])
             : Future[Any] = {
         val vppPort = datapathState.tunnelFip64VxLanPort.getPortNo
+        val underlayPorts = Seq(datapathState.tunnelOverlayGrePort.getPortNo.toInt,
+                                datapathState.tunnelOverlayVxLanPort.getPortNo.toInt)
 
         val newSetup = new Fip64FlowStateFlows(vppOvs, vppPort,
+                                               underlayPorts,
                                                tunnelRoutes,
                                                Logger(log.underlying))
         val previous = uplinkFlowStateFlows

@@ -24,7 +24,7 @@ import org.midonet.midolman.DatapathState
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.odp.flows.FlowActionOutput
-import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
+import org.midonet.odp.ports.{GreTunnelPort, NetDevPort, VxLanTunnelPort}
 import org.midonet.odp.ports.VxLanTunnelPort._
 
 /**
@@ -38,6 +38,9 @@ class TestDatapathState extends DatapathState {
     var vxlanPortNumber: Int = _
     var fip64PortNumber: Int = _
     val fip64KeyToPort = mutable.Map[Int, UUID]()
+
+    override def tunnelOverlayGrePort: GreTunnelPort = null
+    override def tunnelOverlayVxLanPort: VxLanTunnelPort = null
 
     override def getDpPortNumberForVport(vportId: UUID): Integer =
         dpPortNumberForVport get vportId orNull

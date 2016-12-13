@@ -662,5 +662,29 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
             }
         }
 
+        scenario("Flows setup and teardown") {
+            val datapath = createDatapath("foobar")
+            try {
+                val ovs = new VppOvs(datapath)
+                val vpp = ovs.createVxlanDpPort("vpp", 5321)
+                val greOverlay = ovs.createGreDpPort("gre")
+                val vxlanOverlay = ovs.createVxlanDpPort("overlay", 5323)
+
+                val output = FlowActions.output(vxlanOverlay.getPortNo)
+                val routes = Seq(
+                    UnderlayResolver.Route(123, 234, output),
+                    UnderlayResolver.Route(123, 567, output),
+                    UnderlayResolver.Route(123, 890, output))
+
+                val setup = new Fip64FlowStateFlows(
+                    ovs, vpp.getPortNo,
+                    Seq(greOverlay.getPortNo, vxlanOverlay.getPortNo),
+                    routes, log)
+                Await.result(setup.execute(), 1 minute)
+                Await.result(setup.rollback(), 1 minute)
+            } finally {
+                deleteDatapath(datapath, log)
+            }
+        }
     }
 }

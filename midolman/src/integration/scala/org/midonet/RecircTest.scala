@@ -45,7 +45,7 @@ import org.midonet.netlink.rtnetlink.{NeighOps, Link, LinkOps}
 import org.midonet.odp._
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowActionOutput}
-import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort}
+import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort, NetDevPort}
 import org.midonet.odp.util.TapWrapper
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
@@ -150,6 +150,8 @@ class RecircTest extends FeatureSpec
             override def vtepTunnellingOutputAction: FlowActionOutput = null
             override def fip64TunnellingOutputAction: FlowActionOutput = null
             override def tunnelFip64VxLanPort: VxLanTunnelPort = null
+            override def tunnelOverlayGrePort: GreTunnelPort = null
+            override def tunnelOverlayVxLanPort: VxLanTunnelPort = null
             override def isFip64TunnellingPort(portNumber: Int): Boolean = false
 
             override def getDpPortNumberForVport(vportId: UUID): Integer =

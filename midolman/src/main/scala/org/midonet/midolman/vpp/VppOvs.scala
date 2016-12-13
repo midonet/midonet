@@ -28,7 +28,7 @@ import org.midonet.netlink._
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKeys}
-import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
+import org.midonet.odp.ports.{GreTunnelPort, NetDevPort, VxLanTunnelPort}
 import org.midonet.packets.{IPv6Addr, TunnelKeys}
 
 object VppOvs {
@@ -129,6 +129,11 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
                           portNumber: Short): VxLanTunnelPort = {
         createDpPortImpl(new VxLanTunnelPort(portName, portNumber)).
             asInstanceOf[VxLanTunnelPort]
+    }
+
+    def createGreDpPort(portName: String): GreTunnelPort = {
+        createDpPortImpl(new GreTunnelPort(portName)).
+            asInstanceOf[GreTunnelPort]
     }
 
     def addIpv6Flow(inputPort: Int, outputPort: Int): Unit = {
