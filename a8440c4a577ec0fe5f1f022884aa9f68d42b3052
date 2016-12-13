@@ -22,6 +22,30 @@
       "revId": "a8440c4a577ec0fe5f1f022884aa9f68d42b3052",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_a3d1d9fd",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-13T06:25:33Z",
+      "side": 1,
+      "message": "I think it would.  It looks like it is serialized the same way in the data_models.py.Pool.to_api_dict",
+      "parentUuid": "3ab451fb_c3806549",
+      "range": {
+        "startLine": 257,
+        "startChar": 13,
+        "endLine": 257,
+        "endChar": 17
+      },
+      "revId": "a8440c4a577ec0fe5f1f022884aa9f68d42b3052",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
