@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_63be3101",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-13T05:17:16Z",
+      "side": 1,
+      "message": "Fixes MI-1888",
+      "revId": "c0b5637f44918744d08ff42e4084daf7fe0eb1a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_83481d2f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-13T05:17:16Z",
+      "side": 1,
+      "message": "isn\u0027t it easier to fix fromEthernetPacket than working around?",
+      "range": {
+        "startLine": 102,
+        "startChar": 36,
+        "endLine": 102,
+        "endChar": 38
+      },
+      "revId": "c0b5637f44918744d08ff42e4084daf7fe0eb1a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
