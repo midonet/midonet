@@ -22,6 +22,30 @@
       "revId": "79ddc797606dd8c643ea550861a71b0043562055",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_1787a362",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppIntegrationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 684,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-13T14:54:48Z",
+      "side": 1,
+      "message": "too much work. All I want to verify here is the setup class functionality. The full functionality will be tested by MDTS.",
+      "parentUuid": "3ab451fb_172b2384",
+      "range": {
+        "startLine": 666,
+        "startChar": 11,
+        "endLine": 684,
+        "endChar": 56
+      },
+      "revId": "79ddc797606dd8c643ea550861a71b0043562055",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
