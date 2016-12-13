@@ -115,6 +115,10 @@ class PacketWorkflowTest extends MidolmanSpec {
         makeFrame(5) << { vxlan vni vni }
     }
 
+    def makeIpv6Packet(): Packet =
+        { eth addr "01:02:03:04:05:06" -> "10:20:30:40:50:60" } <<
+        { ip6.src("1000::1").dst("2000::2") }
+
     feature("Packet workflow handles packets") {
         scenario("state messages are not deduplicated") {
             Given("four identical state packets")
@@ -300,8 +304,22 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetWorkflow.result shouldBe FlowCreated
 
             And("The actions should send the packet to vpp")
-            packetWorkflow.virtualFlowActions shouldBe (
-                List(Fip64Action(null, tunnelKey)))
+            packetWorkflow.virtualFlowActions shouldBe
+                List(Fip64Action(null, tunnelKey))
+        }
+
+        scenario("Workflow drops IPv6 packets") {
+            createPacketWorkflow(0)
+
+            Given("An IPv6 packet")
+            val packet = makeIpv6Packet()
+
+            When("Simulating the packet")
+            packetWorkflow.handlePackets(packet)
+
+            Then("The packet is ignored")
+            packetsOut shouldBe 1
+
         }
     }
 

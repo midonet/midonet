@@ -558,6 +558,7 @@ class PacketWorkflow(
             startWorkflow(packetContext(packet))
         } else {
             log.debug(s"Ignoring IPv6 packet: $packet")
+            packetOut(1)
         }
     }
 
