@@ -176,6 +176,24 @@
       "revId": "264c0cccbd2bab58e2c6771dd2021dd192418ecc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_8365bde2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-13T04:02:22Z",
+      "side": 1,
+      "message": "it\u0027s parseFlowKeysFromIPv4 setting it to 0, not simulation.\n\nit\u0027s ideal to fix it in a separate patch and make this patch depend on it, but i guess it isn\u0027t what you meant here. :-)",
+      "parentUuid": "3ab451fb_e31fe159",
+      "revId": "264c0cccbd2bab58e2c6771dd2021dd192418ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
