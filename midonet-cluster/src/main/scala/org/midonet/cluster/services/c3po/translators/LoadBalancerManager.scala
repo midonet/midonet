@@ -24,9 +24,9 @@ import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
  */
 trait LoadBalancerManager {
 
-    protected def lbRouterInChainName(lbId: UUID) = s"LB_ROUTER_$lbId"
+    protected def lbRouterInChainName(lbId: UUID) = s"LB_ROUTER_${lbId.asJava}"
 
-    protected def lbRouterOutChainName(lbId: UUID) = s"LB_ROUTER_$lbId"
+    protected def lbRouterOutChainName(lbId: UUID) = s"LB_ROUTER_${lbId.asJava}"
 
     /** Deterministically generate loadbalancer ID from router ID. */
     protected def loadBalancerId(routerId: UUID) =
