@@ -40,7 +40,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
 
     val entangler = new DatapathPortEntangler {
         val log = Logger(NOPLogger.NOP_LOGGER)
-        override protected val singleThreadExecutionContext =
+        override protected def singleThreadExecutionContext =
             ExecutionContext.callingThread
 
         protected val driver = new DatapathStateDriver(new Datapath(0, "midonet"))
@@ -419,7 +419,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     "A failed DP port create operation" should "be retried" in {
         val entangler = new DatapathPortEntangler {
             val log = Logger(NOPLogger.NOP_LOGGER)
-            override protected val singleThreadExecutionContext =
+            override protected def singleThreadExecutionContext =
                 ExecutionContext.callingThread
 
             var shouldFail = true

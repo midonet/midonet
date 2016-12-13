@@ -137,7 +137,7 @@ class VppExecutorTest extends FeatureSpec with Matchers with GivenWhenThen {
             vpp.startAsync().awaitRunning()
 
             When("Sending several messages")
-            val futures = for (index <- 1 until 10) yield {
+            val futures = for (index <- 1 until 100) yield {
                 vpp ! index
             }
 
@@ -145,7 +145,7 @@ class VppExecutorTest extends FeatureSpec with Matchers with GivenWhenThen {
             Future.sequence(futures).await()
 
             And("The messages should execute in sequence")
-            result shouldBe (1 until 10)
+            result should contain theSameElementsInOrderAs (1 until 100)
         }
 
         scenario("VPP executor manages mis-behaving handlers") {
