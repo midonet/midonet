@@ -416,7 +416,13 @@ case class BridgePort(override val id: UUID,
             // filters and qualifiers might be added on later to allow for
             // multiple DSCP rules, each of which would affect a different
             // type of packet.  But for now, just get the 'head' of the array
-            context.wcmatch.setNetworkTOS(qosPolicy.dscpRules.head.dscpMark)
+            // We then must shift by 2, because the lower two bits are used
+            // for explicit congestion notification, which shouldn't be set
+            // or overwritten here.
+            val currentEcn = context.wcmatch.getNetworkTOS & 0x02
+            val packetTosVal = qosPolicy.dscpRules.head.dscpMark << 2 | currentEcn
+
+            context.wcmatch.setNetworkTOS(packetTosVal.toByte)
             context.wcmatch.fieldSeen(FlowMatch.Field.NetworkTOS)
         }
         super.ingressCommon(context)
