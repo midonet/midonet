@@ -27,6 +27,7 @@ import scala.util.Random
 import com.google.common.net.HostAndPort
 
 import org.junit.runner.RunWith
+import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observer
@@ -38,14 +39,14 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder
 
 import org.midonet.cluster.flowhistory.BinarySerialization
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.netty.ServerFrontEnd
 import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class FlowSenderWorkerTest extends MidolmanSpec {
-    import FlowSenderWorkerTest.{EndpointServiceName, Timeout}
+class FlowSenderWorkerTest extends MidolmanSpec with Eventually {
+    import FlowSenderWorkerTest.{EndpointServiceName, TestFlowSender, Timeout}
 
     feature("flow sender worker construction") {
         scenario("unconfigured flow history yields null worker") {
@@ -161,6 +162,52 @@ class FlowSenderWorkerTest extends MidolmanSpec {
 
             // Should now have no endpoints
             sender.endpoint shouldBe None
+
+            sender.stopAsync().awaitTerminated()
+        }
+        scenario("flow sender should change endpoints on error") {
+            val validTarget = HostAndPort.fromString("192.0.1.0:12345")
+            val invalidTarget = HostAndPort.fromString("192.0.2.0:12345")
+            val confStr =
+                s"""
+                   |agent.flow_history.endpoint_service="$EndpointServiceName"
+                """.stripMargin
+            val conf = MidolmanConfig.forTests(confStr)
+            val sender = new TestFlowSender(conf.flowHistory, backend) {
+                override protected def sendRecord(buffer: ByteBuffer): Unit = {
+                    if (endpoint.get.getHostName != validTarget.getHostText) {
+                        throw new IOException("Boom!")
+                    }
+                }
+            }
+            val discovery = backend.discovery
+
+            sender.startAsync().awaitRunning()
+
+            // Register validTarget
+            discovery.registerServiceInstance(EndpointServiceName, validTarget)
+            // Register invalidTarget
+            discovery.registerServiceInstance(EndpointServiceName,
+                                              invalidTarget)
+
+            // Force current endpoint to the invalid one. Sending should fail
+            // but we should trigger changes in endpoint after each fail
+            sender.setCurrentEndpoint(Some(invalidTarget))
+
+            val event = ByteBuffer.allocate(0)
+
+            // Eventually we should end up with the valid endpoint
+            eventually {
+                sender.onEvent(event, 0, endOfBatch = true)
+
+                sender.endpoint.get.getHostName shouldBe validTarget.getHostText
+            }
+
+            // And we should keep the valid target until it stops working
+            for (_ <- 0 until 10) {
+                sender.onEvent(event, 0, endOfBatch = true)
+                sender.endpoint.get.getHostName shouldBe validTarget.getHostText
+            }
 
             sender.stopAsync().awaitTerminated()
         }
@@ -454,4 +501,15 @@ class FlowSenderWorkerTest extends MidolmanSpec {
 object FlowSenderWorkerTest {
     final val EndpointServiceName = "cliotest"
     final val Timeout = Duration("5s")
+
+    private class TestFlowSender(flowHistoryConfig: FlowHistoryConfig,
+                                 backend: MidonetBackend)
+        extends FlowSender(flowHistoryConfig, backend) {
+
+        def setCurrentEndpoint(hpOption: Option[HostAndPort]): Unit = {
+            endpointRef.lazySet(hpOption.map { hp =>
+                new InetSocketAddress(hp.getHostText, hp.getPort)
+            })
+        }
+    }
 }

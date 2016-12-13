@@ -144,7 +144,10 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
 
     private var clioDiscoveryClient: MidonetDiscoveryClient[MidonetServiceHostAndPort] = _
 
-    private val endpointRef = new AtomicReference[Option[InetSocketAddress]](None)
+    private val availableEndpointsRef =
+        new AtomicReference[Seq[MidonetServiceHostAndPort]](Nil)
+    protected val endpointRef =
+        new AtomicReference[Option[InetSocketAddress]](None)
 
     private var channel: SocketChannel = _
     private var current: InetSocketAddress = _
@@ -159,8 +162,9 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
             sendRecord(event)
         } catch {
             case ex: IOException =>
-                // Close channel on IOException
-                close()
+                // Reset endpoint on IOException. Choosing a new endpoint will
+                // automatically trigger a reconnection on next send
+                resetEndpoint()
                 log.info("Error sending flow record to endpoint: {}",
                          ex.getMessage)
             case NonFatal(e) =>
@@ -204,37 +208,44 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
                 override def onCompleted(): Unit = {
                     log.debug("Service discovery completed for {}",
                               config.endpointService)
-                    endpointRef.lazySet(None)
+                    availableEndpointsRef.lazySet(Nil)
                 }
 
                 override def onError(e: Throwable): Unit = {
                     log.error("Error on {} service discovery",
                               config.endpointService)
-                    endpointRef.lazySet(None)
+                    availableEndpointsRef.lazySet(Nil)
                 }
 
                 override def onNext(t: Seq[MidonetServiceHostAndPort]): Unit = {
-                    val chosenEndpoint =
-                        if (t.nonEmpty) {
-                            val randomEndpoint = t(Random.nextInt(t.length))
-                            try {
-                                Some(new InetSocketAddress(
-                                    randomEndpoint.address,
-                                    randomEndpoint.port))
-                            } catch {
-                                case t: Throwable =>
-                                    log.warn(
-                                        "Invalid endpoint: " + randomEndpoint,
-                                        t)
-                                    None
-                            }
-                        } else
-                            None
-                    endpointRef.lazySet(chosenEndpoint)
-                    log.debug("New endpoint chosen: {}", chosenEndpoint)
+                    availableEndpointsRef.lazySet(t)
+                    resetEndpoint()
                 }
             }
         )
+    }
+
+    private def resetEndpoint() = {
+        val availableEndpoints = availableEndpointsRef.get
+        val chosenEndpoint =
+            if (availableEndpoints.nonEmpty) {
+                val randomIndex = Random.nextInt(availableEndpoints.length)
+                val randomEndpoint = availableEndpoints(randomIndex)
+                try {
+                    Some(new InetSocketAddress(
+                        randomEndpoint.address,
+                        randomEndpoint.port))
+                } catch {
+                    case t: Throwable =>
+                        log.warn(
+                            "Invalid endpoint: " + randomEndpoint,
+                            t)
+                        None
+                }
+            } else
+                None
+        endpointRef.lazySet(chosenEndpoint)
+        log.debug("New endpoint chosen: {}", chosenEndpoint)
     }
 
     private def maybeConnect(address: InetSocketAddress) = {
