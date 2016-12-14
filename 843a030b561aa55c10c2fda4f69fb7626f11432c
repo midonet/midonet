@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_086304b3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-12-14T08:52:59Z",
+      "side": 1,
+      "message": "Yes, it\u0027s meant to preserve whatever what set on the networkTOS of the inner packet, including ECN. Do you foresee any issue?",
+      "parentUuid": "3ab451fb_4d9c7e69",
+      "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_0d8d5631",
         "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
         "patchSetId": 8
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_a872d07a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-12-14T08:52:59Z",
+      "side": 1,
+      "message": "That was the intention, but I couldn\u0027t find an easy way to do it, as the configuration is injected in the parent class.\n\nIs it ok to merge as is and I\u0027ll rework the test to do so in a later patch?",
+      "parentUuid": "3ab451fb_0d8d5631",
+      "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_8d928656",
         "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
         "patchSetId": 8
@@ -47,6 +83,30 @@
       "writtenOn": "2016-12-14T04:33:32Z",
       "side": 1,
       "message": "dup?",
+      "range": {
+        "startLine": 155,
+        "startChar": 17,
+        "endLine": 155,
+        "endChar": 30
+      },
+      "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_e857b8c8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-12-14T08:52:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_8d928656",
       "range": {
         "startLine": 155,
         "startChar": 17,
