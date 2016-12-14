@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_ee5b412d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-12-14T10:46:48Z",
+      "side": 1,
+      "message": "mmm no we don\u0027t. VXLAN tunnels are UDP, and from what I\u0027m reading ECN doesn\u0027t make sense unless there\u0027s a transport layer that handles congestion like TCP by reading those bits in the IP header.\n\nSo I think it\u0027s harmless to copy those bits as they will be ignored by the underlay and the CN will be handled by the end to end transport layer of the inner flow. I\u0027ll set them the ECN bits to 0 though as it seems more correct.\n\nIs that reasoning correct?",
+      "parentUuid": "3ab451fb_08f30475",
+      "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_0d8d5631",
         "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
         "patchSetId": 8
