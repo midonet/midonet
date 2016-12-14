@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_c8451c18",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/PoolV2.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T08:46:46Z",
+      "side": 1,
+      "message": "how about this?",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 33
+      },
+      "revId": "32a76a7aaa8b9c3f8b67135966951e174aa3ce3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
