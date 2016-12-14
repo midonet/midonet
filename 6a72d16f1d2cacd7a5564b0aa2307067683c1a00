@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_6e4bb1b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-14T12:10:45Z",
+      "side": 1,
+      "message": "I think this was fine, the variable now encodes both the ip and the subnet, changes to the port model requires it",
+      "range": {
+        "startLine": 83,
+        "startChar": 19,
+        "endLine": 84,
+        "endChar": 59
+      },
+      "revId": "6a72d16f1d2cacd7a5564b0aa2307067683c1a00",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_4ec7d512",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-14T12:10:45Z",
+      "side": 1,
+      "message": "however, here we need to use RouterIp.getAddress \u003c- the problem was here, right?",
+      "range": {
+        "startLine": 403,
+        "startChar": 35,
+        "endLine": 403,
+        "endChar": 43
+      },
+      "revId": "6a72d16f1d2cacd7a5564b0aa2307067683c1a00",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_0ed1cdcd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-14T12:10:45Z",
+      "side": 1,
+      "message": "this can be undone to conform with the new port model",
+      "range": {
+        "startLine": 466,
+        "startChar": 12,
+        "endLine": 467,
+        "endChar": 63
+      },
+      "revId": "6a72d16f1d2cacd7a5564b0aa2307067683c1a00",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
