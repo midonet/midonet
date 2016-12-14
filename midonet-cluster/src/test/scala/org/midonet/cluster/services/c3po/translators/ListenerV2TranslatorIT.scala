@@ -32,9 +32,9 @@ class ListenerV2TranslatorIT extends C3POMinionTestBase
                                      with LbaasV2ITCommon {
     "C3PO" should "be able to create/delete Listener with no pool ID " +
                   "as a VIP with no pool." in {
-        val (vipPortId, _, _) = createVipV2PortAndNetwork(1)
+        val (vipPortId, _, vipSubnetId) = createVipV2PortAndNetwork(1)
 
-        val lbId = createLbV2(10, vipPortId, "10.0.1.4")
+        val lbId = createLbV2(10, vipPortId, vipSubnetId, "10.0.1.4")
         val listenerId = createLbV2Listener(10, lbId, defaultPoolId = None,
                            protocolPort = 11100)
 
@@ -54,9 +54,9 @@ class ListenerV2TranslatorIT extends C3POMinionTestBase
 
     "C3PO" should "be able to create/delete Listener with default pool ID " +
                   "as a VIP with assigned pool." in {
-        val (vipPortId, _, _) = createVipV2PortAndNetwork(1)
+        val (vipPortId, _, vipSubnetId) = createVipV2PortAndNetwork(1)
 
-        val lbId = createLbV2(10, vipPortId, "10.0.1.4")
+        val lbId = createLbV2(10, vipPortId, vipSubnetId, "10.0.1.4")
         val poolId = createLbV2Pool(10, lbId)
         val listenerId = createLbV2Listener(10, lbId, defaultPoolId = poolId,
                                             protocolPort = 11100)
@@ -77,9 +77,9 @@ class ListenerV2TranslatorIT extends C3POMinionTestBase
     }
 
     "C3PO" should "be able to update and clear the pool_id" in {
-        val (vipPortId, _, _) = createVipV2PortAndNetwork(1)
+        val (vipPortId, _, vipSubnetId) = createVipV2PortAndNetwork(1)
 
-        val lbId = createLbV2(10, vipPortId, "10.0.1.4")
+        val lbId = createLbV2(10, vipPortId, vipSubnetId, "10.0.1.4")
         val poolId = createLbV2Pool(10, lbId)
         val listenerId = createLbV2Listener(10, lbId, defaultPoolId = poolId,
                                             protocolPort = 11100)

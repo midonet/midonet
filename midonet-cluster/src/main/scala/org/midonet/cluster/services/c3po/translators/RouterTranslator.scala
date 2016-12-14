@@ -446,18 +446,6 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         }
     }
 
-    /**
-      * Creates a default route for gateway port.
-      */
-    private def defaultGwRoute(dhcp: Dhcp, portId: UUID, address: IPAddress)
-    : Route = {
-        val nextHopIp =
-            if (dhcp.hasDefaultGateway) dhcp.getDefaultGateway else null
-        newNextHopPortRoute(portId, id = gatewayRouteId(portId, address),
-                            gatewayDhcpId = dhcp.getId,
-                            nextHopGateway = nextHopIp)
-    }
-
     private def createSnatRules(tx: Transaction, nRouter: NeutronRouter,
                                 router: Router, portAddress: IPAddress,
                                 portId: UUID): Unit = {
