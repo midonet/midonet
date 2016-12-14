@@ -17,12 +17,35 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Topology.{Dhcp, Route}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 
 /**
  * Contains loadbalancer-related operations shared by multiple translators.
  */
-trait LoadBalancerManager {
+trait LoadBalancerManager extends RouteManager {
+
+    def buildRouterRoutesFromDhcp(portId: UUID, dhcp: Dhcp): List[Route] = {
+        val routes = ListBuffer[Route]()
+
+        // Add a route for the default gateway, if it is set in the Dhcp.
+        if (dhcp.hasDefaultGateway) {
+            routes += newNextHopPortRoute(
+                portId, nextHopGateway = dhcp.getDefaultGateway)
+        }
+
+        // Add a route for each of the host routes configured.
+        routes ++= dhcp.getOpt121RoutesList.asScala.map{ r =>
+            newNextHopPortRoute(
+                portId,
+                nextHopGateway = r.getGateway,
+                dstSubnet = r.getDstSubnet)
+        }
+        routes.toList
+    }
 
     protected def lbRouterInChainName(lbId: UUID) = s"LB_ROUTER_${lbId.asJava}"
 
