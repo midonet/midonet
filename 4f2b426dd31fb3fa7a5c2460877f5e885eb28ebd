@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "3ab451fb_084f8493",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T10:09:25Z",
+      "side": 1,
+      "message": "is this related?",
+      "revId": "4f2b426dd31fb3fa7a5c2460877f5e885eb28ebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_c8ecfc91",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
         "patchSetId": 1
@@ -13,6 +30,23 @@
       "writtenOn": "2016-12-14T09:53:25Z",
       "side": 1,
       "message": "I think you need to also handle the gateway IP update in SubnetTranslator.",
+      "revId": "4f2b426dd31fb3fa7a5c2460877f5e885eb28ebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_487eacaf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T10:09:25Z",
+      "side": 1,
+      "message": "host routes should be added as well",
       "revId": "4f2b426dd31fb3fa7a5c2460877f5e885eb28ebd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
