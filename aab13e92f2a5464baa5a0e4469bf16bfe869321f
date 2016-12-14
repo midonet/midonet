@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_4846acc0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-14T09:32:28Z",
+      "side": 1,
+      "message": "java HashSet is mutable, and while it shouldn\u0027t be the case here due to the threading model, the contents could change after the message has been sent, which could lead to unpredicatable behaviour. \n\nYou can convert the java hashset to a scala immutable set with\n\nsetX.asScala.toSet\n\nYou need to import scala.collection.JavaConverters._",
+      "range": {
+        "startLine": 45,
+        "startChar": 38,
+        "endLine": 45,
+        "endChar": 50
+      },
+      "revId": "aab13e92f2a5464baa5a0e4469bf16bfe869321f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
