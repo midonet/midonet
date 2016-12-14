@@ -116,7 +116,7 @@ public class MonitoredDaemonProcess extends AbstractService {
                 log.warn("Process ``{}`` exited", cmd);
             }
             if (isRunning()) {
-                doStart();
+                //doStart();
             }
         }
     };
