@@ -67,7 +67,7 @@ abstract class LoadBalancerV2TestBase extends ResourceTest {
         PoolMemberV2 m = new PoolMemberV2();
         m.poolId = pool.id;
         m.id = id;
-        pool.addMember(m.id);
+        pool.addMember(m);
         return m;
     }
 

@@ -60,7 +60,7 @@ public class PoolV2 extends ZoomObject {
     public LoadBalancerV2Algorithm lbAlgorithm;
 
     @ZoomField(name = "members")
-    public List<UUID> members = new ArrayList<>();
+    public List<PoolMemberV2> members = new ArrayList<>();
 
     @JsonProperty("healthmonitor_id")
     @ZoomField(name = "healthmonitor_id")
@@ -140,11 +140,11 @@ public class PoolV2 extends ZoomObject {
     }
 
     @JsonIgnore
-    public void addMember(UUID memberId) {
+    public void addMember(PoolMemberV2 member) {
         if (members == null) {
             members = new ArrayList<>();
         }
-        members.add(memberId);
+        members.add(member);
     }
 
     @JsonIgnore
