@@ -33,12 +33,14 @@ trait LbaasV2ITCommon { this: C3POMinionTestBase =>
 
     protected def lbV2Json(id: UUID,
                            vipPortId: UUID,
+                           vipSubnetId: UUID,
                            vipAddress: String,
                            adminStateUp: Boolean = true): JsonNode = {
         val lb = nodeFactory.objectNode
         lb.put("id", id.toString)
         lb.put("admin_state_up", adminStateUp)
         lb.put("vip_port_id", vipPortId.toString)
+        lb.put("vip_subnet_id", vipSubnetId.toString)
         lb.put("vip_address", vipAddress)
         lb
     }
@@ -171,10 +173,12 @@ trait LbaasV2ITCommon { this: C3POMinionTestBase =>
     protected def createVipV2PortAndNetwork(taskId: Int,
                                             ipAddr: String = "10.0.1.4",
                                             netAddr: String = "10.0.1.0/24",
+                                            gatewayIp: String = "10.0.1.1",
                                             portId: UUID = UUID.randomUUID()):
     (UUID, UUID, UUID) = {
         val vipNetworkId = createTenantNetwork(taskId)
-        val vipSubnetId = createSubnet(taskId + 1, vipNetworkId, netAddr)
+        val vipSubnetId = createSubnet(taskId + 1, vipNetworkId, netAddr,
+                                       gatewayIp = gatewayIp)
         val json = portJson(portId, vipNetworkId,
                             deviceOwner = DeviceOwner.LOADBALANCERV2,
                             fixedIps = List(IPAlloc(ipAddr, vipSubnetId)))
@@ -183,10 +187,10 @@ trait LbaasV2ITCommon { this: C3POMinionTestBase =>
             vipSubnetId)
     }
 
-    protected def createLbV2(taskId: Int, vipPortId: UUID, vipAddress: String,
-                             id: UUID = UUID.randomUUID(),
+    protected def createLbV2(taskId: Int, vipPortId: UUID, vipSubnetId: UUID,
+                             vipAddress: String, id: UUID = UUID.randomUUID(),
                              adminStateUp: Boolean = true): UUID = {
-        val json = lbV2Json(id, vipPortId, vipAddress, adminStateUp)
+        val json = lbV2Json(id, vipPortId, vipSubnetId, vipAddress, adminStateUp)
         insertCreateTask(taskId, LoadBalancerV2Type, json, id)
         id
     }

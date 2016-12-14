@@ -35,8 +35,10 @@ class LoadBalancerV2IT extends C3POMinionTestBase
                        with ChainManager
                        with LbaasV2ITCommon {
 
+    val vipSubAddr = "10.0.1.0"
+    val vipSubPrefixLen = 24
     val vipAddr = "10.0.1.4"
-    val vipSub = "10.0.1.0/24"
+    val vipSub = s"$vipSubAddr/$vipSubPrefixLen"
 
     private def makeLbJson(id: UUID,
                            vipPortId: UUID,
@@ -59,11 +61,11 @@ class LoadBalancerV2IT extends C3POMinionTestBase
     }
 
     "C3PO" should "be able to create/delete Load Balancer, Router, and VIP peer port." in {
-        val (vipPortId, _, _) = createVipV2PortAndNetwork(1)
+        val (vipPortId, _, vipSubnetId) = createVipV2PortAndNetwork(1)
         val vipPeerPortId = PortManager.routerInterfacePortPeerId(vipPortId)
 
         // Create a Load Balancer
-        val lbId =  createLbV2(40, vipPortId, vipAddr)
+        val lbId =  createLbV2(40, vipPortId, vipSubnetId, vipAddr)
         val routerId = lbV2RouterId(lbId)
 
         val lb = storage.get(classOf[LoadBalancer], lbId).await()
@@ -89,7 +91,12 @@ class LoadBalancerV2IT extends C3POMinionTestBase
         snatRule.getCondition.getNwSrcInv shouldBe true
 
         val vipPeerPort = storage.get(classOf[Port], vipPeerPortId).await()
+        vipPeerPort.getAdminStateUp shouldBe true
         vipPeerPort.getPeerId shouldBe toProto(vipPortId)
+        vipPeerPort.getPortAddress.getAddress shouldBe vipAddr
+        vipPeerPort.getPortSubnet(0).getAddress shouldBe vipSubAddr
+        vipPeerPort.getPortSubnet(0).getPrefixLength shouldBe vipSubPrefixLen
+        vipPeerPort.hasPortMac shouldBe true
 
         val lbSCId = lbServiceContainerId(routerId)
         val lbSCGId = lbServiceContainerGroupId(routerId)
@@ -108,6 +115,13 @@ class LoadBalancerV2IT extends C3POMinionTestBase
         scp.getRouterId shouldBe routerId
         scp.hasPortMac shouldBe true
         scp.hasPortAddress shouldBe true
+        scp.getPortSubnetCount shouldBe 1
+        scp.getAdminStateUp shouldBe true
+
+        val routes = storage.getAll(classOf[Route]).await()
+        routes.size shouldBe 3
+        val expectedNHP = List(vipPeerPortId, vipPeerPortId, scp.getId)
+        routes.map(_.getNextHopPortId).toList should contain theSameElementsAs expectedNHP
 
         insertDeleteTask(50, LoadBalancerV2Type, lbId)
         storage.exists(classOf[LoadBalancer], lbId).await() shouldBe false
@@ -120,25 +134,27 @@ class LoadBalancerV2IT extends C3POMinionTestBase
         storage.exists(classOf[ServiceContainer], lbSCId).await() shouldBe false
         storage.exists(classOf[ServiceContainerGroup], lbSCGId).await() shouldBe false
         storage.exists(classOf[Port], lbSCPId).await() shouldBe false
+
+        routes.map(_.getId).foreach(storage.exists(classOf[Route], _).await() shouldBe false)
     }
 
     "Creation of LB without VIP port" should
       "throw NotFoundException" in {
         val ex = the [TranslationException] thrownBy createLbV2(
-            40, UUID.randomUUID(), "10.0.1.4")
+            40, UUID.randomUUID(), UUID.randomUUID(), "10.0.1.4")
         ex.cause shouldBe a [NotFoundException]
     }
 
     "Creation of LB with already existing router" should
       "throw ObjectExistsException" in {
-        val (vipPortId, _, _) = createVipV2PortAndNetwork(1)
+        val (vipPortId, _, vipSubnetId) = createVipV2PortAndNetwork(1)
 
         val lbId = UUID.randomUUID
         val routerId = lbV2RouterId(lbId)
         createRouter(10, routerId)
 
         an [ObjectExistsException] should be thrownBy
-        createLbV2(10, vipPortId, "10.0.1.4", id = lbId)
+        createLbV2(10, vipPortId, vipSubnetId, "10.0.1.4", id = lbId)
     }
 
     "Creation of LB with already existing port with same ID as VIP peer port ID" should
@@ -149,6 +165,6 @@ class LoadBalancerV2IT extends C3POMinionTestBase
         createDhcpPort(10, vipNetworkId, vipSubnetId, "10.0.1.5", portId = vipPeerPortId)
 
         an [ObjectExistsException] should be thrownBy createLbV2(
-            20, vipPortId, "10.0.1.4")
+            20, vipPortId, vipSubnetId, "10.0.1.4")
     }
 }
