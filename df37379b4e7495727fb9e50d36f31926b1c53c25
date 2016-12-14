@@ -149,6 +149,30 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_e8aa1885",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-14T09:14:44Z",
+      "side": 1,
+      "message": "ah, i thought it had a default implementation. nevermind then.",
+      "parentUuid": "3ab451fb_5203f90f",
+      "range": {
+        "startLine": 57,
+        "startChar": 38,
+        "endLine": 57,
+        "endChar": 46
+      },
+      "revId": "df37379b4e7495727fb9e50d36f31926b1c53c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_f2c9e5ad",
         "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppState.scala",
         "patchSetId": 6
