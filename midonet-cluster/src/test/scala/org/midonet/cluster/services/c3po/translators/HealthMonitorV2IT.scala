@@ -46,9 +46,9 @@ class HealthMonitorV2IT extends C3POMinionTestBase with LbaasV2ITCommon {
     }
 
     "HealthMonitorV2Translator" should "add, update, and delete HM" in {
-        val (vipPortId, _, _) = createVipV2PortAndNetwork(1)
+        val (vipPortId, _, vipSubnetId) = createVipV2PortAndNetwork(1)
 
-        val lbId = createLbV2(10, vipPortId, "10.0.1.4")
+        val lbId = createLbV2(10, vipPortId, vipSubnetId, "10.0.1.4")
 
         val pool1Id = createLbV2Pool(20, lbId)
         val pool2Id = createLbV2Pool(30, lbId)
