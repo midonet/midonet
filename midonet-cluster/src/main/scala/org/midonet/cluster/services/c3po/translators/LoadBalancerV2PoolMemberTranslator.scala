@@ -49,7 +49,7 @@ class LoadBalancerV2PoolMemberTranslator
 
 
     override protected def translateDelete(tx: Transaction, id: UUID): Unit = {
-        tx.delete(classOf[PoolMember], id)
+        tx.delete(classOf[PoolMember], id, ignoresNeo = true)
     }
 
     // Don't retain high-level model.
