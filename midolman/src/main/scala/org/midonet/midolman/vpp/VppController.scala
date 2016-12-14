@@ -22,6 +22,7 @@ import java.util.concurrent.{TimeUnit, TimeoutException}
 import java.util.function.Consumer
 
 import scala.annotation.tailrec
+import scala.collection.immutable
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -44,8 +45,8 @@ import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
+import org.midonet.midolman.vpp.VppState.GatewaysChanged
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
-import org.midonet.midolman.vpp.VppUplink.UplinkTunnelRoutesChanged
 import org.midonet.midolman.{DatapathState, Midolman}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC, TunnelKeys}
 import org.midonet.util.process.ProcessHelper.OutputStreams._
@@ -117,8 +118,8 @@ class VppController(hostId: UUID,
             addUplink(portId, portAddress, uplinkPortIds)
         case DeleteUplink(portId) =>
             deleteUplink(portId)
-        case UplinkTunnelRoutesChanged(_, routes) =>
-            updateFlowStateFlows(routes)
+        case GatewaysChanged(hosts) =>
+            updateFlowStateFlows(hosts)
         case CreateTunnel(portId, vrf, vni, routerPortMac) =>
             createTunnel(portId, vrf, vni, routerPortMac)
         case DeleteTunnel(portId, vrf, vni) =>
@@ -186,15 +187,20 @@ class VppController(hostId: UUID,
     : Future[VppUplinkSetup] = {
         log debug s"Attaching IPv6 uplink port $portId"
 
+        val dpNumber = datapathState.getDpPortNumberForVport(portId)
+        if (dpNumber eq null) {
+            return Future.failed(new IllegalArgumentException(
+                s"No datapath port for uplink port $portId"))
+        }
+
         val shouldStartDownlink = uplinks.isEmpty
         if (startVppProcess()) {
             vppApi = createApiConnection(VppConnectMaxRetries)
         }
 
-        val dpNumber = datapathState.getDpPortNumberForVport(portId)
         val uplinkSetup = new VppUplinkSetup(portId,
                                              portAddress.getAddress,
-                                             dpNumber,
+                                             dpNumber.intValue(),
                                              vt.config.fip64,
                                              VppFlowStateCfg,
                                              vppApi,
@@ -482,26 +488,41 @@ class VppController(hostId: UUID,
         exec(s"vppctl fip64 sync ${VppFlowStateCfg.vrfOut}")
     }
 
-    private def updateFlowStateFlows(tunnelRoutes: Seq[UnderlayResolver.Route])
-            : Future[Any] = {
-        val vppPort = datapathState.tunnelFip64VxLanPort.getPortNo
-        val underlayPorts = Seq(datapathState.tunnelOverlayGrePort.getPortNo.toInt,
-                                datapathState.tunnelOverlayVxLanPort.getPortNo.toInt)
+    private def updateFlowStateFlows(hosts:immutable.Set[UUID]) : Future[Any] = {
+        if (hosts.isEmpty) {
+            removeFlowStateFlows()
+        } else {
+            val tunnelRoutes = hosts.flatMap(datapathState.peerTunnelInfo)
+            val vppPort = datapathState.tunnelFip64VxLanPort.getPortNo
+            val underlayPorts = Seq(
+                datapathState.tunnelOverlayGrePort.getPortNo.toInt,
+                datapathState.tunnelOverlayVxLanPort.getPortNo.toInt)
 
-        val newSetup = new Fip64FlowStateFlows(vppOvs, vppPort,
-                                               underlayPorts,
-                                               tunnelRoutes,
-                                               Logger(log.underlying))
-        val previous = uplinkFlowStateFlows
-        uplinkFlowStateFlows = Some(newSetup)
+            val newSetup = new Fip64FlowStateFlows(vppOvs, vppPort,
+                                                   underlayPorts,
+                                                   tunnelRoutes.toSeq,
+                                                   Logger(log.underlying))
+            val previous = uplinkFlowStateFlows
+            uplinkFlowStateFlows = Some(newSetup)
 
-        previous match {
-            case Some(flows) =>
-                flows.rollback() flatMap { _ =>
+            previous match {
+                case Some(flows) =>
+                    flows.rollback() flatMap { _ =>
+                        newSetup.execute()
+                    }
+                case None =>
                     newSetup.execute()
-                }
-            case None =>
-                newSetup.execute()
+            }
+        }
+    }
+
+    private def removeFlowStateFlows(): Future[Any] = {
+        uplinkFlowStateFlows match {
+            case Some(setup) => {
+                uplinkFlowStateFlows = None
+                setup.rollback()
+            }
+            case _ => Future.successful(Unit)
         }
     }
 }
