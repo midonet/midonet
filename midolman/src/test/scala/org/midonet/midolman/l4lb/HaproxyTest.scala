@@ -268,8 +268,8 @@ class HaproxyTest extends MidolmanSpec
             HaproxyHealthMonitor.NameSpaceIp + "/30 dev " + ns)
         verify(HMSystem.ipCommand).execIn(hmName, "ip link set dev lo up")
         verify(HMSystem.ipCommand).execIn(hmName,
-            "route add default gateway " +
-            HaproxyHealthMonitor.RouterIp + " " + ns)
+            "ip route add default via " +
+            HaproxyHealthMonitor.RouterIp.getAddress)
     }
 
     private def checkIpTables(hmName: String, op: String, ip: String)

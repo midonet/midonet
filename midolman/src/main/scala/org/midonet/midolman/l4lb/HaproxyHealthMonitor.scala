@@ -400,8 +400,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             ipCommand.execIn(name, "ip address add " + NameSpaceIp +
                                    "/30 dev " + ns)
             ipCommand.execIn(name, "ip link set dev lo up")
-            ipCommand.execIn(name, "route add default gateway " +
-                                   RouterIp + " " + ns)
+            ipCommand.execIn(name, "ip route add default via " +
+                                   RouterIp.getAddress)
         } catch {
             case e: Exception =>
                 HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
