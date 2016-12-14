@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_08f30475",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T09:52:06Z",
+      "side": 1,
+      "message": "do we copy CE bit on decapsulation?\notherwise copying ECT bit here falsly indicates ECN capability.",
+      "parentUuid": "3ab451fb_086304b3",
+      "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_0d8d5631",
         "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
         "patchSetId": 8
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "That was the intention, but I couldn\u0027t find an easy way to do it, as the configuration is injected in the parent class.\n\nIs it ok to merge as is and I\u0027ll rework the test to do so in a later patch?",
       "parentUuid": "3ab451fb_0d8d5631",
+      "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_e8d0d8cb",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T09:52:06Z",
+      "side": 1,
+      "message": "fine for me",
+      "parentUuid": "3ab451fb_a872d07a",
       "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
