@@ -29,25 +29,24 @@ import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.{MidolmanSpec, TestDatapathState}
 import org.midonet.odp.FlowMatch
-import org.midonet.odp.flows.{FlowActionSetKey, FlowKey, FlowKeyIPv4, FlowKeyTunnel}
 import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.flows.{FlowActionSetKey, FlowKey, FlowKeyIPv4, FlowKeyTunnel}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
 
-@RunWith(classOf[JUnitRunner])
-class QosSimulationTest extends MidolmanSpec {
+class QosSimulationBaseTest extends MidolmanSpec {
 
-    private var vt: VirtualTopology =_
+    var vt: VirtualTopology =_
 
-    private var qosPolicy1: UUID = _
-    private var dscpRule1: UUID = _
+    var qosPolicy1: UUID = _
+    var dscpRule1: UUID = _
 
-    private var port1OnHost1WithQos: UUID = _
-    private var port1OnHost2: UUID = _
+    var port1OnHost1WithQos: UUID = _
+    var port1OnHost2: UUID = _
 
-    private var bridge: UUID = _
-    private var bridgeDevice: Bridge = _
+    var bridge: UUID = _
+    var bridgeDevice: Bridge = _
 
     val host1Ip = IPv4Addr("192.168.100.1")
     val host2Ip = IPv4Addr("192.168.100.2")
@@ -61,12 +60,6 @@ class QosSimulationTest extends MidolmanSpec {
     var host2: UUID = _
 
     var tunnelZone: UUID = _
-
-    override def fillConfig(config: Config) : Config = {
-        val defaults = """agent.datapath.set_tos_on_tunnel_header = true"""
-
-        config.withFallback(ConfigFactory.parseString(defaults))
-    }
 
     override def beforeTest(): Unit ={
         vt = injector.getInstance(classOf[VirtualTopology])
@@ -97,102 +90,7 @@ class QosSimulationTest extends MidolmanSpec {
 
     }
 
-    scenario("dscp mark is added to IPv4 packets") {
-        val srcMac = "02:11:22:33:44:10"
-        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
-          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 0 } <<
-          { udp src 10 dst 11 } << payload("My UDP packet")
-
-        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
-
-        val (result, ctxOut) = simulate(ctx)
-
-        verifyDSCP(ctxOut, 22, requireTunnelAction = false)
-    }
-
-    scenario("dscp mark is added to IPv4 packets with ECN set") {
-        val srcMac = "02:11:22:33:44:10"
-        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
-          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 2 } <<
-          { udp src 10 dst 11 } << payload("My UDP packet")
-
-        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
-
-        // Set the TOS field as 2 to simulate a phony ECN value
-        // set this here as the created context currently clears the TOS field,
-        // even if diffServ is set in the ethernet packet (bug: MI-1889)
-        ctx.origMatch.setNetworkTOS(2)
-
-        val (result, ctxOut) = simulate(ctx)
-
-        verifyDSCP(ctxOut, 22, requireTunnelAction = false)
-
-        // The last two bits are the leftover ECN
-        ctxOut.wcmatch.getNetworkTOS & 0x03 shouldBe 2
-    }
-
-
-    scenario("dscp mark is kept on IPv4 packets when ToS is same as DSCP mark") {
-        val srcMac = "02:11:22:33:44:10"
-        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
-          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 88 } <<
-          { udp src 10 dst 11 } << payload("My UDP packet")
-        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
-
-        // 88 is the dscp mark shifted left twice
-        // set this here as the created context currently clears the TOS field,
-        // even if diffServ is set in the ethernet packet (bug: MI-1889)
-        ctx.wcmatch.setNetworkTOS(88)
-
-        val (result, ctxOut) = simulate(ctx)
-
-        verifyDSCP(ctxOut, 22,
-                   requireSetKeyAction = false,
-                   requireTunnelAction = false)
-    }
-
-    scenario("dscp mark is set on the tunneled packet") {
-        Given("A second host with a port bound")
-        host2 = newHost("host2", UUID.randomUUID(), Set(tunnelZone))
-        addTunnelZoneMember(tunnelZone, host2, host2Ip)
-        datapath.peerTunnels += (host2 -> Route(
-            host2Ip.addr, host1Ip.addr, output(datapath.vxlanPortNumber)))
-        port1OnHost2 = newBridgePort(bridge)
-        materializePort(port1OnHost2, host2, "port7")
-        fetchPorts(port1OnHost2)
-
-        When("Sending a packet from a port with a QoS policy")
-        val srcMac = "02:11:22:33:44:10"
-        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
-          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 2 } <<
-          { udp src 10 dst 11 } << payload("My UDP packet")
-
-        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
-
-
-        // Set the TOS field as 2 to simulate a phony ECN value
-        // and check that the tunnel TOS field sets them to 0 (bug: MI-1889)
-        ctx.origMatch.setNetworkTOS(2)
-        val (result, ctxOut) = simulate(ctx)
-
-        Then("The translated actions contain a tunnel flow key with the same DSCP mark")
-        translator.translateActions(ctxOut)
-        verifyDSCP(ctxOut, 22)
-    }
-
-    scenario("dscp mark is not added to non-IPv4 packets") {
-        val srcMac = "02:11:22:33:44:10"
-        val ethPkt = { eth src srcMac dst eth_bcast } <<
-          { arp.req.mac(srcMac -> eth_bcast)
-            .ip("10.10.10.11" --> "10.11.11.10") }
-        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
-
-        val (result, ctxOut) = simulate(ctx)
-
-        verifyNoDSCP(ctxOut)
-    }
-
-    private def verifyDSCP(ctx: PacketContext, dscpMark: Int,
+    protected def verifyDSCP(ctx: PacketContext, dscpMark: Int,
                            requireSetKeyAction: Boolean = true,
                            requireTunnelAction: Boolean = true) : Unit = {
         ctx.calculateActionsFromMatchDiff()
@@ -233,7 +131,7 @@ class QosSimulationTest extends MidolmanSpec {
         }
     }
 
-    private def verifyNoDSCP(ctx: PacketContext) : Unit = {
+    protected def verifyNoDSCP(ctx: PacketContext) : Unit = {
         ctx.calculateActionsFromMatchDiff()
         ctx.wcmatch.isSeen(FlowMatch.Field.NetworkTOS) shouldBe false
         ctx.wcmatch.isSeen(FlowMatch.Field.TunnelTOS) shouldBe false
@@ -241,5 +139,147 @@ class QosSimulationTest extends MidolmanSpec {
           (_.isInstanceOf[FlowActionSetKey]) filter
           (_.asInstanceOf[FlowActionSetKey].getFlowKey.isInstanceOf[FlowKeyIPv4]) map
           (_.asInstanceOf[FlowActionSetKey].getFlowKey) shouldBe empty
+        verifyNoDSCPOnTunnel(ctx)
+    }
+
+    protected def verifyNoDSCPOnTunnel(ctx: PacketContext) : Unit = {
+        ctx.wcmatch.isSeen(FlowMatch.Field.TunnelTOS) shouldBe false
+        ctx.wcmatch.getTunnelTOS >> 2 shouldBe 0
+    }
+}
+
+@RunWith(classOf[JUnitRunner])
+class QosDefaultSimulationTest extends QosSimulationBaseTest {
+
+    scenario("dscp mark is added to IPv4 packets") {
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 0 } <<
+          { udp src 10 dst 11 } << payload("My UDP packet")
+
+        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
+
+        val (result, ctxOut) = simulate(ctx)
+
+        verifyDSCP(ctxOut, 22, requireTunnelAction = false)
+    }
+
+    scenario("dscp mark is added to IPv4 packets with ECN set") {
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 2 } <<
+          { udp src 10 dst 11 } << payload("My UDP packet")
+
+        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
+
+        // Set the TOS field as 2 to simulate a phony ECN value
+        // set this here as the created context currently clears the TOS field,
+        // even if diffServ is set in the ethernet packet (bug: MI-1889)
+        ctx.origMatch.setNetworkTOS(2)
+
+        val (result, ctxOut) = simulate(ctx)
+
+        verifyDSCP(ctxOut, 22, requireTunnelAction = false)
+
+        // The last two bits are the leftover ECN
+        ctxOut.wcmatch.getNetworkTOS & 0x03 shouldBe 2
+    }
+
+    scenario("dscp mark is kept on IPv4 packets when ToS is same as DSCP mark") {
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 88 } <<
+          { udp src 10 dst 11 } << payload("My UDP packet")
+        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
+
+        // 88 is the dscp mark shifted left twice
+        // set this here as the created context currently clears the TOS field,
+        // even if diffServ is set in the ethernet packet (bug: MI-1889)
+        ctx.wcmatch.setNetworkTOS(88)
+
+        val (result, ctxOut) = simulate(ctx)
+
+        verifyDSCP(ctxOut, 22,
+                   requireSetKeyAction = false,
+                   requireTunnelAction = false)
+    }
+
+    scenario("dscp mark is not set on the tunneled packet by default") {
+        Given("A second host with a port bound")
+        host2 = newHost("host2", UUID.randomUUID(), Set(tunnelZone))
+        addTunnelZoneMember(tunnelZone, host2, host2Ip)
+        datapath.peerTunnels += (host2 -> Route(
+            host2Ip.addr, host1Ip.addr, output(datapath.vxlanPortNumber)))
+        port1OnHost2 = newBridgePort(bridge)
+        materializePort(port1OnHost2, host2, "port7")
+        fetchPorts(port1OnHost2)
+
+        When("Sending a packet from a port with a QoS policy")
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 2 } <<
+          { udp src 10 dst 11 } << payload("My UDP packet")
+
+        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
+
+        // Set the TOS field as 2 to simulate a phony ECN value
+        // and check that the tunnel TOS field sets them to 0 (bug: MI-1889)
+        ctx.origMatch.setNetworkTOS(2)
+        val (result, ctxOut) = simulate(ctx)
+
+        Then("The TunnelFlowKey does not contain the DSCP mark")
+        translator.translateActions(ctxOut)
+        verifyDSCP(ctxOut, 22, requireTunnelAction = false)
+        verifyNoDSCPOnTunnel(ctxOut)
+    }
+
+    scenario("dscp mark is not added to non-IPv4 packets") {
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst eth_bcast } <<
+          { arp.req.mac(srcMac -> eth_bcast)
+            .ip("10.10.10.11" --> "10.11.11.10") }
+        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
+
+        val (result, ctxOut) = simulate(ctx)
+
+        verifyNoDSCP(ctxOut)
+    }
+}
+
+@RunWith(classOf[JUnitRunner])
+class QosOnTunnelHeaderSimulationTest extends QosSimulationBaseTest {
+
+    override protected def fillConfig(config: Config) : Config = {
+        val defaults = """agent.datapath.set_tos_on_tunnel_header : true"""
+
+        config.withFallback(ConfigFactory.parseString(defaults))
+    }
+
+    scenario("dscp mark is set on the tunneled packet if configured to do so") {
+        Given("A second host with a port bound")
+        host2 = newHost("host2", UUID.randomUUID(), Set(tunnelZone))
+        addTunnelZoneMember(tunnelZone, host2, host2Ip)
+        datapath.peerTunnels += (host2 -> Route(
+            host2Ip.addr, host1Ip.addr, output(datapath.vxlanPortNumber)))
+        port1OnHost2 = newBridgePort(bridge)
+        materializePort(port1OnHost2, host2, "port7")
+        fetchPorts(port1OnHost2)
+
+        When("Sending a packet from a port with a QoS policy")
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 2 } <<
+          { udp src 10 dst 11 } << payload("My UDP packet")
+
+        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
+
+        // Set the TOS field as 2 to simulate a phony ECN value
+        // and check that the tunnel TOS field sets them to 0 (bug: MI-1889)
+        ctx.origMatch.setNetworkTOS(2)
+        val (result, ctxOut) = simulate(ctx)
+
+        Then("The translated actions contain a tunnel flow key with the same DSCP mark")
+        translator.translateActions(ctxOut)
+        verifyDSCP(ctxOut, 22)
     }
 }
