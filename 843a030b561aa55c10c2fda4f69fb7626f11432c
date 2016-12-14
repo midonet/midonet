@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_4ed0f553",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T11:03:15Z",
+      "side": 1,
+      "message": "sure.\nbut i don\u0027t think UDP encapsulation is relevant.\ni guess an intermediate router doesn\u0027t check tcp/udp/etc at all for ECN processing.",
+      "parentUuid": "3ab451fb_ee5b412d",
+      "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_0d8d5631",
         "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
         "patchSetId": 8
