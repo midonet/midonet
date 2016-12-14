@@ -18,12 +18,16 @@ package org.midonet.cluster.tools
 
 import java.util.concurrent.CountDownLatch
 
+import scala.collection.JavaConversions._
+
 import com.google.common.util.concurrent.Service.{State, Listener}
 import com.google.inject.{AbstractModule, Guice}
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
+import org.apache.commons.configuration.HierarchicalINIConfiguration
 import org.slf4j.LoggerFactory
 
 import org.midonet.util.concurrent.CallingThreadExecutionContext
-import org.midonet.cluster.{ClusterConfig, ClusterConfig$}
 
 /**
  * Stand-alone application to start the Topology Snoopy (Topology api client)
@@ -35,7 +39,18 @@ object TopologySnoopyApp extends App {
 
     private val topologySnoopyModule = new AbstractModule {
         override def configure(): Unit = {
-            bind(classOf[ClusterConfig]).toInstance(ClusterConfig(cfgFile))
+            val ini = new HierarchicalINIConfiguration(cfgFile)
+            val kvs = for (sectionName <- ini.getSections;
+                           section = ini.getSection(sectionName);
+                           k <- section.getKeys;
+                           v = section.getString(k)) yield
+                (s"cluster.$sectionName.$k", ConfigValueFactory.fromAnyRef(v))
+            val config = (ConfigFactory.empty /: kvs) {
+                case (acc, (k, v)) => acc.withValue(k, v)
+            }
+
+            bind(classOf[TopologySnoopyConfig]).toInstance(
+                new TopologySnoopyConfig(config))
             bind(classOf[TopologySnoopy]).asEagerSingleton()
         }
     }
