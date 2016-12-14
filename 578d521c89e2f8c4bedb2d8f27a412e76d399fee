@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_8dc72645",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T07:15:24Z",
+      "side": 1,
+      "message": "are these changes related?",
+      "revId": "578d521c89e2f8c4bedb2d8f27a412e76d399fee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_cda3ee4e",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/ConveyorBelt.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T07:15:24Z",
+      "side": 1,
+      "message": "If CallingThreadExecutionContext is specified ?",
+      "range": {
+        "startLine": 33,
+        "startChar": 4,
+        "endLine": 33,
+        "endChar": 44
+      },
+      "revId": "578d521c89e2f8c4bedb2d8f27a412e76d399fee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
