@@ -798,9 +798,11 @@ class PortTranslator(stateTableStorage: StateTableStorage,
 
     private def translateNeutronPort(tx: Transaction,
                                      nPort: NeutronPort): Port.Builder = {
+        val adminStateUp =
+            if (isVipV2Port(nPort)) true else nPort.getAdminStateUp
         val bldr = Port.newBuilder.setId(nPort.getId)
             .setNetworkId(nPort.getNetworkId)
-            .setAdminStateUp(nPort.getAdminStateUp)
+            .setAdminStateUp(adminStateUp)
         if (nPort.hasQosPolicyId)
             bldr.setQosPolicyId(nPort.getQosPolicyId)
         if (hasBinding(nPort)) {
