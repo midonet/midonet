@@ -31,7 +31,7 @@ import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool;
 
-@ZoomClass(clazz = Neutron.NeutronRouter.ExternalGatewayInfo.class)
+@ZoomClass(clazz = Neutron.NeutronLoadBalancerV2Pool.LBV2SessionPersistenceAlgorithm.class)
 public class LBV2SessionPersistenceAlgorithm extends ZoomObject {
 
     public LBV2SessionPersistenceAlgorithm() {}
