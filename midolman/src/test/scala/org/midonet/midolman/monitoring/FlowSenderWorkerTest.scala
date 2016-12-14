@@ -126,6 +126,7 @@ class FlowSenderWorkerTest extends MidolmanSpec with MidonetEventually {
             val confStr =
                 s"""
                   |agent.flow_history.endpoint_service="$EndpointServiceName"
+                  |agent.flow_history.connection_interval="0ms"
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
             val (sender, discovery) = createFlowSender(conf)
@@ -171,11 +172,13 @@ class FlowSenderWorkerTest extends MidolmanSpec with MidonetEventually {
             val confStr =
                 s"""
                    |agent.flow_history.endpoint_service="$EndpointServiceName"
+                   |agent.flow_history.connection_interval="0ms"
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
             val sender = new TestFlowSender(conf.flowHistory, backend) {
                 override protected def sendRecord(buffer: ByteBuffer): Unit = {
-                    if (endpoint.get.getHostName != validTarget.getHostText) {
+                    val ep = endpoint.orElse(maybeChangeEndpoint()).orNull
+                    if (ep.getHostName != validTarget.getHostText) {
                         throw new IOException("Boom!")
                     }
                 }
@@ -250,6 +253,50 @@ class FlowSenderWorkerTest extends MidolmanSpec with MidonetEventually {
 
             noException should be thrownBy sender.onEvent(buffer, 0,
                                                           endOfBatch=true)
+
+            sender.stopAsync().awaitTerminated()
+        }
+        scenario("connection rate interval is respected") {
+            val connectionIntervalString = "500ms"
+            val connectionInterval = Duration(connectionIntervalString)
+            val confStr =
+                s"""
+                   |agent.flow_history.endpoint_service="$EndpointServiceName"
+                   |agent.flow_history.connection_interval="$connectionIntervalString"
+                """.stripMargin
+
+            val conf = MidolmanConfig.forTests(confStr)
+            val (sender, discovery) = createTestFlowSender(conf)
+
+            sender.performConnections = false
+
+            sender.startAsync().awaitRunning()
+
+            val target = HostAndPort.fromString("192.0.2.0:12345")
+            discovery.registerServiceInstance(EndpointServiceName, target)
+            sender.endpoint.get shouldBe hpToSocketAddress(target)
+
+            val buffer = ByteBuffer.allocate(0)
+
+            // This won't be able to send
+            sender.onEvent(buffer, 0, endOfBatch=true)
+            // So endpoint should be invalidated
+            sender.endpoint shouldBe None
+
+            for (_ <- 0 until 5) {
+                // This won't try to reconnect yet because of rate limiting
+                sender.onEvent(buffer, 0, endOfBatch = true)
+            }
+
+            // Sleep for connection interval
+            Thread.sleep(connectionInterval.toMillis)
+
+            // This should attempt to reconnect
+            sender.onEvent(buffer, 0, endOfBatch=true)
+
+            // We tried to send 7 times but we should only have 2 connection
+            // attempts due to rate limiting
+            sender.numMaybeConnects shouldBe 2
 
             sender.stopAsync().awaitTerminated()
         }
@@ -371,6 +418,7 @@ class FlowSenderWorkerTest extends MidolmanSpec with MidonetEventually {
                 s"""
                    |agent.flow_history.enabled=true
                    |agent.flow_history.endpoint_service="$EndpointServiceName"
+                   |agent.flow_history.connection_interval="0ms"
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
 
@@ -480,6 +528,11 @@ class FlowSenderWorkerTest extends MidolmanSpec with MidonetEventually {
         (flowSender, backend.discovery)
     }
 
+    private def createTestFlowSender(config: MidolmanConfig) = {
+        val flowSender = new TestFlowSender(config.flowHistory, backend)
+        (flowSender, backend.discovery)
+    }
+
     private def createErrorFlowSender(config: MidolmanConfig) = {
         val flowSender = new FlowSender(config.flowHistory, backend) {
             override protected def sendRecord(buffer: ByteBuffer): Unit =
@@ -506,10 +559,22 @@ object FlowSenderWorkerTest {
                                  backend: MidonetBackend)
         extends FlowSender(flowHistoryConfig, backend) {
 
+        var numMaybeConnects = 0
+        var performConnections = true
+
         def setCurrentEndpoint(hpOption: Option[HostAndPort]): Unit = {
             endpointRef.lazySet(hpOption.map { hp =>
                 new InetSocketAddress(hp.getHostText, hp.getPort)
             })
+        }
+
+        override protected def maybeConnect(address: InetSocketAddress): Unit = {
+            numMaybeConnects += 1
+            if (performConnections) {
+                super.maybeConnect(address)
+            } else {
+                throw new IOException("Connections disabled")
+            }
         }
     }
 }
