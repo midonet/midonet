@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_4d9c7e69",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T04:33:32Z",
+      "side": 1,
+      "message": "is it intended to copy ecn bits as well?",
+      "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_8d928656",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/QosSimulationTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-14T04:33:32Z",
+      "side": 1,
+      "message": "dup?",
+      "range": {
+        "startLine": 155,
+        "startChar": 17,
+        "endLine": 155,
+        "endChar": 30
+      },
+      "revId": "843a030b561aa55c10c2fda4f69fb7626f11432c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
