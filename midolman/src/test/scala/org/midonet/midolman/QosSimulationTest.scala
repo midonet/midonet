@@ -25,6 +25,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.config.{DatapathConfig, MidolmanConfig}
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.{MidolmanSpec, TestDatapathState}
@@ -62,10 +63,21 @@ class QosSimulationTest extends MidolmanSpec {
 
     var tunnelZone: UUID = _
 
-    override def fillConfig(config: Config) : Config = {
-        val defaults = """agent.datapath.set_tos_on_tunnel_header = true"""
+    var midolmanConfig: TestMidolmanConfig = _
 
-        config.withFallback(ConfigFactory.parseString(defaults))
+    class TestMidolmanConfig(config: Config)
+        extends MidolmanConfig(config, ConfigFactory.empty()) {
+        var enableTosOnTunnelHeader = false
+
+        override val datapath = new DatapathConfig(conf, schema) {
+            override def setTosOnTunnelHeader = enableTosOnTunnelHeader
+        }
+
+    }
+
+    override def midolmanConfig(config: Config) : MidolmanConfig = {
+        midolmanConfig = new TestMidolmanConfig(config)
+        midolmanConfig
     }
 
     override def beforeTest(): Unit ={
@@ -131,7 +143,6 @@ class QosSimulationTest extends MidolmanSpec {
         ctxOut.wcmatch.getNetworkTOS & 0x03 shouldBe 2
     }
 
-
     scenario("dscp mark is kept on IPv4 packets when ToS is same as DSCP mark") {
         val srcMac = "02:11:22:33:44:10"
         val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
@@ -151,7 +162,7 @@ class QosSimulationTest extends MidolmanSpec {
                    requireTunnelAction = false)
     }
 
-    scenario("dscp mark is set on the tunneled packet") {
+    scenario("dscp mark is not set on the tunneled packet by default") {
         Given("A second host with a port bound")
         host2 = newHost("host2", UUID.randomUUID(), Set(tunnelZone))
         addTunnelZoneMember(tunnelZone, host2, host2Ip)
@@ -169,6 +180,35 @@ class QosSimulationTest extends MidolmanSpec {
 
         val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
 
+        // Set the TOS field as 2 to simulate a phony ECN value
+        // and check that the tunnel TOS field sets them to 0 (bug: MI-1889)
+        ctx.origMatch.setNetworkTOS(2)
+        val (result, ctxOut) = simulate(ctx)
+
+        Then("The TunnelFlowKey does not contain the DSCP mark")
+        translator.translateActions(ctxOut)
+        verifyDSCP(ctxOut, 22, requireTunnelAction = false)
+        verifyNoDSCPOnTunnel(ctxOut)
+    }
+
+    scenario("dscp mark is set on the tunneled packet if configured to do so") {
+        Given("A second host with a port bound")
+        midolmanConfig.enableTosOnTunnelHeader = true
+        host2 = newHost("host2", UUID.randomUUID(), Set(tunnelZone))
+        addTunnelZoneMember(tunnelZone, host2, host2Ip)
+        datapath.peerTunnels += (host2 -> Route(
+            host2Ip.addr, host1Ip.addr, output(datapath.vxlanPortNumber)))
+        port1OnHost2 = newBridgePort(bridge)
+        materializePort(port1OnHost2, host2, "port7")
+        fetchPorts(port1OnHost2)
+
+        When("Sending a packet from a port with a QoS policy")
+        val srcMac = "02:11:22:33:44:10"
+        val ethPkt = { eth src srcMac dst "02:11:22:33:44:11" } <<
+          { ip4 src "10.0.1.10" dst "10.0.1.11" diff_serv 2 } <<
+          { udp src 10 dst 11 } << payload("My UDP packet")
+
+        val ctx = packetContextFor(ethPkt, port1OnHost1WithQos)
 
         // Set the TOS field as 2 to simulate a phony ECN value
         // and check that the tunnel TOS field sets them to 0 (bug: MI-1889)
@@ -241,5 +281,11 @@ class QosSimulationTest extends MidolmanSpec {
           (_.isInstanceOf[FlowActionSetKey]) filter
           (_.asInstanceOf[FlowActionSetKey].getFlowKey.isInstanceOf[FlowKeyIPv4]) map
           (_.asInstanceOf[FlowActionSetKey].getFlowKey) shouldBe empty
+        verifyNoDSCPOnTunnel(ctx)
+    }
+
+    private def verifyNoDSCPOnTunnel(ctx: PacketContext) : Unit = {
+        ctx.wcmatch.isSeen(FlowMatch.Field.TunnelTOS) shouldBe false
+        ctx.wcmatch.getTunnelTOS >> 2 shouldBe 0
     }
 }
