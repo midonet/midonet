@@ -17,12 +17,26 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Topology.{Dhcp, Route}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+
+import scala.collection.JavaConverters._
 
 /**
  * Contains loadbalancer-related operations shared by multiple translators.
  */
-trait LoadBalancerManager {
+trait LoadBalancerManager extends RouteManager {
+
+    def buildRouterRoutesFromDhcp(portId: UUID, dhcp: Dhcp): List[Route] = {
+
+        // A route for each of the host routes configured.
+        dhcp.getOpt121RoutesList.asScala.map { r =>
+            newNextHopPortRoute(
+                portId,
+                nextHopGateway = r.getGateway,
+                dstSubnet = r.getDstSubnet)
+        }.toList
+    }
 
     protected def lbRouterInChainName(lbId: UUID) = s"LB_ROUTER_${lbId.asJava}"
 

@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2
+import org.midonet.cluster.models.Neutron.{NeutronLoadBalancerV2, NeutronPort}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.util.IPAddressUtil._
@@ -27,6 +27,8 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.containers
 import org.midonet.packets.{IPv4Subnet, MAC}
+
+import scala.collection.mutable.ListBuffer
 
 class LoadBalancerV2Translator(config: ClusterConfig)
         extends Translator[NeutronLoadBalancerV2]
@@ -104,15 +106,22 @@ class LoadBalancerV2Translator(config: ClusterConfig)
             .setRouterId(newRouterId)
             .build
 
+        val dhcp = tx.get(classOf[Dhcp], nLb.getVipSubnetId)
+        val nVipPort = tx.get(classOf[NeutronPort], nLb.getVipPortId)
+
         // Create a router-side port with the VIP address, and connect to the
         // already-created VIP port (specified by vipPortId)
         val newPort = Port.newBuilder()
-                          .setId(newRouterPortId)
-                          .setAdminStateUp(nLb.getAdminStateUp)
-                          .setPortAddress(IPAddressUtil.toProto(nLb.getVipAddress))
-                          .setPeerId(nLb.getVipPortId)
-                          .setRouterId(newRouterId)
-                          .build
+            .setId(newRouterPortId)
+            .setPeerId(nLb.getVipPortId)
+            .setRouterId(newRouterId)
+            .setPortAddress(IPAddressUtil.toProto(nLb.getVipAddress))
+            .setPortMac(nVipPort.getMacAddress)
+            .addPortSubnet(dhcp.getSubnetAddress)
+            .build
+
+        val routes = ListBuffer(newNextHopPortRoute(
+            newPort.getId, dstSubnet = newPort.getPortSubnet(0)))
 
         val serviceContainerPort = Port.newBuilder
             .setId(lbServiceContainerPortId(newRouter.getId))
@@ -121,6 +130,16 @@ class LoadBalancerV2Translator(config: ClusterConfig)
             .setPortAddress(routerAddress.asProto)
             .setPortMac(MAC.random().toString)
             .build()
+
+        routes += newNextHopPortRoute(
+            serviceContainerPort.getId,
+            dstSubnet = serviceContainerPort.getPortSubnet(0))
+
+        if (dhcp.hasDefaultGateway) {
+            routes += defaultGwRoute(dhcp, newPort.getId,
+                                     dhcp.getDefaultGateway)
+        }
+        routes ++= buildRouterRoutesFromDhcp(newPort.getId, dhcp)
 
         val serviceContainerGroup = ServiceContainerGroup.newBuilder
             .setId(lbServiceContainerGroupId(newRouterId))
@@ -144,6 +163,7 @@ class LoadBalancerV2Translator(config: ClusterConfig)
         tx.create(serviceContainerPort)
         tx.create(serviceContainerGroup)
         tx.create(serviceContainer)
+        routes foreach tx.create
     }
 
     override protected def translateDelete(tx: Transaction, id: UUID): Unit = {
