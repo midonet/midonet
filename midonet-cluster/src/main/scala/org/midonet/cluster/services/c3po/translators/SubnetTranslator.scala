@@ -16,19 +16,22 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable
-
 import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
-import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
+import org.midonet.cluster.models.Topology.{Dhcp, Network, Port, Route}
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+
 // TODO: add code to handle connection to provider router.
-class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
+class SubnetTranslator extends Translator[NeutronSubnet]
+                       with LoadBalancerManager {
+
+    import PortManager._
 
     override protected def translateCreate(tx: Transaction,
                                            ns: NeutronSubnet): Unit = {
@@ -70,6 +73,34 @@ class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
         tx.delete(classOf[Dhcp], ns.getId, ignoresNeo = true)
     }
 
+    private def updateLoadBalancerRoutes(tx: Transaction,
+                                         ns: NeutronSubnet,
+                                         dhcp: Dhcp.Builder): Unit = {
+        val network = tx.get(classOf[Network], ns.getNetworkId)
+        val vipPortsIds = tx.getAll(classOf[NeutronPort],
+                                    network.getPortIdsList.asScala)
+            .filter(isVipV2Port)
+            .map(_.getId)
+
+        val routerPortIds = tx.getAll(classOf[Port], vipPortsIds)
+            .filter(_.hasPeerId)
+            .map(_.getPeerId)
+
+        val rIds = dhcp.getGatewayRouteIdsList.asScala
+
+        tx.getAll(classOf[Port], routerPortIds).foreach { p =>
+
+            // Update the load balancer routes
+            rIds.intersect(p.getRouteIdsList.asScala) foreach { rId =>
+                val i = dhcp.getGatewayRouteIdsList.indexOf(rId)
+                dhcp.removeGatewayRouteIds(i)
+                tx.delete(classOf[Route], rId)
+            }
+
+            buildRouterRoutesFromDhcp(p.getId, dhcp.build) foreach tx.create
+        }
+    }
+
     override protected def translateUpdate(tx: Transaction,
                                            ns: NeutronSubnet): Unit = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
@@ -101,12 +132,14 @@ class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
                 opt121FromHostRoute(RouteManager.META_DATA_SRVC, ip))
         })
 
+        updateLoadBalancerRoutes(tx, ns, newDhcp)
+
         tx.update(newDhcp.build())
         updateRouteNextHopIps(
             tx,
             if (oldDhcp.hasDefaultGateway) oldDhcp.getDefaultGateway else null,
             if (newDhcp.hasDefaultGateway) newDhcp.getDefaultGateway else null,
-            oldDhcp.getGatewayRouteIdsList.asScala)
+            newDhcp.getGatewayRouteIdsList.asScala)
 
         // TODO: connect to provider router if external
     }

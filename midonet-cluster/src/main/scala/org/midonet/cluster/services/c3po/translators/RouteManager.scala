@@ -73,6 +73,15 @@ trait RouteManager {
                             dstSubnet = META_DATA_SRVC)
     }
 
+    protected def defaultGwRoute(dhcp: Dhcp, portId: UUID, address: IPAddress)
+    : Route = {
+        val nextHopIp =
+            if (dhcp.hasDefaultGateway) dhcp.getDefaultGateway else null
+        newNextHopPortRoute(portId, id = gatewayRouteId(portId, address),
+            gatewayDhcpId = dhcp.getId,
+            nextHopGateway = nextHopIp)
+    }
+
     protected def newNextHopPortRoute(nextHopPortId: UUID,
                                       id: UUID = null,
                                       nextHopGateway: IPAddress = null,
