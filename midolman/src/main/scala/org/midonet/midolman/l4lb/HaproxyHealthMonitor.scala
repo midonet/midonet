@@ -80,7 +80,8 @@ object HaproxyHealthMonitor {
 
     // Constants for linking namespace to router port
     val NameSpaceIp = IPv4Addr.fromString("169.254.17.42")
-    val RouterIp = IPv4Subnet.fromCidr("169.254.17.41/30")
+    val RouterIp = IPv4Addr.fromString("169.254.17.41")
+    val NetSubnet = Ipv4Subnet.fromCidr("169.254.17.40/30")
     val RouterMAC = MAC.random
     val NameSpaceMAC = "0C:0C:0C:0C:0C:0C"
 
@@ -398,8 +399,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             ipCommand.execIn(name, "ip address add " + NameSpaceIp +
                                    "/30 dev " + ns)
             ipCommand.execIn(name, "ip link set dev lo up")
-            ipCommand.execIn(name, "route add default gateway " +
-                                   RouterIp + " " + ns)
+            ipCommand.execIn(name, "ip route add default via " +
+                                   RouterIp)
         } catch {
             case e: Exception =>
                 HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
@@ -462,8 +463,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             }
 
             val tk = seqDispenser.next(OverlayTunnelKey).await()
-            val routerSubnet = IPSubnetUtil.toProto(RouterIp)
-            val routerAddress = IPAddressUtil.toProto(RouterIp.getAddress)
+            val routerSubnet = IPSubnetUtil.toProto(NetSubnet)
+            val routerAddress = IPAddressUtil.toProto(RouterIp)
 
             val hmPort = Port.newBuilder()
                 .setId(randomUuidProto)
