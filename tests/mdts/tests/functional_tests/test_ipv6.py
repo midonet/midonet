@@ -18,6 +18,7 @@ from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
 from mdts.tests.utils.utils import bindings
 from nose.plugins.attrib import attr
+from nose.tools import nottest
 import re
 import subprocess
 import time
@@ -31,6 +32,8 @@ DOWNLINK_VETH_MAC_2 = '2e:0e:2f:68:00:33'
 TCP_SERVER_PORT = 9999
 TCP_CLIENT_PORT = 9998
 LRU_SIZE_SINGLE_TENANT = 2
+CREATE_SECOND_UPLINK = True
+ASSYMETRIC_ROUTING = True
 
 class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
     def cleanup_veth(self, container, name):
@@ -141,6 +144,14 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
 
         cont.exec_command('ip netns delete ip6')
 
+    def unset_gateway_address(self, cont_services, gw_address, interface):
+        cont_services.exec_command('ip a del %s dev %s' % (gw_address, interface))
+        
+    def set_gateway_address(self, container, gw_address, interface):
+        cont_services = service.get_container_by_hostname(container)
+        self.addCleanup(self.unset_gateway_address, cont_services, gw_address, interface)
+        cont_services.exec_command('ip a add %s dev %s' % (gw_address, interface))
+
     def setup_remote_host(self, container, interface, gw_address,
                           local_address, local_router):
         self.addCleanup(self.cleanup_remote_host, container, interface, gw_address)
@@ -235,46 +246,66 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
     def __init__(self):
         super(UplinkWithVPP, self).__init__()
         self.uplink_port = {}
-        self.vrf = 0
+        self.vrf = 2
 
     def build(self, binding_data=None):
         self._edgertr = self.create_router("edge")
-        uplinknet = self.create_network("uplink", uplink=True)
-        self.create_subnet("uplinksubnet6", uplinknet, "2001::/64",
+        uplinknet1 = self.create_network("uplink1", uplink=True)
+        self.create_subnet("uplinksubnet6a", uplinknet1, "2001::/64",
                            enable_dhcp=False, version=6)
-
-        self.uplink_port = self.create_port("uplinkport", uplinknet,
+        self.uplink_port = self.create_port("uplinkport1", uplinknet1,
                                             host_id="midolman1",
                                             interface="bgp0",
                                             fixed_ips=["2001::1"])
+
         self.add_router_interface(self._edgertr, port=self.uplink_port)
+
+        if CREATE_SECOND_UPLINK:
+            uplinknet2 = self.create_network("uplink2", uplink=True)
+            self.create_subnet("uplinksubnet6b", uplinknet2, "3001::/64",
+                               enable_dhcp=False, version=6)
+
+            self.uplink_port2 = self.create_port("uplinkport2", uplinknet2,
+                                                host_id="midolman2",
+                                                interface="bgp0",
+                                                fixed_ips=["3001::1"])
+            self.add_router_interface(self._edgertr, port=self.uplink_port2)
 
         # setup quagga1
         self.setup_remote_host('quagga1', 'bgp1',
             gw_address="2001::2",
             local_address="bbbb::2",
             local_router="bbbb::1")
+        if CREATE_SECOND_UPLINK:
+            self.set_gateway_address('quagga1', "3001::2/64", "bgp2")
+
         self.setup_remote_host('quagga2', 'bgp2',
             gw_address="2001::3",
             local_address="eeee::2",
             local_router="eeee::1")
 
         self.flush_neighbours('quagga1', 'bgp1')
-        self.flush_neighbours('quagga2', 'bgp2')
+        self.flush_neighbours('quagga1', 'bgp2')
         self.flush_neighbours('midolman1', 'bgp0')
+        self.flush_neighbours('midolman2', 'bgp0')
 
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
-
         self.await_vpp_initialized('midolman1', uplink_port_name, 180)
-        self.add_route_to_vpp('midolman1',
-                              prefix='bbbb::/64',
-                              via='2001::2',
-                              port=uplink_port_name)
-        self.add_route_to_vpp('midolman1',
-                              prefix='eeee::/64',
-                              via='2001::3',
-                              port=uplink_port_name)
+        if not ASSYMETRIC_ROUTING:
+            self.add_route_to_vpp('midolman1',
+                                  prefix='bbbb::/64',
+                                  via='2001::2',
+                                  port=uplink_port_name)
+
+        if CREATE_SECOND_UPLINK:
+            uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port2)
+            uplink_port_name = 'vpp-' + uplink_port_id[0:8]
+            self.await_vpp_initialized('midolman2', uplink_port_name, 180)
+            self.add_route_to_vpp('midolman2',
+                                  prefix='bbbb::/64',
+                                  via='3001::2',
+                                  port=uplink_port_name)
 
     def addTenant(self, name, pubnet, mac, port_name):
 
@@ -330,6 +361,8 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
     def destroy(self):
         super(UplinkWithVPP, self).destroy()
         service.get_container_by_hostname('midolman1').\
+            exec_command_blocking("restart midolman")
+        service.get_container_by_hostname('midolman2').\
             exec_command_blocking("restart midolman")
 
 
@@ -483,7 +516,7 @@ binding_multihost_singletenant = {
 }
 
 binding_multihost_singletenant_neutronfip6 = {
-    'description': 'spanning across 2 midolman no tenant binding',
+    'description': 'spanning across 2 midolmans',
     'bindings': [
          {'vport': 'port1',
          'interface': {
@@ -846,3 +879,16 @@ def test_lru():
                 client.close()
         if extra is not None:
             extra.close()
+
+
+#CREATE_SECOND_UPLINK = True
+#ASSYMETRIC_ROUTING = True
+@nottest
+@attr(version="v1.2.0")
+@bindings(binding_multihost_singletenant_neutronfip6,
+          binding_manager=BindingManager(vtm=SingleTenantWithNeutronIPv6FIP()))
+def test_2uplinks_assymetric():
+    """
+    Title: Provider router with two uplinks. Only second uplink VPP has egress route for IPV6 traffic
+    """
+    ping_from_inet('quagga1', 'cccc:bbbb::3', 4, namespace='ip6')
