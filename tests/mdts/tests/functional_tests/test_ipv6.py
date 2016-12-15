@@ -237,7 +237,7 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
     def __init__(self):
         super(UplinkWithVPP, self).__init__()
         self.uplink_port = {}
-        self.vrf = 0
+        self.vrf = 2
 
     def build(self, binding_data=None):
         self._edgertr = self.create_router("edge")
