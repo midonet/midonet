@@ -20,14 +20,15 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 import scala.util.Try
 
-import com.typesafe.config.{ConfigException, ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.storage.{CassandraConfig,MidonetBackendConfig}
+import org.midonet.cluster.storage.{CassandraConfig, MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
-import org.midonet.minion.{MinionConfig, ExecutorsConfig}
-import org.midonet.packets.{MAC, IPv4Subnet}
+import org.midonet.minion.{ExecutorsConfig, MinionConfig}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.services.flowstate.FlowStateService
 import org.midonet.services.rest_api.BindingApiService
 
@@ -285,4 +286,6 @@ class Fip64Config(val conf: Config, val schema: Config) {
 
     val vtepVppMac = MAC.fromString("de:ad:be:ef:00:05")
     val portVppMac = MAC.fromString("de:ad:be:ef:00:03")
+
+    val vppInternalGateway = IPv4Addr.fromString("172.16.0.1")
 }
