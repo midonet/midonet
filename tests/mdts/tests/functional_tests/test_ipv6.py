@@ -126,11 +126,13 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont = service.get_container_by_hostname(container)
         fip64DelCmd = "fip64 del %s" % ip6fip
         self.addCleanup(cont.vppctl, fip64DelCmd)
-        cont.vppctl("fip64 add %s %s pool %s %s table %d" % (ip6fip,
-                                                             ip4fixed,
-                                                             ip4PoolStart,
-                                                             ip4PoolEnd,
-                                                             tableId))
+        vni = 0x123456 # unused
+        cont.vppctl("fip64 add %s %s pool %s %s table %d vni %d" % (ip6fip,
+                                                                    ip4fixed,
+                                                                    ip4PoolStart,
+                                                                    ip4PoolEnd,
+                                                                    tableId,
+                                                                    vni))
 
     def cleanup_remote_host(self, container, interface, address):
         cont = service.get_container_by_hostname(container)
