@@ -151,9 +151,18 @@ There will be two changes in midolman to support DSCP marking:
 
 2. When the simulation finishes, and it is determined that the packet must be
    encapsulated to be forwarded to a midolman peer host, then the QoSPolicy
-   information will be queried via the QoSPolicyMapper and the tunnel TOS
-   field will be set to this ports associated dscp_mark value. The dscp value
+   information will be queried via the QoSPolicyMapper and the network TOS
+   field will be set to this port associated dscp_mark value. The dscp value
    will be set on the packet by the openvswitch kernel module.
+   By default, the agent sets the TOS field of only the innel IP header of
+   the tunneled packet. However, by setting `agent.datapath.set_tos_on_tunnel_header`
+   to `true`, the agent can be configured to also set the TOS field of the
+   outer (tunnel) header. This setting can be set with mn-conf on the
+   default configuration template with the following command:
+   
+   ```
+   $ echo "agent.datapath.set_tos_on_tunnel_header=true" | mn-conf set -t default
+   ```
 
 [1] https://specs.openstack.org/openstack/neutron-specs/specs/liberty/qos-api-extension.html
 [2] https://review.openstack.org/#/c/375283
