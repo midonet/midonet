@@ -28,12 +28,10 @@ import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
 import sun.nio.ch.NativeThread;
 
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.util.cLibrary.UnixDomainSockAddress;
-import org.midonet.util.cLibrary;
+import org.midonet.jna.CLibrary;
 import org.midonet.util.AfUnix;
 import org.midonet.netlink.hacks.IOUtil;
 
@@ -56,11 +54,11 @@ public abstract class UnixDomainChannel extends UnixChannel<AfUnix.Address>
         this.state = ST_UNCONNECTED;
 
         int socket =
-            cLibrary.lib.socket(cLibrary.AF_UNIX, sockType.getValue(), 0);
+            CLibrary.lib.socket(CLibrary.AF_UNIX, sockType.getValue(), 0);
 
         if (socket == -1) {
             log.error("Could not create unix domain socket: {}",
-                      cLibrary.lib.strerror(Native.getLastError()));
+                      CLibrary.lib.strerror(Native.getLastError()));
         }
 
         fd = IOUtil.newFD(socket);
@@ -144,11 +142,11 @@ public abstract class UnixDomainChannel extends UnixChannel<AfUnix.Address>
 
     protected void _executeConnect(AfUnix.Address address) throws IOException {
         remoteAddress = address;
-        cLibrary.UnixDomainSockAddress remote = address.toCLibrary();
+        CLibrary.UnixDomainSockAddress remote = address.toCLibrary();
 
-        if (cLibrary.lib.connect(fdVal, remote, remote.size()) < 0) {
+        if (CLibrary.lib.connect(fdVal, remote, remote.size()) < 0) {
             throw new IOException("failed to connect to socket: " +
-                                  cLibrary.lib.strerror(Native.getLastError()));
+                                  CLibrary.lib.strerror(Native.getLastError()));
         }
 
         state = ST_CONNECTED;
@@ -156,16 +154,16 @@ public abstract class UnixDomainChannel extends UnixChannel<AfUnix.Address>
 
     protected void executeBind(AfUnix.Address address) throws IOException {
         localAddress = address;
-        cLibrary.UnixDomainSockAddress local = address.toCLibrary();
+        CLibrary.UnixDomainSockAddress local = address.toCLibrary();
 
-        if (cLibrary.lib.bind(fdVal, local, local.size()) != 0) {
+        if (CLibrary.lib.bind(fdVal, local, local.size()) != 0) {
             throw new IOException("failed to bind socket: " +
-                    cLibrary.lib.strerror(Native.getLastError()));
+                                  CLibrary.lib.strerror(Native.getLastError()));
         }
 
-        if (cLibrary.lib.listen(fdVal, 10) != 0) {
+        if (CLibrary.lib.listen(fdVal, 10) != 0) {
             throw new IOException("failed to listen on socket: " +
-                    cLibrary.lib.strerror(Native.getLastError()));
+                                  CLibrary.lib.strerror(Native.getLastError()));
         }
 
         state = ST_LISTENING;
@@ -173,14 +171,14 @@ public abstract class UnixDomainChannel extends UnixChannel<AfUnix.Address>
 
     protected UnixDomainChannel executeAccept() throws IOException {
 
-        cLibrary.UnixDomainSockAddress remote =
-            new cLibrary.UnixDomainSockAddress();
+        CLibrary.UnixDomainSockAddress remote =
+            new CLibrary.UnixDomainSockAddress();
         IntByReference remoteSize = new IntByReference(remote.size());
 
-        int childFd = cLibrary.lib.accept(fdVal, remote, remoteSize);
+        int childFd = CLibrary.lib.accept(fdVal, remote, remoteSize);
         if (childFd < 0) {
             throw new IOException("failed to accept() on socket: " +
-                    cLibrary.lib.strerror(Native.getLastError()));
+                                  CLibrary.lib.strerror(Native.getLastError()));
         }
 
         return Netlink.selectorProvider().openUnixDomainSocketChannel(

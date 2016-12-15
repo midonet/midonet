@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.netlink.hacks.IOUtil;
 import org.midonet.netlink.hacks.NativeDispatcher;
-import org.midonet.util.cLibrary;
+import org.midonet.jna.CLibrary;
 
 /**
  * Abstracts a netlink channel. The implementation will make a native netlink
@@ -412,9 +412,9 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
     }
 
     protected void closeFileDescriptor() throws IOException {
-        if (cLibrary.lib.close(getFDVal()) < 0) {
+        if (CLibrary.lib.close(getFDVal()) < 0) {
             throw new IOException("failed to close the socket: " +
-                    cLibrary.lib.strerror(Native.getLastError()));
+                                  CLibrary.lib.strerror(Native.getLastError()));
         }
     }
 

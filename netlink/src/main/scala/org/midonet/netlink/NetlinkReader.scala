@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException
 
 import scala.concurrent.duration.Duration
 
-import org.midonet.util.cLibrary
+import org.midonet.jna.CLibrary
 import org.midonet.netlink.exceptions.NetlinkException
 
 object NetlinkReader {
@@ -61,7 +61,7 @@ class NetlinkReader(val channel: NetlinkChannel) {
                 val error = dst.getInt(start + NetlinkMessage.NLMSG_ERROR_OFFSET)
                 if (error != 0) {
                     val seq = dst.getInt(start + NetlinkMessage.NLMSG_SEQ_OFFSET)
-                    val errorMessage = cLibrary.lib.strerror(-error)
+                    val errorMessage = CLibrary.lib.strerror(-error)
                     throw new NetlinkException(-error, errorMessage, seq)
                 }
             } else if (isTruncated(dst, nbytes, start) || msgType == NLMessageType.OVERRUN) {

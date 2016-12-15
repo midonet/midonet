@@ -59,7 +59,7 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
-import org.midonet.util.cLibrary;
+import org.midonet.jna.CLibrary;
 import org.midonet.util.process.MonitoredDaemonProcess;
 
 public class Midolman {
@@ -89,11 +89,11 @@ public class Midolman {
 
     private static void lockMemory() {
         try {
-            cLibrary.lib.mlockall(cLibrary.MCL_FUTURE | cLibrary.MCL_CURRENT);
+            CLibrary.lib.mlockall(CLibrary.MCL_FUTURE | CLibrary.MCL_CURRENT);
             log.info("Successfully locked the process address space to RAM.");
         } catch (LastErrorException e) {
             log.warn("Failed to lock process into RAM: {}",
-                cLibrary.lib.strerror(e.getErrorCode()));
+                     CLibrary.lib.strerror(e.getErrorCode()));
             log.warn("This implies that parts of the agents may be swapped out "+
                     "causing long GC pauses that have various adverse effects. "+
                     "It's strongly recommended that this process runs either as "+

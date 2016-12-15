@@ -29,7 +29,7 @@ import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.util.cLibrary;
+import org.midonet.jna.CLibrary;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.Bucket;
@@ -312,7 +312,7 @@ public abstract class AbstractNetlinkConnection {
             if (ret <= 0) {
                 if (ret < 0) {
                     log.warn("NETLINK write() error: {}",
-                            cLibrary.lib.strerror(Native.getLastError()));
+                             CLibrary.lib.strerror(Native.getLastError()));
                 }
                 break;
             }
@@ -361,7 +361,7 @@ public abstract class AbstractNetlinkConnection {
                 if (ret <= 0) {
                     if (ret < 0) {
                         log.info("NETLINK read() error: {}",
-                            cLibrary.lib.strerror(Native.getLastError()));
+                                 CLibrary.lib.strerror(Native.getLastError()));
                     }
                     break;
                 }
@@ -496,11 +496,11 @@ public abstract class AbstractNetlinkConnection {
     private void processFailedRequest(int seq, int error) {
         NetlinkRequest request = removeRequest(seq);
         if (request != null) {
-            String errorMessage = cLibrary.lib.strerror(-error);
+            String errorMessage = CLibrary.lib.strerror(-error);
             NetlinkException err = new NetlinkException(-error, errorMessage, 0);
             dispatcher.submit(request.failed(err));
         } else {
-            log.error(cLibrary.lib.strerror(-error));
+            log.error(CLibrary.lib.strerror(-error));
         }
     }
 

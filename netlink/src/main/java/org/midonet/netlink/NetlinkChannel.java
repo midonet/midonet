@@ -25,7 +25,7 @@ import com.sun.jna.ptr.IntByReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.util.cLibrary;
+import org.midonet.jna.CLibrary;
 import org.midonet.netlink.hacks.IOUtil;
 
 /**
@@ -82,12 +82,12 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
     }
 
     protected void initSocket() {
-        int socket = cLibrary.lib.socket(cLibrary.AF_NETLINK, cLibrary.SOCK_RAW,
+        int socket = CLibrary.lib.socket(CLibrary.AF_NETLINK, CLibrary.SOCK_RAW,
                                          protocol.value());
 
         if (socket == -1) {
             log.error("Could not create netlink socket: {}",
-                      cLibrary.lib.strerror(Native.getLastError()));
+                      CLibrary.lib.strerror(Native.getLastError()));
         }
 
         fd = IOUtil.newFD(socket);
@@ -100,19 +100,19 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         sobuf.putInt(RCVBUF_SIZE);
         sobuf.flip();
 
-        int sockoptret = cLibrary.lib.setsockopt(
-            fdVal, cLibrary.SOL_SOCKET, cLibrary.SO_RCVBUFFORCE, sobuf, 4);
+        int sockoptret = CLibrary.lib.setsockopt(
+            fdVal, CLibrary.SOL_SOCKET, CLibrary.SO_RCVBUFFORCE, sobuf, 4);
         if (sockoptret != 0) {
             log.error("SETSOCKOPT failed: {}",
-                      cLibrary.lib.strerror(Native.getLastError()));
+                      CLibrary.lib.strerror(Native.getLastError()));
         } else {
             sobuf.clear();
             len.clear();
-            sockoptret = cLibrary.lib.getsockopt(
-                fdVal, cLibrary.SOL_SOCKET, cLibrary.SO_RCVBUF, sobuf, len);
+            sockoptret = CLibrary.lib.getsockopt(
+                fdVal, CLibrary.SOL_SOCKET, CLibrary.SO_RCVBUF, sobuf, len);
             if (sockoptret != 0) {
                 log.debug("GETSOCKOPT NETLINK_BROADCAST_ERROR failed: {}",
-                          cLibrary.lib.strerror(Native.getLastError()));
+                          CLibrary.lib.strerror(Native.getLastError()));
             } else {
                 sobuf.clear();
                 int actualLen = sobuf.getInt();
@@ -140,19 +140,19 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         sobuf.clear();
         sobuf.putInt(1);
         sobuf.flip();
-        sockoptret = cLibrary.lib.setsockopt(
-            fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_BROADCAST_ERROR, sobuf, 4);
+        sockoptret = CLibrary.lib.setsockopt(
+            fdVal, CLibrary.SOL_NETLINK, CLibrary.NETLINK_BROADCAST_ERROR, sobuf, 4);
         if (sockoptret != 0) {
             log.error("SETSOCKOPT NETLINK_BROADCAST_ERROR failed: {}",
-                    cLibrary.lib.strerror(Native.getLastError()));
+                      CLibrary.lib.strerror(Native.getLastError()));
         } else {
             sobuf.clear();
             len.clear();
-            sockoptret = cLibrary.lib.getsockopt(
-                fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_BROADCAST_ERROR, sobuf, len);
+            sockoptret = CLibrary.lib.getsockopt(
+                fdVal, CLibrary.SOL_NETLINK, CLibrary.NETLINK_BROADCAST_ERROR, sobuf, len);
             if (sockoptret != 0) {
                 log.debug("GETSOCKOPT NETLINK_BROADCAST_ERROR failed: {}",
-                          cLibrary.lib.strerror(Native.getLastError()));
+                          CLibrary.lib.strerror(Native.getLastError()));
             } else {
                 sobuf.clear();
                 if (sobuf.getInt() == 1) {
@@ -180,19 +180,19 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         sobuf.clear();
         sobuf.putInt(1);
         sobuf.flip();
-        sockoptret = cLibrary.lib.setsockopt(
-                fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_NO_ENOBUFS, sobuf, 4);
+        sockoptret = CLibrary.lib.setsockopt(
+            fdVal, CLibrary.SOL_NETLINK, CLibrary.NETLINK_NO_ENOBUFS, sobuf, 4);
         if (sockoptret != 0) {
             log.error("SETSOCKOPT NETLINK_NO_ENOBUFS failed: {}",
-                    cLibrary.lib.strerror(Native.getLastError()));
+                      CLibrary.lib.strerror(Native.getLastError()));
         } else {
             sobuf.clear();
             len.clear();
-            sockoptret = cLibrary.lib.getsockopt(
-                fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_NO_ENOBUFS, sobuf, len);
+            sockoptret = CLibrary.lib.getsockopt(
+                fdVal, CLibrary.SOL_NETLINK, CLibrary.NETLINK_NO_ENOBUFS, sobuf, len);
             if (sockoptret != 0) {
                 log.debug("GETSOCKOPT NETLINK_NO_ENOBUFS failed: {}",
-                          cLibrary.lib.strerror(Native.getLastError()));
+                          CLibrary.lib.strerror(Native.getLastError()));
             } else {
                 sobuf.clear();
                 if (sobuf.getInt() == 1) {
@@ -205,24 +205,24 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
     }
 
     protected void _executeConnect(Netlink.Address address) throws IOException {
-        cLibrary.NetlinkSockAddress remote = new cLibrary.NetlinkSockAddress();
-        remote.nl_family = cLibrary.AF_NETLINK;
+        CLibrary.NetlinkSockAddress remote = new CLibrary.NetlinkSockAddress();
+        remote.nl_family = CLibrary.AF_NETLINK;
         remote.nl_pid = address.getPid();
 
-        if (cLibrary.lib
+        if (CLibrary.lib
                     .connect(fdVal, remote, remote.size()) < 0) {
             throw
                 new IOException("failed to connect to socket: " +
-                                    cLibrary.lib.strerror(
+                                CLibrary.lib.strerror(
                                         Native.getLastError()));
         }
 
-        cLibrary.NetlinkSockAddress local = new cLibrary.NetlinkSockAddress();
+        CLibrary.NetlinkSockAddress local = new CLibrary.NetlinkSockAddress();
         IntByReference localSize = new IntByReference(local.size());
 
-        if (cLibrary.lib.getsockname(fdVal, local, localSize) < 0) {
+        if (CLibrary.lib.getsockname(fdVal, local, localSize) < 0) {
             throw new IOException("failed to connect to socket: " +
-                    cLibrary.lib.strerror(Native.getLastError()));
+                                  CLibrary.lib.strerror(Native.getLastError()));
         }
 
         log.debug("Netlink connection returned pid: {}.",
@@ -233,9 +233,9 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
             local.nl_groups = this.groups;
         }
 
-        if (cLibrary.lib.bind(fdVal, local, local.size()) < 0) {
+        if (CLibrary.lib.bind(fdVal, local, local.size()) < 0) {
             throw new IOException("failed to connect to socket: " +
-                    cLibrary.lib.strerror(Native.getLastError()));
+                                  CLibrary.lib.strerror(Native.getLastError()));
         }
 
         state = ST_CONNECTED;
