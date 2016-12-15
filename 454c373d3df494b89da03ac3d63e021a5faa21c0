@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_6374e2fc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-15T15:35:26Z",
+      "side": 1,
+      "message": "nit: this comment is better added to the rollback method of VppIpv6Device",
+      "range": {
+        "startLine": 226,
+        "startChar": 4,
+        "endLine": 228,
+        "endChar": 7
+      },
+      "revId": "454c373d3df494b89da03ac3d63e021a5faa21c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_237edae4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-15T15:35:26Z",
+      "side": 1,
+      "message": "add new line",
+      "revId": "454c373d3df494b89da03ac3d63e021a5faa21c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_0383decd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-15T15:35:26Z",
+      "side": 1,
+      "message": "indent",
+      "range": {
+        "startLine": 81,
+        "startChar": 19,
+        "endLine": 85,
+        "endChar": 50
+      },
+      "revId": "454c373d3df494b89da03ac3d63e021a5faa21c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
