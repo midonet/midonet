@@ -413,7 +413,7 @@ class VppController(hostId: UUID,
         if (pool.nonEmpty) {
             log debug s"Allocated NAT pool at port $portId is ${pool.get}"
             exec(s"vppctl ip route table $vrf add $fixedIp/32 " +
-                 s"via ${localIp.getAddress}") flatMap { _ =>
+                 s"via 172.16.0.1") flatMap { _ =>
                 exec(s"vppctl fip64 add $floatingIp $fixedIp " +
                      s"pool ${pool.get.nwStart} ${pool.get.nwEnd}" +
                      s" table $vrf vni $vni")
