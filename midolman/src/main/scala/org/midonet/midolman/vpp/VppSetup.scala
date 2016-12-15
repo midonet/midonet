@@ -307,6 +307,7 @@ object VppSetup extends MidolmanLogging {
     class VxlanAddArpNeighbour(override val name: String,
                                loopDevice: VppInterfaceProvider,
                                vrf: Int,
+                               address: IPv4Addr,
                                mac: MAC,
                                vppApi: VppApi)
                               (implicit ec: ExecutionContext)
@@ -316,13 +317,13 @@ object VppSetup extends MidolmanLogging {
         override def execute(): Future[Any] = {
             require(loopDevice.vppInterface.isDefined)
             vppApi.addIfArpCacheEntry(loopDevice.vppInterface.get, vrf,
-                                      IPv4Addr.fromString("172.16.0.1"),
+                                      address,
                                       neighbourMac)
         }
 
         override def rollback(): Future[Any] = {
             vppApi.deleteIfArpCacheEntry(loopDevice.vppInterface.get, vrf,
-                                         IPv4Addr.fromString("172.16.0.1"),
+                                         address,
                                          neighbourMac)
         }
     }
@@ -607,7 +608,6 @@ class VppVxlanTunnelSetupPartial(name: String, config: Fip64Config,
   *     [commands from VppVxlanTunnelSetupPartial]
   *        - plus -
         set ip arp fib-id <vrf> loop0 172.16.0.1 dead.beef.0003
-        ip route add table <vrf> 0.0.0.0/0 via 172.16.0.1
   */
 class VppVxlanTunnelSetupBase(name: String, config: Fip64Config,
                               vni: Int, vrf: Int, routerPortMac: MAC,
@@ -621,18 +621,11 @@ class VppVxlanTunnelSetupBase(name: String, config: Fip64Config,
     private val addLoopArpNeighbour =
         new VxlanAddArpNeighbour("Add ARP neighbour for loop interface",
                                  loopBackDevice,
-                                 vrf, routerPortMac, vppApi)
-
-    private val routefip64ToBridge =
-        new VppAddRoute("Add default route to forward FIP64 to VXLAN bridge",
-                          dst = IPSubnet.fromCidr("0.0.0.0/0").
-                              asInstanceOf[IPv4Subnet],
-                          nextHop = Some(IPv4Addr.fromString("172.16.0.1")),
-                          nextDevice = None,
-                          vrf, vppApi)
+                                 vrf,
+                                 config.vppInternalGateway,
+                                 routerPortMac, vppApi)
 
     add(addLoopArpNeighbour)
-    add(routefip64ToBridge)
 }
 
 /**
@@ -649,7 +642,8 @@ class VppVxlanTunnelSetup(config: Fip64Config,
 case class VppFlowStateConfig(vniOut: Int, vrfOut: Int,
                               vniIn: Int, vrfIn: Int)
 /**
-  * Same operations as VppVxlanTunnelSetup, just with a different log label.
+  * Same operations as VppVxlanTunnelSetup, plus default route to l2 bridge
+  * ip route add table <vrf> 0.0.0.0/0 via 172.16.0.1
   */
 class VppFlowStateOutVxlanTunnelSetup(fip64conf: Fip64Config,
                                       fsConf: VppFlowStateConfig,
@@ -658,6 +652,17 @@ class VppFlowStateOutVxlanTunnelSetup(fip64conf: Fip64Config,
     extends VppVxlanTunnelSetupBase("FlowState-out VXLAN tunnel setup",
                                     fip64conf, fsConf.vniOut, fsConf.vrfOut,
                                     fip64conf.portVppMac, vppApi, log)(ec)
+{
+    import VppSetup.VppAddRoute
+    private val routefip64ToBridge =
+        new VppAddRoute("Add default route to forward FIP64 to VXLAN bridge",
+                        dst = IPSubnet.fromCidr("0.0.0.0/0").
+                            asInstanceOf[IPv4Subnet],
+                        nextHop = Some(fip64conf.vppInternalGateway),
+                        nextDevice = None,
+                        fsConf.vrfOut, vppApi)
+    add(routefip64ToBridge)
+}
 
 /** Sets up the tunnel for incoming (into vpp) flow-state
   * Executes the following sequence of VPP commands:
@@ -679,7 +684,7 @@ class VppFlowStateInVxlanTunnelSetup(fip64conf: Fip64Config,
     private val setIpAddress = new VppIpAddr("Add loopback IP address",
                                              vppApi,
                                              loopBackDevice,
-                                             IPv4Addr.fromString("172.16.0.1"),
+                                             fip64conf.vppInternalGateway,
                                              prefixLen = 30)
     add(setIpAddress)
 }
