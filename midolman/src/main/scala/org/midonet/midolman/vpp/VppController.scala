@@ -39,12 +39,12 @@ import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
-import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
+import org.midonet.midolman.vpp.VppSetup.VppctlRunner
 import org.midonet.midolman.vpp.VppState.GatewaysChanged
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.midolman.{DatapathState, Midolman}
@@ -205,6 +205,7 @@ class VppController(hostId: UUID,
                                              VppFlowStateCfg,
                                              vppApi,
                                              vppOvs,
+                                             VppctlRunner,
                                              Logger(log.underlying))
 
         val result = {
@@ -213,11 +214,7 @@ class VppController(hostId: UUID,
                 case previousSetup => previousSetup.rollback()
             }
         } flatMap { _ =>
-            uplinkSetup.execute() flatMap {
-                _ => enableVppFlowState()
-            } map {
-                _ => uplinkSetup
-            }
+            uplinkSetup.execute()  map { _ => uplinkSetup }
         } recoverWith { case e =>
             uplinkSetup.rollback() map { _ =>
                 uplinks.remove(portId, uplinkSetup)
@@ -484,8 +481,9 @@ class VppController(hostId: UUID,
         }
     }
 
-    private def enableVppFlowState(): Future[Any] = {
-        exec(s"vppctl fip64 sync ${VppFlowStateCfg.vrfOut}")
+    private object VppctlRunner extends VppctlRunner {
+        override def run(cmd: String): Future[_] =
+            exec(s"vppctl $cmd")
     }
 
     private def updateFlowStateFlows(hosts:immutable.Set[UUID]) : Future[Any] = {
