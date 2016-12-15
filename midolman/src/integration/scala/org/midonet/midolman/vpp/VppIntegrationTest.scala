@@ -20,7 +20,7 @@ import java.nio.ByteBuffer
 import java.util.{ArrayList, UUID}
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -554,8 +554,11 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
 
                     val setupVxlan = new VppVxlanTunnelSetup(
                         fip64config, id, id, nsMac, api, log)
-                    setupVxlan.execute()
-
+                    setupVxlan.execute() flatMap { _ =>
+                        assertVppCtl(s"ip route table $id add 192.168.0.1/32 "
+                                     + "via 172.16.0.1")
+                        Future.successful(AnyRef)
+                    }
                     fip
                 }
 
