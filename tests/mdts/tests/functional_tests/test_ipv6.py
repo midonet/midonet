@@ -677,6 +677,10 @@ class TCPSessionClient:
         cont = service.get_container_by_hostname(self.container)
         cont.try_command_blocking('ip link del %sdp' % self.ns)
         cont.try_command_blocking('ip netns del %s'% self.ns)
+        try:
+            cont.try_command_blocking('pkill -f nc')
+        except:
+            pass
         self.io.close()
 
 class DockerIOExecutor:
