@@ -126,7 +126,7 @@ public class HostServiceTest {
             bind(InterfaceScanner.class)
                 .to(MockInterfaceScanner.class)
                 .asEagerSingleton();
-            MidonetBackendConfig backendConfig = new MidonetBackendConfig(
+            MidonetBackendConfig backendConfig = MidonetBackendConfig.forAgent(
                 config.withFallback(MidoTestConfigurator.forAgents()));
             bind(MidonetBackendConfig.class)
                 .toInstance(backendConfig);
@@ -200,7 +200,7 @@ public class HostServiceTest {
 
     private TestableHostService makeHostService() {
         return new TestableHostService(
-            new MidolmanConfig(config, ConfigFactory.empty()),
+            new MidolmanConfig(config, ConfigFactory.empty(), true),
             backendConfig,
             injector.getInstance(MidonetBackend.class),
             getInterfaceScanner(),
