@@ -254,7 +254,7 @@ message NeutronLoadBalancerV2Pool {
     optional string description = 4;
     optional bool admin_state_up = 5;
     optional LoadBalancerV2Algorithm lb_algorithm = 6;
-    repeated UUID members = 7;
+    repeated NeutronLoadBalancerV2PoolMember members = 7;
     optional UUID healthmonitor_id = 8;
     optional UUID listener_id = 9;
     repeated NeutronLoadBalancerV2Listener listeners = 10;
