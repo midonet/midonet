@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_1d79fd93",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolConfig.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-15T09:47:02Z",
+      "side": 1,
+      "message": "heh, good catch",
+      "revId": "10c41f4f1ebd5d19e448785a01b150819b72dbb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
