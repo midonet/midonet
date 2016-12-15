@@ -223,6 +223,16 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext)
         execVppRequest(request, lib.resetFib)
     }
 
+    /* IPv6 neighbour discovery needs to be disabled on a device prior to
+        removing it or Vpp will get corrupted
+     */
+    def disableIpv6Interface(device: Device): Future[Any] = {
+        val disableIpv6Msg = new SwInterfaceIp6EnableDisable
+        disableIpv6Msg.enable = boolToByte(false)
+        disableIpv6Msg.swIfIndex = device.swIfIndex
+
+        execVppRequest(disableIpv6Msg, lib.swInterfaceIp6EnableDisable)
+    }
     /** equivalent to:
      * vpp# set int ip address <address>/<prefix> <interface> */
     private def addDelDeviceAddress(device: Device,
@@ -237,18 +247,8 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext)
         msg.isAdd = boolToByte(isAdd)
         msg.isIpv6 = boolToByte(address.isInstanceOf[IPv6Addr])
         msg.swIfIndex = device.swIfIndex
-        val disableIpv6Msg = new SwInterfaceIp6EnableDisable
-        disableIpv6Msg.enable = boolToByte(false)
-        disableIpv6Msg.swIfIndex = device.swIfIndex
-        execVppRequest(msg, lib.swInterfaceAddDelAddress) flatMap {
-            _ => if (msg.isIpv6 == 1 && deleteAll) {
-                // Remove interface from neighbour discovery process
-                // to avoid VPP to crash (https://jira.fd.io/browse/VPP-509)
-                execVppRequest(disableIpv6Msg, lib.swInterfaceIp6EnableDisable)
-            } else {
-                Future.successful(AnyRef)
-            }
-        }
+
+        execVppRequest(msg, lib.swInterfaceAddDelAddress)
     }
 
     /** equivalent to:

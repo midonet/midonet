@@ -77,6 +77,22 @@ object VppSetup extends MidolmanLogging {
         }
     }
 
+    class VppIPv6Device(override val name: String,
+                    deviceName: String,
+                    vppApi: VppApi,
+                    macSource: MacAddressProvider,
+                    vrf: Int = 0)
+                   (implicit ec: ExecutionContext)
+        extends VppDevice(name, deviceName, vppApi, macSource,
+                          vrf)(ec) {
+
+        override def rollback(): Future[Any] = {
+            vppApi.disableIpv6Interface(vppInterface.get) flatMap { _ =>
+                super.rollback()
+            }
+        }
+    }
+
     class VppDevice(override val name: String,
                     deviceName: String,
                     vppApi: VppApi,
@@ -378,10 +394,10 @@ class VppUplinkSetup(uplinkPortId: UUID,
                                                uplinkVppName,
                                                uplinkOvsName)
 
-    private val uplinkVpp = new VppDevice("uplink VPP interface setup",
-                                          uplinkVppName,
-                                          vppApi,
-                                          uplinkVeth)
+    private val uplinkVpp = new VppIPv6Device("uplink VPP interface setup",
+                                              uplinkVppName,
+                                              vppApi,
+                                              uplinkVeth)
 
     private val fipCleanup = new VppFipReset("cleanup vrf table",
                                              VppUplinkVRF,
