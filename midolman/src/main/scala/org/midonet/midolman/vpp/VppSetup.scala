@@ -30,6 +30,7 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.vpp.VppSetup.VppctlRunner
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
 import org.midonet.packets.{IPSubnet, _}
@@ -38,6 +39,10 @@ import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRo
 object VppSetup extends MidolmanLogging {
 
     override def logSource = s"org.midonet.vpp-controller"
+
+    trait VppctlRunner {
+        def run(command: String): Future[_]
+    }
 
     trait MacAddressProvider {
         def macAddress: Option[MAC]
@@ -376,6 +381,7 @@ class VppUplinkSetup(uplinkPortId: UUID,
                      flowStateConf: VppFlowStateConfig,
                      vppApi: VppApi,
                      vppOvs: VppOvs,
+                     vppctl: VppctlRunner,
                      log: Logger)
                      (implicit ec: ExecutionContext)
     extends VppSetup("VPP uplink setup", log) {
@@ -428,6 +434,20 @@ class VppUplinkSetup(uplinkPortId: UUID,
                                                                  flowStateConf,
                                                                  vppApi, log)
 
+    private val enableFlowstate = new FutureTaskWithRollback {
+
+        override def name = "Enable flowstate"
+
+        @throws[Exception]
+        override def execute() = {
+            vppctl.run(s"fip64 sync ${flowStateConf.vrfOut}")
+        }
+
+        @throws[Exception]
+        override def rollback() = {
+            vppctl.run(s"fip64 sync disable")
+        }
+    }
 
     /*
      * setup the tasks, in execution order
@@ -440,6 +460,7 @@ class VppUplinkSetup(uplinkPortId: UUID,
     add(ovsFlows)
     add(flowStateOut)
     add(flowStateIn)
+    add(enableFlowstate)
 
     def addExternalRoute(route: Topology.Route): Future[Any] = {
         require(uplinkVpp.vppInterface.isDefined)
