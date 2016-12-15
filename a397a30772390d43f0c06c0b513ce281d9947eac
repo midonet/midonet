@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_e3391243",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-12-15T15:50:53Z",
+      "side": 1,
+      "message": "Seq.empty is more scala-ish",
+      "range": {
+        "startLine": 148,
+        "startChar": 60,
+        "endLine": 148,
+        "endChar": 63
+      },
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_83492ed3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-12-15T15:50:53Z",
+      "side": 1,
+      "message": "The Option is kind of redundant with the AtomicReference (as it can also deal with null values...)",
+      "range": {
+        "startLine": 150,
+        "startChar": 28,
+        "endLine": 150,
+        "endChar": 53
+      },
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_83e5aea9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-12-15T15:50:53Z",
+      "side": 1,
+      "message": "It may be interesting to introduce an increasing delay in case of consecutive failures on the same target (that would prevent flooding the network with connection attempts when the targets are not available). I haven\u0027t thought much about it, but it may be feasible if the FlowSender has it\u0027s own thread, and there is a backpressure mechanism that allows dropping excess messages... (just thinking aloud)",
+      "range": {
+        "startLine": 167,
+        "startChar": 16,
+        "endLine": 167,
+        "endChar": 29
+      },
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_c3261616",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-12-15T15:50:53Z",
+      "side": 1,
+      "message": "Seq.empty",
+      "range": {
+        "startLine": 211,
+        "startChar": 50,
+        "endLine": 211,
+        "endChar": 53
+      },
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_a3230a05",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-12-15T15:50:53Z",
+      "side": 1,
+      "message": "Seq.empty",
+      "range": {
+        "startLine": 217,
+        "startChar": 50,
+        "endLine": 217,
+        "endChar": 53
+      },
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_83200ef9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-12-15T15:50:53Z",
+      "side": 1,
+      "message": "single line?",
+      "range": {
+        "startLine": 240,
+        "startChar": 24,
+        "endLine": 242,
+        "endChar": 30
+      },
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
