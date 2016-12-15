@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_d5a00993",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-15T18:22:14Z",
+      "side": 1,
+      "message": "shouldn\u0027t this return None? (i.e. when there are too many connection requests)?",
+      "range": {
+        "startLine": 263,
+        "startChar": 12,
+        "endLine": 264,
+        "endChar": 20
+      },
+      "revId": "afff5259b0cac4e75da326ce257c80c67d5abf39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
