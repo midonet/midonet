@@ -38,6 +38,7 @@ import com.google.inject.Injector;
 import com.sun.jna.LastErrorException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigRenderOptions;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -52,6 +53,7 @@ import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.LoggerLevelWatcher;
 import org.midonet.conf.MidoNodeConfigurator;
+import org.midonet.jna.CLibrary;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
@@ -59,7 +61,6 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
-import org.midonet.util.cLibrary;
 import org.midonet.util.process.MonitoredDaemonProcess;
 
 public class Midolman {
@@ -89,11 +90,11 @@ public class Midolman {
 
     private static void lockMemory() {
         try {
-            cLibrary.lib.mlockall(cLibrary.MCL_FUTURE | cLibrary.MCL_CURRENT);
+            CLibrary.mlockall(CLibrary.MCL_FUTURE | CLibrary.MCL_CURRENT);
             log.info("Successfully locked the process address space to RAM.");
         } catch (LastErrorException e) {
             log.warn("Failed to lock process into RAM: {}",
-                cLibrary.lib.strerror(e.getErrorCode()));
+                     CLibrary.strerror(e.getErrorCode()));
             log.warn("This implies that parts of the agents may be swapped out "+
                     "causing long GC pauses that have various adverse effects. "+
                     "It's strongly recommended that this process runs either as "+

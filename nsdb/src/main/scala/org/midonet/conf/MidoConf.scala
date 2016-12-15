@@ -42,7 +42,7 @@ import rx.Observable
 
 import org.midonet.cluster.util.ObservableNodeCache
 import org.midonet.conf.MidoConf._
-import org.midonet.util.cLibrary._
+import org.midonet.jna.CLibrary._
 import org.midonet.util.functors.{makeFunc1, makeFunc2}
 
 /**
@@ -168,7 +168,7 @@ object MidoNodeConfigurator {
             defaultZkRootKey
         } else {
             cfg.getString("zookeeper.root_key") match {
-                case "/midonet/v1" if lib.isatty(STDOUT_FILENO) == 1 =>
+                case "/midonet/v1" if isatty(STDOUT_FILENO) == 1 =>
                     /* Interactive mode */
                     System.err.println("WARNING:\n" +
                         "A configuration was read that contains a\n" +
