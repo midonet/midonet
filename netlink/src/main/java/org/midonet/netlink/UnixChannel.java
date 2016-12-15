@@ -18,23 +18,32 @@ package org.midonet.netlink;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.*;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.GatheringByteChannel;
+import java.nio.channels.InterruptibleChannel;
+import java.nio.channels.NotYetConnectedException;
+import java.nio.channels.ScatteringByteChannel;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.spi.AbstractSelectableChannel;
 import java.nio.channels.spi.SelectorProvider;
+
 import javax.annotation.Nullable;
 
 import com.sun.jna.Native;
-import sun.nio.ch.IOStatus;
-import sun.nio.ch.NativeThread;
-import sun.nio.ch.SelectionKeyImpl;
-import sun.nio.ch.Net;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import sun.nio.ch.IOStatus;
+import sun.nio.ch.NativeThread;
+import sun.nio.ch.Net;
+import sun.nio.ch.SelectionKeyImpl;
+
+import org.midonet.jna.CLibrary;
 import org.midonet.netlink.hacks.IOUtil;
 import org.midonet.netlink.hacks.NativeDispatcher;
-import org.midonet.util.cLibrary;
 
 /**
  * Abstracts a netlink channel. The implementation will make a native netlink
@@ -412,9 +421,9 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
     }
 
     protected void closeFileDescriptor() throws IOException {
-        if (cLibrary.lib.close(getFDVal()) < 0) {
+        if (CLibrary.close(getFDVal()) < 0) {
             throw new IOException("failed to close the socket: " +
-                    cLibrary.lib.strerror(Native.getLastError()));
+                                  CLibrary.strerror(Native.getLastError()));
         }
     }
 
