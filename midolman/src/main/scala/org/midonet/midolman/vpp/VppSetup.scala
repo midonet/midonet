@@ -390,11 +390,14 @@ class VppUplinkSetup(uplinkPortId: UUID,
 
     private final val VppUplinkVRF = 0
 
+    private val vppctl = new VppCtl(log)
+
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
     private val uplinkOvsName = s"ovs-$uplinkSuffix"
 
     private val uplinkVppPrefix: Byte = 64
+
 
     private val uplinkVeth = new VethPairSetup("uplink interface setup",
                                                uplinkVppName,
@@ -434,6 +437,20 @@ class VppUplinkSetup(uplinkPortId: UUID,
                                                                  flowStateConf,
                                                                  vppApi, log)
 
+    private val enableFlowstate = new FutureTaskWithRollback {
+
+        override def name = "Enable flowstate"
+
+        @throws[Exception]
+        override def execute() = {
+            vppctl.exec(s"fip64 sync ${flowStateConf.vrfOut}")
+        }
+
+        @throws[Exception]
+        override def rollback() = {
+            vppctl.exec(s"fip64 sync disable")
+        }
+    }
 
     /*
      * setup the tasks, in execution order
@@ -446,6 +463,7 @@ class VppUplinkSetup(uplinkPortId: UUID,
     add(ovsFlows)
     add(flowStateOut)
     add(flowStateIn)
+    add(enableFlowstate)
 
     def addExternalRoute(route: Topology.Route): Future[Any] = {
         require(uplinkVpp.vppInterface.isDefined)
