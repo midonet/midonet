@@ -23,11 +23,39 @@ import com.typesafe.config.Config
 import org.midonet.cluster.services.state.client.StateProxyClientConfig
 import org.midonet.conf.MidoNodeConfigurator
 
+object MidonetBackendConfig {
+
+    def forAgent(config: Config): MidonetBackendConfig = {
+        new MidonetBackendConfig(config,
+                                 enableFailFast = true,
+                                 enableStateProxy = true,
+                                 enableDiscovery = true)
+    }
+
+    def forAgentServices(config: Config): MidonetBackendConfig = {
+        new MidonetBackendConfig(config,
+                                 enableFailFast = false,
+                                 enableStateProxy = false,
+                                 enableDiscovery = false)
+    }
+
+    def forCluster(config: Config): MidonetBackendConfig = {
+        new MidonetBackendConfig(config,
+                                 enableFailFast = false,
+                                 enableStateProxy = true,
+                                 enableDiscovery = true)
+    }
+
+}
+
 /**
  * This file defines configuration parameters required to bootstrap a connection
  * to the MidoNet backend services, such as ZooKeeper, etc.
  */
-class MidonetBackendConfig(val conf: Config) {
+class MidonetBackendConfig(val conf: Config,
+                           val enableFailFast: Boolean = false,
+                           val enableStateProxy: Boolean = false,
+                           val enableDiscovery: Boolean = true) {
     def hosts = conf.getString("zookeeper.zookeeper_hosts")
     def sessionTimeout = conf.getDuration("zookeeper.session_timeout", TimeUnit.MILLISECONDS).toInt
     def failFastSessionTimeout = conf.getDuration("zookeeper.failfast_session_timeout", TimeUnit.MILLISECONDS).toInt

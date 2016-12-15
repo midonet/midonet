@@ -62,7 +62,7 @@ class ClusterConfig(_conf: Config) {
     final val prefix = "cluster"
 
     val auth = new AuthConfig(conf)
-    val backend = new MidonetBackendConfig(conf)
+    val backend = MidonetBackendConfig.forCluster(conf)
     val c3po = new C3POConfig(conf)
     val heartbeat = new HeartbeatConfig(conf)
     val vxgw = new VxGwConfig(conf)

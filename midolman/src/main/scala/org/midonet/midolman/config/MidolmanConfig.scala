@@ -67,9 +67,11 @@ trait TypeFailureFallback {
     def getDuration(key: String, unit: TimeUnit): Long = get(key, (c, k) => c.getDuration(k, unit))
 }
 
-class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) extends TypeFailureFallback {
+class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
+                     isAgent: Boolean = true)
+    extends TypeFailureFallback {
     val PREFIX = "agent"
-    val conf = _conf.resolve()
+    val conf = config.resolve()
 
     def bridgeArpEnabled = getBoolean(s"$PREFIX.midolman.enable_bridge_arp")
     def bgpKeepAlive = getDuration(s"$PREFIX.midolman.bgp_keepalive", TimeUnit.SECONDS).toInt
@@ -87,7 +89,9 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
 
     val bridge = new BridgeConfig(conf, schema)
     val router = new RouterConfig(conf, schema)
-    val zookeeper = new MidonetBackendConfig(conf)
+    val zookeeper =
+        if (isAgent) MidonetBackendConfig.forAgent(conf)
+        else MidonetBackendConfig.forAgentServices(conf)
     val cassandra = new CassandraConfig(conf)
     val datapath = new DatapathConfig(conf, schema)
     val arptable = new ArpTableConfig(conf, schema)

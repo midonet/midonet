@@ -78,7 +78,8 @@ object AgentServicesNode extends App {
     configurator.observableRuntimeConfig(nodeId)
                 .subscribe(new LoggerLevelWatcher(Some("agent")))
 
-    val midolmanConf = new MidolmanConfig(configurator.runtimeConfig)
+    val midolmanConf = new MidolmanConfig(configurator.runtimeConfig,
+                                          isAgent = false)
 
     val servicesExecutor = ExecutorsModule(midolmanConf.services.executors, log)
 
