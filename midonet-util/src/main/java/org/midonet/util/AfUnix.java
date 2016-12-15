@@ -15,10 +15,12 @@
  */
 package org.midonet.util;
 
+import org.midonet.jna.CLibrary;
+
 public interface AfUnix {
 
     public enum Type {
-        SOCK_DGRAM(cLibrary.SOCK_DGRAM), SOCK_STREAM(cLibrary.SOCK_STREAM);
+        SOCK_DGRAM(CLibrary.SOCK_DGRAM), SOCK_STREAM(CLibrary.SOCK_STREAM);
 
         int value;
 
@@ -39,15 +41,15 @@ public interface AfUnix {
             this.path = path;
         }
 
-        public Address(cLibrary.UnixDomainSockAddress addr) {
+        public Address(CLibrary.UnixDomainSockAddress addr) {
             this.path = new String(addr.sun_path.chars);
         }
 
-        public cLibrary.UnixDomainSockAddress toCLibrary() {
-            cLibrary.UnixDomainSockAddress addr =
-                new cLibrary.UnixDomainSockAddress();
+        public CLibrary.UnixDomainSockAddress toCLibrary() {
+            CLibrary.UnixDomainSockAddress addr =
+                new CLibrary.UnixDomainSockAddress();
 
-            addr.sun_family = cLibrary.AF_UNIX;
+            addr.sun_family = CLibrary.AF_UNIX;
             byte[] bytes = this.path.getBytes();
             for (int i = 0; i < bytes.length; i++)
                 addr.sun_path.chars[i] = bytes[i];
