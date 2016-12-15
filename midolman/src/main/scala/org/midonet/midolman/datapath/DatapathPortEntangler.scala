@@ -81,9 +81,9 @@ import org.midonet.util.logging.Logger
  *   active=false) message.
  */
 trait DatapathPortEntangler {
-    protected val driver: DatapathStateDriver
-    protected implicit val singleThreadExecutionContext: SingleThreadExecutionContext
-    protected implicit val log: Logger
+    protected def driver: DatapathStateDriver
+    protected implicit def singleThreadExecutionContext: SingleThreadExecutionContext
+    protected implicit def log: Logger
 
     // Sequentializes updates to a particular port. Note that while an update
     // is in progress, new updates can be scheduled.
