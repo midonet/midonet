@@ -31,6 +31,7 @@ import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, StateTab
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Router
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -64,6 +65,7 @@ class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend
     override def stateTableClient: StateTableClient = null
     override def curator: CuratorFramework = curatorParam
     override def failFastCurator: CuratorFramework = curatorParam
+    override def discovery: MidonetDiscovery = null
     override def reactor: Reactor = null
     override def failFastConnectionState =
         connectionState.asObservable()

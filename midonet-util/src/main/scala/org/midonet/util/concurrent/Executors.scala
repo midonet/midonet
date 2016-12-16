@@ -3,6 +3,9 @@ package org.midonet.util.concurrent
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy
 import java.util.concurrent._
 
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
+
 /**
   * Utility class for creating custom executors.
   */
@@ -39,4 +42,22 @@ object Executors {
             handler)
     }
 
+    /**
+      * Shuts down the given executor.
+      */
+    def shutdown(executor: ExecutorService)
+                (onError: (Throwable) => Unit)
+                (implicit timeout: Duration = 1 second): Unit = {
+        try {
+            executor.shutdown()
+            if (timeout.isFinite() &&
+                !executor.awaitTermination(timeout.toMillis,
+                                           TimeUnit.MILLISECONDS)) {
+                executor.shutdownNow()
+            }
+        } catch {
+            case e: InterruptedException =>
+                try onError(e) catch { case NonFatal(_) => }
+        }
+    }
 }

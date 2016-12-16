@@ -36,6 +36,7 @@ import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.cluster.models.Topology.TunnelZone.Type
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.FloodingProxyKey
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
@@ -77,6 +78,7 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             override def reactor: Reactor = ???
             override def connectionState: Observable[ConnectionState] = ???
             override def failFastConnectionState: Observable[ConnectionState] = ???
+            override def discovery: MidonetDiscovery = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
         }
