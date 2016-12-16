@@ -216,6 +216,13 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext)
                               mac: Option[MAC]): Future[IpNeighborAddDelReply] =
         addDelIfArpCacheEntry(device, vrf, ipAddr, mac, isAdd = false)
 
+    def resetFib(vrf: Int, isIpv6: Boolean = false): Future[Any] = {
+        val request = new ResetFib
+        request.isIpv6 = boolToByte(isIpv6)
+        request.vrfId = vrf
+        execVppRequest(request, lib.resetFib)
+    }
+
     /** equivalent to:
      * vpp# set int ip address <address>/<prefix> <interface> */
     private def addDelDeviceAddress(device: Device,

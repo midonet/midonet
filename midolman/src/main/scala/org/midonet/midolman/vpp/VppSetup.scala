@@ -327,6 +327,26 @@ object VppSetup extends MidolmanLogging {
         }
     }
 
+    /* on rollback, removes all entries on a fip table in VPP
+       This is required specially for IPv6 VRF tables, otherwise
+       VPP crashes the next time it accesses the VRF table after
+       a device with an IPv6 address is removed
+     */
+    class VppFipReset(override val name: String,
+                      vrf: Int,
+                      isIpv6: Boolean,
+                      vppApi: VppApi)
+                     (implicit ec: ExecutionContext)
+        extends FutureTaskWithRollback {
+
+        override def execute(): Future[Any] = {
+            Future.successful(None)
+        }
+
+        override def rollback(): Future[Any] = {
+            vppApi.resetFib(vrf, isIpv6 = isIpv6)
+        }
+    }
 }
 
 class VppSetup(setupName: String, log: Logger)
@@ -346,6 +366,8 @@ class VppUplinkSetup(uplinkPortId: UUID,
 
     import VppSetup._
 
+    private final val VppUplinkVRF = 0
+
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
     private val uplinkOvsName = s"ovs-$uplinkSuffix"
@@ -360,6 +382,11 @@ class VppUplinkSetup(uplinkPortId: UUID,
                                           uplinkVppName,
                                           vppApi,
                                           uplinkVeth)
+
+    private val fipCleanup = new VppFipReset("cleanup vrf table",
+                                             VppUplinkVRF,
+                                             isIpv6 = true,
+                                             vppApi)
 
     private val ipAddrVpp = new VppIpAddr("uplink VPP IPv6 setup",
                                           vppApi,
@@ -391,6 +418,7 @@ class VppUplinkSetup(uplinkPortId: UUID,
      */
     add(uplinkVeth)
     add(uplinkVpp)
+    add(fipCleanup)
     add(ipAddrVpp)
     add(ovsBind)
     add(ovsFlows)
