@@ -317,6 +317,11 @@ message Pool {
     // primary way to set session persistence in the future.
     optional SessionPersistence session_persistence = 9;
 
+    // To distinguish a pool deployed through LBaaSv2 from a pool deployed through
+    // midonet directly. lbaas v2 uses services containers, whereas the original
+    // implementation does not.
+    optional bool is_lbaasv2 = 10 [default = false];
+
     // Backreferences
     repeated UUID pool_member_ids = 101;
     repeated UUID vip_ids = 102;

@@ -180,7 +180,8 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
             allMembers.toArray,
             activePoolMembers.toArray,
             disabledPoolMembers.toArray,
-            allVips.toArray)
+            allVips.toArray,
+            pool.getIsLbaasv2)
         log.debug("Building pool {}", device)
         device
     }

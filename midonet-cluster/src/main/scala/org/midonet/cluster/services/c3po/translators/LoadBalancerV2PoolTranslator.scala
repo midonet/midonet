@@ -41,6 +41,7 @@ class LoadBalancerV2PoolTranslator
         bldr.setLoadBalancerId(nPool.getLoadbalancers(0).getId)
         bldr.setLbMethod(toLbMethod(nPool.getLbAlgorithm))
         bldr.setProtocol(toPoolProtocol(nPool.getProtocol))
+        bldr.setIsLbaasv2(true)
 
         if (nPool.hasSessionPersistence)
             bldr.setSessionPersistence(translateSessionPersistence(nPool))
