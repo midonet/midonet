@@ -70,7 +70,7 @@ class LoadBalancerV2Config(val id: UUID,
             conf append
                 s"""
                     |backend ${p.id}
-                    |    timeout check ${p.healthMonitor.timeout}
+                    |    timeout check ${p.healthMonitor.timeout}s
                     |""".stripMargin
 
             p.members filter (_.adminStateUp) foreach { m =>
