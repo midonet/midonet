@@ -22,6 +22,24 @@
       "revId": "afff5259b0cac4e75da326ce257c80c67d5abf39",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_abc88075",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-12-16T10:48:06Z",
+      "side": 1,
+      "message": "It will return None if it was called from line 194 (i.e. previous endpoint was invalidated so is currently None and we are rate limited in our reconnection attempts so we don\u0027t want to try another connection just yet).\n\nIt should return the current (possibly not None) endpoint if it was called from line 227 (i.e. we are possibly already successfully connected to some endpoint and tried to change but were rate limited. In this case, it is desirable to keep the endpoint we are connected to and that we know is working)",
+      "parentUuid": "3ab451fb_d5a00993",
+      "revId": "afff5259b0cac4e75da326ce257c80c67d5abf39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
