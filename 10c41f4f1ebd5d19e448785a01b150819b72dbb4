@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "3ab451fb_d8da8078",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-16T05:01:55Z",
+      "side": 1,
+      "message": "not needed.",
+      "range": {
+        "startLine": 52,
+        "startChar": 16,
+        "endLine": 52,
+        "endChar": 30
+      },
+      "revId": "10c41f4f1ebd5d19e448785a01b150819b72dbb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_1d79fd93",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolConfig.scala",
         "patchSetId": 2
