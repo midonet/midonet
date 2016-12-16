@@ -111,18 +111,14 @@ object VppSetup extends MidolmanLogging {
 
         @throws[Exception]
         override def execute(): Future[Any] = {
-            val future = vppApi.createDevice(deviceName, macSource.macAddress)
+            vppApi.createDevice(deviceName, macSource.macAddress)
                 .flatMap { device =>
                     vppInterface = Some(device)
                     vppApi.setDeviceAdminState(device, isUp = true)
+                        .flatMap { _ =>
+                            vppApi.setDeviceTable(device, vrf, isIpv6 = false)
+                        }
                 }
-            if (vrf == 0) {
-                future
-            } else {
-                future.flatMap { _ =>
-                    vppApi.setDeviceTable(vppInterface.get, vrf, isIpv6 = false)
-                }
-            }
         }
 
         @throws[Exception]
