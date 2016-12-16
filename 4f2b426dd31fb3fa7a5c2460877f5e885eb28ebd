@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_98b6383c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-16T04:24:23Z",
+      "side": 1,
+      "message": "no, removed.",
+      "parentUuid": "3ab451fb_084f8493",
+      "revId": "4f2b426dd31fb3fa7a5c2460877f5e885eb28ebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_c8ecfc91",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_78824c54",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-16T04:24:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_c8ecfc91",
+      "revId": "4f2b426dd31fb3fa7a5c2460877f5e885eb28ebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_487eacaf",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2016-12-14T10:09:25Z",
       "side": 1,
       "message": "host routes should be added as well",
+      "revId": "4f2b426dd31fb3fa7a5c2460877f5e885eb28ebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_58879061",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2Translator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-16T04:24:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_487eacaf",
       "revId": "4f2b426dd31fb3fa7a5c2460877f5e885eb28ebd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
