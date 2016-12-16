@@ -280,6 +280,7 @@ object TopologyMatchers {
                 p.getSessionPersistence == SessionPersistence.SOURCE_IP
             pool.members.map(_.id) should contain theSameElementsInOrderAs
                 p.getPoolMemberIdsList.asScala.map(_.asJava)
+            pool.handledByContainer shouldBe (p.getServiceContainerIdsCount > 0)
         }
     }
 

@@ -49,7 +49,8 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
                  val members: Array[PoolMember],
                  val activePoolMembers: Array[PoolMember],
                  val disabledPoolMembers: Array[PoolMember],
-                 val vips: Array[Vip])
+                 val vips: Array[Vip],
+                 val handledByContainer: Boolean)
     extends VirtualDevice {
 
     override val deviceTag = FlowTagger.tagForPool(id)
@@ -202,7 +203,8 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
         s"sessionPersistence=$sessionPersistence " +
         s"activePoolMembers=${activePoolMembers.toSeq} " +
         s"disabledPoolMembers=${disabledPoolMembers.toSeq} " +
-        s"vips=${vips.toSeq}}]"
+        s"vips=${vips.toSeq}} " +
+        s"handledByContainer=$handledByContainer"
 
     override def equals(obj: Any) = obj match {
         case pool: Pool =>
@@ -211,6 +213,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
             healthMonitorId == pool.healthMonitorId &&
             loadBalancerId == pool.loadBalancerId &&
             sessionPersistence == pool.sessionPersistence &&
+            handledByContainer == pool.handledByContainer &&
             util.Arrays.equals(members.asInstanceOf[Array[AnyRef]],
                                pool.members.asInstanceOf[Array[AnyRef]]) &&
             util.Arrays.equals(activePoolMembers.asInstanceOf[Array[AnyRef]],
@@ -225,5 +228,6 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
     override def hashCode =
         Objects.hash(id, Boolean.box(adminStateUp), lbMethod, healthMonitorId,
                      loadBalancerId, sessionPersistence, members,
-                     activePoolMembers, disabledPoolMembers, vips)
+                     activePoolMembers, disabledPoolMembers, vips,
+                     Boolean.box(handledByContainer))
 }
