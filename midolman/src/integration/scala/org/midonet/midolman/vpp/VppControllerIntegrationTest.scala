@@ -44,6 +44,7 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.util.TestDatapathState
 import org.midonet.midolman.{DatapathState, SimulationBackChannel}
+import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort}
 import org.midonet.packets.IPv6Subnet
 import org.midonet.util.concurrent._
 import org.midonet.util.MidonetEventually
@@ -74,6 +75,23 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
 
         override def getDpPortNumberForVport(vportId: UUID): Integer =
             dpPort.getPortNo
+
+        override val tunnelFip64VxLanPort: VxLanTunnelPort =
+            ovs.createVxlanDpPort("tnvxlan-fip64", 5321)
+
+        override val tunnelOverlayGrePort: GreTunnelPort =
+            ovs.createGreDpPort("tngre-overlay")
+
+        override val tunnelOverlayVxLanPort: VxLanTunnelPort =
+            ovs.createVxlanDpPort("tnvxlan-vtep", 4789)
+
+        def cleanup(): Unit = {
+            ovs.deleteDpPort(dpPort)
+            ovs.deleteDpPort(tunnelFip64VxLanPort)
+            ovs.deleteDpPort(tunnelOverlayGrePort)
+            ovs.deleteDpPort(tunnelOverlayVxLanPort)
+        }
+
     }
 
     class TestableVppController(datapathState: DatapathState,
@@ -102,6 +120,7 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
     after {
         log info "Post test clean up"
         backend.stopAsync().awaitTerminated()
+        dpState.asInstanceOf[VppTestDatapathState].cleanup()
         deleteDatapath(dpState.datapath, log)
         cmd(s"sudo ip link del $uplinkDevice", 1)
         log info "Done"
@@ -169,8 +188,8 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
             val ovsEnd = "ovs-" + portPrefix
             val vppEnd = "vpp-" + portPrefix
             eventually {
-                cmd(s"ifconfig $ovsEnd", wait_timeout = 1) shouldBe 0
-                cmd(s"ifconfig $vppEnd", wait_timeout = 1) shouldBe 0
+                cmd(s"ip l show $ovsEnd", wait_timeout = 1) shouldBe 0
+                cmd(s"ip l show $vppEnd", wait_timeout = 1) shouldBe 0
             }
             // TODO: We should be able to wait for the next message to complete
             // TODO: execution. However, we cannot do so now due to a bug in the
@@ -179,8 +198,8 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
                                                   active = false, 0), 1 minute)
             eventually {
                 Thread.sleep(1)
-                cmd(s"ifconfig $ovsEnd", wait_timeout = 1) shouldBe 1
-                cmd(s"ifconfig $vppEnd", wait_timeout = 1) shouldBe 1
+                cmd(s"ip l show $ovsEnd", wait_timeout = 1) shouldBe 1
+                cmd(s"ip l show $vppEnd", wait_timeout = 1) shouldBe 1
             }
             vpp.stopAsync().awaitTerminated()
         }
