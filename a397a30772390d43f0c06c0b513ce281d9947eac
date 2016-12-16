@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_cb6f4c91",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-12-16T10:39:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_e3391243",
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_83492ed3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
         "patchSetId": 4
@@ -42,6 +60,24 @@
         "endLine": 150,
         "endChar": 53
       },
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_ebf9e8c9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-12-16T10:39:19Z",
+      "side": 1,
+      "message": "I\u0027d prefer to keep it so we don\u0027t have to create a new one every time we call def endpoint. And I kinda wanted to keep endpoint as an Option because then I can do this:\n\nhttps://review.gerrithub.io/c/306027/1/midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala#194",
+      "parentUuid": "3ab451fb_83492ed3",
       "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_cb1d0c11",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-12-16T10:39:19Z",
+      "side": 1,
+      "message": "Flooding prevention is being addressed in a separate patch. The JIRA issue for this has some discussion https://midobugs.atlassian.net/browse/MI-1874. Feel free to add some input there :D",
+      "parentUuid": "3ab451fb_83e5aea9",
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_c3261616",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
         "patchSetId": 4
@@ -94,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "3ab451fb_ab1ac015",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-12-16T10:39:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_c3261616",
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ab451fb_a3230a05",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
         "patchSetId": 4
@@ -111,6 +183,24 @@
         "endLine": 217,
         "endChar": 53
       },
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_8b1704ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-12-16T10:39:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_a3230a05",
       "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -157,6 +247,24 @@
         "endLine": 242,
         "endChar": 30
       },
+      "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_4bd8dc53",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowSenderWorker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1009034
+      },
+      "writtenOn": "2016-12-16T10:39:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ab451fb_83200ef9",
       "revId": "a397a30772390d43f0c06c0b513ce281d9947eac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
