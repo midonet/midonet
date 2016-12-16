@@ -104,6 +104,7 @@ class LoadBalancerV2Translator(config: ClusterConfig)
             .setId(nLb.getId)
             .setAdminStateUp(nLb.getAdminStateUp)
             .setRouterId(newRouterId)
+            .setServiceContainerId(lbServiceContainerId(newRouterId))
             .build
 
         val dhcp = tx.get(classOf[Dhcp], nLb.getVipSubnetId)

@@ -77,6 +77,7 @@ class LoadBalancerV2IT extends C3POMinionTestBase
         lb.getId shouldBe toProto(lbId)
         lb.getAdminStateUp shouldBe true
         lb.getRouterId shouldBe toProto(routerId)
+        lb.getServiceContainerId shouldBe toProto(lbServiceContainerId(routerId))
 
         val router = storage.get(classOf[Router], routerId).await()
         router.getLoadBalancerId shouldBe toProto(lbId)
