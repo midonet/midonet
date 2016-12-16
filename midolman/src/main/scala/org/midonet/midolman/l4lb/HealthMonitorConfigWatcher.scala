@@ -45,13 +45,11 @@ object HealthMonitorConfigWatcher {
             map: IMap[UUID, PoolHealthMonitor],
             fileLocs: String, suffix: String):
                 IMap[UUID, PoolConfig] = {
-        val newMap = mutable.HashMap[UUID, PoolConfig]()
 
-        map foreach {case (id: UUID, phm: PoolHealthMonitor) =>
-                         newMap.put(id, convertDataToPoolConfig(id, fileLocs,
-                             suffix, phm))}
-
-        IMap(newMap.toSeq: _*)
+        map collect {
+            case (id, phm) if !phm.handledByContainer =>
+                (id, convertDataToPoolConfig(id, fileLocs, suffix, phm))
+        }
     }
 
     val lbIdToRouterIdMap: MMap[UUID, UUID] = MMap.empty

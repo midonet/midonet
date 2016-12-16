@@ -46,6 +46,8 @@ class HealthMonitorConfigWatcherTest
     val uuidOne = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val uuidTwo = UUID.fromString("00000000-0000-0000-0000-000000000002")
     val uuidThree = UUID.fromString("00000000-0000-0000-0000-000000000003")
+    val uuidLBaaSv21 = UUID.fromString("00000000-0000-0000-0000-000000000004")
+    val uuidLBaaSv22 = UUID.fromString("00000000-0000-0000-0000-000000000005")
 
     class TestableHealthMonitorConfigWatcher
         extends HealthMonitorConfigWatcher("/doesnt/matter", "/dont/care", testActor) {
@@ -63,7 +65,8 @@ class HealthMonitorConfigWatcherTest
         actorSystem.stop(watcher)
     }
 
-    def generateFakeData(poolId: UUID, stateUp: Boolean = true)
+    def generateFakeData(poolId: UUID, stateUp: Boolean = true,
+                         handledByContainer: Boolean = false)
     : PoolHealthMonitor = {
         val hmId = UUID.randomUUID()
         val hm = new SimHealthMonitor(hmId,
@@ -98,21 +101,27 @@ class HealthMonitorConfigWatcherTest
                                members = Array(poolMember),
                                activePoolMembers = Array(poolMember),
                                disabledPoolMembers = Array.empty,
-                               vips = Array(vip))
+                               vips = Array(vip),
+                               handledByContainer = handledByContainer)
 
         val lb = new SimLoadBalancer(lbId,
                                      adminStateUp = stateUp,
                                      routerId = UUID.randomUUID(),
                                      Array(pool))
 
-        PoolHealthMonitor(hm, lb, Array(vip), Array[SimPoolMember](poolMember))
+        PoolHealthMonitor(hm, lb, Array(vip), Array[SimPoolMember](poolMember),
+                          handledByContainer = handledByContainer)
     }
 
     def generateFakeMap(): MMap[UUID, PoolHealthMonitor] = {
         val map = new MMap[UUID, PoolHealthMonitor]()
         map.put(uuidOne, generateFakeData(uuidOne))
+        map.put(uuidLBaaSv21, generateFakeData(uuidLBaaSv21,
+                                               handledByContainer = true))
         map.put(uuidTwo, generateFakeData(uuidTwo))
         map.put(uuidThree, generateFakeData(uuidThree))
+        map.put(uuidLBaaSv22, generateFakeData(uuidLBaaSv22,
+                                               handledByContainer = true))
         map
     }
 
@@ -162,9 +171,12 @@ class HealthMonitorConfigWatcherTest
             res put (conf2.poolId, conf2.config)
             val conf3 = expectMsgType[ConfigAdded]
             res put (conf3.poolId, conf3.config)
+            expectNoMsg(50 milliseconds)
             res(uuidOne).healthMonitor.delay shouldEqual 2
             res(uuidTwo).healthMonitor.delay shouldEqual 1
             res(uuidThree).healthMonitor.delay shouldEqual 1
+            res.contains(uuidLBaaSv21) shouldBe false
+            res.contains(uuidLBaaSv22) shouldBe false
         }
     }
 
