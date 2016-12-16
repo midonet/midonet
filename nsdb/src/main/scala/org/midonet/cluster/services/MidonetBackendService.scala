@@ -16,10 +16,12 @@
 
 package org.midonet.cluster.services
 
+import java.net.URI
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
+import scala.reflect.runtime.universe._
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
@@ -39,7 +41,7 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
-import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryImpl}
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryClient, MidonetDiscoveryImpl, MidonetServiceHandler}
 import org.midonet.cluster.services.state.StateProxyService
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => StateClientConnectionState}
 import org.midonet.cluster.services.state.client.{StateProxyClient, StateSubscriptionKey, StateTableClient}
@@ -50,8 +52,10 @@ import org.midonet.util.concurrent.Executors
 import org.midonet.util.eventloop.TryCatchReactor
 import org.midonet.util.functors.makeRunnable
 
-/** Class responsible for providing services to access to the new Storage
-  * services. */
+/**
+  * Class responsible for providing services to access to the new Storage
+  * services.
+  */
 class MidonetBackendService(config: MidonetBackendConfig,
                             override val curator: CuratorFramework,
                             override val failFastCurator: CuratorFramework,
@@ -65,16 +69,49 @@ class MidonetBackendService(config: MidonetBackendConfig,
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
         else HostIdGenerator.getHostId
 
-    private var discoveryServiceExecutor: ExecutorService = null
-    private var discoveryService: MidonetDiscovery = null
-    private var stateProxyClientExecutor : ScheduledExecutorService = null
-    @volatile private var stateProxyClient: StateProxyClient = null
+    private var discoveryServiceExecutor: ExecutorService = _
+    private var discoveryService: MidonetDiscovery = _
+    private var stateProxyClientExecutor : ScheduledExecutorService = _
+    @volatile private var stateProxyClient: StateProxyClient = _
 
     override val reactor = new TryCatchReactor("nsdb", 1)
     override val connectionState =
         ConnectionObservable.create(curator)
     override val failFastConnectionState =
         ConnectionObservable.create(failFastCurator)
+
+    private val discoveryServiceWrapper = new MidonetDiscovery {
+        override def stop(): Unit = { }
+
+        override def registerServiceInstance(serviceName: String,
+                                             address: String,
+                                             port: Int): MidonetServiceHandler = {
+            if (config.enableDiscovery) {
+                discoveryService.registerServiceInstance(serviceName, address,
+                                                         port)
+            } else {
+                throw new UnsupportedOperationException("Service discovery disabled")
+            }
+        }
+
+        override def registerServiceInstance(serviceName: String,
+                                             uri: URI): MidonetServiceHandler = {
+            if (config.enableDiscovery) {
+                discoveryService.registerServiceInstance(serviceName, uri)
+            } else {
+                throw new UnsupportedOperationException("Service discovery disabled")
+            }
+        }
+
+        override def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+        : MidonetDiscoveryClient[S] = {
+            if (config.enableDiscovery) {
+                discoveryService.getClient(serviceName)(tag)
+            } else {
+                throw new UnsupportedOperationException("Service discovery disabled")
+            }
+        }
+    }
 
     private val stateTableClientWrapper = new StateTableClient {
         override def stop(): Boolean = false
@@ -110,7 +147,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
     }
     private var connectionSuspendedTime = -1L
     private var sessionId = 0L
-    private var shutdownFuture: ScheduledFuture[_] = null
+    private var shutdownFuture: ScheduledFuture[_] = _
     private val shutdownHandle = makeRunnable {
         connectionSubscriber.synchronized {
             if (isRunning) {
@@ -132,6 +169,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
     override def stateTableStore: StateTableStorage = zoom
 
     override def stateTableClient: StateTableClient = stateProxyClient
+    override def discovery: MidonetDiscovery = discoveryServiceWrapper
 
     protected def setup(stateTableStorage: StateTableStorage): Unit = { }
 
@@ -141,19 +179,25 @@ class MidonetBackendService(config: MidonetBackendConfig,
             if (curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
             }
-            if (failFastCurator.getState != CuratorFrameworkState.STARTED) {
+            if (config.enableFailFast &&
+                failFastCurator.getState != CuratorFrameworkState.STARTED) {
+                log info s"Starting fail-fast NSDB connection"
                 failFastCurator.start()
             }
 
-            discoveryServiceExecutor = Executors.singleThreadScheduledExecutor(
-                "discovery-service", isDaemon = true, Executors.CallerRunsPolicy)
-            discoveryService = new MidonetDiscoveryImpl(curator,
-                                                        discoveryServiceExecutor,
-                                                        config)
-
-            if (config.stateClient.enabled) {
-                stateProxyClientExecutor = Executors
-                    .singleThreadScheduledExecutor(
+            if (config.enableDiscovery) {
+                log info "Starting discovery service"
+                discoveryServiceExecutor =
+                    Executors.singleThreadScheduledExecutor(
+                        "discovery-service", isDaemon = true,
+                        Executors.CallerRunsPolicy)
+                discoveryService = new MidonetDiscoveryImpl(
+                    curator, discoveryServiceExecutor, config)
+            }
+            if (config.enableStateProxy && config.stateClient.enabled) {
+                log info "Starting state proxy client"
+                stateProxyClientExecutor =
+                    Executors.singleThreadScheduledExecutor(
                         StateProxyService.Name,
                         isDaemon = true,
                         Executors.CallerRunsPolicy)
@@ -204,15 +248,23 @@ class MidonetBackendService(config: MidonetBackendConfig,
         reactor.shutDownNow()
 
         curator.close()
-        failFastCurator.close()
-
-        if (config.stateClient.enabled) {
-            stateProxyClient.stop()
-            stateProxyClientExecutor.shutdown()
+        if (config.enableFailFast) {
+            failFastCurator.close()
         }
 
-        discoveryService.stop()
-        discoveryServiceExecutor.shutdown()
+        if (config.enableStateProxy && config.stateClient.enabled) {
+            stateProxyClient.stop()
+            Executors.shutdown(stateProxyClientExecutor) { _ =>
+                log warn "Exception while stopping state proxy executor"
+            }
+        }
+
+        if (config.enableDiscovery) {
+            discoveryService.stop()
+            Executors.shutdown(discoveryServiceExecutor) { _ =>
+                log warn "Exception while stopping discovery service executor"
+            }
+        }
 
         notifyStopped()
     }

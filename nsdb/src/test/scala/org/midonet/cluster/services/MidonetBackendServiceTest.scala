@@ -19,7 +19,9 @@ package org.midonet.cluster.services
 import java.util.UUID
 
 import com.codahale.metrics.MetricRegistry
+import com.typesafe.config.ConfigFactory
 
+import org.apache.curator.framework.CuratorFramework
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.reflections.Reflections
@@ -28,6 +30,7 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.conf.HostIdGenerator
 
@@ -74,6 +77,148 @@ class MidonetBackendServiceTest extends FeatureSpec with Matchers
     import MidonetBackendServiceTest._
 
     protected override def configParams: String = "state_proxy.enabled : false"
+
+    feature("Backend selectively starts services") {
+        scenario("Default backend") {
+            Given("A mock curator")
+            val failFastCurator = Mockito.mock(classOf[CuratorFramework])
+
+            Given("A backend service")
+            HostIdGenerator.useTemporaryHostId()
+            val backend = new MidonetBackendService(
+                config, curator, failFastCurator,
+                Mockito.mock(classOf[MetricRegistry]),
+                None)
+
+            When("Starting the backend")
+            backend.startAsync().awaitRunning()
+
+            Then("The fail fast curator is not started")
+            Mockito.verifyZeroInteractions(failFastCurator)
+
+            And("The state proxy is not started")
+            backend.stateTableClient shouldBe null
+
+            And("The service discovery is started")
+            backend.discovery.getClient[AnyRef]("some-service") should not be null
+
+            backend.stopAsync().awaitTerminated()
+        }
+
+        scenario("Backend for agent") {
+            Given("A configuration for agent")
+            val agentConfig = MidonetBackendConfig.forAgent(ConfigFactory.parseString(
+                s"""
+                   |zookeeper.root_key=$zkRoot
+                   |state_proxy.enabled=true
+                   |state_proxy.network_threads=1
+                   |state_proxy.max_soft_reconnect_attempts=1
+                   |state_proxy.soft_reconnect_delay=30s
+                """.stripMargin))
+
+            And("A mock curator")
+            val failFastCurator = Mockito.mock(classOf[CuratorFramework])
+
+            Given("A backend service")
+            HostIdGenerator.useTemporaryHostId()
+            val backend = new MidonetBackendService(
+                agentConfig, curator, failFastCurator,
+                Mockito.mock(classOf[MetricRegistry]),
+                None)
+
+            When("Starting the backend")
+            backend.startAsync().awaitRunning()
+
+            Then("The fail fast curator is started")
+            Mockito.verify(failFastCurator).start()
+
+            And("The state proxy is started")
+            backend.stateTableClient should not be null
+
+            And("The service discovery is started")
+            backend.discovery.getClient[AnyRef]("some-service") should not be null
+
+            backend.stopAsync().awaitTerminated()
+        }
+
+        scenario("Backend for cluster") {
+            Given("A configuration for agent")
+            val agentConfig = MidonetBackendConfig.forCluster(ConfigFactory.parseString(
+                s"""
+                   |zookeeper.root_key=$zkRoot
+                   |state_proxy.enabled=true
+                   |state_proxy.network_threads=1
+                   |state_proxy.max_soft_reconnect_attempts=1
+                   |state_proxy.soft_reconnect_delay=30s
+                """.stripMargin))
+
+            And("A mock curator")
+            val failFastCurator = Mockito.mock(classOf[CuratorFramework])
+            /*val connectionListener =
+                Mockito.mock(classOf[Listenable[ConnectionStateListener]])
+            Mockito.when(failFastCurator.getConnectionStateListenable)
+                .thenReturn(connectionListener)*/
+
+            Given("A backend service")
+            HostIdGenerator.useTemporaryHostId()
+            val backend = new MidonetBackendService(
+                agentConfig, curator, failFastCurator,
+                Mockito.mock(classOf[MetricRegistry]),
+                None)
+
+            When("Starting the backend")
+            backend.startAsync().awaitRunning()
+
+            Then("The fail fast curator is not started")
+            Mockito.verifyZeroInteractions(failFastCurator)
+
+            And("The state proxy is started")
+            backend.stateTableClient should not be null
+
+            And("The service discovery is started")
+            backend.discovery.getClient[AnyRef]("some-service") should not be null
+
+            backend.stopAsync().awaitTerminated()
+        }
+
+        scenario("Backend for agent services") {
+            Given("A configuration for agent")
+            val agentConfig = MidonetBackendConfig.forAgentServices(ConfigFactory.parseString(
+                s"""
+                   |zookeeper.root_key=$zkRoot
+                   |state_proxy.enabled=true
+                   |state_proxy.network_threads=1
+                   |state_proxy.max_soft_reconnect_attempts=1
+                   |state_proxy.soft_reconnect_delay=30s
+                """.stripMargin))
+
+            And("A mock curator")
+            val failFastCurator = Mockito.mock(classOf[CuratorFramework])
+
+            Given("A backend service")
+            HostIdGenerator.useTemporaryHostId()
+            val backend = new MidonetBackendService(
+                agentConfig, curator, failFastCurator,
+                Mockito.mock(classOf[MetricRegistry]),
+                None)
+
+            When("Starting the backend")
+            backend.startAsync().awaitRunning()
+
+            Then("The fail fast curator is not started")
+            Mockito.verifyZeroInteractions(failFastCurator)
+
+            And("The state proxy is not started")
+            backend.stateTableClient shouldBe null
+
+            And("The service discovery is not started")
+            intercept[UnsupportedOperationException] {
+                backend.discovery.getClient[AnyRef]("some-service")
+            }
+
+            backend.stopAsync().awaitTerminated()
+        }
+    }
 
     scenario("Backend calls plugins") {
         Given("A backend service")

@@ -31,6 +31,7 @@ import org.midonet.cluster.data.storage.{StateStorage, StateTableStorage, Storag
 import org.midonet.cluster.models.Neutron.{TapService, VpnService, _}
 import org.midonet.cluster.models.Topology.{TunnelZone, Vip, Vtep, _}
 import org.midonet.cluster.services.c3po.C3POState
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.util.eventloop.Reactor
 
@@ -319,4 +320,6 @@ abstract class MidonetBackend extends AbstractService {
     def failFastConnectionState: Observable[ConnectionState]
     /** Provides access to the state table client. */
     def stateTableClient: StateTableClient
+
+    def discovery: MidonetDiscovery
 }
