@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2
 import org.midonet.cluster.models.Topology.{Dhcp, Route}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 
@@ -27,6 +28,13 @@ import scala.collection.mutable.ListBuffer
  * Contains loadbalancer-related operations shared by multiple translators.
  */
 trait LoadBalancerManager extends RouteManager {
+
+    def loadBalancersToServiceContainerIds(nlbs: List[NeutronLoadBalancerV2])
+    : List[UUID] = {
+        nlbs.map(_.getId)
+            .map(lbV2RouterId)
+            .map(lbServiceContainerId)
+    }
 
     def buildRouterRoutesFromDhcp(portId: UUID, dhcp: Dhcp): List[Route] = {
         val routes = ListBuffer[Route]()

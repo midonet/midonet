@@ -21,11 +21,14 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.{LBV2SessionPersistenceType, LoadBalancerV2Algorithm, LoadBalancerV2Protocol}
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
-import org.midonet.cluster.models.Topology.{Pool, SessionPersistence, Vip}
+import org.midonet.cluster.models.Topology.{Pool, SessionPersistence}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 
+import scala.collection.JavaConverters._
+
 class LoadBalancerV2PoolTranslator
-    extends Translator[NeutronLoadBalancerV2Pool] {
+    extends Translator[NeutronLoadBalancerV2Pool]
+    with LoadBalancerManager {
 
     override protected def translateCreate(
             tx: Transaction, nPool: NeutronLoadBalancerV2Pool): Unit = {
@@ -41,6 +44,9 @@ class LoadBalancerV2PoolTranslator
         bldr.setLoadBalancerId(nPool.getLoadbalancers(0).getId)
         bldr.setLbMethod(toLbMethod(nPool.getLbAlgorithm))
         bldr.setProtocol(toPoolProtocol(nPool.getProtocol))
+        val lbs = loadBalancersToServiceContainerIds(
+            nPool.getLoadbalancersList.asScala.toList)
+        bldr.addAllServiceContainerIds(lbs.asJava)
 
         if (nPool.hasSessionPersistence)
             bldr.setSessionPersistence(translateSessionPersistence(nPool))

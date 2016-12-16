@@ -24,12 +24,14 @@ import org.midonet.midolman.topology.VirtualTopology.Device
 case class PoolHealthMonitor(healthMonitor: HealthMonitor,
                              loadBalancer: LoadBalancer,
                              vips: Iterable[Vip],
-                             poolMembers: Iterable[PoolMember]) {
+                             poolMembers: Iterable[PoolMember],
+                             isLbaasV2: Boolean) {
 
     override def toString =
         s"PoolHealthMonitor [healtMonitor=$healthMonitor " +
         s"loadBalancer=$loadBalancer vips=$vips " +
-        s"poolMembers=$poolMembers]"
+        s"poolMembers=$poolMembers " +
+        s"isLbaasV2=$isLbaasV2]"
 }
 
 case class PoolHealthMonitorMap(mappings: Map[UUID, PoolHealthMonitor])

@@ -198,7 +198,7 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
             if (isPending) PoolHealthMonitorEntry(poolId, null)
             else PoolHealthMonitorEntry(poolId, PoolHealthMonitor(
                 hMon.healthMonitor, lBal.loadBalancer, lBal.vipsByPool(poolId),
-                members))
+                members, pool.isLbaasV2))
         }}
 
         private val completion = makeAction0 {
