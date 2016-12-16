@@ -223,6 +223,11 @@ message LoadBalancer {
     optional UUID id = 1;
     optional bool admin_state_up = 2;
 
+    // To distinguish a load balancer deployed through LBaaSv2 from a
+    // load balancer deployed through midonet directly. lbaas v2 uses services
+    // containers, whereas the original implementation does not.
+    optional UUID service_container_id = 3;
+
     // Backreference
     optional UUID router_id = 101;
     repeated UUID pool_ids = 102;

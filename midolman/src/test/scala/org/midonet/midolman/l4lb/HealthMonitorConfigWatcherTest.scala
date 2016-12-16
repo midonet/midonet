@@ -17,23 +17,21 @@ package org.midonet.midolman.l4lb
 
 import java.util.{Random, UUID}
 
-import scala.collection.immutable.{HashMap => IMap}
-import scala.collection.mutable.{HashMap => MMap}
-import scala.concurrent.duration._
-
-import akka.actor.{Props, ActorRef, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.TestKit
-
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, Pool => SimPool, PoolMember => SimPoolMember, Vip => SimVip}
 import org.midonet.midolman.state.l4lb.{HealthMonitorType, LBStatus, PoolLBMethod, SessionPersistence}
-import org.midonet.midolman.topology.devices.{HealthMonitor => SimHealthMonitor, PoolHealthMonitor, PoolHealthMonitorMap}
+import org.midonet.midolman.topology.devices.{PoolHealthMonitor, PoolHealthMonitorMap, HealthMonitor => SimHealthMonitor}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
+import org.scalatest.junit.JUnitRunner
+
+import scala.collection.immutable.{HashMap => IMap}
+import scala.collection.mutable.{HashMap => MMap}
+import scala.concurrent.duration._
 
 @RunWith(classOf[JUnitRunner])
 class HealthMonitorConfigWatcherTest
@@ -46,6 +44,8 @@ class HealthMonitorConfigWatcherTest
     val uuidOne = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val uuidTwo = UUID.fromString("00000000-0000-0000-0000-000000000002")
     val uuidThree = UUID.fromString("00000000-0000-0000-0000-000000000003")
+    val uuidLBaaSv21 = UUID.fromString("00000000-0000-0000-0000-000000000004")
+    val uuidLBaaSv22 = UUID.fromString("00000000-0000-0000-0000-000000000005")
 
     class TestableHealthMonitorConfigWatcher
         extends HealthMonitorConfigWatcher("/doesnt/matter", "/dont/care", testActor) {
@@ -63,7 +63,8 @@ class HealthMonitorConfigWatcherTest
         actorSystem.stop(watcher)
     }
 
-    def generateFakeData(poolId: UUID, stateUp: Boolean = true)
+    def generateFakeData(poolId: UUID, stateUp: Boolean = true,
+                         containerId: UUID = null)
     : PoolHealthMonitor = {
         val hmId = UUID.randomUUID()
         val hm = new SimHealthMonitor(hmId,
@@ -103,6 +104,7 @@ class HealthMonitorConfigWatcherTest
         val lb = new SimLoadBalancer(lbId,
                                      adminStateUp = stateUp,
                                      routerId = UUID.randomUUID(),
+                                     containerId = containerId,
                                      Array(pool))
 
         PoolHealthMonitor(hm, lb, Array(vip), Array[SimPoolMember](poolMember))
@@ -111,8 +113,12 @@ class HealthMonitorConfigWatcherTest
     def generateFakeMap(): MMap[UUID, PoolHealthMonitor] = {
         val map = new MMap[UUID, PoolHealthMonitor]()
         map.put(uuidOne, generateFakeData(uuidOne))
+        map.put(uuidLBaaSv21, generateFakeData(uuidLBaaSv21,
+                                               containerId = UUID.randomUUID))
         map.put(uuidTwo, generateFakeData(uuidTwo))
         map.put(uuidThree, generateFakeData(uuidThree))
+        map.put(uuidLBaaSv22, generateFakeData(uuidLBaaSv22,
+                                               containerId = UUID.randomUUID))
         map
     }
 
@@ -162,9 +168,12 @@ class HealthMonitorConfigWatcherTest
             res put (conf2.poolId, conf2.config)
             val conf3 = expectMsgType[ConfigAdded]
             res put (conf3.poolId, conf3.config)
+            expectNoMsg(50 milliseconds)
             res(uuidOne).healthMonitor.delay shouldEqual 2
             res(uuidTwo).healthMonitor.delay shouldEqual 1
             res(uuidThree).healthMonitor.delay shouldEqual 1
+            res.contains(uuidLBaaSv21) shouldBe false
+            res.contains(uuidLBaaSv22) shouldBe false
         }
     }
 
