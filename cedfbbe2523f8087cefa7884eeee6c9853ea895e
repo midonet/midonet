@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_df20224c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-17T12:30:15Z",
+      "side": 1,
+      "message": "how about marking these routes via gateway_dhcp_id?\nthat way subnet update can be simpler.\n\nmaybe defaultGwRoute can use this method as well.",
+      "revId": "cedfbbe2523f8087cefa7884eeee6c9853ea895e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ab451fb_ff2abe2b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-17T12:30:15Z",
+      "side": 1,
+      "message": "why don\u0027t you build this before updateLoadBalancerRoutes?",
+      "range": {
+        "startLine": 134,
+        "startChar": 25,
+        "endLine": 134,
+        "endChar": 33
+      },
+      "revId": "cedfbbe2523f8087cefa7884eeee6c9853ea895e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
