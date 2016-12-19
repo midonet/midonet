@@ -167,7 +167,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         origMatch.fieldSeen(Field.TunnelDst)
         origMatch.fieldSeen(Field.TunnelKey)
 
-        context.virtualFlowActions.add(Fip64Action(null, vni))
+        context.virtualFlowActions.add(Fip64Action(hostId, vni))
         translateActions(context)
     }
 
