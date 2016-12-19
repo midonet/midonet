@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_9b488b89",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-19T09:22:05Z",
+      "side": 1,
+      "message": "there is a method that takes a scheduler, with that I don\u0027t think you need observeOn",
+      "range": {
+        "startLine": 89,
+        "startChar": 9,
+        "endLine": 91,
+        "endChar": 40
+      },
+      "revId": "e183c02603c8d1b3052308f6446b118bc5e165a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_db673324",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-19T09:22:05Z",
+      "side": 1,
+      "message": "add @RunWith",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 26
+      },
+      "revId": "e183c02603c8d1b3052308f6446b118bc5e165a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
