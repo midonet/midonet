@@ -305,7 +305,7 @@ class PacketWorkflowTest extends MidolmanSpec {
 
             And("The actions should send the packet to vpp")
             packetWorkflow.virtualFlowActions shouldBe
-                List(Fip64Action(null, tunnelKey))
+                List(Fip64Action(hostId, tunnelKey))
         }
 
         scenario("Workflow drops IPv6 packets") {
