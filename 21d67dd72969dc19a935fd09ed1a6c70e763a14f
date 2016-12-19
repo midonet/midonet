@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_fbe8af18",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-19T06:11:25Z",
+      "side": 1,
+      "message": "maybe you can omit \u0027the inner packet\u0027 part here since it\u0027s explained in detail below.",
+      "revId": "21d67dd72969dc19a935fd09ed1a6c70e763a14f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_9bf76bf5",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-19T06:11:25Z",
+      "side": 1,
+      "message": "It sounds fine as is, but maybe this could be more simplified if you say: \n\nBy default the agent sets the TOS field of only the inner IP header of the tunneled packet.  However, by setting `agent.datapath.set_tos_on_tunnel_header` to `true`, the agent can be configured to also set the TOS field of the outer (tunnel) header.",
+      "revId": "21d67dd72969dc19a935fd09ed1a6c70e763a14f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_3b905795",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-19T06:11:25Z",
+      "side": 1,
+      "message": "outter -\u003e outer",
+      "revId": "21d67dd72969dc19a935fd09ed1a6c70e763a14f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
