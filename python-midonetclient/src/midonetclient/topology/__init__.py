@@ -84,6 +84,10 @@ def get_all(sock, kind, req_id=None):
         yield obj_response
 
 
+def watch_all(sock, kind):
+    pass
+
+
 def handshake(sock, cnxn_id, req_id):
     """Performs the initial handshake operation with the topology server"""
     sock.send(utils.encode_delimited(
