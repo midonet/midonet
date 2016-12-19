@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_afb8a1e6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-12-19T22:07:14Z",
+      "side": 1,
+      "message": "We need to get rid of the old mdts tests that don\u0027t use vxlan, since they\u0027re irrelevant now.",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "d1d33b89cc447e433a6fcaea405dbc8117314042",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
