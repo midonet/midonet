@@ -70,7 +70,7 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
 
         override val datapath = createDatapath("test_data_path")
 
-        private val ovs = new VppOvs(datapath)
+        private val ovs = new VppOvs(datapath, config.fip64)
         private val dpPort = ovs.createDpPort(uplinkDevice)
 
         override def getDpPortNumberForVport(vportId: UUID): Integer =
@@ -97,7 +97,8 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
     class TestableVppController(datapathState: DatapathState,
                                 vt: VirtualTopology)
         extends VppController(hostId, datapathState,
-                              new VppOvs(datapathState.datapath), vt) {
+                              new VppOvs(datapathState.datapath, config.fip64),
+                              vt) {
 
         def ! (message: Any) = send(message)
     }

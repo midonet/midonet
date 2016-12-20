@@ -410,7 +410,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
             Thread.sleep(1000) // only needed while first testcase is failing
             val api = new VppApi("test")
             val datapath = createDatapath("foobar")
-            val ovs = new VppOvs(datapath)
+            val ovs = new VppOvs(datapath, fip64config)
 
             log.info("Creating dummy uplink port")
 
@@ -464,7 +464,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
 
                 createVethPair(vethDownlink)
 
-                val ovs = new VppOvs(datapath)
+                val ovs = new VppOvs(datapath, fip64config)
                 val vxlanDpOld = ovs.createVxlanDpPort("fip64n", vxlanPortOld)
                 val vxlanDpNew = ovs.createVxlanDpPort("fip64o", vxlanPortNew)
 
@@ -582,7 +582,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
         scenario("Can create Vxlan ovs port") {
             val datapath = createDatapath("foobar")
             try {
-                val ovs = new VppOvs(datapath)
+                val ovs = new VppOvs(datapath, fip64config)
                 ovs.createVxlanDpPort("vxlan_test_port", 5321)
             } finally {
                 deleteDatapath(datapath, log)
@@ -627,7 +627,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
         scenario("State sending flows") {
             val datapath = createDatapath("foobar")
             try {
-                val ovs = new VppOvs(datapath)
+                val ovs = new VppOvs(datapath, fip64config)
                 val vpp = ovs.createVxlanDpPort("vpp", 5321)
                 val overlay = ovs.createVxlanDpPort("overlay", 5322)
 
@@ -646,7 +646,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
         scenario("State receiving flows") {
             val datapath = createDatapath("foobar")
             try {
-                val ovs = new VppOvs(datapath)
+                val ovs = new VppOvs(datapath, fip64config)
                 val vpp = ovs.createVxlanDpPort("vpp", 5321)
                 val overlay1 = ovs.createVxlanDpPort("overlay1", 5322)
                 val overlay2 = ovs.createVxlanDpPort("overlay2", 5323)
@@ -665,7 +665,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
         scenario("Flows setup and teardown") {
             val datapath = createDatapath("foobar")
             try {
-                val ovs = new VppOvs(datapath)
+                val ovs = new VppOvs(datapath, fip64config)
                 val vpp = ovs.createVxlanDpPort("vpp", 5321)
                 val greOverlay = ovs.createGreDpPort("gre")
                 val vxlanOverlay = ovs.createVxlanDpPort("overlay", 5323)
