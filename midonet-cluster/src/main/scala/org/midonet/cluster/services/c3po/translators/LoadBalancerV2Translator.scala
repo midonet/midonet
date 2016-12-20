@@ -52,6 +52,7 @@ class LoadBalancerV2Translator(config: ClusterConfig)
 
         val subnet = containers.findLocalSubnet()
         val routerAddress = containers.routerPortAddress(subnet)
+        val containerAddress = containers.containerPortAddress(subnet)
         val routerSubnet = new IPv4Subnet(routerAddress, subnet.getPrefixLen)
 
         val newRouterId = lbV2RouterId(nLb.getId)
@@ -60,14 +61,20 @@ class LoadBalancerV2Translator(config: ClusterConfig)
         val iChainId = inChainId(newRouterId)
         val oChainId = outChainId(newRouterId)
 
-        val snatAddr = IPSubnetUtil.fromAddress(nLb.getVipAddress)
+        val vipAddr = IPSubnetUtil.fromAddress(nLb.getVipAddress)
+        val containerAddr = IPSubnetUtil.fromAddress(containerAddress.toString)
+
         val snatRule = Rule.newBuilder
             .setId(lbSnatRule(newRouterId))
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .setCondition(
                 anyFragCondition
-                    .setNwSrcIp(snatAddr)
+                    // The source IP is NOT the vip addr AND the destination
+                    // IP is NOT the container Addr
+                    .setNwDstIp(containerAddr)
+                    .setNwDstInv(true)
+                    .setNwSrcIp(vipAddr)
                     .setNwSrcInv(true))
             .setNatRuleData(
                 natRuleData(IPAddressUtil.toProto(nLb.getVipAddress),
@@ -76,7 +83,6 @@ class LoadBalancerV2Translator(config: ClusterConfig)
                             config.translators.dynamicNatPortStart,
                             config.translators.dynamicNatPortEnd))
             .build()
-
 
         val revSnatRule = Rule.newBuilder
             .setId(lbRevSnatRule(newRouterId))
