@@ -60,18 +60,34 @@ restart_ha() {
     ip netns exec $NAME haproxy -f $CONF
 }
 
+nsexists() {
+    sudo ip netns | grep -qE "^$NAME($| .*)" > /dev/null
+}
+
+linkexists() {
+    grep -q " *$IFACE:" /proc/net/dev
+}
+
 cleanns() {
-    if ! $(sudo ip netns | grep "^$NAME$" > /dev/null ); then
-        echo "Namespace $NAME doesn't exist";
-        exit 0
+    if nsexists; then
+        for pid in $(ip netns pids $NAME)
+        do
+            kill -9 $pid
+        done
+        ip netns del $NAME
+        if ! timeout 15 sh -c 'while nsexists; do sleep 1; done'; then
+            echo "Namespace failed to delete"
+            exit 1
+        fi
     fi
-    DP=${IFACE}.out
-    for pid in $(ip netns pids $NAME)
-    do
-        kill -9 $pid
-    done
-    ip netns del $NAME
-    ip link del $DP
+
+    if linkexists; then
+        ip link del $IFACE
+        if ! timeout 15 sh -c 'while linkexists; do sleep 1; done'; then
+            echo "Link failed to delete"
+            exit 1
+        fi
+    fi
 }
 
 ACTION=$1
@@ -94,6 +110,8 @@ case $ACTION in
             echo "$0 makens NAME IFACE MAC IP ROUTERIP"
             exit 1
         fi
+        # clean up anything left over from a previous deployment.
+        cleanns
         makens
         ;;
     restart_ha)
