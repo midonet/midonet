@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_4a034bb9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-20T07:31:57Z",
+      "side": 1,
+      "message": "Why not nlbs.map(lbServiceContainerId(lbV2RouterId(_.getId)))?\n\nOr if that doesn\u0027t work, nlbs.map(lb \u003d\u003e lbServiceContainerId(lbV2RouterId(lb.getId)))\n\nIf you map three times, it generates three new lists. Which isn\u0027t a big deal here, but generate more garbage than we need to?",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 38
+      },
+      "revId": "eb3fb55acceca88c2860a80df2acafc33856efd7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
