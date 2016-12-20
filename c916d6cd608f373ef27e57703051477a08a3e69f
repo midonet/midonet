@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_cf9e4d07",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-20T04:02:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab14d0d_ef64694a",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 9
+      },
+      "revId": "c916d6cd608f373ef27e57703051477a08a3e69f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_0f60b534",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2016-12-20T02:57:00Z",
       "side": 1,
       "message": "this should be removed. (and revert updateLoadBalancerRoutes to a older PS)\n\notherwise these routes will be updated by updateRouteNextHopIps incorrectly.",
+      "range": {
+        "startLine": 45,
+        "startChar": 16,
+        "endLine": 45,
+        "endChar": 42
+      },
+      "revId": "c916d6cd608f373ef27e57703051477a08a3e69f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_afa3014f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-20T04:02:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab14d0d_0f60b534",
       "range": {
         "startLine": 45,
         "startChar": 16,
