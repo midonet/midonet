@@ -199,5 +199,25 @@ class HaproxyHelperTest extends FeatureSpec
                 verifyNoIpNetns(name, ifaceName)
             }
         }
+
+        scenario("starting a namespace cleans up old one") {
+            val name = namespaceName(lb1.id.toString)
+            val ifaceName = "iface1"
+            val haproxy = new HaproxyHelper(haproxyScript)
+            try {
+                haproxy.deploy(lbMultiPool, ifaceName, "20.0.0.1", "20.0.0.2")
+
+                // deploy over old namespace
+                haproxy.deploy(lbMultiPool, ifaceName, "20.0.0.1", "20.0.0.2")
+
+                verifyIpNetns(name, ifaceName)
+                verifyHaproxyRunning(name)
+                verifyConfFile(lbMultiPool, haproxy.confLoc)
+                verifyStatus(haproxy, lbMultiPool)
+            } finally {
+                haproxy.undeploy(name, ifaceName)
+                verifyNoIpNetns(name, ifaceName)
+            }
+        }
     }
 }
