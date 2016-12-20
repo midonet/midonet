@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_af10a1a9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-20T01:26:45Z",
+      "side": 1,
+      "message": "Because otherwise the socket connection to try and update member status will fail, meaning a) the user will constantly get errors unless we just stop trying after a failure or b) they won\u0027t be able to get member status updated, thus nullifying the feature.  I guess I\u0027d turn the question around and ask if anyone thinks there\u0027s a danger or possible conflict with enabling the topology API socket by default.",
+      "parentUuid": "1ab14d0d_81ddbe72",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 57
+      },
+      "revId": "458db5bcfb78c21b7d0ff03d1e7d1c105607cf3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_a1f79af4",
         "filename": "python-midonetclient/src/midonetclient/topology/__init__.py",
         "patchSetId": 1
@@ -36,6 +60,24 @@
       "writtenOn": "2016-12-19T12:42:58Z",
       "side": 1,
       "message": "what\u0027s the point to add a placeholder?",
+      "revId": "458db5bcfb78c21b7d0ff03d1e7d1c105607cf3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_ef16a9a6",
+        "filename": "python-midonetclient/src/midonetclient/topology/__init__.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-20T01:26:45Z",
+      "side": 1,
+      "message": "Because I was planning on adding it in this patch, but maybe it\u0027s better to not have it and add it in a new patch. I\u0027ll remove this func.",
+      "parentUuid": "1ab14d0d_a1f79af4",
       "revId": "458db5bcfb78c21b7d0ff03d1e7d1c105607cf3b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
