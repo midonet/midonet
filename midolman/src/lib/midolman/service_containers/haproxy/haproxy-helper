@@ -44,7 +44,6 @@ makens() {
     ip link add name $DP type veth peer name $NS
     ip link set $DP up
     ip link set $NS netns $NAME
-    ip netns exec $NAME ip link set $NS address $MAC
     ip netns exec $NAME ip address add $IP/30 dev $NS
     ip netns exec $NAME ip link set up dev $NS
     ip netns exec $NAME ip link set up dev lo
@@ -86,12 +85,11 @@ case $ACTION in
     makens)
         NAME=$1
         IFACE=$2
-        MAC=$3
-        IP=$4
-        ROUTERIP=$5
-        if [ "$#" -ne 5 ]; then
-            echo "expected 6 arguments, but $(($# + 1)) supplied"
-            echo "$0 makens NAME IFACE MAC IP ROUTERIP"
+        IP=$3
+        ROUTERIP=$4
+        if [ "$#" -ne 4 ]; then
+            echo "expected 5 arguments, but $(($# + 1)) supplied"
+            echo "$0 makens NAME IFACE IP ROUTERIP"
             exit 1
         fi
         makens
