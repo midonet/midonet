@@ -136,6 +136,7 @@ setuptools.setup(name=MODULE_NAME,
       install_requires=[
           "httplib2",
           "webob",
+          "protobuf",
       ],
       zip_safe=False,
       tests_require=["nose", "ddt"],
