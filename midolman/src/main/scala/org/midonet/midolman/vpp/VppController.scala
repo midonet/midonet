@@ -26,7 +26,7 @@ import scala.collection.immutable
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future, Promise}
+import scala.concurrent.{Await, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
@@ -39,7 +39,6 @@ import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
-import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualTopology
@@ -49,15 +48,13 @@ import org.midonet.midolman.vpp.VppState.GatewaysChanged
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.midolman.{DatapathState, Midolman}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC, TunnelKeys}
-import org.midonet.util.process.ProcessHelper.OutputStreams._
-import org.midonet.util.process.{MonitoredDaemonProcess, ProcessHelper}
+import org.midonet.util.process.MonitoredDaemonProcess
 
 object VppController {
 
     val VppProcessMaximumStarts = 3
     val VppProcessTimeout = 2 seconds
     val VppRollbackTimeout = 5 seconds
-    val VppCtlTimeout = 1 minute
 
     private val VppConnectionName = "midonet"
     private val VppConnectMaxRetries = 10
@@ -142,6 +139,8 @@ class VppController(hostId: UUID,
         override def onCompleted(): Unit = { /* ignore */ }
     }
 
+    private val vppCtl = new VppCtl(Logger(log.underlying))
+
     protected override def doStart(): Unit = {
         startUplink()
         notifyStarted()
@@ -213,11 +212,7 @@ class VppController(hostId: UUID,
                 case previousSetup => previousSetup.rollback()
             }
         } flatMap { _ =>
-            uplinkSetup.execute() flatMap {
-                _ => enableVppFlowState()
-            } map {
-                _ => uplinkSetup
-            }
+            uplinkSetup.execute()  map { _ => uplinkSetup }
         } recoverWith { case e =>
             uplinkSetup.rollback() map { _ =>
                 uplinks.remove(portId, uplinkSetup)
@@ -412,9 +407,9 @@ class VppController(hostId: UUID,
         val pool = poolFor(portId, natPool)
         if (pool.nonEmpty) {
             log debug s"Allocated NAT pool at port $portId is ${pool.get}"
-            exec(s"vppctl ip route table $vrf add $fixedIp/32 " +
+            vppCtl.exec(s"ip route table $vrf add $fixedIp/32 " +
                  s"via ${localIp.getAddress}") flatMap { _ =>
-                exec(s"vppctl fip64 add $floatingIp $fixedIp " +
+                vppCtl.exec(s"fip64 add $floatingIp $fixedIp " +
                      s"pool ${pool.get.nwStart} ${pool.get.nwEnd}" +
                      s" table $vrf vni $vni")
             }
@@ -431,34 +426,9 @@ class VppController(hostId: UUID,
         log debug s"Disassociating FIP at port $portId (VRF $vrf): " +
                   s"$floatingIp -> $fixedIp"
 
-        exec(s"vppctl fip64 del $floatingIp") flatMap { _ =>
-            exec(s"vppctl ip route table $vrf del $fixedIp/32")
+        vppCtl.exec(s"fip64 del $floatingIp") flatMap { _ =>
+            vppCtl.exec(s"ip route table $vrf del $fixedIp/32")
         }
-    }
-
-    private def exec(command: String): Future[_] = {
-        log debug s"Executing command: `$command`"
-
-        val process = ProcessHelper.newProcess(command)
-            .logOutput(log.underlying, "vppctl", StdOutput, StdError)
-            .run()
-
-        val promise = Promise[Unit]
-        Future {
-            if (!process.waitFor(VppCtlTimeout.toMillis, MILLISECONDS)) {
-                process.destroy()
-                log warn s"Command `$command` timed out"
-                throw new TimeoutException(s"Command `$command` timed out")
-            }
-            log debug s"Command `$command` exited with code ${process.exitValue()}"
-            if (process.exitValue == 0) {
-                promise.trySuccess(())
-            } else {
-                promise.tryFailure(new Exception(
-                    s"Command failed with result ${process.exitValue}"))
-            }
-        }
-        promise.future
     }
 
     private def handleExternalRoutesUpdate(port: RouterPort): Future[_] = {
@@ -482,10 +452,6 @@ class VppController(hostId: UUID,
 
             Future.sequence(addedFutures ++ removedFutures)
         }
-    }
-
-    private def enableVppFlowState(): Future[Any] = {
-        exec(s"vppctl fip64 sync ${VppFlowStateCfg.vrfOut}")
     }
 
     private def updateFlowStateFlows(hosts:immutable.Set[UUID]) : Future[Any] = {
