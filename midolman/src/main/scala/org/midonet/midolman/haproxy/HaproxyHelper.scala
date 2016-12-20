@@ -35,9 +35,9 @@ class HaproxyHelper(haproxyScript: String) extends ContainerCommons {
     var confLoc: String = _
     var sockLoc: String = _
 
-    private def makensStr(name: String, iface: String, mac: String, ip: String,
+    private def makensStr(name: String, iface: String, ip: String,
                           routerIp: String) = {
-        s"$haproxyScript makens $name $iface $mac $ip $routerIp"
+        s"$haproxyScript makens $name $iface $ip $routerIp"
     }
 
     private def cleannsStr(name: String, iface: String) = {
@@ -63,9 +63,9 @@ class HaproxyHelper(haproxyScript: String) extends ContainerCommons {
     }
 
     def deploy(lbV2Config: LoadBalancerV2Config, ifaceName: String,
-               mac: String, ip: String, routerIp: String): Unit = {
+               ip: String, routerIp: String): Unit = {
         val nsName = namespaceName(lbV2Config.id.toString)
-        val makensCmd = makensStr(nsName, ifaceName, mac, ip, routerIp)
+        val makensCmd = makensStr(nsName, ifaceName, ip, routerIp)
         val cleannsCmd = cleannsStr(nsName, ifaceName)
         executeCommands(Seq((makensCmd, cleannsCmd)))
 
