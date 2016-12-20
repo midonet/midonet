@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_ea03370c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-20T05:46:42Z",
+      "side": 1,
+      "message": "Sure, I will remove it, if it is understood that this will make a recurring log message of:\n\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall Traceback (most recent call last):\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall   File \"/usr/local/lib/python2.7/dist-packages/oslo_service/loopingcall.py\", line 65, in func\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall     return f(*args, **kwargs)\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall   File \"/home/vagrant/src/git/openstack/networking-midonet/midonet/neutron/services/loadbalancer/v2_driver.py\", line 66, in _update_member_status\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall     members \u003d self._client.topo_get_pool_members()\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall   File \"/home/vagrant/src/git/openstack/networking-midonet/midonet/neutron/client/api.py\", line 249, in topo_get_pool_members\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall     self.config.cluster_ip,  self.config.cluster_port)\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall   File \"/home/vagrant/src/git/openstack/networking-midonet/midonet/neutron/rpc/topology_client.py\", line 60, in get_all_midonet_pool_members\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall     pool_members.get_all_dict)\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall   File \"/home/vagrant/src/git/openstack/networking-midonet/midonet/neutron/rpc/topology_client.py\", line 49, in invoke_cluster_rpc\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall     raise mexc.ClusterConnectionError()\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall ClusterConnectionError: Error connecting to cluster\n2016-12-20 05:45:56.065 TRACE oslo.service.loopingcall \n\n\nappear in the neutron logs every interval period.",
+      "parentUuid": "1ab14d0d_4fe59da6",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 57
+      },
+      "revId": "458db5bcfb78c21b7d0ff03d1e7d1c105607cf3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_a1f79af4",
         "filename": "python-midonetclient/src/midonetclient/topology/__init__.py",
         "patchSetId": 1
