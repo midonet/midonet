@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_efcb491d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-20T03:30:27Z",
+      "side": 1,
+      "message": "Wonder if we could rename this to something more concrete for the Pool object (Joe suggested \"haHandledByServiceContainers\" or something).",
+      "range": {
+        "startLine": 53,
+        "startChar": 21,
+        "endLine": 53,
+        "endChar": 30
+      },
+      "revId": "5a0345d55e14c7e8b1e038e2342cd437259f83e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_0fc79513",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-20T03:30:27Z",
+      "side": 1,
+      "message": "Nitpicking: isn\u0027t this a list of service containers?  Maybe \"scs\" would be a more descriptive var name.",
+      "range": {
+        "startLine": 47,
+        "startChar": 12,
+        "endLine": 47,
+        "endChar": 15
+      },
+      "revId": "5a0345d55e14c7e8b1e038e2342cd437259f83e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
