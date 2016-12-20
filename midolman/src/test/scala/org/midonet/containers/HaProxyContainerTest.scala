@@ -159,7 +159,7 @@ class HaProxyContainerTest extends MidolmanSpec
 
             verify(mockHaproxyHelper, never()).deploy(
                 MMatchers.any(), MMatchers.any(), MMatchers.any(),
-                MMatchers.any(), MMatchers.any())
+                MMatchers.any())
         }
     }
 
@@ -176,7 +176,7 @@ class HaProxyContainerTest extends MidolmanSpec
             // is called. This allows us to catch the transitory STARTING state.
             Mockito.when(mockHaproxyHelper.deploy(
                 MMatchers.any(), MMatchers.any(), MMatchers.any(),
-                MMatchers.any(), MMatchers.any()))
+                MMatchers.any()))
                 .thenAnswer(synchronizedAnswer(()))
             container.create(containerPort)
 
@@ -200,7 +200,7 @@ class HaProxyContainerTest extends MidolmanSpec
             // is called.
             Mockito.when(mockHaproxyHelper.deploy(
                 MMatchers.any(), MMatchers.any(), MMatchers.any(),
-                MMatchers.any(), MMatchers.any()))
+                MMatchers.any()))
                 .thenAnswer(synchronizedExceptionAnswer)
             container.create(containerPort)
 
@@ -347,7 +347,6 @@ class HaProxyContainerTest extends MidolmanSpec
         val lbCfgArg = ArgumentCaptor.forClass(classOf[LoadBalancerV2Config])
         verify(mockHaproxyHelper).deploy(
             lbCfgArg.capture(), MMatchers.eq(ifaceName),
-            MMatchers.eq(portMac.toString),
             MMatchers.eq(containerPortAddress(portSubnet).toString),
             MMatchers.eq(routerPortAddress(portSubnet).toString))
         checkLbConfig(lbCfgArg.getValue, tt)
