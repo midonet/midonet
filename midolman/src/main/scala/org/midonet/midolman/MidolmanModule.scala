@@ -452,7 +452,7 @@ class MidolmanModule(injector: Injector,
                                 datapathState: DatapathState,
                                 vt: VirtualTopology): VppController =
         new VppController(hostId, datapathState,
-                          new VppOvs(datapathState.datapath), vt)
+                          new VppOvs(datapathState.datapath, config.fip64), vt)
 
     protected def crashStrategy(): SupervisorStrategy =
         new OneForOneStrategy()({ case t =>
