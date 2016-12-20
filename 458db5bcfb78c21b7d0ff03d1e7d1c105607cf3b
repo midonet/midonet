@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_4fe59da6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-20T03:43:12Z",
+      "side": 1,
+      "message": "as it exposes the whole topology, it might be dangerous.\nand not every neutron users use LB or HM.\nto me it looks like a matter of documentation.\n\nanyway, please make it a separate change.",
+      "parentUuid": "1ab14d0d_af10a1a9",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 57
+      },
+      "revId": "458db5bcfb78c21b7d0ff03d1e7d1c105607cf3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_a1f79af4",
         "filename": "python-midonetclient/src/midonetclient/topology/__init__.py",
         "patchSetId": 1
