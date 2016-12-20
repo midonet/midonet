@@ -129,8 +129,7 @@ class HaproxyHelperTest extends FeatureSpec
             val nsName = namespaceName(lb1.id.toString)
             val haproxy = new HaproxyHelper(haproxyScript)
             try {
-                haproxy.deploy(lb1, ifaceName, "50:46:5d:a3:6d:f4",
-                               "20.0.0.1", "20.0.0.2")
+                haproxy.deploy(lb1, ifaceName, "20.0.0.1", "20.0.0.2")
                 verifyIpNetns(nsName, ifaceName)
                 verifyHaproxyRunning(nsName)
                 verifyConfFile(lb1, haproxy.confLoc)
@@ -155,10 +154,8 @@ class HaproxyHelperTest extends FeatureSpec
             val haproxy1 = new HaproxyHelper(haproxyScript)
             val haproxy2 = new HaproxyHelper(haproxyScript)
             try {
-                haproxy1.deploy(lb1, ifaceName1, "50:46:5d:a3:6d:f4",
-                                "20.0.0.1", "20.0.0.2")
-                haproxy2.deploy(lb2, ifaceName2, "50:46:5d:a3:6d:f4",
-                                "20.0.0.1", "20.0.0.2")
+                haproxy1.deploy(lb1, ifaceName1, "20.0.0.1", "20.0.0.2")
+                haproxy2.deploy(lb2, ifaceName2, "20.0.0.1", "20.0.0.2")
                 verifyIpNetns(name1, ifaceName1)
                 verifyIpNetns(name2, ifaceName2)
                 verifyHaproxyRunning(name1)
@@ -192,8 +189,7 @@ class HaproxyHelperTest extends FeatureSpec
             val ifaceName = "iface1"
             val haproxy = new HaproxyHelper(haproxyScript)
             try {
-                haproxy.deploy(lbMultiPool, ifaceName, "50:46:5d:a3:6d:f4",
-                               "20.0.0.1", "20.0.0.2")
+                haproxy.deploy(lbMultiPool, ifaceName, "20.0.0.1", "20.0.0.2")
                 verifyIpNetns(name, ifaceName)
                 verifyHaproxyRunning(name)
                 verifyConfFile(lbMultiPool, haproxy.confLoc)
