@@ -52,6 +52,7 @@ class LoadBalancerV2Translator(config: ClusterConfig)
 
         val subnet = containers.findLocalSubnet()
         val routerAddress = containers.routerPortAddress(subnet)
+        val containerAddress = containers.containerPortAddress(subnet)
         val routerSubnet = new IPv4Subnet(routerAddress, subnet.getPrefixLen)
 
         val newRouterId = lbV2RouterId(nLb.getId)
@@ -77,6 +78,15 @@ class LoadBalancerV2Translator(config: ClusterConfig)
                             config.translators.dynamicNatPortEnd))
             .build()
 
+        // We need to create a rule that will allow the return packets to the
+        // health monitor to not be NATed. We do this by just ACCEPTing any packets
+        // destined to the container IP before they hit the SNAT rule.
+        val containerAddr = IPSubnetUtil.fromAddress(containerAddress.toString)
+        val skipSnatRule = Rule.newBuilder
+            .setId(lbSkipSnatRule(newRouterId))
+            .setAction(Rule.Action.ACCEPT)
+            .setCondition(anyFragCondition.setNwDstIp(containerAddr))
+            .build()
 
         val revSnatRule = Rule.newBuilder
             .setId(lbRevSnatRule(newRouterId))
@@ -97,7 +107,7 @@ class LoadBalancerV2Translator(config: ClusterConfig)
         val inChain = newChain(iChainId, lbRouterInChainName(nLb.getId),
                                Seq(revSnatRule.getId))
         val outChain = newChain(oChainId, lbRouterOutChainName(nLb.getId),
-                                Seq(snatRule.getId))
+                                Seq(skipSnatRule.getId, snatRule.getId))
 
         // Create load balancer object with this new router
         val lb = LoadBalancer.newBuilder()
@@ -153,6 +163,7 @@ class LoadBalancerV2Translator(config: ClusterConfig)
             .setConfigurationId(lb.getId)
             .build()
 
+        tx.create(skipSnatRule)
         tx.create(snatRule)
         tx.create(revSnatRule)
         tx.create(inChain)

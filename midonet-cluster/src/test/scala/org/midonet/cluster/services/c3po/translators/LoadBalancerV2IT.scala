@@ -43,6 +43,7 @@ class LoadBalancerV2IT extends C3POMinionTestBase
     val vipSubPrefixLen = 24
     val vipAddr = "10.0.1.4"
     val vipSub = s"$vipSubAddr/$vipSubPrefixLen"
+    val containerIp = "169.254.0.2"
 
     private def makeLbJson(id: UUID,
                            vipPortId: UUID,
@@ -87,7 +88,10 @@ class LoadBalancerV2IT extends C3POMinionTestBase
         revSnatRule.getNatRuleData.getReverse shouldBe true
 
         val postChain = storage.get(classOf[Chain], router.getOutboundFilterId).await()
-        val snatRule = storage.get(classOf[Rule], postChain.getRuleIds(0)).await()
+        val skipNatRule = storage.get(classOf[Rule], postChain.getRuleIds(0)).await()
+        skipNatRule.getCondition.getNwDstIp.getAddress shouldBe containerIp
+
+        val snatRule = storage.get(classOf[Rule], postChain.getRuleIds(1)).await()
         snatRule.getNatRuleData.getDnat shouldBe false
         snatRule.getNatRuleData.getNatTargets(0).getNwStart.getAddress shouldBe vipAddr
         snatRule.getNatRuleData.getNatTargets(0).getNwEnd.getAddress shouldBe vipAddr
