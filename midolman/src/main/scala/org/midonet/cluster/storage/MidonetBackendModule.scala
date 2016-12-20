@@ -18,7 +18,6 @@ package org.midonet.cluster.storage
 
 import java.lang.reflect.{Field, Modifier}
 import java.util.UUID
-import java.util.concurrent.Executors
 
 import scala.util.control.NonFatal
 
@@ -36,10 +35,8 @@ import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.data.storage.model.{ArpEntry, Fip64Entry}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.{Network, Router}
-import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryImpl}
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.util.concurrent.NamedThreadFactory
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
   * are exposed to MidoNet components that need to access the various storage
