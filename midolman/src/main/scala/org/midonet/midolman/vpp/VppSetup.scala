@@ -559,6 +559,7 @@ class VppDownlinkSetup(config: Fip64Config,
         set int ip table loop0 <vrf>
   */
 class VppVxlanTunnelSetupPartial(name: String, config: Fip64Config,
+                                 loopBackMac: MAC,
                                  vni: Int, vrf: Int, vppApi: VppApi,
                                  log: Logger)
                                 (implicit ec: ExecutionContext)
@@ -579,7 +580,7 @@ class VppVxlanTunnelSetupPartial(name: String, config: Fip64Config,
                            bridgeDomain, false, vppApi)
 
     protected val loopBackDevice = new LoopBackCreate("Create loopback interface",
-                                                      vni, vrf, config.vtepVppMac,
+                                                      vni, vrf, loopBackMac,
                                                       vppApi)
 
     private val loopToBridge =
@@ -612,7 +613,8 @@ class VppVxlanTunnelSetupBase(name: String, config: Fip64Config,
                               vni: Int, vrf: Int, routerPortMac: MAC,
                               vppApi: VppApi, log: Logger)
                              (implicit ec: ExecutionContext)
-    extends VppVxlanTunnelSetupPartial(name, config, vni, vrf, vppApi, log)(ec) {
+    extends VppVxlanTunnelSetupPartial(name, config, config.vtepVppMac,
+                                       vni, vrf, vppApi, log)(ec) {
 
     import VppSetup._
 
@@ -668,7 +670,8 @@ class VppFlowStateInVxlanTunnelSetup(fip64conf: Fip64Config,
                                      vppApi: VppApi, log: Logger)
                                     (implicit ec: ExecutionContext)
     extends VppVxlanTunnelSetupPartial("FlowState-in VXLAN tunnel setup",
-                                       fip64conf, fsConf.vniIn, fsConf.vrfIn,
+                                       fip64conf, fip64conf.portVppMac,
+                                       fsConf.vniIn, fsConf.vrfIn,
                                        vppApi, log)(ec) {
 
     import VppSetup._
