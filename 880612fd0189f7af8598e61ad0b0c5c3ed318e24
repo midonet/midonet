@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_9b808b48",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-20T07:22:02Z",
+      "side": 1,
+      "message": "No need for a mutable map. You can replace this whole function with:\n\n  map collect {\n      case (id, phm) if !phm.isLbaasV2 \u003d\u003e\n          (id, convertDataToPoolConfig(id, fileLocks, suffix, phm))\n  }",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 30
+      },
+      "revId": "880612fd0189f7af8598e61ad0b0c5c3ed318e24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
