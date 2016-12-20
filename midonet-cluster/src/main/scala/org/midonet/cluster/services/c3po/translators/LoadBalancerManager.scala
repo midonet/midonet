@@ -71,6 +71,9 @@ trait LoadBalancerManager extends RouteManager {
     protected def lbSnatRule(routerId: UUID): UUID =
         routerId.xorWith(0xe401ace2473413aaL, 0x7be4604b146962b6L)
 
+    protected def lbSkipSnatRule(routerId: UUID): UUID =
+        routerId.xorWith(0x458e513f22a079b6L, 0x6b739dda9e1fed2dL)
+
     protected def lbRevSnatRule(routerId: UUID): UUID =
         routerId.xorWith(0xd9c8f6962541298dL, 0x7294e027de2b90baL)
 }
