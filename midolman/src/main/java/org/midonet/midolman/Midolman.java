@@ -335,7 +335,8 @@ public class Midolman {
         try {
             return new MidolmanConfig(
                 configurator.runtimeConfig(HostIdGenerator.getHostId()),
-                configurator.mergedSchemas());
+                configurator.mergedSchemas(),
+                true);
         } catch (HostIdGenerator.PropertiesFileNotWritableException e) {
             throw new RuntimeException(e);
         }
