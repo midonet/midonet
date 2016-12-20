@@ -88,8 +88,8 @@ class BindingManager(fixtures.Fixture):
         self.addCleanup(self._ptm.destroy)
         self._ptm.build(self._data)
         self.addCleanup(self._vtm.destroy)
-        self._vtm.build(self._data)
         self._add_hosts_to_tunnel_zone()
+        self._vtm.build(self._data)
         for binding in self._data['bindings']:
             vport = self._vtm.get_resource(binding['vport'])
             bind_iface = binding['interface']
