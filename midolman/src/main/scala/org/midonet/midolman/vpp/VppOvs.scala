@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
 import org.midonet.midolman.UnderlayResolver
+import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink._
 import org.midonet.odp.FlowMatch.Field
@@ -37,7 +38,7 @@ object VppOvs {
     val NoProtocol = 0.toByte
 }
 
-class VppOvs(dp: Datapath) extends MidolmanLogging {
+class VppOvs(dp: Datapath, config: Fip64Config) extends MidolmanLogging {
     import VppOvs._
 
     override def logSource = s"org.midonet.vpp"
@@ -205,6 +206,11 @@ class VppOvs(dp: Datapath) extends MidolmanLogging {
 
         val fmatch = buildFlowStateFlowMatch(inputPort,
                                              TunnelKeys.Fip64FlowStateReceiveKey)
+        val flowKey = FlowKeys.tunnel(TunnelKeys.Fip64FlowStateReceiveKey,
+                                      config.vtepKernAddr.getAddress().toInt,
+                                      config.vtepVppAddr.getAddress().toInt,
+                                      0)
+        actions.add(FlowActions.setKey(flowKey))
         actions.add(FlowActions.output(outputPort))
         fmask.calculateFor(fmatch, actions)
         createFlow(dp, fmatch, fmask, actions)
