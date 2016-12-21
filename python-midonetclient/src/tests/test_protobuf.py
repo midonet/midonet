@@ -19,7 +19,7 @@ import ddt
 import unittest
 
 from midonetclient.protobuf import utils
-import test_pb2
+from . import test_pb2
 
 _msg_with_req_fields = dict(
     b = True,
