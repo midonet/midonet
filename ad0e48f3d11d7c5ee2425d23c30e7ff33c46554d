@@ -19,6 +19,98 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_c7a3d14e",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-21T05:14:22Z",
+      "side": 1,
+      "message": "this var seems to be set by vt and read by container scheduler.\nis it safe?",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 28
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_8786e9b7",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-21T05:14:22Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 23
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_87ff0934",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-21T05:14:22Z",
+      "side": 1,
+      "message": "isn\u0027t it more straightforward to use a variant without initial delay?",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 77
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_a7b0c58c",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-21T05:14:22Z",
+      "side": 1,
+      "message": "can\u0027t this cause NoSuchElementException if curPoolHmMap was changed between areRefsReady and onRefsUpdated?",
+      "range": {
+        "startLine": 217,
+        "startChar": 29,
+        "endLine": 217,
+        "endChar": 39
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_67775d03",
         "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
         "patchSetId": 9
