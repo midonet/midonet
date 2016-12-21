@@ -905,3 +905,143 @@ def test_2uplinks_assymetric():
     Title: Provider router with two uplinks. Only second uplink VPP has egress route for IPV6 traffic
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
+
+@attr(version="v1.2.0")
+@bindings(binding_multihost_singletenant_neutronfip6,
+          binding_manager=BindingManager(vtm=SingleTenantWithNeutronIPv6FIP()))
+def test_fragments():
+
+    """
+    Title: send fragmented packets to and from IPv6 clients
+    """
+
+    # This tests sends a ~30KB UDP packet fragmented in 1K chunks
+    # from IPv6 client at quagga1 to IPv4 server at midolman2, and then
+    # the other way around
+
+    CLIENT_PY_NAME='frag-client.py'
+    SERVER_PY_NAME='frag-server.py'
+
+    def kill(container, pattern, signal=''):
+        try:
+            container.try_command_blocking('pkill %s -f %s' % (signal, pattern))
+            return True
+        except:
+            return False
+
+    def is_running(container, pattern):
+        return kill(container, pattern, signal='-0')
+
+    def get_output(stream):
+        try:
+            result = {}
+            lines = reduce(list.__add__, [i.split() for i in stream])
+            for line in lines:
+                if '=' in line:
+                    parts = line.split('=')
+                    if len(parts) == 2:
+                        result[parts[0]] = parts[1]
+            return result
+        except:
+            raise Exception('No output')
+
+    # sends one fragmented packet from client to server, and validates
+    # that both have the same packet by checking the hash
+    def run_fragmentation_test(client, clientns, server, serverns,
+                               server_addr, client_addr, listen_addr):
+        srv_out = server.exec_command('ip netns exec %s python %s %s' % (
+            serverns, SERVER_PY_NAME, listen_addr), detach=False, stream=True)
+
+        # need to send the fragmented packet a few times, because there might
+        # be fragments lost. It usually succeeds at the second attempt
+        for i in range(10):
+            time.sleep(2)
+            if is_running(server, SERVER_PY_NAME):
+                cli_out = client.exec_command('ip netns exec %s python %s %s %s' % (
+                    clientns, CLIENT_PY_NAME, client_addr, server_addr),
+                    detach=False, stream=True)
+            else:
+                # the server stopped after receiving a full packet
+                break
+        else:
+            kill(server, SERVER_PY_NAME)
+
+        # make sure client has terminated before reading its output
+        for i in range(10):
+            if not is_running(client, CLIENT_PY_NAME):
+                break
+        else:
+            kill(client, CLIENT_PY_NAME)
+
+        client = get_output(cli_out[0])
+        server = get_output(srv_out[0])
+
+        assert(client['HASH'] == server['HASH'])
+        return server['CLIENT']
+
+    # first warm up the network by sending some pings
+    ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
+
+    midolman2 = service.get_container_by_hostname('midolman2')
+    quagga1 = service.get_container_by_hostname('quagga1')
+    try:
+        # TODO: have scapy installed in the midolman and quagga images
+        install_scapy_cmd = "sh -c 'apt-get update && apt-get -y install python-scapy'"
+        midolman2.try_command_blocking(install_scapy_cmd)
+        quagga1.try_command_blocking(install_scapy_cmd)
+
+        # sends a fragmented UDP packet. Use IP version 4 or 6 depending of
+        # the passed addresses
+        client_py = """
+import hashlib
+from scapy.all import *
+import sys
+source=sys.argv[1]
+target=sys.argv[2]
+payload=''.join(struct.pack('!H',i) for i in range(16000))
+if '.' in target:
+    packet=IP(dst=target,src=source)/UDP(sport=1500,dport=9999)/payload
+    frags=fragment(packet, 1024)
+else:
+    packet=IPv6(dst=target,src=source)/IPv6ExtHdrFragment()/UDP(sport=1500,dport=9999)/payload
+    frags=fragment6(packet, 1024)
+for f in frags: send(f)
+print 'HASH=' + hashlib.sha256(payload).hexdigest()
+        """
+
+        # waits until reception of an UDP packet and prints its hash
+        # and the address of the sender
+        server_py = """
+import hashlib
+import socket
+import sys
+bind_addr = sys.argv[1]
+family = socket.AF_INET if '.' in bind_addr else socket.AF_INET6
+sock = socket.socket(family, socket.SOCK_DGRAM)
+sock.bind((bind_addr,9999))
+data, address = sock.recvfrom(65536)
+print 'CLIENT=' + address[0]
+print 'HASH=' + hashlib.sha256(data).hexdigest()
+        """
+        for host in [ quagga1, midolman2 ]:
+            host.put_file(CLIENT_PY_NAME, client_py)
+            host.put_file(SERVER_PY_NAME, server_py)
+
+        namespace = midolman2.exec_command('ip netns')
+        assert(len(namespace.split('\n')) == 1)
+        # loopback is required to be UP in midolman's namespace otherwise
+        # scapy will fail
+        midolman2.exec_command('ip netns exec %s ip l set up dev lo' % namespace)
+
+        # send a fragmented packet from 6 to 4. Save allocated IPv4 address
+        ip4client = run_fragmentation_test(quagga1, 'ip6', midolman2, namespace,
+                                           "cccc:bbbb::3", "bbbb::2", "0.0.0.0")
+
+        # send a fragmented packet from 4 to 6
+        run_fragmentation_test(midolman2, namespace, quagga1, 'ip6',
+                               ip4client, '192.168.0.2', "bbbb::2")
+    finally:
+        for host in [ quagga1, midolman2 ]:
+            kill(host, CLIENT_PY_NAME)
+            kill(host, SERVER_PY_NAME)
+            host.exec_command('rm %s %s' % (CLIENT_PY_NAME, SERVER_PY_NAME))
