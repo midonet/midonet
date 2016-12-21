@@ -134,6 +134,30 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_c73f51d5",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-21T05:29:09Z",
+      "side": 1,
+      "message": "The old implementation uses transactions like this:\n\n    protected def setMembersStatus(activeMemberIds: Set[UUID],\n                                   inactiveMemberIds: Set[UUID]):Unit \u003d {\n\n        store.tryTransaction { tx \u003d\u003e\n            val upMembers \u003d tx\n                .getAll(classOf[PoolMember], activeMemberIds.toSeq)\n            for (activeMember \u003c- upMembers) {\n                tx.update(activeMember.toBuilder.setStatus(LBStatus.ACTIVE).build)\n            }\n\n            val downMembers \u003d tx\n                .getAll(classOf[PoolMember], inactiveMemberIds.toSeq)\n            for (inactiveMember \u003c- downMembers) {\n                tx.update(inactiveMember.toBuilder.setStatus(LBStatus.INACTIVE).build)\n            }\n        }\n    }",
+      "parentUuid": "1ab14d0d_875b8954",
+      "range": {
+        "startLine": 274,
+        "startChar": 0,
+        "endLine": 283,
+        "endChar": 73
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_67775d03",
         "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
         "patchSetId": 9
