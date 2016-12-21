@@ -43,6 +43,13 @@ object VppSetup extends MidolmanLogging {
         def macAddress: Option[MAC]
     }
 
+    class MacAddressWrapper(var macAddress: Option[MAC] = None)
+        extends MacAddressProvider
+
+    object MacAddressProvider {
+        def apply(mac: MAC): MacAddressProvider = new MacAddressWrapper(Some(mac))
+    }
+
     trait VppInterfaceProvider {
         def vppInterface: Option[VppApi.Device]
     }
@@ -53,9 +60,10 @@ object VppSetup extends MidolmanLogging {
                         devAddress: Option[IPSubnet[_ <: IPAddr]] = None,
                         peerAddress: Option[IPSubnet[_ <: IPAddr]] = None)
                        (implicit ec: ExecutionContext)
-        extends FutureTaskWithRollback with MacAddressProvider {
+        extends FutureTaskWithRollback {
 
-        var macAddress: Option[MAC] = None
+        val dev = new MacAddressWrapper()
+        val peer = new MacAddressWrapper()
 
         @throws[Exception]
         override def execute(): Future[Any] = Future {
@@ -68,7 +76,8 @@ object VppSetup extends MidolmanLogging {
                 case Some(address) => LinkOps.setAddress(veth.peer, address)
                 case None => Unit
             }
-            macAddress = Some(veth.dev.mac)
+            dev.macAddress = Some(veth.dev.mac)
+            peer.macAddress = Some(veth.peer.mac)
         }
 
         @throws[Exception]
@@ -308,23 +317,22 @@ object VppSetup extends MidolmanLogging {
                                loopDevice: VppInterfaceProvider,
                                vrf: Int,
                                address: IPv4Addr,
-                               mac: MAC,
+                               neighbourMac: MacAddressProvider,
                                vppApi: VppApi)
                               (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
 
-        val neighbourMac = Some(mac)
         override def execute(): Future[Any] = {
             require(loopDevice.vppInterface.isDefined)
             vppApi.addIfArpCacheEntry(loopDevice.vppInterface.get, vrf,
                                       address,
-                                      neighbourMac)
+                                      neighbourMac.macAddress)
         }
 
         override def rollback(): Future[Any] = {
             vppApi.deleteIfArpCacheEntry(loopDevice.vppInterface.get, vrf,
                                          address,
-                                         neighbourMac)
+                                         neighbourMac.macAddress)
         }
     }
 
@@ -403,7 +411,7 @@ class VppUplinkSetup(uplinkPortId: UUID,
     private val uplinkVpp = new VppIPv6Device("uplink VPP interface setup",
                                               uplinkVppName,
                                               vppApi,
-                                              uplinkVeth)
+                                              uplinkVeth.dev)
 
     private val fipCleanup = new VppFipReset("cleanup vrf table",
                                              VppUplinkVRF,
@@ -532,7 +540,7 @@ class VppDownlinkSetup(config: Fip64Config,
     private val dlinkVpp = new VppDevice("downlink VXLAN VPP interface setup",
         dlinkVppName,
         vppApi,
-        dlinkVeth)
+        dlinkVeth.dev)
 
     private val dlinkVppIp = new VppIpAddr("downlink VPP IPv4 setup",
         vppApi,
@@ -540,12 +548,24 @@ class VppDownlinkSetup(config: Fip64Config,
         config.vtepVppAddr.getAddress,
         config.vtepVppAddr.getPrefixLen.toByte)
 
+    /* Add an arp entry in table 0 for the tunnel-interface peer (ovs side)
+       so that the first flow-state mapping notification is not dropped due
+       to arp resolution
+     */
+    private val dlinkArpNeighbour =
+        new VxlanAddArpNeighbour("Add ARP neighbour for downlink",
+                                 dlinkVpp,
+                                 0,
+                                 config.vtepKernAddr.getAddress,
+                                 dlinkVeth.peer, vppApi)
+
     /*
      * setup the tasks, in execution order
      */
     add(dlinkVeth)
     add(dlinkVpp)
     add(dlinkVppIp)
+    add(dlinkArpNeighbour)
 }
 
 /**
@@ -623,7 +643,8 @@ class VppVxlanTunnelSetupBase(name: String, config: Fip64Config,
                                  loopBackDevice,
                                  vrf,
                                  config.vppInternalGateway,
-                                 routerPortMac, vppApi)
+                                 MacAddressProvider(routerPortMac),
+                                 vppApi)
 
     add(addLoopArpNeighbour)
 }
@@ -654,6 +675,7 @@ class VppFlowStateOutVxlanTunnelSetup(fip64conf: Fip64Config,
                                     fip64conf.portVppMac, vppApi, log)(ec)
 {
     import VppSetup.VppAddRoute
+
     private val routefip64ToBridge =
         new VppAddRoute("Add default route to forward FIP64 to VXLAN bridge",
                         dst = IPSubnet.fromCidr("0.0.0.0/0").
@@ -661,6 +683,7 @@ class VppFlowStateOutVxlanTunnelSetup(fip64conf: Fip64Config,
                         nextHop = Some(fip64conf.vppInternalGateway),
                         nextDevice = None,
                         fsConf.vrfOut, vppApi)
+
     add(routefip64ToBridge)
 }
 
