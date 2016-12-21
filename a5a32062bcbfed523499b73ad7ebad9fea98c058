@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_1330d755",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-21T17:09:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab14d0d_1d37c6b1",
+      "range": {
+        "startLine": 438,
+        "startChar": 26,
+        "endLine": 438,
+        "endChar": 27
+      },
+      "revId": "a5a32062bcbfed523499b73ad7ebad9fea98c058",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_fd3bfa9a",
         "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
         "patchSetId": 7
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_f3344b4b",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-21T17:09:00Z",
+      "side": 1,
+      "message": "There is a draft patch for this.\nhttps://review.gerrithub.io/#/c/303713/\nI think it is better to do this change in a separate patch.",
+      "parentUuid": "1ab14d0d_fd3bfa9a",
+      "range": {
+        "startLine": 453,
+        "startChar": 13,
+        "endLine": 453,
+        "endChar": 29
+      },
+      "revId": "a5a32062bcbfed523499b73ad7ebad9fea98c058",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_1dd0e652",
         "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
         "patchSetId": 7
@@ -59,6 +107,30 @@
       "writtenOn": "2016-12-21T10:41:33Z",
       "side": 1,
       "message": "why the restart?",
+      "range": {
+        "startLine": 470,
+        "startChar": 12,
+        "endLine": 470,
+        "endChar": 33
+      },
+      "revId": "a5a32062bcbfed523499b73ad7ebad9fea98c058",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_73495bd0",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 470,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2016-12-21T17:09:00Z",
+      "side": 1,
+      "message": "I added restart of midolman1 a few months ago to workaround issues we had with cleaning up IPv6 setup in midolman. I think now it should be safe to remove this restart. I would also do it as a separate task in a separate commit. \nI tried this test in a loop of 10 iterations without restarting midolman2 and it worked so I removed this restart",
+      "parentUuid": "1ab14d0d_1dd0e652",
       "range": {
         "startLine": 470,
         "startChar": 12,
