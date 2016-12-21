@@ -1,0 +1,180 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_a73fa524",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 9
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "stauts -\u003e status",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_67775d03",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "Unused",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_876a6919",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "Unused",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_87d829f1",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "better to explicitly annotate the return type since it\u0027s protected?",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_674e3dc3",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "nit: unnecessary as it\u0027s the default value (and others below)",
+      "range": {
+        "startLine": 119,
+        "startChar": 60,
+        "endLine": 119,
+        "endChar": 75
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_a7db25ed",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "nit: tt unused",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_87514965",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_07cc1934",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "is this necessary?",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_c7d511ba",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "nit: tt unused",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_474b41b1",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-21T04:03:36Z",
+      "side": 1,
+      "message": "nit: blank space missing?",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
