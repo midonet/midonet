@@ -111,6 +111,29 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_875b8954",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-21T05:23:13Z",
+      "side": 1,
+      "message": "don\u0027t you need a transaction to avoid interfering api activities?",
+      "range": {
+        "startLine": 274,
+        "startChar": 0,
+        "endLine": 283,
+        "endChar": 73
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_67775d03",
         "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
         "patchSetId": 9
