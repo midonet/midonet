@@ -22,6 +22,30 @@
       "revId": "eb3fb55acceca88c2860a80df2acafc33856efd7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_c7af5193",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-21T02:07:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab14d0d_4a034bb9",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 38
+      },
+      "revId": "eb3fb55acceca88c2860a80df2acafc33856efd7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
