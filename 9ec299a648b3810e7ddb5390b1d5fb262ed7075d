@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ab451fb_955281dc",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-12-21T10:25:26Z",
+      "side": 1,
+      "message": "In the end, this is not needed.\n\nThis parameter is only used for manual-setup tests, not those using midolman, so the vrf\u0027s 1 and 2 are not reserved to the vxlan tunnels for flowstate.",
+      "range": {
+        "startLine": 238,
+        "startChar": 8,
+        "endLine": 238,
+        "endChar": 20
+      },
+      "revId": "9ec299a648b3810e7ddb5390b1d5fb262ed7075d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
