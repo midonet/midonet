@@ -22,6 +22,30 @@
       "revId": "ba6d56fe9260dcde9588fbc64de5ed6564fde026",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_5a4e74c2",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-21T09:22:46Z",
+      "side": 1,
+      "message": "Won\u0027t it get cleaned up when it finishes running and there are no longer any references to it? I\u0027m not even sure the join() is necessary.",
+      "parentUuid": "1ab14d0d_5a5554c4",
+      "range": {
+        "startLine": 261,
+        "startChar": 12,
+        "endLine": 261,
+        "endChar": 35
+      },
+      "revId": "ba6d56fe9260dcde9588fbc64de5ed6564fde026",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
