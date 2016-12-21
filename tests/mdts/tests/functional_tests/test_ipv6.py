@@ -852,3 +852,50 @@ def test_lru():
                 client.close()
         if extra is not None:
             extra.close()
+
+@attr(version="v1.2.0")
+@bindings(binding_multihost_singletenant_neutronfip6,
+          binding_manager=BindingManager(vtm=SingleTenantWithNeutronIPv6FIP()))
+def test_fragments():
+    """
+    Title: create and associates a IPv6 FIP in neutron checking connectivity
+    """
+    midolman2 = service.get_container_by_hostname('midolman2')
+    quagga1 = service.get_container_by_hostname('quagga1')
+    try:
+        install_scapy_cmd = "sh -c 'apt-get update && apt-get -y install python-scapy'"
+        midolman2.try_command_blocking(install_scapy_cmd)
+        quagga1.try_command_blocking(install_scapy_cmd)
+        sniff_cmd = "import sys\n\
+from scapy.all import *\n\
+P=sniff(filter='udp', count=5)\n\
+payload=''\n\
+for p in P: payload += p.load \n\
+print('payload=%s' % payload)"
+
+        send_cmd = "import sys\n\
+from scapy.all import *\n\
+payload='A' * 1024\n\
+packet=IPv6(dst='cccc:bbbb::3',src='bbbb::2')/IPv6ExtHdrFragment()/UDP(sport=1500,dport=1501)/payload\n\
+frags=fragment6(packet, 256)\n\
+for f in frags: send(f)"
+
+        #midolman2.try_command_blocking('echo \"%s\" > /mdts_test.py' % sniff_cmd)
+        midolman2.put_file('mdts_test.py', sniff_cmd)
+        namespace = midolman2.exec_command('ip netns')
+        assert(len(namespace.split('\n')) == 1)
+        midolman2.exec_command('ip netns exec %s ip l set up dev lo' % namespace)
+        output = midolman2.exec_command('ip netns exec %s python \
+    mdts_test.py' % namespace, stream=True)
+
+        quagga1.put_file('mdts_test.py', send_cmd)
+        quagga1.try_command_blocking('ip netns exec ip6 python mdts_test.py')
+        
+        for line in output[0]:
+            #import ipdb; ipdb.set_trace()
+            print(line)
+            assert(len(line) == 1033)
+            assert(line == 'payload=' + 'A' * 1024 + '\n')
+    finally:
+        midolman2.exec_command('rm mdts_test.py')
+        quagga1.exec_command('rm mdts_test.py')
