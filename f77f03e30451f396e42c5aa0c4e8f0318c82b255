@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_bace98b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-21T07:11:58Z",
+      "side": 1,
+      "message": "You don\u0027t have to change it, but canonically, collections are assumed immutable by default in Scala. So mutable.Map is MMap to indicate that it\u0027s not the default, but but immutable.Map is just Map. Ditto for Set.",
+      "range": {
+        "startLine": 20,
+        "startChar": 34,
+        "endLine": 20,
+        "endChar": 60
+      },
+      "revId": "f77f03e30451f396e42c5aa0c4e8f0318c82b255",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_7ac13080",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-21T07:11:58Z",
+      "side": 1,
+      "message": "load balancer?",
+      "range": {
+        "startLine": 226,
+        "startChar": 70,
+        "endLine": 226,
+        "endChar": 74
+      },
+      "revId": "f77f03e30451f396e42c5aa0c4e8f0318c82b255",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
