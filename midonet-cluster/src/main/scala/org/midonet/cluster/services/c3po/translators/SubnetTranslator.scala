@@ -16,19 +16,22 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable
-
 import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
-import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
+import org.midonet.cluster.models.Topology.{Dhcp, Network, Port, Route}
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+
 // TODO: add code to handle connection to provider router.
-class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
+class SubnetTranslator extends Translator[NeutronSubnet]
+                       with LoadBalancerManager {
+
+    import PortManager._
 
     override protected def translateCreate(tx: Transaction,
                                            ns: NeutronSubnet): Unit = {
@@ -70,6 +73,34 @@ class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
         tx.delete(classOf[Dhcp], ns.getId, ignoresNeo = true)
     }
 
+    private def updateLoadBalancerRoutes(tx: Transaction,
+                                         ns: NeutronSubnet,
+                                         dhcp: Dhcp): Unit = {
+        val network = tx.get(classOf[Network], ns.getNetworkId)
+        val networkPortIds = network.getPortIdsList.asScala.filter(
+            tx.exists(classOf[NeutronPort], _))
+
+        val vipPortsIds = tx.getAll(classOf[NeutronPort], networkPortIds)
+            .filter(isVipV2Port)
+            .map(_.getId)
+
+        val routerPortIds = tx.getAll(classOf[Port], vipPortsIds)
+            .filter(_.hasPeerId)
+            .map(_.getPeerId)
+
+        val routerPorts = tx.getAll(classOf[Port], routerPortIds)
+
+        val routeIds = routerPorts.flatMap(_.getRouteIdsList.asScala)
+
+        tx.getAll(classOf[Route], routeIds)
+            .filterNot(_.hasGatewayDhcpId)
+            .foreach(r => tx.delete(classOf[Route], r.getId))
+
+        routerPortIds.foreach { pId =>
+            buildRouterRoutesFromDhcp(pId, dhcp) foreach tx.create
+        }
+    }
+
     override protected def translateUpdate(tx: Transaction,
                                            ns: NeutronSubnet): Unit = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
@@ -82,26 +113,29 @@ class SubnetTranslator extends Translator[NeutronSubnet] with RouteManager {
                 "IPv6 Subnets are not supported in this version of Midonet.")
 
         val oldDhcp = tx.get(classOf[Dhcp], ns.getId)
-        val newDhcp = oldDhcp.toBuilder
+        val newDhcpBldr = oldDhcp.toBuilder
             .setEnabled(ns.getEnableDhcp)
             .setSubnetAddress(ns.getCidr)
             .clearDnsServerAddress()
             .clearOpt121Routes()
 
-        if (!ns.hasGatewayIp) newDhcp.clearDefaultGateway()
-        else newDhcp.setDefaultGateway(ns.getGatewayIp)
+        if (!ns.hasGatewayIp) newDhcpBldr.clearDefaultGateway()
+        else newDhcpBldr.setDefaultGateway(ns.getGatewayIp)
 
         for (addr <- ns.getDnsNameserversList.asScala)
-            newDhcp.addDnsServerAddress(addr)
+            newDhcpBldr.addDnsServerAddress(addr)
 
-        addHostRoutes(newDhcp, ns.getHostRoutesList.asScala)
+        addHostRoutes(newDhcpBldr, ns.getHostRoutesList.asScala)
 
         getDhcpPortIp(tx, ns.getNetworkId).foreach({ ip =>
-            newDhcp.addOpt121Routes(
+            newDhcpBldr.addOpt121Routes(
                 opt121FromHostRoute(RouteManager.META_DATA_SRVC, ip))
         })
 
-        tx.update(newDhcp.build())
+        val newDhcp = newDhcpBldr.build
+        updateLoadBalancerRoutes(tx, ns, newDhcp)
+
+        tx.update(newDhcp)
         updateRouteNextHopIps(
             tx,
             if (oldDhcp.hasDefaultGateway) oldDhcp.getDefaultGateway else null,
