@@ -22,6 +22,30 @@
       "revId": "880612fd0189f7af8598e61ad0b0c5c3ed318e24",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_a7956541",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-12-21T02:07:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab14d0d_9b808b48",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 30
+      },
+      "revId": "880612fd0189f7af8598e61ad0b0c5c3ed318e24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
