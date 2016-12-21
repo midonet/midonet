@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_da560406",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 9
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-21T09:22:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab14d0d_a73fa524",
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_c7a3d14e",
         "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
         "patchSetId": 9
@@ -30,6 +48,30 @@
       "writtenOn": "2016-12-21T05:14:22Z",
       "side": 1,
       "message": "this var seems to be set by vt and read by container scheduler.\nis it safe?",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 28
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_ba5b382e",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-21T09:22:46Z",
+      "side": 1,
+      "message": "Eliminated this variable.",
+      "parentUuid": "1ab14d0d_c7a3d14e",
       "range": {
         "startLine": 71,
         "startChar": 16,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_9a419c3c",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-21T09:22:46Z",
+      "side": 1,
+      "message": "Same",
+      "parentUuid": "1ab14d0d_8786e9b7",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 23
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_87ff0934",
         "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
         "patchSetId": 9
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "1ab14d0d_7a3ed0b9",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-21T09:22:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab14d0d_87ff0934",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 77
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab14d0d_a7b0c58c",
         "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
         "patchSetId": 9
@@ -99,6 +189,30 @@
       "writtenOn": "2016-12-21T05:14:22Z",
       "side": 1,
       "message": "can\u0027t this cause NoSuchElementException if curPoolHmMap was changed between areRefsReady and onRefsUpdated?",
+      "range": {
+        "startLine": 217,
+        "startChar": 29,
+        "endLine": 217,
+        "endChar": 39
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_fa866064",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-21T09:22:46Z",
+      "side": 1,
+      "message": "Changed observable flow so that this is no longer a concern.",
+      "parentUuid": "1ab14d0d_a7b0c58c",
       "range": {
         "startLine": 217,
         "startChar": 29,
@@ -146,6 +260,30 @@
       "side": 1,
       "message": "The old implementation uses transactions like this:\n\n    protected def setMembersStatus(activeMemberIds: Set[UUID],\n                                   inactiveMemberIds: Set[UUID]):Unit \u003d {\n\n        store.tryTransaction { tx \u003d\u003e\n            val upMembers \u003d tx\n                .getAll(classOf[PoolMember], activeMemberIds.toSeq)\n            for (activeMember \u003c- upMembers) {\n                tx.update(activeMember.toBuilder.setStatus(LBStatus.ACTIVE).build)\n            }\n\n            val downMembers \u003d tx\n                .getAll(classOf[PoolMember], inactiveMemberIds.toSeq)\n            for (inactiveMember \u003c- downMembers) {\n                tx.update(inactiveMember.toBuilder.setStatus(LBStatus.INACTIVE).build)\n            }\n        }\n    }",
       "parentUuid": "1ab14d0d_875b8954",
+      "range": {
+        "startLine": 274,
+        "startChar": 0,
+        "endLine": 283,
+        "endChar": 73
+      },
+      "revId": "ad0e48f3d11d7c5ee2425d23c30e7ff33c46554d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ab14d0d_3a8de87b",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-12-21T09:22:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab14d0d_c73f51d5",
       "range": {
         "startLine": 274,
         "startChar": 0,
