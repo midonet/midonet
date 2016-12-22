@@ -170,7 +170,7 @@ class HaProxyContainer @Inject()(
             // Still need to deploy.
             val tryDeploy = Try {
                 haProxyHelper.deploy(
-                    lbCfg, ifaceName, refs.port.portMac.toString,
+                    lbCfg, ifaceName,
                     containerPortAddress(refs.port.portAddress4).toString,
                     routerPortAddress(refs.port.portAddress4).toString)
                 Some(namespaceName)

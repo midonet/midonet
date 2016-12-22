@@ -28,7 +28,7 @@ makens() {
     #                       +-----------------------------+
     #                       |                             |
     # (veth pair)           |                             |
-    #  iface.out+-----------------+iface.in ($IP/30)      |
+    #  iface+---------------------+ifacei ($IP/30)        |
     #                       |      lo                     |
     #                       |                             |
     #                       |                             |
@@ -39,12 +39,10 @@ makens() {
     ##########################################################################
 
     ip netns add $NAME
-    DP=${IFACE}.out
-    NS=${IFACE}.in
-    ip link add name $DP type veth peer name $NS
-    ip link set $DP up
+    NS=${IFACE}i
+    ip link add name $IFACE type veth peer name $NS
+    ip link set $IFACE up
     ip link set $NS netns $NAME
-    ip netns exec $NAME ip link set $NS address $MAC
     ip netns exec $NAME ip address add $IP/30 dev $NS
     ip netns exec $NAME ip link set up dev $NS
     ip netns exec $NAME ip link set up dev lo
@@ -65,13 +63,12 @@ cleanns() {
         echo "Namespace $NAME doesn't exist";
         exit 0
     fi
-    DP=${IFACE}.out
     for pid in $(ip netns pids $NAME)
     do
         kill -9 $pid
     done
     ip netns del $NAME
-    ip link del $DP
+    ip link del $IFACE
 }
 
 ACTION=$1
@@ -86,12 +83,11 @@ case $ACTION in
     makens)
         NAME=$1
         IFACE=$2
-        MAC=$3
-        IP=$4
-        ROUTERIP=$5
-        if [ "$#" -ne 5 ]; then
-            echo "expected 6 arguments, but $(($# + 1)) supplied"
-            echo "$0 makens NAME IFACE MAC IP ROUTERIP"
+        IP=$3
+        ROUTERIP=$4
+        if [ "$#" -ne 4 ]; then
+            echo "expected 5 arguments, but $(($# + 1)) supplied"
+            echo "$0 makens NAME IFACE IP ROUTERIP"
             exit 1
         fi
         makens
