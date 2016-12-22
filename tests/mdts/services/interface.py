@@ -230,7 +230,7 @@ class Interface(object):
 
     def verify_bandwidth(self, target_iface, max_kbps, burst_kb,
                          wait_for_burst=True, xfer_seconds=10,
-                         allowed_lag=0.2, allowed_lead=0.05, tcp_port=10000):
+                         allowed_lag=0.3, allowed_lead=0.05, tcp_port=10000):
         """
         Verifies bandwidth for traffic to target_iface.
 
