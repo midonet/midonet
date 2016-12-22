@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_ce864613",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-12-22T00:36:47Z",
+      "side": 1,
+      "message": "This retry var being in multiple functions makes this look more confusing.  How about something like this?\n\nnsexists() {\n    sudo ip netns | grep \"^$NAME$\" \u003e /dev/null\n}\n\ncleanns() {\n    if nsexists; then\n        for pid in $(ip netns pids $NAME)\n        do\n            kill -9 $pid\n        done\n        ip netns del $NAME\n\n        if ! timeout 15 sh -c \u0027while nsexists; do sleep 1; done\u0027; then\n            echo \"Namespace failed to delete\"\n            exit 1\n        fi\n\n    # same for link\nfi",
+      "revId": "a1995ffa5a752c53c55a2d923c5ba1361e03cd3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
