@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab14d0d_2e124ab5",
+        "filename": "midolman/src/lib/midolman/service_containers/haproxy/haproxy-helper",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-22T03:44:03Z",
+      "side": 1,
+      "message": "I think you will have to also be prepared to handle \"ip netns\" output like such:\n\nFOONS (id: 0)\nBARNS (id: 1)\n\nI believe this comes from the latest versions of the iproute2 tools (of which ip netns is a part).  I think it might also be installed on later versions of RHEL/CentOS and maybe Ubuntu 16+.",
+      "range": {
+        "startLine": 62,
+        "startChar": 21,
+        "endLine": 62,
+        "endChar": 35
+      },
+      "revId": "dd7ca837ee5405f0581e87ba0a14dec4fbfb3690",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
