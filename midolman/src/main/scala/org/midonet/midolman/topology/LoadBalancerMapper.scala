@@ -136,6 +136,9 @@ final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology)
                          if (loadBalancer.hasRouterId)
                              loadBalancer.getRouterId.asJava
                          else null,
+                         if (loadBalancer.hasServiceContainerId)
+                             loadBalancer.getServiceContainerId.asJava
+                         else null,
                          simPools)
     }
 

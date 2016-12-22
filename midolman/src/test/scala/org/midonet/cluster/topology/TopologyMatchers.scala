@@ -257,6 +257,8 @@ object TopologyMatchers {
             lb.id shouldBe l.getId.asJava
             lb.adminStateUp shouldBe l.getAdminStateUp
             lb.routerId shouldBe (if (l.hasRouterId) l.getRouterId.asJava else null)
+            lb.containerId shouldBe (if (l.hasServiceContainerId)
+                                         l.getServiceContainerId.asJava else null)
         }
     }
 

@@ -31,7 +31,8 @@ object LoadBalancer {
 }
 
 class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
-                   pools: Seq[Pool]) extends VirtualDevice {
+                   val containerId: UUID, pools: Seq[Pool])
+        extends VirtualDevice {
 
     import LoadBalancer._
 
@@ -166,17 +167,20 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
             util.Arrays.equals(vips.asInstanceOf[Array[AnyRef]],
                                lb.vips.asInstanceOf[Array[AnyRef]]) &&
             hasStickySource == lb.hasStickySource &&
-            hasNonStickySource == lb.hasNonStickySource
+            hasNonStickySource == lb.hasNonStickySource &&
+            containerId == lb.containerId
 
         case _ => false
     }
 
     override def hashCode: Int =
         Objects.hashCode(id, adminStateUp, routerId, vips,
-                         hasStickySource, hasNonStickySource)
+                         hasStickySource, hasNonStickySource,
+                         containerId)
 
     override def toString =
         s"LoadBalancer [id=$id adminStateUp=$adminStateUp routerId=$routerId " +
         s"vips=${vips.toSeq} hasStickSource=$hasStickySource " +
-        s"hasNonStickySource=$hasNonStickySource]"
+        s"hasNonStickySource=$hasNonStickySource " +
+        s"containerId=$containerId]"
 }

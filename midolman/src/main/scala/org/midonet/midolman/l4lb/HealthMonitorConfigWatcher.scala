@@ -17,8 +17,7 @@ package org.midonet.midolman.l4lb
 
 import java.util.UUID
 
-import scala.collection.immutable.{Map => IMap, Set => ISet}
-import scala.collection.mutable
+import scala.collection.immutable.{Map, Set}
 import scala.collection.mutable.{HashSet => MSet, Map => MMap}
 
 import akka.actor.{ActorRef, Props}
@@ -41,17 +40,14 @@ object HealthMonitorConfigWatcher {
         Props(new HealthMonitorConfigWatcher(fileLocs, suffix, manager))
     }
 
-    def convertDataMapToConfigMap(
-            map: IMap[UUID, PoolHealthMonitor],
-            fileLocs: String, suffix: String):
-                IMap[UUID, PoolConfig] = {
-        val newMap = mutable.HashMap[UUID, PoolConfig]()
+    def convertDataMapToConfigMap(map: Map[UUID, PoolHealthMonitor],
+                                  fileLocs: String, suffix: String):
+    Map[UUID, PoolConfig] = {
 
-        map foreach {case (id: UUID, phm: PoolHealthMonitor) =>
-                         newMap.put(id, convertDataToPoolConfig(id, fileLocs,
-                             suffix, phm))}
-
-        IMap(newMap.toSeq: _*)
+        map collect {
+            case (id, phm) if phm.loadBalancer.containerId == null =>
+                (id, convertDataToPoolConfig(id, fileLocs, suffix, phm))
+        }
     }
 
     val lbIdToRouterIdMap: MMap[UUID, UUID] = MMap.empty
@@ -94,8 +90,8 @@ object HealthMonitorConfigWatcher {
                         member.protocolPort)
             }
             new PoolConfig(poolId, data.loadBalancer.id,
-                    ISet(vips.toSeq:_*),
-                    ISet(members.toSeq:_*), hm, true, fileLocs, suffix)
+                    Set(vips.toSeq:_*),
+                    Set(members.toSeq:_*), hm, true, fileLocs, suffix)
         }
     }
 
@@ -111,7 +107,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     import HealthMonitor._
     import HealthMonitorConfigWatcher._
 
-    var poolIdtoConfigMap: IMap[UUID, PoolConfig] = IMap.empty
+    var poolIdtoConfigMap: Map[UUID, PoolConfig] = Map.empty
 
     var currentLeader: Boolean = false
 
@@ -146,7 +142,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     }
 
     private def handleMappingChange(
-                mappings: IMap[UUID, PoolHealthMonitor]) {
+                mappings: Map[UUID, PoolHealthMonitor]) {
 
         val convertedMap = convertDataMapToConfigMap(mappings, fileLocs, suffix)
         val loadBalancerIds = convertedMap.values.map(_.loadBalancerId).toSet
