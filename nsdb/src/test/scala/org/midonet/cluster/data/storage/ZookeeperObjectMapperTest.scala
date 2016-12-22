@@ -807,6 +807,46 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             b.name shouldBe "10"
         }
 
+        scenario("Storage handles contention without lock, even if exception is wrapped") {
+            Given("A bridge")
+            val bridge = createPojoBridge(name = "0")
+            storage.create(bridge)
+
+            Then("The storage should be lock free")
+            storage.asInstanceOf[ZookeeperObjectMapper].isLockFree shouldBe true
+
+            And("The ten modifying threads")
+            val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
+                override def run(): Unit = {
+                    storage.tryTransaction { tx =>
+                        try {
+                            Thread.sleep(50 * index)
+                            // The following tx.get causes
+                            // ConcurrentModificationException if other
+                            // thread pushed its change during the above sleep.
+                            val b = tx.get(classOf[PojoBridge], bridge.id)
+                            val i = Integer.parseInt(b.name) + 1
+                            b.name = i.toString
+                            tx.update(b)
+                        } catch {
+                            case e: Throwable =>
+                                throw new Throwable("wrapped", e)
+                        }
+                    }
+                }
+            })
+
+            When("Starting all threads")
+            threads.foreach(_.start())
+
+            And("Waiting for all transactions to complete")
+            threads.foreach(_.join())
+
+            Then("The bridge name should have been incremented atomically")
+            val b = await(storage.get(classOf[PojoBridge], bridge.id))
+            b.name shouldBe "10"
+        }
+
         scenario("Storage handles contention with lock") {
             Given("A bridge")
             val bridge = createPojoBridge(name = "0")
