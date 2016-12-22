@@ -26,7 +26,7 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Random, Try}
 
-import com.google.common.util.concurrent.AbstractService
+import com.google.common.util.concurrent.{AbstractService, RateLimiter}
 import com.google.protobuf.CodedOutputStream
 import com.lmax.disruptor._
 import com.typesafe.scalalogging.Logger
@@ -144,12 +144,20 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
 
     private var clioDiscoveryClient: MidonetDiscoveryClient[MidonetServiceHostAndPort] = _
 
-    private val endpointRef = new AtomicReference[Option[InetSocketAddress]](None)
+    private val availableEndpointsRef =
+        new AtomicReference[Seq[MidonetServiceHostAndPort]](Seq.empty)
+    protected val endpointRef =
+        new AtomicReference[Option[InetSocketAddress]](None)
 
     private var channel: SocketChannel = _
     private var current: InetSocketAddress = _
     private val sizeBuffer: ByteBuffer = ByteBuffer.allocateDirect(4)
     private val codedOutputStream = CodedOutputStream.newInstance(sizeBuffer, 4)
+
+    // Create a connection rate limiter with a rate of 1 connection per
+    // connectionInterval seconds
+    private val connectionRateLimiter = RateLimiter.create(
+        1.0 / config.connectionInterval.toUnit(TimeUnit.SECONDS))
 
     def endpoint: Option[InetSocketAddress] = endpointRef.get
 
@@ -159,8 +167,9 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
             sendRecord(event)
         } catch {
             case ex: IOException =>
-                // Close channel on IOException
+                // Close and invalidate endpoint on IOException
                 close()
+                invalidateEndpoint()
                 log.info("Error sending flow record to endpoint: {}",
                          ex.getMessage)
             case NonFatal(e) =>
@@ -182,7 +191,7 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
     }
 
     protected def sendRecord(buffer: ByteBuffer) = {
-        val actualEndpoint = endpoint.orNull
+        val actualEndpoint = endpoint.orElse(maybeChangeEndpoint()).orNull
         if (actualEndpoint != null) {
             maybeConnect(actualEndpoint)
             // Send buffer length int before sending buffer
@@ -204,40 +213,57 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
                 override def onCompleted(): Unit = {
                     log.debug("Service discovery completed for {}",
                               config.endpointService)
-                    endpointRef.lazySet(None)
+                    availableEndpointsRef.lazySet(Seq.empty)
                 }
 
                 override def onError(e: Throwable): Unit = {
                     log.error("Error on {} service discovery",
                               config.endpointService)
-                    endpointRef.lazySet(None)
+                    availableEndpointsRef.lazySet(Seq.empty)
                 }
 
                 override def onNext(t: Seq[MidonetServiceHostAndPort]): Unit = {
-                    val chosenEndpoint =
-                        if (t.nonEmpty) {
-                            val randomEndpoint = t(Random.nextInt(t.length))
-                            try {
-                                Some(new InetSocketAddress(
-                                    randomEndpoint.address,
-                                    randomEndpoint.port))
-                            } catch {
-                                case t: Throwable =>
-                                    log.warn(
-                                        "Invalid endpoint: " + randomEndpoint,
-                                        t)
-                                    None
-                            }
-                        } else
-                            None
-                    endpointRef.lazySet(chosenEndpoint)
-                    log.debug("New endpoint chosen: {}", chosenEndpoint)
+                    availableEndpointsRef.lazySet(t)
+                    maybeChangeEndpoint()
                 }
             }
         )
     }
 
-    private def maybeConnect(address: InetSocketAddress) = {
+    protected def invalidateEndpoint() =
+        endpointRef.lazySet(None)
+
+    protected def maybeChangeEndpoint(): Option[InetSocketAddress] = {
+        // Endpoint changes are rate limited
+        if (connectionRateLimiter.tryAcquire()) {
+            // If we can change endpoint, select one at random from those
+            // available
+            val availableEndpoints = availableEndpointsRef.get
+            val chosenEndpoint =
+                if (availableEndpoints.nonEmpty) {
+                    val randomIndex = Random.nextInt(availableEndpoints.length)
+                    val randomEndpoint = availableEndpoints(randomIndex)
+                    try {
+                        Some(new InetSocketAddress(
+                            randomEndpoint.address,
+                            randomEndpoint.port))
+                    } catch {
+                        case NonFatal(e) =>
+                            log.warn("Invalid endpoint: " + randomEndpoint, e)
+                            None
+                    }
+                } else
+                    None
+            endpointRef.lazySet(chosenEndpoint)
+            log.debug("New endpoint chosen: {}", chosenEndpoint)
+            chosenEndpoint
+        } else {
+            // If we can't change endpoint, simply return the one currently set
+            endpoint
+        }
+    }
+
+    protected def maybeConnect(address: InetSocketAddress) = {
         if (channel == null || current != address) {
             close()
             current = address
