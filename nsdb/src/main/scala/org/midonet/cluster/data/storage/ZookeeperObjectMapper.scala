@@ -20,6 +20,7 @@ import java.util.concurrent.Executors._
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
+import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
@@ -423,15 +424,22 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
 
         override def maxRetries = config.transactionAttempts - 1
 
+        @tailrec
+        private def isRetriable(e: Throwable): Boolean = {
+            e match {
+                case null => false
+                case _: ConcurrentModificationException => true
+                case _ => isRetriable(e.getCause)
+            }
+        }
+
         protected override def handleRetry[T](e: Throwable, retries: Int,
                                               log: Logger,
                                               message: String): Unit = {
-            // If the throwable is anything other than a concurrent modification
+            // Unless the throwable is caused by a concurrent modification
             // throw immediately to stop retrying.
-            e match {
-                case e: ConcurrentModificationException =>
-                case _ => throw e
-            }
+            if (!isRetriable(e))
+                throw e
         }
     }
     private object TransactionRetriable
