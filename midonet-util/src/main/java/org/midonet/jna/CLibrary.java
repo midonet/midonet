@@ -23,6 +23,8 @@ import java.util.List;
 
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
+import com.sun.jna.Platform;
+import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.Structure.ByValue;
 import com.sun.jna.ptr.IntByReference;
@@ -40,7 +42,7 @@ public final class CLibrary {
 
     static {
         try {
-            Native.register("c");
+            Native.register(Platform.C_LIBRARY_NAME);
         } catch (NoClassDefFoundError | UnsatisfiedLinkError | NoSuchMethodError e) {
             log.error("Native method calls are not available");
             System.exit(-1);
@@ -141,6 +143,17 @@ public final class CLibrary {
      * @return Zero, if the method is successful.
      */
     public static native int munlockall() throws LastErrorException;
+
+    /**
+     * Manipulates the underlying device parameters for special files.
+     * @param fd The device file descriptor.
+     * @param request The device-dependent request code.
+     * @param args Arguments for this request.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int ioctl(int fd, long request, Pointer args)
+        throws LastErrorException;
 
     /**
      * Creates an endpoint for communication and returns a file descriptor that
