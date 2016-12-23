@@ -97,9 +97,6 @@ public final class CLibrary {
     public static final int SOCK_CLOEXEC = 0x80000;
     public static final int SOCK_NONBLOCK = 0x800;
 
-    // this is the default page size for an amd64 linux kernel
-    public static final int PAGE_SIZE = 0x1000;
-
     public static final int SOL_IP = 0;
     public static final int SOL_SOCKET = 1;
     public static final int SOL_TCP = 6;
@@ -117,47 +114,251 @@ public final class CLibrary {
     public static final int NETLINK_BROADCAST_ERROR = 4;
     public static final int NETLINK_NO_ENOBUFS = 5;
 
-    /* sys/mman.h */
     public static final int MCL_CURRENT = 1;
     public static final int MCL_FUTURE = 2;
 
     public static final int STDOUT_FILENO = 1;
 
+    /**
+     * Causes all of the pages mapped by the address space of a process to be
+     * memory-resident until unlocked or until the process exits or execs
+     * another process image.
+     * @param flags Determines whether the pages to be locked are those
+     *              currently mapped by the address space of the process,
+     *              those that are mapped in the future, or both.
+     *              MCL_CURRENT Lock all of the pages currently mapped into the
+     *              address space of the process.
+     *              MCL_FUTURE  Lock all of the pages that become mapped into
+     *              the address space of the process in the future, when those
+     *              mappings are established.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
     public static native int mlockall(int flags) throws LastErrorException;
 
+    /**
+     * Unlocks the address space of a process.
+     * @return Zero, if the method is successful.
+     */
     public static native int munlockall() throws LastErrorException;
 
-    public static native int socket(int domain, int type, int protocol);
+    /**
+     * Creates an endpoint for communication and returns a file descriptor that
+     * refers to that endpoint.
+     * @param domain The protocol family:
+     *               AF_UNIX Local communication
+     *               AF_INET IPv4
+     *               AF_INET6 IPv6
+     *               AF_NETLINK Kernel user interface device
+     * @param type The communication semantics:
+     *             SOCK_STREAM Sequenced, reliable, connection-based streams
+     *             SOCK_DGRAM Connectionless, unreliable datagrams
+     *             SOCK_RAW Raw network protocol
+     *             SOCK_RDM Reliable datagrams
+     *             SOCK_SEQPACKET Sequenced, reliable datagrams
+     *             SOCK_PACKET Obsolete
+     *             The values above can be flagged with a bitwise OR to modify
+     *             the socket behavior:
+     *             SOCK_NONBLOCK - Non-blocking flag
+     *             SOCK_CLOEXEC Close-on-exec flag
+     * @param protocol The protocol for the specified family and type.
+     * @return A file descriptor for the new socket. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int socket(int domain,
+                                    int type,
+                                    int protocol);
 
-    public static native int connect(int fd, NetlinkSockAddress addrSockAddress, int size);
+    /**
+     * Connects the socket specified by the file descriptor to the specified
+     * Netlink socket address.
+     * @param fd The socket file descriptor.
+     * @param addrSockAddress The Netlink socket address.
+     * @param size The size of the socket address structure.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int connect(int fd,
+                                     NetlinkSockAddress addrSockAddress,
+                                     int size);
 
-    public static native int connect(int fd, UnixDomainSockAddress addrSockAddress, int size);
+    /**
+     * Connects the socket specified by the file descriptor to the specified
+     * Unix domain socket address.
+     * @param fd The socket file descriptor.
+     * @param addrSockAddress The Unix domain socket address.
+     * @param size The size of the socket address structure.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int connect(int fd,
+                                     UnixDomainSockAddress addrSockAddress,
+                                     int size);
 
-    public static native int bind(int fd, NetlinkSockAddress addrSockAddress, int size);
+    /**
+     * Assigns the specified Netlink socket address to the socket referred by
+     * the file descriptor.
+     * @param fd The socket file descriptor.
+     * @param addrSockAddress The Netlink socket address.
+     * @param size The size of the socket address structure.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int bind(int fd,
+                                  NetlinkSockAddress addrSockAddress,
+                                  int size);
 
-    public static native int bind(int fd, UnixDomainSockAddress addrSockAddress, int size);
+    /**
+     * Assigns the specified Unix domain socket address to the socket referred
+     * by the file descriptor.
+     * @param fd The socket file descriptor.
+     * @param addrSockAddress The Unix domain socket address.
+     * @param size The size of the socket address structure.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int bind(int fd,
+                                  UnixDomainSockAddress addrSockAddress,
+                                  int size);
 
-    public static native int accept(int fd, UnixDomainSockAddress clientSockAddress, IntByReference size);
+    /**
+     * Used with connection-based socket types. It returns a file descriptor
+     * with the first connection request on the queue of pending connections
+     * for the listening socket.
+     * @param fd The listening socket file descriptor.
+     * @param clientSockAddress The methods sets this reference to the peer
+     *                          socket address.
+     * @param size The method sets this reference to the peer socket address
+     *             structure size.
+     * @return The file descriptor of the accepted socket, if successful. On
+     * error, it returns -1 and errno indicates the last error.
+     */
+    public static native int accept(int fd,
+                                    UnixDomainSockAddress clientSockAddress,
+                                    IntByReference size);
 
-    public static native int listen(int fd, int backlog);
+    /**
+     * Listens on incoming connections on the specified socket.
+     * @param fd The socket file descriptor.
+     * @param backlog The maximum length of the incomming connection queue. When
+     *                the queue is full, incoming connections receive an error
+     *                with ECONNREFUSED.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int listen(int fd,
+                                    int backlog);
 
-    public static native int getsockname(int fd, NetlinkSockAddress addrSockAddress, IntByReference size);
+    /**
+     * Returns the address to which the specified Netlink socket is bound.
+     * @param fd The socket file descriptor.
+     * @param addrSockAddress The methods sets this reference to the socket
+     *                        address.
+     * @param size The method sets this reference to the socket address
+     *             structure size.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int getsockname(int fd,
+                                         NetlinkSockAddress addrSockAddress,
+                                         IntByReference size);
 
-    public static native int getsockname(int fd, UnixDomainSockAddress addrSockAddress, IntByReference size);
+    /**
+     * Returns the address to which the specified Unix domain socket is bound.
+     * @param fd The socket file descriptor.
+     * @param addrSockAddress The methods sets this reference to the socket
+     *                        address.
+     * @param size The method sets this reference to the socket address
+     *             structure size.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int getsockname(int fd,
+                                         UnixDomainSockAddress addrSockAddress,
+                                         IntByReference size);
 
-    public static native int setsockopt(int fd, int level, int optname, ByteBuffer buf, int buflen);
+    /**
+     * Sets options for the specified socket.
+     * @param fd The socket file descriptor.
+     * @param level The level at which the option resides.
+     * @param optname The option name, interpreted by the appropriate protocol.
+     * @param optval The option value.
+     * @param optlen The option value length.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int setsockopt(int fd,
+                                        int level,
+                                        int optname,
+                                        ByteBuffer optval,
+                                        int optlen);
 
-    public static native int getsockopt(int fd, int level, int optname, ByteBuffer buf, ByteBuffer buflen);
+    /**
+     * Gets options for the specified socket.
+     * @param fd The socket file descriptor.
+     * @param level The level at which the option resides.
+     * @param optname The level at which the option resides.
+     * @param optval The method sets this to the option value.
+     * @param optlen The method sets this to the option value length.
+     * @return Zero, if the method is successful. On error, it returns -1 and
+     * errno indicates the last error.
+     */
+    public static native int getsockopt(int fd,
+                                        int level,
+                                        int optname,
+                                        ByteBuffer optval,
+                                        ByteBuffer optlen);
 
-    public static native int send(int fd, ByteBuffer buf, int len, int flags);
+    /**
+     * Sends data to a connected socket.
+     * @param fd The socket file descriptor.
+     * @param buf The data to send.
+     * @param len The data length.
+     * @param flags Operation flags, see:
+     *              http://man7.org/linux/man-pages/man2/send.2.html
+     * @return The number of bytes sent, if successful. On error, it returns -1
+     * and errno indicates the last error.
+     */
+    public static native int send(int fd,
+                                  ByteBuffer buf,
+                                  int len,
+                                  int flags);
 
-    public static native int recv(int fd, ByteBuffer buf, int len, int flags);
+    /**
+     * Receives data from a connected socket.
+     * @param fd The socket file descriptor.
+     * @param buf The method sets this buffer with the received data.
+     * @param len The buffer size.
+     * @param flags Operations flags, see:
+     *              http://man7.org/linux/man-pages/man2/recv.2.html
+     * @return The number of bytes received. if successful. On error, it returns
+     * -1 and errno indicates the last error.
+     */
+    public static native int recv(int fd,
+                                  ByteBuffer buf,
+                                  int len,
+                                  int flags);
 
+    /**
+     * Returns the number of bytes in a memory page.
+     */
     public static native int getpagesize();
 
-    public static native int close(long l);
+    /**
+     * Closes a file descriptor.
+     */
+    public static native int close(int fd);
 
+    /**
+     * Returns the string describing the error number.
+     */
     public static native String strerror(int errno);
 
+    /**
+     * Tests whether the file descriptor is a terminal.
+     * @return 1, if the open file descriptor is a terminal, 0 otherwise and
+     * errno is set to indicate the error.
+     */
     public static native int isatty(int fd);
+
 }
