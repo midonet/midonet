@@ -17,6 +17,7 @@
 package org.midonet;
 
 import java.lang.reflect.Field;
+import java.nio.ByteOrder;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 
@@ -86,5 +87,17 @@ public final class Util {
             ++r;
         }
         return r;
+    }
+
+    public static short networkToHost(short val) {
+        return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ?
+               Short.reverseBytes(val) :
+               val;
+    }
+
+    public static int networkToHost(int val) {
+        return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ?
+            Integer.reverseBytes(val) :
+            val;
     }
 }
