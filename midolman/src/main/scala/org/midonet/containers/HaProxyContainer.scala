@@ -21,6 +21,7 @@ import java.util.concurrent.{ExecutorService, TimeUnit}
 
 import javax.inject.Named
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -35,6 +36,7 @@ import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.State.ContainerStatus.Code._
 import org.midonet.cluster.models.Topology.PoolMember
+import org.midonet.cluster.services.MidonetBackend.StatusKey
 import org.midonet.midolman.haproxy.HaproxyHelper
 import org.midonet.midolman.l4lb._
 import org.midonet.midolman.simulation.RouterPort
@@ -296,21 +298,26 @@ class HaProxyContainer @Inject()(
         val setUpIds = newUpNodes -- upNodes
         val setDownIds = newDownNodes -- downNodes
 
-        vt.store.tryTransaction { tx =>
-            val setUpNodes =
-                tx.getAll(classOf[PoolMember], setUpIds.toSeq)
-            val setDownNodes =
-                tx.getAll(classOf[PoolMember], setDownIds.toSeq)
-            for (m <- setUpNodes)
-                tx.update(
-                    m.toBuilder.setStatus(LBStatus.ACTIVE).build())
-            for (m <- setDownNodes)
-                tx.update(
-                    m.toBuilder.setStatus(LBStatus.INACTIVE).build())
-        }
+        try {
+            val setUpResults = for (memberId <- setUpIds) yield
+                vt.stateStore.addValue(classOf[PoolMember], memberId,
+                                       StatusKey, LBStatus.ACTIVE.toString)
 
-        upNodes = newUpNodes
-        downNodes = newDownNodes
+            val setDownResults = for (memberId <- setDownIds) yield
+                vt.stateStore.addValue(classOf[PoolMember], memberId,
+                                       StatusKey, LBStatus.INACTIVE.toString)
+
+            // Must subscribe to result observables to make update take effect.
+            Observable.merge((setUpResults ++ setDownResults).asJava)
+                .toList.toBlocking.first
+
+            upNodes = newUpNodes
+            downNodes = newDownNodes
+        } catch {
+            case NonFatal(ex) =>
+                log.warn("Error updating pool member status. Will try again " +
+                          "next tick.", ex)
+        }
     }
 
     // TODO: Publish ContainerOp updates in addition to ContainerHealth.
