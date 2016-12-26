@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_74e4a80c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-26T11:00:26Z",
+      "side": 1,
+      "message": "how about FailFast?",
+      "range": {
+        "startLine": 274,
+        "startChar": 63,
+        "endLine": 274,
+        "endChar": 82
+      },
+      "revId": "f7ff0ae7faecffab833cab019a7aec84f46c1fb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
