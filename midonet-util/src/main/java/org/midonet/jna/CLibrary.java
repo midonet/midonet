@@ -180,7 +180,7 @@ public final class CLibrary {
      */
     public static native int socket(int domain,
                                     int type,
-                                    int protocol);
+                                    int protocol) throws LastErrorException;
 
     /**
      * Connects the socket specified by the file descriptor to the specified

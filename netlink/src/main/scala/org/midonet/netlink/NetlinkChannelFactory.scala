@@ -16,6 +16,8 @@
 
 package org.midonet.netlink
 
+import scala.util.control.NonFatal
+
 import org.midonet.netlink.NetlinkProtocol.NETLINK_GENERIC
 import org.midonet.netlink.NetlinkUtil.NO_NOTIFICATION
 
@@ -25,13 +27,12 @@ class NetlinkChannelFactory {
                notificationGroups: Int = NO_NOTIFICATION): NetlinkChannel = {
         try {
             val channel = Netlink.selectorProvider
-                .openNetlinkSocketChannel(
-                    protocol, notificationGroups)
+                .openNetlinkSocketChannel(protocol, notificationGroups)
 
             channel.connect(new Netlink.Address(0))
             channel.configureBlocking(blocking)
             channel
-        } catch { case e: Exception =>
+        } catch { case NonFatal(e) =>
             throw new RuntimeException("Error connecting to Netlink", e)
         }
     }

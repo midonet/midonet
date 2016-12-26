@@ -16,8 +16,8 @@
 
 package org.midonet.services.rest_api.hacks
 
+import java.io.IOException
 import java.nio.channels.spi.SelectorProvider
-import java.nio.channels.SocketChannel
 import java.nio.channels.ServerSocketChannel
 
 import org.midonet.netlink.UnixDomainChannel
@@ -32,6 +32,7 @@ import org.midonet.util.AfUnix
  */
 
 object UnixDomainServerSocketChannel {
+    @throws[IOException]
     def open(): ServerSocketChannel = {
         val provider: NetlinkSelectorProvider = Netlink.selectorProvider()
         val channel = provider.openUnixDomainSocketChannel(
