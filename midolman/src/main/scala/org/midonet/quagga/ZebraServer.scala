@@ -26,6 +26,7 @@
 
 package org.midonet.quagga
 
+import java.io.IOException
 import java.nio.channels.spi.SelectorProvider
 import java.nio.channels.{ByteChannel, SelectionKey}
 import java.nio.file.{Files, Path, Paths}
@@ -61,15 +62,16 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
                   val ifAddr: IPv4Addr, val ifName: String,
                   val selectLoop: SelectLoop) extends Actor with ActorLogWithoutPath {
 
-    var lastRequestId = 0
-    val server = makeServer
+    private var lastRequestId = 0
+    private val server = makeServer()
 
     override def logSource = s"org.midonet.routing.bgp.zebra-server-$ifName"
 
-    val zebraConnections = mutable.Set[ActorRef]()
-    val zebraConnMap = mutable.Map[ActorRef, ByteChannel]()
+    private val zebraConnections = mutable.Set[ActorRef]()
+    private val zebraConnMap = mutable.Map[ActorRef, ByteChannel]()
 
-    private def makeServer: UnixDomainChannel = {
+    @throws[IOException]
+    private def makeServer(): UnixDomainChannel = {
         SelectorProvider.provider() match {
             case nl: NetlinkSelectorProvider =>
                 nl.openUnixDomainSocketChannel(AfUnix.Type.SOCK_STREAM)

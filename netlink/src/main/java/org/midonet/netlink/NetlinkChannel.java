@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 
+import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
 
@@ -57,13 +58,15 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
     protected final int groups;
 
     protected NetlinkChannel(SelectorProvider provider,
-                             NetlinkProtocol protocol) {
+                             NetlinkProtocol protocol)
+        throws LastErrorException {
         this(provider, protocol, 0);
     }
 
     protected NetlinkChannel(SelectorProvider provider,
                              NetlinkProtocol protocol,
-                             int groups) {
+                             int groups)
+        throws LastErrorException {
         super(provider);
         this.protocol = protocol;
         this.groups = groups;
@@ -82,13 +85,15 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         return protocol;
     }
 
-    protected void initSocket() {
-        int socket = CLibrary.socket(CLibrary.AF_NETLINK, CLibrary.SOCK_RAW,
+    protected void initSocket() throws LastErrorException {
+        int socket;
+        try {
+            socket = CLibrary.socket(CLibrary.AF_NETLINK, CLibrary.SOCK_RAW,
                                      protocol.value());
-
-        if (socket == -1) {
-            log.error("Could not create netlink socket: {}",
-                      CLibrary.strerror(Native.getLastError()));
+        } catch (LastErrorException e) {
+            log.error("Could not create Netlink socket: {}",
+                      CLibrary.strerror(e.getErrorCode()));
+            throw e;
         }
 
         fd = IOUtil.newFD(socket);

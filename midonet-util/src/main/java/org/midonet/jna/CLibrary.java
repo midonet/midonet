@@ -133,14 +133,15 @@ public final class CLibrary {
      *              MCL_FUTURE  Lock all of the pages that become mapped into
      *              the address space of the process in the future, when those
      *              mappings are established.
-     * @return Zero, if the method is successful. On error, it returns -1 and
-     * errno indicates the last error.
+     * @return Zero, if the method is successful. On error, it throws a
+     * {@code LastErrorException}.
      */
     public static native int mlockall(int flags) throws LastErrorException;
 
     /**
      * Unlocks the address space of a process.
-     * @return Zero, if the method is successful.
+     * @return Zero, if the method is successful. On error, it throws a
+     * {@code LastErrorException}.
      */
     public static native int munlockall() throws LastErrorException;
 
@@ -149,8 +150,8 @@ public final class CLibrary {
      * @param fd The device file descriptor.
      * @param request The device-dependent request code.
      * @param args Arguments for this request.
-     * @return Zero, if the method is successful. On error, it returns -1 and
-     * errno indicates the last error.
+     * @return Zero, if the method is successful. On error, it throws a
+     * {@code LastErrorException}.
      */
     public static native int ioctl(int fd, long request, Pointer args)
         throws LastErrorException;
@@ -175,12 +176,12 @@ public final class CLibrary {
      *             SOCK_NONBLOCK - Non-blocking flag
      *             SOCK_CLOEXEC Close-on-exec flag
      * @param protocol The protocol for the specified family and type.
-     * @return A file descriptor for the new socket. On error, it returns -1 and
-     * errno indicates the last error.
+     * @return A file descriptor for the new socket. On error, it throws a
+     * {@code LastErrorException}.
      */
     public static native int socket(int domain,
                                     int type,
-                                    int protocol);
+                                    int protocol) throws LastErrorException;
 
     /**
      * Connects the socket specified by the file descriptor to the specified
