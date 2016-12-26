@@ -17,18 +17,17 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
+import scala.collection.breakOut
 
-import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
+import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
-import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
-import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
+import org.midonet.cluster.models.Topology.{Chain, Dhcp, Network, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.translators.RouteManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
-import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
-import org.midonet.util.concurrent.toFutureOps
+import org.midonet.packets.IPAddr
 import org.midonet.midolman.state.PathBuilder
 
 /** Provides a Neutron model translator for FloatingIp. */
@@ -69,9 +68,12 @@ class FloatingIpTranslator(override val pathBldr: PathBuilder)
             associateFipOps(tx, fip)
         } else {
             val fipAddrStr = fip.getFloatingIpAddress.getAddress
-            val newPortPair = getFipRtrPortId(tx, fip.getRouterId, fipAddrStr)
+            val newPortPair = getFipRtrPortId(tx, fip.getRouterId,
+                                              fip.getFloatingNetworkId,
+                                              fipAddrStr)
             if (oldFip.getRouterId != fip.getRouterId) {
                 val oldPortPair = getFipRtrPortId(tx, oldFip.getRouterId,
+                                                  fip.getFloatingNetworkId,
                                                   fipAddrStr)
                 removeArpEntry(tx, fip, oldPortPair.nwPortId)
                 addArpEntry(tx, fip, newPortPair.nwPortId)
@@ -157,64 +159,80 @@ class FloatingIpTranslator(override val pathBldr: PathBuilder)
       */
     private case class PortPair(nwPortId: UUID, rtrPortId: UUID)
     private def getFipRtrPortId(tx: Transaction, routerId: UUID,
+                                floatingNetworkId: UUID,
                                 fipAddrStr: String)
     : PortPair = {
         val fipAddr = IPAddr.fromString(fipAddrStr)
         val nRouter = tx.get(classOf[NeutronRouter], routerId)
+        val net = tx.get(classOf[Network], floatingNetworkId)
 
         // It will usually be the gateway port, so check that before scanning
         // the router's other ports.
-        val rGwPortIdOpt = if (nRouter.hasGwPortId) {
+        if (nRouter.hasGwPortId) {
             val nwGwPortId = nRouter.getGwPortId
             val rGwPortId = tenantGwPortId(nwGwPortId)
             val rGwPort = tx.get(classOf[Port], rGwPortId)
-            val subnet = IPSubnetUtil.fromProto(rGwPort.getPortSubnet)
-            if (subnet.containsAddress(fipAddr))
-                return PortPair(nwGwPortId, tenantGwPortId(nwGwPortId))
-            Some(rGwPortId)
-        } else None
+            val peerPort = tx.get(classOf[NeutronPort], rGwPort.getPeerId)
+            if (peerPort.getNetworkId == floatingNetworkId) {
+                val subs = tx.getAll(classOf[Dhcp], net.getDhcpIdsList.asScala)
+                for (sub <- subs) {
+                    val subnet = IPSubnetUtil.fromProto(sub.getSubnetAddress)
+                    if (subnet.containsAddress(fipAddr))
+                        return PortPair(nwGwPortId, rGwPortId)
+                }
+            }
+        }
 
         // The FIP didn't belong to the router's gateway port's subnet, so
         // we need to scan all of its other ports.
         val mRouter = tx.get(classOf[Router], routerId)
-        val portIds = mRouter.getPortIdsList.asScala -- rGwPortIdOpt
-        val rPorts = tx.getAll(classOf[Port], portIds)
-        for (rPort <- rPorts if rPort.hasPortSubnet) {
-            val subnet = IPSubnetUtil.fromProto(rPort.getPortSubnet)
-            if (subnet.containsAddress(fipAddr)) {
-                // routerInterfacePortPeerId() is an involution; applying it to
-                // the network port ID gives the peer router port ID, and
-                // vice-versa.
-                val nwPortId = routerInterfacePortPeerId(rPort.getId)
 
-                // Make sure the corresponding NeutronPort exists.
-                if (tx.exists(classOf[NeutronPort], nwPortId))
-                    return PortPair(nwPortId, rPort.getId)
+        def makeMap[T](clazz: Class[T], ids: Seq[UUID]): Map[UUID, T] =
+            ids.zip(tx.getAll(clazz, ids))(breakOut)
 
-                // Midonet-only port's CIDR conflicts with a Neutron port's.
-                val rPortJUuid = UUIDUtil.fromProto(rPort.getId)
-                val subnet = IPSubnetUtil.fromProto(rPort.getPortSubnet)
-                log.warn(
-                    s"MidoNet router port $rPortJUuid does not have a " +
-                    s"corresponding Neutron port, but its subnet, $subnet, " +
-                    s"contains the Neutron floating IP $fipAddrStr")
+        val rPortIds = mRouter.getPortIdsList.asScala - nRouter.getGwPortId
+
+        val rPorts = tx.getAll(classOf[Port], rPortIds)
+            .filter(p => p.hasPeerId && p.hasPortSubnet)
+        val nPortIds = rPorts.map(_.getPeerId)
+
+        // All of the neutron ports on this router, and on the floating
+        // Ip network. The ports could be in different subnets.
+        val nPorts = makeMap(classOf[NeutronPort], nPortIds)
+
+        val subMap = makeMap(classOf[Dhcp], net.getDhcpIdsList.asScala)
+
+        def validFipPort(nPortId: UUID): Boolean = {
+            try {
+                val nPort = nPorts(nPortId)
+                val cidr = subMap(nPort.getFixedIps(0).getSubnetId).getSubnetAddress
+                IPSubnetUtil.fromProto(cidr).containsAddress(fipAddr)
+            } catch {
+                case e: NoSuchElementException => false
             }
         }
 
+        // The FIP didn't belong to the router's gateway port's subnets, so
+        // we need to scan all of its other ports.
+        for (rPort <- rPorts) {
+            if (validFipPort(rPort.getPeerId))
+                return PortPair(rPort.getPeerId, rPort.getId)
+        }
+
         throw new IllegalStateException(
-            s"Router ${UUIDUtil.fromProto(routerId)} has no port whose subnet" +
+            s"Router ${UUIDUtil.fromProto(routerId)} has no port whose subnet " +
             s"contains $fipAddrStr")
     }
 
     private def associateFipOps(tx: Transaction, fip: FloatingIp): Unit = {
-        val pp = getFipRtrPortId(tx, fip.getRouterId,
+        val pp = getFipRtrPortId(tx, fip.getRouterId, fip.getFloatingNetworkId,
                                  fip.getFloatingIpAddress.getAddress)
         addArpEntry(tx, fip, pp.nwPortId)
         addNatRules(tx, fip, pp.rtrPortId)
     }
 
     private def disassociateFipOps(tx: Transaction, fip: FloatingIp): Unit = {
-        val pp = getFipRtrPortId(tx, fip.getRouterId,
+        val pp = getFipRtrPortId(tx, fip.getRouterId, fip.getFloatingNetworkId,
                                  fip.getFloatingIpAddress.getAddress)
         removeArpEntry(tx, fip, pp.nwPortId)
         removeNatRules(tx, fip)
