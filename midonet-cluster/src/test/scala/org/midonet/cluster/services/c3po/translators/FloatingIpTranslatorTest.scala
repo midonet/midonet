@@ -24,7 +24,7 @@ import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Network, Port, Router, Rule}
+import org.midonet.cluster.models.Topology.{Dhcp, Network, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
@@ -112,12 +112,19 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         .setTenantId("tenant")
         .setName("EXTNET")
         .setAdminStateUp(true)
+        .addDhcpIds(extSubId)
         .build()
 
     protected val nSubnet = NeutronSubnet.newBuilder()
         .setId(extSubId)
         .setTenantId("TENANT")
         .setCidr(IPSubnetUtil.toProto("10.10.10.0/24"))
+        .build()
+
+    protected val mDhcp = Dhcp.newBuilder()
+        .setId(extSubId)
+        .setSubnetAddress(IPSubnetUtil.toProto("10.10.10.0/24"))
+        .setEnabled(true)
         .build()
 
     protected val mTntRouter = mRouterFromTxt(s"""
@@ -336,7 +343,7 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
         bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
         bindAll(Seq(), Seq(), classOf[NeutronPort])
         bindAll(Seq(), Seq(), classOf[NeutronNetwork])
-        bindAll(Seq(), Seq(), classOf[NeutronSubnet])
+        bindAll(Seq(extSubId), Seq(mDhcp))
         bindAll(Seq(nTntRouterGatewayPortId), Seq(nTntRouterGatewayPort))
         bindAll(Seq(mTntRouterGatewayPortId), Seq(mTntRouterGatwewayPort))
         bindAll(Seq(tntRouterInternalPortId, nTntRouterGatewayPortId),
@@ -548,7 +555,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bindAll(Seq(extSubId), Seq(nSubnet))
         bindAll(Seq(), Seq(), classOf[NeutronNetwork])
         bindAll(Seq(), Seq(), classOf[NeutronPort])
-        bindAll(Seq(), Seq(), classOf[NeutronSubnet])
+        bindAll(Seq(extSubId), Seq(mDhcp))
 
         translator = new FloatingIpTranslator(stateTableStorage)
     }
@@ -734,6 +741,7 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
         bindAll(Seq(tntRouterInternalPortId, nTntRouterGatewayPortId),
             Seq(mTntRouterGatwewayPort, mTntRouterInternalPort))
         bindAll(Seq(extSubId), Seq(nSubnet))
+        bindAll(Seq(extSubId), Seq(mDhcp))
         bindAll(Seq(externalNetworkId), Seq(mExtNetwork))
         bindAll(Seq(externalNetworkId), Seq(nExtNetwork))
         translator.translate(transaction, Delete(classOf[FloatingIp], fipId))
