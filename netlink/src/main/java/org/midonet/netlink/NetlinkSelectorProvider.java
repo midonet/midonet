@@ -41,9 +41,9 @@ public class NetlinkSelectorProvider extends SelectorProvider {
 
     private static final Logger log = LoggerFactory
         .getLogger(NetlinkSelectorProvider.class);
-    public static final String SUN_DEFAULT_SELECTOR = "sun.nio.ch.DefaultSelectorProvider";
+    private static final String SUN_DEFAULT_SELECTOR = "sun.nio.ch.DefaultSelectorProvider";
 
-    SelectorProvider underlyingSelector;
+    private SelectorProvider underlyingSelector;
 
     public NetlinkSelectorProvider() {
         try {
@@ -91,7 +91,8 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         return underlyingSelector.openDatagramChannel(family);
     }
 
-    public NetlinkChannel openNetlinkSocketChannel(NetlinkProtocol prot) {
+    public NetlinkChannel openNetlinkSocketChannel(NetlinkProtocol prot)
+        throws IOException {
         String type = "org.midonet.netlink.NetlinkChannelImpl";
         Class[] argTypes = {SelectorProvider.class, NetlinkProtocol.class};
         Object[] args = {this, prot};
@@ -99,7 +100,8 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         return (NetlinkChannel) makeInstanceOf(type, argTypes, args);
     }
 
-    public NetlinkChannel openNetlinkSocketChannel(NetlinkProtocol prot, int groups) {
+    public NetlinkChannel openNetlinkSocketChannel(NetlinkProtocol prot, int groups)
+        throws IOException {
         String type = "org.midonet.netlink.NetlinkChannelImpl";
         Class[] argTypes = {SelectorProvider.class, NetlinkProtocol.class, int.class};
         Object[] args = {this, prot, groups};
@@ -107,7 +109,8 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         return (NetlinkChannel) makeInstanceOf(type, argTypes, args);
     }
 
-    public UnixDomainChannel openUnixDomainSocketChannel(AfUnix.Type socketType) {
+    public UnixDomainChannel openUnixDomainSocketChannel(AfUnix.Type socketType)
+        throws IOException {
         String type = "org.midonet.netlink.UnixDomainChannelImpl";
         Class[] argTypes = {SelectorProvider.class, AfUnix.Type.class};
         Object[] args = {this, socketType};
@@ -118,7 +121,7 @@ public class NetlinkSelectorProvider extends SelectorProvider {
     public UnixDomainChannel openUnixDomainSocketChannel(
             AfUnix.Address parentLocalAddress,
             AfUnix.Address remoteAddress,
-            int childSocket) {
+            int childSocket) throws IOException {
         String type = "org.midonet.netlink.UnixDomainChannelImpl";
         Class[] argTypes = {
             SelectorProvider.class,
@@ -132,20 +135,23 @@ public class NetlinkSelectorProvider extends SelectorProvider {
     }
 
     private Object makeInstanceOf(
-            String type, Class[] argTypes, Object[] args) {
+            String type, Class[] argTypes, Object[] args)
+        throws IOException {
         try {
             Class<?> clazz = Class.forName(type);
             Constructor<?> constructor = clazz.getConstructor(argTypes);
             return constructor.newInstance(args);
         } catch (ClassNotFoundException e) {
-            log.error("Can't find class of type: {}", type);
+            log.error("Cannot find class: {}", type);
+            throw new IOException(e);
         } catch (SecurityException e) {
             log.error("Security exception when trying to instantiate class {}",
                       type, e);
+            throw new IOException(e);
         } catch (Throwable e) {
-            log.error("Exception making instance of class " + type, e);
+            log.error("Exception making instance of class: {}", type, e);
+            throw new IOException(e);
         }
-        return null;
     }
 
 }

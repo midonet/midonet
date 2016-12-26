@@ -24,6 +24,7 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
 
@@ -50,16 +51,17 @@ public abstract class UnixDomainChannel extends UnixChannel<AfUnix.Address>
         (SelectionKey.OP_READ | SelectionKey.OP_WRITE | SelectionKey.OP_ACCEPT);
 
     protected UnixDomainChannel(SelectorProvider provider,
-                                AfUnix.Type sockType) {
+                                AfUnix.Type sockType) throws LastErrorException {
         super(provider);
         this.state = ST_UNCONNECTED;
 
-        int socket =
-            CLibrary.socket(CLibrary.AF_UNIX, sockType.getValue(), 0);
-
-        if (socket == -1) {
-            log.error("Could not create unix domain socket: {}",
-                      CLibrary.strerror(Native.getLastError()));
+        int socket;
+        try {
+            socket = CLibrary.socket(CLibrary.AF_UNIX, sockType.getValue(), 0);
+        } catch (LastErrorException e) {
+            log.error("Could not create UNIX domain socket: {}",
+                      CLibrary.strerror(e.getErrorCode()));
+            throw e;
         }
 
         fd = IOUtil.newFD(socket);
