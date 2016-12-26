@@ -100,24 +100,28 @@ object HaproxyHealthMonitor {
      * If necessary, we can get around this by maintaining a connection
      * by operation in "command line mode" for haproxy.
      */
-    def getHaproxyStatus(path: String) : String = {
+    @throws[Exception]
+    def getHaproxyStatus(path: String): String = {
         val channel = SelectorProvider.provider()
             .asInstanceOf[NetlinkSelectorProvider]
             .openUnixDomainSocketChannel(AfUnix.Type.SOCK_STREAM)
-        val socketFile = new File(path)
-        val socketAddress = new AfUnix.Address(socketFile.getAbsolutePath)
-        channel.connect(socketAddress)
-        val wb = ByteBuffer.wrap(ShowStat.getBytes)
-        while(wb.hasRemaining)
-            channel.write(wb)
-        val data = new StringBuilder
-        val buf = ByteBuffer.allocate(1024)
-        while (channel.read(buf) > 0) {
-            data append new String(buf.array(), "ASCII")
-            buf.clear()
+        try {
+            val socketFile = new File(path)
+            val socketAddress = new AfUnix.Address(socketFile.getAbsolutePath)
+            channel.connect(socketAddress)
+            val wb = ByteBuffer.wrap(ShowStat.getBytes)
+            while (wb.hasRemaining)
+                channel.write(wb)
+            val data = new StringBuilder
+            val buf = ByteBuffer.allocate(1024)
+            while (channel.read(buf) > 0) {
+                data append new String(buf.array(), "ASCII")
+                buf.clear()
+            }
+            data.toString()
+        } finally {
+            channel.close()
         }
-        channel.close()
-        data.toString()
     }
 
     /*
