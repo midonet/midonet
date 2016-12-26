@@ -35,6 +35,7 @@ import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.State.ContainerStatus.Code._
 import org.midonet.cluster.models.Topology.PoolMember
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.haproxy.HaproxyHelper
 import org.midonet.midolman.l4lb._
 import org.midonet.midolman.simulation.RouterPort
@@ -43,6 +44,8 @@ import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
+import org.midonet.cluster.services.MidonetBackend.StatusKey
+import scala.collection.JavaConverters._
 
 object HaProxyContainer {
     val hmSuffix = "_hm"
@@ -296,21 +299,26 @@ class HaProxyContainer @Inject()(
         val setUpIds = newUpNodes -- upNodes
         val setDownIds = newDownNodes -- downNodes
 
-        vt.store.tryTransaction { tx =>
-            val setUpNodes =
-                tx.getAll(classOf[PoolMember], setUpIds.toSeq)
-            val setDownNodes =
-                tx.getAll(classOf[PoolMember], setDownIds.toSeq)
-            for (m <- setUpNodes)
-                tx.update(
-                    m.toBuilder.setStatus(LBStatus.ACTIVE).build())
-            for (m <- setDownNodes)
-                tx.update(
-                    m.toBuilder.setStatus(LBStatus.INACTIVE).build())
-        }
+        try {
+            val setUpResults = for (memberId <- setUpIds) yield
+                vt.stateStore.addValue(classOf[PoolMember], memberId,
+                                       StatusKey, LBStatus.ACTIVE.toString)
 
-        upNodes = newUpNodes
-        downNodes = newDownNodes
+            val setDownResults = for (memberId <- setDownIds) yield
+                vt.stateStore.addValue(classOf[PoolMember], memberId,
+                                       StatusKey, LBStatus.INACTIVE.toString)
+
+            // Must subscribe to result observables to make update take effect.
+            Observable.merge((setUpResults ++ setDownResults).asJava)
+                .toBlocking.toIterable.asScala.toSeq
+
+            upNodes = newUpNodes
+            downNodes = newDownNodes
+        } catch {
+            case NonFatal(ex) =>
+                log.error("Error updating pool member status. Will try again " +
+                          "next tick.")
+        }
     }
 
     // TODO: Publish ContainerOp updates in addition to ContainerHealth.
