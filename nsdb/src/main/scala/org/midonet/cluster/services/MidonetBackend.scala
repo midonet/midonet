@@ -271,6 +271,7 @@ object MidonetBackend {
         stateStore.registerKey(classOf[Host], AliveKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Host], ContainerKey, FailFast)
         stateStore.registerKey(classOf[Host], HostKey, SingleLastWriteWins)
+        stateStore.registerKey(classOf[PoolMember], StatusKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], ActiveKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], BgpKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
