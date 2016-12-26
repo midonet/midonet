@@ -32,10 +32,11 @@ import org.mockito.{ArgumentCaptor, Mockito, Matchers => MMatchers}
 import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{SingleValueKey, StateStorage, Storage}
 import org.midonet.cluster.models.Commons.{LBStatus, UUID => PUUID}
 import org.midonet.cluster.models.State.ContainerStatus.{Code => StatusCode}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.MidonetBackend.StatusKey
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.haproxy.HaproxyHelper
@@ -56,6 +57,7 @@ class HaProxyContainerTest extends MidolmanSpec
     var mockHaproxyHelper: HaproxyHelper = _
     var container: HaProxyContainer = _
     var store: Storage = _
+    var stateStore: StateStorage = _
 
     val containerExecutor = Executors.singleThreadScheduledExecutor(
         "ha-proxy-container-test", isDaemon = false, new AbortPolicy)
@@ -98,6 +100,7 @@ class HaProxyContainerTest extends MidolmanSpec
         mockHaproxyHelper = mock(classOf[HaproxyHelper])
         container = new TestHaProxyContainer(virtualTopology, containerExecutor)
         store = virtualTopology.store
+        stateStore = virtualTopology.stateStore
 
         // Most tests don't care about the result from this, but it should
         // avoid returning null.
@@ -325,12 +328,15 @@ class HaProxyContainerTest extends MidolmanSpec
     private def verifyMemberStatus(upMemberIds: Set[UUID],
                                    downMemberIds: Set[UUID])
     : Unit = eventually {
-        val upMembers = store.getAll(classOf[PoolMember], upMemberIds.toSeq)
-        val downMembers = store.getAll(classOf[PoolMember], downMemberIds.toSeq)
-        for (m <- upMembers.await())
-            m.getStatus shouldBe LBStatus.ACTIVE
-        for (m <- downMembers.await())
-            m.getStatus shouldBe LBStatus.INACTIVE
+        for (memberId <- upMemberIds)
+            getMemberStatus(memberId) shouldBe Some(LBStatus.ACTIVE.toString)
+        for (memberId <- downMemberIds)
+            getMemberStatus(memberId) shouldBe Some(LBStatus.INACTIVE.toString)
+    }
+
+    private def getMemberStatus(memberId: UUID): Option[String] = {
+        stateStore.getKey(classOf[PoolMember], memberId, StatusKey)
+            .toSingle.toBlocking.value.asInstanceOf[SingleValueKey].value
     }
 
     private def verifyHealth(obs: TestAwaitableObserver[ContainerStatus],
