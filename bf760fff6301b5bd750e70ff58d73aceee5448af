@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_49c46d3f",
+        "filename": "python-midonetclient/package.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-12-26T02:46:10Z",
+      "side": 1,
+      "message": "is it correct that the name of the FPM dependency in the RPM_ARGS is \"protobuf-python\", but for the DEB_ARGS, it is \"python-protobuf\"?",
+      "range": {
+        "startLine": 102,
+        "startChar": 28,
+        "endLine": 102,
+        "endChar": 43
+      },
+      "revId": "bf760fff6301b5bd750e70ff58d73aceee5448af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
