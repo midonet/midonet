@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_7786e7ba",
+        "filename": "midonet-util/src/main/java/org/midonet/jna/CLibrary.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-27T15:56:25Z",
+      "side": 1,
+      "message": "this comment needs an update.",
+      "range": {
+        "startLine": 178,
+        "startChar": 53,
+        "endLine": 179,
+        "endChar": 38
+      },
+      "revId": "aa25f50982dbedf25ad83d62ac27c92f367742f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
