@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_d7e6d3e7",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-27T15:30:58Z",
+      "side": 1,
+      "message": "i think explicit class argument is not necessary",
+      "range": {
+        "startLine": 346,
+        "startChar": 43,
+        "endLine": 346,
+        "endChar": 56
+      },
+      "revId": "875424bb83d2bef9ee48dd004619cd5ed8057dd7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
