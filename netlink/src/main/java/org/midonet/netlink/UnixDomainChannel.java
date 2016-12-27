@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import sun.nio.ch.NativeThread;
 
 import org.midonet.jna.CLibrary;
+import org.midonet.jna.Socket;
 import org.midonet.netlink.hacks.IOUtil;
 import org.midonet.util.AfUnix;
 
@@ -57,7 +58,7 @@ public abstract class UnixDomainChannel extends UnixChannel<AfUnix.Address>
 
         int socket;
         try {
-            socket = CLibrary.socket(CLibrary.AF_UNIX, sockType.getValue(), 0);
+            socket = CLibrary.socket(Socket.AF_UNIX, sockType.getValue(), 0);
         } catch (LastErrorException e) {
             log.error("Could not create UNIX domain socket: {}",
                       CLibrary.strerror(e.getErrorCode()));

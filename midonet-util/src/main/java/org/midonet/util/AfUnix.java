@@ -16,6 +16,7 @@
 package org.midonet.util;
 
 import org.midonet.jna.CLibrary;
+import org.midonet.jna.Socket;
 
 public interface AfUnix {
 
@@ -49,7 +50,7 @@ public interface AfUnix {
             CLibrary.UnixDomainSockAddress addr =
                 new CLibrary.UnixDomainSockAddress();
 
-            addr.sun_family = CLibrary.AF_UNIX;
+            addr.sun_family = Socket.AF_UNIX;
             byte[] bytes = this.path.getBytes();
             for (int i = 0; i < bytes.length; i++)
                 addr.sun_path.chars[i] = bytes[i];

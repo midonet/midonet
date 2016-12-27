@@ -29,6 +29,11 @@ import com.sun.jna.Structure;
 @SuppressWarnings("unused")
 public interface Socket {
 
+    int AF_UNIX = 1;        // Unix domain sockets.
+    int AF_INET = 2;        // Internet IP Protocol.
+    int AF_INET6 = 10;      // IP version 6.
+    int AF_NETLINK = 16;    // Netlink.
+
     /**
      * struct sockaddr {
      *    sa_family_t     sa_family;      // address family, AF_xxx
