@@ -84,11 +84,6 @@ public final class CLibrary {
         }
     }
 
-    public static final int AF_UNIX = 1;
-    public static final int AF_INET = 2;
-    public static final int AF_INET6 = 10;
-    public static final int AF_NETLINK = 16;
-
     public static final int SOCK_STREAM = 1;
     public static final int SOCK_DGRAM = 2;
     public static final int SOCK_RAW = 3;

@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.jna.CLibrary;
+import org.midonet.jna.Socket;
 import org.midonet.netlink.hacks.IOUtil;
 
 /**
@@ -88,7 +89,7 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
     protected void initSocket() throws LastErrorException {
         int socket;
         try {
-            socket = CLibrary.socket(CLibrary.AF_NETLINK, CLibrary.SOCK_RAW,
+            socket = CLibrary.socket(Socket.AF_NETLINK, CLibrary.SOCK_RAW,
                                      protocol.value());
         } catch (LastErrorException e) {
             log.error("Could not create Netlink socket: {}",
@@ -212,7 +213,7 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
 
     protected void _executeConnect(Netlink.Address address) throws IOException {
         CLibrary.NetlinkSockAddress remote = new CLibrary.NetlinkSockAddress();
-        remote.nl_family = CLibrary.AF_NETLINK;
+        remote.nl_family = Socket.AF_NETLINK;
         remote.nl_pid = address.getPid();
 
         if (CLibrary.connect(fdVal, remote, remote.size()) < 0) {
