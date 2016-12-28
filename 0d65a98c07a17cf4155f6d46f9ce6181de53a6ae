@@ -22,6 +22,30 @@
       "revId": "0d65a98c07a17cf4155f6d46f9ce6181de53a6ae",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_50e4093a",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-28T10:23:39Z",
+      "side": 0,
+      "message": "only problem i know with having ovs running\nis MNA-502, which has been fixed in 2015.",
+      "parentUuid": "fabf19d9_b06805bc",
+      "range": {
+        "startLine": 279,
+        "startChar": 8,
+        "endLine": 279,
+        "endChar": 44
+      },
+      "revId": "0d65a98c07a17cf4155f6d46f9ce6181de53a6ae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
