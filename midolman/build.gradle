@@ -276,7 +276,6 @@ debian.doFirst {
         '-d', 'openjdk-8-jdk-headless | java8-runtime-headless | java8-runtime',
         '-d', 'iproute (>= 20111117-1ubuntu2.1)',
         '-d', 'linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0) | linux-image-generic-lts-trusty (>= 3.13.0) | linux-image-virtual-lts-trusty (>= 3.13.0) | openvswitch-datapath-dkms (>= 1.10)',
-        '--conflicts', 'openvswitch-switch',
         '--deb-recommends', 'java8-runtime-headless | java8-runtime',
         '--after-install', "${project.projectDir}/src/deb/control/postinst",
         '--before-install', "${project.projectDir}/src/deb/control/preinst",
