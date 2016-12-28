@@ -46,6 +46,30 @@
       "revId": "880f4ac47e0575a5be8ab5d335e98b2ece446df9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_15f32375",
+        "filename": "midonet-util/src/main/java/org/midonet/jna/If.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-28T08:47:27Z",
+      "side": 1,
+      "message": "Actually, I will remove ifmap for now, since we don\u0027t use it to prevent allocating an extra non-primitive field.",
+      "parentUuid": "fabf19d9_dae6fae7",
+      "range": {
+        "startLine": 55,
+        "startChar": 15,
+        "endLine": 55,
+        "endChar": 19
+      },
+      "revId": "880f4ac47e0575a5be8ab5d335e98b2ece446df9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
