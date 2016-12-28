@@ -33,6 +33,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink.rtnetlink.LinkOps
 import org.midonet.odp.DpPort
 import org.midonet.packets.{IPSubnet, _}
+import org.midonet.util.EthtoolOps
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
 
 object VppSetup extends MidolmanLogging {
@@ -374,6 +375,26 @@ object VppSetup extends MidolmanLogging {
             vppApi.resetFib(vrf, isIpv6 = isIpv6)
         }
     }
+
+    class ChecksumOffloading(override val name: String,
+                             interfaceName: String,
+                             enabled: Boolean)
+        extends FutureTaskWithRollback {
+
+        override def execute(): Future[Any] = {
+            try {
+                EthtoolOps.setTxChecksum(interfaceName, enabled)
+                EthtoolOps.setRxChecksum(interfaceName, enabled)
+                Future.successful(Unit)
+            } catch {
+                case NonFatal(e) => Future.failed(e)
+            }
+        }
+
+        override def rollback(): Future[Any] = {
+            Future.successful(Unit)
+        }
+    }
 }
 
 class VppSetup(setupName: String, log: Logger)
@@ -537,6 +558,10 @@ class VppDownlinkSetup(config: Fip64Config,
                                               None,
                                               Some(config.vtepKernAddr))
 
+    private val disableOffloading =
+        new ChecksumOffloading("disable checksum offloading", dlinkTunName,
+                               enabled = false)
+
     private val dlinkVpp = new VppDevice("downlink VXLAN VPP interface setup",
         dlinkVppName,
         vppApi,
@@ -563,6 +588,7 @@ class VppDownlinkSetup(config: Fip64Config,
      * setup the tasks, in execution order
      */
     add(dlinkVeth)
+    add(disableOffloading)
     add(dlinkVpp)
     add(dlinkVppIp)
     add(dlinkArpNeighbour)
