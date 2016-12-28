@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_d05b792d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-28T09:57:07Z",
+      "side": 1,
+      "message": "this should be {maxRetries + 1} then",
+      "range": {
+        "startLine": 57,
+        "startChar": 50,
+        "endLine": 57,
+        "endChar": 61
+      },
+      "revId": "24b4acf60352aa6ec484d7ffd159b50b2d0297b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_102b3184",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-28T09:57:07Z",
+      "side": 1,
+      "message": "nit: the braces are not needed, same below",
+      "range": {
+        "startLine": 78,
+        "startChar": 57,
+        "endLine": 78,
+        "endChar": 66
+      },
+      "revId": "24b4acf60352aa6ec484d7ffd159b50b2d0297b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
