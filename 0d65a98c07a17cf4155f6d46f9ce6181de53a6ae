@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_b06805bc",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-28T09:59:52Z",
+      "side": 0,
+      "message": "I remember that midolman doesn\u0027t run properly when the openvswitch switch was installed, however there was some consensus to remove this dependency conflict. do you have some more details?",
+      "range": {
+        "startLine": 279,
+        "startChar": 8,
+        "endLine": 279,
+        "endChar": 44
+      },
+      "revId": "0d65a98c07a17cf4155f6d46f9ce6181de53a6ae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
