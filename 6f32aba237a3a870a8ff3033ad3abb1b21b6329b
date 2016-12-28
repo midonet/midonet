@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_2bffe602",
+        "filename": "midonet-util/src/main/java/org/midonet/jna/If.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-28T13:07:45Z",
+      "side": 1,
+      "message": "shouldn\u0027t this fill the rest of array with 0 like strncpy?",
+      "revId": "6f32aba237a3a870a8ff3033ad3abb1b21b6329b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_0b042213",
+        "filename": "midonet-util/src/main/java/org/midonet/jna/If.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-12-28T13:07:45Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "6f32aba237a3a870a8ff3033ad3abb1b21b6329b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
