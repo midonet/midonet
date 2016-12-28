@@ -22,6 +22,8 @@ import scala.util.{Failure, Success}
 
 import com.typesafe.scalalogging.Logger
 
+import org.midonet.util.concurrent.FutureTaskWithRollback.TaskName
+
 /**
   * FutureTaskWithRollback
   *
@@ -30,7 +32,7 @@ import com.typesafe.scalalogging.Logger
   */
 trait FutureTaskWithRollback {
 
-    def name: String
+    def name: TaskName
 
     @throws[Exception]
     def execute(): Future[Any]
@@ -41,12 +43,16 @@ trait FutureTaskWithRollback {
 
 object FutureTaskWithRollback {
 
-    def apply(taskName: String,
+    type TaskName = () => String
+
+    implicit def stringToTaskName(name: String): TaskName = () => name
+
+    def apply(taskName: TaskName,
               executeCallback: () => Future[Any],
               undoCallback: () => Future[Any]): FutureTaskWithRollback =
         new FutureTaskWithRollback {
 
-            override val name: String = taskName
+            override def name: TaskName = taskName
 
             override def execute() = executeCallback()
 
@@ -107,7 +113,7 @@ object FutureSequenceWithRollback {
   * @param name Description for this sequence (used in logs)
   * @param ec Execution context
   */
-class FutureSequenceWithRollback(val name: String, log: Logger)
+class FutureSequenceWithRollback(override val name: TaskName, log: Logger)
                                 (implicit ec: ExecutionContext)
     extends FutureTaskWithRollback {
 
@@ -125,14 +131,14 @@ class FutureSequenceWithRollback(val name: String, log: Logger)
     private def executeOp(op: Operation): Future[Any] = {
         if (steps.nonEmpty) {
             position = op.initialPosition(position)
-            log.debug(s"Started to $op $name")
+            log.debug(s"Started to $op ${name()}")
             val promise = Promise[Unit]
             executeChained(op) onComplete {
                 case Success(_) =>
-                    log.debug(s"Completed $op of $name")
+                    log.debug(s"Completed $op of ${name()}")
                     promise.success(())
                 case Failure(err) =>
-                    log.warn(s"Failed to $op $name: $err")
+                    log.warn(s"Failed to $op ${name()}: $err")
                     promise.failure(err)
             }
             promise.future
@@ -146,11 +152,11 @@ class FutureSequenceWithRollback(val name: String, log: Logger)
             try {
                 val task = steps(position)
                 position = op.next(position)
-                log.debug(s"Sequence $name: $op ${task.name}")
+                log.debug(s"Sequence ${name()}: $op ${task.name()}")
                 op(task) recover {
                     case NonFatal(err) =>
-                        log.warn(s"Sequence $name: $op failed " +
-                                 s"${task.name}: $err")
+                        log.warn(s"Sequence ${name()}: $op failed " +
+                                 s"${task.name()}: $err")
                         if (op.ignoreFailures) {
                             /* succeed this task's future with an instance
                              * of IgnoredFailure(...)
@@ -160,7 +166,7 @@ class FutureSequenceWithRollback(val name: String, log: Logger)
                             throw err
                         }
                 } flatMap { _ =>
-                    log.debug(s"Sequence $name: completed $op ${task.name}")
+                    log.debug(s"Sequence ${name()}: completed $op ${task.name()}")
                     executeChained(op)
                 }
             } catch {

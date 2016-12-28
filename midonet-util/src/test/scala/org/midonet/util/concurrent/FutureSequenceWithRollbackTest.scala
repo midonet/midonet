@@ -17,28 +17,30 @@
 package org.midonet.util.concurrent
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 
 import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito
-import org.scalatest.{FeatureSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
 
+import org.midonet.util.concurrent.FutureTaskWithRollback._
+
 @RunWith(classOf[JUnitRunner])
-class FutureSequenceWithRollbackTest extends FeatureSpec
-                                             with Matchers {
+class FutureSequenceWithRollbackTest extends FeatureSpec with Matchers {
 
     private val timeout = Duration.Inf
     private val log = Logger(LoggerFactory.getLogger(getClass))
+    private implicit val ec = CallingThreadExecutionContext
 
     feature("Successful execution and complete rollback") {
         scenario("single task") {
             val exec = new FutureSequenceWithRollback("test sequence", log)
             val task = Mockito.mock(classOf[FutureTaskWithRollback])
+            Mockito.when(task.name).thenReturn(() => "task")
             Mockito.when(task.execute()).thenReturn(Future.successful(true))
             Mockito.when(task.rollback()).thenReturn(Future.successful(true))
             exec.add(task)
@@ -58,6 +60,7 @@ class FutureSequenceWithRollbackTest extends FeatureSpec
             val Count = 5
             val tasks = for (i <- 0 to Count) yield {
                 val task = Mockito.mock(classOf[FutureTaskWithRollback])
+                Mockito.when(task.name).thenReturn(() => s"task $i")
                 Mockito.when(task.execute()).thenReturn(Future.successful(true))
                 Mockito.when(task.rollback())
                     .thenReturn(Future.successful(true))
@@ -90,6 +93,7 @@ class FutureSequenceWithRollbackTest extends FeatureSpec
             val exec = new FutureSequenceWithRollback("test sequence", log)
             val tasks = for (i <- 0 to count) yield {
                 val task = Mockito.mock(classOf[FutureTaskWithRollback])
+                Mockito.when(task.name).thenReturn(() => s"task $i")
                 if (i != failurePos) {
                     Mockito.when(task.execute())
                         .thenReturn(Future.successful(true))
@@ -157,6 +161,7 @@ class FutureSequenceWithRollbackTest extends FeatureSpec
             val NumTasks = 5
             val tasks = for (i <- 0 to NumTasks) yield {
                 val task = Mockito.mock(classOf[FutureTaskWithRollback])
+                Mockito.when(task.name).thenReturn(() => s"task $i")
                 Mockito.when(task.execute()).thenReturn(Future.successful(true))
                 Mockito.when(task.rollback())
                     .thenReturn(Future.successful(true))
@@ -175,6 +180,7 @@ class FutureSequenceWithRollbackTest extends FeatureSpec
             val NumTasks = 5
             val tasks = for (i <- 0 to NumTasks) yield {
                 val task = Mockito.mock(classOf[FutureTaskWithRollback])
+                Mockito.when(task.name).thenReturn(() => s"task $i")
                 Mockito.when(task.execute()).thenReturn(Future.successful(true))
                 Mockito.when(task.rollback())
                     .thenReturn(Future.successful(true))

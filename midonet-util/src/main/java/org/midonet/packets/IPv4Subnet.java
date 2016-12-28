@@ -22,6 +22,8 @@ import org.apache.commons.lang.StringUtils;
 
 public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
 
+    public static final IPv4Subnet ANY = new IPv4Subnet(0, 0);
+
     public IPv4Subnet(IPv4Addr address, int prefixLen) {
         super(address, prefixLen);
     }
