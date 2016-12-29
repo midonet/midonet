@@ -306,8 +306,8 @@ class PacketWorkflow(
             process()
         }
 
-    override def shouldProcess(): Boolean =
-        super.shouldProcess() ||
+    override def shouldProcess: Boolean =
+        super.shouldProcess ||
         backChannel.hasMessages ||
         arpBroker.shouldProcess() ||
         shouldExpire
