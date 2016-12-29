@@ -22,6 +22,30 @@
       "revId": "082a216125c5ddc49032720be5d9a091f167181c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_6baa7b72",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-12-29T20:41:29Z",
+      "side": 1,
+      "message": "no, I don\u0027t think needed. I will run some more tests and remove it if unnecessary",
+      "parentUuid": "fabf19d9_4860dd35",
+      "range": {
+        "startLine": 387,
+        "startChar": 27,
+        "endLine": 387,
+        "endChar": 40
+      },
+      "revId": "082a216125c5ddc49032720be5d9a091f167181c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
