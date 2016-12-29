@@ -57,7 +57,7 @@ class BackChannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
         running.get
 
     override def shouldWakeUp(): Boolean = {
-        if (backChannel.shouldProcess() || !isRunning) {
+        if (backChannel.shouldProcess || !isRunning) {
             return true
         }
 
