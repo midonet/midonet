@@ -18,12 +18,12 @@ package org.midonet.util.concurrent
 
 /**
  * An interface to be used together with the BackChannelEventProcessor.
- * The shouldProcess() method informs whether there is work to be processed
+ * The shouldProcess method informs whether there is work to be processed
  * on this back channel and it should be thread-safe. The process() method
  * does the actual work and can be called even when shouldProcess() returns
  * false.
  */
 trait DisruptorBackChannel {
-    def shouldProcess(): Boolean
+    def shouldProcess: Boolean
     def process(): Unit
 }

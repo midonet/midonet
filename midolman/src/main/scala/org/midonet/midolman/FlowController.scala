@@ -126,7 +126,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         }
     }
 
-    override def shouldProcess() = completedFlowOperations.size > 0
+    override def shouldProcess = completedFlowOperations.size > 0
 
     override def process(): Unit = {
         processCompletedFlowOperations()
