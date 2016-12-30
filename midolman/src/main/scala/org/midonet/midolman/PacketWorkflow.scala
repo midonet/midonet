@@ -264,6 +264,11 @@ class PacketWorkflow(
         arpBroker.shouldProcess() ||
         shouldExpire
 
+    /**
+      * @return The number of [[PacketContext]] postponed in the waiting room.
+      */
+    def waitingRoomCount: Int = waitingRoom.count
+
     // We need to expire leftover flows if no expiration has happened in
     // maxWithoutExpiration nanoseconds
     private def shouldExpire =
@@ -394,8 +399,7 @@ class PacketWorkflow(
             if (error eq null) {
                 runWorkflow(pktCtx)
             } else {
-                handleErrorOn(pktCtx, error)
-                waitingRoom leave pktCtx
+                handleErrorOn(pktCtx, error, waiting = true)
             }
             MDC.remove("cookie")
             FlowTracingContext.clearContext()
@@ -452,7 +456,10 @@ class PacketWorkflow(
     /**
      * Handles an error in a workflow execution.
      */
-    private def handleErrorOn(pktCtx: PacketContext, ex: Throwable): Unit = {
+    private def handleErrorOn(pktCtx: PacketContext, ex: Throwable,
+                              waiting: Boolean): Unit = {
+        if (waiting)
+            waitingRoom leave pktCtx
         ex match {
             case ArpTimeoutException(router, ip) =>
                 pktCtx.log.debug(s"ARP timeout at router $router for address $ip")
@@ -493,7 +500,7 @@ class PacketWorkflow(
                 pktCtx.log.debug(s"Postponing simulation because: $msg")
                 postponeOn(pktCtx, f)
             case NonFatal(ex) =>
-                handleErrorOn(pktCtx, ex)
+                handleErrorOn(pktCtx, ex, pktCtx.runs > 1)
         }
 
     protected def handlePacket(packet: Packet): Unit =
