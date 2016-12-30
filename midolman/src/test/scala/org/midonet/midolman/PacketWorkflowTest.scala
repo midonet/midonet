@@ -266,6 +266,40 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetWorkflow.backChannel.hasMessages shouldBe false
         }
 
+        scenario("Failures on postponed context removes it from waiting room") {
+            createPacketWorkflow()
+
+            Given("A postponed simulation")
+            val packet = makePacket(1)
+            packetWorkflow.handlePackets(packet)
+
+            When("Completing the postpone future with an error")
+            packetWorkflow.p.tryFailure(new Exception())
+
+            And("Resuming processing the packet")
+            packetWorkflow.process()
+
+            Then("The waiting room is empty")
+            packetWorkflow.waitingRoomCount shouldBe 0
+        }
+
+        scenario("Failures on resumed context removes it from waiting room") {
+            createPacketWorkflow()
+
+            Given("A postponed simulation")
+            val packet = makePacket(1)
+            packetWorkflow.handlePackets(packet)
+
+            When("Completing the postpone future")
+            packetWorkflow.completeWithException(new Exception())
+
+            And("Resuming processing the packet")
+            packetWorkflow.process()
+
+            Then("The waiting room is empty")
+            packetWorkflow.waitingRoomCount shouldBe 0
+        }
+
         scenario("Workflow handles Fip64 tunnel packets without matching port") {
             val vxlanPortNumber = 20
             createPacketWorkflow(0, custom = false,
