@@ -21,7 +21,7 @@ import java.util.UUID
 import java.util.ArrayDeque
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.duration._
+//import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.Failure
@@ -252,14 +252,14 @@ class PacketWorkflow(
     protected val simulationExpireMillis = 5000L
     private val maxPooledContexts = config.maxPooledContexts
 
-    private val waitingRoom = new WaitingRoom[PacketContext](
-                                        (simulationExpireMillis millis).toNanos)
+    private val waitingRoom =
+        new WaitingRoom(TimeUnit.MILLISECONDS.toNanos(simulationExpireMillis))
 
     private val contextPool = new ArrayDeque[PacketContext](maxPooledContexts)
     private val processingRoom = new ArrayDeque[PacketContext]()
 
     private var lastExpiration = System.nanoTime()
-    private val maxWithoutExpiration = (5 seconds) toNanos
+    private val maxWithoutExpiration = TimeUnit.SECONDS.toNanos(5)
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
@@ -421,7 +421,9 @@ class PacketWorkflow(
      */
     private def postponeOn(pktCtx: PacketContext, f: Future[_]): Unit = {
         val cookie = pktCtx.cookie
-        pktCtx.postpone()
+        //pktCtx.postpone()
+        waitingRoom enter pktCtx
+        metrics.packetPostponed()
         f.onComplete { res =>
             val error = res match {
                 case Failure(ex) => ex
@@ -431,8 +433,6 @@ class PacketWorkflow(
                 backChannel.tell(RestartWorkflow(cookie, pktCtx, error))
             }
         }(ExecutionContext.callingThread)
-        metrics.packetPostponed()
-        waitingRoom enter pktCtx
     }
 
     private def restart(cookie: Long, pktCtx: PacketContext, error: Throwable): Unit =

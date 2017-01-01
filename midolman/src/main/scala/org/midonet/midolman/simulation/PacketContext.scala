@@ -382,6 +382,7 @@ class PacketContext extends Clearable
     var outPortGroups: util.List[UUID] = null
 
     var idle: Boolean = true
+    var idleWaitFor: Long = 0L
     var runs: Int = 0
 
     var devicesTraversed = 0
@@ -456,25 +457,26 @@ class PacketContext extends Clearable
         resetRecordedContext()
         resetStateContext()
 
-        this.log = PacketContext.defaultLog
-        this.idle = true
-        this.devicesTraversed = 0
-        this.runs = 0
-        this.cookie = -1
-        this.packet = null
-        this.origMatch.clear()
-        this.egressPort = null
-        this.egressPortNo = null
-        this.preRoutingMatch.clear()
-        this.wcmatch.clear()
-        this.diffBaseMatch.clear()
-        this.inPortId = null
-        this.outPortId = null
-        this.outPorts.clear()
-        this.portGroups = null
-        this.inPortGroups = null
-        this.outPortGroups = null
-        this.flowRemovedCallbacks.clear()
+        log = PacketContext.defaultLog
+        idle = true
+        idleWaitFor = 0L
+        devicesTraversed = 0
+        runs = 0
+        cookie = -1
+        packet = null
+        origMatch.clear()
+        egressPort = null
+        egressPortNo = null
+        preRoutingMatch.clear()
+        wcmatch.clear()
+        diffBaseMatch.clear()
+        inPortId = null
+        outPortId = null
+        outPorts.clear()
+        portGroups = null
+        inPortGroups = null
+        outPortGroups = null
+        flowRemovedCallbacks.clear()
     }
 
     override def clear(): Unit = {
@@ -499,7 +501,7 @@ class PacketContext extends Clearable
         clear()
     }
 
-    def postpone() {
+    def postpone(): Unit = {
         // reset the payload and its original flow match in case it was
         // encapsulated or decapsulated during this try of the simulation.
         if (recircPayload ne null)

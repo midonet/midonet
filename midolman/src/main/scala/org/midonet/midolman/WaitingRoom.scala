@@ -15,8 +15,11 @@
  */
 package org.midonet.midolman
 
-import scala.collection.{immutable, mutable}
 import java.util.concurrent.TimeUnit
+
+import org.apache.commons.collections4.map.LinkedMap
+
+import org.midonet.midolman.simulation.PacketContext
 
 /**
  * A WaitingRoom is an abstraction that allows holding Waiters for a limited
@@ -30,10 +33,9 @@ import java.util.concurrent.TimeUnit
  *
  * @param timeout timeout, in nanoseconds
  */
-class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
+class WaitingRoom(val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
 
-    private[this] val waiters = new java.util.HashMap[W, Long]()
-    private[this] val timeouts = new mutable.ListBuffer[(W, Long)]()
+    private[this] val waiters = new LinkedMap[PacketContext, Unit]()
 
     /**
      * Number of waiters currently in the room.
@@ -46,31 +48,37 @@ class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
      * If the element is already in the waiting room, it will not be added again
      * and the *old* waiting time remains unaltered.
      */
-    def enter(w: W): Boolean = {
+    def enter(packetContext: PacketContext): Boolean = {
         val waitFor = System.nanoTime() + timeout
-        if (!waiters.containsKey(w)) {
-            waiters.put(w, waitFor)
-            timeouts += ((w, waitFor))
+        if (!waiters.containsKey(packetContext)) {
+            packetContext.idleWaitFor = waitFor
+            waiters.put(packetContext, Unit)
             true
         } else {
             false
         }
     }
 
-    def leave(w: W): Unit = {
+    def leave(w: PacketContext): Unit = {
         waiters.remove(w)
     }
 
-    def doExpirations(f: W => Unit): Unit = {
+    def doExpirations(f: PacketContext => Unit): Unit = {
         val now = System.nanoTime()
-        while (timeouts.nonEmpty && (now - timeouts.head._2) > 0) {
-            val pair = timeouts remove 0
-            val waiter = pair._1
-            val timeout = pair._2
-            if (waiters.containsKey(waiter)
-                    && waiters.remove(waiter) == timeout) {
-                f(waiter)
-            }
+        var packetContext: PacketContext = null
+        while (!waiters.isEmpty &&
+               { packetContext = waiters.firstKey()
+                   now - packetContext.idleWaitFor > 0 }) {
+            waiters.remove(packetContext)
+            f(packetContext)
+        //while (timeouts.nonEmpty && (now - timeouts.head._2) > 0) {
+            //val pair = timeouts remove 0
+            //val waiter = pair._1
+            //val timeout = pair._2
+            //if (waiters.containsKey(waiter)
+            //        && waiters.remove(waiter) == timeout) {
+            //    f(waiter)
+            //}
         }
     }
 }

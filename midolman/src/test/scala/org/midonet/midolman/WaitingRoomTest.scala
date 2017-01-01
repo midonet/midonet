@@ -16,12 +16,14 @@
 package org.midonet.midolman
 
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
+
 import scala.collection.mutable.ListBuffer
 
-import org.scalatest.{Matchers, FeatureSpec}
+import org.scalatest.{FeatureSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
+
+import org.midonet.midolman.simulation.PacketContext
 
 @RunWith(classOf[JUnitRunner])
 class WaitingRoomTest extends FeatureSpec with Matchers {
@@ -31,26 +33,26 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
     feature("Add a waiter") {
 
         scenario("Construction") {
-            val wr = new WaitingRoom[Int](to)
+            val wr = new WaitingRoom(to)
             wr.timeout shouldEqual to
         }
 
         scenario("Construction with defaults") {
-            val wr = new WaitingRoom[Int]()
+            val wr = new WaitingRoom()
             wr.timeout shouldEqual TimeUnit.SECONDS.toNanos(3)
         }
 
-        def evictions[T](wr: WaitingRoom[T]) = {
-            val buf = new ListBuffer[T]()
-            wr.doExpirations(buf.+=)
+        def evictions(wr: WaitingRoom) = {
+            val buf = new ListBuffer[PacketContext]()
+            wr.doExpirations(buf += _)
             buf.toList
         }
 
         scenario("Each waiter triggers a cleanup of timed out waiters") {
-            val wr = new WaitingRoom[Int](to)
-            val w1 = 1
-            val w2 = 2
-            val w3 = 3
+            val wr = new WaitingRoom(to)
+            val w1 = new PacketContext
+            val w2 = new PacketContext
+            val w3 = new PacketContext
 
             // add elements and verify size
             wr.count should be (0)
@@ -78,20 +80,25 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
         }
 
         scenario("A waiter leaving before timing out is not expired") {
-            val wr = new WaitingRoom[Int](to)
-            List(1,2,3) foreach wr.enter
-            wr leave 2
+            val wr = new WaitingRoom(to)
+            val w1 = new PacketContext
+            val w2 = new PacketContext
+            val w3 = new PacketContext
+            val w4 = new PacketContext
+
+            List(w1, w2, w3) foreach wr.enter
+            wr leave w2
 
             Thread.sleep(TimeUnit.NANOSECONDS.toMillis(to))
-            wr enter 4
-            evictions(wr) should (contain(1) and contain(3) and not contain 2)
+            wr enter w4
+            evictions(wr) should (contain(w1) and contain(w3) and not contain w2)
         }
     }
 
     feature("Reentry of objects") {
         scenario("A waiter is added, completes, and is added again.") {
-            val wr = new WaitingRoom[AtomicInteger](to)
-            val waiter = new AtomicInteger(0)
+            val wr = new WaitingRoom(to)
+            val waiter = new PacketContext
 
             wr enter waiter
             wr leave waiter
@@ -99,9 +106,9 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
             Thread.sleep(TimeUnit.NANOSECONDS.toMillis(to))
 
             wr enter waiter
-            wr.doExpirations(_.incrementAndGet)
+            wr.doExpirations(_.runs += 1)
 
-            waiter.get shouldBe 0
+            waiter.runs shouldBe 0
         }
     }
 }
