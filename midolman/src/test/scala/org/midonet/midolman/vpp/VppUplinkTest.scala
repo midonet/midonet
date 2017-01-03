@@ -17,10 +17,10 @@
 package org.midonet.midolman.vpp
 
 import java.util.UUID
-import java.util.concurrent.ExecutorService
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+
+import com.google.common.util.concurrent.AbstractService
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -35,10 +35,10 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.vpp.VppExecutor.Receive
+import org.midonet.midolman.vpp.VppFip64.Notification
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.packets.{IPv6Addr, IPv6Subnet}
-import org.midonet.util.concurrent.SameThreadButAfterExecutorService
+import org.midonet.util.functors.makeAction1
 import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
@@ -47,21 +47,15 @@ class VppUplinkTest extends MidolmanSpec with TopologyBuilder {
     private var backend: MidonetBackend = _
     private var vt: VirtualTopology = _
 
-    private class TestableVppUplink extends VppExecutor with VppUplink {
+    private class TestableVppUplink extends AbstractService with VppUplink {
         override def vt = VppUplinkTest.this.vt
         override val log = Logger(LoggerFactory.getLogger("vpp-uplink"))
         var messages = List[Any]()
 
-        protected override def newExecutor: ExecutorService = {
-            new SameThreadButAfterExecutorService
-        }
-
-        protected override def receive: Receive = {
-            case m =>
-                log debug s"Received message $m"
-                messages = messages :+ m
-                Future.successful(Unit)
-        }
+        uplinkObservable.subscribe(makeAction1[Notification] { m =>
+            log debug s"Received message $m"
+            messages = messages :+ m
+        })
 
         protected override def doStart(): Unit = {
             startUplink()
@@ -70,7 +64,6 @@ class VppUplinkTest extends MidolmanSpec with TopologyBuilder {
 
         protected override def doStop(): Unit = {
             stopUplink()
-            super.doStop()
             notifyStopped()
         }
     }
