@@ -75,7 +75,7 @@ class VppController(hostId: UUID,
                     datapathState: DatapathState,
                     vppOvs: VppOvs,
                     protected override val vt: VirtualTopology)
-    extends VppExecutor with VppUplink with VppDownlink with VppState {
+    extends VppExecutor with VppFip64 with VppDownlink with VppState {
 
     import VppController._
 
