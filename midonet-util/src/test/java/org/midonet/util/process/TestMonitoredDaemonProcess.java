@@ -58,13 +58,13 @@ public class TestMonitoredDaemonProcess {
 
         public void waitForStartEvents(int numEvents,
                                        LinkedList<Long> events) throws Exception {
-            waitFor(() -> events.subList(0, numEvents).equals(startEvents));
+            waitFor(() -> events.subList(0, numEvents).equals(getStartEvents()));
         }
 
         private void waitFor(Callable<Boolean> condition) throws Exception {
             int attempts = 20;
             while (attempts > 0 && !condition.call()) {
-                log.debug("Start events: " + startEvents);
+                log.debug("Start events: " + getStartEvents());
                 Thread.sleep(1000);
                 attempts--;
             }
@@ -101,7 +101,7 @@ public class TestMonitoredDaemonProcess {
         process.startAsync().awaitRunning(5, SECONDS);
         process.waitFor(() -> action.exited);
         assertThat("The command has been executed three times",
-                   process.startEvents.size() == 3);
+                   process.getStartEvents().size() == 3);
     }
 
     @Test
