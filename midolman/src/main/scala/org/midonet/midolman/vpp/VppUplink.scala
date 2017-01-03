@@ -32,19 +32,17 @@ import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber, Subscription}
 
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.services.MidolmanActorsService._
 import org.midonet.midolman.simulation.{Port, PortGroup, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{ObjectReferenceTracker, VirtualToPhysicalMapper, VirtualTopology}
-import org.midonet.midolman.vpp.VppUplink.{Notification, UplinkState}
+import org.midonet.midolman.vpp.VppFip64.Notification
+import org.midonet.midolman.vpp.VppUplink.UplinkState
 import org.midonet.packets.IPv6Subnet
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeRunnable}
 import org.midonet.util.logging.Logger
 
 object VppUplink {
-
-    trait Notification { def portId: UUID }
 
     /**
       * A message to configure an IPv6 uplink port. The message contains the
@@ -324,7 +322,7 @@ private[vpp] trait VppUplink { this: VppExecutor =>
     private def uplinkObserver(portId: UUID) = new Observer[Notification] {
         override def onNext(notification: Notification): Unit = {
             log debug s"Uplink port $portId notification: $notification"
-            send(notification)
+            uplinkChanged(notification)
         }
 
         override def onCompleted(): Unit = {
@@ -385,6 +383,14 @@ private[vpp] trait VppUplink { this: VppExecutor =>
                     log.warn("Unhandled exception when stopping uplinks", e)
             }
         }
+    }
+
+    /**
+      * Handles an uplink notification, by default sending it to the current VPP
+      * executor.
+      */
+    protected def uplinkChanged(notification: Notification): Unit = {
+        send(notification)
     }
 
     /**
