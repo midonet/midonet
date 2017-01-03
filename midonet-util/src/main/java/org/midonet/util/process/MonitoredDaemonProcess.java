@@ -15,6 +15,7 @@
  */
 package org.midonet.util.process;
 
+import java.util.List;
 import java.util.LinkedList;
 import java.util.function.Consumer;
 
@@ -42,7 +43,7 @@ public class MonitoredDaemonProcess extends AbstractService {
     final private long period;
     final private Consumer<Exception> exitAction;
     final protected UnixClock clock = UnixClock$.MODULE$.apply();
-    final protected LinkedList<Long> startEvents;
+    final private LinkedList<Long> startEvents;
 
     volatile protected Process process;
 
@@ -94,6 +95,13 @@ public class MonitoredDaemonProcess extends AbstractService {
             .run();
         log.info("Process ``{}`` starting with pid {} at time {}",
                  cmd, ProcessHelper.getProcessPid(process), clock.time());
+    }
+
+    @VisibleForTesting
+    protected List<Long> getStartEvents() {
+        synchronized (startEvents) {
+            return new LinkedList<Long>(startEvents);
+        }
     }
 
     private int startEventsInPreviousPeriod() {
