@@ -31,8 +31,10 @@ class ProxyHandler(val config: MidolmanConfig) extends AbstractHandler {
                response: HttpServletResponse) = {
         baseReq setHandled true
         try {
-            val result = NovaMetadataClient.getMetadata(
+            val result = NovaMetadataClient.proxyRequest(
+                                request.getMethod,
                                 request.getPathInfo,
+                                request.getInputStream,
                                 request.getRemoteAddr,
                                 config.openstack.metadata.novaMetadataUrl,
                                 config.openstack.metadata.sharedSecret)
@@ -40,7 +42,7 @@ class ProxyHandler(val config: MidolmanConfig) extends AbstractHandler {
         } catch {
             case e: UniformInterfaceException =>
                 response.sendError(e.getResponse.getStatus, e.getMessage)
-            case e: UnknownRemoteAddressException =>
+            case e: NovaMetadataClientException =>
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage)
         }
     }
