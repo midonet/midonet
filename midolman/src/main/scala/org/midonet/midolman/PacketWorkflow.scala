@@ -561,12 +561,7 @@ class PacketWorkflow(
         }
 
     private def processPacket(packet: Packet): Unit = {
-        if (packet.getMatch.getEtherType != IPv6.ETHERTYPE) {
-            startWorkflow(packetContext(packet))
-        } else {
-            log.debug(s"Ignoring IPv6 packet: $packet")
-            packetOut(1)
-        }
+        startWorkflow(packetContext(packet))
     }
 
     private def flushTransactions(): Unit = {
