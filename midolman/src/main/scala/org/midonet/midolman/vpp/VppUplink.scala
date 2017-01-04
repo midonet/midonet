@@ -50,6 +50,7 @@ object VppUplink {
       * same port group as the current port.
       */
     case class AddUplink(portId: UUID,
+                         routerId: UUID,
                          portAddress: IPv6Subnet,
                          uplinkPortIds: JList[UUID]) extends Notification
 
@@ -169,8 +170,8 @@ object VppUplink {
                     log debug s"Uplink port $portId with IPv6 address " +
                               s"${currentPort.portAddress6} and stateful port " +
                               s"group $uplinkPortIds"
-                    last = AddUplink(portId, currentPort.portAddress6,
-                                     uplinkPortIds)
+                    last = AddUplink(portId, currentPort.routerId,
+                                     currentPort.portAddress6, uplinkPortIds)
                     Observable.just(last)
                 } else {
                     log debug s"Uplink port $portId has no IPv6 address"
@@ -183,14 +184,16 @@ object VppUplink {
                         log debug s"Uplink port $portId IPv6 address has " +
                                   s"changed from ${last.portAddress} to " +
                                   s"${currentPort.portAddress6}"
-                        last = AddUplink(portId, currentPort.portAddress6,
+                        last = AddUplink(portId, currentPort.routerId,
+                                         currentPort.portAddress6,
                                          uplinkPortIds)
                         Observable.just(DeleteThisUplink, last)
                     } else if (last.uplinkPortIds != uplinkPortIds) {
                         log debug s"Uplink port $portId port group membership " +
                                   s"has changed from ${last.uplinkPortIds} to " +
                                   s"$uplinkPortIds"
-                        last = AddUplink(portId, currentPort.portAddress6,
+                        last = AddUplink(portId, currentPort.routerId,
+                                         currentPort.portAddress6,
                                          uplinkPortIds)
                         Observable.just(DeleteThisUplink, last)
                     } else {
