@@ -33,9 +33,7 @@ import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.data.storage.StateTableEncoder.Fip64Encoder.DefaultValue
 import org.midonet.cluster.data.storage.model.Fip64Entry
-import org.midonet.cluster.models.Topology.{Rule => TopologyRule}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.rules.{Nat64Rule, NatTarget, Rule}
 import org.midonet.midolman.services.MidolmanActorsService.{ChildActorStartTimeout, ChildActorStopTimeout}
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.{StoreObjectReferenceTracker, VirtualTopology}
@@ -78,7 +76,7 @@ object VppDownlink {
       */
     case class AssociateFip(portId: UUID, vrfTable: Int, vni: Int,
                             floatingIp: IPv6Addr, fixedIp: IPv4Addr,
-                            localIp: IPv4Subnet, natPool: NatTarget)
+                            localIp: IPv4Subnet, natPool: IPv4Subnet)
         extends Notification {
 
         override def toString: String =
@@ -110,10 +108,6 @@ object VppDownlink {
         private val fips = new mutable.HashSet[Fip64Entry]
 
         private var currentPort: RouterPort = _
-        private var currentRule: Nat64Rule = _
-
-        private val ruleTracker = new StoreObjectReferenceTracker[TopologyRule](
-            vt, classOf[TopologyRule], log)
 
         private val subject = PublishSubject.create[Notification]()
         private val mark = PublishSubject.create[RouterPort]()
@@ -123,9 +117,6 @@ object VppDownlink {
             .takeUntil(mark)
             .doOnCompleted(makeAction0(portDeleted()))
             .flatMap[Notification](makeFunc1(portUpdated))
-
-        private val ruleObservable = ruleTracker.refsObservable
-            .flatMap[Notification](makeFunc1(ruleUpdated))
 
         private val portCleanup: Observable[Notification] = {
             Observable.create(new OnSubscribe[Notification] {
@@ -140,7 +131,7 @@ object VppDownlink {
           * underlying downlink port and corresponding FIP NAT rules.
           */
         val observable: Observable[Notification] = Observable
-            .merge(subject, ruleObservable, portObservable)
+            .merge(subject, portObservable)
             .filter(makeFunc1(_ => isReady))
             .onErrorResumeNext(makeFunc1(handleErrors))
             .concatWith(portCleanup)
@@ -156,7 +147,7 @@ object VppDownlink {
                                             fip.floatingIp,
                                             fip.fixedIp,
                                             currentPort.portAddress4,
-                                            currentRule.natPool)
+                                            fip.natPool)
             }
         }
 
@@ -185,9 +176,7 @@ object VppDownlink {
           * Indicates whether the state has received the downlink port and FIP64
           * rule and is ready to emit FIP64 [[Notification]]s.
           */
-        @inline def isReady: Boolean = {
-            (currentPort ne null) && (currentRule ne null)
-        }
+        @inline def isReady: Boolean = (currentPort ne null)
 
         /**
           * Returns true if this downlink is not associated with any floating IP.
@@ -202,7 +191,6 @@ object VppDownlink {
         private def portDeleted(): Unit = {
             log debug s"Port $portId deleted"
             subject onCompleted()
-            ruleTracker.completeRefs()
         }
 
         /**
@@ -213,16 +201,11 @@ object VppDownlink {
         private def portUpdated(port: RouterPort): Observable[Notification] = {
             log debug s"Port updated: $port"
 
-            val natRuleIds = Set(port.fipNatRules.asScala.map(_.id): _*)
-
-            // Track the current FIP NAT rules.
-            ruleTracker.requestRefs(natRuleIds)
-
             val result: Observable[Notification] =
-                if ((currentPort eq null) && (currentRule ne null)) {
+                if (currentPort eq null) {
                     // If this is the first port notification, and the FIP64 NAT
                     // rule has been loaded, notify the port creation.
-                    initialize(port, currentRule)
+                    initialize(port)
                 } else {
                     // Either the port or the rule is not ready: emit nothing.
                     Observable.empty()
@@ -231,60 +214,6 @@ object VppDownlink {
             currentPort = port
 
             result
-        }
-
-        /**
-          * Handles updates for the port FIP NAT rules. Normally, the downlink
-          * ports should have only one FIP NAT rule, however here we also handle
-          * abnormal cases.
-          */
-        private def ruleUpdated(r: TopologyRule): Observable[Notification] = {
-            val rule = ZoomConvert.fromProto(r, classOf[Rule])
-
-            log debug s"FIP NAT rule updated: $rule"
-
-            rule match {
-                case fipRule: Nat64Rule =>
-                    if (currentRule eq null) {
-                        // This is the first FIP64 rule.
-                        log debug s"Port $portId has NAT64 rule ${rule.id}"
-                        currentRule = fipRule
-                        if (currentPort ne null) {
-                            // If the port was loaded, emit a create
-                            // notification.
-                            initialize(currentPort, fipRule)
-                        } else {
-                            Observable.empty()
-                        }
-                    } else if (currentRule.id == fipRule.id) {
-                        // The FIP64 rule is updated.
-                        log debug s"Port $portId NAT64 rule ${rule.id} updated"
-                        val oldRule = currentRule
-                        currentRule = fipRule
-                        if ((currentPort ne null) &&
-                            fipRule.portAddress != oldRule.portAddress) {
-                            // If the port IPv6 has changed, emit an update
-                            // notification.
-                            log debug s"Port $portId rule ${rule.id} changed " +
-                                      s"port address from ${oldRule.portAddress} " +
-                                      s"to ${fipRule.portAddress}. " +
-                                      "This is currently unhandled"
-                            Observable.empty()
-                        } else {
-                            Observable.empty()
-                        }
-                    } else {
-                        // We do not support updating the FIP64 rule, once a
-                        // rule was loaded for a downlink port, that rule
-                        // remains in force until the port is deleted.
-                        log warn s"Downlink port has multiple FIP NAT rules " +
-                                 s"${currentRule.id} and ${fipRule.id}: " +
-                                 s"ignoring the second"
-                        Observable.empty()
-                    }
-                case _ =>
-                    Observable.empty() // Ignore all other rules.
-            }
         }
 
         /**
@@ -300,7 +229,7 @@ object VppDownlink {
           * for this downlink port, which includes a [[CreateTunnel]] and
           * an [[AssociateFip]] for every floating IP that has been added.
           */
-        private def initialize(port: RouterPort, rule: Nat64Rule)
+        private def initialize(port: RouterPort)
         : Observable[Notification] = {
             val notifications = new Array[Notification](fips.size + 1)
             notifications(0) = CreateTunnel(portId, vrfTable,
@@ -314,8 +243,8 @@ object VppDownlink {
                                                     port.tunnelKey.toInt,
                                                     fip.floatingIp,
                                                     fip.fixedIp,
-                                                    currentPort.portAddress4,
-                                                    currentRule.natPool)
+                                                    port.portAddress4,
+                                                    fip.natPool)
                 index += 1
             }
             Observable.from(notifications)
@@ -326,7 +255,7 @@ object VppDownlink {
           * port is deleted or an error is emitted.
           */
         private def cleanup(child: Observer[_ >: Notification]): Unit = {
-            if ((currentPort ne null) && (currentRule ne null)) {
+            if (currentPort ne null) {
                 val iterator = fips.iterator
                 while (iterator.hasNext) {
                     val fip = iterator.next()
@@ -495,8 +424,7 @@ private[vpp] trait VppDownlink { this: VppExecutor =>
     /**
       * Adds a new [[Fip64Entry]]. The method gets or creates a new
       * [[DownlinkState]] for the corresponding port, which will track the
-      * floating IPs for that port, and will fetch necessary port and FIP64
-      * rule data.
+      * floating IPs for that port, and will fetch necessary port.
       */
     private def addFip(fip: Fip64Entry): Unit = {
         log debug s"FIP64 entry added: $fip"

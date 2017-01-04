@@ -42,7 +42,7 @@ import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
-import org.midonet.packets.{IPv4Addr, IPv6Addr, IPv6Subnet, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC}
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.logging.Logger
 
@@ -100,16 +100,18 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
         vppDownlink
     }
 
-    private def addEntry(portId: UUID, routerId: UUID,
-                         fixedIp: IPv4Addr = IPv4Addr.random,
-                         floatingIp: IPv6Addr = IPv6Addr.random)
+    private def addFip64Entry(portId: UUID, routerId: UUID,
+                              fixedIp: IPv4Addr = IPv4Addr.random,
+                              floatingIp: IPv6Addr = IPv6Addr.random,
+                              natPool: IPv4Subnet =
+                                  new IPv4Subnet(IPv4Addr.random, 8))
     : Fip64Entry = {
-        val entry = Fip64Entry(fixedIp, floatingIp, portId, routerId)
+        val entry = Fip64Entry(fixedIp, floatingIp, natPool, portId, routerId)
         table.addPersistent(entry, DefaultValue)
         entry
     }
 
-    private def removeEntry(entry: Fip64Entry): Unit = {
+    private def removeFip64Entry(entry: Fip64Entry): Unit = {
         table.removePersistent(entry, DefaultValue)
     }
 
@@ -117,8 +119,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
         new IPv6Subnet(IPv6Addr.random, 64)
     }
 
-    private def createTunnel(port: Port, rule: Rule, vrf: Int, vni: Int,
-                             downlinkMac: MAC)
+    private def createTunnel(port: Port, vrf: Int, vni: Int, downlinkMac: MAC)
     : CreateTunnel = {
         CreateTunnel(
             portId = port.getId,
@@ -127,17 +128,15 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             routerPortMac=downlinkMac)
     }
 
-    private def associateFip(port: Port, rule: Rule, entry: Fip64Entry, vrf: Int)
+    private def associateFip(port: Port, entry: Fip64Entry, vrf: Int)
     : AssociateFip = {
-        val natPool = ZoomConvert.fromProto(rule.getNat64RuleData.getNatPool,
-                                            classOf[NatTarget])
         AssociateFip(portId = port.getId,
                      vrfTable = vrf,
                      vni = port.getTunnelKey.toInt,
                      floatingIp = entry.floatingIp,
                      fixedIp = entry.fixedIp,
                      localIp = fromV4Proto(port.getPortSubnet(0)),
-                     natPool = natPool)
+                     natPool = entry.natPool)
     }
 
     private def disassociateFip(port: Port, entry: Fip64Entry, vrf: Int)
@@ -150,22 +149,6 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
     }
 
     feature("VPP downlink handles downlink updates") {
-        scenario("Port without NAT64 created after actor started") {
-            Given("A VPP downlink actor")
-            val actor = createVppDownlink()
-
-            And("A port")
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
-
-            When("Adding a new port to the downlink table")
-            addEntry(port.getId, router.getId)
-
-            Then("The actor should not receive any notification")
-            actor.messages shouldBe empty
-        }
-
         scenario("Port with NAT64 create after actor started") {
             Given("A VPP downlink actor")
             val actor = createVppDownlink()
@@ -176,20 +159,16 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val port = createRouterPort(routerId = Some(router.getId),
                                         portMac = downlinkMac,
                                         tunnelKey = 1234)
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Adding a new port to the downlink table")
-            val entry = addEntry(port.getId, router.getId)
+            val entry = addFip64Entry(port.getId, router.getId)
 
             Then("The actor should receive a Create and AssociateFip notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createTunnel(port, rule, VppVrfs.FirstFree, 1234,
+            actor.messages.head shouldBe createTunnel(port, VppVrfs.FirstFree, 1234,
                                                       downlinkMac)
-            actor.messages(1) shouldBe associateFip(port, rule, entry, VppVrfs.FirstFree)
+            actor.messages(1) shouldBe associateFip(port, entry, VppVrfs.FirstFree)
         }
 
         scenario("Port does not exist") {
@@ -198,7 +177,7 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
 
             When("Adding a non-existing port to the downlink table")
             val portId = UUID.randomUUID()
-            addEntry(portId, UUID.randomUUID())
+            addFip64Entry(portId, UUID.randomUUID())
 
             Then("The actor should not receive any notification")
             actor.messages shouldBe empty
@@ -212,14 +191,10 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId),
                                         tunnelKey = 1)
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Adding a new port to the downlink table")
-            val entry = addEntry(port.getId, router.getId)
+            val entry = addFip64Entry(port.getId, router.getId)
 
             And("Deleting the port")
             backend.store.delete(classOf[Port], port.getId)
@@ -228,25 +203,6 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             actor.messages should have size 4
             actor.messages(2) shouldBe disassociateFip(port, entry, VppVrfs.FirstFree)
             actor.messages(3) shouldBe DeleteTunnel(port.getId, VppVrfs.FirstFree, 1)
-        }
-
-        scenario("Port deleted for non-existing downlink") {
-            Given("A VPP downlink actor")
-            val actor = createVppDownlink()
-
-            And("A port")
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
-
-            When("Adding a new port to the downlink table")
-            addEntry(port.getId, router.getId)
-
-            And("Deleting the port")
-            backend.store.delete(classOf[Port], port.getId)
-
-            Then("The actor should not receive any notification")
-            actor.messages shouldBe empty
         }
 
         scenario("Multiple downlinks use different VRF numbers") {
@@ -259,37 +215,30 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val port1 = createRouterPort(routerId = Some(router.getId),
                                          portMac = downlinkMac1,
                                          tunnelKey = 1234)
-            val rule1 = createNat64Rule(portId = Some(port1.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port1),
-                                    CreateOp(rule1)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port1)))
 
             When("Adding a new port to the downlink table")
-            val entry1 = addEntry(port1.getId, router.getId)
+            val entry1 = addFip64Entry(port1.getId, router.getId)
 
             Then("The actor should receive a Create and AssociateFip notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createTunnel(port1, rule1, VppVrfs.FirstFree, 1234,
+            actor.messages.head shouldBe createTunnel(port1, VppVrfs.FirstFree, 1234,
                                                       downlinkMac1)
-            actor.messages(1) shouldBe associateFip(port1, rule1, entry1, VppVrfs.FirstFree)
+            actor.messages(1) shouldBe associateFip(port1, entry1, VppVrfs.FirstFree)
 
             When("Adding a new port")
             val downlinkMac2 = MAC.random()
             val port2 = createRouterPort(routerId = Some(router.getId),
                                          portMac = downlinkMac2,
                                          tunnelKey = 1235)
-            val rule2 = createNat64Rule(portId = Some(port2.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(port2), CreateOp(rule2)))
-            val entry2 = addEntry(port2.getId, router.getId)
+            backend.store.multi(Seq(CreateOp(port2)))
+            val entry2 = addFip64Entry(port2.getId, router.getId)
 
             Then("The actor should receive a Create and AssociateFip notification")
             actor.messages should have size 4
-            actor.messages(2) shouldBe createTunnel(port2, rule2, VppVrfs.FirstFree+1, 1235,
+            actor.messages(2) shouldBe createTunnel(port2, VppVrfs.FirstFree+1, 1235,
                                                     downlinkMac2)
-            actor.messages(3) shouldBe associateFip(port2, rule2, entry2, VppVrfs.FirstFree+1)
+            actor.messages(3) shouldBe associateFip(port2, entry2, VppVrfs.FirstFree+1)
 
             When("The first port is deleted")
             backend.store.delete(classOf[Port], port1.getId)
@@ -304,17 +253,14 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val port3 = createRouterPort(routerId = Some(router.getId),
                                          portMac = downlinkMac3,
                                          tunnelKey = 1236)
-            val rule3 = createNat64Rule(portId = Some(port3.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(port3), CreateOp(rule3)))
-            val entry3 = addEntry(port3.getId, router.getId)
+            backend.store.multi(Seq(CreateOp(port3)))
+            val entry3 = addFip64Entry(port3.getId, router.getId)
 
             Then("The actor should receive a Create notification with 1 VRF")
             actor.messages should have size 8
-            actor.messages(6) shouldBe createTunnel(port3, rule3, VppVrfs.FirstFree, 1236,
+            actor.messages(6) shouldBe createTunnel(port3, VppVrfs.FirstFree, 1236,
                                                     downlinkMac3)
-            actor.messages(7) shouldBe associateFip(port3, rule3, entry3, VppVrfs.FirstFree)
+            actor.messages(7) shouldBe associateFip(port3, entry3, VppVrfs.FirstFree)
         }
 
         scenario("Downlink deleted when last FIP removed") {
@@ -325,17 +271,13 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId),
                                         tunnelKey = 1234)
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Adding a new port to the downlink table")
-            val entry = addEntry(port.getId, router.getId)
+            val entry = addFip64Entry(port.getId, router.getId)
 
             And("Removing the entry")
-            removeEntry(entry)
+            removeFip64Entry(entry)
 
             Then("The actor should receive a DisassociateFip and Delete notification")
             actor.messages should have size 4
@@ -353,27 +295,23 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val port = createRouterPort(routerId = Some(router.getId),
                                         portMac = downlinkMac,
                                         tunnelKey = 1234)
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Adding a new port to the downlink table")
-            var entry = addEntry(port.getId, router.getId)
+            var entry = addFip64Entry(port.getId, router.getId)
 
             And("Removing the entry")
-            removeEntry(entry)
+            removeFip64Entry(entry)
 
             And("Addind the same port")
-            entry = addEntry(port.getId, router.getId)
+            entry = addFip64Entry(port.getId, router.getId)
 
             Then("The actor should receive 0 VRF")
             actor.messages should have size 6
-            actor.messages(4) shouldBe createTunnel(port, rule,
+            actor.messages(4) shouldBe createTunnel(port,
                                                     VppVrfs.FirstFree, 1234,
                                                     downlinkMac)
-            actor.messages(5) shouldBe associateFip(port, rule, entry,
+            actor.messages(5) shouldBe associateFip(port, entry,
                                                     VppVrfs.FirstFree)
         }
 
@@ -384,161 +322,18 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             And("A port")
             val router = createRouter()
             val port1 = createRouterPort(routerId = Some(router.getId))
-            val rule = createNat64Rule(portId = Some(port1.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port1),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port1)))
 
             When("Adding a new port to the downlink table")
-            var entry = addEntry(port1.getId, router.getId)
+            var entry = addFip64Entry(port1.getId, router.getId)
 
             And("The port is updated")
             val port2 = port1.toBuilder
-                .addFipNatRuleIds(rule.getId)
                 .setPortMac("01:02:03:04:05:06")
                 .build()
             backend.store.update(port2)
 
             Then("The actor should only receive two notifications")
-            actor.messages should have size 2
-        }
-    }
-
-    feature("VPP downlink handles rule updates") {
-        scenario("NAT64 rule added to port") {
-            Given("A VPP downlink actor")
-            val actor = createVppDownlink()
-
-            And("A port")
-            val downlinkMac = MAC.random()
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId),
-                                        portMac = downlinkMac,
-                                        tunnelKey = 1234)
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
-
-            When("Adding a new port to the downlink table")
-            val entry = addEntry(port.getId, router.getId)
-
-            Then("The actor should not receive any notification")
-            actor.messages shouldBe empty
-
-            When("Adding a NAT64 rule to the port")
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.create(rule)
-
-            Then("The actor should not receive a Create notification")
-            actor.messages should have size 2
-            actor.messages.head shouldBe createTunnel(port, rule, VppVrfs.FirstFree, 1234,
-                                                      downlinkMac)
-            actor.messages(1) shouldBe associateFip(port, rule, entry, VppVrfs.FirstFree)
-        }
-
-        scenario("NAT64 rule removed from port") {
-            Given("A VPP downlink actor")
-            val actor = createVppDownlink()
-
-            And("A port")
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId))
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
-
-            When("Adding a new port to the downlink table")
-            addEntry(port.getId, router.getId)
-
-            And("The rule is deleted")
-            backend.store.delete(classOf[Rule], rule.getId)
-
-            Then("The actor should not receive additional notifications")
-            actor.messages should have size 2
-        }
-
-        scenario("NAT64 rule updated without port address changed") {
-            Given("A VPP downlink actor")
-            val actor = createVppDownlink()
-
-            And("A port")
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId))
-            val rule1 = createNat64Rule(portId = Some(port.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule1)))
-
-            When("Adding a new port to the downlink table")
-            addEntry(port.getId, router.getId)
-
-            And("The rule is update with a new port address")
-            val rule2 = createNat64Rule(id = rule1.getId,
-                                        portId = Some(port.getId),
-                                        portAddress = Some(fromV6Proto(
-                                            rule1.getNat64RuleData.getPortAddress)),
-                                        natPool = Some(createNatTarget()))
-            backend.store.update(rule2)
-
-            Then("The actor should not receive an Update notification")
-            actor.messages should have size 2
-        }
-
-        scenario("Multiple NAT64 rules are ignored") {
-            Given("A VPP downlink actor")
-            val actor = createVppDownlink()
-
-            And("A port")
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId))
-            val rule1 = createNat64Rule(portId = Some(port.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule1)))
-
-            When("Adding a new port to the downlink table")
-            addEntry(port.getId, router.getId)
-
-            And("Adding a second NAT64 rule to the port")
-            val rule2 = createNat64Rule(portId = Some(port.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.create(rule2)
-
-            Then("The actor should not receive additional notifications")
-            actor.messages should have size 2
-        }
-
-        scenario("Any other rules are ignored") {
-            Given("A VPP downlink actor")
-            val actor = createVppDownlink()
-
-            And("A port")
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId))
-            val rule1 = createNat64Rule(portId = Some(port.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule1)))
-
-
-            When("Adding a new port to the downlink table")
-            addEntry(port.getId, router.getId)
-
-            And("Adding a second NAT64 rule to the port")
-            val rule2 = createNatRuleBuilder(id = UUID.randomUUID(),
-                                             targets = Set(createNatTarget()))
-                .setFipPortId(port.getId)
-                .build()
-            backend.store.create(rule2)
-
-            Then("The actor should not receive additional notifications")
             actor.messages should have size 2
         }
     }
@@ -552,31 +347,27 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId),
                                         tunnelKey = 1234)
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Adding a new port to the downlink table")
-            val entry1 = addEntry(port.getId, router.getId)
+            val entry1 = addFip64Entry(port.getId, router.getId)
 
             And("Adding another entry")
-            val entry2 = addEntry(port.getId, router.getId)
+            val entry2 = addFip64Entry(port.getId, router.getId)
 
             Then("The actor should receive AssociateFip notification")
             actor.messages should have size 3
-            actor.messages(2) shouldBe associateFip(port, rule, entry2, VppVrfs.FirstFree)
+            actor.messages(2) shouldBe associateFip(port, entry2, VppVrfs.FirstFree)
 
             When("Deleting the first entry")
-            removeEntry(entry1)
+            removeFip64Entry(entry1)
 
             Then("The actor should receive DisassociateFip notification")
             actor.messages should have size 4
             actor.messages(3) shouldBe disassociateFip(port, entry1, VppVrfs.FirstFree)
 
             When("Deleting the second entry")
-            removeEntry(entry2)
+            removeFip64Entry(entry2)
 
             Then("The actor should receive DownlinkDeleted")
             actor.messages should have size 6
@@ -592,20 +383,16 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId),
                                         tunnelKey = 1234)
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Adding a new port to the downlink table")
-            val entry1 = addEntry(port.getId, router.getId)
+            val entry1 = addFip64Entry(port.getId, router.getId)
 
             And("Adding another entry")
-            val entry2 = addEntry(port.getId, router.getId)
+            val entry2 = addFip64Entry(port.getId, router.getId)
 
             And("Adding another entry")
-            val entry3 = addEntry(port.getId, router.getId)
+            val entry3 = addFip64Entry(port.getId, router.getId)
 
             And("The port is deleted")
             backend.store.delete(classOf[Port], port.getId)
@@ -629,14 +416,10 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId),
                                         tunnelKey = 1234)
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Adding a new port to the downlink table")
-            val entry = addEntry(port.getId, router.getId)
+            val entry = addFip64Entry(port.getId, router.getId)
 
             And("Deleting the table")
             val store = backend.stateTableStore.asInstanceOf[InMemoryStorage]
@@ -665,17 +448,13 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             And("A port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId))
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Stopping the downlink")
             actor.stop()
 
             And("Adding a new port to the downlink table")
-            addEntry(port.getId, router.getId)
+            addFip64Entry(port.getId, router.getId)
 
             Then("The VPP downlink should not receive any notification")
             actor.messages shouldBe empty
@@ -691,26 +470,22 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             val port = createRouterPort(routerId = Some(router.getId),
                                         portMac = downlinkMac,
                                         tunnelKey = 1234)
-            val rule = createNat64Rule(portId = Some(port.getId),
-                                       portAddress = Some(randomSubnet6()),
-                                       natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port),
-                                    CreateOp(rule)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             When("Stopping the downlink")
             actor.stop()
 
             And("Adding a new port to the downlink table")
-            val entry = addEntry(port.getId, router.getId)
+            val entry = addFip64Entry(port.getId, router.getId)
 
             And("Starting the downlink again")
             actor.start()
 
             Then("The actor should not receive a Create notification")
             actor.messages should have size 2
-            actor.messages.head shouldBe createTunnel(port, rule, VppVrfs.FirstFree, 1234,
+            actor.messages.head shouldBe createTunnel(port, VppVrfs.FirstFree, 1234,
                                                       downlinkMac)
-            actor.messages(1) shouldBe associateFip(port, rule, entry, VppVrfs.FirstFree)
+            actor.messages(1) shouldBe associateFip(port, entry, VppVrfs.FirstFree)
         }
 
         scenario("State is cleaned at stop") {
@@ -720,42 +495,35 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             And("A port")
             val router = createRouter()
             val port1 = createRouterPort(routerId = Some(router.getId))
-            val rule1 = createNat64Rule(portId = Some(port1.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(router), CreateOp(port1),
-                                    CreateOp(rule1)))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(port1)))
 
             When("Adding a new port to the downlink table")
-            val entry1 = addEntry(port1.getId, router.getId)
+            val entry1 = addFip64Entry(port1.getId, router.getId)
 
             And("Stopping the downlink")
             actor.stop()
 
             And("Removing the first entry")
-            removeEntry(entry1)
+            removeFip64Entry(entry1)
 
             And("Creating a new port")
             val downlinkMac = MAC.random()
             val port2 = createRouterPort(routerId = Some(router.getId),
                                          portMac = downlinkMac,
                                          tunnelKey = 1234)
-            val rule2 = createNat64Rule(portId = Some(port2.getId),
-                                        portAddress = Some(randomSubnet6()),
-                                        natPool = Some(createNatTarget()))
-            backend.store.multi(Seq(CreateOp(port2), CreateOp(rule2)))
+            backend.store.multi(Seq(CreateOp(port2)))
 
             And("Adding the second port to the downlink table")
-            val entry2 = addEntry(port2.getId, router.getId)
+            val entry2 = addFip64Entry(port2.getId, router.getId)
 
             And("Starting the downlink")
             actor.start()
 
             Then("The actor should only receive the second port")
             actor.messages should have size 6
-            actor.messages(4) shouldBe createTunnel(port2, rule2, VppVrfs.FirstFree, 1234,
+            actor.messages(4) shouldBe createTunnel(port2, VppVrfs.FirstFree, 1234,
                                                     downlinkMac)
-            actor.messages(5) shouldBe associateFip(port2, rule2, entry2, VppVrfs.FirstFree)
+            actor.messages(5) shouldBe associateFip(port2, entry2, VppVrfs.FirstFree)
         }
     }
 }

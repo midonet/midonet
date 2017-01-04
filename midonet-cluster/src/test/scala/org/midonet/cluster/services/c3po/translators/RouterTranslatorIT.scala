@@ -446,7 +446,6 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         var gwPort: Port = null
         var gwPortRoutes: Seq[Route] = null
-        var gwPortFipRules: Seq[Rule] = null
 
         def verifyRouterPortCreated(): Unit = {
             eventually {
@@ -456,8 +455,6 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             gwPort = storage.get(classOf[Port], mnGwPortId).await()
             gwPortRoutes =
                 storage.getAll(classOf[Route], gwPort.getRouteIdsList).await()
-            gwPortFipRules =
-                storage.getAll(classOf[Rule], gwPort.getFipNatRuleIdsList).await()
 
             gwPort.getRouterId.asJava shouldBe tenantRouterId
             gwPort.getPortMac shouldBe "04:04:04:04:04:04"
@@ -467,10 +464,8 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             gwPort.getPortSubnet(1) shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
 
             gwPort.getRouteIdsCount shouldBe 2
-            gwPort.getFipNatRuleIdsCount shouldBe 1
 
             gwPortRoutes should have size 2
-            gwPortFipRules should have size 1
         }
 
         uplinkPort.getRouterId.asJava shouldBe edgeRouterId
@@ -489,7 +484,6 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         extPort.getPortAddress shouldBe IPAddressUtil.toProto("2002::2")
         extPort.getPortSubnetCount shouldBe 1
         extPort.getPortSubnet(0) shouldBe IPSubnetUtil.toProto("2002:0:0:0:0:0:0:2/64")
-        extPort.getFipNatRuleIdsCount should not be 0
 
         extPortRoutes should have size 2
 
@@ -497,16 +491,10 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         gwPortRoutes.head.getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
         gwPortRoutes.head.getDstSubnet shouldBe RouterTranslator.Nat64Pool
+        gwPortRoutes.head.getNextHop shouldBe NextHop.FIP64
 
         gwPortRoutes(1).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
         gwPortRoutes(1).getDstSubnet shouldBe IPSubnetUtil.toProto("169.254.0.1/32")
-
-        gwPortFipRules.head.getNat64RuleData.getPortAddress shouldBe IPSubnetUtil
-            .toProto("2002::2/64")
-        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe
-            RouterTranslator.Nat64PoolStart
-        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe
-            RouterTranslator.Nat64PoolEnd
 
         // Delete gateway port.
         insertDeleteTask(13, PortType, gwPortId)
@@ -515,7 +503,6 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             eventually {
                 storage.exists(classOf[Port], mnGwPortId).await() shouldBe false
             }
-            storage.exists(classOf[Rule], gwPortFipRules.head.getId).await() shouldBe false
         }
         verifyRouterPortDeleted()
 
@@ -617,7 +604,6 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         var gwPort: Port = null
         var gwPortRoutes: Seq[Route] = null
-        var gwPortFipRules: Seq[Rule] = null
 
         def verifyRouterPortCreated(): Unit = {
             eventually {
@@ -627,8 +613,6 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             gwPort = storage.get(classOf[Port], mnGwPortId).await()
             gwPortRoutes =
                 storage.getAll(classOf[Route], gwPort.getRouteIdsList).await()
-            gwPortFipRules =
-                storage.getAll(classOf[Rule], gwPort.getFipNatRuleIdsList).await()
 
             gwPort.getRouterId.asJava shouldBe tenantRouterId
             gwPort.getPortMac shouldBe "04:04:04:04:04:04"
@@ -638,10 +622,8 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             gwPort.getPortSubnet(2) shouldBe IPSubnetUtil.toProto("169.254.0.1/30")
 
             gwPort.getRouteIdsCount shouldBe 5
-            gwPort.getFipNatRuleIdsCount shouldBe 1
 
             gwPortRoutes should have size 5
-            gwPortFipRules should have size 1
         }
 
         verifyRouterPortCreated()
@@ -662,20 +644,11 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         // IPv6 NAT pool route.
         gwPortRoutes(3).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
         gwPortRoutes(3).getDstSubnet shouldBe RouterTranslator.Nat64Pool
-        gwPortRoutes(3).getNextHopGateway shouldBe IPAddressUtil.toProto("169.254.0.2")
+        gwPortRoutes(3).getNextHop shouldBe NextHop.FIP64
 
         // IPv6 local route.
         gwPortRoutes(4).getSrcSubnet shouldBe IPSubnetUtil.toProto("0.0.0.0/0")
         gwPortRoutes(4).getDstSubnet shouldBe IPSubnetUtil.toProto("169.254.0.1/32")
-
-        // NAT64 rules.
-        gwPortFipRules.head.getNat64RuleData.getPortAddress shouldBe IPSubnetUtil
-            .toProto("2002::2/64")
-        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwStart shouldBe
-            RouterTranslator.Nat64PoolStart
-        gwPortFipRules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe
-            RouterTranslator.Nat64PoolEnd
-
         // Delete gateway port.
         insertDeleteTask(7, PortType, gwPortId)
 
@@ -683,7 +656,6 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             eventually {
                 storage.exists(classOf[Port], mnGwPortId).await() shouldBe false
             }
-            storage.exists(classOf[Rule], gwPortFipRules.head.getId).await() shouldBe false
         }
         verifyRouterPortDeleted()
 

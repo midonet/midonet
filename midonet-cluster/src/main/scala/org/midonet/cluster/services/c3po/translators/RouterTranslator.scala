@@ -296,37 +296,14 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
 
         // Determine the gateway port address and subnet.
         val internalSubnet = portAddress.internalSubnet.get
-        val vppAddress = containers.containerPortAddress(internalSubnet)
-
-        // Create the NAT64 rule containing the port IPv6 address and the
-        // NAT64 pool.
-        val nat64Rule = Rule.newBuilder()
-            .setId(nat64RuleId(port.getId))
-            .setChainId(floatNat64ChainId(nRouter.getId))
-            .setFipPortId(port.getId)
-            .setType(Rule.Type.NAT64_RULE)
-            .setCondition(Commons.Condition.newBuilder()
-                              .addOutPortIds(port.getId)
-                              .setNwDstIp(Nat64Pool))
-            .setNat64RuleData(Rule.Nat64RuleData.newBuilder()
-                                  .setPortAddress(portAddress.subnet)
-                                  .setNatPool(NatTarget.newBuilder()
-                                                  .setNwStart(Nat64PoolStart)
-                                                  .setNwEnd(Nat64PoolEnd)
-                                                  .setTpStart(0)
-                                                  .setTpEnd(0)))
-            .build()
-        tx.create(nat64Rule)
 
         // Create the route to the gateway port.
         val localRoute = newLocalRoute(port.getId,
                                        internalSubnet.getAddress.asProto)
-        val portRoute = newNextHopPortRoute(nextHopPortId = port.getId,
-                                            id = portRouteId,
-                                            srcSubnet = AnyIPv4Subnet,
-                                            dstSubnet = Nat64Pool,
-                                            nextHopGateway = vppAddress.asProto)
-
+        val portRoute = newNextHopFip64Route(nextHopPortId = port.getId,
+                                             id = portRouteId,
+                                             srcSubnet = AnyIPv4Subnet,
+                                             dstSubnet = Nat64Pool)
         tx.create(portRoute)
         tx.create(localRoute)
     }
@@ -375,8 +352,6 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
             for (address <- port.getPortSubnetList.asScala) {
                 if (address.getVersion == IPVersion.V4) {
                     deleteGatewayPort4(tx, nRouter)
-                } else {
-                    deleteGatewayPort6(tx, nRouter, routerPortId)
                 }
             }
 
@@ -390,12 +365,6 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
     : Unit = {
         // Delete the SNAT rules.
         deleteSnatRules(tx, nRouter.getId)
-    }
-
-    private def deleteGatewayPort6(tx: Transaction, nRouter: NeutronRouter,
-                                   routerPortId: UUID): Unit = {
-        // Delete the NAT64 rule.
-        tx.delete(classOf[Rule], nat64RuleId(routerPortId), ignoresNeo = true)
     }
 
     private def updateExtraRoutes(tx: Transaction, nRouter: NeutronRouter)
