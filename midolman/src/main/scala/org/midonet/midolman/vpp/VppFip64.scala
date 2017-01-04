@@ -23,6 +23,7 @@ import rx.{Observer, Subscription}
 
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppFip64.Notification
+import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.util.logging.Logger
 
 object VppFip64 {
@@ -38,7 +39,9 @@ object VppFip64 {
   * A trait that monitors the FIP64 virtual topology, and emits notifications
   * via the current VPP executor.
   */
-private[vpp] trait VppFip64 extends VppUplink { this: VppExecutor =>
+private[vpp] trait VppFip64 extends VppUplink with VppProviderRouter {
+
+    this: VppExecutor =>
 
     protected def vt: VirtualTopology
 
@@ -48,6 +51,12 @@ private[vpp] trait VppFip64 extends VppUplink { this: VppExecutor =>
 
     private val uplinkObserver = new Observer[Notification] {
         override def onNext(notification: Notification): Unit = {
+            notification match {
+                case AddUplink(portId, routerId, portAddress, uplinkPortIds) =>
+                    addUplink(portId, routerId, uplinkPortIds)
+                case DeleteUplink(portId) =>
+                    removeUplink(portId, dummy = false)
+            }
             send(notification)
         }
 
