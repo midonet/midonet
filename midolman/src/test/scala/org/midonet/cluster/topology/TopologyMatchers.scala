@@ -151,6 +151,7 @@ object TopologyMatchers {
                 case TopologyRoute.NextHop.REJECT => NextHop.REJECT
                 case TopologyRoute.NextHop.PORT => NextHop.PORT
                 case TopologyRoute.NextHop.LOCAL => NextHop.LOCAL
+                case TopologyRoute.NextHop.FIP64 => NextHop.FIP64
             })
             route.nextHopPort shouldBe (if (r.hasNextHopPortId)
                 r.getNextHopPortId.asJava else null)
@@ -209,18 +210,6 @@ object TopologyMatchers {
                                       target.getTpStart, target.getTpEnd)
                 )
             }
-        }
-    }
-
-    class Nat64RuleMatcher(rule: Nat64Rule) extends RuleMatcher(rule) {
-        override def shouldBeDeviceOf(r: TopologyRule): Unit = {
-            super.shouldBeDeviceOf(r)
-            rule.portAddress shouldBe r.getNat64RuleData.getPortAddress.asJava
-            rule.natPool shouldBe new NatTarget(
-                r.getNat64RuleData.getNatPool.getNwStart.asIPv4Address,
-                r.getNat64RuleData.getNatPool.getNwEnd.asIPv4Address,
-                r.getNat64RuleData.getNatPool.getTpStart,
-                r.getNat64RuleData.getNatPool.getTpEnd)
         }
     }
 

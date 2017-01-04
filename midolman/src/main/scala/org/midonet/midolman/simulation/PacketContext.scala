@@ -361,6 +361,20 @@ trait RedirectContext extends Clearable {
     }
 }
 
+trait Fip64TranslationContext extends Clearable {
+    var needsTranslation = false
+
+    def markForFip64(): Unit = {
+        needsTranslation = true
+    }
+
+    def needsFip64 = needsTranslation
+
+    override def clear(): Unit = {
+        needsTranslation = false
+    }
+}
+
 /**
  * The PacketContext represents the simulation of a packet traversing the
  * virtual topology. Since a simulation runs-to-completion, always in the
@@ -371,6 +385,7 @@ trait RedirectContext extends Clearable {
 class PacketContext extends Clearable
         with FlowContext
         with RedirectContext
+        with Fip64TranslationContext
         with RecordedContext
         with StateContext {
     var log = PacketContext.defaultLog

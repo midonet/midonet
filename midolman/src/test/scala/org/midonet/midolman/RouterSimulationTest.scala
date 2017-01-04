@@ -698,6 +698,27 @@ class RouterSimulationTest extends MidolmanSpec {
         validatePass(toIp)
     }
 
+    scenario("packet needing fip64 translation, is marked as such") {
+        val rp1Mac = MAC.fromString("0A:0A:0A:0A:0A:0A")
+        val rp1 = newRouterPort(router, rp1Mac, "2.2.2.2", "2.2.2.0", 24)
+
+        val port1dev = fetchDevice[RouterPort](port1)
+
+        val fromMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val pkt = { eth src fromMac dst port1dev.portMac} <<
+                  { ip4 src fromIp dst IPv4Addr("1.1.1.3") } <<
+                  { icmp.echo request }
+        newRoute(router, "0.0.0.0", 0, "1.1.1.0", 24, NextHop.FIP64,
+                 rp1, null, 2)
+
+        val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
+        pktCtx.needsFip64 shouldBe true
+        val ethKey = setKey[FlowKeyEthernet](pktCtx.virtualFlowActions.get(0))
+        ethKey.eth_dst should be (config.fip64.vtepVppMac.getAddress)
+        ethKey.eth_src should be (rp1Mac.getAddress)
+    }
+
     private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,
                           fromIp: IPv4Addr, toIp: IPv4Addr, `type`: Byte,
                           code: Byte): Unit = {

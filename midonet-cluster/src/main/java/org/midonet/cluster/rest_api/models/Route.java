@@ -53,7 +53,8 @@ public class Route extends UriResource {
         @ZoomEnumValue(value = "PORT")Normal,
         @ZoomEnumValue(value = "BLACKHOLE")BlackHole,
         @ZoomEnumValue(value = "REJECT")Reject,
-        @ZoomEnumValue(value = "LOCAL")Local
+        @ZoomEnumValue(value = "LOCAL")Local,
+        @ZoomEnumValue(value = "FIP64")Fip64
     }
 
     @ZoomField(name = "id")

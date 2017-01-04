@@ -82,11 +82,6 @@ public abstract class Rule extends BaseConfig {
         Topology.Rule rule = (Topology.Rule)proto;
         UUID id = UUIDUtil.fromProto(rule.getId());
 
-        if (!rule.hasNat64RuleData() && !rule.hasAction()) {
-            throw new ZoomConvert.ConvertException(
-                "Rule " + id + " has no action set (" + rule + ")");
-        }
-
         // When the rule has no condition set, the condition matches everything.
         if (!rule.hasCondition()) {
             this.condition = Condition.TRUE;
@@ -119,30 +114,6 @@ public abstract class Rule extends BaseConfig {
                 }
                 break;
 
-            case NAT64_RULE:
-                if (!rule.hasNat64RuleData()) {
-                    throw new ZoomConvert.ConvertException(
-                        "Rule " + id + " is a NAT64 rule but it does not have "
-                        + "its NAT64 data set (" + rule + ")");
-                }
-                if (!rule.getNat64RuleData().hasPortAddress()) {
-                    throw new ZoomConvert.ConvertException(
-                        "Rule " + id + " is a NAT64 rule but it does not have "
-                        + "its port address set (" + rule + ")");
-                }
-                if (!rule.getNat64RuleData().hasNatPool()) {
-                    throw new ZoomConvert.ConvertException(
-                        "Rule " + id + " is a NAT64 rule but it does not have "
-                        + "its NAT pool set (" + rule + ")");
-                }
-                break;
-
-            case TRACE_RULE:
-                if (rule.getAction() != Topology.Rule.Action.CONTINUE)
-                    throw new ZoomConvert.ConvertException(
-                        "Rule " + id + " is a TRACE rule but its action is not "
-                        + " set to CONTINUE (" + rule + ")");
-                break;
         }
 
         result = new RuleResult(action);
@@ -264,7 +235,6 @@ public abstract class Rule extends BaseConfig {
                 case LITERAL_RULE: return LiteralRule.class;
                 case TRACE_RULE: return TraceRule.class;
                 case NAT_RULE: return NatRule.class;
-                case NAT64_RULE: return Nat64Rule.class;
                 case L2TRANSFORM_RULE: return L2TransformRule.class;
                 default:
                     throw new ZoomConvert.ConvertException(

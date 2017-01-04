@@ -105,6 +105,22 @@ trait RouteManager {
         builder.build()
     }
 
+    protected def newNextHopFip64Route(nextHopPortId: UUID,
+                                       id: UUID = null,
+                                       srcSubnet: IPSubnet = AnyIPv4Subnet,
+                                       dstSubnet: IPSubnet = AnyIPv4Subnet,
+                                       weight: Int = DEFAULT_WEIGHT)
+            : Route = {
+        val builder = Route.newBuilder
+        builder.setId(if (id != null) id else UUIDUtil.randomUuidProto)
+        builder.setNextHop(NextHop.FIP64)
+        builder.setNextHopPortId(nextHopPortId)
+        builder.setSrcSubnet(srcSubnet)
+        builder.setDstSubnet(dstSubnet)
+        builder.setWeight(weight)
+        builder.build()
+    }
+
     /**
      * Checks whether the given IP address can be added with the given port as
      * the next hop.

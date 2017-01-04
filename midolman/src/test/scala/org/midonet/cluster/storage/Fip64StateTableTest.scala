@@ -42,7 +42,7 @@ import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
 import org.midonet.cluster.util.CuratorTestFramework
-import org.midonet.packets.{IPv4Addr, IPv6Addr}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent._
 import org.midonet.util.eventloop.CallingThreadReactor
@@ -99,7 +99,9 @@ class Fip64StateTableTest extends FlatSpec with GivenWhenThen with Matchers
     }
 
     private def randomEntry(): Entry = {
-        new Entry(IPv4Addr.random, IPv6Addr.random, UUID.randomUUID(),
+        new Entry(IPv4Addr.random, IPv6Addr.random,
+                  IPv4Subnet.fromCidr("192.168.0.0/16"),
+                  UUID.randomUUID(),
                   UUID.randomUUID())
     }
 
