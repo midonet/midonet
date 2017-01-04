@@ -346,7 +346,7 @@ abstract class RouterBase[IP <: IPAddr]()
                                       "null port: dropping", dstIP)
                     ErrorDrop
 
-                case Route.NextHop.PORT =>
+                case Route.NextHop.PORT | Route.NextHop.FIP64 =>
                     val outPort = tryGet(classOf[RouterPort], rt.nextHopPort)
                     applyTimeToLive(outPort) match {
                         case NoOp => outPort.action

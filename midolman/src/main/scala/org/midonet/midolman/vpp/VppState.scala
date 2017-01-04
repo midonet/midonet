@@ -33,7 +33,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{IPv4Addr, IPv4Subnet}
 import org.midonet.util.functors.makeAction1
 import org.midonet.util.logging.Logging
 
@@ -47,6 +47,8 @@ object VppState {
       */
     case class GatewaysChanged(hosts: immutable.Set[UUID])
 }
+
+case class NatPool(start: IPv4Addr, end: IPv4Addr)
 
 private[vpp] trait VppState extends Logging { this: VppExecutor =>
     import VppState._
@@ -109,8 +111,8 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
       * the method returns [[None]].
       */
     @NotThreadSafe
-    protected def poolFor(portId: UUID, natPool: NatTarget)
-    : Option[NatTarget] = {
+    protected def poolFor(portId: UUID, natPool: IPv4Subnet)
+    : Option[NatPool] = {
         // TODO: Assume that there is only one uplink port per physical
         // TODO: gateway and the uplink is reachable from this tenant router
         // TODO: port. Further work should observer the virtual topology between
@@ -136,11 +138,11 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
       * uplink ports, and returns the NAT pool corresponding to the current
       * uplink port.
       */
-    protected def splitPool(natPool: NatTarget, portId: UUID,
-                            portIds: JList[UUID]): NatTarget = {
-        val poolStart = natPool.nwStart.toInt
-        val poolEnd = natPool.nwEnd.toInt + 1
-        val poolRange = poolEnd - poolStart
+    protected def splitPool(natPool: IPv4Subnet, portId: UUID,
+                            portIds: JList[UUID]): NatPool = {
+        val poolStart = natPool.toNetworkAddress.toInt + 1
+        val poolEnd = natPool.toBroadcastAddress.toInt - 1
+        val poolRange = (poolEnd - poolStart + 1)
 
         // For performance, do not sort if the array is already ordered.
         val orderedPortIds = if (!UUIDUtil.Ordering.isOrdered(portIds)) {
@@ -155,10 +157,8 @@ private[vpp] trait VppState extends Logging { this: VppExecutor =>
         val rangeStart = poolStart + poolRange * index / count
         val rangeEnd = poolStart + (poolRange * (index + 1) / count) - 1
 
-        new NatTarget(IPv4Addr.fromInt(rangeStart),
-                      IPv4Addr.fromInt(rangeEnd),
-                      natPool.tpStart,
-                      natPool.tpEnd)
+        new NatPool(IPv4Addr.fromInt(rangeStart),
+                    IPv4Addr.fromInt(rangeEnd))
     }
 
     /**

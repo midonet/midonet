@@ -29,7 +29,7 @@ import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import org.midonet.packets.{IPv4Addr, IPv6Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, MAC}
 
 class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                                                               with OpMatchers {
@@ -46,6 +46,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val fipFixedIpAddr = IPAddressUtil.toProto("192.168.1.1")
     protected val fipFixedIpSubnet = IPSubnetUtil.fromAddress(fipFixedIpAddr)
     protected val fipIpv6Addr = IPAddressUtil.toProto("2001::1")
+    protected val natPool = IPv4Subnet.fromCidr("100.64.0.0/10")
 
     protected val unboundFip = nFloatingIpFromTxt(s"""
         id { $fipId }
@@ -166,6 +167,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         stateTableStorage.fip64EntryPath(Fip64Entry(
             IPv4Addr(fip.getFixedIpAddress.getAddress),
             IPv6Addr(fip.getFloatingIpAddress.getAddress),
+            natPool,
             portId,
             fip.getRouterId))
 

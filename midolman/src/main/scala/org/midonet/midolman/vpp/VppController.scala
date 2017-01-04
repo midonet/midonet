@@ -399,7 +399,7 @@ class VppController(hostId: UUID,
 
     private def associateFip(portId: UUID, vrf: Int, vni: Int,
                              floatingIp: IPv6Addr, fixedIp: IPv4Addr,
-                             localIp: IPv4Subnet, natPool: NatTarget)
+                             localIp: IPv4Subnet, natPool: IPv4Subnet)
     : Future[_] = {
         log debug s"Associating FIP at port $portId (VRF $vrf, VNI $vni): " +
                   s"$floatingIp -> $fixedIp"
@@ -410,7 +410,7 @@ class VppController(hostId: UUID,
             vppCtl.exec(s"ip route table $vrf add $fixedIp/32 " +
                  s"via ${vt.config.fip64.vppInternalGateway}") flatMap { _ =>
                 vppCtl.exec(s"fip64 add $floatingIp $fixedIp " +
-                     s"pool ${pool.get.nwStart} ${pool.get.nwEnd}" +
+                     s"pool ${pool.get.start} ${pool.get.end}" +
                      s" table $vrf vni $vni")
             }
         } else {

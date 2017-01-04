@@ -109,7 +109,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         }
 
         SimulationPort(topologyPort, portState, inFilters, outFilters,
-                       makeServicePortList, fipNatRules, peeringTable,
+                       makeServicePortList, peeringTable,
                        qosPolicyTracker.currentRefs.values.headOption.orNull)
     }
 
