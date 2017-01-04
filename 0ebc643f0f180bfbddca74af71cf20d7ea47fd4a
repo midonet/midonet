@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_e5134f5b",
+        "filename": "docs/qos.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2017-01-04T01:43:30Z",
+      "side": 1,
+      "message": "Should we tell the users they should set this field via mn-conf, with maybe a little command line snippet that the users can just copy and paste to set this field?",
+      "range": {
+        "startLine": 159,
+        "startChar": 6,
+        "endLine": 159,
+        "endChar": 12
+      },
+      "revId": "0ebc643f0f180bfbddca74af71cf20d7ea47fd4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
