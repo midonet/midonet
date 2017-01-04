@@ -54,7 +54,6 @@ binding_multihost = {
 }
 
 
-@nottest  # disabling for now
 @attr(version="v1.2.0")
 @bindings(binding_multihost)
 def test_filter_ipv6():
