@@ -627,10 +627,7 @@ def start_server(container, address, port):
 
 def stop_server(container):
     cont_services = service.get_container_by_hostname(container)
-    namespace = cont_services.exec_command('ip netns')
-    pid = cont_services.exec_command('/bin/sh -c "ip netns exec %s netstat -ntlp | grep ncat | awk \'{print $7}\' | cut -d/ -f1"' % namespace)
-    cont_services.try_command_blocking("kill %s" % pid)
-
+    cont_services.try_command_blocking("pkill ncat")
 
 def client_prepare(container, namespace):
     cont_services = service.get_container_by_hostname(container)
