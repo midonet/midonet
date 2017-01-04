@@ -377,16 +377,20 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
 
 class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
 
-    def build_tenant(self):
-        self.pubnet = self.create_network("public", external=True)
-
+    def build_public_subnets(self):
         pubsubnet6 = self.create_subnet("publicsubnet6",
                                         self.pubnet,
                                         "cccc:bbbb::/32",
                                         version=6)
+        return [pubsubnet6]
 
-        # add public net to the edge router
-        self.add_router_interface(self._edgertr, subnet=pubsubnet6)
+    def build_tenant(self):
+        self.pubnet = self.create_network("public", external=True)
+
+        # add public subnets to the edge router
+        pubsubnets = self.build_public_subnets()
+        map(lambda sn: self.add_router_interface(self._edgertr, subnet=sn),
+            pubsubnets)
 
         #build tenant router
         tenant_name = 'tenant'
@@ -432,6 +436,17 @@ class FIP6Reuse(SingleTenantWithNeutronIPv6FIP):
         )
         self.addCleanup(self.api.update_floatingip,
             fip6id, {'floatingip': {'port_id': None }})
+
+class TenantDualStack(SingleTenantWithNeutronIPv6FIP):
+
+    def build_public_subnets(self):
+        pubsubnets = super(TenantDualStack, self).build_public_subnets()
+        pubsubnet4 = self.create_subnet("publicsubnet4",
+                                        self.pubnet,
+                                        "200.0.0.0/24",
+                                        version=4)
+        pubsubnets.append(pubsubnet4)
+        return pubsubnets
 
 class DualUplinkAssymetric(SingleTenantWithNeutronIPv6FIP):
 
@@ -589,16 +604,20 @@ binding_multihost_multitenant = {
 }
 
 
-# Runs ping6 command with given ip6 address from given containter
+# Runs ping command with given ip address from given containter
 # Count provides the number of packets ping will send.
 # The number must be positive
-def ping_from_inet(container, ipv6='2001::1', count=4, namespace=None):
+def ping_from_inet(container, ip='2001::1', count=4, namespace=None):
     count = max(1, count)
-    cmd = "%s ping6 %s -c %d" % (
+    ping_cmd = "ping6"
+    cmd = "%s %s %s -c %d" % (
         "ip netns exec %s" % namespace if namespace else "",
-        ipv6, count)
+        ping_cmd, ip, count)
     cont_services = service.get_container_by_hostname(container)
-    cont_services.try_command_blocking(cmd)
+    try:
+        cont_services.try_command_blocking(cmd)
+    except:
+        import ipdb; ipdb.set_trace()
 
 
 # Starts a modified echo server at given container
@@ -1038,3 +1057,17 @@ print 'HASH=' + hashlib.sha256(data).hexdigest()
             kill(host, CLIENT_PY_NAME)
             kill(host, SERVER_PY_NAME)
             host.exec_command('rm %s %s' % (CLIENT_PY_NAME, SERVER_PY_NAME))
+
+binding_manager=BindingManager(vtm=TenantDualStack())
+@bindings(binding_multihost_singletenant_neutronfip6,
+          binding_manager=binding_manager)
+def test_tenant_dual_stack():
+    """
+    Title: Tenant router is attached to both ipv4 and ipv6 external subnents.
+    """
+    ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
+    vmport = binding_manager.get_interface_on_vport('port1')
+    cmd = 'ping -c 10 -i 0.5 200.0.0.1'
+    (result, exec_id) = vmport.do_execute(cmd, stream=True)
+    retcode = vmport.compute_host.check_exit_status(exec_id, result, timeout=120)
+    assert(retcode == 0)
