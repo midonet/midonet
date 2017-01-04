@@ -75,7 +75,7 @@ class VppController(hostId: UUID,
                     datapathState: DatapathState,
                     vppOvs: VppOvs,
                     protected override val vt: VirtualTopology)
-    extends VppExecutor with VppUplink with VppDownlink with VppState {
+    extends VppExecutor with VppFip64 with VppDownlink with VppState {
 
     import VppController._
 
@@ -142,14 +142,14 @@ class VppController(hostId: UUID,
     private val vppCtl = new VppCtl(Logger(log.underlying))
 
     protected override def doStart(): Unit = {
-        startUplink()
+        startFip64()
         notifyStarted()
     }
 
     protected override def doStop(): Unit = {
         // Unsubscribe from all current subscriptions and execute the cleanup
         // on the conveyor belt.
-        stopUplink()
+        stopFip64()
         try Await.ready(send(Cleanup), VppRollbackTimeout)
         catch {
             case NonFatal(e) => log warn s"Cleanup failed ${e.getMessage}"

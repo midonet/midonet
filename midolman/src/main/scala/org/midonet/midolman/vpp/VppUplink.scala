@@ -32,19 +32,17 @@ import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber, Subscription}
 
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.services.MidolmanActorsService._
 import org.midonet.midolman.simulation.{Port, PortGroup, RouterPort}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{ObjectReferenceTracker, VirtualToPhysicalMapper, VirtualTopology}
-import org.midonet.midolman.vpp.VppUplink.{Notification, UplinkState}
+import org.midonet.midolman.vpp.VppFip64.Notification
+import org.midonet.midolman.vpp.VppUplink.UplinkState
 import org.midonet.packets.IPv6Subnet
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeRunnable}
 import org.midonet.util.logging.Logger
 
 object VppUplink {
-
-    trait Notification { def portId: UUID }
 
     /**
       * A message to configure an IPv6 uplink port. The message contains the
@@ -278,7 +276,7 @@ object VppUplink {
   * [[VppExecutor]] to be handled on the VPP conveyor belt, including
   * serializing their tasks and performing I/O operations.
   */
-private[vpp] trait VppUplink { this: VppExecutor =>
+private[vpp] trait VppUplink {
 
     protected def vt: VirtualTopology
 
@@ -318,13 +316,16 @@ private[vpp] trait VppUplink { this: VppExecutor =>
         complete()
     }
 
+    private val uplinkSubject = PublishSubject.create[Notification]
+    protected val uplinkObservable = uplinkSubject.asObservable()
+
     /**
       * Creates a new uplink observer for the specified uplink port.
       */
     private def uplinkObserver(portId: UUID) = new Observer[Notification] {
         override def onNext(notification: Notification): Unit = {
             log debug s"Uplink port $portId notification: $notification"
-            send(notification)
+            uplinkSubject onNext notification
         }
 
         override def onCompleted(): Unit = {
