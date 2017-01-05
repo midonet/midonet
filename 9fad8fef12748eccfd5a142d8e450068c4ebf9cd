@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_19822e01",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/model/Fip64Entry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-05T10:34:02Z",
+      "side": 1,
+      "message": "If we ever want to make this configurable from neutron, we should keep in mind that neutron allocation pools are often specified as begin-end addresses, not as a subnet.",
+      "range": {
+        "startLine": 30,
+        "startChar": 22,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "9fad8fef12748eccfd5a142d8e450068c4ebf9cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
