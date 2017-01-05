@@ -80,7 +80,6 @@ function package_rpm() {
     RPM_ARGS="$RPM_ARGS -d 'python >= 2.6' -d 'python < 2.8'"
     RPM_ARGS="$RPM_ARGS --epoch 2"
     RPM_ARGS="$RPM_ARGS --iteration $rpm_revision"
-    RPM_ARGS="$RPM_ARGS -d 'protobuf-python'"
 
     eval fpm $FPM_BASE_ARGS $RPM_ARGS -t rpm .
 }
@@ -99,7 +98,6 @@ function package_deb() {
     DEB_ARGS="$DEB_ARGS -C build/deb"
     DEB_ARGS="$DEB_ARGS --epoch 2"
     DEB_ARGS="$DEB_ARGS --deb-priority optional"
-    DEB_ARGS="$DEB_ARGS -d 'python-protobuf'"
 
     eval fpm $FPM_BASE_ARGS $DEB_ARGS -t deb .
 }
