@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fabf19d9_190c6e93",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-05T11:37:20Z",
+      "side": 1,
+      "message": "Unused",
+      "range": {
+        "startLine": 565,
+        "startChar": 8,
+        "endLine": 565,
+        "endChar": 21
+      },
+      "revId": "9fad8fef12748eccfd5a142d8e450068c4ebf9cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_19822e01",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/model/Fip64Entry.scala",
         "patchSetId": 2
