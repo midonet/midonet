@@ -55,7 +55,7 @@ private[vpp] trait VppFip64 extends VppUplink with VppProviderRouter {
                 case AddUplink(portId, routerId, portAddress, uplinkPortIds) =>
                     addUplink(portId, routerId, uplinkPortIds)
                 case DeleteUplink(portId) =>
-                    removeUplink(portId, dummy = false)
+                    removeUplink(portId)
             }
             send(notification)
         }
