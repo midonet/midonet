@@ -22,6 +22,30 @@
       "revId": "9fad8fef12748eccfd5a142d8e450068c4ebf9cd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_b9a0e291",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/model/Fip64Entry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-05T10:43:52Z",
+      "side": 1,
+      "message": "That would make routing difficult though, as you route on the subnet, not a begin-end address.",
+      "parentUuid": "fabf19d9_19822e01",
+      "range": {
+        "startLine": 30,
+        "startChar": 22,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "9fad8fef12748eccfd5a142d8e450068c4ebf9cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
