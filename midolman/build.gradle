@@ -241,7 +241,7 @@ packaging {
     vendor = project.vendor
     url = project.url
     description = 'Midolman is a virtual network controller'
-    dependencies = ['haproxy', 'midonet-tools', 'vpp']
+    dependencies = ['haproxy', 'midonet-tools']
     confFiles = ['/etc/midolman/midolman-env.sh',
                  '/etc/midolman/midolman-env.sh.compute.large',
                  '/etc/midolman/midolman-env.sh.gateway.large',
@@ -278,6 +278,7 @@ debian.doFirst {
         '-d', 'linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0) | linux-image-generic-lts-trusty (>= 3.13.0) | linux-image-virtual-lts-trusty (>= 3.13.0) | openvswitch-datapath-dkms (>= 1.10)',
         '--conflicts', 'openvswitch-switch',
         '--deb-recommends', 'java8-runtime-headless | java8-runtime',
+        '--deb-suggests', 'vpp',
         '--after-install', "${project.projectDir}/src/deb/control/postinst",
         '--before-install', "${project.projectDir}/src/deb/control/preinst",
         '--after-remove', "${project.projectDir}/src/deb/control/postrm",
