@@ -195,7 +195,7 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
       * This method must be called from the VPP executor thread.
       */
     @NotThreadSafe
-    protected def removeUplink(portId: UUID, dummy: Boolean): Unit = {
+    protected def removeUplink(portId: UUID): Unit = {
         val uplinkState = uplinks.remove(portId)
         if (uplinkState ne null) {
             uplinkState.complete()
