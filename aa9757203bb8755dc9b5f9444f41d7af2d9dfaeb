@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_5912e6b5",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1075,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-05T11:20:00Z",
+      "side": 1,
+      "message": "this reinvents the wheel. You can get a handle to the vport from the binding manager, and just call ping_v4_addr from that. See test_garp for more details.",
+      "range": {
+        "startLine": 1070,
+        "startChar": 4,
+        "endLine": 1075,
+        "endChar": 58
+      },
+      "revId": "aa9757203bb8755dc9b5f9444f41d7af2d9dfaeb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
