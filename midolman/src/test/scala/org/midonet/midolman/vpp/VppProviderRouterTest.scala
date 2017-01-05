@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.vpp
 
+import java.util
 import java.util.concurrent.ExecutorService
 import java.util.{Collections, UUID, List => JList}
 
@@ -27,8 +28,10 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
+import rx.observers.TestObserver
+
 import org.midonet.cluster.data.storage.{CreateOp, InMemoryStorage}
-import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
@@ -36,7 +39,7 @@ import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.vpp.VppExecutor.Receive
-import org.midonet.midolman.vpp.VppProviderRouter.Gateways
+import org.midonet.midolman.vpp.VppProviderRouter.{Gateways, ProviderRouter}
 import org.midonet.packets.{IPv6Addr, IPv6Subnet}
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.logging.Logger
@@ -55,6 +58,9 @@ class VppProviderRouterTest extends MidolmanSpec with TopologyBuilder {
         override def vt = VppProviderRouterTest.this.vt
         override val log = Logger(LoggerFactory.getLogger("vpp-fip64"))
         var messages = List[Any]()
+
+        val observer = new TestObserver[ProviderRouter]
+        providerRouterObservable subscribe observer
 
         protected override def newExecutor: ExecutorService = {
             new SameThreadButAfterExecutorService
@@ -143,7 +149,7 @@ class VppProviderRouterTest extends MidolmanSpec with TopologyBuilder {
                                         portSubnet = randomSubnet6())
             store.multi(Seq(CreateOp(router), CreateOp(port)))
 
-            When("Registering an uplink")
+            When("Adding an uplink")
             vpp.add(port.getId.asJava, router.getId.asJava,
                     Collections.singletonList(port.getId.asJava))
 
@@ -190,7 +196,7 @@ class VppProviderRouterTest extends MidolmanSpec with TopologyBuilder {
                                         portSubnet = randomSubnet6())
             store.multi(Seq(CreateOp(router), CreateOp(port)))
 
-            When("Registering an uplink")
+            When("Adding an uplink")
             vpp.add(port.getId.asJava, router.getId.asJava,
                     Collections.emptyList())
 
@@ -209,7 +215,7 @@ class VppProviderRouterTest extends MidolmanSpec with TopologyBuilder {
                                         portSubnet = randomSubnet6())
             store.multi(Seq(CreateOp(router), CreateOp(port)))
 
-            When("Registering an uplink")
+            When("Adding an uplink")
             vpp.add(port.getId.asJava, router.getId.asJava,
                     Collections.singletonList(port.getId.asJava))
 
@@ -231,7 +237,7 @@ class VppProviderRouterTest extends MidolmanSpec with TopologyBuilder {
             store.multi(Seq(CreateOp(host), CreateOp(router),
                                     CreateOp(port)))
 
-            When("Registering an uplink")
+            When("Adding an uplink")
             vpp.add(port.getId.asJava, router.getId.asJava,
                     Collections.singletonList(port.getId.asJava))
 
@@ -275,7 +281,7 @@ class VppProviderRouterTest extends MidolmanSpec with TopologyBuilder {
                              port1.getId, ActiveKey, host.getId.asJava.toString)
                  .await(timeout)
 
-            When("Registering an uplink")
+            When("Adding an uplink")
             vpp.add(port1.getId.asJava, router.getId.asJava,
                     List(port1.getId.asJava, port2.getId.asJava).asJava)
 
@@ -328,7 +334,7 @@ class VppProviderRouterTest extends MidolmanSpec with TopologyBuilder {
                              port1.getId, ActiveKey, host1.getId.asJava.toString)
                  .await(timeout)
 
-            When("Registering an uplink")
+            When("Adding an uplink")
             vpp.add(port1.getId.asJava, router.getId.asJava,
                     List(port1.getId.asJava, port2.getId.asJava).asJava)
 
@@ -359,6 +365,145 @@ class VppProviderRouterTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The controller should receive no gateways")
             vpp.messages(3) shouldBe Gateways(port1.getId.asJava, Set())
+        }
+    }
+
+    feature("Provider router instance notifies provider routers") {
+        scenario("Router adding interior ports") {
+            Given("A provider router instance")
+            val vpp = new TestableVppProviderRouter
+            vpp.startAsync().awaitRunning()
+
+            And("A port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId),
+                                        portSubnet = randomSubnet6())
+            store.multi(Seq(CreateOp(router), CreateOp(port)))
+
+            When("Adding an uplink")
+            vpp.add(port.getId, router.getId, Collections.emptyList())
+
+            Then("The instance should emit a router with no ports")
+            vpp.observer.getOnNextEvents.get(0) shouldBe ProviderRouter(
+                router.getId, Collections.emptyMap())
+
+            When("Adding an interior port")
+            val bridge = createBridge()
+            val peerPort1 = createBridgePort(bridgeId = Some(bridge.getId))
+            val interiorPort1 = createRouterPort(routerId = Some(router.getId),
+                                                 portSubnet = randomSubnet6(),
+                                                 peerId = Some(peerPort1.getId))
+            store.multi(Seq(CreateOp(bridge), CreateOp(peerPort1),
+                            CreateOp(interiorPort1)))
+
+            Then("The instance should emit a router with a port")
+            vpp.observer.getOnNextEvents.get(1) shouldBe ProviderRouter(
+                router.getId,
+                Collections.singletonMap(interiorPort1.getId, peerPort1.getId))
+
+            When("Adding a second interior port")
+            val peerPort2 = createBridgePort(bridgeId = Some(bridge.getId))
+            val interiorPort2 = createRouterPort(routerId = Some(router.getId),
+                                                 portSubnet = randomSubnet6(),
+                                                 peerId = Some(peerPort2.getId))
+            store.multi(Seq(CreateOp(peerPort2), CreateOp(interiorPort2)))
+
+            Then("The instance should emit a router with both ports")
+            val map = new util.HashMap[UUID, UUID]()
+            map.put(interiorPort1.getId, peerPort1.getId)
+            map.put(interiorPort2.getId, peerPort2.getId)
+            vpp.observer.getOnNextEvents.get(2) shouldBe ProviderRouter(
+                router.getId, map)
+
+            When("Deleting a router port")
+            store.delete(classOf[Port], interiorPort1.getId)
+
+            Then("The instance should emit a routre with a port")
+            vpp.observer.getOnNextEvents.get(3) shouldBe ProviderRouter(
+                router.getId,
+                Collections.singletonMap(interiorPort2.getId, peerPort2.getId))
+        }
+
+        scenario("Router with existing interior port") {
+            Given("A provider router instance")
+            val vpp = new TestableVppProviderRouter
+            vpp.startAsync().awaitRunning()
+
+            And("A router with an interior port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId),
+                                        portSubnet = randomSubnet6())
+            val bridge = createBridge()
+            val peerPort = createBridgePort(bridgeId = Some(bridge.getId))
+            val interiorPort = createRouterPort(routerId = Some(router.getId),
+                                                portSubnet = randomSubnet6(),
+                                                peerId = Some(peerPort.getId))
+            store.multi(Seq(CreateOp(router), CreateOp(port), CreateOp(bridge),
+                        CreateOp(peerPort), CreateOp(interiorPort)))
+
+            When("Adding an uplink")
+            vpp.add(port.getId, router.getId, Collections.emptyList())
+
+            Then("The instance should emit a router with a port")
+            vpp.observer.getOnNextEvents.get(0) shouldBe ProviderRouter(
+                router.getId,
+                Collections.singletonMap(interiorPort.getId, peerPort.getId))
+        }
+
+        scenario("Provider router cleared when uplink removed") {
+            Given("A provider router instance")
+            val vpp = new TestableVppProviderRouter
+            vpp.startAsync().awaitRunning()
+
+            And("A router with an interior port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId),
+                                        portSubnet = randomSubnet6())
+            val bridge = createBridge()
+            val peerPort = createBridgePort(bridgeId = Some(bridge.getId))
+            val interiorPort = createRouterPort(routerId = Some(router.getId),
+                                                portSubnet = randomSubnet6(),
+                                                peerId = Some(peerPort.getId))
+            store.multi(Seq(CreateOp(router), CreateOp(port), CreateOp(bridge),
+                            CreateOp(peerPort), CreateOp(interiorPort)))
+
+            When("Adding an uplink")
+            vpp.add(port.getId, router.getId, Collections.emptyList())
+
+            And("Removing the uplink")
+            vpp.remove(port.getId)
+
+            Then("The instance should emit a router with no ports")
+            vpp.observer.getOnNextEvents.get(1) shouldBe ProviderRouter(
+                router.getId, Collections.emptyMap())
+        }
+
+        scenario("Provider router cleared when router deleted") {
+            Given("A provider router instance")
+            val vpp = new TestableVppProviderRouter
+            vpp.startAsync().awaitRunning()
+
+            And("A router with an interior port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId),
+                                        portSubnet = randomSubnet6())
+            val bridge = createBridge()
+            val peerPort = createBridgePort(bridgeId = Some(bridge.getId))
+            val interiorPort = createRouterPort(routerId = Some(router.getId),
+                                                portSubnet = randomSubnet6(),
+                                                peerId = Some(peerPort.getId))
+            store.multi(Seq(CreateOp(router), CreateOp(port), CreateOp(bridge),
+                            CreateOp(peerPort), CreateOp(interiorPort)))
+
+            When("Adding an uplink")
+            vpp.add(port.getId, router.getId, Collections.emptyList())
+
+            And("Deleting the router")
+            store.delete(classOf[Router], router.getId)
+
+            Then("The instance should emit a router with no ports")
+            vpp.observer.getOnNextEvents.get(1) shouldBe ProviderRouter(
+                router.getId, Collections.emptyMap())
         }
     }
 
