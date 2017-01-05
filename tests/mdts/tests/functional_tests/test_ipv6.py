@@ -615,10 +615,7 @@ def ping_from_inet(container, ip='2001::1', count=4, namespace=None):
         "ip netns exec %s" % namespace if namespace else "",
         ping_cmd, ip, count)
     cont_services = service.get_container_by_hostname(container)
-    try:
-        cont_services.try_command_blocking(cmd)
-    except:
-        import ipdb; ipdb.set_trace()
+    cont_services.try_command_blocking(cmd)
 
 
 # Starts a modified echo server at given container
