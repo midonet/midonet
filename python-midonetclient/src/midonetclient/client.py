@@ -26,6 +26,7 @@ from midonetclient.neutron import l3
 from midonetclient.neutron import lbaasv2
 from midonetclient.neutron import loadbalancer as lb
 from midonetclient.neutron import network as net
+from midonetclient.neutron import pool_member
 from midonetclient.neutron import qos
 from midonetclient.neutron import securitygroup as sg
 from midonetclient.neutron import taas
@@ -46,7 +47,8 @@ class MidonetClient(net.NetworkClientMixin,
                     fw_l.FirewallLoggingClientMixin,
                     taas.TaasClientMixin,
                     vpn.VPNClientMixin,
-                    qos.QOSClientMixin):
+                    qos.QOSClientMixin,
+                    pool_member.PoolMemberClientMixin):
     """Main MidoNet client class
 
     The main class for MidoNet client.  Instantiate this class to make API
