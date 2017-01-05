@@ -70,6 +70,30 @@
       "revId": "befc50aea497f6c19306e6351fc9b0d68db7c4e4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_19ca2ea2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-05T09:15:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_b9ac62ee",
+      "range": {
+        "startLine": 461,
+        "startChar": 56,
+        "endLine": 461,
+        "endChar": 69
+      },
+      "revId": "befc50aea497f6c19306e6351fc9b0d68db7c4e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
