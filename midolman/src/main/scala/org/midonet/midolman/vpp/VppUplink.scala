@@ -320,6 +320,11 @@ private[vpp] trait VppUplink {
     }
 
     private val uplinkSubject = PublishSubject.create[Notification]
+
+    /**
+      * An [[Observable]] that emits notifications for the VPP uplinks. The
+      * notifications are emitted on the virtual topology thread.
+      */
     protected val uplinkObservable = uplinkSubject.asObservable()
 
     /**
