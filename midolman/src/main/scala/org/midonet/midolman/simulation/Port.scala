@@ -452,12 +452,20 @@ case class ServicePort(override val id: UUID,
 
     protected override def ingressCommon(context: PacketContext)
     : SimulationResult = {
+        if (context.wcmatch.getEtherType == IPv6.ETHERTYPE) {
+            context.log.debug("Service ports cannot handle IPv6 packets: dropping")
+            // Set the userspace mark to skip the creation of a drop flow that
+            // can interfere with the VPP controller.
+            context.origMatch.fieldSeen(FlowMatch.Field.UserspaceMark)
+            return Drop
+        }
+
         if (!realAdminStateUp) {
             context.log.debug("Administratively down service port: dropping")
-            Drop
-        } else {
-            super.ingressCommon(context)
+            return Drop
         }
+
+        super.ingressCommon(context)
     }
 
     protected override def egressCommon(context: PacketContext,
@@ -549,6 +557,17 @@ case class RouterPort(override val id: UUID,
         val ethOpt = unreachableProhibitedIcmp(from, context, context.wcmatch)
         if (ethOpt.isDefined)
             context.addGeneratedPacket(from.id, ethOpt.get)
+    }
+
+    protected override def ingressCommon(context: PacketContext): SimulationResult = {
+        if (context.wcmatch.getEtherType == IPv6.ETHERTYPE) {
+            context.log.debug("Router ports cannot handle IPv6 packets: dropping")
+            // Set the userspace mark to skip the creation of a drop flow that
+            // can interfere with the VPP controller.
+            context.origMatch.fieldSeen(FlowMatch.Field.UserspaceMark)
+            return Drop
+        }
+        super.ingressCommon(context)
     }
 
     protected override def egressCommon(context: PacketContext,
