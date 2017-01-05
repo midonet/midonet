@@ -28,7 +28,6 @@ import org.midonet.cluster.models.Topology
 import org.midonet.cluster.state.PortStateStorage.PortState
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.rules.{Nat64Rule, Rule}
 import org.midonet.midolman.simulation.Simulator.{ContinueWith, Fip64Action, SimHook, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.odp.FlowMatch
@@ -44,7 +43,6 @@ object Port {
               inFilters: JList[UUID],
               outFilters: JList[UUID],
               servicePorts: JList[UUID] = emptyList(),
-              fipNatRules: JList[Rule] = emptyList(),
               peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
               qosPolicy: QosPolicy = null): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
@@ -55,7 +53,7 @@ object Port {
             bridgePort(proto, state, inFilters, outFilters,
                        servicePorts, qosPolicy)
         else if (proto.hasRouterId)
-            routerPort(proto, state, inFilters, outFilters, fipNatRules,
+            routerPort(proto, state, inFilters, outFilters,
                        peeringTable, qosPolicy)
         else
             throw new ConvertException("Unknown port type")
@@ -92,7 +90,6 @@ object Port {
                            state: PortState,
                            inFilters: JList[UUID],
                            outFilters: JList[UUID],
-                           fipNatRules: JList[Rule],
                            peeringTable: StateTable[MAC, IPv4Addr],
                            qosPolicy: QosPolicy) = {
 
@@ -161,7 +158,6 @@ object Port {
             preOutFilterMirrors = p.getPreOutFilterMirrorIdsList,
             vni = if (p.hasVni) p.getVni else 0,
             tunnelIp = if (p.hasTunnelIp) toIPv4Addr(p.getTunnelIp) else null,
-            fipNatRules = fipNatRules,
             peeringTable = peeringTable,
             qosPolicy = qosPolicy)
     }
@@ -534,7 +530,6 @@ case class RouterPort(override val id: UUID,
                       override val preOutFilterMirrors: JList[UUID] = emptyList(),
                       vni: Int = 0,
                       tunnelIp: IPv4Addr = null,
-                      fipNatRules: JList[Rule] = emptyList(),
                       peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
                       override val qosPolicy: QosPolicy = null)
     extends Port {
@@ -587,43 +582,18 @@ case class RouterPort(override val id: UUID,
     protected override def emitCommon: SimStep = {
         val emitBase = super.emitCommon
         var index = 0
-        while (index < fipNatRules.size()) {
-            if (fipNatRules.get(index).isInstanceOf[Nat64Rule]) {
-                return context => {
-                    if (fipNat64Match(context)) {
-                        context.log.debug("Emitting packet to NAT64 gateway " +
-                                          s"with tunnel key $tunnelKey")
-                        context.calculateActionsFromMatchDiff()
-                        context.addVirtualAction(Fip64Action(null, tunnelKey))
-                        context.trackConnection(deviceId)
-                        AddVirtualWildcardFlow
-                    } else {
-                        emitBase(context)
-                    }
-                }
+        context => {
+            if (context.needsFip64) {
+                context.log.debug("Emitting packet to NAT64 gateway " +
+                                      s"with tunnel key $tunnelKey")
+                context.calculateActionsFromMatchDiff()
+                context.addVirtualAction(Fip64Action(null, tunnelKey))
+                context.trackConnection(deviceId)
+                AddVirtualWildcardFlow
+            } else {
+                emitBase(context)
             }
-            index += 1
         }
-        emitBase
-    }
-
-    def fipNat64Match(context: PacketContext): Boolean = {
-        val address: Int = context.wcmatch.getNetworkDstIP match {
-            case ip4: IPv4Addr => ip4.addr
-            case _ => return false
-        }
-        var index = 0
-        while (index < fipNatRules.size()) {
-            fipNatRules.get(index) match {
-                case rule: Nat64Rule if rule.natPool ne null =>
-                    if (rule.natPool.nwStart.addr <= address &&
-                        rule.natPool.nwEnd.addr >= address)
-                        return true
-                case _ =>
-            }
-            index += 1
-        }
-        false
     }
 
     override def toString =
@@ -631,7 +601,7 @@ case class RouterPort(override val id: UUID,
         s"portAddresses=$portAddresses portAddress4=$portAddress4 " +
         s"portAddress6=$portAddress6 portMac=$portMac " +
         s"${if (isL2) s"vni=$vni tunnelIp=$tunnelIp" else ""} " +
-        s"routeIds=$routeIds fipNatRules=$fipNatRules]"
+        s"routeIds=$routeIds]"
 }
 
 case class VxLanPort(override val id: UUID,

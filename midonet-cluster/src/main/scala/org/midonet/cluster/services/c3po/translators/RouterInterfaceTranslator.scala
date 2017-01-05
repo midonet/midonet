@@ -50,12 +50,6 @@ object RouterInterfaceTranslator {
     def sameSubnetSnatRuleId(chainId: UUID, portId: UUID) =
         chainId.xorWith(portId.getMsb, portId.getLsb)
             .xorWith(0x3bcf2eb64be211e5L, 0x84ae0242ac110003L)
-
-    /**
-      * Deterministically generate the NAT64 rule ID from the router port ID.
-      */
-    def nat64RuleId(portId: UUID) =
-        portId.xorWith(0xc91ba547c2a6019fL, 0x39d255685b595dffL)
 }
 
 class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
@@ -301,31 +295,14 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
                                  portAddress: PortAddress)
     : Unit = {
         if (!isUplink) {
-            // Create the NAT64 rule containing the port IPv6 address and the
-            // NAT64 pool.
-            val nat64RuleData = Rule.Nat64RuleData.newBuilder()
-                .setPortAddress(portAddress.subnet)
-                .setNatPool(NatTarget.newBuilder()
-                                .setNwStart(RouterTranslator.Nat64PoolStart)
-                                .setNwEnd(RouterTranslator.Nat64PoolEnd)
-                                .setTpStart(0)
-                                .setTpEnd(0))
-            val nat64Rule = Rule.newBuilder()
-                .setId(nat64RuleId(port.getId))
-                .setFipPortId(port.getId)
-                .setType(Rule.Type.NAT64_RULE)
-                .setNat64RuleData(nat64RuleData)
-                .build()
-            tx.create(nat64Rule)
-
             val routerInterfaceRouteId =
                 RouteManager.routerInterfaceRouteId(port.getId, portAddress.address)
 
             // Create port route for the NAT64 pool.
-            val portRoute = newNextHopPortRoute(nextHopPortId = port.getId,
-                                                id = routerInterfaceRouteId,
-                                                srcSubnet = AnyIPv4Subnet,
-                                                dstSubnet = RouterTranslator.Nat64Pool)
+            val portRoute = newNextHopFip64Route(nextHopPortId = port.getId,
+                                                 id = routerInterfaceRouteId,
+                                                 srcSubnet = AnyIPv4Subnet,
+                                                 dstSubnet = RouterTranslator.Nat64Pool)
             tx.create(portRoute)
         }
 

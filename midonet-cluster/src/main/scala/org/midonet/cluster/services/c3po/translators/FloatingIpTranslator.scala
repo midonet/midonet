@@ -26,6 +26,7 @@ import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPo
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.translators.RouteManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
@@ -346,6 +347,7 @@ object FloatingIpTranslator {
 
         Fip64Entry(IPv4Addr(fip.getFixedIpAddress.getAddress),
                    IPv6Addr(fip.getFloatingIpAddress.getAddress),
+                   IPSubnetUtil.fromV4Proto(RouterTranslator.Nat64Pool),
                    portId,
                    fip.getRouterId)
     }

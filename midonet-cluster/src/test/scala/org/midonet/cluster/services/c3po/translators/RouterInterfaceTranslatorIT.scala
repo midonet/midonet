@@ -429,7 +429,6 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             routerPort.getPortSubnet(0).getAddress shouldBe "2001:0:0:0:0:0:0:2"
             routerPort.getPortSubnet(0).getPrefixLength shouldBe 64
             routerPort.getPortAddress.getAddress shouldBe "2001:0:0:0:0:0:0:2"
-            routerPort.getFipNatRuleIdsCount should not be 0
 
             val routes = storage.getAll(classOf[Route],
                                         routerPort.getRouteIdsList.asScala)
@@ -439,37 +438,18 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             routes.head.getSrcSubnet.getAddress shouldBe "0.0.0.0"
             routes.head.getDstSubnet shouldBe RouterTranslator.Nat64Pool
             routes.head.getNextHopPortId shouldBe routerPort.getId
-            routes.head.getNextHop shouldBe NextHop.PORT
+            routes.head.getNextHop shouldBe NextHop.FIP64
 
             routes(1).getSrcSubnet.getAddress shouldBe "0.0.0.0"
             routes(1).getDstSubnet.getAddress shouldBe "2001:0:0:0:0:0:0:2"
             routes(1).getNextHopPortId shouldBe routerPort.getId
             routes(1).getNextHop shouldBe NextHop.LOCAL
-
-            val rules = storage.getAll(classOf[Rule],
-                                       routerPort.getFipNatRuleIdsList.asScala)
-                               .await()
-            rules should have size 1
-
-            rules.head.getType shouldBe Rule.Type.NAT64_RULE
-            rules.head.getNat64RuleData.getPortAddress
-                .getAddress shouldBe "2001:0:0:0:0:0:0:2"
-            rules.head.getNat64RuleData.getPortAddress
-                .getPrefixLength shouldBe 64
-            rules.head.getNat64RuleData.getNatPool.getNwStart shouldBe
-                RouterTranslator.Nat64PoolStart
-            rules.head.getNat64RuleData.getNatPool.getNwEnd shouldBe
-                RouterTranslator.Nat64PoolEnd
-            rules.head.getNat64RuleData.getNatPool.getTpStart shouldBe 0
-            rules.head.getNat64RuleData.getNatPool.getTpEnd shouldBe 0
         //}
 
         insertDeleteTask(60, PortType, rifPortId)
 
         eventually {
-            val nat64RuleId = RouterInterfaceTranslator.nat64RuleId(routerPortId)
             storage.exists(classOf[Port], routerPortId).await() shouldBe false
-            storage.exists(classOf[Rule], nat64RuleId).await() shouldBe false
         }
     }
 

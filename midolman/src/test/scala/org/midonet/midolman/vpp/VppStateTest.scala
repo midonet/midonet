@@ -29,11 +29,10 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder.DefaultValue
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.topology.{GatewayMappingService, VirtualTopology}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.vpp.VppState.GatewaysChanged
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{IPv4Addr, IPv4Subnet}
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 
 @RunWith(classOf[JUnitRunner])
@@ -50,8 +49,8 @@ class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
             new SameThreadButAfterExecutorService
         }
 
-        def splitPool(natPool: NatTarget, portId: UUID, portIds: Seq[UUID])
-        : NatTarget = {
+        def splitPool(natPool: IPv4Subnet, portId: UUID, portIds: Seq[UUID])
+        : NatPool = {
             super.splitPool(natPool, portId, portIds.asJava)
         }
 
@@ -63,7 +62,7 @@ class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
             removeUplink(portId)
         }
 
-        def get(portId: UUID, natPool: NatTarget): Option[NatTarget] = {
+        def get(portId: UUID, natPool: IPv4Subnet): Option[NatPool] = {
             poolFor(portId, natPool)
         }
 
@@ -86,62 +85,60 @@ class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
 
     feature("NAT pool is split between multiple gateways") {
         scenario("Gateways receive disjoint equal partitions") {
-            Given("A NAT pool with 100 addresses")
-            val pool = new NatTarget(IPv4Addr.fromInt(1),
-                                     IPv4Addr.fromInt(100), 0, 0)
+            Given("A NAT pool with 128 addresses")
+            val pool = new IPv4Subnet(1 << 30, 25)
+
+            And("Three gateways")
+            val id1 = new UUID(0L, 0L)
+            val id2 = new UUID(0L, 1L)
+            val id3 = new UUID(0L, 2L)
+            val ids = Seq(id2, id1, id3)
+
+            Then("First gateway should get the first partition")
+            TestableVppState.splitPool(pool, id1, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 1), IPv4Addr.fromInt(1 << 30 | 42))
+
+            And("Second gateway should get the second partition")
+            TestableVppState.splitPool(pool, id2, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 43), IPv4Addr.fromInt(1 << 30 | 84))
+
+            And("Third gateway should get the third partition")
+            TestableVppState.splitPool(pool, id3, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 85), IPv4Addr.fromInt(1 << 30 | 126))
+        }
+
+        scenario("Gateways receive disjoint inequal partitions") {
+            Given("A NAT pool with 128 addresses")
+            val pool = new IPv4Subnet(1 << 30, 25)
 
             And("Four gateways")
             val id1 = new UUID(0L, 0L)
             val id2 = new UUID(0L, 1L)
             val id3 = new UUID(0L, 2L)
             val id4 = new UUID(0L, 3L)
-            val ids = Seq(id2, id3, id1, id4)
+            val ids = Seq(id2, id4, id3, id1)
 
             Then("First gateway should get the first partition")
-            TestableVppState.splitPool(pool, id1, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(1), IPv4Addr.fromInt(25), 0, 0)
+            TestableVppState.splitPool(pool, id1, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 1), IPv4Addr.fromInt(1 << 30 | 31))
 
             And("Second gateway should get the second partition")
-            TestableVppState.splitPool(pool, id2, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(26), IPv4Addr.fromInt(50), 0, 0)
+            TestableVppState.splitPool(pool, id2, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 32), IPv4Addr.fromInt(1 << 30 | 63))
 
             And("Third gateway should get the third partition")
-            TestableVppState.splitPool(pool, id3, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(51), IPv4Addr.fromInt(75), 0, 0)
+            TestableVppState.splitPool(pool, id3, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 64), IPv4Addr.fromInt(1 << 30 | 94))
 
             And("Fourth gateway should get the fourth partition")
-            TestableVppState.splitPool(pool, id4, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(76), IPv4Addr.fromInt(100), 0, 0)
-        }
+            TestableVppState.splitPool(pool, id4, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 95), IPv4Addr.fromInt(1 << 30 | 126))
 
-        scenario("Gateways receive disjoint inequal partitions") {
-            Given("A NAT pool with 20 addresses")
-            val pool = new NatTarget(IPv4Addr.fromInt(1),
-                                     IPv4Addr.fromInt(20), 0, 0)
-
-            And("Three gateways")
-            val id1 = new UUID(0L, 0L)
-            val id2 = new UUID(0L, 1L)
-            val id3 = new UUID(0L, 2L)
-            val ids = Seq(id2, id3, id1)
-
-            Then("First gateway should get the first partition")
-            TestableVppState.splitPool(pool, id1, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(1), IPv4Addr.fromInt(6), 0, 0)
-
-            And("Second gateway should get the second partition")
-            TestableVppState.splitPool(pool, id2, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(7), IPv4Addr.fromInt(13), 0, 0)
-
-            And("Third gateway should get the third partition")
-            TestableVppState.splitPool(pool, id3, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(14), IPv4Addr.fromInt(20), 0, 0)
         }
 
         scenario("Gateways receive same partitions even when order is different") {
-            Given("A NAT pool with 100 addresses")
-            val pool = new NatTarget(IPv4Addr.fromInt(1),
-                                     IPv4Addr.fromInt(100), 0, 0)
+            Given("A NAT pool with 128 addresses")
+            val pool = new IPv4Subnet(1 << 30, 25)
 
             And("Three gateways")
             val id1 = new UUID(0L, 0L)
@@ -152,22 +149,21 @@ class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
             val ids3 = Seq(id1, id3, id2)
 
             Then("First gateway should get the first partition")
-            TestableVppState.splitPool(pool, id1, ids2) shouldBe new NatTarget(
-                IPv4Addr.fromInt(1), IPv4Addr.fromInt(33), 0, 0)
+            TestableVppState.splitPool(pool, id1, ids2) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 1), IPv4Addr.fromInt(1 << 30 | 42))
 
             And("Second gateway should get the second partition")
-            TestableVppState.splitPool(pool, id2, ids3) shouldBe new NatTarget(
-                IPv4Addr.fromInt(34), IPv4Addr.fromInt(66), 0, 0)
+            TestableVppState.splitPool(pool, id2, ids3) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 43), IPv4Addr.fromInt(1 << 30 | 84))
 
             And("Third gateway should get the third partition")
-            TestableVppState.splitPool(pool, id3, ids1) shouldBe new NatTarget(
-                IPv4Addr.fromInt(67), IPv4Addr.fromInt(100), 0, 0)
+            TestableVppState.splitPool(pool, id3, ids1) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 85), IPv4Addr.fromInt(1 << 30 | 126))
         }
 
         scenario("Some gateways may not receive addresses for small pool") {
             Given("A NAT pool with 2 addresses")
-            val pool = new NatTarget(IPv4Addr.fromInt(1),
-                                     IPv4Addr.fromInt(2), 0, 0)
+            val pool = new IPv4Subnet(1 << 30, 30)
 
             And("Four gateways")
             val id1 = new UUID(0L, 0L)
@@ -177,20 +173,20 @@ class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
             val ids = Seq(id2, id3, id1, id4)
 
             Then("First gateway should get no address")
-            TestableVppState.splitPool(pool, id1, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(1), IPv4Addr.fromInt(0), 0, 0)
+            TestableVppState.splitPool(pool, id1, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 1), IPv4Addr.fromInt(1 << 30 | 0))
 
             And("Second gateway should get the first address")
-            TestableVppState.splitPool(pool, id2, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(1), IPv4Addr.fromInt(1), 0, 0)
+            TestableVppState.splitPool(pool, id2, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 1), IPv4Addr.fromInt(1 << 30 | 1))
 
             And("Third gateway should get no address")
-            TestableVppState.splitPool(pool, id3, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(2), IPv4Addr.fromInt(1), 0, 0)
+            TestableVppState.splitPool(pool, id3, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 2), IPv4Addr.fromInt(1 << 30 | 1))
 
             And("Fourth gateway should get the second address")
-            TestableVppState.splitPool(pool, id4, ids) shouldBe new NatTarget(
-                IPv4Addr.fromInt(2), IPv4Addr.fromInt(2), 0, 0)
+            TestableVppState.splitPool(pool, id4, ids) shouldBe new NatPool(
+                IPv4Addr.fromInt(1 << 30 | 2), IPv4Addr.fromInt(1 << 30 | 2))
         }
     }
 
@@ -201,8 +197,7 @@ class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
 
             And("A port with a NAT pool")
             val portId = UUID.randomUUID()
-            val pool = new NatTarget(IPv4Addr.fromInt(0),
-                                     IPv4Addr.fromInt(100), 0, 0)
+            val pool = new IPv4Subnet(1 << 30, 10)
 
             When("Requesting the allocated NAT pool")
             val allocated = vpp.get(portId, pool)
@@ -221,14 +216,14 @@ class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
 
             And("A port with a NAT pool")
             val portId = UUID.randomUUID()
-            val pool = new NatTarget(IPv4Addr.fromInt(1),
-                                     IPv4Addr.fromInt(100), 0, 0)
+            val pool = new IPv4Subnet(1 << 30, 24)
 
             When("Requesting the allocated NAT pool")
             val allocated = vpp.get(portId, pool)
 
             Then("The allocation should return the NAT pool")
-            allocated shouldBe Some(pool)
+            allocated shouldBe Some(NatPool(IPv4Addr(1 << 30 | 1),
+                                            IPv4Addr(1 << 30 | 254)))
         }
 
         scenario("A single uplink port in a port group of four") {
@@ -244,15 +239,15 @@ class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
 
             And("A port with a NAT pool")
             val portId = UUID.randomUUID()
-            val pool = new NatTarget(IPv4Addr.fromInt(1),
-                                     IPv4Addr.fromInt(100), 0, 0)
+            val pool = new IPv4Subnet(1 << 30, 25)
 
             When("Requesting the allocated NAT pool")
             val allocated = vpp.get(portId, pool)
 
             Then("The allocation should return a slice of the NAT pool")
-            allocated shouldBe Some(new NatTarget(IPv4Addr.fromInt(51),
-                                                  IPv4Addr.fromInt(75), 0, 0))
+            allocated shouldBe Some(new NatPool(
+                                        IPv4Addr.fromInt(1 << 30 | 64),
+                                        IPv4Addr.fromInt(1 << 30 | 94)))
         }
 
         scenario("Multiple uplink ports") {
@@ -265,8 +260,7 @@ class VppStateTest extends MidolmanSpec with Matchers with GivenWhenThen {
 
             And("A port with a NAT pool")
             val portId = UUID.randomUUID()
-            val pool = new NatTarget(IPv4Addr.fromInt(1),
-                                     IPv4Addr.fromInt(100), 0, 0)
+            val pool = new IPv4Subnet(1 << 30, 24)
 
             When("Requesting the allocated NAT pool")
             val allocated = vpp.get(portId, pool)

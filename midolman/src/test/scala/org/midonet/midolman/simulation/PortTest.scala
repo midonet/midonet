@@ -31,7 +31,7 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, ErrorDrop}
-import org.midonet.midolman.rules.{LiteralRule, Nat64Rule, NatTarget, Rule}
+import org.midonet.midolman.rules.{LiteralRule, NatTarget, Rule}
 import org.midonet.midolman.simulation.Simulator.Fip64Action
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser}
 import org.midonet.midolman.util.MidolmanSpec
@@ -56,8 +56,7 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
                               adminStateUp = true),
              PortActive(UUID.randomUUID(), Some(1L)),
              Collections.emptyList(),
-             Collections.emptyList(),
-             fipNatRules = rules.asJava)
+             Collections.emptyList())
     }
 
     private def packet(src: String, dst: String): EthBuilder = {
@@ -227,34 +226,14 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
     }
 
     feature("Router port handles NAT64 packets") {
-        scenario("Port with an empty NAT64") {
-            Given("A NAT64 rule")
-            val rule = new Nat64Rule
 
+        scenario("Port forwards for translation") {
             And("A router port")
-            val port = activePort(rule)
+            val port = activePort()
 
-            And("A packet and context")
+            And("A packet and context, marked for translation")
             val context = contextOf(packet("1.2.3.4", "5.6.7.8"))
-
-            When("Simulating the port egress")
-            val result = port.egress(context)
-
-            Then("The packet should be dropped")
-            result shouldBe ErrorDrop
-        }
-
-
-        scenario("Port with matching NAT64") {
-            Given("A NAT64 rule")
-            val rule = new Nat64Rule()
-            rule.natPool = new NatTarget("5.6.7.1", "5.6.7.254", 0, 0)
-
-            And("A router port")
-            val port = activePort(rule)
-
-            And("A packet and context")
-            val context = contextOf(packet("1.2.3.4", "5.6.7.8"))
+            context.markForFip64()
 
             When("Simulating the port egress")
             val result = port.egress(context)
@@ -264,91 +243,6 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
             context.virtualFlowActions should contain only Fip64Action(null, 1L)
         }
 
-        scenario("Port with other rule") {
-            Given("A non-NAT64 rule")
-            val rule = new LiteralRule()
-
-            And("A router port")
-            val port = activePort(rule)
-
-            And("A packet and context")
-            val context = contextOf(packet("1.2.3.4", "5.6.7.8"))
-
-            When("Simulating the port egress")
-            val result = port.egress(context)
-
-            Then("The packet should be dropped")
-            result shouldBe ErrorDrop
-        }
-
-        scenario("Port with multiple rules, one NAT64") {
-            Given("A NAT64 rule")
-            val natRule = new Nat64Rule()
-            natRule.natPool = new NatTarget("5.6.7.1", "5.6.7.254", 0, 0)
-
-            And("A non-NAT64 rule")
-            val literalRule = new LiteralRule()
-
-            And("A router port")
-            val port = activePort(literalRule, natRule)
-
-            And("A packet and context")
-            val context = contextOf(packet("1.2.3.4", "5.6.7.8"))
-
-            When("Simulating the port egress")
-            val result = port.egress(context)
-
-            Then("The result should add a flow")
-            result shouldBe AddVirtualWildcardFlow
-            context.virtualFlowActions should contain only Fip64Action(null, 1L)
-        }
-
-        scenario("Port with multiple NAT64 rules") {
-            Given("Two NAT64 rules")
-            val natRule1 = new Nat64Rule()
-            natRule1.natPool = new NatTarget("5.6.6.1", "5.6.6.254", 0, 0)
-            val natRule2 = new Nat64Rule()
-            natRule2.natPool = new NatTarget("5.6.7.1", "5.6.7.254", 0, 0)
-
-            And("A router port")
-            val port = activePort(natRule1, natRule2)
-
-            And("A packet and context")
-            val context = contextOf(packet("1.2.3.4", "5.6.7.8"))
-
-            When("Simulating the port egress")
-            val result = port.egress(context)
-
-            Then("The result should add a flow")
-            result shouldBe AddVirtualWildcardFlow
-            context.virtualFlowActions should contain only Fip64Action(null, 1L)
-        }
-
-        scenario("Non-IPv4 packet") {
-            Given("A NAT64 rule")
-            val rule = new Nat64Rule()
-            rule.natPool = new NatTarget("5.6.7.1", "5.6.7.254", 0, 0)
-
-            And("A router port")
-            val port = activePort(rule)
-
-            And("A packet and context")
-            val frame =
-                {
-                    eth addr "01:02:03:04:05:06" -> "01:02:03:04:05:07"
-                } << {
-                    ip6.src("2001::1").dst("2001::2")
-                } << {
-                    udp ports 1000 ---> 1001
-                } << payload(UUID.randomUUID().toString)
-            val context = contextOf(frame)
-
-            When("Simulating the port egress")
-            val result = port.egress(context)
-
-            Then("The packet should be dropped")
-            result shouldBe ErrorDrop
-        }
     }
 
 }

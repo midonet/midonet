@@ -49,11 +49,9 @@ public class Route extends ZoomObject implements Serializable {
         @ZoomEnumValue(value = "PORT")
         PORT,
         @ZoomEnumValue(value = "LOCAL")
-        LOCAL;
-
-        public boolean toPort() {
-            return this.equals(PORT) || this.equals(LOCAL);
-        }
+        LOCAL,
+        @ZoomEnumValue(value = "FIP64")
+        FIP64;
 
         public Topology.Route.NextHop toProto() {
             return Topology.Route.NextHop.valueOf(toString());
