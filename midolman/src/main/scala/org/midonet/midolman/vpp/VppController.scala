@@ -44,7 +44,7 @@ import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
-import org.midonet.midolman.vpp.VppState.GatewaysChanged
+import org.midonet.midolman.vpp.VppProviderRouter.Gateways
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.midolman.{DatapathState, Midolman}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC, TunnelKeys}
@@ -112,10 +112,10 @@ class VppController(protected override val hostId: UUID,
             handleExternalRoutesUpdate(port)
 
         case AddUplink(portId, routerId, portAddress, uplinkPortIds) =>
-            addUplink(portId, portAddress, uplinkPortIds)
+            addUplink(portId, routerId, portAddress, uplinkPortIds)
         case DeleteUplink(portId) =>
             deleteUplink(portId)
-        case GatewaysChanged(hosts) =>
+        case Gateways(_, hosts) =>
             updateFlowStateFlows(hosts)
         case CreateTunnel(portId, vrf, vni, routerPortMac) =>
             createTunnel(portId, vrf, vni, routerPortMac)
@@ -168,9 +168,9 @@ class VppController(protected override val hostId: UUID,
         Future.sequence(cleanupFutures)
     }
 
-    private def addUplink(portId: UUID, portAddress: IPv6Subnet,
+    private def addUplink(portId: UUID, routerId: UUID, portAddress: IPv6Subnet,
                           uplinkPortIds: util.List[UUID]): Future[Any] = {
-        attachUplink(portId, portAddress, uplinkPortIds) flatMap {
+        attachUplink(portId, routerId, portAddress, uplinkPortIds) flatMap {
             _ => attachDownlink()
         }
     }
@@ -181,7 +181,8 @@ class VppController(protected override val hostId: UUID,
         }
     }
 
-    private def attachUplink(portId: UUID, portAddress: IPv6Subnet,
+    private def attachUplink(portId: UUID, routerId: UUID,
+                             portAddress: IPv6Subnet,
                              uplinkPortIds: util.List[UUID])
     : Future[VppUplinkSetup] = {
         log debug s"Attaching IPv6 uplink port $portId"
@@ -220,7 +221,7 @@ class VppController(protected override val hostId: UUID,
             }
         } andThen {
             case Success(_) =>
-                addUplink(portId, uplinkPortIds)
+                addUplink(portId, routerId, uplinkPortIds)
                 if (shouldStartDownlink && !uplinks.isEmpty) {
                     startDownlink()
                 }
@@ -484,10 +485,9 @@ class VppController(protected override val hostId: UUID,
 
     private def removeFlowStateFlows(): Future[Any] = {
         uplinkFlowStateFlows match {
-            case Some(setup) => {
+            case Some(setup) =>
                 uplinkFlowStateFlows = None
                 setup.rollback()
-            }
             case _ => Future.successful(Unit)
         }
     }

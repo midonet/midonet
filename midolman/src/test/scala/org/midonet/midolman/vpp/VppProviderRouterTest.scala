@@ -81,7 +81,7 @@ class VppProviderRouterTest extends MidolmanSpec with TopologyBuilder {
         }
 
         def remove(portId: UUID): Unit = {
-            removeUplink(portId, dummy = false)
+            removeUplink(portId)
         }
 
         def getPort(portId: UUID): UUID = {
