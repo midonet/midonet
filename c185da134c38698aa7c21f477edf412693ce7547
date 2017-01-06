@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_1c97b991",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppProviderRouter.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-06T09:44:33Z",
+      "side": 1,
+      "message": "i suspect it might be more difficult than implementing native ipv6 routing.",
+      "range": {
+        "startLine": 222,
+        "startChar": 23,
+        "endLine": 223,
+        "endChar": 73
+      },
+      "revId": "c185da134c38698aa7c21f477edf412693ce7547",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
