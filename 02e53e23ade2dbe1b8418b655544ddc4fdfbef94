@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_fca08592",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/l4lb/LBStatus.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-06T10:57:44Z",
+      "side": 1,
+      "message": "this is not defined in the proto file, but I guess it\u0027s fine if it\u0027s not used with ZoomConvert",
+      "range": {
+        "startLine": 31,
+        "startChar": 28,
+        "endLine": 31,
+        "endChar": 38
+      },
+      "revId": "02e53e23ade2dbe1b8418b655544ddc4fdfbef94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_9cb629db",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolMemberResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-06T10:57:44Z",
+      "side": 1,
+      "message": "careful, since this may be called on the zk thread, maybe it won\u0027t be immediately visible to the api thread. you could just do:\n\n  val status \u003d stateStore.getKey(...).toBlocking.first\n\nand then set it",
+      "range": {
+        "startLine": 106,
+        "startChar": 38,
+        "endLine": 106,
+        "endChar": 68
+      },
+      "revId": "02e53e23ade2dbe1b8418b655544ddc4fdfbef94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
