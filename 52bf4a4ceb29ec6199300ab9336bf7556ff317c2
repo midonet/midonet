@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_9cbaa9e0",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-06T10:21:14Z",
+      "side": 1,
+      "message": "does this mean to wait for the completion?\ni thought asScala and toSeq just create wrapper objects.\n\ni guess something like .toList.toBlocking.toFuture.await is clearer.",
+      "range": {
+        "startLine": 313,
+        "startChar": 16,
+        "endLine": 313,
+        "endChar": 52
+      },
+      "revId": "52bf4a4ceb29ec6199300ab9336bf7556ff317c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_9c5e29e8",
         "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
         "patchSetId": 4
