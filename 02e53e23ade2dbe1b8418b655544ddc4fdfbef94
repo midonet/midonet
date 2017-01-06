@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_7c30f556",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/l4lb/LBStatus.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2017-01-06T11:56:07Z",
+      "side": 1,
+      "message": "I thought it would only go one way, but it looks like you can set the status value on create and update. It doesn\u0027t seem like this should be allowed, so I\u0027ll double check with Ryu next week. As long as we don\u0027t allow users to set status via API calls, it should be fine.\n\nBut that annotation shouldn\u0027t be there.",
+      "parentUuid": "fabf19d9_fca08592",
+      "range": {
+        "startLine": 31,
+        "startChar": 28,
+        "endLine": 31,
+        "endChar": 38
+      },
+      "revId": "02e53e23ade2dbe1b8418b655544ddc4fdfbef94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_fcc76543",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolMemberResource.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-01-06T11:04:27Z",
       "side": 1,
       "message": "i wonder if this actually waits for completion",
+      "range": {
+        "startLine": 75,
+        "startChar": 32,
+        "endLine": 75,
+        "endChar": 57
+      },
+      "revId": "02e53e23ade2dbe1b8418b655544ddc4fdfbef94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_5c353144",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolMemberResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2017-01-06T11:56:07Z",
+      "side": 1,
+      "message": "Oh, you\u0027re right. It doesn\u0027t. That\u0027s annoyingly counterintuitive.",
+      "parentUuid": "fabf19d9_fcc76543",
       "range": {
         "startLine": 75,
         "startChar": 32,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_fcf52583",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolMemberResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2017-01-06T11:56:07Z",
+      "side": 1,
+      "message": "It\u0027s synchronous, so if there\u0027s a call to list(), we need to wait for each request to complete serially. This way we can await them in parallel.",
+      "parentUuid": "fabf19d9_5cb091dd",
+      "range": {
+        "startLine": 105,
+        "startChar": 23,
+        "endLine": 105,
+        "endChar": 29
+      },
+      "revId": "02e53e23ade2dbe1b8418b655544ddc4fdfbef94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_9cb629db",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolMemberResource.scala",
         "patchSetId": 2
@@ -105,6 +177,30 @@
       "writtenOn": "2017-01-06T10:57:44Z",
       "side": 1,
       "message": "careful, since this may be called on the zk thread, maybe it won\u0027t be immediately visible to the api thread. you could just do:\n\n  val status \u003d stateStore.getKey(...).toBlocking.first\n\nand then set it",
+      "range": {
+        "startLine": 106,
+        "startChar": 38,
+        "endLine": 106,
+        "endChar": 68
+      },
+      "revId": "02e53e23ade2dbe1b8418b655544ddc4fdfbef94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_3c3a7d37",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolMemberResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2017-01-06T11:56:07Z",
+      "side": 1,
+      "message": "I don\u0027t want to do that because it would increase the latency for get requests (see my comment above), but I\u0027ll do something similar.",
+      "parentUuid": "fabf19d9_9cb629db",
       "range": {
         "startLine": 106,
         "startChar": 38,
