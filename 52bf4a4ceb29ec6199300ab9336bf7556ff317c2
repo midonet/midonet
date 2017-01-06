@@ -114,6 +114,30 @@
       "revId": "52bf4a4ceb29ec6199300ab9336bf7556ff317c2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_9c0509c4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2017-01-06T09:57:54Z",
+      "side": 1,
+      "message": "FailFast means that the key is ephemeral, right? If the health monitor gets disconnected from ZK, we can\u0027t trust the current status, so it seem like it makes sense to delete it.",
+      "parentUuid": "fabf19d9_fc6f6590",
+      "range": {
+        "startLine": 274,
+        "startChar": 63,
+        "endLine": 274,
+        "endChar": 71
+      },
+      "revId": "52bf4a4ceb29ec6199300ab9336bf7556ff317c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
