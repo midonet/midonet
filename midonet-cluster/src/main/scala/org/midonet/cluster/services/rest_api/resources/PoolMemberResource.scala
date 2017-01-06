@@ -27,11 +27,18 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import rx.Observable
+
+import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Pool, PoolMember}
+import org.midonet.cluster.services.MidonetBackend.StatusKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
+import org.midonet.midolman.state.l4lb.LBStatus
+import org.midonet.util.functors.makeAction1
 
 @ApiResource(version = 1, name = "poolMembers", template = "poolMemberTemplate")
 @Path("pool_members")
@@ -64,6 +71,53 @@ class PoolMemberResource @Inject()(resContext: ResourceContext)
         OkNoContentResponse
     }
 
+    override protected def getFilter(pm: PoolMember): PoolMember = {
+        setStatus(pm).toBlocking.toIterable.asScala.toSeq
+        pm
+    }
+
+    override protected def listFilter(pms: Seq[PoolMember]): Seq[PoolMember] = {
+        Observable.merge(pms.map(setStatus).asJava)
+            .toBlocking.toIterable.asScala.toSeq
+        pms
+    }
+
+    /**
+      * If pm is a v1 PoolMember (status set in the PoolMember protobuf
+      * message), returns an observable that immediately completes.
+      *
+      * If pm is a v2 PoolMember with adminStateUp == false, sets pm's status
+      * field to INACTIVE and returns an observable that immediately completes.
+      *
+      * Otherwise asynchronously sets pm's status field based on the
+      * corresponding key in state storage and returns an observable that
+      * completes when this is done.
+      *
+      * In no case will the observable emit any elements.
+      */
+    private def setStatus(pm: PoolMember): Observable[StateKey] = {
+        if (pm.status != LBStatus.MONITORED) {
+            Observable.empty()
+        } else if (!pm.adminStateUp) {
+            pm.status = LBStatus.INACTIVE
+            Observable.empty()
+        } else {
+            stateStore.getKey(classOf[Topology.PoolMember], pm.id, StatusKey)
+                .doOnNext(makeAction1(sk => pm.status = toStatus(sk)))
+                .ignoreElements()
+        }
+    }
+
+    private def toStatus(sk: StateKey): LBStatus = {
+        if (sk.isEmpty) {
+            // Key not found, which means the pool member is not being actively
+            // monitored. Either no HM is assigned, or the assigned HM is down
+            // or has not yet started.
+            LBStatus.NO_MONITOR
+        } else {
+            LBStatus.valueOf(sk.asInstanceOf[SingleValueKey].value.get)
+        }
+    }
 }
 
 @RequestScoped

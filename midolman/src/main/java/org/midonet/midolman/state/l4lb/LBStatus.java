@@ -25,7 +25,11 @@ public enum LBStatus {
     @ZoomEnumValue(value = "ACTIVE")
     ACTIVE,
     @ZoomEnumValue(value = "INACTIVE")
-    INACTIVE;
+    INACTIVE,
+    @ZoomEnumValue(value = "MONITORED")
+    MONITORED,
+    @ZoomEnumValue(value = "NO_MONITOR")
+    NO_MONITOR;
 
     public static LBStatus fromProto(Commons.LBStatus proto) {
         return LBStatus.valueOf(proto.toString());

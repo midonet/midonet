@@ -17,5 +17,5 @@
 package org.midonet.client.dto.l4lb;
 
 public enum LBStatus {
-    ACTIVE, INACTIVE
+    ACTIVE, INACTIVE, NO_MONITOR
 }
