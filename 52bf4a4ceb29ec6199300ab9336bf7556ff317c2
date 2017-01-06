@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_7c6355b2",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-06T09:52:49Z",
+      "side": 1,
+      "message": "move up",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 40
+      },
+      "revId": "52bf4a4ceb29ec6199300ab9336bf7556ff317c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_9c5e29e8",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-06T09:52:49Z",
+      "side": 1,
+      "message": "make warn",
+      "range": {
+        "startLine": 319,
+        "startChar": 20,
+        "endLine": 319,
+        "endChar": 25
+      },
+      "revId": "52bf4a4ceb29ec6199300ab9336bf7556ff317c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_3c5ddde9",
+        "filename": "midolman/src/main/scala/org/midonet/containers/HaProxyContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-06T09:52:49Z",
+      "side": 1,
+      "message": "maybe add what the exception was?",
+      "range": {
+        "startLine": 320,
+        "startChar": 38,
+        "endLine": 320,
+        "endChar": 39
+      },
+      "revId": "52bf4a4ceb29ec6199300ab9336bf7556ff317c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_1c733982",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-06T09:52:49Z",
+      "side": 1,
+      "message": "move up",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 60
+      },
+      "revId": "52bf4a4ceb29ec6199300ab9336bf7556ff317c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_fc6f6590",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackend.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-06T09:52:49Z",
+      "side": 1,
+      "message": "do you need fail fast?",
+      "range": {
+        "startLine": 274,
+        "startChar": 63,
+        "endLine": 274,
+        "endChar": 71
+      },
+      "revId": "52bf4a4ceb29ec6199300ab9336bf7556ff317c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
