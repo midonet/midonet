@@ -31,6 +31,7 @@ import org.midonet.client.dto.DtoPoolMember;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.HealthMonitorType;
+import org.midonet.client.dto.l4lb.LBStatus;
 import org.midonet.client.dto.l4lb.PoolProtocol;
 import org.midonet.client.dto.l4lb.SessionPersistence;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
@@ -321,6 +322,7 @@ public class L4LBTestBase extends RestApiTestBase {
         poolMember.setPoolId(poolId);
         poolMember.setProtocolPort(80);
         poolMember.setAdminStateUp(true);
+        poolMember.setStatus(LBStatus.ACTIVE);
         return poolMember;
     }
 
