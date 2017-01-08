@@ -25,7 +25,6 @@ import scala.collection.{mutable, Set => ROSet}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder.DefaultValue
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
@@ -204,6 +203,7 @@ class FlowTranslatorTest extends MidolmanSpec {
     }
 
     feature("Fip64Action is translated") {
+
         translationScenario("To gateway host") { ctx =>
             val remoteHost = newHost("remoteHost")
             val vni = 20001
@@ -212,22 +212,6 @@ class FlowTranslatorTest extends MidolmanSpec {
 
             ctx translate Fip64Action(remoteHost, vni)
             ctx verify (List(setKey(FlowKeys.tunnel(vni, 1, 2, 0)), output(0)),
-                        Set(FlowTagger.tagForTunnelRoute(1, 2)))
-        }
-
-        translationScenario("Gateway host not specified") { ctx =>
-            val remoteHost = newHost("remoteHost")
-            val vni = 20001
-            ctx vxlanPort 1343
-            ctx peer remoteHost -> (1, 2)
-
-            val table = backend.stateTableStore.getTable[UUID, AnyRef](
-                MidonetBackend.GatewayTable)
-            table.addPersistent(remoteHost, DefaultValue)
-
-            ctx translate Fip64Action(hostId = null, vni)
-            ctx verify (List(setKey(FlowKeys.tunnel(vni, 1, 2, 0)),
-                             output(0)),
                         Set(FlowTagger.tagForTunnelRoute(1, 2)))
         }
 
@@ -240,29 +224,6 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx translate Fip64Action(hostId = this.hostId, vni)
             ctx verify (List(setKey(FlowKeys.tunnel(vni, tunSrc, tunDst, 0)),
                              output(4328)), Set())
-        }
-
-        translationScenario("Local host is in list of all gateways") { ctx =>
-            val tunSrc = config.fip64.vtepKernAddr.getAddress.toInt
-            val tunDst = config.fip64.vtepVppAddr.getAddress.toInt
-            val vni = 5421
-
-            val remoteHost = newHost("remoteHost")
-            ctx vxlanPort 1343
-            ctx peer remoteHost -> (1, 2)
-
-            val table = backend.stateTableStore.getTable[UUID, AnyRef](
-                MidonetBackend.GatewayTable)
-            table.addPersistent(remoteHost, DefaultValue)
-            table.addPersistent(hostId, DefaultValue)
-
-            ctx fip64Port 4328
-            ctx translate Fip64Action(hostId = null, vni)
-            ctx verify (List(setKey(FlowKeys.tunnel(vni, 1, 2, 0)),
-                             output(0),
-                             setKey(FlowKeys.tunnel(vni, tunSrc, tunDst, 0)),
-                             output(4328)),
-                        Set(FlowTagger.tagForTunnelRoute(1, 2)))
         }
     }
 
