@@ -71,7 +71,7 @@ object VppController {
 }
 
 
-class VppController(hostId: UUID,
+class VppController(protected override val hostId: UUID,
                     datapathState: DatapathState,
                     vppOvs: VppOvs,
                     protected override val vt: VirtualTopology)
@@ -111,7 +111,7 @@ class VppController(hostId: UUID,
             log debug s"Received router port update for port ${port.id}"
             handleExternalRoutesUpdate(port)
 
-        case AddUplink(portId, portAddress, uplinkPortIds) =>
+        case AddUplink(portId, routerId, portAddress, uplinkPortIds) =>
             addUplink(portId, portAddress, uplinkPortIds)
         case DeleteUplink(portId) =>
             deleteUplink(portId)

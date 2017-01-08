@@ -88,7 +88,8 @@ class VppUplinkTest extends MidolmanSpec with TopologyBuilder {
         val portSubnet = port.getPortSubnetList.asScala.map(_.asJava).collect {
             case subnet: IPv6Subnet => subnet
         }.head
-        AddUplink(port.getId.asJava, portSubnet, portIds.asJava)
+        AddUplink(port.getId.asJava, port.getRouterId.asJava, portSubnet,
+                  portIds.asJava)
     }
 
     feature("VPP uplink handles uplink updates") {
