@@ -86,7 +86,7 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
                 storage.registerTable(classOf[NeutronNetwork], classOf[UUID],
                                       classOf[AnyRef], MidonetBackend.GatewayTable,
                                       classOf[GatewayHostStateTable])
-                storage.registerTable(classOf[Fip64Entry],
+                storage.registerTable(classOf[NeutronNetwork], classOf[Fip64Entry],
                                       classOf[AnyRef], MidonetBackend.Fip64Table,
                                       classOf[Fip64StateTable])
             }

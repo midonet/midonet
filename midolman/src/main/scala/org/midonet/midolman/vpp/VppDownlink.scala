@@ -16,35 +16,30 @@
 
 package org.midonet.midolman.vpp
 
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{TimeUnit, TimeoutException}
-import java.util.UUID
+import java.util
+import java.util.{UUID, BitSet => JBitSet}
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.util.control.NonFatal
+import javax.annotation.concurrent.NotThreadSafe
 
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber, Subscription}
 
-import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.data.storage.StateTableEncoder.Fip64Encoder.DefaultValue
 import org.midonet.cluster.data.storage.model.Fip64Entry
+import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.services.MidolmanActorsService.{ChildActorStartTimeout, ChildActorStopTimeout}
 import org.midonet.midolman.simulation.RouterPort
-import org.midonet.midolman.topology.{StoreObjectReferenceTracker, VirtualTopology}
-import org.midonet.midolman.vpp.VppDownlink.{DownlinkState, Notification}
+import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.vpp.VppDownlink.NetworkState
+import org.midonet.midolman.vpp.VppFip64.Notification
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, MAC}
-import org.midonet.util.functors.{makeAction0, makeFunc1, makeRunnable}
+import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.util.logging.Logger
 
 object VppDownlink {
-
-    trait Notification { def portId: UUID }
 
     /**
       * A message to create a downlink tunnel, which is used to communicate
@@ -64,7 +59,7 @@ object VppDownlink {
       * A message to delete the downlink tunnel for a tenant router.
       */
     case class DeleteTunnel(portId: UUID, vrfTable: Int, vni: Int)
-            extends Notification {
+        extends Notification {
 
         override def toString: String =
             s"DeleteTunnel [port=$portId vrf=$vrfTable vni=$vni]"
@@ -98,6 +93,163 @@ object VppDownlink {
     }
 
     /**
+      * Maintains the state for an external network and exposes an observable
+      * that emits notifications for the downlink ports connected to this
+      * external network as well as the FIP64 created on this external network.
+      */
+    private class NetworkState(val networkId: UUID, vrfs: JBitSet,
+                               vt: VirtualTopology, log: Logger) {
+
+        private val scheduler = Schedulers.from(vt.vtExecutor)
+        private val downlinks = new util.HashMap[UUID, DownlinkState]
+
+        private val table = vt.backend.stateTableStore
+            .getTable[Fip64Entry, AnyRef](classOf[NeutronNetwork], networkId,
+                                          MidonetBackend.Fip64Table)
+
+        private val tableObserver = new Observer[Update[Fip64Entry, AnyRef]] {
+            override def onNext(update: Update[Fip64Entry, AnyRef]): Unit = {
+                update match {
+                    case Update(entry, null, DefaultValue) =>
+                        addFip(entry)
+                    case Update(entry, DefaultValue, null) =>
+                        removeFip(entry)
+                    case Update(_,_,_) =>
+                        log warn s"Unexpected FIP64 update"
+                }
+            }
+
+            override def onCompleted(): Unit = {
+                log warn "Unexpected completion of the FIP64 table " +
+                         "notification stream"
+                complete()
+            }
+
+            override def onError(e: Throwable): Unit = {
+                log.error("Unhandled exception on the FIP64 table " +
+                          "notification stream", e)
+                complete()
+            }
+        }
+        private var tableSubscription: Subscription = _
+
+        private val subject = PublishSubject.create[Notification]
+
+        /**
+          * An [[Observable]] that emits notifications for all downlink ports
+          * on this external network.
+          */
+        val observable =
+            Observable.create[Notification](new OnSubscribe[Notification] {
+                override def call(child: Subscriber[_ >: Notification]): Unit = {
+                    subject subscribe child
+                    if (tableSubscription eq null) {
+                        tableSubscription = table
+                            .observable
+                            .observeOn(scheduler)
+                            .subscribe(tableObserver)
+                    }
+                }
+            })
+
+        /**
+          * Unsubscribes from all notifications. The method will complete the
+          * [[DownlinkState]] for all current downlink ports, which upon completion
+          * will emit the necessary cleanup notifications.
+          */
+        def complete(): Unit = {
+            if (tableSubscription ne null) {
+                tableSubscription.unsubscribe()
+                tableSubscription = null
+            }
+
+            val iterator = downlinks.entrySet().iterator()
+            while (iterator.hasNext) {
+                iterator.next().getValue.complete()
+            }
+            downlinks.clear()
+        }
+
+        /**
+          * Creates a new downlink observer for the specified downlink port.
+          */
+        private def downlinkObserver(portId: UUID) = new Observer[Notification] {
+            override def onNext(notification: Notification): Unit = {
+                log.debug(s"Downlink port $portId notification: $notification")
+                subject onNext notification
+            }
+
+            override def onCompleted(): Unit = {
+                log.debug(s"Downlink port $portId deleted")
+                val state = downlinks.remove(portId)
+                if (state ne null) {
+                    vrfs.clear(state.vrfTable)
+                }
+            }
+
+            override def onError(e: Throwable): Unit = {
+                // We should never get here since the downlink state must handle
+                // all errors.
+                log.error(s"Unhandled exception on downlink port $portId", e)
+                val state = downlinks.remove(portId)
+                if (state ne null) {
+                    vrfs.clear(state.vrfTable)
+                }
+            }
+        }
+
+        /**
+          * Adds a new [[Fip64Entry]]. The method gets or creates a new
+          * [[DownlinkState]] for the corresponding port, which will track the
+          * floating IPs for that port, and will fetch necessary port.
+          */
+        private def addFip(fip: Fip64Entry): Unit = {
+            log debug s"FIP64 entry added: $fip"
+            getOrCreateDownlink(fip).addFip(fip)
+        }
+
+        /**
+          * Removes an existing [[Fip64Entry]] for a downlink port. If this is the
+          * last floating IP for the downlink port, the method will call `complete`
+          * on the corresponding [[DownlinkState]], which will remove the downlink.
+          */
+        private def removeFip(fip: Fip64Entry): Unit = {
+            log debug s"FIP64 entry deleted: $fip"
+            val downlink = downlinks.get(fip.portId)
+            if (downlink ne null) {
+                downlink.removeFip(fip)
+                if (downlink.isEmpty) {
+                    downlink.complete()
+                    downlinks.remove(downlink.portId)
+                }
+            } else {
+                log warn s"No existing downlink port for FIP64 entry $fip"
+            }
+        }
+
+        /**
+          * @return The downlink state for the specified FIP64 entry, or it creates
+          *         a new state if it does not exist
+          */
+        private def getOrCreateDownlink(entry: Fip64Entry): DownlinkState = {
+            var state = downlinks.get(entry.portId)
+            if (state eq null) {
+                // Allocate a VRF index.
+                val vrf = vrfs.nextClearBit(0)
+                vrfs.set(vrf)
+
+                log debug s"Subscribing to downlink port ${entry.portId} with " +
+                          s"VRF $vrf"
+
+                state = new DownlinkState(entry.portId, vrf, vt, log)
+                state.observable.subscribe(downlinkObserver(entry.portId))
+                downlinks.put(entry.portId, state)
+            }
+            state
+        }
+    }
+
+    /**
       * Maintains the state for a downlink port, which includes monitoring the
       * downlink port of the tenant router for changes to its IPv6 address,
       * and maintaining the list of FIP64 entries.
@@ -105,7 +257,7 @@ object VppDownlink {
     private class DownlinkState(val portId: UUID, val vrfTable: Int,
                                 vt: VirtualTopology, log: Logger) {
 
-        private val fips = new mutable.HashSet[Fip64Entry]
+        private val fips = new util.HashSet[Fip64Entry]
 
         private var currentPort: RouterPort = _
 
@@ -176,7 +328,7 @@ object VppDownlink {
           * Indicates whether the state has received the downlink port and FIP64
           * rule and is ready to emit FIP64 [[Notification]]s.
           */
-        @inline def isReady: Boolean = (currentPort ne null)
+        @inline def isReady: Boolean = currentPort ne null
 
         /**
           * Returns true if this downlink is not associated with any floating IP.
@@ -295,195 +447,37 @@ object VppDownlink {
   * actor, where the actor will act upon them, including serializing their tasks
   * using the conveyor belt and performing I/O operations.
   */
-private[vpp] trait VppDownlink { this: VppExecutor =>
+private[vpp] trait VppDownlink {
 
     protected def vt: VirtualTopology
 
     protected def log: Logger
 
-    private val started = new AtomicBoolean(false)
-    private val downlinks = new mutable.HashMap[UUID, DownlinkState]
-    private val scheduler = Schedulers.from(vt.vtExecutor)
-
     private val vrfs = VppVrfs.getBitSet()
 
-    private val tableObserver = new Observer[Update[Fip64Entry, AnyRef]] {
-        override def onNext(update: Update[Fip64Entry, AnyRef]): Unit = {
-            update match {
-                case Update(entry, null, DefaultValue) =>
-                    addFip(entry)
-                case Update(entry, DefaultValue, null) =>
-                    removeFip(entry)
-                case Update(_,_,_) =>
-                    log warn s"Unexpected FIP64 update"
-            }
-        }
+    private val networks = new util.HashMap[UUID, NetworkState]
 
-        override def onCompleted(): Unit = {
-            log warn "Unexpected completion of the FIP64 table notification " +
-                     "stream"
-            complete()
-        }
+    private val downlinkSubject = PublishSubject.create[Observable[Notification]]
 
-        override def onError(e: Throwable): Unit = {
-            log.error("Unhandled exception on the FIP64 table notification " +
-                      "stream", e)
-            complete()
-        }
-    }
-    private var tableSubscription: Subscription = _
+    protected val downlinkObservable = Observable.merge(downlinkSubject)
 
-    private val startRunnable = makeRunnable {
-        val fip64Table = vt.backend.stateTableStore
-            .getTable[Fip64Entry, AnyRef](MidonetBackend.Fip64Table)
-        if (tableSubscription ne null) {
-            tableSubscription.unsubscribe()
-        }
-        tableSubscription = fip64Table.observable.observeOn(scheduler)
-                                      .subscribe(tableObserver)
-    }
-    private val stopRunnable = makeRunnable { complete() }
-
-    /**
-      * Creates a new downlink observer for the specified downlink port.
-      */
-    private def downlinkObserver(portId: UUID) = new Observer[Notification] {
-        override def onNext(notification: Notification): Unit = {
-            log.debug(s"Downlink port $portId notification: $notification")
-            send(notification)
-        }
-
-        override def onCompleted(): Unit = {
-            log.debug(s"Downlink port $portId deleted")
-            val state = downlinks.remove(portId)
-            if (state.isDefined) {
-                vrfs.clear(state.get.vrfTable)
-            }
-        }
-
-        override def onError(e: Throwable): Unit = {
-            // We should never get here since the downlink state must handle
-            // all errors.
-            log.error(s"Unhandled exception on downlink port $portId", e)
-            val state = downlinks.remove(portId)
-            if (state.isDefined) {
-                vrfs.clear(state.get.vrfTable)
-            }
+    @NotThreadSafe
+    protected def addNetwork(networkId: UUID): Unit = {
+        log debug s"Monitoring downlink ports for external network $networkId"
+        if (!networks.containsKey(networkId)) {
+            val state = new NetworkState(networkId, vrfs, vt, log)
+            downlinkSubject onNext state.observable
+            networks.put(networkId, state)
         }
     }
 
-    /**
-      * Starts monitoring the downlink ports.
-      */
-    protected def startDownlink(): Unit = {
-        log debug s"Start monitoring VPP downlinks"
-
-        if (started.compareAndSet(false, true)) {
-            log debug s"Subscribing to FIP64 table"
-            // Submit a start task on the VT thread (needed for synchronization).
-            val startFuture = vt.vtExecutor.submit(startRunnable)
-
-            // Wait on the start to complete.
-            try startFuture.get(ChildActorStartTimeout.toMillis,
-                                TimeUnit.MILLISECONDS)
-            catch {
-                case e: TimeoutException =>
-                    startFuture.cancel(false)
-                    log warn "Starting FIP64 downlinks timed out"
-                case NonFatal(e) =>
-                    log.warn("Unhandled exception when starting FIP64 " +
-                             "downlinks", e)
-            }
-        }
-    }
-
-    /**
-      * Stops monitoring the downlink ports.
-      */
-    protected def stopDownlink(): Unit = {
-        log debug s"Stop monitoring VPP downlinks"
-
-        if (started.compareAndSet(true, false)) {
-            // Submit a stop task on the VT thread (needed for synchronization).
-            val stopFuture = vt.vtExecutor.submit(stopRunnable)
-
-            // Wait on the stop to complete.
-            try stopFuture.get(ChildActorStopTimeout.toMillis,
-                               TimeUnit.MILLISECONDS)
-            catch {
-                case e: TimeoutException =>
-                    stopFuture.cancel(false)
-                    log warn "Stopping FIP64 downlinks timed out"
-                case NonFatal(e) =>
-                    log.warn("Unhandled exception when stopping FIP64 " +
-                             "downlinks", e)
-            }
-        }
-    }
-
-    /**
-      * Adds a new [[Fip64Entry]]. The method gets or creates a new
-      * [[DownlinkState]] for the corresponding port, which will track the
-      * floating IPs for that port, and will fetch necessary port.
-      */
-    private def addFip(fip: Fip64Entry): Unit = {
-        log debug s"FIP64 entry added: $fip"
-        getOrCreateDownlink(fip).addFip(fip)
-    }
-
-    /**
-      * Removes an existing [[Fip64Entry]] for a downlink port. If this is the
-      * last floating IP for the downlink port, the method will call `complete`
-      * on the corresponding [[DownlinkState]], which will remove the downlink.
-      */
-    private def removeFip(fip: Fip64Entry): Unit = {
-        log debug s"FIP64 entry deleted: $fip"
-        downlinks.get(fip.portId) match {
-            case Some(downlink) =>
-                downlink.removeFip(fip)
-                if (downlink.isEmpty) {
-                    downlink.complete()
-                    downlinks.remove(downlink.portId)
-                }
-            case None =>
-                log warn s"No existing downlink port for FIP64 entry $fip"
-        }
-    }
-
-    /**
-      * @return The downlink state for the specified FIP64 entry, or it creates
-      *         a new state if it does not exist
-      */
-    private def getOrCreateDownlink(entry: Fip64Entry): DownlinkState = {
-        downlinks.getOrElseUpdate(entry.portId, {
-            // Allocate a VRF index.
-            val vrf = vrfs.nextClearBit(0)
-            vrfs.set(vrf)
-
-            log debug s"Subscribing to downlink port ${entry.portId} with " +
-                      s"VRF $vrf"
-
-            val state = new DownlinkState(entry.portId, vrf, vt, log)
-            state.observable.subscribe(downlinkObserver(entry.portId))
-            state
-        })
-    }
-
-    /**
-      * Unsubscribes from all notifications. The method will complete the
-      * [[DownlinkState]] for all current downlink ports, which upon completion
-      * will emit the necessary cleanup notifications.
-      */
-    private def complete(): Unit = {
-        if (tableSubscription ne null) {
-            tableSubscription.unsubscribe()
-            tableSubscription = null
-        }
-
-        for (state <- downlinks.values) {
+    @NotThreadSafe
+    protected def removeNetwork(networkId: UUID): Unit = {
+        log debug s"Removing external network $networkId"
+        val state = networks.remove(networkId)
+        if (state ne null) {
             state.complete()
         }
-        downlinks.clear()
     }
 
 }

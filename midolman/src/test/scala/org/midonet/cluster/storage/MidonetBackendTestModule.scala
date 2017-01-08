@@ -60,7 +60,7 @@ class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend
     inMemoryZoom.registerTable(classOf[NeutronNetwork], classOf[UUID],
                                classOf[AnyRef], MidonetBackend.GatewayTable,
                                classOf[GatewayHostStateTable])
-    inMemoryZoom.registerTable(classOf[Fip64Entry],
+    inMemoryZoom.registerTable(classOf[NeutronNetwork], classOf[Fip64Entry],
                                classOf[AnyRef], MidonetBackend.Fip64Table,
                                classOf[Fip64StateTable])
     val connectionState =
