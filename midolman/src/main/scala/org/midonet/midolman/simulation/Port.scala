@@ -581,7 +581,6 @@ case class RouterPort(override val id: UUID,
 
     protected override def emitCommon: SimStep = {
         val emitBase = super.emitCommon
-        var index = 0
         context => {
             if (context.needsFip64) {
                 context.log.debug("Emitting packet to NAT64 gateway " +
