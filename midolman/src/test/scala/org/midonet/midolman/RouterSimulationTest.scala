@@ -26,11 +26,15 @@ import org.midonet.sdn.flows.FlowTagger.DeviceTag
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
+import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
+import org.midonet.cluster.models.Neutron.NeutronNetwork
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.simulation.{RouteBalancer, RouterPort, Router => SimRouter}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
@@ -699,8 +703,18 @@ class RouterSimulationTest extends MidolmanSpec {
     }
 
     scenario("packet needing fip64 translation, is marked as such") {
+        val b = newBridge("br0")
+        val bp = newBridgePort(b)
         val rp1Mac = MAC.fromString("0A:0A:0A:0A:0A:0A")
         val rp1 = newRouterPort(router, rp1Mac, "2.2.2.2", "2.2.2.0", 24)
+        linkPorts(bp, rp1)
+
+        val vt = injector.getInstance(classOf[VirtualTopology])
+        val table =
+            vt.stateTables.getTable[UUID, AnyRef](classOf[NeutronNetwork], b,
+                                                  MidonetBackend.GatewayTable)
+        table.start()
+        table.add(hostId, GatewayHostEncoder.DefaultValue)
 
         val port1dev = fetchDevice[RouterPort](port1)
 

@@ -23,7 +23,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.Simulator.{Fip64Action, ToPortAction}
 import org.midonet.midolman.simulation.{PacketContext, Port, VxLanPort}
 import org.midonet.midolman.topology.devices.Host
-import org.midonet.midolman.topology.{GatewayMappingService, VirtualTopology, VxLanPortMappingService}
+import org.midonet.midolman.topology.{VirtualTopology, VxLanPortMappingService}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows._
@@ -281,24 +281,10 @@ trait FlowTranslator {
     private def expandFip64Action(gatewayId: UUID, vni: Long,
                                   context: PacketContext,
                                   addFlowAndPacketAction: AddFlowAction): Unit = {
-        def toPeerOrLocal(gw: UUID): Unit = {
-            if (gw.equals(hostId)) {
-                outputActionsToLocalFip64(vni, context, addFlowAndPacketAction)
-            } else {
-                outputActionsToPeer(vni, gw, context,
-                                    addFlowAndPacketAction)
-            }
-         }
-
-        // If the gateway is set by the action, tunnel to that specific gateway.
-        // Otherwise, tunnel to all gateways.
-        if (gatewayId ne null) {
-            toPeerOrLocal(gatewayId)
+        if (gatewayId == hostId) {
+            outputActionsToLocalFip64(vni, context, addFlowAndPacketAction)
         } else {
-            val iterator = GatewayMappingService.gateways
-            while (iterator.hasMoreElements) {
-                toPeerOrLocal(iterator.nextElement())
-            }
+            outputActionsToPeer(vni, gatewayId, context, addFlowAndPacketAction)
         }
     }
 
