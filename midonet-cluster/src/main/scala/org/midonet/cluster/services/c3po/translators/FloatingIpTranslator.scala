@@ -22,8 +22,8 @@ import scala.collection.breakOut
 import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPort, NeutronRouter, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter, NeutronSubnet}
+import org.midonet.cluster.models.Topology.{Chain, Dhcp, Network, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.translators.RouteManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.IPSubnetUtil
@@ -187,7 +187,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
     : PortPair = {
         val fipAddr = IPAddr.fromString(fipAddrStr)
         val nRouter = tx.get(classOf[NeutronRouter], routerId)
-        val net = tx.get(classOf[NeutronNetwork], floatingNetworkId)
+        val net = tx.get(classOf[Network], floatingNetworkId)
 
         // It will usually be the gateway port, so check that before scanning
         // the router's other ports.
@@ -197,10 +197,9 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
             val rGwPort = tx.get(classOf[Port], rGwPortId)
             val peerPort = tx.get(classOf[NeutronPort], rGwPort.getPeerId)
             if (peerPort.getNetworkId == floatingNetworkId) {
-                val subs = tx.getAll(classOf[NeutronSubnet],
-                    net.getSubnetsList.asScala)
+                val subs = tx.getAll(classOf[Dhcp], net.getDhcpIdsList.asScala)
                 for (sub <- subs) {
-                    val subnet = IPSubnetUtil.fromProto(sub.getCidr)
+                    val subnet = IPSubnetUtil.fromProto(sub.getSubnetAddress)
                     if (subnet.containsAddress(fipAddr))
                         return PortPair(nwGwPortId, rGwPortId, true)
                 }
@@ -228,13 +227,12 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
         // Ip network. The ports could be in different subnets.
         val nPorts = makeMap(classOf[NeutronPort], nPortIds)
 
-        val nSubMap = makeMap(classOf[NeutronSubnet],
-                              net.getSubnetsList.asScala)
+        val subMap = makeMap(classOf[Dhcp], net.getDhcpIdsList.asScala)
 
         def validFipPort(nPortId: UUID): Boolean = {
             try {
                 val nPort = nPorts(nPortId)
-                val cidr = nSubMap(nPort.getFixedIps(0).getSubnetId).getCidr
+                val cidr = subMap(nPort.getFixedIps(0).getSubnetId).getSubnetAddress
                 IPSubnetUtil.fromProto(cidr).containsAddress(fipAddr)
             } catch {
                 case e: NoSuchElementException => false
@@ -249,7 +247,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
         }
 
         throw new IllegalStateException(
-            s"Router ${UUIDUtil.fromProto(routerId)} has no port whose subnet" +
+            s"Router ${UUIDUtil.fromProto(routerId)} has no port whose subnet " +
             s"contains $fipAddrStr")
     }
 
