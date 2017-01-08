@@ -35,6 +35,7 @@ import rx.{Observer, Subscription}
 
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
 import org.midonet.cluster.models.Commons.IPVersion
+import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
@@ -67,6 +68,28 @@ object VppController {
 
     private object Cleanup
 
+    /**
+      * Maintains an open gateways state table for the specified external
+      * Neutron network.
+      */
+    private class ExternalNetwork(networkId: UUID, hostId: UUID,
+                                       vt: VirtualTopology) {
+        private val table =
+            vt.stateTables.getTable[UUID, AnyRef](classOf[NeutronNetwork],
+                                                  networkId,
+                                                  MidonetBackend.GatewayTable)
+        table.start()
+        table.add(hostId, GatewayHostEncoder.DefaultValue)
+
+        /**
+          * Removes this host from the gateways state table and stops it.
+          */
+        def complete(): Unit = {
+            table.remove(hostId)
+            table.stop()
+        }
+    }
+
 }
 
 
@@ -87,13 +110,11 @@ class VppController(protected override val hostId: UUID,
 
     private var routerPortSubscribers = mutable.Map[UUID, Subscription]()
     private val uplinks = new util.HashMap[UUID, VppUplinkSetup]
+    private val externalNetworks = new util.HashMap[UUID, ExternalNetwork]()
     private var downlink: Option[VppDownlinkSetup] = None
 
     private val vxlanTunnels = new util.HashMap[UUID, VppVxlanTunnelSetup]
     private var uplinkFlowStateFlows: Option[Fip64FlowStateFlows] = None
-
-    private lazy val gatewayTable = vt.backend.stateTableStore
-        .getTable[UUID, AnyRef](MidonetBackend.GatewayTable)
 
     @volatile private var vppExiting = false
     private val vppExitAction = new Consumer[Exception] {
@@ -117,11 +138,9 @@ class VppController(protected override val hostId: UUID,
         case Gateways(_, hosts) =>
             updateFlowStateFlows(hosts)
         case AddExternalNetwork(networkId) =>
-            // TODO
-            Future.successful(Unit)
+            addExternalNetwork(networkId)
         case RemoveExternalNetwork(networkId) =>
-            // TODO
-            Future.successful(Unit)
+            removeExternalNetwork(networkId)
         case CreateTunnel(portId, vrf, vni, routerPortMac) =>
             createTunnel(portId, vrf, vni, routerPortMac)
         case DeleteTunnel(portId, vrf, vni) =>
@@ -347,6 +366,22 @@ class VppController(protected override val hostId: UUID,
         }
     }
 
+    private def addExternalNetwork(networkId: UUID): Future[_] = {
+        if (!externalNetworks.containsKey(networkId)) {
+            externalNetworks.put(networkId,
+                                 new ExternalNetwork(networkId, hostId, vt))
+        }
+        Future.successful(Unit)
+    }
+
+    private def removeExternalNetwork(networkId: UUID): Future[_] = {
+        val state = externalNetworks.remove(networkId)
+        if (state ne null) {
+            state.complete()
+        }
+        Future.successful(Unit)
+    }
+
     @tailrec
     private def createApiConnection(retriesLeft: Int): VppApi = {
         try {
@@ -376,18 +411,12 @@ class VppController(protected override val hostId: UUID,
         vppProcess.startAsync().awaitRunning(VppProcessTimeout.toMillis,
                                              TimeUnit.MILLISECONDS)
 
-        gatewayTable.start()
-        gatewayTable.add(hostId, GatewayHostEncoder.DefaultValue)
-
         log debug "VPP process started"
         true
     }
 
     private def stopVppProcess(): Unit = synchronized {
         log debug "Stopping VPP process"
-
-        gatewayTable.remove(hostId)
-        gatewayTable.stop()
 
         // flag vpp exiting so midolman isn't stopped by the exit action
         vppExiting = true
