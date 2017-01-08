@@ -28,6 +28,7 @@ import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.data.storage.model.{ArpEntry, Fip64Entry}
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, StateTableStorage, Storage}
+import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Router
 import org.midonet.cluster.services.MidonetBackend
@@ -56,12 +57,12 @@ class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend
     inMemoryZoom.registerTable(classOf[Topology.Port], classOf[MAC],
                                classOf[IPv4Addr], MidonetBackend.PeeringTable,
                                classOf[MacIp4StateTable])
+    inMemoryZoom.registerTable(classOf[NeutronNetwork], classOf[UUID],
+                               classOf[AnyRef], MidonetBackend.GatewayTable,
+                               classOf[GatewayHostStateTable])
     inMemoryZoom.registerTable(classOf[Fip64Entry],
                                classOf[AnyRef], MidonetBackend.Fip64Table,
                                classOf[Fip64StateTable])
-    inMemoryZoom.registerTable(classOf[UUID], classOf[AnyRef],
-                               MidonetBackend.GatewayTable,
-                               classOf[GatewayHostStateTable])
     val connectionState =
         BehaviorSubject.create[ConnectionState](ConnectionState.CONNECTED)
 
