@@ -18,22 +18,26 @@ package org.midonet.midolman.simulation
 
 import java.util.{Collections, UUID}
 
-import scala.collection.JavaConverters._
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.storage.CreateOp
+import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
+import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage.{PortActive, PortInactive}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, ErrorDrop}
-import org.midonet.midolman.rules.{LiteralRule, NatTarget, Rule}
+import org.midonet.midolman.NotYetException
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, Drop}
+import org.midonet.midolman.rules.Rule
 import org.midonet.midolman.simulation.Simulator.Fip64Action
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
@@ -41,13 +45,16 @@ import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, IPv4Addr, IPv4Subnet, IPv6Subnet}
 import org.midonet.util.UnixClock
+import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class PortTest extends MidolmanSpec with TopologyBuilder {
 
     private var arpBroker: ArpRequestBroker = _
+    private var vt: VirtualTopology = _
 
     protected override def beforeTest(): Unit = {
+        vt = injector.getInstance(classOf[VirtualTopology])
         arpBroker = new ArpRequestBroker(config, simBackChannel, UnixClock.mock())
     }
 
@@ -226,23 +233,70 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
     }
 
     feature("Router port handles NAT64 packets") {
-
         scenario("Port forwards for translation") {
-            And("A router port")
-            val port = activePort()
+            Given("A router port peered to bridge port")
+            val router = createRouter()
+            val bridge = createBridge()
+            val bridgePort = createBridgePort(bridgeId = Some(bridge.getId.asJava))
+            val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        adminStateUp = true,
+                                        peerId = Some(bridgePort.getId.asJava),
+                                        tunnelKey = 100L)
+            val network = createNetwork(id = bridge.getId.asJava)
+            vt.store.multi(Seq(CreateOp(router), CreateOp(bridge),
+                               CreateOp(bridgePort), CreateOp(port),
+                               CreateOp(network)))
+
+            And("The network has one gateway")
+            val gatewayId = UUID.randomUUID()
+            val table =
+                vt.stateTables.getTable[UUID, AnyRef](classOf[NeutronNetwork],
+                                                      bridge.getId.asJava,
+                                                      MidonetBackend.GatewayTable)
+            table.start()
+            table.add(gatewayId, GatewayHostEncoder.DefaultValue)
 
             And("A packet and context, marked for translation")
             val context = contextOf(packet("1.2.3.4", "5.6.7.8"))
             context.markForFip64()
 
-            When("Simulating the port egress")
-            val result = port.egress(context)
+            When("Loading the ports form topology")
+            val p = VirtualTopology.get(classOf[Port], port.getId.asJava).await()
+            VirtualTopology.get(classOf[Port], bridgePort.getId.asJava).await()
+
+            And("Simulating the port egress the first time")
+            val f = intercept[NotYetException] { p.egress(context) }
+            f.waitFor.await()
+
+            And("Simulating the port egress the second time")
+            val result = p.egress(context)
 
             Then("The result should add a flow")
             result shouldBe AddVirtualWildcardFlow
-            context.virtualFlowActions should contain only Fip64Action(null, 1L)
+            context.virtualFlowActions should contain only Fip64Action(
+                gatewayId, 100L)
         }
 
+        scenario("Port drops if router port unplugged") {
+            Given("A router port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        adminStateUp = true)
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+
+            And("A packet and context, marked for translation")
+            val context = contextOf(packet("1.2.3.4", "5.6.7.8"))
+            context.markForFip64()
+
+            When("Loading the port form topology")
+            val p = VirtualTopology.get(classOf[Port], port.getId.asJava).await()
+
+            And("Simulating the port egress")
+            val result = p.egress(context)
+
+            Then("The result should drop the packet")
+            result shouldBe Drop
+        }
     }
 
 }

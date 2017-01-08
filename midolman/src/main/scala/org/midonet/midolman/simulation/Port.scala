@@ -29,6 +29,7 @@ import org.midonet.cluster.state.PortStateStorage.PortState
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.simulation.Simulator.{ContinueWith, Fip64Action, SimHook, ToPortAction}
+import org.midonet.midolman.topology.GatewayMappingService
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.odp.FlowMatch
 import org.midonet.packets._
@@ -583,12 +584,19 @@ case class RouterPort(override val id: UUID,
         val emitBase = super.emitCommon
         context => {
             if (context.needsFip64) {
-                context.log.debug("Emitting packet to NAT64 gateway " +
-                                      s"with tunnel key $tunnelKey")
-                context.calculateActionsFromMatchDiff()
-                context.addVirtualAction(Fip64Action(null, tunnelKey))
-                context.trackConnection(deviceId)
-                AddVirtualWildcardFlow
+                val hostId = GatewayMappingService.tryGetGateway(id)
+                if (hostId ne null) {
+                    context.log.debug("Emitting packet to NAT64 gateway " +
+                                      s"with tunnel key $tunnelKey to " +
+                                      s"host $hostId")
+                    context.calculateActionsFromMatchDiff()
+                    context.addVirtualAction(Fip64Action(hostId, tunnelKey))
+                    context.trackConnection(deviceId)
+                    AddVirtualWildcardFlow
+                } else {
+                    context.log.debug(s"No NAT64 gateways for port $id: dropping")
+                    Drop
+                }
             } else {
                 emitBase(context)
             }

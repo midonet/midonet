@@ -37,8 +37,9 @@ object Simulator {
 
     /**
       * This action is used has to be forwarded to a VPP-controller host for
-      * FIP64 translation. The action includes the identifier of the VPP host
-      * and the VNI of the VXLAN tunnel.
+      * FIP64 translation. The action includes the identifier of the VPP host or
+      * the downlink port from which the packet is emitted and the VNI of the
+      * VXLAN tunnel.
       */
     case class Fip64Action(hostId: UUID, vni: Long)
         extends ForwardAction with VirtualFlowAction
