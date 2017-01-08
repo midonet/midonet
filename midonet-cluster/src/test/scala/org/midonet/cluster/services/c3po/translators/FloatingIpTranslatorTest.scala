@@ -171,7 +171,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             MAC.fromString(tntRouterGatewayPortMac))
 
     protected def fip64Path(fip: FloatingIp, portId: UUID) =
-        stateTableStorage.fip64EntryPath(Fip64Entry(
+        stateTableStorage.fip64EntryPath(fip.getFloatingNetworkId, Fip64Entry(
             IPv4Addr(fip.getFixedIpAddress.getAddress),
             IPv6Addr(fip.getFloatingIpAddress.getAddress),
             natPool,

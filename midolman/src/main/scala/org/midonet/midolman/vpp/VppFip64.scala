@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import rx.{Observer, Subscription}
 
 import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.vpp.VppExternalNetwork.{AddExternalNetwork, RemoveExternalNetwork}
 import org.midonet.midolman.vpp.VppFip64.Notification
 import org.midonet.midolman.vpp.VppProviderRouter.ProviderRouter
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
@@ -41,7 +42,8 @@ object VppFip64 {
   */
 private[vpp] trait VppFip64 extends VppUplink
                                     with VppProviderRouter
-                                    with VppExternalNetwork {
+                                    with VppExternalNetwork
+                                    with VppDownlink {
 
     this: VppExecutor =>
 
@@ -89,6 +91,12 @@ private[vpp] trait VppFip64 extends VppUplink
 
     private val externalNetworkObserver = new Observer[Notification] {
         override def onNext(notification: Notification): Unit = {
+            notification match {
+                case AddExternalNetwork(networkId) =>
+                    addNetwork(networkId)
+                case RemoveExternalNetwork(networkId) =>
+                    removeNetwork(networkId)
+            }
             send(notification)
         }
 
@@ -101,6 +109,21 @@ private[vpp] trait VppFip64 extends VppUplink
         }
     }
     @volatile private var externalNetworkSubscription: Subscription = _
+
+    private val downlinkObserver = new Observer[Notification] {
+        override def onNext(notification: Notification): Unit = {
+            send(notification)
+        }
+
+        override def onError(e: Throwable): Unit = {
+            log.warn("Unexpected error on the downlink observable", e)
+        }
+
+        override def onCompleted(): Unit = {
+            log warn "Downlink observable completed unexpectedly"
+        }
+    }
+    @volatile private var downlinkSubscription: Subscription = _
 
     /**
       * Starts monitoring the FIP64 topology.
@@ -124,6 +147,12 @@ private[vpp] trait VppFip64 extends VppUplink
             }
             externalNetworkSubscription =
                 externalNetworkObservable.subscribe(externalNetworkObserver)
+
+            if (downlinkSubscription ne null) {
+                downlinkSubscription.unsubscribe()
+            }
+            downlinkSubscription =
+                downlinkObservable.subscribe(downlinkObserver)
 
             startUplink()
         }
@@ -149,6 +178,11 @@ private[vpp] trait VppFip64 extends VppUplink
             if (externalNetworkSubscription ne null) {
                 externalNetworkSubscription.unsubscribe()
                 externalNetworkSubscription = null
+            }
+
+            if (downlinkSubscription ne null) {
+                downlinkSubscription.unsubscribe()
+                downlinkSubscription = null
             }
         }
     }
