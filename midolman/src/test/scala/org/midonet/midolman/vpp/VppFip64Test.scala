@@ -24,7 +24,6 @@ import scala.concurrent.Future
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.CreateOp
 import org.midonet.cluster.models.Topology.Port
@@ -35,11 +34,11 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.vpp.VppExecutor.Receive
+import org.midonet.midolman.vpp.VppExternalNetwork.{AddExternalNetwork, RemoveExternalNetwork}
 import org.midonet.midolman.vpp.VppProviderRouter.Gateways
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.packets.{IPv6Addr, IPv6Subnet}
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
-import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
 class VppFip64Test extends MidolmanSpec with TopologyBuilder {
@@ -50,7 +49,8 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
     private class TestableVppFip64 extends VppExecutor with VppFip64 {
         override def vt = VppFip64Test.this.vt
         override def hostId = VppFip64Test.this.hostId
-        override val log = Logger(LoggerFactory.getLogger("vpp-fip64"))
+        override def logSource: String = "vpp-fip64"
+
         var messages = List[Any]()
 
         protected override def newExecutor: ExecutorService = {
@@ -276,6 +276,140 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
                 addUplink(port, port.getId.asJava),
                 Gateways(port.getId.asJava, Set()),
                 DeleteUplink(port.getId.asJava))
+        }
+    }
+
+    feature("VPP FIP64 handles external networks") {
+        scenario("Uplink port becomes active and inactive") {
+            Given("A VPP FIP64 instance")
+            val vpp = createVppFip64()
+
+            And("A port")
+            val router = createRouter()
+            val bridge = createBridge()
+            val routerPort = createRouterPort(routerId = Some(router.getId.asJava),
+                                              portSubnet = randomSubnet6())
+            val bridgePort = createBridgePort(bridgeId = Some(bridge.getId.asJava),
+                                              peerId = Some(routerPort.getId.asJava))
+            val network = createNetwork(id = bridge.getId.asJava,
+                                        external = Some(true))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(bridge),
+                                    CreateOp(routerPort), CreateOp(bridgePort),
+                                    CreateOp(network)))
+
+            When("The port becomes active")
+            VirtualToPhysicalMapper.setPortActive(routerPort.getId.asJava, 0,
+                                                  active = true, 0)
+
+            Then("The controller should add the uplink and external network")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(routerPort, routerPort.getId.asJava),
+                Gateways(routerPort.getId.asJava, Set()),
+                AddExternalNetwork(bridge.getId.asJava))
+
+            When("The port becomes inactive")
+            VirtualToPhysicalMapper.setPortActive(routerPort.getId.asJava, 0,
+                                                  active = false, 0)
+
+            Then("The controller should remove the uplink and external network")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(routerPort, routerPort.getId.asJava),
+                Gateways(routerPort.getId.asJava, Set()),
+                AddExternalNetwork(bridge.getId.asJava),
+                RemoveExternalNetwork(bridge.getId.asJava),
+                DeleteUplink(routerPort.getId.asJava))
+        }
+
+        scenario("Provider router connects to external network") {
+            Given("A VPP FIP64 instance")
+            val vpp = createVppFip64()
+
+            And("A port")
+            val router = createRouter()
+            val bridge = createBridge()
+            val routerPort = createRouterPort(routerId = Some(router.getId.asJava),
+                                              portSubnet = randomSubnet6())
+            val bridgePort = createBridgePort(bridgeId = Some(bridge.getId.asJava),
+                                              peerId = Some(routerPort.getId.asJava))
+            val network = createNetwork(id = bridge.getId.asJava,
+                                        external = Some(true))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(routerPort)))
+
+            When("The port becomes active")
+            VirtualToPhysicalMapper.setPortActive(routerPort.getId.asJava, 0,
+                                                  active = true, 0)
+
+            Then("The controller should add the uplink")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(routerPort, routerPort.getId.asJava),
+                Gateways(routerPort.getId.asJava, Set()))
+
+            When("The provider router connects to the external network")
+            backend.store.multi(Seq(CreateOp(bridge), CreateOp(bridgePort),
+                                    CreateOp(network)))
+
+            Then("The controller should add the external network")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(routerPort, routerPort.getId.asJava),
+                Gateways(routerPort.getId.asJava, Set()),
+                AddExternalNetwork(bridge.getId.asJava))
+
+            When("The provider router disconnects from the external network")
+            backend.store.delete(classOf[Port], bridgePort.getId)
+
+            Then("The controller should remove the external network")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(routerPort, routerPort.getId.asJava),
+                Gateways(routerPort.getId.asJava, Set()),
+                AddExternalNetwork(bridge.getId.asJava),
+                RemoveExternalNetwork(bridge.getId.asJava))
+        }
+
+        scenario("Network changes to external") {
+            Given("A VPP FIP64 instance")
+            val vpp = createVppFip64()
+
+            And("A port")
+            val router = createRouter()
+            val bridge = createBridge()
+            val routerPort = createRouterPort(routerId = Some(router.getId.asJava),
+                                              portSubnet = randomSubnet6())
+            val bridgePort = createBridgePort(bridgeId = Some(bridge.getId.asJava),
+                                              peerId = Some(routerPort.getId.asJava))
+            val network1 = createNetwork(id = bridge.getId.asJava,
+                                        external = Some(false))
+            backend.store.multi(Seq(CreateOp(router), CreateOp(bridge),
+                                    CreateOp(routerPort), CreateOp(bridgePort),
+                                    CreateOp(network1)))
+
+            When("The port becomes active")
+            VirtualToPhysicalMapper.setPortActive(routerPort.getId.asJava, 0,
+                                                  active = true, 0)
+
+            Then("The controller should add the uplink")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(routerPort, routerPort.getId.asJava),
+                Gateways(routerPort.getId.asJava, Set()))
+
+            When("The network is set as external")
+            val network2 = network1.toBuilder.setExternal(true).build()
+            backend.store.update(network2)
+
+            Then("The controller should add the external network")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(routerPort, routerPort.getId.asJava),
+                Gateways(routerPort.getId.asJava, Set()),
+                AddExternalNetwork(bridge.getId.asJava))
+
+            When("The network is unset as external")
+            backend.store.update(network1)
+
+            Then("The controller should remove the external network")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(routerPort, routerPort.getId.asJava),
+                Gateways(routerPort.getId.asJava, Set()),
+                AddExternalNetwork(bridge.getId.asJava),
+                RemoveExternalNetwork(bridge.getId.asJava))
         }
     }
 

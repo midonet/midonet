@@ -16,13 +16,13 @@
 
 package org.midonet.midolman.vpp
 
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
 import rx.{Observer, Subscription}
 
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppFip64.Notification
+import org.midonet.midolman.vpp.VppProviderRouter.ProviderRouter
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.util.logging.Logger
 
@@ -31,7 +31,7 @@ object VppFip64 {
     /**
       * A trait for FIP64 notifications.
       */
-    trait Notification { def portId: UUID }
+    trait Notification
 
 }
 
@@ -39,7 +39,9 @@ object VppFip64 {
   * A trait that monitors the FIP64 virtual topology, and emits notifications
   * via the current VPP executor.
   */
-private[vpp] trait VppFip64 extends VppUplink with VppProviderRouter {
+private[vpp] trait VppFip64 extends VppUplink
+                                    with VppProviderRouter
+                                    with VppExternalNetwork {
 
     this: VppExecutor =>
 
@@ -70,6 +72,36 @@ private[vpp] trait VppFip64 extends VppUplink with VppProviderRouter {
     }
     @volatile private var uplinkSubscription: Subscription = _
 
+    private val providerRouterObserver = new Observer[ProviderRouter] {
+        override def onNext(router: ProviderRouter): Unit = {
+            updateProviderRouter(router)
+        }
+
+        override def onError(e: Throwable): Unit = {
+            log.warn("Unexpected error on the provider routers observable", e)
+        }
+
+        override def onCompleted(): Unit = {
+            log warn "Provider routers observable completed unexpectedly"
+        }
+    }
+    @volatile private var providerRouterSubscription: Subscription = _
+
+    private val externalNetworkObserver = new Observer[Notification] {
+        override def onNext(notification: Notification): Unit = {
+            send(notification)
+        }
+
+        override def onError(e: Throwable): Unit = {
+            log.warn("Unexpected error on the external networks observable", e)
+        }
+
+        override def onCompleted(): Unit = {
+            log warn "External networks observable completed unexpectedly"
+        }
+    }
+    @volatile private var externalNetworkSubscription: Subscription = _
+
     /**
       * Starts monitoring the FIP64 topology.
       */
@@ -80,6 +112,19 @@ private[vpp] trait VppFip64 extends VppUplink with VppProviderRouter {
                 uplinkSubscription.unsubscribe()
             }
             uplinkSubscription = uplinkObservable.subscribe(uplinkObserver)
+
+            if (providerRouterSubscription ne null) {
+                providerRouterSubscription.unsubscribe()
+            }
+            providerRouterSubscription =
+                providerRouterObservable.subscribe(providerRouterObserver)
+
+            if (externalNetworkSubscription ne null) {
+                externalNetworkSubscription.unsubscribe()
+            }
+            externalNetworkSubscription =
+                externalNetworkObservable.subscribe(externalNetworkObserver)
+
             startUplink()
         }
     }
@@ -93,6 +138,17 @@ private[vpp] trait VppFip64 extends VppUplink with VppProviderRouter {
             stopUplink()
             if (uplinkSubscription ne null) {
                 uplinkSubscription.unsubscribe()
+                uplinkSubscription = null
+            }
+
+            if (providerRouterSubscription ne null) {
+                providerRouterSubscription.unsubscribe()
+                providerRouterSubscription = null
+            }
+
+            if (externalNetworkSubscription ne null) {
+                externalNetworkSubscription.unsubscribe()
+                externalNetworkSubscription = null
             }
         }
     }

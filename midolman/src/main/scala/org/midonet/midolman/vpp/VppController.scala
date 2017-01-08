@@ -22,9 +22,8 @@ import java.util.concurrent.{TimeUnit, TimeoutException}
 import java.util.function.Consumer
 
 import scala.annotation.tailrec
-import scala.collection.immutable
 import scala.collection.JavaConverters._
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.util.control.NonFatal
@@ -39,12 +38,12 @@ import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.Midolman.MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED
-import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
-import org.midonet.midolman.vpp.VppProviderRouter.{Gateways, ProviderRouter}
+import org.midonet.midolman.vpp.VppExternalNetwork.{AddExternalNetwork, RemoveExternalNetwork}
+import org.midonet.midolman.vpp.VppProviderRouter.Gateways
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.midolman.{DatapathState, Midolman}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC, TunnelKeys}
@@ -117,6 +116,12 @@ class VppController(protected override val hostId: UUID,
             deleteUplink(portId)
         case Gateways(_, hosts) =>
             updateFlowStateFlows(hosts)
+        case AddExternalNetwork(networkId) =>
+            // TODO
+            Future.successful(Unit)
+        case RemoveExternalNetwork(networkId) =>
+            // TODO
+            Future.successful(Unit)
         case CreateTunnel(portId, vrf, vni, routerPortMac) =>
             createTunnel(portId, vrf, vni, routerPortMac)
         case DeleteTunnel(portId, vrf, vni) =>

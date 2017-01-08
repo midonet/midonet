@@ -63,8 +63,9 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
     private val refs = new mutable.HashMap[UUID, StateType]
 
     @NotThreadSafe
-    final def requestRefs(ids: Set[UUID]): Unit = {
+    final def requestRefs(ids: collection.Set[UUID]): Unit = {
         log.debug(s"Updating references ${clazz.getSimpleName}: $ids")
+        assertThread()
 
         // Remove the refs that are no longer used.
         for ((id, state) <- refs if !ids.contains(id)) {
@@ -93,7 +94,6 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
      */
     @NotThreadSafe
     final def requestRefs(ids: UUID*): Unit = {
-        assertThread()
         requestRefs(ids.filter(_ ne null).toSet)
     }
 
