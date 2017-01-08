@@ -236,38 +236,49 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
 
     def __init__(self):
         super(UplinkWithVPP, self).__init__()
-        self.uplink_port = {}
-        self.vrf = 0
+        self.uplink_ports = []
+        self.vrf = 2
+
+    #param: cidr IPv6 subnet. Not any address will work, as remote_host_
+    #       setup adds route only for 2001::1
+    def build_uplink(self, cidr, host, interface):
+        id = int(cidr[0])
+        uplinknet = self.create_network("uplink%d" % id, uplink=True)
+        (net_pref, prefix_len) = cidr.split('/')
+        ipv6_gw_ip = net_pref + "1"
+        self.create_subnet("uplinksubnet6_%d" % id, uplinknet, cidr,
+                           enable_dhcp=False, version=6)
+        uplink_port = self.create_port("uplinkport%d" % id, uplinknet,
+                                       host_id=host,
+                                       interface=interface,
+                                       fixed_ips=[ipv6_gw_ip])
+
+        self.add_router_interface(self._edgertr, port=uplink_port)
+        self.uplink_ports.append(uplink_port)
+
+    def flush_all(self):
+        self.flush_neighbours('quagga1', 'bgp1')
+        self.flush_neighbours('quagga2', 'bgp2')
+        self.flush_neighbours('midolman1', 'bgp0')
 
     def build(self, binding_data=None):
         self._edgertr = self.create_router("edge")
-        uplinknet = self.create_network("uplink", uplink=True)
-        self.create_subnet("uplinksubnet6", uplinknet, "2001::/64",
-                           enable_dhcp=False, version=6)
-
-        self.uplink_port = self.create_port("uplinkport", uplinknet,
-                                            host_id="midolman1",
-                                            interface="bgp0",
-                                            fixed_ips=["2001::1"])
-        self.add_router_interface(self._edgertr, port=self.uplink_port)
+        self.build_uplink("2001::/64", "midolman1", "bgp0")
 
         # setup quagga1
         self.setup_remote_host('quagga1', 'bgp1',
             gw_address="2001::2",
             local_address="bbbb::2",
             local_router="bbbb::1")
+
         self.setup_remote_host('quagga2', 'bgp2',
             gw_address="2001::3",
             local_address="eeee::2",
             local_router="eeee::1")
 
-        self.flush_neighbours('quagga1', 'bgp1')
-        self.flush_neighbours('quagga2', 'bgp2')
-        self.flush_neighbours('midolman1', 'bgp0')
-
-        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_port)
+        self.flush_all()
+        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_ports[0])
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
-
         self.await_vpp_initialized('midolman1', uplink_port_name, 180)
         self.add_route_to_vpp('midolman1',
                               prefix='bbbb::/64',
@@ -334,7 +345,6 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         service.get_container_by_hostname('midolman1').\
             exec_command_blocking("restart midolman")
 
-
 # Neutron topology with a single tenant and uplink
 # configured
 class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
@@ -367,9 +377,7 @@ class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
 
 class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
 
-    def build(self, binding_data=None):
-        super(SingleTenantWithNeutronIPv6FIP, self).build(binding_data)
-
+    def build_tenant(self):
         self.pubnet = self.create_network("public", external=True)
 
         pubsubnet6 = self.create_subnet("publicsubnet6",
@@ -407,6 +415,9 @@ class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
             )
         )
 
+    def build(self, binding_data=None):
+        super(SingleTenantWithNeutronIPv6FIP, self).build(binding_data)
+        self.build_tenant()
 
 class FIP6Reuse(SingleTenantWithNeutronIPv6FIP):
 
@@ -421,6 +432,39 @@ class FIP6Reuse(SingleTenantWithNeutronIPv6FIP):
         )
         self.addCleanup(self.api.update_floatingip,
             fip6id, {'floatingip': {'port_id': None }})
+
+class DualUplinkAssymetric(SingleTenantWithNeutronIPv6FIP):
+
+    def build(self, binding_data=None):
+        self._edgertr = self.create_router("edge")
+        self.build_uplink("2001::/64", "midolman1", "bgp0")
+        self.build_uplink("3001::/64", "midolman2", "bgp0")
+
+        self.setup_remote_host('quagga1', 'bgp1',
+            gw_address="2001::2",
+            local_address="bbbb::2",
+            local_router="bbbb::1")
+        self.set_gateway_address('quagga1', "3001::2/64", "bgp2")
+        self.flush_all()
+        self.flush_neighbours('quagga1', 'bgp2')
+        self.flush_neighbours('midolman2', 'bgp0')
+
+        uplink_port_id = self.get_mn_uplink_port_id(self.uplink_ports[1])
+        uplink_port_name = 'vpp-' + uplink_port_id[0:8]
+        self.await_vpp_initialized('midolman2', uplink_port_name, 180)
+        self.add_route_to_vpp('midolman2',
+                              prefix='bbbb::/64',
+                              via='3001::2',
+                              port=uplink_port_name)
+        self.build_tenant()
+
+    def unset_gateway_address(self, cont_services, gw_address, interface):
+        cont_services.exec_command('ip a del %s dev %s' % (gw_address, interface))
+
+    def set_gateway_address(self, container, gw_address, interface):
+        cont_services = service.get_container_by_hostname(container)
+        self.addCleanup(self.unset_gateway_address, cont_services, gw_address, interface)
+        cont_services.exec_command('ip a add %s dev %s' % (gw_address, interface))
 
 # Neutron topology with a 3 tenants and uplink
 # configured
@@ -485,7 +529,7 @@ binding_multihost_singletenant = {
 }
 
 binding_multihost_singletenant_neutronfip6 = {
-    'description': 'spanning across 2 midolman no tenant binding',
+    'description': 'spanning across 2 midolmans',
     'bindings': [
          {'vport': 'port1',
          'interface': {
@@ -752,7 +796,7 @@ def test_fip6reuse():
     """
     Title: create and reassociates a IPv6 FIP in neutron. Ping must work.
     """
-    ping_from_inet('quagga1', 'cccc:bbbb::3', 4, namespace='ip6')
+    ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
 
 BM = BindingManager(vtm=MultiTenantAndUplinkWithVPP())
 
@@ -852,3 +896,12 @@ def test_lru():
                 client.close()
         if extra is not None:
             extra.close()
+
+@attr(version="v1.2.0")
+@bindings(binding_multihost_singletenant_neutronfip6,
+          binding_manager=BindingManager(vtm=DualUplinkAssymetric()))
+def test_2uplinks_assymetric():
+    """
+    Title: Provider router with two uplinks. Only second uplink VPP has egress route for IPV6 traffic
+    """
+    ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
