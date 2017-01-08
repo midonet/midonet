@@ -97,7 +97,7 @@ class VppController(protected override val hostId: UUID,
                     datapathState: DatapathState,
                     vppOvs: VppOvs,
                     protected override val vt: VirtualTopology)
-    extends VppExecutor with VppFip64 with VppDownlink with VppState {
+    extends VppExecutor with VppFip64 with VppState {
 
     import VppController._
 
@@ -217,7 +217,6 @@ class VppController(protected override val hostId: UUID,
                 s"No datapath port for uplink port $portId"))
         }
 
-        val shouldStartDownlink = uplinks.isEmpty
         if (startVppProcess()) {
             vppApi = createApiConnection(VppConnectMaxRetries)
         }
@@ -246,9 +245,6 @@ class VppController(protected override val hostId: UUID,
         } andThen {
             case Success(_) =>
                 addUplink(portId, routerId, uplinkPortIds)
-                if (shouldStartDownlink && !uplinks.isEmpty) {
-                    startDownlink()
-                }
             case Failure(e) =>
                 log warn s"Attaching uplink port $portId failed: $e"
         }
@@ -288,9 +284,6 @@ class VppController(protected override val hostId: UUID,
             }
         } andThen { case _ =>
             removeUplink(portId)
-            if (uplinks.isEmpty) {
-                stopDownlink()
-            }
         }
     }
 

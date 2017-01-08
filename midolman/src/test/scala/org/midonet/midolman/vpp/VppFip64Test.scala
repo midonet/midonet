@@ -26,6 +26,9 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.CreateOp
+import org.midonet.cluster.data.storage.StateTableEncoder.Fip64Encoder.DefaultValue
+import org.midonet.cluster.data.storage.model.Fip64Entry
+import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.TopologyBuilder
@@ -33,11 +36,12 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.vpp.VppDownlink.{AssociateFip, CreateTunnel, DeleteTunnel, DisassociateFip}
 import org.midonet.midolman.vpp.VppExecutor.Receive
 import org.midonet.midolman.vpp.VppExternalNetwork.{AddExternalNetwork, RemoveExternalNetwork}
 import org.midonet.midolman.vpp.VppProviderRouter.Gateways
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
-import org.midonet.packets.{IPv6Addr, IPv6Subnet}
+import org.midonet.packets._
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 
 @RunWith(classOf[JUnitRunner])
@@ -98,6 +102,56 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
         AddUplink(port.getId.asJava, port.getRouterId.asJava, portSubnet,
                   portIds.asJava)
     }
+
+    private def addFip64Entry(networkId: UUID, portId: UUID, routerId: UUID,
+                              fixedIp: IPv4Addr = IPv4Addr.random,
+                              floatingIp: IPv6Addr = IPv6Addr.random,
+                              natPool: IPv4Subnet = new IPv4Subnet(IPv4Addr.random, 8))
+    : Fip64Entry = {
+        val table = vt.stateTables
+            .getTable[Fip64Entry, AnyRef](classOf[NeutronNetwork], networkId,
+                                          MidonetBackend.Fip64Table)
+        val entry = Fip64Entry(fixedIp, floatingIp, natPool, portId, routerId)
+        table.addPersistent(entry, DefaultValue)
+        entry
+    }
+
+    private def removeFip64Entry(networkId: UUID, entry: Fip64Entry): Unit = {
+        val table = vt.stateTables
+            .getTable[Fip64Entry, AnyRef](classOf[NeutronNetwork], networkId,
+                                          MidonetBackend.Fip64Table)
+        table.removePersistent(entry, DefaultValue)
+    }
+
+    private def createTunnel(port: Port, vrf: Int, vni: Int, downlinkMac: MAC)
+    : CreateTunnel = {
+        CreateTunnel(
+            portId = port.getId.asJava,
+            vrfTable = vrf,
+            vni = vni,
+            routerPortMac=downlinkMac)
+    }
+
+    private def associateFip(port: Port, entry: Fip64Entry, vrf: Int)
+    : AssociateFip = {
+        AssociateFip(portId = port.getId.asJava,
+                     vrfTable = vrf,
+                     vni = port.getTunnelKey.toInt,
+                     floatingIp = entry.floatingIp,
+                     fixedIp = entry.fixedIp,
+                     localIp = fromV4Proto(port.getPortSubnet(0)),
+                     natPool = entry.natPool)
+    }
+
+    private def disassociateFip(port: Port, entry: Fip64Entry, vrf: Int)
+    : DisassociateFip = {
+        DisassociateFip(portId = port.getId.asJava,
+                        vrfTable = vrf,
+                        floatingIp = entry.floatingIp,
+                        fixedIp = entry.fixedIp,
+                        localIp = fromV4Proto(port.getPortSubnet(0)))
+    }
+
 
     feature("VPP FIP64 handles uplinks") {
         scenario("Uplink added and removed") {
@@ -410,6 +464,180 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
                 Gateways(routerPort.getId.asJava, Set()),
                 AddExternalNetwork(bridge.getId.asJava),
                 RemoveExternalNetwork(bridge.getId.asJava))
+        }
+    }
+
+    feature("VPP FIP64 handles downlinks") {
+        scenario("One external network connected to a provider router") {
+            Given("A VPP FIP64 instance")
+            val vpp = createVppFip64()
+
+            And("A topology")
+            val downlinkMac = MAC.random()
+            val providerRouter = createRouter()
+            val tenantRouter = createRouter()
+            val bridge = createBridge()
+            val uplinkPort = createRouterPort(routerId = Some(providerRouter.getId.asJava),
+                                              portSubnet = randomSubnet6())
+            val routerPort = createRouterPort(routerId = Some(providerRouter.getId.asJava))
+            val bridgePort = createBridgePort(bridgeId = Some(bridge.getId.asJava),
+                                              peerId = Some(routerPort.getId.asJava))
+            val network = createNetwork(id = bridge.getId.asJava,
+                                        external = Some(true))
+            val downlinkPort = createRouterPort(routerId = Some(tenantRouter.getId.asJava),
+                                                portMac = downlinkMac,
+                                                tunnelKey = 1234)
+            backend.store.multi(Seq(CreateOp(providerRouter), CreateOp(routerPort),
+                                    CreateOp(bridge), CreateOp(bridgePort),
+                                    CreateOp(network), CreateOp(tenantRouter),
+                                    CreateOp(uplinkPort), CreateOp(downlinkPort)))
+
+            When("The port becomes active")
+            VirtualToPhysicalMapper.setPortActive(uplinkPort.getId.asJava, 0,
+                                                  active = true, 0)
+
+            Then("The controller should add the uplink and external network")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(uplinkPort, uplinkPort.getId.asJava),
+                Gateways(uplinkPort.getId.asJava, Set()),
+                AddExternalNetwork(bridge.getId.asJava))
+
+            When("Adding a FIP to the external network")
+            val entry = addFip64Entry(network.getId.asJava,
+                                      downlinkPort.getId.asJava,
+                                      tenantRouter.getId.asJava)
+
+            Then("The controller should receive a Create and AssociateFip notification")
+            vpp.messages(3) shouldBe createTunnel(
+                downlinkPort, VppVrfs.FirstFree, 1234, downlinkMac)
+            vpp.messages(4) shouldBe associateFip(
+                downlinkPort, entry, VppVrfs.FirstFree)
+
+            When("The port becomes inactive")
+            VirtualToPhysicalMapper.setPortActive(uplinkPort.getId.asJava, 0,
+                                                  active = false, 0)
+
+            Then("The FIP is disassociated and the uplink deleted")
+            vpp.messages(5) shouldBe disassociateFip(
+                downlinkPort, entry, VppVrfs.FirstFree)
+            vpp.messages(6) shouldBe DeleteTunnel(
+                downlinkPort.getId.asJava, VppVrfs.FirstFree, 1234)
+            vpp.messages(7) shouldBe RemoveExternalNetwork(bridge.getId.asJava)
+            vpp.messages(8) shouldBe DeleteUplink(uplinkPort.getId.asJava)
+        }
+
+        scenario("Two external networks connected to a provider router") {
+            Given("A VPP FIP64 instance")
+            val vpp = createVppFip64()
+
+            And("A topology")
+            val downlinkMac = MAC.random()
+            val providerRouter = createRouter()
+            val bridge1 = createBridge()
+            val bridge2 = createBridge()
+            val uplinkPort = createRouterPort(routerId = Some(providerRouter.getId.asJava),
+                                              portSubnet = randomSubnet6())
+            val routerPort1 = createRouterPort(routerId = Some(providerRouter.getId.asJava))
+            val bridgePort1 = createBridgePort(bridgeId = Some(bridge1.getId.asJava),
+                                              peerId = Some(routerPort1.getId.asJava))
+            val network1 = createNetwork(id = bridge1.getId.asJava,
+                                         external = Some(true))
+            val routerPort2 = createRouterPort(routerId = Some(providerRouter.getId.asJava))
+            val bridgePort2 = createBridgePort(bridgeId = Some(bridge2.getId.asJava),
+                                              peerId = Some(routerPort2.getId.asJava))
+            val network2 = createNetwork(id = bridge2.getId.asJava,
+                                         external = Some(true))
+            val tenantRouter1 = createRouter()
+            val tenantRouter2 = createRouter()
+            val downlinkPort1 = createRouterPort(routerId = Some(tenantRouter1.getId.asJava),
+                                                 portMac = downlinkMac,
+                                                 tunnelKey = 1234)
+            val downlinkPort2 = createRouterPort(routerId = Some(tenantRouter1.getId.asJava),
+                                                 portMac = downlinkMac,
+                                                 tunnelKey = 5678)
+            backend.store.multi(Seq(CreateOp(providerRouter), CreateOp(routerPort1),
+                                    CreateOp(bridge1), CreateOp(bridgePort1),
+                                    CreateOp(network1), CreateOp(tenantRouter1),
+                                    CreateOp(uplinkPort), CreateOp(downlinkPort1)))
+
+            When("The port becomes active")
+            VirtualToPhysicalMapper.setPortActive(uplinkPort.getId.asJava, 0,
+                                                  active = true, 0)
+
+            Then("The controller should add the uplink and external network")
+            vpp.messages should contain theSameElementsInOrderAs Seq(
+                addUplink(uplinkPort, uplinkPort.getId.asJava),
+                Gateways(uplinkPort.getId.asJava, Set()),
+                AddExternalNetwork(bridge1.getId.asJava))
+
+            When("Adding a second external network")
+            backend.store.multi(Seq(CreateOp(routerPort2), CreateOp(bridge2),
+                                    CreateOp(bridgePort2),CreateOp(network2),
+                                    CreateOp(tenantRouter2),
+                                    CreateOp(downlinkPort2)))
+
+            Then("The controller should add the second external network")
+            vpp.messages(3) shouldBe AddExternalNetwork(bridge2.getId.asJava)
+
+            When("Adding a FIP to the first external network")
+            val entry1 = addFip64Entry(network1.getId.asJava,
+                                       downlinkPort1.getId.asJava,
+                                       tenantRouter1.getId.asJava)
+
+            Then("The controller should receive a Create and AssociateFip notification")
+            vpp.messages(4) shouldBe createTunnel(
+                downlinkPort1, VppVrfs.FirstFree, 1234, downlinkMac)
+            vpp.messages(5) shouldBe associateFip(
+                downlinkPort1, entry1, VppVrfs.FirstFree)
+
+            When("Adding a FIP to the second external network")
+            val entry2 = addFip64Entry(network2.getId.asJava,
+                                       downlinkPort2.getId.asJava,
+                                       tenantRouter2.getId.asJava)
+
+            Then("The controller should receive a Create and AssociateFip notification")
+            vpp.messages(6) shouldBe createTunnel(
+                downlinkPort2, VppVrfs.FirstFree + 1, 5678, downlinkMac)
+            vpp.messages(7) shouldBe associateFip(
+                downlinkPort2, entry2, VppVrfs.FirstFree + 1)
+
+            When("Unlinking the first external network")
+            backend.store.delete(classOf[Port], bridgePort1.getId)
+
+            Then("The controller should remove the first external network")
+            vpp.messages(8) shouldBe disassociateFip(
+                downlinkPort1, entry1, VppVrfs.FirstFree)
+            vpp.messages(9) shouldBe DeleteTunnel(
+                downlinkPort1.getId.asJava, VppVrfs.FirstFree, 1234)
+            vpp.messages(10) shouldBe RemoveExternalNetwork(bridge1.getId.asJava)
+
+            When("Adding a second FIP to the second external network")
+            val entry3 = addFip64Entry(network2.getId.asJava,
+                                       downlinkPort2.getId.asJava,
+                                       tenantRouter2.getId.asJava)
+
+            Then("The controller should receive a Create and AssociateFip notification")
+            vpp.messages(11) shouldBe associateFip(
+                downlinkPort2, entry3, VppVrfs.FirstFree + 1)
+
+            When("Removing the first FIP")
+            removeFip64Entry(network2.getId.asJava, entry2)
+
+            Then("The controller should receive a DisassociateFip notification")
+            vpp.messages(12) shouldBe disassociateFip(
+                downlinkPort2, entry2, VppVrfs.FirstFree + 1)
+
+            When("The port becomes inactive")
+            VirtualToPhysicalMapper.setPortActive(uplinkPort.getId.asJava, 0,
+                                                  active = false, 0)
+
+            Then("The FIP is disassociated and the uplink deleted")
+            vpp.messages(13) shouldBe disassociateFip(
+                downlinkPort2, entry3, VppVrfs.FirstFree + 1)
+            vpp.messages(14) shouldBe DeleteTunnel(
+                downlinkPort2.getId.asJava, VppVrfs.FirstFree + 1, 5678)
+            vpp.messages(15) shouldBe RemoveExternalNetwork(bridge2.getId.asJava)
+            vpp.messages(16) shouldBe DeleteUplink(uplinkPort.getId.asJava)
         }
     }
 
