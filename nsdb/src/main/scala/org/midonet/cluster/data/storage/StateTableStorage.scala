@@ -25,7 +25,7 @@ import scala.reflect.ClassTag
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage.StateTableEncoder.{Fip64Encoder, Ip4ToMacEncoder, MacToIdEncoder, MacToIp4Encoder}
 import org.midonet.cluster.data.storage.model.{ArpEntry, Fip64Entry}
-import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.{Neutron, Topology}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.packets.{IPv4Addr, MAC}
 
@@ -160,7 +160,8 @@ trait StateTableStorage extends Storage {
     def portPeeringTablePath(id: UUID) =
         tablePath(classOf[Topology.Port], id, MidonetBackend.PeeringTable)
 
-    def fip64TablePath = tablePath(MidonetBackend.Fip64Table)
+    def fip64TablePath(id: UUID) =
+        tablePath(classOf[Neutron.NeutronNetwork], id, MidonetBackend.Fip64Table)
 
     def bridgeMacEntryPath(bridgeId: UUID, vlanId: Short, mac: MAC,
                            portId: UUID): String = {
@@ -178,8 +179,9 @@ trait StateTableStorage extends Storage {
             MacToIp4Encoder.encodePersistentPath(mac, address)
     }
 
-    def fip64EntryPath(entry: Fip64Entry): String = {
-        fip64TablePath + Fip64Encoder.encodePersistentPath(entry, null)
+    def fip64EntryPath(networkId: UUID, entry: Fip64Entry): String = {
+        fip64TablePath(networkId) +
+            Fip64Encoder.encodePersistentPath(entry, null)
     }
 
     private def registerTable[K,V](map: TrieMap[String, TableProvider],

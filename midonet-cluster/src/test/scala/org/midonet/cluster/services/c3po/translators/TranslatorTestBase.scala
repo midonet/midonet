@@ -153,11 +153,13 @@ abstract class TranslatorTestBase  extends FlatSpec
                 }
             }
         )
-        when(stateTableStorage.fip64EntryPath(any[Fip64Entry]())).thenAnswer(
+        when(stateTableStorage.fip64EntryPath(any[JUUID](),
+                                              any[Fip64Entry]())).thenAnswer(
             new Answer[String] {
                 override def answer(invocation: InvocationOnMock): String = {
-                    val entry = invocation.getArguments()(0).asInstanceOf[Fip64Entry]
-                    s"$zkRoot/0/tables/global/fip64_table/" +
+                    val id = invocation.getArguments()(0).asInstanceOf[JUUID]
+                    val entry = invocation.getArguments()(1).asInstanceOf[Fip64Entry]
+                    s"$zkRoot/0/tables/NeutronNetwork/$id/fip64_table/" +
                         Fip64Encoder.encodePersistentPath(entry, null)
                 }
             }
