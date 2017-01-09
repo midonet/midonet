@@ -142,6 +142,11 @@ object GatewayMappingService {
         def future: Future[AnyRef] = promise.future
 
         /**
+          * @return True if the state has terminated.
+          */
+        def isTerminated: Boolean = terminated.get
+
+        /**
           * Returns a gateway for the current Neutron network or throws a
           * [[NotYetException]] if the topology is not yet avaiable.
           */
@@ -209,12 +214,15 @@ class GatewayMappingService(vt: VirtualTopology)
             gatewayState = new GatewayState(networkId, vt, log) ({
                 gateways.remove(networkId, _)
             })
-            val state = gateways.putIfAbsent(peerPort.deviceId, gatewayState)
-            if (state eq null) {
-                gatewayState.start()
-            } else {
-                gatewayState = state
-            }
+            var state: GatewayState = null
+            do {
+                state = gateways.putIfAbsent(peerPort.deviceId, gatewayState)
+                if (state eq null) {
+                    gatewayState.start()
+                } else {
+                    gatewayState = state
+                }
+            } while ((state ne null) && state.isTerminated)
             throw NotYetException(gatewayState.future,
                                   s"Gateways for network $networkId not yet " +
                                   "available")
