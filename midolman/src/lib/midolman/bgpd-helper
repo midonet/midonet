@@ -123,8 +123,15 @@ bgpd_down() {
         ip link set $VTY_BRIDGE_NAME down
         ip link del $VTY_BRIDGE_NAME
     fi
-    ip link show $VTY_PORT_NAME >/dev/null 2>&1 && \
-        ip link delete $VTY_PORT_NAME
+
+    # Anyway, assure that there is no interface remaining outside the namespace
+    # (as expected or as a result of a crash between interface creation and its
+    # assignation to the namespace) (see MI-1904)
+    for PORT_NAME in $NETDEV_PORT_NAME $NETDEV_PORT_MIRROR_NAME \
+                      $VTY_PORT_NAME $VTY_PORT_MIRROR_NAME; do
+        ip link show $PORT_NAME >/dev/null 2>&1 && \
+            ip link delete $PORT_NAME
+    done
     true
 }
 
