@@ -193,7 +193,9 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
         } else if (event.getResultCode == Code.NONODE.intValue) {
             log.debug("Node does not exist: waiting for creation")
         } else if (event.getResultCode == Code.CONNECTIONLOSS.intValue) {
-            log.debug("Connection lost")
+            log.debug("Connection lost: waiting to reconnect")
+        } else if (event.getResultCode == Code.SESSIONEXPIRED.intValue) {
+            log.debug("Session expired")
             close(new NodeObservableDisconnectedException(path))
         } else {
             log.error(s"Check node existence failed with ${event.getResultCode}")
@@ -225,9 +227,11 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
                 monitor()
             }
         } else if (event.getResultCode == Code.CONNECTIONLOSS.intValue) {
-            log.debug("Connection lost")
+            log.debug("Connection lost: waiting to reconnect")
+        } else if (event.getResultCode == Code.SESSIONEXPIRED.intValue) {
+            log.debug("Session expired")
             close(new NodeObservableDisconnectedException(path))
-        } else {
+        } else{
             log.error(s"Get node data failed with ${event.getResultCode}")
             close(new NodeObservableDisconnectedException(path))
         }
