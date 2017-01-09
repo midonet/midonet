@@ -45,6 +45,54 @@
       "revId": "2584cadb1fc5623e0818d2363983e99105a7f20f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_00974391",
+        "filename": "midolman/src/lib/midolman/bgpd-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2017-01-09T17:40:36Z",
+      "side": 1,
+      "message": "Yes, it is as they (should) belong to a paired veth. But this also cover the case if an interface with the same name is created that is not in the same veth pair (not sure if this is something we should worry or care). The chance is minimal, but if someone creates an interface with the same name as the mirror by accident, the BGP would not start properly.",
+      "parentUuid": "fabf19d9_c04b8b58",
+      "range": {
+        "startLine": 130,
+        "startChar": 40,
+        "endLine": 130,
+        "endChar": 64
+      },
+      "revId": "2584cadb1fc5623e0818d2363983e99105a7f20f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_e0932fa2",
+        "filename": "midolman/src/lib/midolman/bgpd-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2017-01-09T17:40:36Z",
+      "side": 1,
+      "message": "ok, thanks.",
+      "parentUuid": "fabf19d9_e0ac4fef",
+      "range": {
+        "startLine": 130,
+        "startChar": 8,
+        "endLine": 130,
+        "endChar": 9
+      },
+      "revId": "2584cadb1fc5623e0818d2363983e99105a7f20f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
