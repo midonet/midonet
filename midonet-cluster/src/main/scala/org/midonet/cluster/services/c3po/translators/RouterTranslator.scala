@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronPort.IPAllocation
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSubnet}
-import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget}
+import org.midonet.cluster.models.Topology.Rule.{Action, NatRuleData, NatTarget}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.BgpPeerTranslator._
 import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator._
@@ -294,6 +294,20 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         val portRouteId =
             RouteManager.routerInterfaceRouteId(port.getId, portAddress.address)
 
+        // Create the NAT64 rule that accepts NAT64 pool as destination.
+        // This is needed to stop rule processing and avoid ipv4 snat
+
+        val skipNat4Rule = Rule.newBuilder()
+            .setId(floatNat64ChainId(port.getId))
+            .setChainId(floatNat64ChainId(nRouter.getId))
+            .setFipPortId(port.getId)
+            .setType(Rule.Type.LITERAL_RULE)
+            .setCondition(Commons.Condition.newBuilder()
+                              .addOutPortIds(port.getId)
+                              .setNwDstIp(Nat64Pool))
+            .setAction(Action.ACCEPT)
+            .build()
+        tx.create(skipNat4Rule)
         // Determine the gateway port address and subnet.
         val internalSubnet = portAddress.internalSubnet.get
 
