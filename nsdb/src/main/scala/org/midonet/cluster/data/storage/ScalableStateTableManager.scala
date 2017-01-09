@@ -1119,7 +1119,9 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
                 log debug "State table does not exist or deleted"
                 table.close(e = null)
             case Code.CONNECTIONLOSS =>
-                log warn "Storage connection lost"
+                log debug "Storage connection lost: waiting to reconnect"
+            case Code.SESSIONEXPIRED =>
+                log warn "Storage session expired"
                 table.close(e)
             case _ =>
                 log warn s"Refreshing state table failed ${e.code()}"
