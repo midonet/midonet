@@ -17,21 +17,25 @@
 package org.midonet.midolman.vpp
 
 import java.util
-import java.util.{Collections, UUID, List => JList}
+import java.util.{Collections, UUID, List => JList, Map => JMap}
 
 import javax.annotation.concurrent.NotThreadSafe
 
 import scala.collection.JavaConverters._
 
 import rx.Observable.OnSubscribe
+import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber}
 
+import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.Topology.Router
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Port
-import org.midonet.midolman.topology.{ObjectReferenceTracker, VirtualTopology}
+import org.midonet.midolman.topology.{ObjectReferenceTracker, StoreObjectReferenceTracker, VirtualTopology}
 import org.midonet.midolman.vpp.VppFip64.Notification
-import org.midonet.midolman.vpp.VppProviderRouter.{Gateways, RouterState, UplinkState}
-import org.midonet.util.functors.{makeFunc1, makeRunnable}
+import org.midonet.midolman.vpp.VppProviderRouter.{Gateways, ProviderRouter, RouterState, UplinkState}
+import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeRunnable}
 import org.midonet.util.logging.Logger
 
 object VppProviderRouter {
@@ -44,6 +48,11 @@ object VppProviderRouter {
       */
     case class Gateways(portId: UUID, hostIds: Set[UUID]) extends Notification
 
+    /**
+      * Indicates the interior provider router ports and their corresponding
+      * peer ports for a provider router configured for a specific uplink.
+      */
+    case class ProviderRouter(routerId: UUID, ports: JMap[UUID, UUID])
 
     /**
       * Maintains the state for a given uplink port, and exposes an observable
@@ -119,16 +128,103 @@ object VppProviderRouter {
     }
 
     /**
-      * TODO: Maintains the state for a provider router.
+      * Maintains the state for a provider router, and exposes an observable
+      * that emits notifications with the router's interior ports and their
+      * corresponding peer ports.
       */
-    private class RouterState(routerId: UUID, hostId: UUID,
-                              vt: VirtualTopology) {
+    private class RouterState(val routerId: UUID, hostId: UUID,
+                              vt: VirtualTopology, log: Logger) {
+
+        final val defaultRouter = ProviderRouter(routerId, Collections.emptyMap())
+
+        private var currentRouter: Router = _
+
+        private val mark = PublishSubject.create[ProviderRouter]()
+        private val scheduler = Schedulers.from(vt.vtExecutor)
+
+        private val portTracker = new StoreObjectReferenceTracker[Topology.Port](
+            vt, classOf[Topology.Port], log)
+
+        private val routerObservable = vt.store
+            .observable(classOf[Router], routerId)
+            .observeOn(scheduler)
+            .doOnNext(makeAction1(routerUpdated))
+            .doOnCompleted(makeAction0(routerDeleted()))
+
+        private val providerRouterObservable = Observable
+            .merge(portTracker.refsObservable, routerObservable)
+            .filter(makeFunc1(isReady))
+            .map[ProviderRouter](makeFunc1(buildRouterPorts))
+            .distinctUntilChanged()
+            .takeUntil(mark)
+
+        /**
+          * An [[Observable]] that emits [[ProviderRouter]] notifications with
+          * the ports of the current router.
+          */
+        val observable = Observable.create[ProviderRouter](new OnSubscribe[ProviderRouter] {
+            override def call(child: Subscriber[_ >: ProviderRouter]): Unit = {
+                // The subscription is performed on the VT thread.
+                vt.vtExecutor.execute(makeRunnable {
+                    providerRouterObservable subscribe child
+                })
+            }
+        })
 
         /**
           * Completes this router state by removing the current gateway host
           * from the provider router's gateway table.
           */
-        def complete(): Unit = { }
+        def complete(): Unit = {
+            mark.onCompleted()
+        }
+
+        /**
+          * @return True when the router and all its ports have been loaded
+          *         from storage.
+          */
+        def isReady(any: Any): Boolean = {
+            (currentRouter ne null) && portTracker.areRefsReady
+        }
+
+        /**
+          * Handles updates for the current router.
+          */
+        private def routerUpdated(router: Router): Unit = {
+            val portIds = fromProtoList(router.getPortIdsList)
+
+            log debug s"Router $routerId updated with ports: $portIds"
+            currentRouter = router
+            portTracker.requestRefs(portIds.asScala: _*)
+        }
+
+        /**
+          * Handles the router deletion, by completing the output observable.
+          */
+        private def routerDeleted(): Unit = {
+            log debug s"Router $routerId deleted"
+            portTracker.completeRefs()
+        }
+
+        /**
+          * Builds a [[ProviderRouter]] notification with the ports of the current
+          * router.
+          */
+        private def buildRouterPorts(any: Any): ProviderRouter = {
+            if (portTracker.currentRefs.isEmpty) {
+                defaultRouter
+            } else {
+                val ports = new util.HashMap[UUID, UUID](
+                    portTracker.currentRefs.size)
+                for ((portId, port) <- portTracker.currentRefs
+                     if port.hasPeerId) yield {
+                    ports.put(portId, port.getPeerId.asJava)
+                }
+                log debug s"Provider router $routerId interior ports: $ports"
+
+                ProviderRouter(routerId, ports)
+            }
+        }
     }
 
 }
@@ -142,6 +238,14 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
 
     private val uplinks = new util.HashMap[UUID, UplinkState]
     private val routers = new util.HashMap[UUID, RouterState]()
+
+    private val providerRouterSubject = PublishSubject.create[ProviderRouter]
+
+    /**
+      * An [[Observable]] that emits notifications for a provider router. The
+      * notifications are emitted on the virtual topology thread.
+      */
+    protected val providerRouterObservable = providerRouterSubject.asObservable()
 
     protected def hostId: UUID
 
@@ -167,6 +271,25 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
         }
     }
 
+    private def routerObserver(state: RouterState) = new Observer[ProviderRouter] {
+
+        def routerId = state.routerId
+
+        override def onNext(ports: ProviderRouter): Unit = {
+            providerRouterSubject onNext ports
+        }
+
+        override def onError(e: Throwable): Unit = {
+            log.warn(s"Unhandled error on provider router $routerId state", e)
+            providerRouterSubject onNext state.defaultRouter
+        }
+
+        override def onCompleted(): Unit = {
+            log debug s"Provider router $routerId state completed"
+            providerRouterSubject onNext state.defaultRouter
+        }
+    }
+
     /**
       * Adds a new uplink port for a provider router. If the provider router is
       * new, the method creates a new [[RouterState]] for this router.
@@ -178,7 +301,9 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
                             groupPortIds: JList[UUID]): Unit = {
         if (!routers.containsKey(routerId)) {
             log debug s"Create state for provider router $routerId"
-            val routerState = new RouterState(routerId, hostId, vt)
+            val routerState = new RouterState(routerId, hostId, vt, log)
+            routerState.observable subscribe routerObserver(routerState)
+
             routers.put(routerId, routerState)
         }
         val uplinkState = new UplinkState(portId, routerId, groupPortIds, vt, log)
@@ -220,7 +345,7 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
         // TODO: Assume that there is only one uplink port per physical
         // TODO: gateway and the uplink is reachable from this tenant router
         // TODO: port. Further work should observer the virtual topology between
-        // TODO: the uplink and the tenant router and update reachablity.
+        // TODO: the uplink and the tenant router and update reachability.
 
         if (uplinks.isEmpty) {
             log warn s"No uplink ports: ignoring FIP64 for port $downlinkPortId"
@@ -240,6 +365,7 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
       *         given uplink port. These are all the uplink ports of the
       *         provider router.
       */
+    @NotThreadSafe
     protected def uplinkPortsFor(uplinkPortId: UUID): JList[UUID] = {
         val uplinkState = uplinks.get(uplinkPortId)
         if (uplinkState ne null) {

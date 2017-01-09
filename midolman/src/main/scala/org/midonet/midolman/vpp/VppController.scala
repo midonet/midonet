@@ -44,7 +44,7 @@ import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppDownlink._
 import org.midonet.midolman.vpp.VppExecutor.Receive
-import org.midonet.midolman.vpp.VppProviderRouter.Gateways
+import org.midonet.midolman.vpp.VppProviderRouter.{Gateways, ProviderRouter}
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.midolman.{DatapathState, Midolman}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC, TunnelKeys}
