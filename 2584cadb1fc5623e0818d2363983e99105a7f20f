@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_c04b8b58",
+        "filename": "midolman/src/lib/midolman/bgpd-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-09T16:57:06Z",
+      "side": 1,
+      "message": "I think deleting the `MIRROR` interfaces is redundant",
+      "range": {
+        "startLine": 130,
+        "startChar": 40,
+        "endLine": 130,
+        "endChar": 64
+      },
+      "revId": "2584cadb1fc5623e0818d2363983e99105a7f20f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
