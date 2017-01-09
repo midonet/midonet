@@ -22,6 +22,30 @@
       "revId": "4223442eb181124da3b00e62a3b356635739cf0e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_dd37f8e1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/GatewayMappingService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-09T14:20:34Z",
+      "side": 1,
+      "message": "Fixes: we store a local snapshot that\u0027s only updated when the table changes.",
+      "parentUuid": "fabf19d9_cbbbb10d",
+      "range": {
+        "startLine": 125,
+        "startChar": 15,
+        "endLine": 130,
+        "endChar": 17
+      },
+      "revId": "4223442eb181124da3b00e62a3b356635739cf0e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
