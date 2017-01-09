@@ -445,7 +445,15 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             routes(1).getNextHopPortId shouldBe routerPort.getId
             routes(1).getNextHop shouldBe NextHop.LOCAL
         //}
+        val rules = storage.getAll(classOf[Rule],
+                                   routerPort.getFipNatRuleIdsList.asScala)
+            .await()
+        rules should have size 1
 
+        rules.head.getType shouldBe Rule.Type.LITERAL_RULE
+        rules.head.getAction shouldBe Rule.Action.ACCEPT
+        val snatCond = rules.head.getCondition()
+        snatCond.getNwDstIp shouldBe RouterTranslator.Nat64Pool
         insertDeleteTask(60, PortType, rifPortId)
 
         eventually {
