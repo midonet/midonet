@@ -21,10 +21,11 @@ import scala.collection.mutable
 
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.Transaction
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID, _}
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, IPAllocation}
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.models.Topology.Rule.NatTarget
+import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
@@ -295,6 +296,17 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
                                  portAddress: PortAddress)
     : Unit = {
         if (!isUplink) {
+            val skipNat4Rule = Rule.newBuilder()
+                .setId(floatNat64ChainId(port.getId))
+                .setChainId(floatNat64ChainId(ri.getId))
+                .setFipPortId(port.getId)
+                .setType(Rule.Type.LITERAL_RULE)
+                .setCondition(Commons.Condition.newBuilder()
+                                  .addOutPortIds(port.getId)
+                                  .setNwDstIp(RouterTranslator.Nat64Pool))
+                .setAction(Action.ACCEPT)
+                .build()
+            tx.create(skipNat4Rule)
             val routerInterfaceRouteId =
                 RouteManager.routerInterfaceRouteId(port.getId, portAddress.address)
 
