@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_ab9bddc8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppExternalNetwork.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-09T11:38:51Z",
+      "side": 1,
+      "message": "only used in one method.",
+      "range": {
+        "startLine": 142,
+        "startChar": 16,
+        "endLine": 142,
+        "endChar": 23
+      },
+      "revId": "cfaaed4152df4bff740b054cf1978078380b1e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_cb5f310d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppExternalNetwork.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-09T11:38:51Z",
+      "side": 1,
+      "message": "does this need to be a member? only used in one method.",
+      "range": {
+        "startLine": 143,
+        "startChar": 16,
+        "endLine": 143,
+        "endChar": 26
+      },
+      "revId": "cfaaed4152df4bff740b054cf1978078380b1e17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
