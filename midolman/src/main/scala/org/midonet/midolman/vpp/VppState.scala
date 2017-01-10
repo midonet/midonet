@@ -21,11 +21,15 @@ import java.util.{Collections, UUID, List => JList}
 
 import javax.annotation.concurrent.NotThreadSafe
 
+import scala.concurrent.{Future, Promise}
+
 import com.google.common.collect.ImmutableList
 
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppState.NatPool
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
+import org.midonet.util.functors.makeRunnable
 
 object VppState {
 
@@ -35,18 +39,24 @@ object VppState {
 
 private[vpp] trait VppState {
 
+    protected def vt: VirtualTopology
+
     /**
+      * This method must be called from the VT thread.
       * @return The uplink port active on the current host that is reachable
       *         from the given tenant router port or `null` if there is no
       *         such port.
       */
+    @NotThreadSafe
     protected def uplinkPortFor(downlinkPortId: UUID): UUID
 
     /**
+      * This method must be called from the VT thread.
       * @return The list of uplink ports that share the NAT64 pool with the
       *         given uplink port. These are all the uplink ports of the
       *         provider router.
       */
+    @NotThreadSafe
     protected def uplinkPortsFor(uplinkPortId: UUID): JList[UUID]
 
     /**
@@ -56,16 +66,20 @@ private[vpp] trait VppState {
       * If none of the uplinks are reachable from this tenant router port,
       * the method returns [[None]].
       */
-    @NotThreadSafe
     protected def poolFor(portId: UUID, natPool: IPv4Subnet)
-    : Option[NatPool] = {
-        val uplinkPortId = uplinkPortFor(portId)
-        if (uplinkPortId ne null) {
-            val uplinkPortIds = uplinkPortsFor(uplinkPortId)
-            Some(splitPool(natPool, uplinkPortId, uplinkPortIds))
-        } else {
-            None
-        }
+    : Future[Option[NatPool]] = {
+        val promise = Promise[Option[NatPool]]
+        vt.vtExecutor.submit(makeRunnable {
+            val uplinkPortId = uplinkPortFor(portId)
+            if (uplinkPortId ne null) {
+                val uplinkPortIds = uplinkPortsFor(uplinkPortId)
+                promise trySuccess Some(splitPool(natPool, uplinkPortId,
+                                                  uplinkPortIds))
+            } else {
+                promise trySuccess None
+            }
+        })
+        promise.future
     }
 
     /**

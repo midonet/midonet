@@ -21,20 +21,26 @@ import java.util.UUID
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.concurrent.Future
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
+import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.vpp.VppState.NatPool
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
+import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
-class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
+class VppStateTest extends MidolmanSpec {
+
+    private var vt: VirtualTopology = _
 
     class TestableVppState extends VppState {
 
         private val uplinks = new mutable.HashMap[UUID, Seq[UUID]]()
+        override def vt = VppStateTest.this.vt
 
         def splitPool(natPool: IPv4Subnet, portId: UUID, portIds: Seq[UUID])
         : NatPool = {
@@ -49,7 +55,7 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
             uplinks -= portId
         }
 
-        def get(portId: UUID, natPool: IPv4Subnet): Option[NatPool] = {
+        def get(portId: UUID, natPool: IPv4Subnet): Future[Option[NatPool]] = {
             poolFor(portId, natPool)
         }
 
@@ -64,6 +70,10 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
 
     }
     object TestableVppState extends TestableVppState
+
+    protected override def beforeTest(): Unit = {
+        vt = injector.getInstance(classOf[VirtualTopology])
+    }
 
     feature("NAT pool is split between multiple gateways") {
         scenario("Gateways receive disjoint equal partitions") {
@@ -182,7 +192,7 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
             val pool = new IPv4Subnet(1 << 30, 10)
 
             When("Requesting the allocated NAT pool")
-            val allocated = vpp.get(portId, pool)
+            val allocated = vpp.get(portId, pool).await()
 
             Then("The allocation should return no NAT pool")
             allocated shouldBe None
@@ -201,7 +211,7 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
             val pool = new IPv4Subnet(1 << 30, 24)
 
             When("Requesting the allocated NAT pool")
-            val allocated = vpp.get(portId, pool)
+            val allocated = vpp.get(portId, pool).await()
 
             Then("The allocation should return the NAT pool")
             allocated shouldBe Some(NatPool(IPv4Addr(1 << 30 | 1),
@@ -224,7 +234,7 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
             val pool = new IPv4Subnet(1 << 30, 25)
 
             When("Requesting the allocated NAT pool")
-            val allocated = vpp.get(portId, pool)
+            val allocated = vpp.get(portId, pool).await()
 
             Then("The allocation should return a slice of the NAT pool")
             allocated shouldBe Some(NatPool(IPv4Addr.fromInt(1 << 30 | 64),
@@ -244,7 +254,7 @@ class VppStateTest extends FeatureSpec with Matchers with GivenWhenThen {
             val pool = new IPv4Subnet(1 << 30, 24)
 
             When("Requesting the allocated NAT pool")
-            val allocated = vpp.get(portId, pool)
+            val allocated = vpp.get(portId, pool).await()
 
             Then("The allocation should return no NAT pool")
             allocated shouldBe None

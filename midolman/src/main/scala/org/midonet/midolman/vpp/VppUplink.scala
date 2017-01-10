@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{TimeUnit, TimeoutException}
 import java.util.{Collections, UUID, List => JList}
 
+import javax.annotation.concurrent.NotThreadSafe
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.control.NonFatal
@@ -290,6 +292,7 @@ private[vpp] trait VppUplink {
 
     private val portsObserver = new Observer[LocalPortActive] {
         override def onNext(port: LocalPortActive): Unit = {
+            vt.assertThread()
             if (port.active) {
                 createUplink(port.portId)
             } else {
@@ -394,6 +397,13 @@ private[vpp] trait VppUplink {
                     log.warn("Unhandled exception when stopping uplinks", e)
             }
         }
+    }
+
+    @NotThreadSafe
+    protected def uplinkError(portId: UUID, e: Throwable): Unit = {
+        log.warn(s"Configuring uplink $portId failed: removing", e)
+        vt.assertThread()
+        deleteUplink(portId)
     }
 
     /**
