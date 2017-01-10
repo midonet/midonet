@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_c0aa6b19",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/l4lb/LBStatus.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2017-01-10T07:45:27Z",
+      "side": 1,
+      "message": "I was wrong about that; you can\u0027t set status via the API. So it should be fine. I\u0027ll just remove the annotation.",
+      "parentUuid": "fabf19d9_7c30f556",
+      "range": {
+        "startLine": 31,
+        "startChar": 28,
+        "endLine": 31,
+        "endChar": 38
+      },
+      "revId": "02e53e23ade2dbe1b8418b655544ddc4fdfbef94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_fcc76543",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolMemberResource.scala",
         "patchSetId": 2
