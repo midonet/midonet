@@ -20,35 +20,32 @@ import java.util.UUID
 
 import org.apache.commons.lang.SerializationException
 
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr}
+import org.midonet.packets.{IPv4Subnet, IPv6Subnet}
 
 /**
   * An entry in the floating IPv6 table. An entry matches a floating IPv4
   * with a fixed IPv4 for a given tenant router.
   */
-case class Fip64Entry(fixedIp: IPv4Addr, floatingIp: IPv6Addr,
-                      natPool: IPv4Subnet, portId: UUID,
-                      routerId: UUID) {
+case class Fip64Entry(fixedIp: IPv4Subnet, floatingIp: IPv6Subnet,
+                      natPool: IPv4Subnet, portId: UUID) {
     override def toString = s"Fip64 [fixedIp=$fixedIp floatingIp=$floatingIp " +
-                            s"natPool=$natPool portId=$portId " +
-                            s"routerId=$routerId]"
+                            s"natPool=$natPool portId=$portId]"
 
-    def encode: String = s"$fixedIp;$floatingIp;${natPool.getIntAddress}" +
-        s";${natPool.getPrefixLen};$portId;$routerId"
+    def encode: String = s"${fixedIp.toUriString};${floatingIp.toUriString};" +
+                         s"${natPool.toUriString};$portId"
 }
 
 object Fip64Entry {
     def decode(string: String): Fip64Entry = {
         val fields = string.split(";")
-        if (fields.length != 6) {
+        if (fields.length != 4) {
             throw new SerializationException(
                 s"Cannot decode $string as a FIP64 entry")
         }
-        val fixedIp = IPv4Addr(fields(0))
-        val floatingIp = IPv6Addr(fields(1))
-        val natPool = new IPv4Subnet(fields(2).toInt, fields(3).toInt)
-        val portId = UUID.fromString(fields(4))
-        val routerId = UUID.fromString(fields(5))
-        Fip64Entry(fixedIp, floatingIp, natPool, portId, routerId)
+        val fixedIp = IPv4Subnet.fromUriCidr(fields(0))
+        val floatingIp = IPv6Subnet.fromUriCidr(fields(1))
+        val natPool = IPv4Subnet.fromUriCidr(fields(2))
+        val portId = UUID.fromString(fields(3))
+        Fip64Entry(fixedIp, floatingIp, natPool, portId)
     }
 }

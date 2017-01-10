@@ -35,7 +35,7 @@ import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.vpp.VppDownlink.NetworkState
 import org.midonet.midolman.vpp.VppFip64.Notification
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, MAC}
+import org.midonet.packets.{IPv4Subnet, IPv6Subnet, MAC}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.util.logging.Logger
 
@@ -70,7 +70,7 @@ object VppDownlink {
       * translation rule for a new floating IP.
       */
     case class AssociateFip(portId: UUID, vrfTable: Int, vni: Int,
-                            floatingIp: IPv6Addr, fixedIp: IPv4Addr,
+                            floatingIp: IPv6Subnet, fixedIp: IPv4Subnet,
                             localIp: IPv4Subnet, natPool: IPv4Subnet)
         extends Notification {
 
@@ -83,8 +83,8 @@ object VppDownlink {
       * A message that instructs the VPP controller to remove a NAT64
       * translation rule for an existing floating IP.
       */
-    case class DisassociateFip(portId: UUID, vrfTable: Int, floatingIp: IPv6Addr,
-                               fixedIp: IPv4Addr, localIp: IPv4Subnet)
+    case class DisassociateFip(portId: UUID, vrfTable: Int, floatingIp: IPv6Subnet,
+                               fixedIp: IPv4Subnet, localIp: IPv4Subnet)
         extends Notification {
 
         override def toString: String =
