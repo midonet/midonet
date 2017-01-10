@@ -344,7 +344,7 @@ object VppDownlink {
         }
 
         /**
-          * Handles updates for the downlink the port. The method updates the
+          * Handles updates for the downlink port. The method updates the
           * tracked FIP NAT rules, and if both the port and the rule are ready,
           * it will emit a [[CreateTunnel]] notification.
           */

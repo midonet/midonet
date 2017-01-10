@@ -25,16 +25,20 @@ import scala.collection.JavaConverters._
 
 import rx.{Observable, Subscriber}
 import rx.Observable.OnSubscribe
+import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.models.Neutron.NeutronNetwork
+import org.midonet.cluster.models.Commons.IPVersion
+import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.{StoreObjectReferenceTracker, VirtualTopology}
 import org.midonet.midolman.vpp.VppExternalNetwork.NetworkState
 import org.midonet.midolman.vpp.VppFip64.Notification
 import org.midonet.midolman.vpp.VppProviderRouter.ProviderRouter
-import org.midonet.util.functors.makeFunc1
+import org.midonet.packets.IPv6Subnet
+import org.midonet.util.functors.{makeAction1, makeFunc1}
 import org.midonet.util.logging.Logger
 
 object VppExternalNetwork {
@@ -42,7 +46,8 @@ object VppExternalNetwork {
     /**
       * Indicates that an external network was added to a provider router.
       */
-    case class AddExternalNetwork(networkId: UUID) extends Notification
+    case class AddExternalNetwork(networkId: UUID)
+        extends Notification
 
     /**
       * Indicates that an external network was removed from a provider router.
@@ -57,12 +62,14 @@ object VppExternalNetwork {
     private class NetworkState(networkId: UUID, vt: VirtualTopology,
                                log: Logger) {
 
-        private final val addObservable =
-            Observable.just[Notification](AddExternalNetwork(networkId))
         private final val removeObservable =
             Observable.just[Notification](RemoveExternalNetwork(networkId))
 
         private val mark = PublishSubject.create[Notification]
+        private val scheduler = Schedulers.from(vt.vtExecutor)
+        private val subnetTracker =
+            new StoreObjectReferenceTracker[NeutronSubnet](
+                vt, classOf[NeutronSubnet], log)
 
         private val cleanup = Observable.create(new OnSubscribe[Notification] {
             override def call(child: Subscriber[_ >: Notification]): Unit = {
@@ -71,15 +78,22 @@ object VppExternalNetwork {
         })
 
         private var currentNetwork: NeutronNetwork = _
+        private var previousNetwork: NeutronNetwork = _
+
+        private val networkObservable = vt.store
+            .observable(classOf[NeutronNetwork], networkId)
+            .observeOn(scheduler)
+            .doOnNext(makeAction1(networkUpdated))
 
         /**
           * An [[Observable]] that emits notifications when an external
           * network is added or removed for a provider router.
           */
-        val observable = vt.store
-            .observable(classOf[NeutronNetwork], networkId)
+        val observable = Observable
+            .merge(subnetTracker.refsObservable, networkObservable)
             .observeOn(vt.vtScheduler)
-            .concatMap(makeFunc1(networkUpdated))
+            .filter(makeFunc1(isReady))
+            .concatMap(makeFunc1(buildNotification))
             .onErrorResumeNext(Observable.empty())
             .takeUntil(mark)
             .concatWith(cleanup)
@@ -93,24 +107,53 @@ object VppExternalNetwork {
         }
 
         /**
+          * @return True if the Neutron network and all its subnets have been
+          *         loaded from storage.
+          */
+        private def isReady(any: Any): Boolean = {
+            (currentNetwork ne null) && subnetTracker.areRefsReady
+        }
+
+        /**
+          * Handles updates to the [[NeutronNetwork]] and updates the monitored
+          * Neutron subnets.
+          */
+        private def networkUpdated(network: NeutronNetwork): Unit = {
+            val subnetIds = network.getSubnetsList.asScala.map(_.asJava).toSet
+            log debug s"Network $networkId updated with subnetworks: $subnetIds"
+
+            currentNetwork = network
+            subnetTracker.requestRefs(subnetIds)
+        }
+
+        /**
           * Handles updates to the [[NeutronNetwork]] and returns an
           * [[Observable]] that emits add/remove notifications.
           */
-        private def networkUpdated(network: NeutronNetwork)
+        private def buildNotification(any: Any)
         : Observable[Notification] = {
-            log debug s"Network $networkId exernal: ${network.getExternal}"
+            log debug s"Network $networkId external: ${currentNetwork.getExternal}"
+
+            val subnets = for (subnet <- subnetTracker.currentRefs.values
+                 if subnet.getCidr.getVersion == IPVersion.V6) yield {
+                IPSubnetUtil.fromV6Proto(subnet.getCidr)
+            }
 
             val result =
-                if (currentNetwork eq null) {
-                    if (network.getExternal) addObservable
+                if (previousNetwork eq null) {
+                    if (currentNetwork.getExternal)
+                        Observable.just[Notification](AddExternalNetwork(networkId))
                     else Observable.empty[Notification]()
-                } else if (currentNetwork.getExternal != network.getExternal) {
-                    if (network.getExternal) addObservable
-                    else removeObservable
+                } else if (previousNetwork.getExternal !=
+                           currentNetwork.getExternal) {
+                    if (currentNetwork.getExternal)
+                        Observable.just[Notification](AddExternalNetwork(networkId))
+                    else
+                        removeObservable
                 } else {
                     Observable.empty[Notification]()
                 }
-            currentNetwork = network
+            previousNetwork = currentNetwork
             result
         }
 
