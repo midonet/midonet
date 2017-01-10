@@ -18,6 +18,11 @@ package org.midonet.midolman.vpp
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import javax.annotation.concurrent.ThreadSafe
+
+import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
+
 import rx.{Observer, Subscription}
 
 import org.midonet.midolman.topology.VirtualTopology
@@ -53,15 +58,29 @@ private[vpp] trait VppFip64 extends VppUplink
 
     private val started = new AtomicBoolean(false)
 
+    private lazy val vtExectionContext =
+        ExecutionContext.fromExecutor(vt.vtExecutor)
+
     private val uplinkObserver = new Observer[Notification] {
         override def onNext(notification: Notification): Unit = {
+            vt.assertThread()
             notification match {
                 case AddUplink(portId, routerId, portAddress, uplinkPortIds) =>
-                    addUplink(portId, routerId, uplinkPortIds)
+                    // When adding an uplink: first notify the VPP controller
+                    // and if the operation succeeds, begin monitoring it.
+                    // If the operation fails, remove the uplink.
+                    send(notification).onComplete {
+                        case Success(_) =>
+                            addUplink(portId, routerId, uplinkPortIds)
+                        case Failure(e) =>
+                            uplinkError(portId, e)
+                    }(vtExectionContext)
                 case DeleteUplink(portId) =>
+                    // First remove the uplink to trigger the cleanup, and
+                    // then notify the VPP controller.
                     removeUplink(portId)
+                    send(notification)
             }
-            send(notification)
         }
 
         override def onError(e: Throwable): Unit = {
@@ -76,6 +95,7 @@ private[vpp] trait VppFip64 extends VppUplink
 
     private val providerRouterObserver = new Observer[ProviderRouter] {
         override def onNext(router: ProviderRouter): Unit = {
+            vt.assertThread()
             updateProviderRouter(router)
         }
 
@@ -91,13 +111,23 @@ private[vpp] trait VppFip64 extends VppUplink
 
     private val externalNetworkObserver = new Observer[Notification] {
         override def onNext(notification: Notification): Unit = {
+            vt.assertThread()
             notification match {
                 case AddExternalNetwork(networkId) =>
-                    addNetwork(networkId)
+                    // When adding an external network: first notify the VPP
+                    // controller and if the operation succeeds, begin
+                    // monitoring it. If the operation fails, remove the
+                    // network.
+                    send(notification).onComplete {
+                        case Success(_) => addNetwork(networkId)
+                        case Failure(_) => removeNetwork(networkId)
+                    } (vtExectionContext)
                 case RemoveExternalNetwork(networkId) =>
+                    // First remove the external network to trigger the cleanup,
+                    // and then notify the VPP controller.
                     removeNetwork(networkId)
+                    send(notification)
             }
-            send(notification)
         }
 
         override def onError(e: Throwable): Unit = {
@@ -112,6 +142,7 @@ private[vpp] trait VppFip64 extends VppUplink
 
     private val downlinkObserver = new Observer[Notification] {
         override def onNext(notification: Notification): Unit = {
+            vt.assertThread()
             send(notification)
         }
 
@@ -126,8 +157,10 @@ private[vpp] trait VppFip64 extends VppUplink
     @volatile private var downlinkSubscription: Subscription = _
 
     /**
-      * Starts monitoring the FIP64 topology.
+      * Starts monitoring the FIP64 topology. This method can be called on the
+      * VPP thread.
       */
+    @ThreadSafe
     protected def startFip64(): Unit = {
         log debug s"Start monitoring FIP64 topology"
         if (started.compareAndSet(false, true)) {
@@ -159,8 +192,10 @@ private[vpp] trait VppFip64 extends VppUplink
     }
 
     /**
-      * Stops monitoring the FIP64 topology.
+      * Stops monitoring the FIP64 topology. This method can be called on the
+      * VPP thread.
       */
+    @ThreadSafe
     protected def stopFip64(): Unit = {
         log debug s"Stop monitoring FIP64 topology"
         if (started.compareAndSet(true, false)) {
