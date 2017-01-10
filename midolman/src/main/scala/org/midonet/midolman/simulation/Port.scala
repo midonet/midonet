@@ -584,7 +584,8 @@ case class RouterPort(override val id: UUID,
         val emitBase = super.emitCommon
         context => {
             if (context.needsFip64) {
-                val hostId = GatewayMappingService.tryGetGateway(id)
+                val hostId = GatewayMappingService
+                    .tryGetGateway(id, context.wcmatch.connectionHash())
                 if (hostId ne null) {
                     context.log.debug("Emitting packet to NAT64 gateway " +
                                       s"with tunnel key $tunnelKey to " +
