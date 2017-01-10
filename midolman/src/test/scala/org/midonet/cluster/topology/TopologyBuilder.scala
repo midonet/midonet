@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Commons.{Condition, IPAddress, LBStatus, LogEv
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.{IkeVersion, Phase1NegotiationMode}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
-import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
+import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, NeutronNetwork, VpnService}
 import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
@@ -332,6 +332,22 @@ trait TopologyBuilder {
         if (weight.isDefined) builder.setWeight(weight.get)
         if (attributes.isDefined) builder.setAttributes(attributes.get)
         if (routerId.isDefined) builder.setRouterId(routerId.get.asProto)
+        builder.build()
+    }
+
+    def createNetwork(id: UUID = UUID.randomUUID(),
+                      adminStateUp: Option[Boolean] = None,
+                      external: Option[Boolean] = None,
+                      name: Option[String] = None
+                      ): NeutronNetwork = {
+        val builder = NeutronNetwork.newBuilder()
+            .setId(id.asProto)
+        if (adminStateUp.isDefined)
+            builder.setAdminStateUp(adminStateUp.get)
+        if (external.isDefined)
+            builder.setExternal(external.get)
+        if (name.isDefined)
+            builder.setName(name.get)
         builder.build()
     }
 
