@@ -18,6 +18,8 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.util.Random
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -37,6 +39,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
 
     private var vt: VirtualTopology = _
     private var store: Storage = _
+    private val random = new Random()
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
@@ -47,7 +50,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
                             count: Int): Unit = {
         for (index <- 0 until count) {
             val e = intercept[NotYetException] {
-                service.tryGetGateway(port.getId)
+                service.tryGetGateway(port.getId, random.nextInt())
             }
             e.waitFor.await()
         }
@@ -80,7 +83,8 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
 
             Then("Accessing the gateways should succeed")
             intercept[NotYetException] {
-                GatewayMappingService.tryGetGateway(UUID.randomUUID())
+                GatewayMappingService.tryGetGateway(UUID.randomUUID(),
+                                                    random.nextInt())
             }
 
             service.stopAsync().awaitTerminated()
@@ -98,7 +102,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The operation fails with an exception")
             val e = intercept[NotYetException] {
-                service.tryGetGateway(portId)
+                service.tryGetGateway(portId, random.nextInt())
             }
 
             And("The exception is port not found")
@@ -123,7 +127,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
             getAndAwait(service, port, count = 1)
 
             And("Requesting the gateway a second time returns null")
-            service.tryGetGateway(port.getId) shouldBe null
+            service.tryGetGateway(port.getId, random.nextInt()) shouldBe null
 
             service.stopAsync().awaitTerminated()
         }
@@ -145,7 +149,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
             getAndAwait(service, port, count = 2)
 
             And("Requesting the gateway a third time returns null")
-            service.tryGetGateway(port.getId) shouldBe null
+            service.tryGetGateway(port.getId, random.nextInt()) shouldBe null
 
             service.stopAsync().awaitTerminated()
         }
@@ -168,7 +172,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
             getAndAwait(service, port, count = 3)
 
             And("Requesting the gateway a third time returns null")
-            service.tryGetGateway(port.getId) shouldBe null
+            service.tryGetGateway(port.getId, random.nextInt()) shouldBe null
 
             service.stopAsync().awaitTerminated()
         }
@@ -201,10 +205,10 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
             getAndAwait(service, port, count = 3)
 
             And("Requesting the gateway a third time returns null")
-            service.tryGetGateway(port.getId) shouldBe hostId
+            service.tryGetGateway(port.getId, random.nextInt()) shouldBe hostId
 
             When("Requesting the gateway again uses cached value")
-            service.tryGetGateway(port.getId) shouldBe hostId
+            service.tryGetGateway(port.getId, random.nextInt()) shouldBe hostId
 
             service.stopAsync().awaitTerminated()
         }

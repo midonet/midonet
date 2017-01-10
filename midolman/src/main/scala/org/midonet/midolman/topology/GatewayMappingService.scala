@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.concurrent.{Future, Promise}
-import scala.util.Random
 
 import com.google.common.util.concurrent.AbstractService
 
@@ -39,8 +38,6 @@ import org.midonet.util.logging.Logger
 
 object GatewayMappingService {
 
-    private final val random = new Random()
-
     /**
       * Tries to return a gateway for the specified FIP64 downlink port, if one
       * is already cached. If the virtual topology is not yet loaded, the
@@ -49,8 +46,8 @@ object GatewayMappingService {
       * operation completes with an error.
       */
     @throws[NotYetException]
-    def tryGetGateway(portId: UUID): UUID = {
-        self.tryGetGateway(portId)
+    def tryGetGateway(portId: UUID, hash: Int): UUID = {
+        self.tryGetGateway(portId, hash: Int)
     }
 
     @volatile private var self: GatewayMappingService = _
@@ -141,11 +138,11 @@ object GatewayMappingService {
           * [[NotYetException]] if the topology is not yet avaiable.
           */
         @throws[NotYetException]
-        def tryGet: UUID = {
+        def tryGet(hash: Int): UUID = {
             if (table.isReady) {
                 val s = snapshot
                 if ((s eq null) || s.length == 0) null
-                else s(random.nextInt(s.length))
+                else s(hash % s.length)
             } else {
                 throw NotYetException(future,
                                       s"Gateways for network $networkId not yet " +
@@ -189,7 +186,7 @@ class GatewayMappingService(vt: VirtualTopology)
     register(this)
 
     @throws[NotYetException]
-    def tryGetGateway(portId: UUID): UUID = {
+    def tryGetGateway(portId: UUID, hash: Int): UUID = {
         val routerPort = vt.tryGet(classOf[Port], portId)
         if (routerPort.peerId eq null) {
             return null
@@ -214,7 +211,7 @@ class GatewayMappingService(vt: VirtualTopology)
                                   s"Gateways for network $networkId not yet " +
                                   "available")
         }
-        gatewayState.tryGet
+        gatewayState.tryGet(hash)
     }
 
     override protected def doStart(): Unit = {
