@@ -22,11 +22,10 @@ import scala.collection.breakOut
 import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, Network, Port, Router, Rule}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouteManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
-import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
@@ -307,6 +306,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
         if (router.hasGwPortId) {
             val portId = RouterTranslator.tenantGwPortId(router.getGwPortId)
             tx.createNode(stateTableStorage.fip64EntryPath(
+                fip.getFloatingNetworkId,
                 fipToFip64Entry(fip, portId)))
         }
     }
@@ -317,7 +317,8 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
         if (router.hasGwPortId) {
             val portId = RouterTranslator.tenantGwPortId(router.getGwPortId)
             tx.deleteNode(
-                stateTableStorage.fip64EntryPath(fipToFip64Entry(fip, portId)),
+                stateTableStorage.fip64EntryPath(fip.getFloatingNetworkId,
+                                                 fipToFip64Entry(fip, portId)),
                 idempotent = true)
         }
     }
