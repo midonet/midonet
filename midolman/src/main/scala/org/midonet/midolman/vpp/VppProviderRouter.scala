@@ -66,6 +66,7 @@ object VppProviderRouter {
                               log: Logger) {
 
         private val mark = PublishSubject.create[Set[UUID]]()
+        private val scheduler = Schedulers.from(vt.vtExecutor)
 
         /**
           * An [[Observable]] that emits notifications with the gateway hosts
@@ -88,6 +89,7 @@ object VppProviderRouter {
                         .map[Set[UUID]](makeFunc1(toGateways(_, tracker)))
                         .distinctUntilChanged()
                         .takeUntil(mark)
+                        .observeOn(scheduler)
                         .subscribe(child)
                     tracker.requestRefs(groupPortIds.asScala.toSet)
                 })
@@ -157,6 +159,7 @@ object VppProviderRouter {
             .map[ProviderRouter](makeFunc1(buildRouterPorts))
             .distinctUntilChanged()
             .takeUntil(mark)
+            .observeOn(scheduler)
 
         /**
           * An [[Observable]] that emits [[ProviderRouter]] notifications with
