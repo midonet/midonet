@@ -16,6 +16,24 @@
       "revId": "42a8a1f617bc881bde6a3d0216eecbdf62356c36",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_31aa9bd5",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-01-10T11:42:08Z",
+      "side": 1,
+      "message": "what do you mean, the mn-conf bit that I added on the last patchset? I didn\u0027t touch the previous description which was +2ed.",
+      "parentUuid": "fabf19d9_73c7fb12",
+      "revId": "42a8a1f617bc881bde6a3d0216eecbdf62356c36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
