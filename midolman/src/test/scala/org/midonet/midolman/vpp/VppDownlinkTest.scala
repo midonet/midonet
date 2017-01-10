@@ -71,15 +71,15 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
     }
 
     private def addFip64Entry(networkId: UUID, portId: UUID, routerId: UUID,
-                              fixedIp: IPv4Addr = IPv4Addr.random,
-                              floatingIp: IPv6Addr = IPv6Addr.random,
+                              fixedIp: IPv4Subnet = randomSubnet4(),
+                              floatingIp: IPv6Subnet = randomSubnet6(),
                               natPool: IPv4Subnet =
                                   new IPv4Subnet(IPv4Addr.random, 8))
     : Fip64Entry = {
         val table = vt.stateTables
             .getTable[Fip64Entry, AnyRef](classOf[NeutronNetwork], networkId,
                                           MidonetBackend.Fip64Table)
-        val entry = Fip64Entry(fixedIp, floatingIp, natPool, portId, routerId)
+        val entry = Fip64Entry(fixedIp, floatingIp, natPool, portId)
         table.addPersistent(entry, DefaultValue)
         entry
     }
@@ -89,6 +89,10 @@ class VppDownlinkTest extends MidolmanSpec with TopologyBuilder {
             .getTable[Fip64Entry, AnyRef](classOf[NeutronNetwork], networkId,
                                           MidonetBackend.Fip64Table)
         table.removePersistent(entry, DefaultValue)
+    }
+
+    private def randomSubnet4(): IPv4Subnet = {
+        new IPv4Subnet(IPv4Addr.random, 24)
     }
 
     private def randomSubnet6(): IPv6Subnet = {
