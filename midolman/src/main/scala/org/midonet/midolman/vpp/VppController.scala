@@ -441,6 +441,11 @@ class VppController(protected override val hostId: UUID,
                      s"${fixedIp.getAddress} " +
                      s"pool ${pool.get.start} ${pool.get.end}" +
                      s" table $vrf vni $vni")
+                if (floatingIp.getPrefixLen() < 128) {
+                    vppCtl.exec(s"ip route add $floatingIp via ip6-drop")
+                } else {
+                    Future.successful(Unit)
+                }
             }
         } else {
             // We complete the future successfully, since there is nothing to
