@@ -456,6 +456,11 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             gwPortRoutes =
                 storage.getAll(classOf[Route], gwPort.getRouteIdsList).await()
 
+            val gwPortFip64Rules =
+                storage.getAll(classOf[Rule], gwPort.getFipNatRuleIdsList).await()
+
+            gwPortFip64Rules.size shouldBe 1
+
             gwPort.getRouterId.asJava shouldBe tenantRouterId
             gwPort.getPortMac shouldBe "04:04:04:04:04:04"
             gwPort.getPortAddress shouldBe IPAddressUtil.toProto("2002::2")
