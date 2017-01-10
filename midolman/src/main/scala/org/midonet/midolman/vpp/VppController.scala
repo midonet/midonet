@@ -47,7 +47,7 @@ import org.midonet.midolman.vpp.VppExternalNetwork.{AddExternalNetwork, RemoveEx
 import org.midonet.midolman.vpp.VppProviderRouter.Gateways
 import org.midonet.midolman.vpp.VppUplink.{AddUplink, DeleteUplink}
 import org.midonet.midolman.{DatapathState, Midolman}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Addr, IPv6Subnet, MAC, TunnelKeys}
+import org.midonet.packets.{IPv4Subnet, IPv6Subnet, MAC, TunnelKeys}
 import org.midonet.util.process.MonitoredDaemonProcess
 
 object VppController {
@@ -426,7 +426,7 @@ class VppController(protected override val hostId: UUID,
     }
 
     private def associateFip(portId: UUID, vrf: Int, vni: Int,
-                             floatingIp: IPv6Addr, fixedIp: IPv4Addr,
+                             floatingIp: IPv6Subnet, fixedIp: IPv4Subnet,
                              localIp: IPv4Subnet, natPool: IPv4Subnet)
     : Future[_] = {
         log debug s"Associating FIP at port $portId (VRF $vrf, VNI $vni): " +
@@ -435,9 +435,10 @@ class VppController(protected override val hostId: UUID,
         val pool = poolFor(portId, natPool)
         if (pool.nonEmpty) {
             log debug s"Allocated NAT pool at port $portId is ${pool.get}"
-            vppCtl.exec(s"ip route table $vrf add $fixedIp/32 " +
+            vppCtl.exec(s"ip route table $vrf add ${fixedIp.getAddress}/32 " +
                  s"via ${vt.config.fip64.vppInternalGateway}") flatMap { _ =>
-                vppCtl.exec(s"fip64 add $floatingIp $fixedIp " +
+                vppCtl.exec(s"fip64 add ${floatingIp.getAddress} " +
+                     s"${fixedIp.getAddress} " +
                      s"pool ${pool.get.start} ${pool.get.end}" +
                      s" table $vrf vni $vni")
             }
@@ -448,14 +449,14 @@ class VppController(protected override val hostId: UUID,
         }
     }
 
-    private def disassociateFip(portId: UUID, vrf: Int, floatingIp: IPv6Addr,
-                                fixedIp: IPv4Addr, localIp: IPv4Subnet)
-    : Future[_] ={
+    private def disassociateFip(portId: UUID, vrf: Int, floatingIp: IPv6Subnet,
+                                fixedIp: IPv4Subnet, localIp: IPv4Subnet)
+    : Future[_] = {
         log debug s"Disassociating FIP at port $portId (VRF $vrf): " +
                   s"$floatingIp -> $fixedIp"
 
-        vppCtl.exec(s"fip64 del $floatingIp") flatMap { _ =>
-            vppCtl.exec(s"ip route table $vrf del $fixedIp/32")
+        vppCtl.exec(s"fip64 del ${floatingIp.getAddress}") flatMap { _ =>
+            vppCtl.exec(s"ip route table $vrf del ${fixedIp.getAddress}/32")
         }
     }
 

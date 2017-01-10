@@ -22,13 +22,13 @@ import scala.collection.breakOut
 import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouteManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
+import org.midonet.packets._
 
 class FloatingIpTranslator(stateTableStorage: StateTableStorage)
     extends Translator[FloatingIp] with ChainManager with RouteManager
@@ -307,7 +307,7 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
             val portId = RouterTranslator.tenantGwPortId(router.getGwPortId)
             tx.createNode(stateTableStorage.fip64EntryPath(
                 fip.getFloatingNetworkId,
-                fipToFip64Entry(fip, portId)))
+                fipToFip64Entry(tx, fip, portId)))
         }
     }
 
@@ -318,10 +318,50 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
             val portId = RouterTranslator.tenantGwPortId(router.getGwPortId)
             tx.deleteNode(
                 stateTableStorage.fip64EntryPath(fip.getFloatingNetworkId,
-                                                 fipToFip64Entry(fip, portId)),
+                                                 fipToFip64Entry(tx, fip, portId)),
                 idempotent = true)
         }
     }
+
+    @throws[IllegalArgumentException]
+    private def fipToFip64Entry(tx: Transaction, fip: FloatingIp, portId: UUID)
+    : Fip64Entry = {
+        if (!fip.hasFixedIpAddress
+            || !fip.getFixedIpAddress.hasVersion
+            ||  fip.getFixedIpAddress.getVersion != IPVersion.V4) {
+            throw new IllegalArgumentException(
+                "Only IPv4 fixed-addresses are supported")
+        }
+
+        if (!fip.hasRouterId) {
+            throw new IllegalArgumentException("Router identifier missing")
+        }
+
+        if (!fip.hasFloatingNetworkId) {
+            throw new IllegalArgumentException("Floating network identifier " +
+                                               "missing")
+        }
+
+        val network = tx.get(classOf[NeutronNetwork], fip.getFloatingNetworkId)
+        val floatingIp = IPv6Addr(fip.getFloatingIpAddress.getAddress)
+        for (subnetId <- network.getSubnetsList.asScala) {
+            val subnet = tx.get(classOf[NeutronSubnet], subnetId)
+            if (subnet.getCidr.getVersion == IPVersion.V6) {
+                val cidr = IPSubnetUtil.fromV6Proto(subnet.getCidr)
+                if (cidr.containsAddress(floatingIp)) {
+                    return Fip64Entry(
+                        new IPv4Subnet(fip.getFixedIpAddress.getAddress, 32),
+                        new IPv6Subnet(floatingIp, cidr.getPrefixLen),
+                        IPSubnetUtil.fromV4Proto(RouterTranslator.Nat64Pool),
+                        portId)
+                }
+            }
+        }
+
+        throw new IllegalArgumentException("Floating network does not have a " +
+                                           "subnet for this floating IP")
+    }
+
 }
 
 object FloatingIpTranslator {
@@ -330,24 +370,4 @@ object FloatingIpTranslator {
         fip.hasFloatingIpAddress &&
         fip.getFloatingIpAddress.getVersion == IPVersion.V6
 
-    @throws[IllegalArgumentException]
-    private def fipToFip64Entry(fip: FloatingIp, portId: UUID): Fip64Entry = {
-        if (!fip.hasFixedIpAddress
-            || !fip.getFixedIpAddress.hasVersion
-            ||  fip.getFixedIpAddress.getVersion != IPVersion.V4) {
-            throw new IllegalArgumentException(
-                "Only IPv4 fixed-addresses are supported")
-        }
-
-        // not sure if this is possible but doesn't hurt to check
-        if (!fip.hasRouterId) {
-            throw new IllegalArgumentException("Router ID must be provided")
-        }
-
-        Fip64Entry(IPv4Addr(fip.getFixedIpAddress.getAddress),
-                   IPv6Addr(fip.getFloatingIpAddress.getAddress),
-                   IPSubnetUtil.fromV4Proto(RouterTranslator.Nat64Pool),
-                   portId,
-                   fip.getRouterId)
-    }
 }
