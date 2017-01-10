@@ -244,15 +244,14 @@ class VppController(protected override val hostId: UUID,
             }
         } andThen {
             case Success(_) =>
-                addUplink(portId, routerId, uplinkPortIds)
+                routerPortSubscribers +=
+                    portId -> VirtualTopology.observable(classOf[RouterPort],
+                                                         portId)
+                                             .subscribe(observer)
             case Failure(e) =>
                 log warn s"Attaching uplink port $portId failed: $e"
         }
 
-        routerPortSubscribers +=
-            portId -> VirtualTopology.observable(classOf[RouterPort],
-                                                 portId)
-                                     .subscribe(observer)
         result
     }
 
@@ -282,8 +281,6 @@ class VppController(protected override val hostId: UUID,
                     setup.rollback() map { _ => Some(setup) }
                 case null => Future.successful(None)
             }
-        } andThen { case _ =>
-            removeUplink(portId)
         }
     }
 

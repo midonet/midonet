@@ -163,7 +163,7 @@ class VirtualTopology(val backend: MidonetBackend,
                       val metricRegistry: MetricRegistry,
                       val vtExecutor: ExecutorService,
                       val ioExecutor: ExecutorService,
-                      vtExecutorCheck: () => Boolean)
+                      val vtExecutorCheck: () => Boolean)
     extends MidolmanLogging {
 
     import VirtualTopology._
@@ -304,7 +304,7 @@ class VirtualTopology(val backend: MidonetBackend,
      */
     @throws[DeviceMapperException]
     @inline
-    private[topology] def assertThread(): Unit = {
+    private[midolman] def assertThread(): Unit = {
         if (!vtExecutorCheck()) {
             val curThread = Thread.currentThread()
             throw new DeviceMapperException(

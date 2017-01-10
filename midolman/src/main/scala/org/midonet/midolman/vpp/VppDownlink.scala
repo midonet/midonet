@@ -461,9 +461,14 @@ private[vpp] trait VppDownlink {
 
     protected val downlinkObservable = Observable.merge(downlinkSubject)
 
+    /**
+      * Monitors the downlink ports and FIP64 entries for the specified network.
+      * This method must be called from the VT thread.
+      */
     @NotThreadSafe
     protected def addNetwork(networkId: UUID): Unit = {
         log debug s"Monitoring downlink ports for external network $networkId"
+        vt.assertThread()
         if (!networks.containsKey(networkId)) {
             val state = new NetworkState(networkId, vrfs, vt, log)
             downlinkSubject onNext state.observable
@@ -471,9 +476,14 @@ private[vpp] trait VppDownlink {
         }
     }
 
+    /**
+      * Completes monitoring the downlink ports and FIP64 entries for the
+      * specified network. This method must be called from the VT thread.
+      */
     @NotThreadSafe
     protected def removeNetwork(networkId: UUID): Unit = {
         log debug s"Removing external network $networkId"
+        vt.assertThread()
         val state = networks.remove(networkId)
         if (state ne null) {
             state.complete()
