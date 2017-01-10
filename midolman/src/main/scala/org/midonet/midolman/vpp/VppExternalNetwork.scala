@@ -78,6 +78,7 @@ object VppExternalNetwork {
           */
         val observable = vt.store
             .observable(classOf[NeutronNetwork], networkId)
+            .observeOn(vt.vtScheduler)
             .concatMap(makeFunc1(networkUpdated))
             .onErrorResumeNext(Observable.empty())
             .takeUntil(mark)

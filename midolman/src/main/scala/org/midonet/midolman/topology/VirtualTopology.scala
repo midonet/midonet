@@ -170,7 +170,7 @@ class VirtualTopology(val backend: MidonetBackend,
 
     override def logSource = "org.midonet.devices.devices-service"
 
-    private[topology] val vtScheduler = Schedulers.from(vtExecutor)
+    private[midolman] val vtScheduler = Schedulers.from(vtExecutor)
 
     private[topology] val devices =
         new ConcurrentHashMap[UUID, Device]()
@@ -304,7 +304,7 @@ class VirtualTopology(val backend: MidonetBackend,
      */
     @throws[DeviceMapperException]
     @inline
-    private[topology] def assertThread(): Unit = {
+    private[midolman] def assertThread(): Unit = {
         if (!vtExecutorCheck()) {
             val curThread = Thread.currentThread()
             throw new DeviceMapperException(
