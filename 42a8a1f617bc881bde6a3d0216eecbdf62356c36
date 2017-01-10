@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_73c7fb12",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-10T08:37:08Z",
+      "side": 1,
+      "message": "this description seems a bit misleading to me, because it actually copies the field from inner packet, regardless of whether it was originated from dscp marking rule or not.",
+      "revId": "42a8a1f617bc881bde6a3d0216eecbdf62356c36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
