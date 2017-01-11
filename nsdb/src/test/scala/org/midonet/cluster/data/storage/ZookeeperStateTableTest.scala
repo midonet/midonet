@@ -30,6 +30,7 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
 import rx.Observable
 
+import org.midonet.Util
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.data.storage.StorageTestClasses.{PojoBridge, PojoRouter}
@@ -40,6 +41,7 @@ import org.midonet.cluster.services.state.client.StateTableClient.ConnectionStat
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent._
+import org.midonet.util.functors.makeRunnable
 
 object ZookeeperStateTableTest {
     class ScoreStateTable(val key: StateTable.Key,
@@ -406,6 +408,68 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             val path = storage.tableRootPath(classOf[PojoBridge], obj.id,
                                              "score-table")
             scoreTable.directory.getPath shouldBe path
+        }
+
+        scenario("Storage caches state table instances") {
+            Given("An object in storage")
+            val storage = setupStorage()
+            val obj = new PojoBridge(UUID.randomUUID(), null, null, null)
+            storage.create(obj)
+
+            And("Multiple threads requesting the table")
+            val tables = new Array[StateTable[Int, String]](10)
+            val threads = for (index <- 0 until 10) yield {
+                new Thread(makeRunnable {
+                    tables(index) =
+                        storage.getTable[Int, String](classOf[PojoBridge],
+                                                      obj.id, "score-table")
+                })
+            }
+
+            When("All threads are requesting the table")
+            for (index <- 0 until 10) {
+                threads(index).start()
+            }
+
+            And("Waiting for the threads to complete")
+            for (index <- 0 until 10) {
+                threads(index).join()
+            }
+
+            And("Synchronizing access to the results with a barrier")
+            Util.getUnsafe.fullFence()
+
+            Then("All threads should receive the same table instance")
+            for (index <- 1 until 10) {
+                (tables(0) eq tables(index)) shouldBe true
+            }
+        }
+
+        scenario("Storage removes cached table on object deletion") {
+            Given("An object in storage")
+            val storage = setupStorage()
+            val obj = new PojoBridge(UUID.randomUUID(), null, null, null)
+            storage.create(obj)
+
+            When("Retrieving the table")
+            val table1 = storage.getTable[Int, String](classOf[PojoBridge],
+                                                       obj.id, "score-table")
+
+            Then("The table should not be null")
+            table1 should not be null
+
+            When("Deleting the object")
+            storage.delete(classOf[PojoBridge], obj.id)
+
+            And("Recreating the object")
+            storage.create(obj)
+
+            When("Retrieving the table")
+            val table2 = storage.getTable[Int, String](classOf[PojoBridge],
+                                                       obj.id, "score-table")
+
+            Then("The table should be a different instance")
+            (table1 ne table2) shouldBe true
         }
 
         scenario("State table directory writes to storage") {
