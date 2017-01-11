@@ -154,6 +154,8 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
             service.stopAsync().awaitTerminated()
         }
 
+        // Test disabled because it requires support in the in-memory storage
+        /*
         scenario("Network is not a Neutron network") {
             Given("A gateway mapping service")
             val service = new GatewayMappingService(vt)
@@ -169,13 +171,14 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
                             CreateOp(peerPort), CreateOp(port)))
 
             When("Requesting the gateway to fetch the topology")
-            getAndAwait(service, port, count = 3)
+            getAndAwait(service, port, count = 2)
 
             And("Requesting the gateway a third time returns null")
             service.tryGetGateway(port.getId, random.nextInt()) shouldBe null
 
             service.stopAsync().awaitTerminated()
         }
+        */
 
         scenario("Network has one gateway") {
             Given("A gateway mapping service")
@@ -202,7 +205,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
             table.add(hostId, GatewayHostEncoder.DefaultValue)
 
             When("Requesting the gateway to fetch the topology")
-            getAndAwait(service, port, count = 3)
+            getAndAwait(service, port, count = 2)
 
             And("Requesting the gateway a third time returns null")
             service.tryGetGateway(port.getId, random.nextInt()) shouldBe hostId
