@@ -499,6 +499,8 @@ class InMemoryStorage extends Storage with StateStorage {
           * children of the specified node. */
         override protected def childrenOf(path: String): Seq[String] =
             throw new NotImplementedError()
+
+        override def close(): Unit = { }
     }
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
