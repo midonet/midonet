@@ -26,6 +26,7 @@ import scala.collection.mutable
 import rx.Observable
 import rx.subjects.PublishSubject
 
+import org.midonet.cluster.data.storage.StateKey
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.util.functors.makeAction1
 import org.midonet.util.logging.Logger
@@ -170,4 +171,26 @@ class StoreObjectReferenceTracker[D >: Null](val vt: VirtualTopology,
 
     override def newState(id: UUID) =
         new StoreObjectState[D](clazz, id, vt)
+}
+
+class StateKeyState[D](val clazz: Class[D],
+                       val id: UUID,
+                       val key: String,
+                       val vt: VirtualTopology)
+        extends ObjectStateBase[StateKey] {
+    override val observable: Observable[StateKey] =
+        vt.stateStore.keyObservable(clazz, id, key)
+            .observeOn(vt.vtScheduler)
+            .doOnNext(makeAction1(currentObj = _))
+            .takeUntil(mark)
+}
+
+class StateKeyReferenceTracker[D >: Null](val vt: VirtualTopology,
+                                          clazz: Class[D], key: String,
+                                          log: Logger)
+        extends ObjectReferenceTrackerBase[StateKey, StateKeyState[D]](
+            classOf[StateKey], log) {
+
+    override protected def newState(id: UUID): StateKeyState[D] =
+        new StateKeyState[D](clazz, id, key, vt)
 }
