@@ -76,31 +76,37 @@ object GatewayMappingService {
 
         private val updateObserver = new Observer[Update[UUID, AnyRef]] {
             override def onNext(update: Update[UUID, AnyRef]): Unit = {
+                log debug s"Network $networkId gateway table updated"
                 snapshot = table.localSnapshot.keySet.toArray
             }
 
             override def onCompleted(): Unit = {
+                log debug s"Network $networkId gateway table completed"
                 stop(new StorageException(s"Network $networkId deleted"),
                      callback = true)
             }
 
             override def onError(e: Throwable): Unit = {
+                log.warn(s"Network $networkId gateway table error", e)
                 stop(e, callback = true)
             }
         }
         private val readyObserver = new Observer[StateTable.Key] {
             override def onNext(t: StateTable.Key): Unit = {
-                if (table.isReady && !future.isCompleted) {
+                log debug s"Network $networkId gateway table ready"
+                snapshot = table.localSnapshot.keySet.toArray
+                if (!future.isCompleted)
                     promise.trySuccess(Unit)
-                }
             }
 
             override def onCompleted(): Unit = {
+                log debug s"Network $networkId gateway table ready completed"
                 stop(new StorageException(s"Network $networkId deleted"),
                      callback = true)
             }
 
             override def onError(e: Throwable): Unit = {
+                log.warn(s"Network $networkId gateway table ready error", e)
                 stop(e, callback = true)
             }
         }
@@ -113,6 +119,7 @@ object GatewayMappingService {
           * notification.
           */
         def start(): Unit = {
+            log debug s"Start montoring gateway for network $networkId"
             subscription add table.observable.subscribe(updateObserver)
             subscription add table.ready.subscribe(readyObserver)
         }
@@ -123,6 +130,7 @@ object GatewayMappingService {
           * will complete with an [[IllegalStateException]].
           */
         def stop(): Unit = {
+            log debug s"Stop montoring gateway for network $networkId"
             stop(new IllegalStateException("Gateway mapping service stopping"),
                  callback = false)
         }
@@ -139,9 +147,10 @@ object GatewayMappingService {
           */
         @throws[NotYetException]
         def tryGet(hash: Int): UUID = {
-            if (table.isReady) {
-                val s = snapshot
-                if ((s eq null) || s.length == 0) null
+            log debug s"Try get gateway for network $networkId with hash $hash"
+            val s = snapshot
+            if (s ne null) {
+                if (s.length == 0) null
                 else s(hash % s.length)
             } else {
                 throw NotYetException(future,
@@ -207,9 +216,6 @@ class GatewayMappingService(vt: VirtualTopology)
             } else {
                 gatewayState = state
             }
-            throw NotYetException(gatewayState.future,
-                                  s"Gateways for network $networkId not yet " +
-                                  "available")
         }
         gatewayState.tryGet(hash)
     }
