@@ -803,7 +803,6 @@ def test_neutron_fip6():
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
 
-@nottest
 @attr(version="v1.2.0")
 @bindings(binding_fip6reuse,
           binding_manager=BindingManager(vtm=FIP6Reuse()))
