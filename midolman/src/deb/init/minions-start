@@ -85,10 +85,13 @@ do
     sleep 1
 done
 
+# Add-on/plugin directory
+MIDO_PLUGINS="$MIDO_HOME/plugins"
+
 JAVA_OPTS="$JVM_OPTS -Dminions.log.dir=$MIDO_LOG_DIR \
                      -Dminions.db.dir=$MIDO_DB_DIR \
                      -Dlogback.configurationFile=$MIDO_CFG/logback-minions.xml"
 
 exec $JAVA $JAVA_LIBRARY_PATH \
-            -cp $MIDO_JAR \
+            -cp $MIDO_JAR:$MIDO_PLUGINS/* \
             $JAVA_OPTS $MIDO_MAIN $MIDO_CFG/$MIDO_CFG_FILE
