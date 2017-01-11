@@ -169,7 +169,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
                             CreateOp(peerPort), CreateOp(port)))
 
             When("Requesting the gateway to fetch the topology")
-            getAndAwait(service, port, count = 3)
+            getAndAwait(service, port, count = 2)
 
             And("Requesting the gateway a third time returns null")
             service.tryGetGateway(port.getId, random.nextInt()) shouldBe null
@@ -202,7 +202,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
             table.add(hostId, GatewayHostEncoder.DefaultValue)
 
             When("Requesting the gateway to fetch the topology")
-            getAndAwait(service, port, count = 3)
+            getAndAwait(service, port, count = 2)
 
             And("Requesting the gateway a third time returns null")
             service.tryGetGateway(port.getId, random.nextInt()) shouldBe hostId
