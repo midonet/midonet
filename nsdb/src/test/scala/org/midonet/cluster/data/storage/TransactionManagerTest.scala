@@ -75,9 +75,9 @@ class TransactionManagerTest extends FeatureSpec with Matchers
             Seq()
         }
 
-        override def commit(): Unit = {
+        override def commit(): Unit = { }
 
-        }
+        override def close(): Unit = { }
 
         def getOps = ops
     }

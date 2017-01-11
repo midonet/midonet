@@ -41,7 +41,6 @@ abstract class DatapathBoundContainerDelegate (backend: MidonetBackend)
     extends ContainerDelegate {
 
     def name: String
-    val MaxStorageAttempts = 10
 
     private val log = Logger(LoggerFactory.getLogger(s"$ContainersLog.$name"))
 
@@ -131,26 +130,11 @@ abstract class DatapathBoundContainerDelegate (backend: MidonetBackend)
     private def tryTx(f: (Transaction) => Unit)
                      (implicit handler: PartialFunction[Throwable, Unit] =
                          PartialFunction.empty): Unit = {
-        var attempt = 1
-        var last: Throwable = null
-        while (attempt < MaxStorageAttempts) {
-            try {
-                val tx = backend.store.transaction()
-                f(tx)
-                tx.commit()
-                return
-            } catch {
-                case e: ConcurrentModificationException =>
-                    log warn s"Write $attempt of $MaxStorageAttempts failed due " +
-                             s"to a concurrent modification (${e.getMessage})"
-                    attempt += 1
-                    last = e
-                case NonFatal(e) if handler.isDefinedAt(e) =>
-                    handler(e)
-                    return
-            }
+        try backend.store.tryTransaction(f)
+        catch {
+            case NonFatal(e) if handler.isDefinedAt(e) =>
+                handler(e)
         }
-        throw last
     }
 
 }
