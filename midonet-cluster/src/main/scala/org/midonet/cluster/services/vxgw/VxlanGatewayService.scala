@@ -60,7 +60,6 @@ import org.midonet.util.functors._
 @MinionService(name = "vxgw", runsOn = TargetNode.CLUSTER)
 class VxlanGatewayService @Inject()(
         nodeCtx: Context,
-        dataClient: DataClient,
         backend: MidonetBackend,
         backendCfg: MidonetBackendConfig,
         ovsdbCnxnProvider: OvsdbVtepConnectionProvider,

@@ -61,10 +61,6 @@ public class IpAddrGroup extends UriResource {
     public IpAddrGroup() {
     }
 
-    public IpAddrGroup(org.midonet.cluster.data.IpAddrGroup data) {
-        this(data.getId(), data.getName());
-    }
-
     public IpAddrGroup(UUID id, String name) {
         this.id = id;
         this.name = name;
