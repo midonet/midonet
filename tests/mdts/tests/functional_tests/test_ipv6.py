@@ -18,6 +18,7 @@ from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
 from mdts.tests.utils.utils import bindings
 from nose.plugins.attrib import attr
+from nose.tools import nottest
 import re
 import subprocess
 import time
@@ -805,6 +806,7 @@ def test_neutron_fip6():
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
 
+@nottest
 @attr(version="v1.2.0")
 @bindings(binding_fip6reuse,
           binding_manager=BindingManager(vtm=FIP6Reuse()))
@@ -913,6 +915,7 @@ def test_lru():
         if extra is not None:
             extra.close()
 
+@nottest
 @attr(version="v1.2.0")
 @bindings(binding_multihost_singletenant_neutronfip6,
           binding_manager=BindingManager(vtm=DualUplinkAssymetric()))
