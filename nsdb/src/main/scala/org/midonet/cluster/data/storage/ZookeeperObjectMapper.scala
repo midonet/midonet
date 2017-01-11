@@ -350,12 +350,16 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             }
         }
 
-        def releaseLock(): Unit = try {
-            curator.delete().forPath(lockPath)
-        } catch {
-            // Not much we can do. Fortunately, it's ephemeral.
-            case NonFatal(e) => Log.warn(
-                s"Could not delete TransactionManager lock node $lockPath.", e)
+        /**
+          * Closes this transaction by releasing the transaction lock.
+          */
+        override def close(): Unit = {
+            try curator.delete().forPath(lockPath)
+            catch {
+                // Not much we can do. Fortunately, it's ephemeral.
+                case NonFatal(e) =>
+                    Log.warn(s"Delete transaction lock node $lockPath failed", e)
+            }
         }
 
         /** Get a string as bytes, or null if the string is null. */
@@ -677,7 +681,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 metrics.error.count(e)
                 throw e
         } finally {
-            manager.releaseLock()
+            manager.close()
         }
     }
 
@@ -801,9 +805,13 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             lock.acquire(config.lockTimeoutMs, TimeUnit.MILLISECONDS)) {
             try TransactionRetriable.retry(Log, "Transaction") {
                 val tx = transaction()
-                val result = f(tx)
-                tx.commit()
-                result
+                try {
+                    val result = f(tx)
+                    tx.commit()
+                    result
+                } finally {
+                    tx.close()
+                }
             } finally {
                 if ((lock ne null) && lock.isAcquiredInThisProcess) {
                     lock.release()

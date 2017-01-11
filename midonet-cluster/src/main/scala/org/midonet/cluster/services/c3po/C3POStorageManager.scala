@@ -171,9 +171,13 @@ class C3POStorageManager(config: ClusterConfig,
         for (task <- txn.tasks) try {
             val newState = C3POState.at(task.taskId)
             val tx = backend.store.transaction()
-            translate(tx, task.op)
-            tx.update(newState)
-            tx.commit()
+            try {
+                translate(tx, task.op)
+                tx.update(newState)
+                tx.commit()
+            } finally {
+                tx.close()
+            }
             log.info(s"Executed a C3PO task with ID: ${task.taskId}.")
         } catch {
             case te: TranslationException => throw new ProcessingException(
