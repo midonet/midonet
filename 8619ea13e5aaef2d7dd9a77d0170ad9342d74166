@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_026983be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-11T07:12:10Z",
+      "side": 1,
+      "message": "isn\u0027t it simpler to filter inactive-according-to-state-storage members here?",
+      "range": {
+        "startLine": 187,
+        "startChar": 32,
+        "endLine": 187,
+        "endChar": 57
+      },
+      "revId": "8619ea13e5aaef2d7dd9a77d0170ad9342d74166",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
