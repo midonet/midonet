@@ -22,6 +22,30 @@
       "revId": "41b13dc7a804c14664cda19707c269bb85000014",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_4749ca30",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/GatewayMappingService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-11T13:56:27Z",
+      "side": 1,
+      "message": "the update observer will not receive a notification if the table is empty, leaving this null\n\nwhen the table has elements, this should be redundant, perhaps I can check whether it\u0027s null or not",
+      "parentUuid": "fabf19d9_a7578601",
+      "range": {
+        "startLine": 97,
+        "startChar": 16,
+        "endLine": 97,
+        "endChar": 61
+      },
+      "revId": "41b13dc7a804c14664cda19707c269bb85000014",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
