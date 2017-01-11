@@ -307,8 +307,8 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
     private val owned = new util.HashSet[Int]()
 
     private val readySubscriptionList = new ReadySubscriptionList
-    private var snapshotReady = false
-    private var snapshotInProgress = false
+    @volatile private var snapshotReady = false
+    @volatile private var snapshotInProgress = false
 
     private def log = table.log
 
