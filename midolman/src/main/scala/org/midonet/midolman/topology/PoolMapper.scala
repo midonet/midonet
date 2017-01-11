@@ -20,15 +20,17 @@ import java.lang.{Boolean => JBoolean}
 import java.util.UUID
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
+import scala.collection.{breakOut, mutable}
 
 import rx.Observable
 import rx.subjects.PublishSubject
 
+import org.midonet.cluster.data.storage.SingleValueKey
 import org.midonet.cluster.models.Topology.{Pool => TopologyPool, PoolMember => TopologyPoolMember, Vip => TopologyVip}
+import org.midonet.cluster.services.MidonetBackend.StatusKey
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{Pool => SimulationPool, PoolMember => SimulationPoolMember, Vip => SimulationVip}
-import org.midonet.midolman.state.l4lb.{PoolLBMethod, SessionPersistence}
+import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod, SessionPersistence}
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
@@ -60,6 +62,17 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
         .map[TopologyPool](makeFunc1 { poolMember =>
             assertThread()
             log.debug("Pool member updated {}", poolMember)
+            pool
+        })
+
+    // Tracks pool member status via the VT's StateStorage.
+    private val memberStatusTracker =
+        new StateKeyReferenceTracker[TopologyPoolMember](
+            vt, classOf[TopologyPoolMember], StatusKey, log)
+    private val memberStatusObservable = memberStatusTracker.refsObservable
+        .map[TopologyPool](makeFunc1 { sk =>
+            assertThread()
+            log.debug("Pool member status updated: {}", sk)
             pool
         })
 
@@ -95,9 +108,11 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
     //   +->| filter(isPoolReady) |-> device: SimulationPool
     //      +---------------------+
     protected override val observable = Observable
-        .merge(membersObservable, vipsObservable, poolObservable)
+        .merge(membersObservable, memberStatusObservable,
+               vipsObservable, poolObservable)
         .filter(makeFunc1(isPoolReady))
         .map[SimulationPool](makeFunc1(buildPool))
+        .distinctUntilChanged()
 
     /**
      * Indicates that the pool is ready, which occurs when the states for all
@@ -107,6 +122,7 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
         assertThread()
         val ready = (pool ne null) &&
                     members.values.forall(_.isReady) &&
+                    memberStatusTracker.areRefsReady &&
                     vips.values.forall(_.isReady)
         log.debug("Pool ready: {}", Boolean.box(ready))
         ready
@@ -133,9 +149,11 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
         log.debug("Pool updated with members {} VIPs {}", memberIds, vipIds)
 
         // Update the device state for pool members.
+        val memberIdSet = memberIds.toSet
         updateZoomDeviceState(
             classOf[SimulationPoolMember], classOf[TopologyPoolMember],
-            memberIds.toSet, members, membersSubject, vt)
+            memberIdSet, members, membersSubject, vt)
+        memberStatusTracker.requestRefs(memberIdSet)
 
         // Update the device state for VIPs.
         updateZoomDeviceState(
@@ -154,6 +172,7 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
         completeDeviceState(members)
         completeDeviceState(vips)
         membersSubject.onCompleted()
+        memberStatusTracker.completeRefs()
         vipsSubject.onCompleted()
     }
 
@@ -164,7 +183,7 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
         assertThread()
 
         // Compute the active and disabled pool members.
-        val allMembers = memberIds.flatMap(members.get).map(_.device)
+        val allMembers = allMembersWithStatus
         val activePoolMembers = allMembers.filter(_.isUp)
         val disabledPoolMembers = allMembers.filterNot(_.adminStateUp)
         val allVips = vipIds.flatMap(vips.get).map(_.device)
@@ -177,11 +196,35 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
             if (pool.hasHealthMonitorId) pool.getHealthMonitorId else null,
             if (pool.hasLoadBalancerId) pool.getLoadBalancerId else null,
             if (pool.hasSessionPersistence) SessionPersistence.fromProto(pool.getSessionPersistence) else null,
-            allMembers.toArray,
-            activePoolMembers.toArray,
-            disabledPoolMembers.toArray,
+            allMembers,
+            activePoolMembers,
+            disabledPoolMembers,
             allVips.toArray)
         log.debug("Building pool {}", device)
         device
+    }
+
+    private def allMembersWithStatus: Array[SimulationPoolMember] = {
+        memberIds.map { id =>
+            val m = members(id).device
+            m.status match {
+                case LBStatus.MONITORED =>
+                    // Copy member with status from health monitor.
+                    new SimulationPoolMember(
+                        m.id, m.adminStateUp, monitoredStatus(m.id),
+                        m.address, m.protocolPort, m.weight)
+                case _ =>
+                    // V1 pool member. Status is already set.
+                    m
+            }
+        }(breakOut)
+    }
+
+    private def monitoredStatus(memberId: UUID): LBStatus = {
+        val stateKey = memberStatusTracker.currentRefs(memberId)
+        stateKey.asInstanceOf[SingleValueKey].value match {
+            case None => LBStatus.ACTIVE // Assume active if unmonitored.
+            case Some(str) => LBStatus.valueOf(str)
+        }
     }
 }

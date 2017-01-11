@@ -18,7 +18,9 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
+import scala.util.Random
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -26,13 +28,14 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
+import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, StateStorage, Storage}
 import org.midonet.cluster.models.Commons.LBStatus
-import org.midonet.cluster.models.Topology.{Pool => TopologyPool, Vip, PoolMember, SessionPersistence}
+import org.midonet.cluster.models.Topology.{PoolMember, SessionPersistence, Vip, Pool => TopologyPool}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{Pool => SimulationPool}
+import org.midonet.midolman.state.l4lb.{LBStatus => SimLBStatus}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
@@ -46,11 +49,13 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
     private var vt: VirtualTopology = _
     private var store: Storage = _
+    private var stateStore: StateStorage = _
     private final val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).store
+        stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
     }
 
     implicit def asIPAddress(str: String): IPv4Addr = IPv4Addr(str)
@@ -937,5 +942,258 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             for (index <- 0 until 100)
                 device.vips(index) shouldBeDeviceOf vips(index)
         }
+    }
+
+    feature("Tracks member status reported to state storage by health monitor") {
+        scenario("Publishes initial ACTIVE status") {
+            Given("A pool")
+            val pool = createPool()
+            store.create(pool)
+
+            And("A pool member with ACTIVE status in state storage")
+            createMonitoredPoolMember(pool.getId, Some(LBStatus.ACTIVE))
+
+            And("A pool mapper")
+            val mapper = new PoolMapper(pool.getId, vt)
+
+            And("An observer to the pool mapper")
+            val obs = new DeviceObserver[SimulationPool](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a pool with an active member")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device.members.map(_.status) shouldBe Array(SimLBStatus.ACTIVE)
+        }
+
+        scenario("Publishes initial INACTIVE status") {
+            Given("A pool")
+            val pool = createPool()
+            store.create(pool)
+
+            And("A pool member with ACTIVE status in state storage")
+            createMonitoredPoolMember(pool.getId, Some(LBStatus.INACTIVE))
+
+            And("A pool mapper")
+            val mapper = new PoolMapper(pool.getId, vt)
+
+            And("An observer to the pool mapper")
+            val obs = new DeviceObserver[SimulationPool](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a pool with an inactive member")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device.members.map(_.status) shouldBe Array(SimLBStatus.INACTIVE)
+        }
+
+        scenario("Publishes initial ACTIVE status if HM is down") {
+            Given("A pool")
+            val pool = createPool()
+            store.create(pool)
+
+            And("A pool member with status not given in state storage")
+            createMonitoredPoolMember(pool.getId, None)
+
+            And("A pool mapper")
+            val mapper = new PoolMapper(pool.getId, vt)
+
+            And("An observer to the pool mapper")
+            val obs = new DeviceObserver[SimulationPool](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a pool with an active member")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device.members.map(_.status) shouldBe Array(SimLBStatus.ACTIVE)
+        }
+
+        scenario("Publishes ACTIVE => INACTIVE update") {
+            Given("A pool")
+            val pool = createPool()
+            store.create(pool)
+
+            And("A pool member with ACTIVE status in state storage")
+            val pm = createMonitoredPoolMember(pool.getId,
+                                               Some(LBStatus.ACTIVE))
+
+            And("A pool mapper")
+            val mapper = new PoolMapper(pool.getId, vt)
+
+            And("An observer to the pool mapper")
+            val obs = new DeviceObserver[SimulationPool](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a pool with an active member")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device.members.map(_.status) shouldBe Array(SimLBStatus.ACTIVE)
+
+            When("The pool member's status is updated in state storage")
+            writeStatus(pm.getId, Some(LBStatus.INACTIVE))
+
+            Then("The observer should receive an updated pool with an " +
+                 "inactive member")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val updatedDevice = obs.getOnNextEvents.get(1)
+            updatedDevice.members.map(_.status) shouldBe
+                Array(SimLBStatus.INACTIVE)
+        }
+
+        scenario("Publishes INACTIVE => ACTIVE update") {
+            Given("A pool")
+            val pool = createPool()
+            store.create(pool)
+
+            And("A pool member with INACTIVE status in state storage")
+            val pm = createMonitoredPoolMember(pool.getId,
+                                               Some(LBStatus.INACTIVE))
+
+            And("A pool mapper")
+            val mapper = new PoolMapper(pool.getId, vt)
+
+            And("An observer to the pool mapper")
+            val obs = new DeviceObserver[SimulationPool](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a pool with an inactive member")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device.members.map(_.status) shouldBe Array(SimLBStatus.INACTIVE)
+
+            When("The pool member's status is updated in state storage")
+            writeStatus(pm.getId, Some(LBStatus.ACTIVE))
+
+            Then("The observer should receive an updated pool with an " +
+                 "active member")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val updatedDevice = obs.getOnNextEvents.get(1)
+            updatedDevice.members.map(_.status) shouldBe
+            Array(SimLBStatus.ACTIVE)
+        }
+
+        scenario("Updates status to ACTIVE when health monitor goes down") {
+            Given("A pool")
+            val pool = createPool()
+            store.create(pool)
+
+            And("A pool member with INACTIVE status in state storage")
+            val pm = createMonitoredPoolMember(pool.getId,
+                                               Some(LBStatus.INACTIVE))
+
+            And("A pool mapper")
+            val mapper = new PoolMapper(pool.getId, vt)
+
+            And("An observer to the pool mapper")
+            val obs = new DeviceObserver[SimulationPool](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a pool with an inactive member")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device.members.map(_.status) shouldBe Array(SimLBStatus.INACTIVE)
+
+            When("The pool member's status is cleared in state storage")
+            writeStatus(pm.getId, None)
+
+            Then("The observer should receive an updated pool with an " +
+                 "active member")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val updatedDevice = obs.getOnNextEvents.get(1)
+            updatedDevice.members.map(_.status) shouldBe
+            Array(SimLBStatus.ACTIVE)
+        }
+
+        scenario ("Handles updates for many members") {
+            Given("A pool")
+            val pool = createPool()
+            store.create(pool)
+
+            And("100 pool members with various statuses")
+            val rand = new Random(123456789) // Seed for repeatability.
+            def randStatus(): Option[LBStatus] = rand.nextInt(3) match {
+                case 0 => Some(LBStatus.ACTIVE)
+                case 1 => Some(LBStatus.INACTIVE)
+                case 2 => None
+            }
+
+            val pmStatuses = for (i <- 1 to 100) yield {
+                val status = randStatus()
+                val pm = createMonitoredPoolMember(pool.getId, status)
+                toSimLbStatus(status)
+            }
+
+            And("A pool mapper")
+            val mapper = new PoolMapper(pool.getId, vt)
+
+            And("An observer to the pool mapper")
+            val obs = new DeviceObserver[SimulationPool](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a pool with 100 members with " +
+                 "the expected statuses")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device.members.map(_.status) shouldBe pmStatuses.toArray
+
+            When("The pool members' statuses are randomly updated")
+            val newStatuses = for (pm <- device.members) yield {
+                val status = randStatus()
+                writeStatus(pm.id, status)
+                toSimLbStatus(status)
+            }
+
+            Then("The observer should receive an updated pool with the new " +
+                 "pool members statuses")
+            // Number of onNext events depends on how many members actually
+            // have their status changed, so delete the pool, wait for
+            // completion, and get the last onNext event.
+            store.delete(classOf[TopologyPool], pool.getId)
+            obs.awaitCompletion(timeout)
+            obs.getOnNextEvents.asScala.last.members.map(_.status) shouldBe
+                newStatuses
+        }
+    }
+
+    private def writeStatus(memberId: UUID, status: Option[LBStatus]): Unit = {
+        val obs = status match {
+            case None =>
+                stateStore.removeValue(classOf[PoolMember], memberId,
+                                       MidonetBackend.StatusKey, null)
+            case Some(st) =>
+                stateStore.addValue(classOf[PoolMember], memberId,
+                                    MidonetBackend.StatusKey, st.toString)
+        }
+        obs.toList.toBlocking.first()
+    }
+
+    private def createMonitoredPoolMember(poolId: UUID,
+                                          status: Option[LBStatus]): PoolMember = {
+        val pm = createPoolMember(poolId = Some(poolId),
+                                  status = Some(LBStatus.MONITORED),
+                                  adminStateUp = Some(true),
+                                  weight = Some(1))
+        store.create(pm)
+        writeStatus(pm.getId, status)
+        pm
+    }
+
+    private def toSimLbStatus(st: Option[LBStatus]): SimLBStatus = st match {
+        case None => SimLBStatus.ACTIVE
+        case Some(status) => SimLBStatus.valueOf(status.toString)
     }
 }
