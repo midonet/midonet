@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_5ee873e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/GatewayMappingService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-12T15:12:00Z",
+      "side": 1,
+      "message": "agree, I didn\u0027t use it because it seemed that trySuccess would have higher overhead, but I guess it\u0027s negligible here, will update",
+      "parentUuid": "fabf19d9_d3823c52",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 40
+      },
+      "revId": "5641a88db99ba6b6fdc61647af57b801e4ab456d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_33adf8e9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/GatewayMappingService.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2017-01-12T11:43:16Z",
       "side": 1,
       "message": "for clarity, this should be declared beside the promise.",
+      "range": {
+        "startLine": 143,
+        "startChar": 12,
+        "endLine": 143,
+        "endChar": 18
+      },
+      "revId": "5641a88db99ba6b6fdc61647af57b801e4ab456d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_1ef2fbd2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/GatewayMappingService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-12T15:12:00Z",
+      "side": 1,
+      "message": "will update",
+      "parentUuid": "fabf19d9_33adf8e9",
       "range": {
         "startLine": 143,
         "startChar": 12,
