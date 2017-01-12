@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_4d944b8a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-12T05:07:48Z",
+      "side": 1,
+      "message": "don\u0027t you need some cache g/c mechanism?",
+      "revId": "99c3df89c002836007466a466baeda14e3ea58d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
