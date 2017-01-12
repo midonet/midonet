@@ -18,6 +18,7 @@ from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
 from mdts.tests.utils.utils import bindings
 from nose.plugins.attrib import attr
+from nose.tools import nottest
 import re
 import subprocess
 import time
@@ -910,6 +911,7 @@ def test_lru():
         if extra is not None:
             extra.close()
 
+@nottest
 @attr(version="v1.2.0")
 @bindings(binding_multihost_singletenant_neutronfip6,
           binding_manager=BindingManager(vtm=DualUplinkAssymetric()))

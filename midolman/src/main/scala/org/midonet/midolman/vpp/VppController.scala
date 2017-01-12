@@ -244,15 +244,14 @@ class VppController(protected override val hostId: UUID,
             }
         } andThen {
             case Success(_) =>
-                addUplink(portId, routerId, uplinkPortIds)
+                routerPortSubscribers +=
+                    portId -> VirtualTopology.observable(classOf[RouterPort],
+                                                         portId)
+                                             .subscribe(observer)
             case Failure(e) =>
                 log warn s"Attaching uplink port $portId failed: $e"
         }
 
-        routerPortSubscribers +=
-            portId -> VirtualTopology.observable(classOf[RouterPort],
-                                                 portId)
-                                     .subscribe(observer)
         result
     }
 
@@ -282,8 +281,6 @@ class VppController(protected override val hostId: UUID,
                     setup.rollback() map { _ => Some(setup) }
                 case null => Future.successful(None)
             }
-        } andThen { case _ =>
-            removeUplink(portId)
         }
     }
 
@@ -432,19 +429,20 @@ class VppController(protected override val hostId: UUID,
         log debug s"Associating FIP at port $portId (VRF $vrf, VNI $vni): " +
                   s"$floatingIp -> $fixedIp"
 
-        val pool = poolFor(portId, natPool)
-        if (pool.nonEmpty) {
-            log debug s"Allocated NAT pool at port $portId is ${pool.get}"
-            vppCtl.exec(s"ip route table $vrf add $fixedIp/32 " +
-                 s"via ${vt.config.fip64.vppInternalGateway}") flatMap { _ =>
-                vppCtl.exec(s"fip64 add $floatingIp $fixedIp " +
-                     s"pool ${pool.get.start} ${pool.get.end}" +
-                     s" table $vrf vni $vni")
+        poolFor(portId, natPool) flatMap { pool =>
+            if (pool.nonEmpty) {
+                log debug s"Allocated NAT pool at port $portId is ${pool.get}"
+                vppCtl.exec(s"ip route table $vrf add $fixedIp/32 " +
+                            s"via ${vt.config.fip64.vppInternalGateway}") flatMap { _ =>
+                    vppCtl.exec(s"fip64 add $floatingIp $fixedIp " +
+                                s"pool ${pool.get.start} ${pool.get.end}" +
+                                s" table $vrf vni $vni")
+                }
+            } else {
+                // We complete the future successfully, since there is nothing
+                // to rollback.
+                Future.successful(Unit)
             }
-        } else {
-            // We complete the future successfully, since there is nothing to
-            // rollback.
-            Future.successful(Unit)
         }
     }
 

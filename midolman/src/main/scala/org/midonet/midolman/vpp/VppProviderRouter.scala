@@ -24,7 +24,6 @@ import javax.annotation.concurrent.NotThreadSafe
 import scala.collection.JavaConverters._
 
 import rx.Observable.OnSubscribe
-import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber}
 
@@ -140,14 +139,13 @@ object VppProviderRouter {
         private var currentRouter: Router = _
 
         private val mark = PublishSubject.create[ProviderRouter]()
-        private val scheduler = Schedulers.from(vt.vtExecutor)
 
         private val portTracker = new StoreObjectReferenceTracker[Topology.Port](
             vt, classOf[Topology.Port], log)
 
         private val routerObservable = vt.store
             .observable(classOf[Router], routerId)
-            .observeOn(scheduler)
+            .observeOn(vt.vtScheduler)
             .doOnNext(makeAction1(routerUpdated))
             .doOnCompleted(makeAction0(routerDeleted()))
 
@@ -294,11 +292,12 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
       * Adds a new uplink port for a provider router. If the provider router is
       * new, the method creates a new [[RouterState]] for this router.
       *
-      * This method must be called from the VPP executor thread.
+      * This method must be called from the VT executor thread.
       */
     @NotThreadSafe
     protected def addUplink(portId: UUID, routerId: UUID,
                             groupPortIds: JList[UUID]): Unit = {
+        vt.assertThread()
         if (!routers.containsKey(routerId)) {
             log debug s"Create state for provider router $routerId"
             val routerState = new RouterState(routerId, hostId, vt, log)
@@ -317,10 +316,11 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
       * port for the given provider router, the method completes the
       * corresponding [[RouterState]].
       *
-      * This method must be called from the VPP executor thread.
+      * This method must be called from the VT executor thread.
       */
     @NotThreadSafe
     protected def removeUplink(portId: UUID): Unit = {
+        vt.assertThread()
         val uplinkState = uplinks.remove(portId)
         if (uplinkState ne null) {
             uplinkState.complete()
@@ -335,7 +335,7 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
     }
 
     /**
-      * This method must be called from the VPP executor thread.
+      * This method must be called from the VT executor thread.
       * @return The uplink port active on the current host that is reachable
       *         from the given tenant router port or `null` if there is no
       *         such port.
@@ -346,7 +346,7 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
         // TODO: gateway and the uplink is reachable from this tenant router
         // TODO: port. Further work should observer the virtual topology between
         // TODO: the uplink and the tenant router and update reachability.
-
+        vt.assertThread()
         if (uplinks.isEmpty) {
             log warn s"No uplink ports: ignoring FIP64 for port $downlinkPortId"
             null
@@ -360,13 +360,14 @@ private[vpp] trait VppProviderRouter { this: VppExecutor =>
     }
 
     /**
-      * This method must be called from the VPP executor thread.
+      * This method must be called from the VT executor thread.
       * @return The list of uplink ports that share the NAT64 pool with the
       *         given uplink port. These are all the uplink ports of the
       *         provider router.
       */
     @NotThreadSafe
     protected def uplinkPortsFor(uplinkPortId: UUID): JList[UUID] = {
+        vt.assertThread()
         val uplinkState = uplinks.get(uplinkPortId)
         if (uplinkState ne null) {
             // Note: We return the ports in the stateful port group of the

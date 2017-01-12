@@ -264,11 +264,7 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
             val p = VirtualTopology.get(classOf[Port], port.getId.asJava).await()
             VirtualTopology.get(classOf[Port], bridgePort.getId.asJava).await()
 
-            And("Simulating the port egress the first time")
-            val f = intercept[NotYetException] { p.egress(context) }
-            f.waitFor.await()
-
-            And("Simulating the port egress the second time")
+            And("Simulating the port egress")
             val result = p.egress(context)
 
             Then("The result should add a flow")
