@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_ada52705",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-12T04:37:16Z",
+      "side": 1,
+      "message": "can you mention how it\u0027s broken, eg. jira ticket?",
+      "revId": "59a7edcfb5917b66764c703c0e17462efbc83b2d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
