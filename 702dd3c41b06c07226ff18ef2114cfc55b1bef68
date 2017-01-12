@@ -22,6 +22,30 @@
       "revId": "702dd3c41b06c07226ff18ef2114cfc55b1bef68",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_583bebd1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/GatewayMappingService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-12T09:20:19Z",
+      "side": 1,
+      "message": "thanks",
+      "parentUuid": "fabf19d9_ed9b1fc8",
+      "range": {
+        "startLine": 97,
+        "startChar": 29,
+        "endLine": 97,
+        "endChar": 31
+      },
+      "revId": "702dd3c41b06c07226ff18ef2114cfc55b1bef68",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
