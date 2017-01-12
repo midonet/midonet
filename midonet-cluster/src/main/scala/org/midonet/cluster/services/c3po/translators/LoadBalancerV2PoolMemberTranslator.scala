@@ -17,7 +17,7 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.Transaction
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Commons.{LBStatus, UUID}
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2PoolMember
 import org.midonet.cluster.models.Topology.PoolMember
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
@@ -34,6 +34,7 @@ class LoadBalancerV2PoolMemberTranslator
         bldr.setId(npm.getId)
         bldr.setPoolId(npm.getPoolId)
         bldr.setProtocolPort(npm.getProtocolPort)
+        bldr.setStatus(LBStatus.MONITORED)
         bldr.setWeight(npm.getWeight)
         tx.create(bldr.build())
     }
