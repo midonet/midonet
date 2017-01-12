@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_73037074",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-12T13:15:47Z",
+      "side": 1,
+      "message": "The",
+      "range": {
+        "startLine": 101,
+        "startChar": 11,
+        "endLine": 101,
+        "endChar": 14
+      },
+      "revId": "fd0d6d261e7d3ee4a8da92f67460a0fedc35c47e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_733a5038",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerV2PoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-12T13:15:47Z",
+      "side": 1,
+      "message": "for v1 pool can\u0027t be removed if it has vip.\nso i guess the cascade is for direct users of midonet api.\n\nhttps://github.com/openstack/neutron-lbaas/blob/2a74aa29d4480972d31a4b39c13790f4bd3aaf25/neutron_lbaas/db/loadbalancer/loadbalancer_db.py#L609-L611",
+      "range": {
+        "startLine": 102,
+        "startChar": 32,
+        "endLine": 102,
+        "endChar": 79
+      },
+      "revId": "fd0d6d261e7d3ee4a8da92f67460a0fedc35c47e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
