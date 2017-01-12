@@ -25,7 +25,13 @@ public enum LBStatus {
     @ZoomEnumValue(value = "ACTIVE")
     ACTIVE,
     @ZoomEnumValue(value = "INACTIVE")
-    INACTIVE;
+    INACTIVE,
+    @ZoomEnumValue(value = "MONITORED")
+    MONITORED,
+    // The API sets a V2 pool member's status to NO_MONITOR when its actual
+    // status cannot be obtained from a health monitor. It has no protobuf
+    // equivalent.
+    NO_MONITOR;
 
     public static LBStatus fromProto(Commons.LBStatus proto) {
         return LBStatus.valueOf(proto.toString());

@@ -75,6 +75,10 @@ enum Protocol {
 enum LBStatus {
     ACTIVE = 1;
     INACTIVE = 2;
+
+    // All V2 PoolMembers should have this status, which indicates that the
+    // actual status is in state storage.
+    MONITORED = 3;
 }
 
 enum LogEvent {
