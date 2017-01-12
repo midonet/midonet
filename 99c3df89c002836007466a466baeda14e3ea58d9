@@ -16,6 +16,24 @@
       "revId": "99c3df89c002836007466a466baeda14e3ea58d9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_f88d1f7c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperStateTable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-12T09:20:12Z",
+      "side": 1,
+      "message": "good point: added by watching the internal observable for the corresponding object and clearing the cache when the object is deleted",
+      "parentUuid": "fabf19d9_4d944b8a",
+      "revId": "99c3df89c002836007466a466baeda14e3ea58d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
