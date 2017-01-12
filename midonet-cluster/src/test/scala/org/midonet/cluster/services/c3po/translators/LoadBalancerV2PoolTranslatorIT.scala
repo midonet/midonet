@@ -28,7 +28,7 @@ import org.midonet.cluster.data.neutron.NeutronResourceType.{LbV2Pool => LbV2Poo
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.LBV2SessionPersistenceType
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
-import org.midonet.cluster.models.Topology.{Pool, PoolMember}
+import org.midonet.cluster.models.Topology.{Pool, PoolMember, Vip}
 import org.midonet.cluster.services.c3po.LbaasV2ITCommon
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.util.concurrent.toFutureOps
@@ -57,8 +57,7 @@ class LoadBalancerV2PoolTranslatorIT extends C3POMinionTestBase
         checkNoPool(poolId)
     }
 
-    "LoadBalancerV2PoolTranslator" should
-    "Be able to update the session persistence field in the pool" in {
+    it should "Be able to update the session persistence field in the pool" in {
         // Create pool.
         val Boilerplate(_, _, _, lbId) = setUpLb(10)
         val poolId = createLbV2Pool(
@@ -84,6 +83,16 @@ class LoadBalancerV2PoolTranslatorIT extends C3POMinionTestBase
                   sessionPersistence = None)
     }
 
+    it should "not cascade pool deletion to VIPs" in {
+        val Boilerplate(_, _, _, lbId) = setUpLb(10)
+        val listenerId = createLbV2Listener(20, lbId)
+        val pool1Id = createLbV2Pool(30, lbId, listenerId = listenerId)
+        checkPool(pool1Id, lbId, vipIds = Seq(listenerId))
+
+        insertDeleteTask(40, LbV2PoolType, pool1Id)
+        checkNoPool(pool1Id)
+        storage.exists(classOf[Vip], listenerId).await() shouldBe true
+    }
 
     "LoadBalancerV2PoolMemberTranslator" should
     "Create, update, and delete pool members" in {
