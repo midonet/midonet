@@ -18,19 +18,20 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.LBV2SessionPersistenceType
-import org.midonet.cluster.models.Topology.{Pool, PoolMember}
-import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
-import org.midonet.util.concurrent.toFutureOps
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import scala.collection.JavaConverters._
-import org.midonet.cluster.services.c3po.LbaasV2ITCommon
-
 import org.midonet.cluster.data.neutron.NeutronResourceType.{LbV2Pool => LbV2PoolType, LbV2PoolMember => LbV2PoolMemberType}
+import org.midonet.cluster.models.Commons.LBStatus
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerV2Pool.LBV2SessionPersistenceType
+import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
+import org.midonet.cluster.models.Topology.{Pool, PoolMember}
+import org.midonet.cluster.services.c3po.LbaasV2ITCommon
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerV2PoolTranslatorIT extends C3POMinionTestBase
@@ -185,12 +186,14 @@ class LoadBalancerV2PoolTranslatorIT extends C3POMinionTestBase
     private def checkPoolMember(memberId: UUID, poolId: UUID,
                                 address: String, protocolPort: Int,
                                 adminStateUp: Boolean = true,
-                                weight: Int = 1): Unit = {
+                                weight: Int = 1,
+                                status: LBStatus = LBStatus.MONITORED): Unit = {
         val m = storage.get(classOf[PoolMember], memberId).await()
         m.getAddress.getAddress shouldBe address
         m.getAdminStateUp shouldBe adminStateUp
         m.getPoolId.asJava shouldBe poolId
         m.getProtocolPort shouldBe protocolPort
+        m.getStatus shouldBe status
         m.getWeight shouldBe weight
     }
 
