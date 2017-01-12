@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_4d520b69",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-01-12T08:01:25Z",
+      "side": 1,
+      "message": "done.",
+      "parentUuid": "fabf19d9_6d6eef30",
+      "range": {
+        "startLine": 157,
+        "startChar": 60,
+        "endLine": 157,
+        "endChar": 61
+      },
+      "revId": "42a8a1f617bc881bde6a3d0216eecbdf62356c36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_73c7fb12",
         "filename": "docs/qos.md",
         "patchSetId": 7
@@ -54,6 +78,24 @@
       "side": 1,
       "message": "what do you mean, the mn-conf bit that I added on the last patchset? I didn\u0027t touch the previous description which was +2ed.",
       "parentUuid": "fabf19d9_73c7fb12",
+      "revId": "42a8a1f617bc881bde6a3d0216eecbdf62356c36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8d5f0372",
+        "filename": "docs/qos.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-01-12T08:01:25Z",
+      "side": 1,
+      "message": "Clarified.",
+      "parentUuid": "fabf19d9_31aa9bd5",
       "revId": "42a8a1f617bc881bde6a3d0216eecbdf62356c36",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
