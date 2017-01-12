@@ -98,6 +98,12 @@ class LoadBalancerV2PoolTranslator
 
 
     override protected def translateDelete(tx: Transaction, id: UUID): Unit = {
+        // THe Pool-VIP binding is set up to cascade deletion of the Pool to
+        // its associated VIPs. Changing the binding would affect LBV1 as well,
+        // creating a breaking change. Instead, just update the pool to clear
+        // its vip_ids list before deleting it. This will prevent the cascade.
+        val pool = tx.get(classOf[Pool], id)
+        tx.update(pool.toBuilder.clearVipIds().build())
         tx.delete(classOf[Pool], id, ignoresNeo = true)
     }
 
