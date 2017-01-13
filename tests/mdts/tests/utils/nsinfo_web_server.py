@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import commands
+import subprocess
 import sys
-
 from wsgiref.simple_server import make_server
 from wsgiref.simple_server import WSGIRequestHandler, WSGIServer
 
@@ -28,7 +27,7 @@ Web server which returns the ip:port on which it is running.
 class NsInfoServer(object):
     def __init__(self, num):
         self.port_num = num
-        addr = commands.getoutput("ip address").split()
+        addr = subprocess.check_output(["ip", "address"]).split()
         self.ip_addr = addr[addr.index('inet') + 1].split('/')[0]
         self.to_return = "%s:%s" % (self.ip_addr, self.port_num)
 
