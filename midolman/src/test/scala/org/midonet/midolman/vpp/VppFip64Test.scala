@@ -359,7 +359,7 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
             vpp.messages should contain theSameElementsInOrderAs Seq(
                 addUplink(routerPort, routerPort.getId.asJava),
                 Gateways(routerPort.getId.asJava, Set()),
-                AddExternalNetwork(bridge.getId.asJava))
+                AddExternalNetwork(bridge.getId.asJava, Seq[IPv6Subnet]()))
 
             When("The port becomes inactive")
             VirtualToPhysicalMapper.setPortActive(routerPort.getId.asJava, 0,
@@ -369,7 +369,7 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
             vpp.messages should contain theSameElementsInOrderAs Seq(
                 addUplink(routerPort, routerPort.getId.asJava),
                 Gateways(routerPort.getId.asJava, Set()),
-                AddExternalNetwork(bridge.getId.asJava),
+                AddExternalNetwork(bridge.getId.asJava, Seq[IPv6Subnet]()),
                 RemoveExternalNetwork(bridge.getId.asJava),
                 DeleteUplink(routerPort.getId.asJava))
         }
@@ -406,7 +406,7 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
             vpp.messages should contain theSameElementsInOrderAs Seq(
                 addUplink(routerPort, routerPort.getId.asJava),
                 Gateways(routerPort.getId.asJava, Set()),
-                AddExternalNetwork(bridge.getId.asJava))
+                AddExternalNetwork(bridge.getId.asJava, Seq[IPv6Subnet]()))
 
             When("The provider router disconnects from the external network")
             backend.store.delete(classOf[Port], bridgePort.getId)
@@ -415,7 +415,7 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
             vpp.messages should contain theSameElementsInOrderAs Seq(
                 addUplink(routerPort, routerPort.getId.asJava),
                 Gateways(routerPort.getId.asJava, Set()),
-                AddExternalNetwork(bridge.getId.asJava),
+                AddExternalNetwork(bridge.getId.asJava, Seq[IPv6Subnet]()),
                 RemoveExternalNetwork(bridge.getId.asJava))
         }
 
@@ -453,7 +453,7 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
             vpp.messages should contain theSameElementsInOrderAs Seq(
                 addUplink(routerPort, routerPort.getId.asJava),
                 Gateways(routerPort.getId.asJava, Set()),
-                AddExternalNetwork(bridge.getId.asJava))
+                AddExternalNetwork(bridge.getId.asJava, Seq[IPv6Subnet]()))
 
             When("The network is unset as external")
             backend.store.update(network1)
@@ -462,7 +462,7 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
             vpp.messages should contain theSameElementsInOrderAs Seq(
                 addUplink(routerPort, routerPort.getId.asJava),
                 Gateways(routerPort.getId.asJava, Set()),
-                AddExternalNetwork(bridge.getId.asJava),
+                AddExternalNetwork(bridge.getId.asJava, Seq[IPv6Subnet]()),
                 RemoveExternalNetwork(bridge.getId.asJava))
         }
     }
@@ -500,7 +500,7 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
             vpp.messages should contain theSameElementsInOrderAs Seq(
                 addUplink(uplinkPort, uplinkPort.getId.asJava),
                 Gateways(uplinkPort.getId.asJava, Set()),
-                AddExternalNetwork(bridge.getId.asJava))
+                AddExternalNetwork(bridge.getId.asJava, Seq[IPv6Subnet]()))
 
             When("Adding a FIP to the external network")
             val entry = addFip64Entry(network.getId.asJava,
@@ -568,7 +568,7 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
             vpp.messages should contain theSameElementsInOrderAs Seq(
                 addUplink(uplinkPort, uplinkPort.getId.asJava),
                 Gateways(uplinkPort.getId.asJava, Set()),
-                AddExternalNetwork(bridge1.getId.asJava))
+                AddExternalNetwork(bridge1.getId.asJava, Seq[IPv6Subnet]()))
 
             When("Adding a second external network")
             backend.store.multi(Seq(CreateOp(routerPort2), CreateOp(bridge2),
@@ -577,7 +577,8 @@ class VppFip64Test extends MidolmanSpec with TopologyBuilder {
                                     CreateOp(downlinkPort2)))
 
             Then("The controller should add the second external network")
-            vpp.messages(3) shouldBe AddExternalNetwork(bridge2.getId.asJava)
+            vpp.messages(3) shouldBe AddExternalNetwork(bridge2.getId.asJava,
+                                                        Seq[IPv6Subnet]())
 
             When("Adding a FIP to the first external network")
             val entry1 = addFip64Entry(network1.getId.asJava,

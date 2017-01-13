@@ -32,6 +32,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.vpp.VppExternalNetwork.{AddExternalNetwork, RemoveExternalNetwork}
 import org.midonet.midolman.vpp.VppFip64.Notification
 import org.midonet.midolman.vpp.VppProviderRouter.ProviderRouter
+import org.midonet.packets.IPv6Subnet
 import org.midonet.util.logging.Logging
 
 @RunWith(classOf[JUnitRunner])
@@ -83,7 +84,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge.getId)
+                bridge.getId, Seq[IPv6Subnet]())
 
             When("Removing the provider router")
             vpp.update(ProviderRouter(router.getId, Collections.emptyMap()))
@@ -123,7 +124,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge.getId)
+                bridge.getId, Seq[IPv6Subnet]())
 
             When("The network is unmarked as external")
             store.update(network1)
@@ -160,7 +161,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge.getId)
+                bridge.getId, Seq[IPv6Subnet]())
 
             When("Adding another provider router port")
             map.put(routerPort2.getId, bridgePort2.getId)
@@ -215,7 +216,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the first external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge1.getId)
+                bridge1.getId, Seq[IPv6Subnet]())
 
             When("Adding the provider router with both ports")
             map.put(routerPort2.getId, bridgePort2.getId)
@@ -223,7 +224,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the second external network")
             vpp.observer.getOnNextEvents.get(1) shouldBe AddExternalNetwork(
-                bridge2.getId)
+                bridge2.getId, Seq[IPv6Subnet]())
 
             When("Removing the first provider router port")
             map.remove(routerPort1.getId.asJava)
@@ -277,7 +278,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the second external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge2.getId)
+                bridge2.getId, Seq[IPv6Subnet]())
         }
 
         scenario("Additional network updates are ignored") {
@@ -303,7 +304,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge.getId)
+                bridge.getId, Seq[IPv6Subnet]())
 
             When("Updating the network")
             val network2 = network1.toBuilder.setName("network").build()
@@ -311,6 +312,43 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should remove the external network")
             vpp.observer.getOnNextEvents should have size 1
+        }
+    }
+    feature("External networks instance manages subnets") {
+        scenario("Provider router already connected to external " +
+                 "network with one IPv6 subnet") {
+            Given("An external network instance")
+            val vpp = new TestableExternalNetwork
+
+            And("A provider router connected to an external network")
+            val router = createRouter()
+            val bridge = createBridge()
+            val routerPort = createRouterPort(routerId = Some(router.getId))
+            val bridgePort = createBridgePort(bridgeId = Some(bridge.getId),
+                                              peerId = Some(routerPort.getId))
+            val network = createNetwork(id = bridge.getId,
+                                        external = Some(true))
+            val subnet = createBridge()
+            store.multi(Seq(CreateOp(router), CreateOp(bridge),
+                            CreateOp(routerPort), CreateOp(bridgePort),
+                            CreateOp(network)))
+
+            When("Adding the provider router")
+            vpp.update(ProviderRouter(router.getId,
+                                      Collections.singletonMap(routerPort.getId,
+                                                               bridgePort
+                                                                   .getId)))
+
+            Then("The observer should add the external network")
+            vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
+                bridge.getId, Seq[IPv6Subnet]())
+
+            When("Removing the provider router")
+            vpp.update(ProviderRouter(router.getId, Collections.emptyMap()))
+
+            Then("The observer should remove the external network")
+            vpp.observer.getOnNextEvents.get(1) shouldBe RemoveExternalNetwork(
+                bridge.getId)
         }
     }
 

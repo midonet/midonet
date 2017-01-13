@@ -256,12 +256,14 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext)
                             nextHopDevice: Option[Device],
                             vrf: Int,
                             isAdd: Boolean,
-                            multipath: Boolean = false): Future[Any] = {
+                            multipath: Boolean = false,
+                            isDrop: Boolean = false): Future[Any] = {
         val routeMsg = new IpAddDelRoute
         routeMsg.dstAddress = subnet.getAddress.toBytes
         routeMsg.dstAddressLength = subnet.getPrefixLen.toByte
         routeMsg.vrfId = vrf
         routeMsg.isAdd = boolToByte(isAdd)
+        routeMsg.isDrop = boolToByte(isDrop)
         routeMsg.isIpv6 = boolToByte(subnet.isInstanceOf[IPv6Subnet])
 
         // createVrfIfNeeded / resolveIfNeeded / resolveAttempts:
@@ -298,6 +300,11 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext)
                     device: Option[Device] = None,
                     vrf: Int = 0): Future[Any] = {
         addDelRoute(subnet, nextHop, device, vrf, isAdd=false)
+    }
+
+    def addBlackHoleRoute(subnet: IPSubnet[_ <: IPAddr],
+                          vrf: Int = 0): Future[Any] = {
+        addDelRoute(subnet, None, None, vrf, isAdd=false, isDrop = true)
     }
 
     /** equivalent to:
