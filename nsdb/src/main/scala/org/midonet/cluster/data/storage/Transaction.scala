@@ -16,11 +16,12 @@
 
 package org.midonet.cluster.data.storage
 
+import java.io.Closeable
 import java.util.ConcurrentModificationException
 
 import org.midonet.cluster.data.{Obj, ObjId}
 
-trait Transaction {
+trait Transaction extends Closeable {
 
     /** Gets the specified object within the context of the current transaction.
       * The object is either guaranteed to not be modified until the transaction
