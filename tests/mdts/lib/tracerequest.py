@@ -51,30 +51,30 @@ class TraceRequest(ResourceBase):
     def build(self):
         self._mn_resource = self._api.add_tracerequest()
         self._mn_resource.set_name(self._get_name())
-        if self._data.has_key('limit'):
+        if 'limit' in self._data:
             self._mn_resource.set_limit(self._data['limit'])
-        if self._data.has_key('enabled'):
+        if 'enabled' in self._data:
             self._mn_resource.set_enabled(self._data['enabled'])
         else:
             self._mn_resource.set_enabled(False)
 
-        if self._data.has_key('port'):
+        if 'port' in self._data:
             port = self._data['port']
             portdev = self._context.get_device_port(
                 port['device'], port['portid']).get_mn_resource()
             portid = portdev.get_id()
             self._mn_resource.set_port(portid)
-        elif self._data.has_key('router'):
+        elif 'router' in self._data:
             router = self._context.get_router(
                 self._data['router']).get_mn_resource()
             self._mn_resource.set_router(router.get_id())
-        elif self._data.has_key('bridge'):
+        elif 'bridge' in self._data:
             bridge = self._context.get_bridge(
                 self._data['bridge']).get_mn_resource()
             self._mn_resource.set_bridge(bridge.get_id())
 
         for f in CONDFIELDS:
-            if self._data.has_key(f):
+            if f in self._data:
                 getattr(self._mn_resource, f)(self._data[f])
         self._mn_resource.create()
 
