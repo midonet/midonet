@@ -364,7 +364,10 @@ class StateProxyClient(conf: StateProxyClientConfig,
                 val sid = msg.getSubscriptionId
 
                 if (transaction.isSubscribe) {
-                    assert(state.addSubscription(sid, transaction.subscriber))
+                    if (!state.addSubscription(sid, transaction.subscriber)) {
+                        log warn s"$this Multiple subscribers to table for " +
+                                 s"subscription $sid"
+                    }
                     log debug s"$this Started subscription $sid"
                 } else {
                     log debug s"$this Finished subscription $sid"
