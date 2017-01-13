@@ -41,7 +41,7 @@ def docker_http_timeout():
 
 
 def sandbox_name():
-    """ Returns the name of the sandbox that was received as an option when the
+    """Returns the name of the sandbox that was received as an option when the
     job were run. If the option was not passed, it resolves to the sandbox name
     defined in mdts.conf
 

@@ -61,10 +61,10 @@ FIELDS = [
 
 
 class Rule(ResourceBase):
-    """ A class representing a single rule for functional tests. """
+    """A class representing a single rule for functional tests. """
 
     def __init__(self, api, context, data, chain):
-        """ Initializes a rule.
+        """Initializes a rule.
 
         Args:
             api: MidoNet API client object
@@ -77,9 +77,9 @@ class Rule(ResourceBase):
         self._chain = chain
 
     def build(self):
-        """ Builds MidoNet resource for chain from this data.
+        """Builds MidoNet resource for chain from this data.
 
-            Use the chain ID assigned upon chain creation.
+           Use the chain ID assigned upon chain creation.
         """
         self._mn_resource = self._chain._mn_resource.add_rule()
         self._mn_resource.chain_id(self._chain._mn_resource.get_id())
@@ -101,17 +101,17 @@ class Rule(ResourceBase):
         self._mn_resource.create()
 
     def destroy(self):
-        """ Destroys the rule resource. """
+        """Destroys the rule resource. """
         self._mn_resource.delete()
 
     def get_id(self):
-        """ Returns the rule ID. """
+        """Returns the rule ID. """
         return self._data.get('id')
 
     def get_chain_id(self):
-        """ Returns the rule chain ID. """
+        """Returns the rule chain ID. """
         return self._chain.get_id()
 
     def get_type(self):
-        """ Returns the rule type. """
+        """Returns the rule type. """
         return self._data.get('type')

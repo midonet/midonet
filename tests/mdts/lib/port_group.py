@@ -23,7 +23,7 @@ class PortGroup(ResourceBase):
     bool_val = {'true': True, 'false': False}
 
     def __init__(self, api, context, data):
-        """ Initializes a port group.
+        """Initializes a port group.
 
         Args:
             api: MidoNet API client object
@@ -46,19 +46,19 @@ class PortGroup(ResourceBase):
             self._ports.append(port_group_port)
 
     def get_id(self):
-        """ Returns the resource ID specified in the topology data. """
+        """Returns the resource ID specified in the topology data. """
         return self._data.get('id')
 
     def is_stateful(self):
-        """ Returns whether the port group is stateful. """
+        """Returns whether the port group is stateful. """
         return self.bool_val.get(self._data.get('stateful', 'false'))
 
     def get_ports(self):
-        """ Returns a list of ports in this port group. """
+        """Returns a list of ports in this port group. """
         return self._ports
 
     def add_port_group_port(self, port_group_port_data):
-        """ Generate and add a new port group port to this port group.
+        """Generate and add a new port group port to this port group.
 
         Args:
             port_group_port_data: topology data for port group port.
@@ -71,7 +71,7 @@ class PortGroup(ResourceBase):
         return port_group_port
 
     def destroy(self):
-        """ Destroys virtual topology resources for this Port Group. """
+        """Destroys virtual topology resources for this Port Group. """
         for port_group_port in self._ports:
             port_group_port.destroy()
         self._mn_resource.delete()

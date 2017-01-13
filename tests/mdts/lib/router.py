@@ -82,7 +82,7 @@ class Router(ResourceBase):
             self.add_bridge(bridge['bridge'])
 
     def update(self):
-        """ Dynamically updates in/out-bound filters assigned to the router.
+        """Dynamically updates in/out-bound filters assigned to the router.
 
         This updates the router MN resource with a filter ID if one has been set
         in the input yaml data or programmatically done in the functional test

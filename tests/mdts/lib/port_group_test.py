@@ -36,7 +36,7 @@ class PortGroupTest(unittest.TestCase):
         self._port_group_data = None
 
     def load_port_group_data(self, yaml_port_group_data):
-        """ Load Bridge virtual topology data from the yaml file. """
+        """Load Bridge virtual topology data from the yaml file. """
         virtual_topology_data = yaml.load(yaml_port_group_data)
         self._port_group_data = virtual_topology_data['port_groups'][0].get(
                 'port_group')
@@ -46,7 +46,7 @@ class PortGroupTest(unittest.TestCase):
         self._port_group.build()
 
     def test_load_empty_group(self):
-        """ Tests whether it can load empty port group data. """
+        """Tests whether it can load empty port group data. """
         self.load_port_group_data("""
             port_groups:
               - port_group:
@@ -64,7 +64,7 @@ class PortGroupTest(unittest.TestCase):
 
     @patch('mdts.lib.port_group.PortGroup.add_port_group_port')
     def test_load_port_group_single_port(self, mock_add):
-        """ Tests whether it can load a port group with a single port. """
+        """Tests whether it can load a port group with a single port. """
         self.load_port_group_data("""
             port_groups:
               - port_group:
@@ -80,7 +80,7 @@ class PortGroupTest(unittest.TestCase):
 
     @patch('mdts.lib.port_group.PortGroup.add_port_group_port')
     def test_load_port_group(self, mock_add):
-        """ Tests whether it can load a port group with multiple ports. """
+        """Tests whether it can load a port group with multiple ports. """
         self.load_port_group_data("""
             port_groups:
               - port_group:
@@ -98,7 +98,7 @@ class PortGroupTest(unittest.TestCase):
 
     @patch('mdts.lib.port_group_port.PortGroupPort.build')
     def test_add_port_group_port(self, mock_build):
-        """ Tests add_port_group_add correctly adds a PortGroupPort. """
+        """Tests add_port_group_add correctly adds a PortGroupPort. """
         mock_ini = MagicMock(return_value=None)
         with patch('mdts.lib.port_group_port.PortGroupPort.__init__', mock_ini):
             self.load_port_group_data("""
@@ -120,7 +120,7 @@ class PortGroupTest(unittest.TestCase):
 
     @patch('mdts.lib.port_group.PortGroup.add_port_group_port')
     def test_destroy(self, mock_add_port_group_port):
-        """ Tests if destroy() properly deletes resources. """
+        """Tests if destroy() properly deletes resources. """
         mock_add_port_group_port.return_value = self._mock_port_group_port
         self.load_port_group_data("""
             port_groups:

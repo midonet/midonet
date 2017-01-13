@@ -99,7 +99,7 @@ def http_delete(url, token=None):
 
 
 def wait_on_futures(futures):
-    """ Takes a list of futures and wait on their results. """
+    """Takes a list of futures and wait on their results. """
     return map(lambda f: f.result(), futures)
 
 

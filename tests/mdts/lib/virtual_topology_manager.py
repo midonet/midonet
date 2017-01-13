@@ -94,7 +94,7 @@ class VirtualTopologyManager(TopologyManager):
         self._qos_policies = {}
 
     def build(self, binding_data=None):
-        """ Generates virtual topology resources (bridges, routers, chains, etc.
+        """Generates virtual topology resources (bridges, routers, chains, etc.
         From the data loaded from the input yaml file.
         """
 
@@ -186,7 +186,7 @@ class VirtualTopologyManager(TopologyManager):
         getattr(referrer, setter)(resolved)
 
     def resolve_uuid(self, spec):
-        """ Resolves an UUID of a referenced resource."""
+        """Resolves an UUID of a referenced resource."""
         if not isinstance(spec, dict):
             # If it's not a dictionary, consider that a raw UUID is specified.
             return spec
@@ -218,7 +218,7 @@ class VirtualTopologyManager(TopologyManager):
                     "Invalid resource reference: %s" % str(spec))
 
     def destroy(self):
-        """ Cleans up the virtual topology resources created by the manager. """
+        """Cleans up the virtual topology resources created by the manager. """
         for qos_policy in self._qos_policies.values():
             qos_policy.destroy()
         self._qos_policies.clear()
@@ -253,7 +253,7 @@ class VirtualTopologyManager(TopologyManager):
         self._links = []
 
     def get_device_port(self, device_name, port_id):
-        """ Returns a bridge/router port for specified device and port ID. """
+        """Returns a bridge/router port for specified device and port ID. """
         if device_name in self._bridge_router:
             return self._bridge_router[device_name].get_port(port_id)
         else:

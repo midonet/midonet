@@ -21,7 +21,7 @@ from webob.exc import HTTPServiceUnavailable
 
 
 def retryloop(attempts, delay):
-    """ decorator used to retry in case of service unavailable.
+    """decorator used to retry in case of service unavailable.
     TODO: The retry time should be in the HTTPServiceUnavailable exception.
           This requires changes in python-midonetclient.
     """
@@ -63,7 +63,7 @@ class ResourceBase(object):
         self._mn_resource.create()
 
     def get_mn_resource(self):
-        """ Returns the MidoNet resource that corresponds to this"""
+        """Returns the MidoNet resource that corresponds to this"""
         return self._mn_resource
 
     def _get_children_by_key(self, key):

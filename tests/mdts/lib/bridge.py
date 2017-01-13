@@ -35,7 +35,7 @@ class Bridge(ResourceBase):
         self._outbound_filter = None
 
     def build(self):
-        """ Builds a bridge MidoNet resource.
+        """Builds a bridge MidoNet resource.
 
         On building, if filter names are specified, it looks up Chain data via
         VirtualTopologyManager and assign them to this bridge.
@@ -68,7 +68,7 @@ class Bridge(ResourceBase):
             self.add_dhcp_subnet(dhcp['dhcp'])
 
     def update(self):
-        """ Dynamically updates filter data assigned to the bridge. """
+        """Dynamically updates filter data assigned to the bridge. """
         for (bridge_field, wrapper_field) in _FILTER_SETTERS:
             if getattr(self, wrapper_field):
                 getattr(self._mn_resource, bridge_field)(

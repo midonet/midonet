@@ -175,7 +175,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
 
     @patch('mdts.lib.tenants.get_or_create_tenant')
     def test_get_tenant_id(self, mock_method):
-        """ Tests if Virtual Topology Manager can look up tenant ID from the
+        """Tests if Virtual Topology Manager can look up tenant ID from the
         tenant name given in the topology data.
         """
         mock_method.return_value = self._mock_ks_tenant
@@ -189,7 +189,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
                          self._vtm._vt.get('tenant_id'))
 
     def test_get_tenant_id_from_id(self):
-        """ Tests if Virtual Topology Manager can return a correct tenant ID
+        """Tests if Virtual Topology Manager can return a correct tenant ID
         when there is no tenant name and only the tenant ID is given in the
         virtual topology data. In this case, get_tenant_id returns the ID in
         the given input data.
@@ -201,7 +201,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
 
     @patch('mdts.lib.tenants.get_or_create_tenant')
     def test_get_tenant_id_no_tenant(self, mock_method):
-        """ Tests if Virtual Topology Manager can return a correct tenant ID
+        """Tests if Virtual Topology Manager can return a correct tenant ID
         when there is no tenant name or tenant ID is given in the virtual
         topology data. In this case, get_tenant_id looks up a tenant ID
         associated with 'default-tenant'.
@@ -243,7 +243,7 @@ class VirtualTopologyManagerTest(unittest.TestCase):
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
            MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     def test_get_device_port(self):
-        """ Tests VTM returns a correct Bridge/Router for specified device. """
+        """Tests VTM returns a correct Bridge/Router for specified device. """
         self.build_empty_topology()
         mock_bridge = MagicMock()
         mock_bridge_port = MagicMock()
@@ -256,14 +256,14 @@ class VirtualTopologyManagerTest(unittest.TestCase):
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
            MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     def test_get_device_port_no_device(self):
-        """ Tests VTM returns None when no corresponding device. """
+        """Tests VTM returns None when no corresponding device. """
         self.build_empty_topology()
         self.assertEqual(None, self._vtm.get_device_port('bridge-000-001', 1))
 
     @patch('mdts.lib.resource_base.ResourceBase._get_tenant_id',
            MagicMock(return_value='f77195dd-f1d9-4b86-ad24-95d58c8ec07c'))
     def test_get_device_port_no_port(self):
-        """ Tests VTM returns None when a port is not found. """
+        """Tests VTM returns None when a port is not found. """
         self.build_empty_topology()
         mock_bridge = MagicMock()
         self._vtm._bridge_router['bridge-000-001'] = mock_bridge

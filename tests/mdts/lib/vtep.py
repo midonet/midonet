@@ -27,7 +27,7 @@ class Vtep(ResourceBase):
         self._bindings = {}
 
     def build(self):
-        """ Builds a VTEP MidoNet resource. """
+        """Builds a VTEP MidoNet resource. """
         self._mn_resource = self._api.add_vtep()
 
         self._mn_resource.management_ip(self._data['management_ip'])
