@@ -154,8 +154,8 @@ project.ext {
                           "nl.jqno.equalsverifier:equalsverifier:1.4.1"],
         typesafeconf: "com.typesafe:config:1.2.1",
         validation: "javax.validation:validation-api:1.0.0.GA",
-        vpp_core: "io.fd.vpp:jvpp-core:16.09",
-        vpp_registry: "io.fd.vpp:jvpp-registry:16.09",
+        vpp_core: project.files("midolman/jvpplib/jvpp-core-16.09.jar"),
+        vpp_registry: project.files("midolman/jvpplib/jvpp-registry-16.09.jar"),
         zookeeper: dependencies.create("org.apache.zookeeper:zookeeper:3.4.8") {
             exclude group: 'jline', module: 'jline'
             exclude group: 'javax.jms', module: 'javax.jms'
@@ -503,7 +503,6 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
 configure(subprojects) {
     repositories {
         maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
-        maven { url "https://nexus.fd.io/content/repositories/fd.io.release/" }
     }
 }
 
