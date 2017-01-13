@@ -47,7 +47,8 @@ def sandbox_name():
 
     The name can also be passed as an env variable:
         `export MDTS_SANDBOX_NAME=mdts`
-    This is what the script that runs the tests does internally."""
+    This is what the script that runs the tests does internally.
+    """
     if mdts_sandbox_name is not None:
         return mdts_sandbox_name
     else:

@@ -46,7 +46,8 @@ class BridgeTest(unittest.TestCase):
 
     def test_assign_filters_on_build_no_filters(self):
         """ Tests whether filters are correctly set when no filters are
-        specified. """
+        specified.
+        """
         self.load_bridge_data("""
             bridges:
               - bridge:
