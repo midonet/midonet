@@ -36,7 +36,7 @@ class DDoSFailure(FailureBase):
     base_path = 'bonesi-0.2.0'
 
     def __init__(self, netns, interface, target, rate=1):
-        super(DDoSFailure, self).__init__("ddos_failure %s %s %s" \
+        super(DDoSFailure, self).__init__("ddos_failure %s %s %s"
                                           % (netns, interface, target))
         self._netns = netns
         self._interface = interface

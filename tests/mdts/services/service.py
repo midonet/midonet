@@ -335,7 +335,7 @@ class Service(object):
         result = self.exec_command(cmdline, stream=False)
         cmdline = "iptables -i %s -A OUTPUT -j DROP" % iface_name
         result = self.exec_command(cmdline, stream=False)
-        LOG.debug('[%s] Dropping packets coming from %s. %s' \
+        LOG.debug('[%s] Dropping packets coming from %s. %s'
                   % (self.get_hostname(), iface_name, result))
         time.sleep(wait_time)
 
@@ -344,7 +344,7 @@ class Service(object):
         result = self.exec_command(cmdline, stream=False)
         cmdline = "iptables -i %s -D OUTPUT -j DROP" % iface_name
         result = self.exec_command(cmdline, stream=False)
-        LOG.debug('[%s] Receiving packets coming from %s. %s' \
+        LOG.debug('[%s] Receiving packets coming from %s. %s'
                   % (self.get_hostname(), iface_name, result))
         time.sleep(wait_time)
 

@@ -187,14 +187,14 @@ class Interface(object):
 
     def inject_packet_loss(self, wait_time=0):
         cmdline = "iptables -i %s -A INPUT -j DROP" % self.get_ifname()
-        LOG.debug('[%s] Dropping packets coming from %s' \
+        LOG.debug('[%s] Dropping packets coming from %s'
                   % (self.compute_host.get_hostname(), self.get_ifname()))
         self.execute(cmdline, sync=True)
         time.sleep(wait_time)
 
     def eject_packet_loss(self, wait_time=0):
         cmdline = "iptables -i %s -D INPUT -j DROP" % self.get_ifname()
-        LOG.debug('[%s] Receiving packets coming from %s' \
+        LOG.debug('[%s] Receiving packets coming from %s'
                   % (self.compute_host.get_hostname(), self.get_ifname()))
         self.execute(cmdline, sync=True)
         time.sleep(wait_time)
