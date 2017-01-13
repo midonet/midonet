@@ -18,6 +18,7 @@ from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
 from mdts.tests.utils.utils import bindings
 from nose.plugins.attrib import attr
+from nose.tools import nottest
 import re
 import subprocess
 import time
@@ -614,10 +615,7 @@ def ping_from_inet(container, ip='2001::1', count=4, namespace=None):
         "ip netns exec %s" % namespace if namespace else "",
         ping_cmd, ip, count)
     cont_services = service.get_container_by_hostname(container)
-    try:
-        cont_services.try_command_blocking(cmd)
-    except:
-        import ipdb; ipdb.set_trace()
+    cont_services.try_command_blocking(cmd)
 
 
 # Starts a modified echo server at given container
@@ -913,6 +911,7 @@ def test_lru():
         if extra is not None:
             extra.close()
 
+@nottest
 @attr(version="v1.2.0")
 @bindings(binding_multihost_singletenant_neutronfip6,
           binding_manager=BindingManager(vtm=DualUplinkAssymetric()))

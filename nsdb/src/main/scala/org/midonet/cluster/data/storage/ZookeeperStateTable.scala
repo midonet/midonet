@@ -35,6 +35,7 @@ import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.KeeperException.{Code, NoNodeException}
 
 import rx.Observable
+import rx.observers.Observers
 
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.ZkDirectory
@@ -119,9 +120,10 @@ trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
     }
 }
 
-trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with Storage {
+trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
+                          with Storage with StorageInternals {
 
-    protected val metrics: StorageMetrics
+    protected def metrics: StorageMetrics
 
     protected[storage] trait StateTableTransactionManager {
 
@@ -208,6 +210,9 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
 
     private val connection = ConnectionObservable.create(curator)
 
+    private val cache =
+        new ConcurrentHashMap[StateTable.Key, StateTable[Any, Any]]()
+
     /**
       * @see [[StateTableStorage.getTable()]]
       */
@@ -229,31 +234,26 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
                     s"Table object identifier $id not supported")
         }
 
-        val path = tablePath(clazz, id, name, args: _*)
-        if (args.nonEmpty) {
-            ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, path, true)
-        }
-
-        // Get the provider for the state table name.
-        val provider = getProvider(clazz, key.runtimeClass, value.runtimeClass,
-                                   name)
-        // Create a new directory for the state table path.
-        val directory = new ZkDirectory(curator.getZookeeperClient.getZooKeeper,
-                                        path, reactor)
-
-        // Get the constructor for the provider class and create a new instance.
-        val constructor =
-            provider.clazz.getConstructor(classOf[StateTable.Key],
-                                          classOf[Directory],
-                                          classOf[StateTableClient],
-                                          classOf[Observable[ConnectionState]],
-                                          classOf[StorageMetrics])
-
         val tableKey = StateTable.Key(clazz, objectId, key.runtimeClass,
                                       value.runtimeClass, name, args)
 
-        constructor.newInstance(tableKey, directory, stateTables, connection, metrics)
-                   .asInstanceOf[StateTable[K, V]]
+        var table = cache.get(tableKey)
+        if (table eq null) {
+            table = newTable(tableKey)
+            val oldTable = cache.putIfAbsent(tableKey, table)
+            if (oldTable ne null) {
+                table = oldTable
+            } else {
+                internalObservable(clazz, id, version.get, {
+                    cache.remove(tableKey, table)
+                })
+                    .asInstanceOf[Observable[Any]]
+                    .ignoreElements()
+                    .onErrorResumeNext(Observable.empty())
+                    .subscribe(Observers.empty[Any]())
+            }
+        }
+        table.asInstanceOf[StateTable[K, V]]
     }
 
     /**
@@ -264,28 +264,17 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
     : StateTable[K, V] = {
         assertBuilt()
 
-        val path = tablePath(name, version.longValue)
-        // Get the provider for the state table name.
-        val provider = getProvider(key.runtimeClass, value.runtimeClass,
-                                   name)
-        // Create a new directory for the state table path.
-        val directory = new ZkDirectory(curator.getZookeeperClient.getZooKeeper,
-                                        path, reactor)
-
-        // Get the constructor for the provider class and create a new instance.
-        val constructor =
-            provider.clazz.getConstructor(classOf[StateTable.Key],
-                                          classOf[Directory],
-                                          classOf[StateTableClient],
-                                          classOf[Observable[ConnectionState]],
-                                          classOf[StorageMetrics])
-
         val tableKey = StateTable.Key(null, null, key.runtimeClass,
                                       value.runtimeClass, name, Seq())
 
-        constructor.newInstance(tableKey, directory, DisabledStateTableClient,
-                                connection, metrics)
-                   .asInstanceOf[StateTable[K, V]]
+        var table = cache.get(tableKey)
+        if (table eq null) {
+            table = newGlobalTable(tableKey)
+            val oldTable = cache.putIfAbsent(tableKey, table)
+            if (oldTable ne null)
+                table = oldTable
+        }
+        table.asInstanceOf[StateTable[K, V]]
     }
 
     /**
@@ -313,6 +302,61 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
         }).forPath(tablePath(clazz, id, name, args: _*))
 
         promise.future
+    }
+
+    /**
+      * Creates a new state table instance for the specified [[StateTable.Key]].
+      */
+    private def newTable(key: StateTable.Key): StateTable[Any, Any] = {
+        val path = tablePath(key.objectClass, key.objectId, key.name,
+                             key.args: _*)
+        if (key.args.nonEmpty) {
+            ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, path, true)
+        }
+
+        // Get the provider for the state table name.
+        val provider = getProvider(key.objectClass, key.keyClass,
+                                   key.valueClass, key.name)
+        // Create a new directory for the state table path.
+        val directory = new ZkDirectory(curator.getZookeeperClient.getZooKeeper,
+                                        path, reactor)
+
+        // Get the constructor for the provider class and create a new instance.
+        val constructor =
+            provider.clazz.getConstructor(classOf[StateTable.Key],
+                                          classOf[Directory],
+                                          classOf[StateTableClient],
+                                          classOf[Observable[ConnectionState]],
+                                          classOf[StorageMetrics])
+
+        constructor.newInstance(key, directory, stateTables, connection, metrics)
+                   .asInstanceOf[StateTable[Any, Any]]
+    }
+
+    /**
+      * Creates a new global state table instance for the specified
+      * [[StateTable.Key]].
+      */
+    private def newGlobalTable(key: StateTable.Key): StateTable[Any, Any] = {
+        val path = tablePath(key.name, version.longValue)
+
+        // Get the provider for the state table name.
+        val provider = getProvider(key.keyClass, key.valueClass, key.name)
+        // Create a new directory for the state table path.
+        val directory = new ZkDirectory(curator.getZookeeperClient.getZooKeeper,
+                                        path, reactor)
+
+        // Get the constructor for the provider class and create a new instance.
+        val constructor =
+            provider.clazz.getConstructor(classOf[StateTable.Key],
+                                          classOf[Directory],
+                                          classOf[StateTableClient],
+                                          classOf[Observable[ConnectionState]],
+                                          classOf[StorageMetrics])
+
+        constructor.newInstance(key, directory, DisabledStateTableClient,
+                                connection, metrics)
+                   .asInstanceOf[StateTable[Any, Any]]
     }
 
     /** Gets the table provider for the given object, key and value classes. */
