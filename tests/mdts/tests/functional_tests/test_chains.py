@@ -21,7 +21,6 @@ from mdts.tests.utils.asserts import within_sec
 from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.utils import wait_on_futures
 from nose.plugins.attrib import attr
-from nose.tools import nottest
 import time
 
 PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_chains.yaml')
