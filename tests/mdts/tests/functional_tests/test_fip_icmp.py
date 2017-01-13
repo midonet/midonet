@@ -59,7 +59,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                         'security_group_id': port_left['port']['security_groups'][0]
                     }
                 }))
-        except Exception, e:
+        except Exception as e:
             LOG.debug('Error creating security group ' +
                       '(It could already exist)... continuing. %s' % e)
         try:
@@ -71,7 +71,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                         'security_group_id': port_left['port']['security_groups'][0]
                     }
                 }))
-        except Exception, e:
+        except Exception as e:
             LOG.debug('Error creating security group ' +
                       '(It could already exist)... continuing. %s' % e)
 

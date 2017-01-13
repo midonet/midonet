@@ -61,7 +61,7 @@ class MidonetClusterHost(Service):
                 # that the compat api is actually talking to the NSDB
                 api.get_hosts()
                 return api
-            except Exception, e:
+            except Exception as e:
                 LOG.warn("Error getting api, retrying. %s" % e)
                 time.sleep(wait_time)
                 timeout -= wait_time
