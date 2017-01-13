@@ -18,16 +18,14 @@ package org.midonet.containers
 
 import java.util.UUID
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.ThreadPoolExecutor.AbortPolicy
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 
 import com.typesafe.config.{Config, ConfigFactory}
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito._
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.stubbing.Answer
 import org.mockito.{ArgumentCaptor, Mockito, Matchers => MMatchers}
 import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
@@ -46,7 +44,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.OptionUtils._
-import org.midonet.util.concurrent.{Executors, toFutureOps}
+import org.midonet.util.concurrent.{SameThreadButAfterExecutorService, toFutureOps}
 import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -59,8 +57,7 @@ class HaProxyContainerTest extends MidolmanSpec
     var store: Storage = _
     var stateStore: StateStorage = _
 
-    val containerExecutor = Executors.singleThreadScheduledExecutor(
-        "ha-proxy-container-test", isDaemon = false, new AbortPolicy)
+    val containerExecutor = new SameThreadButAfterExecutorService
 
     private val lbId = UUID.randomUUID()
     private val containerId = UUID.randomUUID()
@@ -69,22 +66,6 @@ class HaProxyContainerTest extends MidolmanSpec
     private val portSubnet = new IPv4Subnet("10.0.0.0", 30)
     private val ifaceName = "test-iface"
     private val namespaceName = HaproxyHelper.namespaceName(lbId.toString)
-
-    // For synchronization.
-    private object Lock
-    private def synchronizedAnswer[T](t: T) = new Answer[T] {
-        override def answer(invocation: InvocationOnMock): T = {
-            Lock.synchronized(Lock.wait(3000))
-            t
-        }
-    }
-
-    private def synchronizedExceptionAnswer[T] = new Answer[T] {
-        override def answer(invocation: InvocationOnMock): T = {
-            Lock.synchronized(Lock.wait(3000))
-            throw new RuntimeException("Exception")
-        }
-    }
 
     private val containerPort = ContainerPort(
         containerPortId, UUID.randomUUID(), ifaceName,
@@ -110,7 +91,7 @@ class HaProxyContainerTest extends MidolmanSpec
 
     override protected def fillConfig(config: Config): Config = {
         super.fillConfig(ConfigFactory.parseString(
-            "agent.containers.haproxy.status_update_interval = 100ms")
+            "agent.containers.haproxy.status_update_interval = 500ms")
                              .withFallback(config))
     }
 
@@ -156,10 +137,6 @@ class HaProxyContainerTest extends MidolmanSpec
             setupTopology(2, Seq(2, 2), Seq(1, 1), lbId = UUID.randomUUID())
             container.create(containerPort)
 
-            // Verified that this is long enough to fail the test if deploy()
-            // does get called.
-            Thread.sleep(500)
-
             verify(mockHaproxyHelper, never()).deploy(
                 MMatchers.any(), MMatchers.any(), MMatchers.any(),
                 MMatchers.any())
@@ -171,31 +148,18 @@ class HaProxyContainerTest extends MidolmanSpec
                  "finally RUNNING") {
             val obs = new TestAwaitableObserver[ContainerStatus]
             container.status.subscribe(obs)
-            verifyHealth(obs, StatusCode.STOPPED, null, "Stopped")
 
             setupTopology(1, Seq(2), Seq(1))
 
-            // Call create(), delaying return from deploy() until Lock.notify()
-            // is called. This allows us to catch the transitory STARTING state.
-            Mockito.when(mockHaproxyHelper.deploy(
-                MMatchers.any(), MMatchers.any(), MMatchers.any(),
-                MMatchers.any()))
-                .thenAnswer(synchronizedAnswer(()))
             container.create(containerPort)
 
-            verifyHealth(obs, StatusCode.STARTING, namespaceName, "Starting")
-
-            // Allow deploy() to return. Status should transition to RUNNING
-            // shortly after.
-            Lock.synchronized(Lock.notify())
-
-            verifyHealth(obs, StatusCode.RUNNING, namespaceName, "Running")
+            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(
+                StatusCode.RUNNING, namespaceName, "")
         }
 
         scenario("Status changes to ERROR if deploy() fails") {
             val obs = new TestAwaitableObserver[ContainerStatus]
             container.status.subscribe(obs)
-            verifyHealth(obs, StatusCode.STOPPED, null, "Stopped")
 
             setupTopology(1, Seq(2), Seq(1))
 
@@ -204,15 +168,11 @@ class HaProxyContainerTest extends MidolmanSpec
             Mockito.when(mockHaproxyHelper.deploy(
                 MMatchers.any(), MMatchers.any(), MMatchers.any(),
                 MMatchers.any()))
-                .thenAnswer(synchronizedExceptionAnswer)
+                .thenThrow(new RuntimeException("Failure"))
             container.create(containerPort)
 
-            verifyHealth(obs, StatusCode.STARTING, namespaceName, "Starting")
-
-            // Allow deploy() to resume and throw exception.
-            Lock.synchronized(Lock.notify())
-
-            verifyHealth(obs, StatusCode.ERROR, namespaceName, "Exception")
+            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(
+                StatusCode.ERROR, namespaceName, "Failure")
         }
 
         scenario("Status changes to ERROR if restart() fails") {
@@ -226,7 +186,8 @@ class HaProxyContainerTest extends MidolmanSpec
             val tt = setupTopology(1, Seq(2), Seq(1))
             container.create(containerPort)
 
-            verifyHealth(obs, StatusCode.RUNNING, namespaceName, "Running")
+            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(
+                StatusCode.RUNNING, namespaceName, "")
 
             // Add a pool member.
             val newMember = createPoolMember(
@@ -234,34 +195,8 @@ class HaProxyContainerTest extends MidolmanSpec
                 address = IPv4Addr.random)
             store.create(newMember)
 
-            verifyHealth(obs, StatusCode.ERROR, namespaceName, "Restart failed")
-        }
-
-        scenario("On deletion, status changes from RUNNING to STOPPING to " +
-                 "STOPPED") {
-            setupTopology(1, Seq(2), Seq(1))
-            container.create(containerPort)
-            val obs = new TestAwaitableObserver[ContainerStatus]
-            container.status.subscribe(obs)
-
-            verifyHealth(obs, StatusCode.RUNNING, namespaceName, "Running")
-
-            // Delay response from undeploy() to allow us to catch the
-            // transitory STOPPING state.
-            Mockito.when(mockHaproxyHelper.undeploy(MMatchers.any(),
-                                                    MMatchers.any()))
-                .thenAnswer(synchronizedAnswer(()))
-
-            val deleteThread = new Thread {
-                override def run(): Unit = container.delete()
-            }
-            deleteThread.start()
-            verifyHealth(obs, StatusCode.STOPPING, namespaceName, "Stopping")
-
-            // Allow undeploy() to return.
-            Lock.synchronized(Lock.notify())
-            verifyHealth(obs, StatusCode.STOPPED, namespaceName, "Stopped")
-            deleteThread.join(3000)
+            obs.getOnNextEvents.get(1) shouldBe ContainerHealth(
+                StatusCode.ERROR, namespaceName, "Restart failed")
         }
 
         scenario("Status changes to ERROR when getStatus() fails") {
@@ -270,18 +205,20 @@ class HaProxyContainerTest extends MidolmanSpec
             val obs = new TestAwaitableObserver[ContainerStatus]
             container.status.subscribe(obs)
 
-            verifyHealth(obs, StatusCode.RUNNING, namespaceName, "Running")
-
             // Make getStatus throw exception and verify ERROR status.
             Mockito.when(mockHaproxyHelper.getStatus())
                 .thenThrow(new RuntimeException("Failure"))
-            verifyHealth(obs, StatusCode.ERROR, namespaceName, "Failure")
+            obs.awaitOnNext(1, 5 seconds)
+            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(
+                StatusCode.ERROR, namespaceName, "Failure")
 
             // Verify return to RUNNING status.
             Mockito.reset(mockHaproxyHelper)
             Mockito.when(mockHaproxyHelper.getStatus())
                 .thenReturn((Set[UUID](), Set[UUID]()))
-            verifyHealth(obs, StatusCode.RUNNING, namespaceName, "Running")
+            obs.awaitOnNext(2, 5 seconds)
+            obs.getOnNextEvents.get(1) shouldBe ContainerHealth(
+                StatusCode.RUNNING, namespaceName, "Up: Set()\nDown: Set()")
         }
     }
 
@@ -337,16 +274,6 @@ class HaProxyContainerTest extends MidolmanSpec
     private def getMemberStatus(memberId: UUID): Option[String] = {
         stateStore.getKey(classOf[PoolMember], memberId, StatusKey)
             .toSingle.toBlocking.value.asInstanceOf[SingleValueKey].value
-    }
-
-    private def verifyHealth(obs: TestAwaitableObserver[ContainerStatus],
-                             code: StatusCode, namespace: String, msg: String)
-    : Unit = eventually {
-        val health = obs.getOnNextEvents.asScala.last
-            .asInstanceOf[ContainerHealth]
-        health.code shouldBe code
-        health.namespace shouldBe namespace
-        health.message should include(msg)
     }
 
     private def verifyDeploy(tt: TestTopology): Unit = eventually {
