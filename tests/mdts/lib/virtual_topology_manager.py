@@ -45,7 +45,8 @@ class ResourceNotFoundException(MdtsException):
 
 class InvalidResourceReferenceException(MdtsException):
     """Exception raised when a reference for a resource is in an invalid
-    form."""
+    form.
+    """
     pass
 
 

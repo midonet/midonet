@@ -275,7 +275,8 @@ def clear_multi_vtep_multi_tz():
 @with_setup(setup_single_vtep, clear_single_vtep)
 def test_to_single_vtep_single_bridge():
     """Tests if VMs can ping a host connected to a VTEP from a single host
-    with a single bridge."""
+    with a single bridge.
+    """
     add_member("midolman1", "tz1")
 
     add_binding("vtep1", "swp1", "bridge-000-001", 0)
@@ -291,7 +292,8 @@ def test_to_single_vtep_single_bridge():
 @with_setup(setup_single_vtep, clear_single_vtep)
 def test_to_single_vtep_multi_bridge():
     """Tests if VMs can ping a host connected to a VTEP from single and
-    multiple hosts with multiple bridges."""
+    multiple hosts with multiple bridges.
+    """
     add_member("midolman1", "tz1")
 
     add_binding("vtep1", "swp1", "bridge-000-001", 0)
@@ -306,7 +308,8 @@ def test_to_single_vtep_multi_bridge():
 def test_to_multi_vtep_single_tz():
     """Tests if VMs can ping hosts connected to multiple VTEPs in the same
     tunnel-zone from a single and multiple hosts. Because the VTEP hosts
-    are in separate networks, the test uses multiple bridges."""
+    are in separate networks, the test uses multiple bridges.
+    """
     add_member("midolman2", "tz1")
 
     add_binding("vtep1", "swp1", "bridge-000-001", 0)
@@ -321,7 +324,8 @@ def test_to_multi_vtep_single_tz():
 def test_to_multi_vtep_multi_tz():
     """Tests if VMs can ping hosts connected to multiple VTEPs in the separate
     tunnel-zones from a single and multiple hosts. Because the VTEP hosts
-    are in separate networks, the test uses multiple bridges."""
+    are in separate networks, the test uses multiple bridges.
+    """
     add_member("midolman2", "tz1")
     add_member("midolman2", "tz2")
 

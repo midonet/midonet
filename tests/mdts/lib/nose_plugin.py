@@ -84,7 +84,8 @@ class Mdts(Plugin):
 
     def finalize(self, test):
         """Finally modify xunit xml file by adding only relevant
-        midolmlan logs for failed or errored tests"""
+        midolmlan logs for failed or errored tests
+        """
         if os.path.exists(self.xunit_file):
             service_hosts = self._get_all_services()
             debug_suite = False
