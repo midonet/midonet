@@ -142,7 +142,7 @@ _tunnel_zones = {}
 
 
 def add_tzone(tzone_name):
-    """ Adds a new VTEP tunnel zone with for the specified name. """
+    """Adds a new VTEP tunnel zone with for the specified name. """
     tzone = VTM._api.add_vtep_tunnel_zone()
     tzone.name(tzone_name)
     tzone.type('vtep')

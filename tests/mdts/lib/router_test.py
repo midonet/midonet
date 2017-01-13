@@ -36,7 +36,7 @@ class RouterTest(unittest.TestCase):
         self._api.add_router.return_value = self._mn_router
 
     def load_router_data(self, yaml_vt_data):
-        """ Load Router virtual topology data from the yaml file. """
+        """Load Router virtual topology data from the yaml file. """
         virtual_topology_data = yaml.load(yaml_vt_data)
         self._router_data = virtual_topology_data['routers'][0].get('router')
         self._router = Router(self._api, self._context, self._router_data)
@@ -44,7 +44,7 @@ class RouterTest(unittest.TestCase):
         self._router.build()
 
     def test_assign_filters_on_build_no_filters(self):
-        """ Test if filters are correctly set when no filters are specified. """
+        """Test if filters are correctly set when no filters are specified. """
         self.load_router_data("""
                 routers:
                   - router:
@@ -57,7 +57,7 @@ class RouterTest(unittest.TestCase):
         self.assertEqual(None, self._router._outbound_filter)
 
     def test_inbound_filter_resolution(self):
-        """ Tests if in-bound filter is correctly looked up."""
+        """Tests if in-bound filter is correctly looked up."""
         self.load_router_data("""
                 routers:
                   - router:
@@ -70,7 +70,7 @@ class RouterTest(unittest.TestCase):
                 'inbound_filter_id', {'chain_name': 'in_filter_001'})
 
     def test_outbound_filter_resolution(self):
-        """ Tests if out-bound filter is correctly looked up."""
+        """Tests if out-bound filter is correctly looked up."""
         self.load_router_data("""
                 routers:
                   - router:
@@ -83,8 +83,8 @@ class RouterTest(unittest.TestCase):
                 'outbound_filter_id', {'chain_name': 'out_filter_001'})
 
     def test_set_inbound_filter(self):
-        """ Tests if setting an in-bound filter to a router dynamically updates
-            the topology data for the router resource.
+        """Tests if setting an in-bound filter to a router dynamically updates
+           the topology data for the router resource.
         """
         self.load_router_data("""
             routers:
@@ -106,8 +106,8 @@ class RouterTest(unittest.TestCase):
         self._mn_router.update.assert_called_with()
 
     def test_set_outbound_filter(self):
-        """ Tests if setting an out-bound filter to a router dynamically updates
-            the topology data for the router resource.
+        """Tests if setting an out-bound filter to a router dynamically updates
+           the topology data for the router resource.
         """
         self.load_router_data("""
             routers:

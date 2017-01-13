@@ -48,9 +48,9 @@ class RuleTest(unittest.TestCase):
         self._rule.build()
 
     def test_load_simple_rule(self):
-        """ Tests if simple rule data can be correctly loaded from the yaml
-            format and corresponding resource creation / update operations are
-            performed.
+        """Tests if simple rule data can be correctly loaded from the yaml
+           format and corresponding resource creation / update operations are
+           performed.
         """
         self._load_rule_data(yaml.load("""
             rules:
@@ -73,9 +73,9 @@ class RuleTest(unittest.TestCase):
         self._mn_rule.create.assert_called_with()
 
     def test_load_nat_rule(self):
-        """ Tests if nat rule data can be correctly loaded from the yaml format
-            and corresponding resource creation / update operations are
-            performed.
+        """Tests if nat rule data can be correctly loaded from the yaml format
+           and corresponding resource creation / update operations are
+           performed.
         """
         self._load_rule_data(yaml.load("""
             rules:

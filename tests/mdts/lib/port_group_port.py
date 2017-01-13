@@ -21,7 +21,7 @@ from mdts.lib.resource_base import ResourceBase
 class PortGroupPort(ResourceBase):
 
     def __init__(self, api, context, parent_port_group, data):
-        """ Initializes a port group port.
+        """Initializes a port group port.
 
         Args:
             api: MidoNet API client object
@@ -46,5 +46,5 @@ class PortGroupPort(ResourceBase):
         mn_port_group_port.create()
 
     def destroy(self):
-        """ Destroys virtual topology resources for this Port Group Port. """
+        """Destroys virtual topology resources for this Port Group Port. """
         self._mn_resource.delete()

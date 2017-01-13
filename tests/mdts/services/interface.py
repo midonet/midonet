@@ -373,7 +373,7 @@ class Interface(object):
                  payload_size=1,
                  src_port=9, dst_port=9, extra_params=None, delay=1, count=1,
                  sync=False, src_hw=None, src_ipv4=None):
-        """ Sends UDP packets to target mac addr / ip address.
+        """Sends UDP packets to target mac addr / ip address.
 
         Sends UDP packets from this interface to the target HW mac and ip
         address. Beware that the target hardware mac address may be a mac

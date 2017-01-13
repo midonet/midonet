@@ -17,11 +17,11 @@ from mdts.lib.rule import Rule
 
 
 class Chain(ResourceBase):
-    """ A class representing a rule chain for functional tests.
+    """A class representing a rule chain for functional tests.
     """
 
     def __init__(self, api, context, data):
-        """ Initializes a rule.
+        """Initializes a rule.
 
         Args:
             api: MidoNet API client object
@@ -53,15 +53,15 @@ class Chain(ResourceBase):
         self._rules = {}
 
     def add_rule(self, rule):
-        """ Adds a given rule to this chain. """
+        """Adds a given rule to this chain. """
         rule_obj = Rule(self._api, self._context, rule, self)
         rule_obj.build()
         self._rules[rule.get('id')] = rule_obj
 
     def get_rule(self, rule_id):
-        """ Returns a rule in this chain with the given rule ID."""
+        """Returns a rule in this chain with the given rule ID."""
         return self._rules[rule_id]
 
     def get_id(self):
-        """ Returns the chain ID."""
+        """Returns the chain ID."""
         return self._data.get('id')

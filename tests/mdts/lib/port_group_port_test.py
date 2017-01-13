@@ -43,7 +43,7 @@ class PortGroupPortTest(unittest.TestCase):
         self._port_group_port.build()
 
     def test_load_port_group_port(self):
-        """ Tests adding a port group port. """
+        """Tests adding a port group port. """
         mock_device_port = MagicMock()
         self._context.get_device_port.return_value = mock_device_port
         mock_device_port._mn_resource.get_id.return_value = 'port_id0'
@@ -56,7 +56,7 @@ class PortGroupPortTest(unittest.TestCase):
         self._port_group_port_resource.create.assert_called_with()
 
     def test_load_port_group_port_no_device_port(self):
-        """ Tests adding a port group port raise an exception.
+        """Tests adding a port group port raise an exception.
 
         When there is no corresponding device port is found, adding port group
         port should raise an exception.
@@ -65,7 +65,7 @@ class PortGroupPortTest(unittest.TestCase):
         self.assertRaises(Exception, self.load_port_group_port_data, ())
 
     def test_destroy(self):
-        """ Tests destroying a port group port. """
+        """Tests destroying a port group port. """
         mock_device_port = MagicMock()
         self._context.get_device_port.return_value = mock_device_port
         mock_device_port._mn_resource.get_id.return_value = 'port_id0'

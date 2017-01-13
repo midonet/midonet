@@ -72,7 +72,7 @@ class ChainTest(unittest.TestCase):
         self._mock_chain.get_id.return_value = 'chain_0'
 
     def _load_chain_data(self, virtual_topology_data):
-        """ Load a chain data with a single rule """
+        """Load a chain data with a single rule """
         # Load chain and rule virtual topology data from file.
         self._chain_data = virtual_topology_data['chains'][0].get('chain')
         self._chain = Chain(self._api, self._context, self._chain_data)
@@ -80,7 +80,7 @@ class ChainTest(unittest.TestCase):
         self._chain.build()
 
     def test_load_empty_chain(self):
-        """ Tests if empty rule chain data can be correctly loaded. """
+        """Tests if empty rule chain data can be correctly loaded. """
         self._load_chain_data(self._empty_chain)
 
         self._mock_chain.tenant_id.assert_called_with('tenant_0')
@@ -88,7 +88,7 @@ class ChainTest(unittest.TestCase):
         self._mock_chain.create.assert_called_with()
 
     def test_load_rule_chain(self):
-        """ Tests if rule chain data can be correctly loaded from the yaml
+        """Tests if rule chain data can be correctly loaded from the yaml
             file and corresponding resource creation / update operations are
             performed.
         """
@@ -110,8 +110,8 @@ class ChainTest(unittest.TestCase):
                           call.create()], self._mock_rule.mock_calls)
 
     def test_load_multiple_rules_chain(self):
-        """ Tests if chain data with multiple rules can be correctly loaded from
-            the yaml file.
+        """Tests if chain data with multiple rules can be correctly loaded from
+           the yaml file.
         """
         self._load_chain_data(self._multiple_rules_chain)
 

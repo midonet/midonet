@@ -40,7 +40,7 @@ class TraceRequestTest(unittest.TestCase):
         self._context.get_bridge.return_value = device
 
     def test_load_tracerequest_with_router_port(self):
-        """ Test that a trace request can be loaded with a router port """
+        """Test that a trace request can be loaded with a router port """
         vt_data = yaml.load("""
     tracerequests:
         - tracerequest:
@@ -62,7 +62,7 @@ class TraceRequestTest(unittest.TestCase):
         self._mn_tracerequest.set_name.assert_called_with("TRACEREQUEST_0")
 
     def test_load_tracerequest_with_router(self):
-        """ Test that a trace request can be loaded with a router port """
+        """Test that a trace request can be loaded with a router port """
         vt_data = yaml.load("""
     tracerequests:
         - tracerequest:
@@ -82,7 +82,7 @@ class TraceRequestTest(unittest.TestCase):
         self._mn_tracerequest.set_name.assert_called_with("TRACEREQUEST_0")
 
     def test_load_tracerequest_with_bridge(self):
-        """ Test that a trace request can be loaded with a router port """
+        """Test that a trace request can be loaded with a router port """
         vt_data = yaml.load("""
     tracerequests:
         - tracerequest:

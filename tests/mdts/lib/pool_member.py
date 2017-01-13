@@ -40,11 +40,11 @@ class PoolMember(ResourceBase, AdminStateUpMixin):
         pass
 
     def get_address(self):
-        """ Returns the pool member address (IP)."""
+        """Returns the pool member address (IP)."""
         return self._data.get('address')
 
     def get_port(self):
-        """ Returns the pool member port."""
+        """Returns the pool member port."""
         return self._data.get('protocol_port')
 
     def get_weight(self):

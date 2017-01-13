@@ -25,7 +25,7 @@ class VtepBinding(ResourceBase):
         super(VtepBinding, self).__init__(api, context, data)
 
     def build(self):
-        """ Builds a VTEP binding MidoNet resource. """
+        """Builds a VTEP binding MidoNet resource. """
         self._mn_resource = self._context.add_binding()
 
         self._mn_resource.mgmt_ip(self._context.get_management_ip())

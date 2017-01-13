@@ -85,7 +85,7 @@ def receives_icmp_unreachable_for_udp(udp_src_ip,
                                       udp_dst_port=9,
                                       timeout=5,
                                       listen_host_interface=False):
-    """ Receives an ICMP unreachable reply for a UDP packet.
+    """Receives an ICMP unreachable reply for a UDP packet.
 
     Constructs pcap filter strings for an ICMP unreachable reply received in
     response for a UDP packet sent.

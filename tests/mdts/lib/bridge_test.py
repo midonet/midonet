@@ -37,7 +37,7 @@ class BridgeTest(unittest.TestCase):
         self._mock_bridge.create.return_value = self._mock_bridge
 
     def load_bridge_data(self, yaml_vt_data):
-        """ Load Bridge virtual topology data from the yaml file. """
+        """Load Bridge virtual topology data from the yaml file. """
         virtual_topology_data = yaml.load(yaml_vt_data)
         self._bridge_data = virtual_topology_data['bridges'][0].get('bridge')
         self._bridge = Bridge(self._api, self._context, self._bridge_data)
@@ -45,7 +45,7 @@ class BridgeTest(unittest.TestCase):
         self._bridge.build()
 
     def test_assign_filters_on_build_no_filters(self):
-        """ Tests whether filters are correctly set when no filters are
+        """Tests whether filters are correctly set when no filters are
         specified.
         """
         self.load_bridge_data("""
@@ -60,7 +60,7 @@ class BridgeTest(unittest.TestCase):
         self.assertEqual(None, self._bridge._outbound_filter)
 
     def test_inbound_filter_resolution(self):
-        """ Tests if in-bound filter is correctly looked up."""
+        """Tests if in-bound filter is correctly looked up."""
         self.load_bridge_data("""
                 bridges:
                   - bridge:
@@ -73,7 +73,7 @@ class BridgeTest(unittest.TestCase):
                 'inbound_filter_id', {'chain_name': 'in_filter_001'})
 
     def test_outbound_filter_resolution(self):
-        """ Tests if out-bound filter is correctly looked up."""
+        """Tests if out-bound filter is correctly looked up."""
         self.load_bridge_data("""
                 bridges:
                   - bridge:
@@ -86,7 +86,7 @@ class BridgeTest(unittest.TestCase):
                 'outbound_filter_id', {'chain_name': 'out_filter_001'})
 
     def test_set_inbound_filter(self):
-        """ Tests if setting an in-bound filter to a bridge dynamically updates
+        """Tests if setting an in-bound filter to a bridge dynamically updates
             the topology data for the bridge resource.
         """
         self.load_bridge_data("""
@@ -109,7 +109,7 @@ class BridgeTest(unittest.TestCase):
         self._mock_bridge.update.assert_called_with()
 
     def test_set_outbound_filter(self):
-        """ Tests if setting an out-bound filter to a bridge dynamically updates
+        """Tests if setting an out-bound filter to a bridge dynamically updates
             the topology data for the bridge resource.
         """
         self.load_bridge_data("""
