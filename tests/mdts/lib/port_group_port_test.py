@@ -62,7 +62,8 @@ class PortGroupPortTest(unittest.TestCase):
         port should raise an exception.
         """
         self._context.get_device_port.return_value = None
-        self.assertRaises(Exception, self.load_port_group_port_data, ())
+        self.assertRaises(Exception,
+                          self.load_port_group_port_data, ())  # noqa
 
     def test_destroy(self):
         """Tests destroying a port group port. """
