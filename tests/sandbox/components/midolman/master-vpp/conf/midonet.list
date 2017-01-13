@@ -1,2 +1,2 @@
-deb http://builds.midonet.org/midonet-5.3 unstable main
+deb http://builds.midonet.org/midonet-5.4 unstable main
 deb http://builds.midonet.org/misc stable main
