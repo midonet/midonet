@@ -26,7 +26,7 @@ TENANTS_TABLE = {}
 
 
 def get_or_create_tenant(name):
-    if TENANTS_TABLE.has_key(name):
+    if name in TENANTS_TABLE:
         return TENANTS_TABLE[name]
     # generate a unique UUID to a tenant name based on its hash
     namespace = uuid.UUID('ec9c48eb-a3b3-489c-9bb2-beb37fbb8c5e')

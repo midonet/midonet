@@ -142,7 +142,7 @@ class NeutronTopologyManager(TopologyManager):
             port_params['binding:profile'] = {'type': 'dict',
                                               'interface_name': interface}
         for f in fixed_ips:
-            if not port_params.has_key('fixed_ips'):
+            if 'fixed_ips' not in port_params:
                 port_params['fixed_ips'] = []
             port_params['fixed_ips'] = port_params['fixed_ips'] \
                 + [{"ip_address": f}]

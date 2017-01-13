@@ -31,7 +31,7 @@ class Mirror(ResourceBase):
     def build(self):
         self._mn_resource = self._api.add_mirror()
 
-        if self._data.has_key('to_port'):
+        if 'to_port' in self._data:
             port = self._data['to_port']
             portdev = self._context.get_device_port(
                 port['device'], port['port_id']).get_mn_resource()
@@ -39,7 +39,7 @@ class Mirror(ResourceBase):
             self._mn_resource.to_port(to_port_id)
 
         conds = []
-        if self._data.has_key('conditions'):
+        if 'conditions' in self._data:
             for cond in self._data['conditions']:
                 conds.append(cond['condition'])
         self._mn_resource.set_conditions(conds)
