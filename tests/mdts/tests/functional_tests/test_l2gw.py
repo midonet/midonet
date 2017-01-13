@@ -140,7 +140,8 @@ def test_icmp_from_mn():
 
     # Wait for the peer bridge to block one of the trunks and
     # make sure Midonet has recovered from a transient loop.
-    _test_resiliency_from_transient_loop(_ping_from_mn, midoVmIface, exHostIface)
+    _test_resiliency_from_transient_loop(_ping_from_mn, midoVmIface,
+                                         exHostIface)
 
 
 @attr(version="v1.2.0")

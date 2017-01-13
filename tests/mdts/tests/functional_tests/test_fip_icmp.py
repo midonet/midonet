@@ -37,9 +37,12 @@ class VT_Networks_with_SG(NeutronTopologyManager):
     router_right = None
 
     def build(self, binding_data=None):
-        (public, public_subnet) = self.add_network('public', '1.0.0.0/8', '1.0.0.1', True)
-        (left, subnet_left) = self.add_network('left', '10.0.0.0/24', '10.0.0.1')
-        (right, subnet_right) = self.add_network('right', '20.0.0.0/24', '20.0.0.1')
+        (public, public_subnet) = self.add_network('public', '1.0.0.0/8',
+                                                   '1.0.0.1', True)
+        (left, subnet_left) = self.add_network('left', '10.0.0.0/24',
+                                               '10.0.0.1')
+        (right, subnet_right) = self.add_network('right', '20.0.0.0/24',
+                                                 '20.0.0.1')
         port_left = self.add_port('port_left', left['network']['id'])
         port_right = self.add_port('port_right', right['network']['id'])
 
@@ -51,24 +54,26 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                        subnet_right['subnet']['id'])
 
         try:
+            secg_id = port_left['port']['security_groups'][0]
             self.create_resource(
                 self.api.create_security_group_rule({
                     'security_group_rule': {
                         'direction': 'ingress',
                         'protocol': 'udp',
-                        'security_group_id': port_left['port']['security_groups'][0]
+                        'security_group_id': secg_id
                     }
                 }))
         except Exception as e:
             LOG.debug('Error creating security group ' +
                       '(It could already exist)... continuing. %s' % e)
         try:
+            secg_id = port_left['port']['security_groups'][0]
             self.create_resource(
                 self.api.create_security_group_rule({
                     'security_group_rule': {
                         'direction': 'ingress',
                         'protocol': 'icmp',
-                        'security_group_id': port_left['port']['security_groups'][0]
+                        'security_group_id': secg_id
                     }
                 }))
         except Exception as e:
@@ -102,10 +107,12 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         return self.fip_right
 
     def get_router_extip_left(self):
-        return self.router_left['router']['external_gateway_info']['external_fixed_ips'][0]['ip_address']
+        gw = self.router_left['router']['external_gateway_info']
+        return gw['external_fixed_ips'][0]['ip_address']
 
     def get_router_extip_right(self):
-        return self.router_right['router']['external_gateway_info']['external_fixed_ips'][0]['ip_address']
+        gw = self.router_right['router']['external_gateway_info']
+        return gw['external_fixed_ips'][0]['ip_address']
 
     def add_router(self, name, external_net, internal_subnet):
         router = self.create_resource(

@@ -26,8 +26,10 @@ from nose.plugins.attrib import attr
 
 LOG = logging.getLogger(__name__)
 
-PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_router_service.yaml')
-VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_router_service.yaml')
+PTM = PhysicalTopologyManager(
+    '../topologies/mmm_physical_test_router_service.yaml')
+VTM = VirtualTopologyManager(
+    '../topologies/mmm_virtual_test_router_service.yaml')
 BM = BindingManager(PTM, VTM)
 
 binding_multihost = {
@@ -78,8 +80,9 @@ def test_router_service():
                            receives('dst host 172.16.1.254 and udp port 500',
                                     within_sec(5)))
     f2 = async_assert_that(service2,
-                           should_NOT_receive('dst host 172.16.1.2 and udp port 500',
-                                              within_sec(5)))
+                           should_NOT_receive(
+                               'dst host 172.16.1.2 and udp port 500',
+                               within_sec(5)))
     f3 = sender1.send_udp('aa:bb:cc:00:00:22', '172.16.1.254', 41,
                           src_port=500, dst_port=500)
     wait_on_futures([f1, f2, f3])
@@ -97,11 +100,13 @@ def test_router_service():
     try:
         service2.execute("sh -c \"echo foobar | nc -l 1500\"")
         f1 = async_assert_that(service2,
-                               receives('dst host 172.16.1.254 and tcp port 1500',
-                                        within_sec(5)))
+                               receives(
+                                   'dst host 172.16.1.254 and tcp port 1500',
+                                   within_sec(5)))
         f2 = async_assert_that(sender1,
-                               receives('dst host 172.16.1.1 and tcp port 1500',
-                                        within_sec(5)))
+                               receives(
+                                   'dst host 172.16.1.1 and tcp port 1500',
+                                   within_sec(5)))
         f3 = async_assert_that(service1,
                                should_NOT_receive('dst host 172.16.1.254',
                                                   within_sec(5)))

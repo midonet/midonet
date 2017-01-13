@@ -67,7 +67,8 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                         'port_range_min': 0,
                         'port_range_max': 65535,
                         'protocol': 'udp',
-                        'security_group_id': public_1['port']['security_groups'][0]
+                        'security_group_id':
+                            public_1['port']['security_groups'][0]
                     }
                 }))
 
@@ -173,7 +174,8 @@ binding_multihost = {
 
 
 def install():
-    # Install new package so the new version is updated immediately after reboot
+    # Install new package so the new version is updated immediately after
+    # reboot
     agent = service.get_container_by_hostname('midolman1')
     output, exec_id = agent.exec_command(
             "apt-get install -qy --force-yes "
@@ -190,11 +192,13 @@ def cleanup():
     agent.stop(wait=True)
     # Wipe out the container
     sandbox.remove_container(agent)
-    # Restart sandbox, the --no-recreate flag will spawn only missing containers
+    # Restart sandbox, the --no-recreate flag will spawn only missing
+    # containers
     sandbox.restart_sandbox('default_neutron+kilo+compat',
                             conf.sandbox_name(),
                             'sandbox/override_compat')
-    # Reset cached containers and reload them (await for the new agent to be up)
+    # Reset cached containers and reload them (await for the new agent to be
+    # up)
     service.loaded_containers = None
     agent = service.get_container_by_hostname('midolman1')
     agent.wait_for_status('up')
@@ -256,16 +260,20 @@ def test_compat_flowstate():
     public_vm2 = BM.get_interface_on_vport('public_2')
     private_vm2 = BM.get_interface_on_vport('private_2')
 
-    fip1 = VTM.get_resource('public_1_fip')['floatingip']['floating_ip_address']
-    fip2 = VTM.get_resource('public_2_fip')['floatingip']['floating_ip_address']
+    fip1 = VTM.get_resource(
+        'public_1_fip')['floatingip']['floating_ip_address']
+    fip2 = VTM.get_resource(
+        'public_2_fip')['floatingip']['floating_ip_address']
 
     agent = service.get_container_by_hostname('midolman1')
 
     snat_1 = check_forward_flow(private_vm1, public_vm2, fip2, 50000, 80)
-    check_return_flow(public_vm2, private_vm1, snat_1['ip'], snat_1['port'], 50000, 80)
+    check_return_flow(public_vm2, private_vm1, snat_1['ip'], snat_1['port'],
+                      50000, 80)
 
     snat_2 = check_forward_flow(private_vm2, public_vm1, fip1, 50000, 80)
-    check_return_flow(public_vm1, private_vm2, snat_2['ip'], snat_2['port'], 50000, 80)
+    check_return_flow(public_vm1, private_vm2, snat_2['ip'], snat_2['port'],
+                      50000, 80)
 
     # When: rebooting the agent with the updated package (waiting for the ports
     #        to be up).
@@ -278,14 +286,16 @@ def test_compat_flowstate():
     await_port_active(public_vm1_id, active=True)
     await_port_active(private_vm1_id, active=True)
 
-    # Eventually: it may take some time before we gather flow state from storage
-    #             keep trying until we succeed.
+    # Eventually: it may take some time before we gather flow state from
+    #             storage keep trying until we succeed.
     attempts = 10
     while True:
         try:
             # Check that flow state keys are fetched from storage
-            check_return_flow(public_vm2, private_vm1, snat_1['ip'], snat_1['port'], 50000, 80)
-            check_return_flow(public_vm1, private_vm2, snat_2['ip'], snat_2['port'], 50000, 80)
+            check_return_flow(public_vm2, private_vm1, snat_1['ip'],
+                              snat_1['port'], 50000, 80)
+            check_return_flow(public_vm1, private_vm2, snat_2['ip'],
+                              snat_2['port'], 50000, 80)
             break
         except:
             if attempts > 0:
@@ -303,7 +313,9 @@ def test_compat_flowstate():
     # And: we can create new flows between two agents on different versions
     #      on both directions.
     snat_1 = check_forward_flow(private_vm1, public_vm2, fip2, 50001, 81)
-    check_return_flow(public_vm2, private_vm1, snat_1['ip'], snat_1['port'], 50001, 81)
+    check_return_flow(public_vm2, private_vm1, snat_1['ip'], snat_1['port'],
+                      50001, 81)
 
     snat_2 = check_forward_flow(private_vm2, public_vm1, fip1, 50001, 81)
-    check_return_flow(public_vm1, private_vm2, snat_2['ip'], snat_2['port'], 50001, 81)
+    check_return_flow(public_vm1, private_vm2, snat_2['ip'], snat_2['port'],
+                      50001, 81)

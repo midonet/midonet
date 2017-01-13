@@ -28,5 +28,6 @@ def check_output(*popenargs, **kwargs):
         cmd = kwargs.get("args")
         if cmd is None:
             cmd = popenargs[0]
-        raise subprocess.CalledProcessError(retcode, str((cmd, stdout, stderr)))
+        raise subprocess.CalledProcessError(retcode,
+                                            str((cmd, stdout, stderr)))
     return stdout

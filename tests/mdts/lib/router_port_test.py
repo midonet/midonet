@@ -30,14 +30,13 @@ class RouterPortTest(unittest.TestCase):
         self._router._mn_resource.add_port.return_value = (
                 self._mn_router_port)
 
-        self._router_port = RouterPort(self._api,
-                                       self._context,
-                                       self._router,
-                                       {'id': 2,
-                                        'type': 'interior',
-                                        'ipv4_addr': '172.16.2.254/24',
-                                        'links_to': {'device': 'bridge-000-001',
-                                                     'port_id': 1}})
+        self._router_port = RouterPort(
+            self._api, self._context, self._router,
+            {'id': 2,
+             'type': 'interior',
+             'ipv4_addr': '172.16.2.254/24',
+             'links_to': {'device': 'bridge-000-001',
+                          'port_id': 1}})
         self._router_port.build()
         self._chain = MagicMock()
         self._chain._mn_resource.get_id.return_value = 'chain_0'

@@ -130,10 +130,12 @@ def test_tracing_egress_matching():
 
         feed_receiver_mac(receiver)
 
-        f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
-                                                  within_sec(10)))
-        f3 = async_assert_that(sender, receives('src host 172.16.2.1 and icmp',
-                                                within_sec(10)))
+        f2 = async_assert_that(receiver,
+                               receives('dst host 172.16.2.1 and icmp',
+                                        within_sec(10)))
+        f3 = async_assert_that(sender,
+                               receives('src host 172.16.2.1 and icmp',
+                                        within_sec(10)))
         f1 = sender.ping_ipv4_addr('172.16.2.1')
         wait_on_futures([f1, f2, f3])
 
@@ -175,10 +177,12 @@ def test_tracing_egress_matching_over_nat():
 
         feed_receiver_mac(receiver)
 
-        f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
-                                                  within_sec(10)))
-        f3 = async_assert_that(sender, receives('src host 100.100.100.100 and icmp',
-                                                within_sec(10)))
+        f2 = async_assert_that(receiver,
+                               receives('dst host 172.16.2.1 and icmp',
+                                        within_sec(10)))
+        f3 = async_assert_that(sender,
+                               receives('src host 100.100.100.100 and icmp',
+                                        within_sec(10)))
         f1 = sender.ping_ipv4_addr('100.100.100.100')
         wait_on_futures([f1, f2, f3])
 
@@ -222,10 +226,12 @@ def test_tracing_with_limit():
 
         feed_receiver_mac(receiver)
         for i in range(0, 20):
-            f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
-                                                      within_sec(10)))
-            f3 = async_assert_that(sender, receives('src host 172.16.2.1 and icmp',
-                                                    within_sec(10)))
+            f2 = async_assert_that(receiver,
+                                   receives('dst host 172.16.2.1 and icmp',
+                                            within_sec(10)))
+            f3 = async_assert_that(sender,
+                                   receives('src host 172.16.2.1 and icmp',
+                                            within_sec(10)))
             f1 = sender.ping_ipv4_addr('172.16.2.1')
             wait_on_futures([f1, f2, f3])
 
@@ -243,10 +249,12 @@ def test_tracing_with_limit():
 
         time.sleep(5)
 
-        f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
-                                                  within_sec(10)))
-        f3 = async_assert_that(sender, receives('src host 172.16.2.1 and icmp',
-                                                within_sec(10)))
+        f2 = async_assert_that(receiver,
+                               receives('dst host 172.16.2.1 and icmp',
+                                        within_sec(10)))
+        f3 = async_assert_that(sender,
+                               receives('src host 172.16.2.1 and icmp',
+                                        within_sec(10)))
         f1 = sender.ping_ipv4_addr('172.16.2.1')
         wait_on_futures([f1, f2, f3])
 

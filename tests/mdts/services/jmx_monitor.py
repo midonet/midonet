@@ -40,14 +40,17 @@ class JMXMonitor(object):
         if user and passwd:
             environment = java.util.HashMap()
             credentials = jpype.JArray(java.lang.String)([user, passwd])
-            environment.put(javax.management.remote.JMXConnector.CREDENTIALS, credentials)
+            environment.put(javax.management.remote.JMXConnector.CREDENTIALS,
+                            credentials)
             self._jmx_connector = javax.management.remote.JMXConnectorFactory.\
                 connect(jmxurl, environment)
         elif user or passwd:
-            raise Exception("Both username and password are needed for a jmx connection")
+            raise Exception(
+                "Both username and password are needed for a jmx connection")
         else:
             # Connect anonymously
-            self._jmx_connector = javax.management.remote.JMXConnectorFactory.connect(jmxurl)
+            self._jmx_connector =\
+                javax.management.remote.JMXConnectorFactory.connect(jmxurl)
 
         self._connection = self._jmx_connector.getMBeanServerConnection()
 
@@ -57,7 +60,8 @@ class JMXMonitor(object):
         else:
             object_name = "%s:type=%s" % (domain, type)
 
-        return self._connection.getAttribute(javax.management.ObjectName(object_name), attribute)
+        return self._connection.getAttribute(
+            javax.management.ObjectName(object_name), attribute)
 
     def _query(self, domain, type=None, name=None):
         if name and type:
@@ -69,7 +73,8 @@ class JMXMonitor(object):
         else:
             object_name = "%s:*" % (domain)
 
-        return self._connection.queryNames(javax.management.ObjectName(object_name), None)
+        return self._connection.queryNames(
+            javax.management.ObjectName(object_name), None)
 
     def _list_all(self):
         return self._connection.queryNames(None, None)
@@ -95,9 +100,12 @@ class JMXMonitor(object):
         data = {}
 
         for gc in garbage_collectors:
-            name = str(gc).split("=")[-1]  # Take the string after the last equals sign, which is the name
-            collection_time = self._connection.getAttribute(gc, 'CollectionTime')
-            collection_count = self._connection.getAttribute(gc, 'CollectionCount')
+            # Take the string after the last equals sign, which is the name
+            name = str(gc).split("=")[-1]
+            collection_time = self._connection.getAttribute(gc,
+                                                            'CollectionTime')
+            collection_count = self._connection.getAttribute(gc,
+                                                             'CollectionCount')
             data[name] = {
                 'time': int(collection_time.longValue()),
                 'count': int(collection_count.longValue())
@@ -106,9 +114,12 @@ class JMXMonitor(object):
         return data
 
     def get_cpu_statistics(self):
-        system_cpu_load = self._get("java.lang", "OperatingSystem", "SystemCpuLoad")
-        process_cpu_load = self._get("java.lang", "OperatingSystem", "ProcessCpuLoad")
-        system_load_average = self._get("java.lang", "OperatingSystem", "SystemLoadAverage")
+        system_cpu_load = self._get("java.lang", "OperatingSystem",
+                                    "SystemCpuLoad")
+        process_cpu_load = self._get("java.lang", "OperatingSystem",
+                                     "ProcessCpuLoad")
+        system_load_average = self._get("java.lang", "OperatingSystem",
+                                        "SystemLoadAverage")
 
         return {
             'system_cpu_load': float(system_cpu_load.doubleValue()),

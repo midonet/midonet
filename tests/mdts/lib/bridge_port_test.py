@@ -30,13 +30,12 @@ class BridgePortTest(unittest.TestCase):
         self._bridge._mn_resource.add_port.return_value = (
                 self._mn_bridge_port)
 
-        self._bridge_port = BridgePort(self._api,
-                                       self._context,
-                                       self._bridge,
-                                       {'id': 2,
-                                        'type': 'interior',
-                                        'links_to': {'device': 'router-000-001',
-                                                     'port_id': 1}})
+        self._bridge_port = BridgePort(
+            self._api, self._context, self._bridge,
+            {'id': 2,
+             'type': 'interior',
+             'links_to': {'device': 'router-000-001',
+                          'port_id': 1}})
         self._bridge_port.build()
         self._chain = MagicMock()
         self._chain._mn_resource.get_id.return_value = 'chain_0'

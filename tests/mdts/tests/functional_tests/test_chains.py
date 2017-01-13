@@ -214,7 +214,8 @@ def test_src_mac_masking():
 
     # If2 has an even MAC (ends with 2), so traffic from if2 to if1
     # should be dropped.
-    f1 = async_assert_that(if1, should_NOT_receive(if1_rcv_filter, within_sec(5)))
+    f1 = async_assert_that(if1, should_NOT_receive(if1_rcv_filter,
+                                                   within_sec(5)))
     time.sleep(1)
     f2 = if2.send_udp(if1_hw_addr, if1_ip_addr, 41)
     wait_on_futures([f1, f2])

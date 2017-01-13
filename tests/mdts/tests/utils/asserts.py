@@ -37,10 +37,10 @@ class InterfaceExpects(BaseMatcher):
 
     def _matches(self, iface):
         self._iface = iface
-        result = iface.expect(self._filter,
-                              self._timeout,
-                              listen_host_interface=self._listen_host_interface,
-                              count=self._count).result()
+        result = iface.expect(
+            self._filter, self._timeout,
+            listen_host_interface=self._listen_host_interface,
+            count=self._count).result()
         LOG.debug("[%s] " % iface +
                   "Result = " + str(result) +
                   " / Expected = " + str(self._expected))
@@ -105,7 +105,8 @@ def receives_icmp_unreachable_for_udp(udp_src_ip,
             ipv4_int(udp_dst_ip),
             udp_src_port,
             udp_dst_port)
-    return InterfaceExpects(True, pcap_filter_string, timeout, listen_host_interface)
+    return InterfaceExpects(True, pcap_filter_string, timeout,
+                            listen_host_interface)
 
 
 def async_assert_that(*args):

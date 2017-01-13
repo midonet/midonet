@@ -58,15 +58,15 @@ class Link(ResourceBase):
                                                self._peer_a_port_id)
         if not port_A:
             raise PeerDevicePortNotFoundException(
-                    'No corresponding peer device port found for port name %s, '
-                    'ID %s.' % (self._peer_a_name, self._peer_a_port_id))
+                    'No corresponding peer device port found for port name %s,'
+                    ' ID %s.' % (self._peer_a_name, self._peer_a_port_id))
 
         port_B = self._context.get_device_port(self._peer_b_name,
                                                self._peer_b_port_id)
         if not port_B:
             raise PeerDevicePortNotFoundException(
-                    'No corresponding peer device port found for port name %s, '
-                    'ID %s.' % (self._peer_b_name, self._peer_b_port_id))
+                    'No corresponding peer device port found for port name %s,'
+                    ' ID %s.' % (self._peer_b_name, self._peer_b_port_id))
         port_A.link(port_B)
 
     def destroy(self):

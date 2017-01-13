@@ -75,7 +75,8 @@ def unset_bridge_port_filters(bridge_name, port_id):
 def get_random_port_num():
     '''Returns a random port number from a free port range.
 
-    NOTE: Using a random number may cause test indeterminacy on a rare occasion.
+    NOTE: Using a random number may cause test indeterminacy on a rare
+          occasion.
     '''
     return random.randint(49152, 65535)
 
@@ -89,8 +90,8 @@ def test_filtering_by_network_address():
     Scenario:
     When: A VM sends UDP packets to another host on the same bridge.
     Then: The UDP packets reaches the receiver.
-    Then: Filtering rule chains based on network address (IP address) are set on
-          the bridge port that the receiver host is connected to.
+    Then: Filtering rule chains based on network address (IP address) are set
+          on the bridge port that the receiver host is connected to.
     And: The UDP packets from the same sender do NOT reach the receiver.
     '''
     sender = BM.get_iface_for_port('bridge-000-001', 2)
@@ -145,10 +146,9 @@ def test_connection_tracking_by_network_addres():
     # Send forward packets to set up a connection-tracking based peep hole in
     # the filter.
     port_num = get_random_port_num()
-    f1 = async_assert_that(outside,
-                           receives('dst host 172.16.1.1 and udp',
-                                    within_sec(5)),
-                           'Outside host receives forward packets from inside.')
+    f1 = async_assert_that(
+        outside, receives('dst host 172.16.1.1 and udp', within_sec(5)),
+        'Outside host receives forward packets from inside.')
     f2 = inside.send_udp('aa:bb:cc:00:01:01', '172.16.1.1', 41,
                          src_port=port_num, dst_port=port_num)
     wait_on_futures([f1, f2])
@@ -241,8 +241,8 @@ def test_connection_tracking_with_drop_by_dl():
     f1 = async_assert_that(inside,
                            receives('dst host 172.16.1.2 and udp',
                                     within_sec(5)),
-                           'The outside host can now send packets to the inside'
-                           'via a peep hole.')
+                           'The outside host can now send packets to the'
+                           ' inside via a peep hole.')
     f2 = outside.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
                           src_port=port_num, dst_port=port_num)
     wait_on_futures([f1, f2])

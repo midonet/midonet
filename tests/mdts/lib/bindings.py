@@ -56,7 +56,8 @@ class BindingManager(fixtures.Fixture):
                 agent.get_hostname(), _tzone_name)
 
     def _update_addresses(self, iface, vport):
-        if isinstance(vport, dict) and 'port' in vport and len(vport['port']['fixed_ips']) > 0:
+        if (isinstance(vport, dict) and 'port' in vport and
+                len(vport['port']['fixed_ips']) > 0):
             # This is a neutron port, discover which ip should be used
             n_subnet_id = vport['port']['fixed_ips'][0]['subnet_id']
             base_port = {'port': dict()}
@@ -95,12 +96,14 @@ class BindingManager(fixtures.Fixture):
             bind_iface = binding['interface']
             if isinstance(bind_iface, dict):
                 # We are specifying the vms inside the binding
-                iface_def = self._update_addresses(bind_iface['definition'], vport)
+                iface_def = self._update_addresses(bind_iface['definition'],
+                                                   vport)
                 iface_type = bind_iface['type']
                 hostname = bind_iface['hostname']
                 host = service.get_container_by_hostname(hostname)
                 iface = getattr(host, "create_%s" % iface_type)(**iface_def)
-                self.addCleanup(getattr(host, "destroy_%s" % iface_type), iface)
+                self.addCleanup(getattr(host, "destroy_%s" % iface_type),
+                                iface)
             else:
                 # It's a vm already created and saved as a resource
                 iface = self._ptm.get_resource(binding['interface'])
@@ -130,8 +133,10 @@ class BindingManager(fixtures.Fixture):
 
     def _get_port_id(self, vport):
         """
-        Helper method to get the virtual port id depending on the type of object
+        Helper method to get the virtual port id depending on the type of
+        object
         :param vport: A neutron or midonet virtual port object
         :rtype: uuid
         """
-        return vport['port']['id'] if isinstance(vport, dict) else vport.get_id()
+        return (vport['port']['id'] if isinstance(vport, dict)
+                else vport.get_id())

@@ -87,9 +87,11 @@ def send_udp(sender, receiver, hw_dst, dst_p, src_p, mirror=None):
 
     udp_filter = "dst host %s and dst port %d" % (ip_dst, dst_p)
     futures = []
-    futures.append(async_assert_that(receiver, receives(udp_filter, within_sec(15))))
+    futures.append(async_assert_that(receiver,
+                                     receives(udp_filter, within_sec(15))))
     if mirror is not None:
-        futures.append(async_assert_that(mirror, receives(udp_filter, within_sec(15))))
+        futures.append(async_assert_that(mirror, receives(udp_filter,
+                                                          within_sec(15))))
 
     sender.send_udp(hw_dst, ip_dst, src_port=src_p, dst_port=dst_p)
     wait_on_futures(futures)
@@ -115,8 +117,10 @@ def test_mirroring_router_in():
     add_mirror_inbound("mirror-1", router)
 
     src_port = get_source_port_number()
-    send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port, mirror_port)
-    send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80, mirror_port)
+    send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port,
+             mirror_port)
+    send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80,
+             mirror_port)
 
 
 @attr(version="v2.0.0")
@@ -135,8 +139,10 @@ def test_mirroring_bridge_in():
     add_mirror_inbound("mirror-1", bridge)
 
     src_port = get_source_port_number()
-    send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port, mirror_port)
-    send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80, mirror_port)
+    send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port,
+             mirror_port)
+    send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80,
+             mirror_port)
 
 
 @attr(version="v2.0.0")
@@ -155,8 +161,10 @@ def test_mirroring_bridge_out():
     add_mirror_outbound("mirror-1", bridge)
 
     src_port = get_source_port_number()
-    send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port, mirror_port)
-    send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80, mirror_port)
+    send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port,
+             mirror_port)
+    send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80,
+             mirror_port)
 
 
 @attr(version="v2.0.0")
@@ -176,5 +184,7 @@ def test_mirroring_port():
     add_mirror_outbound("mirror-2-return", sender_port)
 
     src_port = get_source_port_number()
-    send_udp(sender, receiver, mac_for('router-1', 1), 22, src_port, mirror_port)
-    send_udp(receiver, sender, mac_for('router-1', 2), src_port, 22, mirror_port)
+    send_udp(sender, receiver, mac_for('router-1', 1), 22, src_port,
+             mirror_port)
+    send_udp(receiver, sender, mac_for('router-1', 2), src_port, 22,
+             mirror_port)

@@ -49,9 +49,9 @@ class Service(object):
         # Check first that the container is running
         while not self.is_container_running():
             if timeout == 0:
-                raise RuntimeError("Container %s: timeout waiting to be running" % (
-                    self.get_name()
-                ))
+                raise RuntimeError(
+                    "Container %s: timeout waiting to be running" %
+                    (self.get_name()))
             timeout -= wait_time
             time.sleep(wait_time)
 
@@ -119,14 +119,16 @@ class Service(object):
     def set_log_marker(self, marker):
         logfiles = self.get_service_logs()
         for logfile in logfiles:
-            self.exec_command("sh -c \"echo '%s' >> %s\"" % (marker, logfile), stream=False)
+            self.exec_command("sh -c \"echo '%s' >> %s\"" %
+                              (marker, logfile), stream=False)
 
     def get_test_log(self, start_marker, end_marker):
         logfiles = self.get_service_logs()
         test_logs = {}
         for logfile in logfiles:
             test_log = "-----------------------\n"
-            test_log += "%s - %s\n" % (self.get_service_name(), self.get_name())
+            test_log += "%s - %s\n" % (self.get_service_name(),
+                                       self.get_name())
             test_log += "%s\n" % logfile
             test_log += "-----------------------\n"
             test_log += self.exec_command(
@@ -144,7 +146,8 @@ class Service(object):
         test_logs = {}
         for logfile in logfiles:
             test_log = "-----------------------\n"
-            test_log += "%s - %s\n" % (self.get_service_name(), self.get_name())
+            test_log += "%s - %s\n" % (self.get_service_name(),
+                                       self.get_name())
             test_log += "%s\n" % logfile
             test_log += "-----------------------\n"
             try:
@@ -186,7 +189,9 @@ class Service(object):
     def try_command_blocking(self, cmd):
         ret = self.exec_command_blocking(cmd)
         if ret != 0:
-            raise Exception("Cmd(%s) exited with code %d, \n check cmd output in the log" % (cmd, ret))
+            msg = ("Cmd(%s) exited with code %d, "
+                   "\n check cmd output in the log" % (cmd, ret))
+            raise Exception(msg)
 
     def exec_command_blocking(self, cmd):
         """
@@ -306,9 +311,9 @@ class Service(object):
         while self.get_service_status() != status:
             if init_timeout == 0:
                 if raise_error:
-                    raise RuntimeError("Service %s: timeout waiting to be %s" % (
-                        self.get_hostname(),
-                        status))
+                    raise RuntimeError(
+                        "Service %s: timeout waiting to be %s" %
+                        (self.get_hostname(), status))
                 else:
                     LOG.debug("Service %s: timeout waiting to be %s" % (
                         self.get_hostname(),
@@ -391,9 +396,11 @@ def get_all_containers(container_type=None, include_failed=False):
             if 'type' in container['Labels']:
                 current_type = container['Labels']['type']
                 container_instance = load_from_id(container['Id'])
-                loaded_containers.setdefault(current_type, []).append(container_instance)
+                loaded_containers.setdefault(
+                    current_type, []).append(container_instance)
         for type, container_list in loaded_containers.items():
-            sorted(container_list, key=lambda container: container.get_hostname())
+            sorted(container_list,
+                   key=lambda container: container.get_hostname())
 
     if container_type:
         if container_type in loaded_containers:

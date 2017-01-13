@@ -68,7 +68,8 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                         'port_range_min': 0,
                         'port_range_max': 65535,
                         'protocol': 'udp',
-                        'security_group_id': port2['port']['security_groups'][0]
+                        'security_group_id':
+                            port2['port']['security_groups'][0]
                     }
                 }))
         except Exception as e:
@@ -178,7 +179,8 @@ binding_multinode = {
 
 def enable_vip_novmac(port):
     global virtual_ip
-    port.execute('ip address add %s/32 dev %s' % (virtual_ip, port.get_ifname()),
+    port.execute('ip address add %s/32 dev %s' % (virtual_ip,
+                                                  port.get_ifname()),
                  sync=True)
     # Send both a request garp and a reply garp
     port.execute('arping -c 1 -A -I %s %s' % (port.get_ifname(), virtual_ip),
@@ -189,13 +191,15 @@ def enable_vip_novmac(port):
 
 def disable_vip_novmac(port):
     global virtual_ip
-    port.execute('ip address del %s/32 dev %s' % (virtual_ip, port.get_ifname()),
+    port.execute('ip address del %s/32 dev %s' % (virtual_ip,
+                                                  port.get_ifname()),
                  sync=True)
 
 
 def enable_vip_vmac(port):
     global virtual_ip, virtual_mac
-    port.execute('ip l add link %s address %s vmac0 type macvlan' % (port.get_ifname(), virtual_mac),
+    port.execute('ip l add link %s address %s vmac0 type macvlan' %
+                 (port.get_ifname(), virtual_mac),
                  sync=True)
     port.execute('ip a add %s/32 dev vmac0' % virtual_ip, sync=True)
     port.execute('ip l set up dev vmac0', sync=True)
@@ -213,14 +217,17 @@ def run_garp_scenario(BM, sender_port, target_ip, enable_vip, disable_vip):
     vip2 = BM.get_interface_on_vport('port_int2')
 
     sender = BM.get_interface_on_vport(sender_port)
-    # allow sender to accept gratutious arps (only makes sense if on same network)
+    # allow sender to accept gratutious arps (only makes sense if on same
+    # network)
     sender.execute('bash -c "echo 1 > /proc/sys/net/ipv4/conf/%s/arp_accept"'
                    % sender.get_ifname())
     rcv_filter = 'icmp and ip src %s' % (sender.get_ip())
 
     # noone responds initially
-    f1 = async_assert_that(vip1, should_NOT_receive(rcv_filter, within_sec(10)))
-    f2 = async_assert_that(vip2, should_NOT_receive(rcv_filter, within_sec(10)))
+    f1 = async_assert_that(vip1, should_NOT_receive(rcv_filter,
+                                                    within_sec(10)))
+    f2 = async_assert_that(vip2, should_NOT_receive(rcv_filter,
+                                                    within_sec(10)))
     f3 = sender.ping_ipv4_addr(target_ip, count=5)
     wait_on_futures([f1, f2, f3])
 
@@ -228,14 +235,16 @@ def run_garp_scenario(BM, sender_port, target_ip, enable_vip, disable_vip):
     enable_vip(vip1)
     disable_vip(vip2)
     f1 = async_assert_that(vip1, receives(rcv_filter, within_sec(10)))
-    f2 = async_assert_that(vip2, should_NOT_receive(rcv_filter, within_sec(10)))
+    f2 = async_assert_that(vip2, should_NOT_receive(rcv_filter,
+                                                    within_sec(10)))
     f3 = sender.ping_ipv4_addr(target_ip, count=5)
     wait_on_futures([f1, f2, f3])
 
     # enable for vip2
     enable_vip(vip2)
     disable_vip(vip1)
-    f1 = async_assert_that(vip1, should_NOT_receive(rcv_filter, within_sec(10)))
+    f1 = async_assert_that(vip1, should_NOT_receive(rcv_filter,
+                                                    within_sec(10)))
     f2 = async_assert_that(vip2, receives(rcv_filter, within_sec(10)))
     f3 = sender.ping_ipv4_addr(target_ip, count=5)
     wait_on_futures([f1, f2, f3])
@@ -244,7 +253,8 @@ def run_garp_scenario(BM, sender_port, target_ip, enable_vip, disable_vip):
     enable_vip(vip1)
     disable_vip(vip2)
     f1 = async_assert_that(vip1, receives(rcv_filter, within_sec(10)))
-    f2 = async_assert_that(vip2, should_NOT_receive(rcv_filter, within_sec(10)))
+    f2 = async_assert_that(vip2, should_NOT_receive(rcv_filter,
+                                                    within_sec(10)))
     f3 = sender.ping_ipv4_addr(target_ip, count=5)
     wait_on_futures([f1, f2, f3])
 
@@ -277,7 +287,8 @@ def test_garp_over_router():
           binding_manager=BM_vmac)
 def test_vmac_garp_over_bridge():
     """
-    Title: Access a VIP using virtual mac GARP from an endpoint on a local bridge
+    Title: Access a VIP using virtual mac GARP from an endpoint on a local
+    bridge
     """
     global virtual_ip
     run_garp_scenario(BM_vmac, 'port_int0', virtual_ip,

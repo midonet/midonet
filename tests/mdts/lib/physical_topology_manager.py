@@ -92,7 +92,8 @@ class PhysicalTopologyManager(TopologyManager):
             if 'mn_host_id' not in host:
                 hostname = host.get('hostname')
                 host_id = host.get('id')
-                externalhost = next(external for external in self._external_hosts
+                externalhost = next(external for external
+                                    in self._external_hosts
                                     if external.get_hostname() == hostname)
                 interfaces = host['interfaces']
                 for interface in interfaces:

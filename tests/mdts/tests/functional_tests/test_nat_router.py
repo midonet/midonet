@@ -30,7 +30,8 @@ import time
 
 
 LOG = logging.getLogger(__name__)
-PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_nat_router.yaml')
+PTM = PhysicalTopologyManager(
+    '../topologies/mmm_physical_test_nat_router.yaml')
 VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_nat_router.yaml')
 BM = BindingManager(PTM, VTM)
 
@@ -105,8 +106,9 @@ def test_dnat():
     unset_filters('router-000-001')
     feed_receiver_mac(receiver)
 
-    f2 = async_assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
-                                             within_sec(5)))
+    f2 = async_assert_that(receiver,
+                           should_NOT_receive('dst host 172.16.2.1 and icmp',
+                                              within_sec(5)))
     f1 = sender.ping_ipv4_addr('100.100.100.100')
     wait_on_futures([f1, f2])
 
@@ -115,8 +117,9 @@ def test_dnat():
 
     f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
                                    within_sec(5)))
-    f3 = async_assert_that(sender, receives('src host 100.100.100.100 and icmp',
-                                 within_sec(5)))
+    f3 = async_assert_that(sender,
+                           receives('src host 100.100.100.100 and icmp',
+                                    within_sec(5)))
     f1 = sender.ping_ipv4_addr('100.100.100.100')
     wait_on_futures([f1, f2, f3])
 
@@ -191,8 +194,9 @@ def test_snat():
     feed_receiver_mac(receiver)
 
     # No SNAT configured. Should not receive SNATed messages.
-    f2 = async_assert_that(receiver, should_NOT_receive('src host 172.16.1.100 and icmp',
-                                             within_sec(5)))
+    f2 = async_assert_that(receiver,
+                           should_NOT_receive('src host 172.16.1.100 and icmp',
+                                              within_sec(5)))
     f1 = sender.ping4(receiver)
     wait_on_futures([f1, f2])
 
@@ -234,8 +238,9 @@ def test_snat_for_udp():
     router_mac = router_port.get_mn_resource().get_port_mac()
 
     # No SNAT configured. Should not receive SNATed messages.
-    f2 = async_assert_that(receiver, should_NOT_receive('src host 172.16.1.100 and udp',
-                                             within_sec(5)))
+    f2 = async_assert_that(receiver,
+                           should_NOT_receive('src host 172.16.1.100 and udp',
+                                              within_sec(5)))
     f1 = sender.send_udp(router_mac, '172.16.2.1', 29,
                          src_port=9, dst_port=65000)
     wait_on_futures([f1, f2])
@@ -271,8 +276,8 @@ def test_floating_ip():
     And: the receiver sends back an ICMP reply with its original IP address
          as a source address.
     And: the router applies SNAT to the reply packet.
-    And: the sender receives the reply with src address NATed to the floating IP
-         address.
+    And: the sender receives the reply with src address NATed to the floating
+         IP address.
     """
     sender = BM.get_iface_for_port('bridge-000-001', 2)
     receiver = BM.get_iface_for_port('bridge-000-002', 2)
@@ -280,8 +285,9 @@ def test_floating_ip():
     unset_filters('router-000-001')
     feed_receiver_mac(receiver)
 
-    f1 = async_assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
-                                             within_sec(10)))
+    f1 = async_assert_that(receiver,
+                           should_NOT_receive('dst host 172.16.2.1 and icmp',
+                                              within_sec(10)))
     sender.ping_ipv4_addr('100.100.100.100')
     wait_on_futures([f1])
 
@@ -291,7 +297,8 @@ def test_floating_ip():
 
     f1 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
                                    within_sec(10)))
-    f2 = async_assert_that(sender, receives('src host 100.100.100.100 and icmp',
-                                 within_sec(10)))
+    f2 = async_assert_that(sender,
+                           receives('src host 100.100.100.100 and icmp',
+                                    within_sec(10)))
     sender.ping_ipv4_addr('100.100.100.100')
     wait_on_futures([f1, f2])

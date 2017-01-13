@@ -100,7 +100,8 @@ class PortGroupTest(unittest.TestCase):
     def test_add_port_group_port(self, mock_build):
         """Tests add_port_group_add correctly adds a PortGroupPort. """
         mock_ini = MagicMock(return_value=None)
-        with patch('mdts.lib.port_group_port.PortGroupPort.__init__', mock_ini):
+        with patch('mdts.lib.port_group_port.PortGroupPort.__init__',
+                   mock_ini):
             self.load_port_group_data("""
                 port_groups:
                   - port_group:

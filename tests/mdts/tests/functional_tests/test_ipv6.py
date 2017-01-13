@@ -57,7 +57,8 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
 
     def add_port_to_ovs(self, container, portname):
         cont = service.get_container_by_hostname(container)
-        cont.try_command_blocking('mm-dpctl interface -a %s midonet' % portname)
+        cont.try_command_blocking('mm-dpctl interface -a %s midonet' %
+                                  portname)
         self.addCleanup(self.remove_port_from_ovs, container, portname)
 
     def cleanup_ipv6_flows(self, container, from_port, to_port):
@@ -109,19 +110,23 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont_services.vppctl('set int ip address host-%s %s' % (port, address))
 
     def del_vpp_ip_address(self, cont_services, port, address):
-        cont_services.vppctl('set int ip address del host-%s %s' % (port, address))
+        cont_services.vppctl('set int ip address del host-%s %s' % (port,
+                                                                    address))
 
     def del_route_from_vpp(self, container, prefix, via, port, vrf):
         cont = service.get_container_by_hostname(container)
         try:
             cont.vppctl('ip route del %s table %s' % (prefix, vrf))
         except:
-            LOG.error("Erroring deleting route %s from vpp in table %s" % (prefix, vrf))
+            LOG.error("Erroring deleting route %s from vpp in table %s" %
+                      (prefix, vrf))
 
     def add_route_to_vpp(self, container, prefix, via, port, vrf=0):
         cont = service.get_container_by_hostname(container)
-        self.addCleanup(self.del_route_from_vpp, container, prefix, via, port, vrf)
-        cont.vppctl('ip route add %s via %s host-%s table %s' % (prefix, via, port, vrf))
+        self.addCleanup(self.del_route_from_vpp, container, prefix, via, port,
+                        vrf)
+        cont.vppctl('ip route add %s via %s host-%s table %s' % (prefix, via,
+                                                                 port, vrf))
 
     def setup_fip64(self, container, ip6fip, ip4fixed,
                     ip4PoolStart, ip4PoolEnd, tableId=0):
@@ -129,12 +134,8 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         fip64DelCmd = "fip64 del %s" % ip6fip
         self.addCleanup(cont.vppctl, fip64DelCmd)
         vni = 0x123456  # unused
-        cont.vppctl("fip64 add %s %s pool %s %s table %d vni %d" % (ip6fip,
-                                                                    ip4fixed,
-                                                                    ip4PoolStart,
-                                                                    ip4PoolEnd,
-                                                                    tableId,
-                                                                    vni))
+        cont.vppctl("fip64 add %s %s pool %s %s table %d vni %d" %
+                    (ip6fip, ip4fixed, ip4PoolStart, ip4PoolEnd, tableId, vni))
 
     def cleanup_remote_host(self, container, interface, address):
         cont = service.get_container_by_hostname(container)
@@ -147,11 +148,13 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
 
     def setup_remote_host(self, container, interface, gw_address,
                           local_address, local_router):
-        self.addCleanup(self.cleanup_remote_host, container, interface, gw_address)
+        self.addCleanup(self.cleanup_remote_host, container, interface,
+                        gw_address)
         cont = service.get_container_by_hostname(container)
 
         cont.try_command_blocking('ip r add 100.0.0.0/8 via 10.1.0.1')
-        cont.try_command_blocking('ip a add %s/64 dev %s' % (gw_address, interface))
+        cont.try_command_blocking('ip a add %s/64 dev %s' % (gw_address,
+                                                             interface))
         cont.try_command_blocking('ip -6 r add cccc:bbbb::/32 via 2001::1')
         cont.try_command_blocking('ip -6 r add cccc:cccc::/32 via 2001::1')
 
@@ -223,7 +226,8 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         regexp = re.compile('up[\s\t]+host\-' + vpp_uplink_name)
         while timeout > 0:
             try:
-                (statuc, output) = container.exec_command_and_get_output(cmd, 2)
+                (statuc, output) = container.exec_command_and_get_output(cmd,
+                                                                         2)
                 if regexp.search(output, re.MULTILINE):
                     return
             except RuntimeError:
@@ -479,12 +483,15 @@ class DualUplinkAssymetric(SingleTenantWithNeutronIPv6FIP):
         self.build_tenant()
 
     def unset_gateway_address(self, cont_services, gw_address, interface):
-        cont_services.exec_command('ip a del %s dev %s' % (gw_address, interface))
+        cont_services.exec_command('ip a del %s dev %s' % (gw_address,
+                                                           interface))
 
     def set_gateway_address(self, container, gw_address, interface):
         cont_services = service.get_container_by_hostname(container)
-        self.addCleanup(self.unset_gateway_address, cont_services, gw_address, interface)
-        cont_services.exec_command('ip a add %s dev %s' % (gw_address, interface))
+        self.addCleanup(self.unset_gateway_address, cont_services, gw_address,
+                        interface)
+        cont_services.exec_command('ip a add %s dev %s' % (gw_address,
+                                                           interface))
 
 
 # Neutron topology with a 3 tenants and uplink
@@ -633,17 +640,22 @@ def start_server(container, address, port):
     namespace = cont_services.exec_command('ip netns')
 
     # interface inside the ns has a random name
-    interface = cont_services.exec_command("/bin/sh -c 'ip netns exec %s ip l | grep UP | cut -d: -f2'" % namespace)
+    interface = cont_services.exec_command(
+        "/bin/sh -c 'ip netns exec %s ip l | grep UP | cut -d: -f2'" %
+        namespace)
 
     # optional: install ethtool
-    #cont_services.try_command_blocking("sh -c 'apt-get update && apt-get -y install ethtool'")
+    # cont_services.try_command_blocking(
+    # "sh -c 'apt-get update && apt-get -y install ethtool'")
 
     # disable TCP checksums on interface
-    cont_services.try_command_blocking("ip netns exec %s ethtool -K %s tx off rx off" % (
-        namespace, interface))
+    cont_services.try_command_blocking(
+        "ip netns exec %s ethtool -K %s tx off rx off" %
+        (namespace, interface))
 
     # launch netcat server in namespace
-    cmd = "/bin/sh -c \"ip netns exec %s /usr/bin/ncat -v -4 -l %s %d -k -e '/bin/cat -E'\"" % (namespace, address, port)
+    cmd = "/bin/sh -c \"ip netns exec %s /usr/bin/ncat -v -4 -l %s" \
+          " %d -k -e '/bin/cat -E'\"" % (namespace, address, port)
     cont_services.exec_command(cmd, stream=True, detach=True)
 
 
@@ -656,10 +668,12 @@ def client_prepare(container, namespace):
     cont_services = service.get_container_by_hostname(container)
 
     # disable TCP checksums
-    cont_services.try_command_blocking("ip netns exec %s ethtool -K ip6ns tx off rx off" % namespace)
+    cont_services.try_command_blocking(
+        "ip netns exec %s ethtool -K ip6ns tx off rx off" % namespace)
 
 
-def client_launch(container, address, server_port, client_port, namespace, count=100):
+def client_launch(container, address, server_port, client_port, namespace,
+                  count=100):
 
     # client writes "<host>:<counter>\n" to server every 0.2 secs
     # WARNING: don't remove the delay or fragmentation can occur
@@ -684,8 +698,8 @@ def client_wait_for_termination(container, server_port):
         if (len(cont_services.exec_command("pidof nc")) < 2):
             break
     else:
-        raise Exception('TCP client at %s did not terminate within %d seconds' %
-                        (container, tries * delay_seconds))
+        raise Exception('TCP client at %s did not terminate within %d seconds'
+                        % (container, tries * delay_seconds))
 
 
 def client_check_result(container, stream, count=100):
@@ -694,7 +708,8 @@ def client_check_result(container, stream, count=100):
     LOG.info("%s: RESULT: got %d lines" % (container, len(lines)))
     assert (len(lines) == count)
     for i in range(count):
-        # server must've echoed the line back to us with a dollar sign at the end
+        # server must've echoed the line back to us with a dollar sign at the
+        # end
         wanted = "%s:%d$" % (container, i + 1)
         LOG.info("%s: RESULT: lines[%d] = %s" % (container, i, lines[i]))
         assert(lines[i] == wanted)
@@ -714,11 +729,15 @@ class TCPSessionClient(object):
             'ip l add name %sdp type veth peer name %sns' % (ns, ns))
         cont.try_command_blocking('ip l set netns %s dev %sns' % (ns, ns))
         cont.try_command_blocking('ip l set up dev %sdp' % ns)
-        cont.try_command_blocking('ip a add %s/%d dev %sdp' % (gateway, prefix, ns))
-        cont.try_command_blocking('ip netns exec %s ip link set up dev lo' % ns)
-        cont.try_command_blocking('ip netns exec %s ip link set up dev %sns' % (ns, ns))
+        cont.try_command_blocking('ip a add %s/%d dev %sdp' % (gateway, prefix,
+                                                               ns))
+        cont.try_command_blocking('ip netns exec %s ip link set up dev lo' %
+                                  ns)
+        cont.try_command_blocking('ip netns exec %s ip link set up dev %sns' %
+                                  (ns, ns))
         cont.try_command_blocking(
-            'ip netns exec %s ip a add %s/%d dev %sns' % (ns, address, prefix, ns))
+            'ip netns exec %s ip a add %s/%d dev %sns' % (ns, address, prefix,
+                                                          ns))
         cont.try_command_blocking(
             'ip netns exec %s ip -6 r add default via %s' % (ns, gateway))
 
@@ -883,7 +902,8 @@ def test_lru():
             prefix = 112
             gateway = 'bbbb::%d:1' % idx
             address = 'bbbb::%d:2' % idx
-            return TCPSessionClient(container, gateway, address, prefix, fip, TCP_SERVER_PORT)
+            return TCPSessionClient(container, gateway, address, prefix, fip,
+                                    TCP_SERVER_PORT)
 
         # validate existing clients
         for i in range(LRU_SIZE_SINGLE_TENANT):
@@ -928,7 +948,8 @@ def test_lru():
           binding_manager=BindingManager(vtm=DualUplinkAssymetric()))
 def test_2uplinks_assymetric():
     """
-    Title: Provider router with two uplinks. Only second uplink VPP has egress route for IPV6 traffic
+    Title: Provider router with two uplinks. Only second uplink VPP has egress
+    route for IPV6 traffic
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
 
@@ -951,7 +972,8 @@ def test_fragments():
 
     def kill(container, pattern, signal=''):
         try:
-            container.try_command_blocking('pkill %s -f %s' % (signal, pattern))
+            container.try_command_blocking('pkill %s -f %s' %
+                                           (signal, pattern))
             return True
         except:
             return False
@@ -984,8 +1006,9 @@ def test_fragments():
         for i in range(10):
             time.sleep(2)
             if is_running(server, SERVER_PY_NAME):
-                cli_out = client.exec_command('ip netns exec %s python %s %s %s' % (
-                    clientns, CLIENT_PY_NAME, client_addr, server_addr),
+                cli_out = client.exec_command(
+                    'ip netns exec %s python %s %s %s' %
+                    (clientns, CLIENT_PY_NAME, client_addr, server_addr),
                     detach=False, stream=True)
             else:
                 # the server stopped after receiving a full packet
@@ -1054,11 +1077,13 @@ print 'HASH=' + hashlib.sha256(data).hexdigest()
         assert(len(namespace.split('\n')) == 1)
         # loopback is required to be UP in midolman's namespace otherwise
         # scapy will fail
-        midolman2.exec_command('ip netns exec %s ip l set up dev lo' % namespace)
+        midolman2.exec_command('ip netns exec %s ip l set up dev lo' %
+                               namespace)
 
         # send a fragmented packet from 6 to 4. Save allocated IPv4 address
-        ip4client = run_fragmentation_test(quagga1, 'ip6', midolman2, namespace,
-                                           "cccc:bbbb::3", "bbbb::2", "0.0.0.0")
+        ip4client = run_fragmentation_test(quagga1, 'ip6', midolman2,
+                                           namespace, "cccc:bbbb::3",
+                                           "bbbb::2", "0.0.0.0")
 
         # send a fragmented packet from 4 to 6
         run_fragmentation_test(midolman2, namespace, quagga1, 'ip6',
@@ -1083,5 +1108,6 @@ def test_tenant_dual_stack():
     vmport = binding_manager.get_interface_on_vport('port1')
     cmd = 'ping -c 10 -i 0.5 200.0.0.1'
     (result, exec_id) = vmport.do_execute(cmd, stream=True)
-    retcode = vmport.compute_host.check_exit_status(exec_id, result, timeout=120)
+    retcode = vmport.compute_host.check_exit_status(exec_id, result,
+                                                    timeout=120)
     assert(retcode == 0)

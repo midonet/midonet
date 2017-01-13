@@ -32,7 +32,8 @@ import time
 
 LOG = logging.getLogger(__name__)
 
-PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_l2insertion.yaml')
+PTM = PhysicalTopologyManager(
+    '../topologies/mmm_physical_test_l2insertion.yaml')
 VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_l2insertion.yaml')
 BM = BindingManager(PTM, VTM)
 
@@ -174,8 +175,10 @@ def test_basic_l2insertion():
 
         other_port = BM.get_iface_for_port('bridge-000-001', 3)
 
-        rcv_filter = 'ether dst %s and icmp[icmptype] == 8' % insertion_port.get_mac_addr()
-        rcv_filter_ret = 'ether src %s and icmp[icmptype] == 8' % insertion_port.get_mac_addr()
+        rcv_filter = 'ether dst %s and icmp[icmptype] == 8' %\
+                     insertion_port.get_mac_addr()
+        rcv_filter_ret = 'ether src %s and icmp[icmptype] == 8' %\
+                         insertion_port.get_mac_addr()
         LOG.info("Sending good packet")
         f1 = async_assert_that(service_port,
                                receives(rcv_filter, within_sec(10)))
@@ -205,7 +208,8 @@ def test_basic_l2insertion():
         f1 = async_assert_that(service_port,
                                receives(rcv_filter_ret, within_sec(10)))
         f2 = async_assert_that(other_port,
-                               should_NOT_receive(rcv_filter_ret, within_sec(10)))
+                               should_NOT_receive(rcv_filter_ret,
+                                                  within_sec(10)))
         ping_port(insertion_port, other_port, data="deadbeef",
                   should_succeed=False)
         wait_on_futures([f1, f2])
@@ -268,8 +272,10 @@ def test_multi_l2insertion():
 
         time.sleep(5)
 
-        rcv_filter = 'ether dst %s and icmp[icmptype] == 8' % insertion_port.get_mac_addr()
-        rcv_filter_ret = 'ether src %s and icmp[icmptype] == 8' % insertion_port.get_mac_addr()
+        rcv_filter = 'ether dst %s and icmp[icmptype] == 8' %\
+                     insertion_port.get_mac_addr()
+        rcv_filter_ret = 'ether src %s and icmp[icmptype] == 8' %\
+                         insertion_port.get_mac_addr()
 
         other_port = BM.get_iface_for_port('bridge-000-001', 4)
 
@@ -290,7 +296,8 @@ def test_multi_l2insertion():
                                should_NOT_receive(rcv_filter, within_sec(10)))
         f3 = async_assert_that(insertion_port,
                                should_NOT_receive(rcv_filter, within_sec(10)))
-        ping_port(other_port, insertion_port, data="deadbeef", should_succeed=False)
+        ping_port(other_port, insertion_port, data="deadbeef",
+                  should_succeed=False)
         wait_on_futures([f1, f2, f3])
 
         LOG.info("Sending cafe food")
@@ -300,7 +307,8 @@ def test_multi_l2insertion():
                                receives(rcv_filter, within_sec(10)))
         f3 = async_assert_that(insertion_port,
                                should_NOT_receive(rcv_filter, within_sec(10)))
-        ping_port(other_port, insertion_port, data="cafef00d", should_succeed=False)
+        ping_port(other_port, insertion_port, data="cafef00d",
+                  should_succeed=False)
         wait_on_futures([f1, f2, f3])
 
         LOG.info("Sending another good packet")
@@ -317,10 +325,13 @@ def test_multi_l2insertion():
         f1 = async_assert_that(service_port1,
                                receives(rcv_filter_ret, within_sec(10)))
         f2 = async_assert_that(service_port2,
-                               should_NOT_receive(rcv_filter_ret, within_sec(10)))
+                               should_NOT_receive(rcv_filter_ret,
+                                                  within_sec(10)))
         f3 = async_assert_that(other_port,
-                               should_NOT_receive(rcv_filter_ret, within_sec(10)))
-        ping_port(insertion_port, other_port, data="deadbeef", should_succeed=False)
+                               should_NOT_receive(rcv_filter_ret,
+                                                  within_sec(10)))
+        ping_port(insertion_port, other_port, data="deadbeef",
+                  should_succeed=False)
         wait_on_futures([f1, f2, f3])
 
         LOG.info("Sending cafe food the other way")
@@ -329,8 +340,10 @@ def test_multi_l2insertion():
         f2 = async_assert_that(service_port2,
                                receives(rcv_filter_ret, within_sec(10)))
         f3 = async_assert_that(other_port,
-                               should_NOT_receive(rcv_filter_ret, within_sec(10)))
-        ping_port(insertion_port, other_port, data="cafef00d", should_succeed=False)
+                               should_NOT_receive(rcv_filter_ret,
+                                                  within_sec(10)))
+        ping_port(insertion_port, other_port, data="cafef00d",
+                  should_succeed=False)
         wait_on_futures([f1, f2, f3])
 
         LOG.info("Sending another good packet the other way")
@@ -406,7 +419,8 @@ def test_l2insertion_with_flowstate():
 
         time.sleep(5)
 
-        rcv_filter = 'ip dst %s and icmp[icmptype] == 8' % insertion_port.get_ip()
+        rcv_filter = 'ip dst %s and icmp[icmptype] == 8' %\
+                     insertion_port.get_ip()
 
         LOG.info("Sending good packet")
         f1 = async_assert_that(service_port1,
@@ -521,7 +535,8 @@ def test_l2insertion_both_ends_protected():
 
         time.sleep(5)
 
-        rcv_filter = 'ip dst %s and icmp[icmptype] == 8' % insertion_port2.get_ip()
+        rcv_filter = 'ip dst %s and icmp[icmptype] == 8' %\
+                     insertion_port2.get_ip()
 
         LOG.info("Sending good packet")
         f1 = async_assert_that(service_port1,
@@ -613,8 +628,10 @@ def test_l2insertion_fail_open():
 
         time.sleep(5)
 
-        rcv_filter = 'ip dst %s and icmp[icmptype] == 8' % insertion_port.get_ip()
-        rcv_filter_ret = 'ip src %s and icmp[icmptype] == 8' % insertion_port.get_ip()
+        rcv_filter = 'ip dst %s and icmp[icmptype] == 8' %\
+                     insertion_port.get_ip()
+        rcv_filter_ret = 'ip src %s and icmp[icmptype] == 8' %\
+                         insertion_port.get_ip()
 
         LOG.info("Sending good packet")
         f1 = async_assert_that(service_port1,
@@ -652,9 +669,11 @@ def test_l2insertion_fail_open():
         f1 = async_assert_that(service_port1,
                                receives(rcv_filter_ret, within_sec(10)))
         f2 = async_assert_that(service_port2,
-                               should_NOT_receive(rcv_filter_ret, within_sec(10)))
+                               should_NOT_receive(rcv_filter_ret,
+                                                  within_sec(10)))
         f3 = async_assert_that(other_port,
-                               should_NOT_receive(rcv_filter_ret, within_sec(10)))
+                               should_NOT_receive(rcv_filter_ret,
+                                                  within_sec(10)))
         ping_port(insertion_port, other_port,
                   data="deadbeef", should_succeed=False)
         wait_on_futures([f1, f2, f3])
@@ -700,7 +719,8 @@ def test_l2insertion_fail_open():
 
         LOG.info("Sending good packet the other way")
         f1 = async_assert_that(other_port,
-                               should_NOT_receive(rcv_filter_ret, within_sec(10)))
+                               should_NOT_receive(rcv_filter_ret,
+                                                  within_sec(10)))
         ping_port(insertion_port, other_port,
                   data="f00b4c", should_succeed=False)
         wait_on_futures([f1])
@@ -719,19 +739,22 @@ def ping_port(source_port, dest_port, data,
     if should_succeed:
         assert_that(exit_status, equal_to(0), "Ping did not return any data")
     else:
-        assert_that(exit_status, is_not(equal_to(0)), "Ping should have failed")
+        assert_that(exit_status, is_not(equal_to(0)),
+                    "Ping should have failed")
 
 
 def set_interface_admin_down(interface):
     interface.compute_host.exec_command(
-        "ip link set down dev %s" % interface.get_binding_ifname(), stream=True)
+        "ip link set down dev %s" % interface.get_binding_ifname(),
+        stream=True)
 
 
 class FakeSnort(object):
     def __init__(self, port, pattern):
         self._port = port
         iface = port.get_ifname()
-        self._cmd = "fake_snort --interface %s --block-pattern %s" % (iface, pattern)
+        self._cmd = "fake_snort --interface %s --block-pattern %s" %\
+                    (iface, pattern)
         self._killname = "fake_snort_%s" % iface
 
     def run(self):

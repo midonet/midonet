@@ -169,11 +169,12 @@ class SshClient(object):
     def _get_option(self, container_config, option, paramiko_option, default):
         return container_config.get(option,
                    self._container_default_config.get(option,
-                       self._ssh_config.lookup(container_config['Host']).get(paramiko_option,
-                           default)))
+                       self._ssh_config.lookup(container_config['Host']).get(
+                           paramiko_option, default)))
 
     def _get_hostname_option(self, container_config):
-        hostname = self._get_option(container_config, 'HostName', 'hostname', 'localhost')
+        hostname = self._get_option(container_config, 'HostName', 'hostname',
+                                    'localhost')
         return socket.gethostbyname(hostname)
 
     def _get_port_option(self, container_config):
@@ -186,7 +187,8 @@ class SshClient(object):
         return self._get_option(container_config, 'Password', 'password', None)
 
     def _get_identity_file_option(self, container_config):
-        return self._get_option(container_config, 'IdentityFile', 'identityfile', '/dev/null')
+        return self._get_option(container_config, 'IdentityFile',
+                                'identityfile', '/dev/null')
 
     def _get_strict_host_key_checking_option(self, container_config):
         return self._get_option(container_config, 'StrictHostKeyChecking',
@@ -203,14 +205,16 @@ class SshClient(object):
         config = self.get_container_by_name(container_name)['Config']
         ssh_connection = paramiko.SSHClient()
         ssh_connection.load_system_host_keys()
-        ssh_connection.set_missing_host_key_policy(self._missing_host_key_policy)
+        ssh_connection.set_missing_host_key_policy(
+            self._missing_host_key_policy)
 
         try:
             ssh_connection.connect(self._get_hostname_option(config),
                                    port=self._get_port_option(config),
                                    username=self._get_user_option(config),
                                    password=self._get_password_option(config),
-                                   key_filename=self._get_identity_file_option(config),
+                                   key_filename=self._get_identity_file_option(
+                                       config),
                                    look_for_keys=False,
                                    allow_agent=False
                                    )

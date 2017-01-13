@@ -169,7 +169,8 @@ def test_dhcp():
         assert_that(iface.get_num_routes(update=True), greater_than(0),
                     "No routes found")
 
-        # MTU should be 1450 (interface mtu minus 50B, max of gre/vxlan overhead)
+        # MTU should be 1450 (interface mtu minus 50B, max of gre/vxlan
+        # overhead)
         assert_that(iface.get_mtu(update=True), equal_to(1450),
                     "Wrong MTU")
 
@@ -292,7 +293,8 @@ def test_flow_invalidation_on_mac_update():
 
     # First: packets go from sender to receiver
     f1 = async_assert_that(receiver, receives(capture, within_sec(5)))
-    f2 = async_assert_that(intruder, should_NOT_receive(capture, within_sec(5)))
+    f2 = async_assert_that(intruder,
+                           should_NOT_receive(capture, within_sec(5)))
     f3 = sender.ping4(receiver)
     wait_on_futures([f1, f2, f3])
 
@@ -300,7 +302,8 @@ def test_flow_invalidation_on_mac_update():
     intruder.send_ether(frame)
 
     # Third: packets go from sender to intruder
-    f1 = async_assert_that(receiver, should_NOT_receive(capture, within_sec(5)))
+    f1 = async_assert_that(receiver,
+                           should_NOT_receive(capture, within_sec(5)))
     f2 = async_assert_that(intruder, receives(capture, within_sec(5)))
     f3 = sender.ping4(receiver)
     wait_on_futures([f1, f2, f3])

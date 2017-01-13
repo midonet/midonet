@@ -333,12 +333,12 @@ def test_icmp_autobind():
 
 
 """
-Last but not least. You can also forget about managing the physical topology all
-together and let the binding manager create the vms for you. Just need to define
-the interface parameters in a dictionary, and pass it to the the interface
-definition in the binding alongside the compute host where that interface
-will be created and the type of interface (vmguest, trunk or provided).
-Notice that the BindingManager is not passed an instance
+Last but not least. You can also forget about managing the physical topology
+all together and let the binding manager create the vms for you. Just need to
+define the interface parameters in a dictionary, and pass it to the the
+interface definition in the binding alongside the compute host where that
+interface will be created and the type of interface (vmguest, trunk or
+provided). Notice that the BindingManager is not passed an instance
 of a topology manager.
 """
 

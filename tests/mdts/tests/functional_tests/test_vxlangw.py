@@ -86,9 +86,10 @@ bindings_multi_mm = {
 
 # The VTEP itself must be able to communicate directly with this IP, which is
 # Midolmans host. This can be tricky. In the MidoCloud, this involves:
-# - Both VMs holding the VTEP and the MMM box should belong to a network 10.0.0.0/24
-# - Configure the neutron network so that it only assigns IPs between .99 and .102, or
-#   some range that will not overlap with any namespace inside MMM
+# - Both VMs holding the VTEP and the MMM box should belong to a network
+#   10.0.0.0/24
+# - Configure the neutron network so that it only assigns IPs between .99 and
+#   .102, or some range that will not overlap with any namespace inside MMM
 # - Assuming eth1 is the interface on the MMM box with the 10.0.0.x IP:
 #   - Remove any route that sends 10.0.0.0/24 towards the
 #     physical ifc. This is so the kernel gives that traffic to MMM's br0
@@ -101,8 +102,8 @@ bindings_multi_mm = {
 # to the VTEP from its own IP, as if it was a real host in the 10.0.0.0/24
 # network
 
-# Functional tests for the VXLAN Gateway Service. These verify that connectivity
-# is established for the following scenarios:
+# Functional tests for the VXLAN Gateway Service. These verify that
+# connectivity is established for the following scenarios:
 # - single / multiple VTEPs
 # - single / multiple bridges (logical switches)
 # - single / multiple MM hosts
@@ -135,8 +136,8 @@ bindings_multi_mm = {
 #
 # Known issues:
 #   - MNA-1006 : multi-MM testing of a single bridge, with traffic from MN, is
-#                disabled because the emulator bounces broadcast L2 traffic back
-#                to MN (to the flooding proxy)
+#                disabled because the emulator bounces broadcast L2 traffic
+#                back to MN (to the flooding proxy)
 
 _tunnel_zones = {}
 
@@ -221,9 +222,8 @@ def ping_to_vtep(bridge_name, port_index, dest_ip,
     except:
         if retries == 0:
             assert_that(-1, equal_to(0),
-                        "Ping to from {0}.{1} to {2} failed.".format(bridge_name,
-                                                                     port_index,
-                                                                     dest_ip))
+                        "Ping to from {0}.{1} to {2} failed.".format(
+                            bridge_name, port_index, dest_ip))
 
         ping_to_vtep(bridge_name, port_index, dest_ip, count, interval,
                      retries - 1)

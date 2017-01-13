@@ -344,13 +344,16 @@ class VirtualTopologyManager(TopologyManager):
         for load_balancer in self._load_balancers.values():
             for pool in load_balancer._pools:
                 for member in pool._members:
-                    if member.get_address() == ip and member.get_port() == port:
+                    if (member.get_address() == ip and
+                            member.get_port() == port):
                         matches_found.append(member)
 
         if len(matches_found) == 1:
             return matches_found[0]
         elif len(matches_found) > 1:
-            raise Exception("Didn't expect to find multiple matches for pool member %s" % ip_port)
+            raise Exception(
+                "Didn't expect to find multiple matches for pool member %s" %
+                ip_port)
         else:
             return None
 
@@ -367,7 +370,8 @@ class VirtualTopologyManager(TopologyManager):
         if len(matches_found) == 1:
             return matches_found[0]
         elif len(matches_found) > 1:
-            raise Exception("Didn't expect to find multiple matches for VIP %s" % ip_port)
+            raise Exception(
+                "Didn't expect to find multiple matches for VIP %s" % ip_port)
         else:
             return None
 

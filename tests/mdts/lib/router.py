@@ -53,16 +53,18 @@ class Router(ResourceBase):
         if 'load_balancer' in self._data:
             self._load_balancer =\
                 self._context.get_load_balancer(self._data['load_balancer'])
-            self._mn_resource.load_balancer_id(self._load_balancer._mn_resource.get_id())
+            self._mn_resource.load_balancer_id(
+                self._load_balancer._mn_resource.get_id())
 
         # Take filter names specified in the yaml file, look up corresponding
         # chain data via Virtual Topology Manager, and set their chain IDs to
         # Router DTO. Raise an exception if no corresponding chain is found.
         # TODO(tomohiko) Also updates _inbound_filter and _outbound_filter
-        for filter_field in ['inbound_filter_id', 'outbound_filter_id', 'local_redirect_chain']:
+        for filter_field in ['inbound_filter_id', 'outbound_filter_id',
+                             'local_redirect_chain']:
             if filter_field in self._data:
                 self._context.look_up_resource(
-                        self._mn_resource, filter_field, self._data[filter_field])
+                    self._mn_resource, filter_field, self._data[filter_field])
 
         self._mn_resource.create()
 
@@ -84,10 +86,10 @@ class Router(ResourceBase):
     def update(self):
         """Dynamically updates in/out-bound filters assigned to the router.
 
-        This updates the router MN resource with a filter ID if one has been set
-        in the input yaml data or programmatically done in the functional test
-        script to the 'wrapper_field' attribute of the mdts.lib.router.Router
-        object.
+        This updates the router MN resource with a filter ID if one has been
+        set in the input yaml data or programmatically done in the functional
+        test script to the 'wrapper_field' attribute of the
+        mdts.lib.router.Router object.
         """
         for (router_field, wrapper_field) in _FILTER_SETTERS:
             if getattr(self, wrapper_field):

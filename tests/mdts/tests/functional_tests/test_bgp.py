@@ -155,7 +155,8 @@ def await_default_route(router, port, peerAddr):
         time.sleep(1)
         timeout -= 1
     raise Exception("Timed out while waiting for BGP to be set up on router "
-                    "{0} port {1} to peer {2}".format(router_id, port_id, peerAddr))
+                    "{0} port {1} to peer {2}".format(router_id, port_id,
+                                                      peerAddr))
 
 
 def await_internal_route_exported(localAs, peerAs):
@@ -170,8 +171,8 @@ def await_internal_route_exported(localAs, peerAs):
             return
         time.sleep(2)
         timeout -= 2
-    raise Exception("Timed out while waiting for quagga0 to learn the internal "
-                    "network through AS %s " % (peerAs))
+    raise Exception("Timed out while waiting for quagga0 to learn the internal"
+                    " network through AS %s " % (peerAs))
 
 # routes BGP advertises:
 route_direct = [{'nwPrefix': '172.16.0.0', 'prefixLength': 16}]
@@ -483,7 +484,8 @@ def test_multisession_icmp_with_redundancy():
     Scenario:
     Given: two uplinks with two sessions each
     When: disabling one by one
-    Then: ICMP echo should work from different vms to a pseudo public IP address
+    Then: ICMP echo should work from different vms to a pseudo public IP
+          address
     """
     add_bgp(uplink1_multisession, route_direct)
 

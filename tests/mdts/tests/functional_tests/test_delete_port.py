@@ -25,7 +25,8 @@ from mdts.tests.utils.utils import wait_on_futures
 
 LOG = logging.getLogger(__name__)
 
-PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_delete_port.yaml')
+PTM = PhysicalTopologyManager(
+    '../topologies/mmm_physical_test_delete_port.yaml')
 VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_delete_port.yaml')
 BM = BindingManager(PTM, VTM)
 

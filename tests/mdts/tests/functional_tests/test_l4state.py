@@ -53,7 +53,8 @@ binding_l4state = {
 def get_random_port_num():
     '''Returns a random port number from a free port range.
 
-    NOTE: Using a random number may cause test indeterminacy on a rare occasion.
+    NOTE: Using a random number may cause test indeterminacy on a rare
+          occasion.
     '''
     return random.randint(49152, 65535)
 
@@ -180,7 +181,8 @@ def expect_forward():
 
 def return_filter(dst_port_no):
     filter_ = 'udp'
-    filter_ += ' and dst host %s and dst port %d' % ('192.168.0.1', dst_port_no)
+    filter_ += ' and dst host %s and dst port %d' % ('192.168.0.1',
+                                                     dst_port_no)
     filter_ += ' and src host %s and src port %d' % ('21.42.84.168', 1080)
     return filter_
 
@@ -305,7 +307,8 @@ def test_distributed_l4_port_binding():
 
     reboot_agents(0)
 
-    check_return_flow(left_uplink_port(), left_uplink_iface(), port_num, retries=10)
+    check_return_flow(left_uplink_port(), left_uplink_iface(), port_num,
+                      retries=10)
 
 
 @attr(version="v1.6.0")

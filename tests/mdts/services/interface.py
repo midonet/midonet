@@ -82,15 +82,19 @@ class Interface(object):
                                should_succeed, stream=not sync)
 
     @handle_sync
-    def expect(self, pcap_filter_string, timeout=None, sync=False, count=1, listen_host_interface=False):
-        return EXECUTOR.submit(self.do_expect, pcap_filter_string, timeout, count, listen_host_interface)
+    def expect(self, pcap_filter_string, timeout=None, sync=False, count=1,
+               listen_host_interface=False):
+        return EXECUTOR.submit(self.do_expect, pcap_filter_string, timeout,
+                               count, listen_host_interface)
 
     @handle_sync
     def clear_arp(self, sync=False):
         return EXECUTOR.submit(self.do_clear_arp)
 
-    # FIXME: the default number of packets to wait for is 1, should be configurable
-    def do_expect(self, pcap_filter_string, timeout=None, count=1, listen_host_interface=False):
+    # FIXME: the default number of packets to wait for is 1, should be
+    # configurable
+    def do_expect(self, pcap_filter_string, timeout=None, count=1,
+                  listen_host_interface=False):
         """
         Expects packet with pcap_filter_string with tcpdump.
         See man pcap-filter for more details as to what you can match.
@@ -112,10 +116,9 @@ class Interface(object):
             listen_ifname,
             '-c %s' % count,
             pcap_filter_string)
-        log_stream, exec_id = self.do_execute(cmdline,
-                                              timeout,
-                                              stream=True,
-                                              on_netns=not listen_host_interface)
+        log_stream, exec_id = self.do_execute(
+            cmdline, timeout, stream=True, on_netns=not listen_host_interface)
+
         try:
             self.compute_host.ensure_command_running(exec_id)
             LOG.debug('running tcp dump=%s', cmdline)
@@ -355,17 +358,16 @@ class Interface(object):
                 payload += '0'
 
         # Remove from headers hex_payload_file
-        cmdline = "mz %s %s -b %s -B %s -t %s \"%s\" -P \"%s\" -d %ss -c %s" % (
-            self.get_ifname(),
-            src_addrs,
-            target_hw,
-            target_ipv4,
-            pkt_type,
-            pkt_parms,
-            payload_size,
-            delay,
-            count
-        )
+        cmdline = "mz %s %s -b %s -B %s -t %s \"%s\" -P \"%s\" -d %ss -c %s" %\
+            (self.get_ifname(),
+             src_addrs,
+             target_hw,
+             target_ipv4,
+             pkt_type,
+             pkt_parms,
+             payload_size,
+             delay,
+             count)
         LOG.debug("cmdline: %s" % cmdline)
         return self.execute(cmdline, sync=sync)
 
@@ -381,18 +383,19 @@ class Interface(object):
         (belongs to the same segment), or the router's incoming port mac if
         the receiver is in a different segment.
 
-        NOTE: Currently the underlying layer uses mz for sending udp packets. mz
-        requires that at least ip packet length to be specified. Ip packet length
-        is computed as  28 + pay load file size where
+        NOTE: Currently the underlying layer uses mz for sending udp packets.
+        mz requires that at least ip packet length to be specified. Ip packet
+        length is computed as  28 + pay load file size where
             - 20 bytes for UDP packet frame
             - 8 bytes for addresses
 
         Args:
             target_hw: The target HW for this UDP message. Either the receiving
-                interface's mac address if it is in the same network segment, or
-                the router's incoming port's mac address
+                interface's mac address if it is in the same network segment,
+                or the router's incoming port's mac address
             target_ipv4: An IP address of the receiver.
-            hex_payload_file: A name of the file containing hexadecimal pay load.
+            hex_payload_file: A name of the file containing hexadecimal pay
+                load.
             iplen: The UDP packet length (see NOTE above for how to compute the
                 length). Passing None will omit the parameter.
             src_port: A UDP source port. Passing None will omit the parameter.
@@ -479,7 +482,8 @@ class Interface(object):
 
     def update_interface_name(self, new_name):
         self.execute('ip link set dev %s down' % self.ifname, sync=True)
-        self.execute('ip link set dev %s name %s' % (self.ifname, new_name), sync=True)
+        self.execute('ip link set dev %s name %s' %
+                     (self.ifname, new_name), sync=True)
         self.ifname = new_name
         self.execute('ip link set dev %s up' % self.ifname, sync=True)
 
@@ -495,7 +499,8 @@ class Interface(object):
     # TODO this function may not exactly belong here, but to host
     def get_num_routes(self, update=False):
         if not self.num_routes or update:
-            self.num_routes = self.execute('sh -c \"ip route | wc -l\"', sync=True)
+            self.num_routes = self.execute('sh -c \"ip route | wc -l\"',
+                                           sync=True)
             LOG.debug("Infered num_routes = %s" % self.num_routes)
         return int(self.num_routes)
 

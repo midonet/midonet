@@ -118,7 +118,8 @@ class MidonetAgentHost(Service):
 
     def hm_resources_exist(self, pool_id):
         # Pre: assume pool_id is a valid UUID
-        return self.is_haproxy_running(pool_id) and self.hm_namespace_exists(pool_id)
+        return (self.is_haproxy_running(pool_id)
+                and self.hm_namespace_exists(pool_id))
 
     def vppctl(self, cmd):
         self.try_command_blocking("vppctl %s" % cmd)
@@ -145,8 +146,10 @@ class MidonetAgentHost(Service):
         # Disable ipv6 for the namespace
 
         self.exec_command('ip netns add vm%s' % vm_id)
-        self.exec_command('ip netns exec vm%s sysctl -w net.ipv6.conf.default.disable_ipv6=1' % vm_id)
-        self.exec_command('ip netns exec vm%s sysctl -w net.ipv6.conf.all.disable_ipv6=1' % vm_id)
+        self.exec_command(('ip netns exec vm%s sysctl -w'
+                           ' net.ipv6.conf.default.disable_ipv6=1') % vm_id)
+        self.exec_command(('ip netns exec vm%s sysctl -w '
+                           'net.ipv6.conf.all.disable_ipv6=1') % vm_id)
         # MAC Address of hosts
         # aa:bb:cc:RR:HH:II where:
         # aa:bb:cc -> constant
@@ -232,7 +235,8 @@ class MidonetAgentHost(Service):
                 .interface_name(host_ifname).create()
         elif type == BindingType.MMCTL:
             self.exec_command("mm-ctl --bind-port {} {}"
-                              .format(mn_port_id, interface.get_binding_ifname()))
+                              .format(mn_port_id,
+                                      interface.get_binding_ifname()))
 
     def unbind_port(self, interface, type=BindingType.API):
         port = None

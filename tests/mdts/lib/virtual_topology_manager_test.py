@@ -466,7 +466,8 @@ class VirtualTopologyManagerTest(unittest.TestCase):
     def test_resolve_resource_reference_invalid_reference(self):
         """Tests an unrecognizable reference raises an exception."""
         self.load_empty_topology_data()
-        self.register_mock_resource_reference('xxx_id', {'xxx_name': 'foo bar'})
+        self.register_mock_resource_reference('xxx_id',
+                                              {'xxx_name': 'foo bar'})
         self.assertRaisesRegexp(InvalidResourceReferenceException,
                                 'Invalid resource reference:.*',
                                 self._vtm.build)

@@ -28,13 +28,16 @@ from nose.tools import with_setup
 import time
 
 LOG = logging.getLogger(__name__)
-PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_load_balancer.yaml')
-VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_load_balancer.yaml')
+PTM = PhysicalTopologyManager(
+    '../topologies/mmm_physical_test_load_balancer.yaml')
+VTM = VirtualTopologyManager(
+    '../topologies/mmm_virtual_test_load_balancer.yaml')
 BM = BindingManager(PTM, VTM)
 
 
 binding_multihost = {
-    'description': 'spanning across multiple MMs (equal weight, sender on different subnet)',
+    'description': 'spanning across multiple MMs (equal weight, sender on'
+                   ' different subnet)',
     'bindings': [
         {'binding':
             {'device_name': 'bridge-000-002', 'port_id': 1,
@@ -58,7 +61,8 @@ binding_multihost = {
 }
 
 binding_multihost_same_subnet = {
-    'description': 'spanning across multiple MMs (equal weight, sender on same subnet)',
+    'description': 'spanning across multiple MMs (equal weight, sender on same'
+                   ' subnet)',
     'bindings': [
         {'binding':
             {'device_name': 'bridge-000-002', 'port_id': 1,
@@ -152,7 +156,8 @@ def backend_ip_port(num):
 
 def get_backend_if(num):
     # Get the bridge of the first binding <-> first backend
-    backend_bridge = BM.get_binding_data()['bindings'][0]['binding']['device_name']
+    backend_bridge =\
+        BM.get_binding_data()['bindings'][0]['binding']['device_name']
     return BM.get_iface_for_port(backend_bridge, num)
 
 
@@ -358,7 +363,8 @@ def get_current_leader(lb_pools, timeout=60, wait_time=5):
             time.sleep(wait_time)
             timeout -= wait_time
         else:
-            LOG.debug('L4LB: current leader is %s' % current_leader.get_hostname())
+            LOG.debug('L4LB: current leader is %s' %
+                      current_leader.get_hostname())
             return current_leader
 
     raise RuntimeError('Not all haproxy instances found! '
@@ -391,8 +397,8 @@ def test_multi_member_loadbalancing():
     # (considering equal weights) is formulated in the coupon collector's
     # problem (see Wikipedia for instance).
     # The expected number of requests for 3 backends is 6.
-    # With 400 requests, we play it on the safe side for the case with different
-    # backend weights.
+    # With 400 requests, we play it on the safe side for the case with
+    # different backend weights.
     num_reqs = 400
 
     binding = BM.get_binding_data()
@@ -414,7 +420,8 @@ def test_multi_member_loadbalancing():
     if weighted:
         assert_that(check_weighted_results(non_sticky_results), True)
 
-    # Make many requests to the sticky loadbalancer IP, hits exactly one backend
+    # Make many requests to the sticky loadbalancer IP, hits exactly one
+    # backend
     LOG.debug("L4LB: make requests to STICKY_VIP")
     sticky_results = make_n_requests_to(sender,
                                         num_reqs,
@@ -432,7 +439,8 @@ def test_multi_member_loadbalancing():
     # backends at least once.
     num_reqs = 200
 
-    # Make many requests to the non sticky loadbalancer IP, hits the 2 remaining backends
+    # Make many requests to the non sticky loadbalancer IP, hits the 2
+    # remaining backends
     LOG.debug("L4LB: make requests to NON_STICKY_VIP (one backend disabled)")
     non_sticky_results = make_n_requests_to(sender,
                                             num_reqs,
@@ -443,7 +451,8 @@ def test_multi_member_loadbalancing():
         assert_that(check_weighted_results(non_sticky_results), True)
     assert_that(stuck_backend not in non_sticky_results)
 
-    # Make many requests to the sticky loadbalancer IP, hits exactly one backend
+    # Make many requests to the sticky loadbalancer IP, hits exactly one
+    # backend
     LOG.debug("L4LB: make requests to STICKY_VIP (one backend disabled)")
     sticky_results = make_n_requests_to(sender,
                                         num_reqs,
@@ -464,13 +473,14 @@ def test_disabling_topology_loadbalancing():
     Title: Balances traffic correctly when loadbalancer topology elements
            are disabled. New connections to the VIP should fail when any of
            the elements are disabled. In the case of pool members, connections
-           should fail when *all* pool members are disabled. In all cases, connections
-           should succeed when the device is re-enabled.
+           should fail when *all* pool members are disabled. In all cases,
+           connections should succeed when the device is re-enabled.
 
     Scenario:
     When: A VM sends TCP packets to a VIP's IP address / port.
     And:  We have 3 backends of equal weight, different devices are disabled.
-    Then: The loadbalancer sends traffic to a backend when the topology is fully enabled
+    Then: The loadbalancer sends traffic to a backend when the topology is
+          fully enabled
           (admin state up) and connections fail when elements are disabled.
     """
     vips = BM.get_binding_data()['vips']
@@ -627,13 +637,17 @@ def test_health_monitoring_backend_failback():
 @with_setup(start_servers, stop_servers)
 def test_long_connection_loadbalancing():
     """
-    Title: Balances traffic correctly when topology changes during a long running connection.
+    Title: Balances traffic correctly when topology changes during a long
+           running connection.
 
     Scenario:
-    When: A VM sends TCP packets to a VIP's IP address / port, long running connections.
+    When: A VM sends TCP packets to a VIP's IP address / port, long running
+          connections.
     And:  We have 3 backends of equal weight.
-    Then: When pool member disabled during connection, non-sticky connections should still succeed
-          When other devices are disabled during connection, non-sticky connections should break
+    Then: When pool member disabled during connection, non-sticky connections
+          should still succeed
+          When other devices are disabled during connection, non-sticky
+          connections should break
     """
     vips = BM.get_binding_data()['vips']
     sender_bridge, sender_port = BM.get_binding_data()['sender']
@@ -657,17 +671,20 @@ def test_long_connection_loadbalancing():
                              timeout=20)
     assert_that(result, equal_to('10.0.2.1'))
 
-    # Disable the one remaining backend (STICKY) and enable another one (NON_STICKY)
+    # Disable the one remaining backend (STICKY) and enable another one
+    # (NON_STICKY)
     pool_member_1.disable()
     pool_member_2.enable()
     pool_member_2.enable()
 
-    # Connections from the same src ip / port will be counted as the same ongoing connection
-    # Sticky traffic fails - connection dropped. It should reroute to an enabled backend?
+    # Connections from the same src ip / port will be counted as the same
+    # ongoing connection
+    # Sticky traffic fails - connection dropped. It should reroute to an
+    # enabled backend?
     result = make_request_to(sender, vips['sticky_vip'], timeout=20)
     # Is that right? Shouldn't midonet change to another backend?
     assert_that(result, equal_to(''))
-    #assert_request_fails_to(sender, STICKY_VIP, timeout=20, src_port=12345)
+    # assert_request_fails_to(sender, STICKY_VIP, timeout=20, src_port=12345)
     # Non sticky traffic succeeds - connection allowed to continue
     result = make_request_to(sender, vips['non_sticky_vip'], timeout=20)
     # It's not the disabled backend

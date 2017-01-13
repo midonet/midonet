@@ -103,7 +103,8 @@ def test_fragmented_packets():
     receiver.ping4(sender, 0.5, 3, True, 2000, do_arp=True)
 
     f1 = async_assert_that(receiver,
-                           receives('dst host 172.16.2.1 and icmp', within_sec(5)))
+                           receives('dst host 172.16.2.1 and icmp',
+                                    within_sec(5)))
 
     f2 = sender.ping4(receiver, 0.5, 3, False, 2000)
 
@@ -192,7 +193,8 @@ def test_routing_weight():
            route: dest 172.16.0.0/24 to port_a with weight 10
            route: dest 172.16.0.0/24 to port_b with weight 20
 
-    When: a VM sends IP packet to the subnet specified in the routes(172.16.0.2)
+    When: a VM sends IP packet to the subnet specified in the
+          routes(172.16.0.2)
     Then: the packet should be routed according to the route with smaller
           weight(port_a).
     """
@@ -215,7 +217,8 @@ def test_routing_prefixlen():
            route:dest 172.16.0.0/16 to port_a with weight 10
            route:dest 172.16.0.0/24 to port_b with weight 10
 
-    When: a VM sends IP packet to the subnet specified in the routes(172.16.0.2)
+    When: a VM sends IP packet to the subnet specified in the
+          routes(172.16.0.2)
     Then: the packet should be routed according to the route with more specific
           routes or longer subnet length(port_b)
     """
@@ -232,12 +235,14 @@ def test_routing_prefixlen_weight():
            (MN-L3-RT-2)
 
     Scenario 1:
-    Given: two routes that has similar dest address with different subnet length
+    Given: two routes that has similar dest address with different subnet
+           length
 
            route: dest 172.16.0.0/16 to port_a weight 10
            route: dest 172.16.0.0/24 to port_b weight 20
 
-    When: a VM sends IP packet to the subnet specified in the routes(172.16.0.2)
+    When: a VM sends IP packet to the subnet specified in the
+          routes(172.16.0.2)
     Then: the packet should be routed according to the route with more specific
           routes or longer subnet length (port_b)
     """

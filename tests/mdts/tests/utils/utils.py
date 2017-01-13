@@ -137,7 +137,8 @@ def update_with_setup(func, setup, teardown):
     Nose details (look if it can be implemented in a better way):
       - Avoid executing setup two times when using func generators
         First for the inner test, and another one for the outer one
-      - Look if it'd possible to use the with_setup method with a wrapped method
+      - Look if it'd possible to use the with_setup method with a wrapped
+        method
 
     :param func:
     :param setup:

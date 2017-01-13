@@ -59,7 +59,8 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                         'port_range_min': 0,
                         'port_range_max': 65535,
                         'protocol': 'udp',
-                        'security_group_id': port2['port']['security_groups'][0]
+                        'security_group_id':
+                            port2['port']['security_groups'][0]
                     }
                 }))
         except Exception as e:

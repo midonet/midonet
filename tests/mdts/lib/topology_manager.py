@@ -72,7 +72,8 @@ class TopologyManager(fixtures.Fixture):
         """
         Builds the topology specified in this method, either physical or
         virtual. If the topology elements should be removed during teardown,
-        you MUST schedule the delete using self.addCleanup(delete_method, args).
+        you MUST schedule the delete using self.addCleanup(delete_method,
+        args).
         :rtype: None
         """
         # Do nothing by default

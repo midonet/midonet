@@ -65,7 +65,8 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                     'security_group_rule': {
                         'direction': 'ingress',
                         'protocol': 'udp',
-                        'security_group_id': public_port['port']['security_groups'][0]
+                        'security_group_id':
+                            public_port['port']['security_groups'][0]
                     }
                 }))
 
@@ -219,13 +220,15 @@ def test_simple_port_migration():
     free_interface_vm = agent3.create_vmguest(**free_interface_vm_data)
     VTM.addCleanup(agent3.destroy_vmguest, free_interface_vm)
 
-    fip = VTM.get_resource('public_port_fip')['floatingip']['floating_ip_address']
+    fip = VTM.get_resource(
+        'public_port_fip')['floatingip']['floating_ip_address']
 
     # Generate flow state
     snat = check_forward_flow(
         private_interface_vm, public_interface_vm, fip, 50000, 80)
     check_return_flow(
-        public_interface_vm, private_interface_vm, snat['ip'], snat['port'], 50000, 80)
+        public_interface_vm, private_interface_vm, snat['ip'], snat['port'],
+        50000, 80)
 
     # Unbind/bind port to a different host
     if binding_type == BindingType.API:
@@ -235,4 +238,5 @@ def test_simple_port_migration():
     await_port_active(public_port['id'], active=True)
 
     check_return_flow(
-        free_interface_vm, private_interface_vm, snat['ip'], snat['port'], 50000, 80)
+        free_interface_vm, private_interface_vm, snat['ip'], snat['port'],
+        50000, 80)

@@ -41,11 +41,12 @@ class VT_vpn_three_sites(NeutronTopologyManager):
                 'config' in binding_data and
                 'tenants' in binding_data['config']):
             raise RuntimeError("This topology should be used in a binding "
-                               "with a 'config' key. This config should contain "
-                               "a 'tenants' key specifying the tenants to use "
-                               "as well.")
+                               "with a 'config' key. This config should"
+                               " contain a 'tenants' key specifying the"
+                               " tenants to use as well.")
 
-        left_tenant, right_tenant, up_tenant = binding_data['config']['tenants']
+        left_tenant, right_tenant, up_tenant =\
+            binding_data['config']['tenants']
         left_gw_ip = '10.0.0.1'
         left_subnet_cidr = '10.0.0.0/24'
         right_gw_ip = '20.0.0.1'
@@ -113,18 +114,20 @@ class VT_vpn_three_sites(NeutronTopologyManager):
                         {'subnet_id': subnet['subnet']['id']})
 
         # Create a port on the private networks for a vm
+        net_id = network['network']['id']
         port = self.create_resource(
             self.api.create_port({'port': {'name': 'port_' + tag,
-                                           'network_id': network['network']['id'],
+                                           'network_id': net_id,
                                            'admin_state_up': True,
                                            'tenant_id': tenant}}))
         # Necessary for inter-tenant communication (if doesn't exist already)
         try:
+            secg_id = port['port']['security_groups'][0]
             self.create_resource(
                 self.api.create_security_group_rule({
                     'security_group_rule': {
                         'direction': 'ingress',
-                        'security_group_id': port['port']['security_groups'][0]}}))
+                        'security_group_id': secg_id}}))
         except:
             LOG.debug('Security group already created... continuing.')
 
@@ -143,7 +146,8 @@ class VT_vpn_three_sites(NeutronTopologyManager):
         return router, network, subnet, port
 
     def get_site_data(self, tag):
-        # tenant, router, peer_address, [(vpn, peer_cidrs) | (local_ep_group, peer_ep_group)]
+        # tenant, router, peer_address, [(vpn, peer_cidrs) | (local_ep_group,
+        # peer_ep_group)]
         router = self.get_resource('router_' + tag)
         peer_address = router['router'][
             'external_gateway_info']['external_fixed_ips'][0]['ip_address']
@@ -179,15 +183,17 @@ class VT_vpn_three_sites(NeutronTopologyManager):
                           'psk': 'secret',
                           'ikepolicy_id': ike['ikepolicy']['id'],
                           'ipsecpolicy_id': ipsec['ipsecpolicy']['id']}
-        # If vpn is not None, we just need the peer_cidrs and the vpnservice_id.
+        # If vpn is not None, we just need the peer_cidrs and the vpnservice_id
         # TODO: If vpn is None, it means that we are going with endpoint groups
         # (up from liberty) so we need to create them.
         if vpn is not None:
             base_ipsec_def['vpnservice_id'] = vpn['vpnservice']['id']
             base_ipsec_def['peer_cidrs'] = peer_cidrs
         else:
-            base_ipsec_def['local_ep_group_id'] = local_ep_group['endpoint_group']['id']
-            base_ipsec_def['peer_ep_group_id'] = peer_ep_group['endpoint_group']['id']
+            base_ipsec_def['local_ep_group_id'] =\
+                local_ep_group['endpoint_group']['id']
+            base_ipsec_def['peer_ep_group_id'] =\
+                peer_ep_group['endpoint_group']['id']
 
         cnxn = self.api.create_ipsec_site_connection(
                 {'ipsec_site_connection': base_ipsec_def})
@@ -272,9 +278,12 @@ binding_onehost_intra_tenant = {
 # Same as intra but with each vm in a different host
 binding_multihost_intra_tenant = copy.deepcopy(binding_onehost_intra_tenant)
 binding_multihost_intra_tenant['description'] = 'on multiple MM (intra tenant)'
-binding_multihost_intra_tenant['bindings'][1]['interface']['hostname'] = 'midolman1'
-binding_multihost_intra_tenant['bindings'][1]['interface']['hostname'] = 'midolman2'
-binding_multihost_intra_tenant['bindings'][2]['interface']['hostname'] = 'midolman3'
+binding_multihost_intra_tenant['bindings'][1]['interface']['hostname'] =\
+    'midolman1'
+binding_multihost_intra_tenant['bindings'][1]['interface']['hostname'] =\
+    'midolman2'
+binding_multihost_intra_tenant['bindings'][2]['interface']['hostname'] =\
+    'midolman3'
 
 # Same as multihost intra but overriding the tenants config key
 binding_multihost_inter_tenant = copy.deepcopy(binding_multihost_intra_tenant)
@@ -302,8 +311,9 @@ def test_ping_between_three_sites():
     left_tenant, right_tenant, up_tenant = \
         BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
     # Kilo version, supported also in liberty and mitaka
@@ -362,8 +372,9 @@ def test_ping_two_sites_two_subnets():
 
     left_tenant, right_tenant, _ = BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
 
@@ -394,7 +405,8 @@ def test_ping_two_sites_two_subnets():
 
     # Add router interface for the new subnet
     VTM.api.add_interface_router(
-            left_router['router']['id'], {'subnet_id': new_subnet['subnet']['id']})
+        left_router['router']['id'],
+        {'subnet_id': new_subnet['subnet']['id']})
     VTM.addCleanup(VTM.api.remove_interface_router,
                    left_router['router']['id'],
                    {'subnet_id': new_subnet['subnet']['id']})
@@ -402,14 +414,16 @@ def test_ping_two_sites_two_subnets():
     # Create port
     new_port = VTM.create_resource(
             VTM.api.create_port({'port': {'name': 'port_left_2',
-                                          'network_id': new_network['network']['id'],
+                                          'network_id':
+                                              new_network['network']['id'],
                                           'admin_state_up': True,
                                           'tenant_id': left_tenant}}))
     # Create vm (on the same host as the sibling vm) and bind
     host = BM.get_interface_on_vport('port_left').compute_host
     new_vm = host.create_vmguest(
             **{'ipv4_gw': '10.1.0.1',
-               'ipv4_addr': [new_port['port']['fixed_ips'][0]['ip_address'] + '/24'],
+               'ipv4_addr':
+                   [new_port['port']['fixed_ips'][0]['ip_address'] + '/24'],
                'hw_addr': new_port['port']['mac_address']})
     BM.addCleanup(host.destroy_vmguest, new_vm)
     host.bind_port(new_vm, new_port['port']['id'])
@@ -418,8 +432,9 @@ def test_ping_two_sites_two_subnets():
 
     # In kilo we need to create an additional VPN service
     # for new local connections. Mitaka uses endpoints.
-    left_vpn2 = VTM.add_vpn_service('left', 'left_vpn2', left_tenant, left_router,
-                        new_subnet)
+    left_vpn2 = VTM.add_vpn_service('left', 'left_vpn2', left_tenant,
+                                    left_router, new_subnet)
+
     # Create the corresponding site connection
     VTM.add_ipsec_site_connection(
         'left', 'left2_to_right', left_tenant, right_peer_address,
@@ -447,8 +462,10 @@ def test_vpn_recreation():
 
     left_tenant, right_tenant, _ = BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet, schedule_delete=False)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet,
+                                   schedule_delete=False)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
 
@@ -467,7 +484,8 @@ def test_vpn_recreation():
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
 
-    VTM.api.delete_ipsec_site_connection(left_to_right['ipsec_site_connection']['id'])
+    VTM.api.delete_ipsec_site_connection(
+        left_to_right['ipsec_site_connection']['id'])
 
     # Ping fails
     ping('port_left', 'port_right', expected_failure=True)
@@ -479,8 +497,9 @@ def test_vpn_recreation():
     ping('port_left', 'port_right', expected_failure=True)
     ping('port_right', 'port_left', expected_failure=True)
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     left_to_right = VTM.add_ipsec_site_connection(
             'left', 'left_to_right', left_tenant, right_peer_address,
             vpn=left_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
@@ -499,8 +518,9 @@ def test_admin_state_up_changes():
     left_tenant, right_tenant, up_tenant = \
         BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
     up_vpn = VTM.add_vpn_service('up', 'up_vpn', up_tenant, up_router,
@@ -588,8 +608,9 @@ def test_ipsec_container_failover():
     left_tenant, right_tenant, up_tenant = \
         BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
     up_vpn = VTM.add_vpn_service('up', 'up_vpn', up_tenant, up_router,
@@ -641,7 +662,8 @@ def test_ipsec_container_failover():
     time.sleep(10)
     containers = [(c.get_namespace_name(), c.get_host_id(), c.get_status())
                   for c in midonet_api.get_service_containers()]
-    LOG.info("VPNaaS: container hosts after failing midolman2 -> %s" % containers)
+    LOG.info("VPNaaS: container hosts after failing midolman2 -> %s" %
+             containers)
 
     pairwise_ping(['port_left', 'port_right', 'port_up'])
 
@@ -658,7 +680,8 @@ def test_ipsec_container_failover():
     time.sleep(10)
     containers = [(c.get_namespace_name(), c.get_host_id(), c.get_status())
                   for c in midonet_api.get_service_containers()]
-    LOG.info("VPNaaS: container hosts after failing midolman2 -> %s" % containers)
+    LOG.info("VPNaaS: container hosts after failing midolman2 -> %s" %
+             containers)
 
     pairwise_ping(['port_left', 'port_right', 'port_up'])
 
@@ -676,8 +699,9 @@ def test_non_vpn_subnet():
 
     left_tenant, right_tenant, _ = BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
 
@@ -704,7 +728,8 @@ def test_non_vpn_subnet():
 
     # Add router interface for the new subnet
     VTM.api.add_interface_router(
-            left_router['router']['id'], {'subnet_id': new_subnet['subnet']['id']})
+        left_router['router']['id'],
+        {'subnet_id': new_subnet['subnet']['id']})
     VTM.addCleanup(VTM.api.remove_interface_router,
                    left_router['router']['id'],
                    {'subnet_id': new_subnet['subnet']['id']})
@@ -712,14 +737,16 @@ def test_non_vpn_subnet():
     # Create port
     new_port = VTM.create_resource(
             VTM.api.create_port({'port': {'name': 'port_left_2',
-                                          'network_id': new_network['network']['id'],
+                                          'network_id':
+                                              new_network['network']['id'],
                                           'admin_state_up': True,
                                           'tenant_id': left_tenant}}))
     # Create vm (on the same host as the sibling vm) and bind
     host = BM.get_interface_on_vport('port_left').compute_host
     new_vm = host.create_vmguest(
             **{'ipv4_gw': '10.1.0.1',
-               'ipv4_addr': [new_port['port']['fixed_ips'][0]['ip_address'] + '/24'],
+               'ipv4_addr':
+                   [new_port['port']['fixed_ips'][0]['ip_address'] + '/24'],
                'hw_addr': new_port['port']['mac_address']})
     BM.addCleanup(host.destroy_vmguest, new_vm)
     host.bind_port(new_vm, new_port['port']['id'])
@@ -810,8 +837,9 @@ def test_container_migration():
     left_tenant, right_tenant, up_tenant = \
         BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
 
@@ -887,8 +915,9 @@ def test_container_restored_on_agent_restart():
     left_tenant, right_tenant, up_tenant = \
         BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
 
@@ -966,8 +995,9 @@ def test_container_maintained_on_cluster_restart():
     left_tenant, right_tenant, up_tenant = \
         BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
 
@@ -1061,8 +1091,9 @@ def test_container_restored_on_agent_failure():
     left_tenant, right_tenant, up_tenant = \
         BM.get_binding_data()['config']['tenants']
 
-    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
-                                   left_subnet)
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant,
+                                   left_router, left_subnet)
+
     right_vpn = VTM.add_vpn_service('right', 'right_vpn', right_tenant,
                                     right_router, right_subnet)
 
@@ -1084,7 +1115,8 @@ def test_container_restored_on_agent_failure():
             vpn=right_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
 
     # Kill the agent
-    pid = midolman2.exec_command("pidof /usr/lib/jvm/java-8-openjdk-amd64/bin/java")
+    pid = midolman2.exec_command(
+        "pidof /usr/lib/jvm/java-8-openjdk-amd64/bin/java")
     midolman2.exec_command("kill -9 %s" % pid)
     midolman2.stop(wait=True)
 
