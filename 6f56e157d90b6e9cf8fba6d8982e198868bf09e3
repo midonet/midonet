@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_d073474c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/vpp/VppExternalNetworkTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-13T22:01:57Z",
+      "side": 1,
+      "message": "I don\u0027t think you need all this to create a Neutron subnet. Why not just create the protobuf and store it in the storage with store.create or store.multi, the same as for all the other objects in the test. Wouldn\u0027t something like:\n\n  val subnet \u003d NeutronSubnet.newBuilder()\n    .setId(...)\n    .setCidr(...)\n    ...\n    .build()\n\n  store.create(subnet)\n\nwork? You could also add a convenience method createSubnet(...) to the TopologyBuilder if there isn\u0027t already one.",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 9
+      },
+      "revId": "6f56e157d90b6e9cf8fba6d8982e198868bf09e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_70991b6e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/vpp/VppExternalNetworkTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-13T22:01:57Z",
+      "side": 1,
+      "message": "maybe this is redundant",
+      "range": {
+        "startLine": 170,
+        "startChar": 33,
+        "endLine": 170,
+        "endChar": 45
+      },
+      "revId": "6f56e157d90b6e9cf8fba6d8982e198868bf09e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_509e1757",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/vpp/VppExternalNetworkTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-13T22:01:57Z",
+      "side": 1,
+      "message": "So here you could create the subnet:\n\n  val subnet \u003d createSubnet(...,networkId\u003dSome(bridge.getId),...)\n  val network \u003d createNetwork(id \u003d bridge.getId, external\u003dSome(true), subnetIds \u003d Seq(subnet.getId))\n\nstore.multi(Seq(...,CreateOp(subnet),CreateOp(network)))\n\nand it to the same multi below. You may need to add new createSubnet method to the topology builder and modify the createNetwork such that it takes the subnetIds argument.",
+      "range": {
+        "startLine": 412,
+        "startChar": 12,
+        "endLine": 413,
+        "endChar": 62
+      },
+      "revId": "6f56e157d90b6e9cf8fba6d8982e198868bf09e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
