@@ -24,7 +24,7 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
-class BindingType:
+class BindingType(object):
     API = 1
     MMCTL = 2
 

@@ -17,7 +17,7 @@ device name and port ID.
 """
 
 
-class ResourceReference:
+class ResourceReference(object):
     """
     This class represents a reference to a resource, such as device port, from
     an attribute of another resource.
