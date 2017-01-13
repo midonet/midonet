@@ -26,13 +26,17 @@ import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{CreateOp, Storage}
 import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.cluster.util.{IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.vpp.VppExternalNetwork.{AddExternalNetwork, RemoveExternalNetwork}
 import org.midonet.midolman.vpp.VppFip64.Notification
 import org.midonet.midolman.vpp.VppProviderRouter.ProviderRouter
+import org.midonet.packets.IPv6Subnet
 import org.midonet.util.logging.Logging
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Commons.IPVersion
 
 @RunWith(classOf[JUnitRunner])
 class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
@@ -83,7 +87,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge.getId)
+                bridge.getId, Seq())
 
             When("Removing the provider router")
             vpp.update(ProviderRouter(router.getId, Collections.emptyMap()))
@@ -123,7 +127,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge.getId)
+                bridge.getId, Seq())
 
             When("The network is unmarked as external")
             store.update(network1)
@@ -160,7 +164,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge.getId)
+                bridge.getId, Seq())
 
             When("Adding another provider router port")
             map.put(routerPort2.getId, bridgePort2.getId)
@@ -215,7 +219,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the first external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge1.getId)
+                bridge1.getId, Seq())
 
             When("Adding the provider router with both ports")
             map.put(routerPort2.getId, bridgePort2.getId)
@@ -223,7 +227,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the second external network")
             vpp.observer.getOnNextEvents.get(1) shouldBe AddExternalNetwork(
-                bridge2.getId)
+                bridge2.getId, Seq())
 
             When("Removing the first provider router port")
             map.remove(routerPort1.getId.asJava)
@@ -277,7 +281,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the second external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge2.getId)
+                bridge2.getId, Seq())
         }
 
         scenario("Additional network updates are ignored") {
@@ -303,7 +307,7 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should add the external network")
             vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
-                bridge.getId)
+                bridge.getId, Seq())
 
             When("Updating the network")
             val network2 = network1.toBuilder.setName("network").build()
@@ -311,6 +315,53 @@ class VppExternalNetworkTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should remove the external network")
             vpp.observer.getOnNextEvents should have size 1
+        }
+    }
+    feature("External networks instance manages subnets") {
+        scenario("Provider router already connected to external " +
+                 "network with one IPv6 subnet") {
+            Given("An external network instance")
+            val vpp = new TestableExternalNetwork
+
+            And("A provider router connected to an external network")
+            val router = createRouter()
+            val bridge = createBridge()
+            val routerPort = createRouterPort(routerId = Some(router.getId))
+            val bridgePort = createBridgePort(bridgeId = Some(bridge.getId),
+                                              peerId = Some(routerPort.getId))
+
+            val cidr = Commons.IPSubnet.newBuilder()
+                .setVersion(IPVersion.V6)
+                .setAddress("1000::0")
+                .setPrefixLength(96).build()
+            val subnet = createSubnet(bridge.getId, cidr)
+
+            val network = createNetwork(id = bridge.getId,
+                                        external = Some(true),
+                                        subnets = Seq(subnet.getId))
+
+            store.multi(Seq(CreateOp(router), CreateOp(bridge),
+                            CreateOp(routerPort), CreateOp(bridgePort),
+                            CreateOp(subnet),
+                            CreateOp(network)))
+
+            When("Adding the provider router")
+            vpp.update(ProviderRouter(router.getId,
+                                      Collections.singletonMap(routerPort.getId,
+                                                               bridgePort
+                                                                   .getId)))
+
+            Then("The observer should add the external network")
+            vpp.observer.getOnNextEvents.get(0) shouldBe AddExternalNetwork(
+                bridge.getId,
+                Seq(IPSubnetUtil.fromProto(cidr).asInstanceOf[IPv6Subnet]))
+
+            When("Removing the provider router")
+            vpp.update(ProviderRouter(router.getId, Collections.emptyMap()))
+
+            Then("The observer should remove the external network")
+            vpp.observer.getOnNextEvents.get(1) shouldBe RemoveExternalNetwork(
+                bridge.getId)
         }
     }
 
