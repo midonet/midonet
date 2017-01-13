@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_1093ff5c",
+        "filename": "build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-13T21:45:42Z",
+      "side": 1,
+      "message": "why not lib or src/lib?",
+      "range": {
+        "startLine": 157,
+        "startChar": 42,
+        "endLine": 157,
+        "endChar": 49
+      },
+      "revId": "33fbcf68522f2d8ad726a5fcbdbba5d15cb2d886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
