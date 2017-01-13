@@ -21,11 +21,12 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, LBStatus, LogEvent}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.{IkeVersion, Phase1NegotiationMode}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
-import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, NeutronNetwork, VpnService}
+import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, NeutronNetwork, NeutronSubnet, VpnService}
 import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
@@ -338,17 +339,32 @@ trait TopologyBuilder {
     def createNetwork(id: UUID = UUID.randomUUID(),
                       adminStateUp: Option[Boolean] = None,
                       external: Option[Boolean] = None,
-                      name: Option[String] = None
+                      name: Option[String] = None,
+                      subnets: Seq[UUID] = Seq[UUID]()
                       ): NeutronNetwork = {
         val builder = NeutronNetwork.newBuilder()
             .setId(id.asProto)
+            .addAllSubnets(subnets map {_.asProto} asJavaCollection)
         if (adminStateUp.isDefined)
             builder.setAdminStateUp(adminStateUp.get)
         if (external.isDefined)
             builder.setExternal(external.get)
         if (name.isDefined)
             builder.setName(name.get)
+
         builder.build()
+    }
+
+    def createSubnet(networkId: UUID, cidr: Commons.IPSubnet,
+                     subnetId: UUID = UUID.randomUUID(),
+                     name: String = "subnet"): NeutronSubnet = {
+        NeutronSubnet.newBuilder()
+            .setNetworkId(networkId.asProto)
+            .setCidr(cidr)
+            .setId(subnetId.asProto)
+            .setName(name)
+            .setIpVersion(cidr.getVersion.getNumber)
+            .build()
     }
 
     def createMirror(id: UUID = UUID.randomUUID,
