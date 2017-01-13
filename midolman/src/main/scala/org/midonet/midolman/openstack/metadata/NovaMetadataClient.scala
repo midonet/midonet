@@ -16,6 +16,8 @@
 
 package org.midonet.midolman.openstack.metadata
 
+import java.io.InputStream
+
 import com.sun.jersey.api.client.{Client, ClientResponse, UniformInterfaceException}
 
 import org.apache.commons.io.IOUtils
@@ -50,8 +52,8 @@ object Conv {
  *   available.  It's also passed to vendordata_driver.
  */
 
-class UnknownRemoteAddressException(remoteAddr: String)
-    extends RuntimeException(s"Unknown remote address $remoteAddr")
+class NovaMetadataClientException(message: String)
+    extends RuntimeException(message)
 
 object NovaMetadataClient {
 
@@ -61,31 +63,41 @@ object NovaMetadataClient {
                                instanceId: String): String =
         Hmac.hmac(sharedSecret, instanceId)
 
-    def getMetadata(path: String, remoteAddr: String,
-                    novaMetadataUrl: String,
-                    sharedSecret: String): String = {
-        Log debug s"Request from $remoteAddr for path $path"
+    private def readAll(stream: InputStream) = IOUtils.toByteArray(stream)
+
+    def proxyRequest(method: String,
+                     path: String,
+                     content: InputStream,
+                     remoteAddr: String,
+                     novaMetadataUrl: String,
+                     sharedSecret: String): String = {
+        Log debug s"$method request from $remoteAddr for path $path"
         InstanceInfoMap getByAddr remoteAddr match {
             case Some(info) =>
                 Log debug s"Request matches instance $info"
-                getMetadata(path, info, novaMetadataUrl, sharedSecret)
+                proxyRequest(method, path, content,
+                             info, novaMetadataUrl, sharedSecret)
             case None =>
                 /*
                  * This shouldn't happen normally as datapath flows are
                  * installed using InstanceInfo.
                  */
                 Log warn s"Received request from unknown address $remoteAddr"
-                throw new UnknownRemoteAddressException(remoteAddr)
+                throw new NovaMetadataClientException(
+                    s"Unknown remote address $remoteAddr")
         }
     }
 
-    def getMetadata(path: String, info: InstanceInfo,
-                    novaMetadataUrl: String,
-                    sharedSecret: String): String = {
+    private def proxyRequest(method: String,
+                     path: String,
+                     content: InputStream,
+                     info: InstanceInfo,
+                     novaMetadataUrl: String,
+                     sharedSecret: String): String = {
         val instanceIdSig = signInstanceId(sharedSecret, info.instanceId)
         val client = new Client
         val url = novaMetadataUrl + path
-        Log debug s"Request from instance:${info.instanceId} to $url"
+        Log debug s"$method request from instance:${info.instanceId} to $url"
 
         val resource = client.resource(url)
             .header("X-Tenant-ID", info.tenantId)
@@ -93,8 +105,15 @@ object NovaMetadataClient {
             .header("X-Instance-ID-Signature", instanceIdSig)
             .header("X-Forwarded-For", info.address)
         try {
-            val response = resource get classOf[ClientResponse]
-
+            val response = method match {
+                case "GET" => resource.get(classOf[ClientResponse])
+                // POST is used by nova blueprint get-password
+                // https://blueprints.launchpad.net/nova/+spec/get-password
+                case "POST" => resource.post(classOf[ClientResponse],
+                                             readAll(content))
+                case _ => throw new NovaMetadataClientException(
+                    s"Unsupported method $method")
+            }
             if (response.getStatus >= 300) {
                 throw new UniformInterfaceException(response)
             }
