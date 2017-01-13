@@ -23,14 +23,16 @@ import javax.inject.Named
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
+import scala.util.Failure
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
 
 import com.google.inject.Inject
 
+import org.apache.commons.lang.StringUtils
+
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
-import rx.{Observable, Subscription}
+import rx.{Observable, Observer, Subscription}
 
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons.LBStatus
@@ -46,9 +48,6 @@ import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
-object HaProxyContainer {
-    val hmSuffix = "_hm"
-}
 
 @Container(name = Containers.HAPROXY_CONTAINER, version = 1)
 class HaProxyContainer @Inject()(
@@ -63,18 +62,11 @@ class HaProxyContainer @Inject()(
     protected val haProxyHelper = new HaproxyHelper()
 
     private var lbId: UUID = _
-    private var ifaceName: String = _
-    private var namespaceName: String = _
+    private var interfaceName: String = _
+    private var namespaceName: String = StringUtils.EMPTY
+    private var deployed: Boolean = false
 
-    // Promise for the result of a create() call.
-    private var createPromise: Promise[Option[String]] = _
-
-    private var poolHmMapObservable: Observable[PoolHealthMonitorMap] = _
-    private var portObservable: Observable[RouterPort] = _
     private var curRefs = Refs(null, null)
-
-    @volatile private var health: ContainerHealth =
-        ContainerHealth(STOPPED, null, "Stopped")
 
     private var upNodes = Set[UUID]()
     private var downNodes = Set[UUID]()
@@ -82,15 +74,26 @@ class HaProxyContainer @Inject()(
     // Subscription to PoolHealthMonitorMap and container Port.
     private var refsSub: Subscription = _
 
-    private val vtScheduler = Schedulers.from(vt.vtExecutor)
     private val containerScheduler = Schedulers.from(containerExecutor)
 
     private val statusSubject = PublishSubject.create[ContainerStatus]
-    private val statusSubscription = Observable
+    private val statusObservable = Observable
         .interval(vt.config.containers.haproxy.statusUpdateInterval.toMillis,
-                  TimeUnit.MILLISECONDS, vtScheduler)
-        .doOnNext(makeAction1(publishStatus))
-        .subscribe()
+                  TimeUnit.MILLISECONDS, containerScheduler)
+    private val statusObserver = new Observer[java.lang.Long] {
+        override def onNext(tick: java.lang.Long): Unit = {
+            publishStatus(tick)
+        }
+
+        override def onError(e: Throwable): Unit = {
+            log.debug("Status observable error", e)
+        }
+
+        override def onCompleted(): Unit = {
+            log.debug("Status observable completed")
+        }
+    }
+    private var statusSubscription: Subscription = _
 
     /**
       * Creates a container for the specified exterior port and service
@@ -103,23 +106,22 @@ class HaProxyContainer @Inject()(
       */
     override def create(port: ContainerPort): Future[Option[String]] = {
         lbId = port.configurationId
-        ifaceName = port.interfaceName
+        interfaceName = port.interfaceName
         namespaceName = HaproxyHelper.namespaceName(lbId.toString)
 
-        health = ContainerHealth(STARTING, namespaceName, "Starting")
-
-        createPromise = Promise()
-        val createFuture = createPromise.future
+        val createPromise = Promise[Option[String]]()
 
         unsubscribeRefs()
-        subscribeRefs(port.portId)
+        subscribeRefs(createPromise, port.portId)
 
-        createFuture
+
+
+        createPromise.future
     }
 
     // Shouldn't happen, so no need to do anything.
     override def updated(port: ContainerPort): Future[Option[String]] = {
-        log.error("Unexpected call to HaProxyContainer.updated()")
+        log.warn("Unexpected call to HaProxyContainer.updated()")
         Future.successful(None)
     }
 
@@ -129,23 +131,22 @@ class HaProxyContainer @Inject()(
             refsSub = null
         }
 
-    private def subscribeRefs(portId: UUID): Unit = {
+    private def subscribeRefs(createPromise: Promise[Option[String]],
+                              portId: UUID): Unit = {
         assert(refsSub == null)
-        poolHmMapObservable = VirtualTopology
+        val poolHmMapObservable = VirtualTopology
             .observable(classOf[PoolHealthMonitorMap], PoolHealthMonitorMapKey)
-            .observeOn(vtScheduler)
             .doOnCompleted(makeAction0(onPoolHmMapDeleted()))
             .doOnError(makeAction1(onPoolHmMapError))
-        portObservable = VirtualTopology
+        val portObservable = VirtualTopology
             .observable(classOf[RouterPort], portId)
-            .observeOn(vtScheduler)
 
         refsSub = Observable
             .merge(poolHmMapObservable, portObservable)
             .observeOn(containerScheduler)
             .map[Refs](makeFunc1(onSingleRefUpdated))
             .filter(makeFunc1(_.isReady))
-            .doOnNext(makeAction1(onRefsUpdated))
+            .doOnNext(makeAction1(onRefsUpdated(createPromise, _)))
             .subscribe()
     }
 
@@ -166,39 +167,47 @@ class HaProxyContainer @Inject()(
         curRefs
     }
 
-    private def onRefsUpdated(refs: Refs): Unit = {
+    private def onRefsUpdated(createPromise: Promise[Option[String]],
+                              refs: Refs): Unit = {
         val lbCfg = toLbV2Config(refs.phm)
-        if (createPromise != null) {
-            // Still need to deploy.
-            val tryDeploy = Try {
+        if (!createPromise.isCompleted) {
+            try {
+                deployed = false
                 haProxyHelper.deploy(
-                    lbCfg, ifaceName,
+                    lbCfg, interfaceName,
                     containerPortAddress(refs.port.portAddress4).toString,
                     routerPortAddress(refs.port.portAddress4).toString)
-                Some(namespaceName)
-            }
+                createPromise.trySuccess(Some(namespaceName))
+                statusSubject onNext ContainerHealth(RUNNING, namespaceName,
+                                                     StringUtils.EMPTY)
+                deployed = true
 
-            createPromise.tryComplete(tryDeploy)
-            createPromise = null // Done creating.
-
-            health = tryDeploy match {
-                case Success(_) =>
-                    ContainerHealth(RUNNING, namespaceName, "Running")
-                case Failure(ex) =>
-                    log.error("Error deploying haproxy.", ex)
-                    ContainerHealth(ERROR, namespaceName, ex.getMessage)
+                // Schedule the status check.
+                if (statusSubscription ne null) {
+                    statusSubscription.unsubscribe()
+                }
+                statusSubscription = statusObservable subscribe statusObserver
+            } catch {
+                case NonFatal(e) =>
+                    log.warn("Error deploying HaProxy", e)
+                    statusSubject onNext ContainerHealth(ERROR, namespaceName,
+                                                         e.getMessage)
+                    createPromise.tryComplete(Failure(e))
             }
         } else {
             // Already deployed. Just restart.
             try {
+                deployed = false
                 haProxyHelper.restart(lbCfg)
+                statusSubject onNext ContainerHealth(RUNNING, namespaceName,
+                                                     StringUtils.EMPTY)
+                deployed = true
             } catch {
                 case NonFatal(ex) =>
-                    log.error("Error restarting haproxy.", ex)
-                    health = ContainerHealth(ERROR, namespaceName,
-                                             ex.getMessage)
+                    log.warn("Error restarting HaProxy", ex)
+                    statusSubject onNext ContainerHealth(ERROR, namespaceName,
+                                                         ex.getMessage)
             }
-
         }
     }
 
@@ -230,11 +239,11 @@ class HaProxyContainer @Inject()(
     }
 
     private def onPoolHmMapDeleted(): Unit = {
-        log.error("PoolHealthMonitorMap observable completed. Not expected.")
+        log.error("Unexpected completion of PoolHealthMonitorMap observable")
     }
 
     private def onPoolHmMapError(t: Throwable): Unit = {
-        log.error("PoolHealthMonitorMap observable raised error.", t)
+        log.error("PoolHealthMonitorMap observable raised error", t)
     }
 
     /**
@@ -243,16 +252,10 @@ class HaProxyContainer @Inject()(
       * container has been deleted.
       */
     override def delete(): Future[Unit] = {
-        health = ContainerHealth(STOPPING, namespaceName, "Stopping")
-        val result = cleanup(namespaceName)
-        result.value.get match {
-            case Success(_) =>
-                health = ContainerHealth(STOPPED, namespaceName, "Stopped")
-            case Failure(t) =>
-                log.error("Error deleting container:", t)
-                health = ContainerHealth(ERROR, namespaceName, t.getMessage)
+        try cleanup(namespaceName)
+        finally {
+            namespaceName = StringUtils.EMPTY
         }
-        result
     }
 
     /**
@@ -260,8 +263,19 @@ class HaProxyContainer @Inject()(
       * returns a future that completes when the container has been cleaned.
       */
     override def cleanup(name: String): Future[Unit] = {
+        if (statusSubscription ne null) {
+            statusSubscription.unsubscribe()
+            statusSubscription = null
+        }
+
         unsubscribeRefs()
-        Future.fromTry(Try(haProxyHelper.undeploy(name, ifaceName)))
+        deployed = false
+        try {
+            haProxyHelper.undeploy(name, interfaceName)
+            Future.successful(Unit)
+        } catch {
+            case NonFatal(e) => Future.failed(e)
+        }
     }
 
     /**
@@ -269,28 +283,33 @@ class HaProxyContainer @Inject()(
       * publishes pool member status to the NSDB store.
       */
     private def publishStatus(tick: java.lang.Long): Unit = {
-        if (health.code == RUNNING) {
-            val (newUpNodes, newDownNodes) = try {
-                haProxyHelper.getStatus()
-            } catch {
-                case NonFatal(t) =>
-                    log.error("HaProxyHelper.getStatus returned error.", t)
-                    statusSubject.onNext(
-                        ContainerHealth(ERROR, namespaceName, t.getMessage))
-                    return
-            }
-
-            try updateMemberStatus(newUpNodes, newDownNodes) catch {
-                case ex: NotFoundException =>
-                    log.debug("NotFoundException when updating pool member " +
-                              "status. Most likely due to concurrent delete " +
-                              "of pool member.", ex)
-                case NonFatal(t) =>
-                    log.error("Unexpected exception updating pool member " +
-                              "status.", t)
-            }
+        if (!deployed) {
+            return
         }
-        statusSubject.onNext(health)
+
+        val (newUpNodes, newDownNodes) = try {
+            haProxyHelper.getStatus()
+        } catch {
+            case NonFatal(t) =>
+                log.warn("Retrieving HaProxy status returned an error", t)
+                statusSubject onNext ContainerHealth(ERROR, namespaceName, t.getMessage)
+                return
+        }
+
+        try updateMemberStatus(newUpNodes, newDownNodes) catch {
+            case ex: NotFoundException =>
+                log.debug("NotFoundException when updating pool member " +
+                          "status, most likely due to concurrent delete " +
+                          "of pool member", ex)
+            case NonFatal(t) =>
+                log.warn("Unexpected exception updating pool member " +
+                         "status", t)
+        }
+
+        if (namespaceName ne null) {
+            val message = s"Up: $upNodes\nDown: $downNodes"
+            statusSubject onNext ContainerHealth(RUNNING, namespaceName, message)
+        }
     }
 
     private def updateMemberStatus(newUpNodes: Set[UUID],
@@ -315,8 +334,7 @@ class HaProxyContainer @Inject()(
             downNodes = newDownNodes
         } catch {
             case NonFatal(ex) =>
-                log.warn("Error updating pool member status. Will try again " +
-                          "next tick.", ex)
+                log.warn("Error updating pool member status", ex)
         }
     }
 
