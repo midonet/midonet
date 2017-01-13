@@ -46,7 +46,7 @@ object VppExternalNetwork {
     /**
       * Indicates that an external network was added to a provider router.
       */
-    case class AddExternalNetwork(networkId: UUID)
+    case class AddExternalNetwork(networkId: UUID, subnets: Seq[IPv6Subnet])
         extends Notification
 
     /**
@@ -142,12 +142,14 @@ object VppExternalNetwork {
             val result =
                 if (previousNetwork eq null) {
                     if (currentNetwork.getExternal)
-                        Observable.just[Notification](AddExternalNetwork(networkId))
+                        Observable.just[Notification](
+                            AddExternalNetwork(networkId, subnets.toSeq))
                     else Observable.empty[Notification]()
                 } else if (previousNetwork.getExternal !=
                            currentNetwork.getExternal) {
                     if (currentNetwork.getExternal)
-                        Observable.just[Notification](AddExternalNetwork(networkId))
+                        Observable.just[Notification](
+                            AddExternalNetwork(networkId, subnets.toSeq))
                     else
                         removeObservable
                 } else {

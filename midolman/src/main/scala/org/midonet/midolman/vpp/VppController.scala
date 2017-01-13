@@ -73,7 +73,8 @@ object VppController {
       * Neutron network.
       */
     private class ExternalNetwork(networkId: UUID, hostId: UUID,
-                                       vt: VirtualTopology) {
+                                  vt: VirtualTopology,
+                                  val routesSetup: VppBlackHoleRoutes) {
         private val table =
             vt.stateTables.getTable[UUID, AnyRef](classOf[NeutronNetwork],
                                                   networkId,
@@ -137,8 +138,8 @@ class VppController(protected override val hostId: UUID,
             deleteUplink(portId)
         case Gateways(_, hosts) =>
             updateFlowStateFlows(hosts)
-        case AddExternalNetwork(networkId) =>
-            addExternalNetwork(networkId)
+        case AddExternalNetwork(networkId, subnets) =>
+            addExternalNetwork(networkId, subnets)
         case RemoveExternalNetwork(networkId) =>
             removeExternalNetwork(networkId)
         case CreateTunnel(portId, vrf, vni, routerPortMac) =>
@@ -356,20 +357,33 @@ class VppController(protected override val hostId: UUID,
         }
     }
 
-    private def addExternalNetwork(networkId: UUID): Future[_] = {
+    private def addExternalNetwork(networkId: UUID,
+                                   subnets: Seq[IPv6Subnet]): Future[_] = {
         if (!externalNetworks.containsKey(networkId)) {
+            val dropRoutes = new VppBlackHoleRoutes("BlackHoleRoutes",
+                                                    vppApi,
+                                                    subnets,
+                                                    Logger(log.underlying))
             externalNetworks.put(networkId,
-                                 new ExternalNetwork(networkId, hostId, vt))
+                                 new ExternalNetwork(networkId,
+                                     hostId,
+                                     vt, dropRoutes))
+            dropRoutes.execute()
+        } else {
+            Future.successful(Unit)
         }
-        Future.successful(Unit)
     }
 
     private def removeExternalNetwork(networkId: UUID): Future[_] = {
         val state = externalNetworks.remove(networkId)
         if (state ne null) {
             state.complete()
+            state.routesSetup.rollback() recover {
+                case _ => log warn "Black holes rollback failed"
+            }
+        } else {
+            Future.successful(Unit)
         }
-        Future.successful(Unit)
     }
 
     @tailrec
