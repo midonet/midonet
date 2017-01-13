@@ -42,12 +42,12 @@ class UtilsTest(unittest.TestCase):
     def test_get_top_dir(self):
         top_dir = os.path.realpath(
             os.path.dirname(__file__) + '../../../')
-        self.assertEquals(top_dir, get_top_dir())
+        self.assertEqual(top_dir, get_top_dir())
 
     def test_get_midolman_script_dir(self):
         mm_script_dir = os.path.realpath(
             os.path.dirname(__file__) + '/../../../mmm/scripts/midolman')
-        self.assertEquals(get_midolman_script_dir(), mm_script_dir)
+        self.assertEqual(get_midolman_script_dir(), mm_script_dir)
 
 if __name__ == "__main__":
     unittest.main()
