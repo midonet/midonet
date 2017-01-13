@@ -46,6 +46,54 @@
       "revId": "e3dc6a4c98b54da1ab64cecedcf7948a5453b55f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_d59c596b",
+        "filename": "midolman/src/deb/init/minions-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-13T16:39:52Z",
+      "side": 1,
+      "message": "It\u0027s used only for special service containers packages for QA afaik.\nhttps://github.com/alexbikfalvi/midonet/commit/ba8f58a39246afa27b21e6abc487b73e1e53cace",
+      "parentUuid": "fabf19d9_5a2bd830",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 31
+      },
+      "revId": "e3dc6a4c98b54da1ab64cecedcf7948a5453b55f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_75ab4d8a",
+        "filename": "midolman/src/deb/init/minions-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-13T16:39:52Z",
+      "side": 1,
+      "message": "It\u0027s used only for special service containers packages for QA afaik.",
+      "parentUuid": "fabf19d9_5a2bd830",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 31
+      },
+      "revId": "e3dc6a4c98b54da1ab64cecedcf7948a5453b55f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
