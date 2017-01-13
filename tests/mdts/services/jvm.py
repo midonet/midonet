@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from jpype import *
+from jpype import getDefaultJVMPath
+from jpype import java
+from jpype import startJVM
 import logging
 
 LOG = logging.getLogger(__name__)
