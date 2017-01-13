@@ -700,7 +700,7 @@ def client_check_result(container, stream, count=100):
         assert(lines[i] == wanted)
 
 
-class TCPSessionClient:
+class TCPSessionClient(object):
     instance_id = 0
 
     def __init__(self, container, gateway, address, prefix, server, port):
@@ -752,7 +752,7 @@ class TCPSessionClient:
         self.io.close()
 
 
-class DockerIOExecutor:
+class DockerIOExecutor(object):
     def __init__(self, container, command):
         cont = service.get_container_by_hostname(container)
         container = cont.get_name()

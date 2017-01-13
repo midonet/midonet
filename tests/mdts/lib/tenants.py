@@ -15,7 +15,7 @@
 import uuid
 
 
-class Tenant:
+class Tenant(object):
 
     def __init__(self, id, name):
         self.id = id

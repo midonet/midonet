@@ -25,7 +25,7 @@ Web server which returns the ip:port on which it is running.
 """
 
 
-class NsInfoServer:
+class NsInfoServer(object):
     def __init__(self, num):
         self.port_num = num
         addr = commands.getoutput("ip address").split()
