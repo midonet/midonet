@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_7aa57c02",
+        "filename": "midolman/src/deb/init/minions-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-13T16:16:32Z",
+      "side": 1,
+      "message": "The midolman add-on path is:\n\nMIDO_PLUGINS\u003d\"$MIDO_HOME/plugins\"\n\nI guess we should use the same here?",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 31
+      },
+      "revId": "e3dc6a4c98b54da1ab64cecedcf7948a5453b55f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
