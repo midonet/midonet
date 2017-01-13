@@ -113,7 +113,7 @@ private[vpp] trait VppFip64 extends VppUplink
         override def onNext(notification: Notification): Unit = {
             vt.assertThread()
             notification match {
-                case AddExternalNetwork(networkId) =>
+                case AddExternalNetwork(networkId, _) =>
                     // When adding an external network: first notify the VPP
                     // controller and if the operation succeeds, begin
                     // monitoring it. If the operation fails, remove the

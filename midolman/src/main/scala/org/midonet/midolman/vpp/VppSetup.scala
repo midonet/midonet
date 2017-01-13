@@ -94,7 +94,8 @@ object VppSetup extends MidolmanLogging {
                         vrf: Int = 0)
                        (implicit ec: ExecutionContext)
         extends VppDevice(name, deviceName, vppApi, macSource, vrf)(ec) {
-
+        // FIXME: setDeviceTable will be called with isIpv6 = false
+        // seems harmless for now
         /* IPv6 neighbour discovery needs to be disabled on a device before
            removing it or vpp will crash
          */
@@ -338,12 +339,12 @@ object VppSetup extends MidolmanLogging {
     }
 
     class VppAddRoute(override val name: String,
-                        dst: IPSubnet[_ <: IPAddr],
-                        nextHop: Option[IPAddr] = None,
-                        nextDevice: Option[VppApi.Device] = None,
-                        vrf: Int,
-                        vppApi: VppApi)
-                       (implicit ec: ExecutionContext)
+                      dst: IPSubnet[_ <: IPAddr],
+                      nextHop: Option[IPAddr] = None,
+                      nextDevice: Option[VppApi.Device] = None,
+                      vrf: Int,
+                      vppApi: VppApi)
+                      (implicit ec: ExecutionContext)
         extends FutureTaskWithRollback {
 
         override def execute(): Future[Any] = {
@@ -352,6 +353,22 @@ object VppSetup extends MidolmanLogging {
 
         override def rollback(): Future[Any] = {
             vppApi.deleteRoute(dst, nextHop, nextDevice, vrf)
+        }
+    }
+
+    class VppAddDropRoute(override val name: String,
+                          dst: IPSubnet[_ <: IPAddr],
+                          vrf: Int,
+                          vppApi: VppApi)
+                         (implicit ec: ExecutionContext)
+        extends FutureTaskWithRollback {
+
+        override def execute(): Future[Any] = {
+            vppApi.addDropRoute(dst, vrf)
+        }
+
+        override def rollback(): Future[Any] = {
+            vppApi.deleteRoute(dst, None, None, vrf)
         }
     }
 
@@ -501,7 +518,8 @@ class VppUplinkSetup(uplinkPortId: UUID,
                 val newVppRoute = new VppAddRoute("Add external route to VPP",
                                                   dst, Some(nextHop),
                                                   uplinkVpp.vppInterface,
-                                                  0, vppApi)
+                                                  vrf = 0,
+                                                  vppApi)
                 externalRoutes.put(route, newVppRoute)
                 log debug s"Adding uplink route ${route.getId.asJava} " +
                           s"to interface ${uplinkVpp.vppInterface.get}"
@@ -799,4 +817,24 @@ class Fip64FlowStateFlows(vppOvs: VppOvs,
 
     add(new FlowStateSending)
     add(new FlowStateReceiving)
+}
+
+/*
+ * Route all IPv6 subnets to "drop" node in VPP, to avoid
+ * bouncing packets.
+ */
+class VppBlackHoleRoutes(name: String, vppApi: VppApi,
+                         subnets: Seq[IPv6Subnet],
+                         log: Logger)
+                         (implicit ec: ExecutionContext)
+    extends VppSetup(name, log)(ec) {
+
+    import VppSetup.VppAddDropRoute
+
+    subnets.foreach { subnet =>
+        val dropRoute =
+            new VppAddDropRoute(s"Add black hole route for subnet $subnet",
+                                subnet, vrf = 0, vppApi)
+        add(dropRoute)
+    }
 }
