@@ -574,6 +574,8 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
           * children of the specified node. */
         override protected def childrenOf(path: String): Seq[String] =
             tablesDirectory.getChildren(path, null).asScala.toSeq
+
+        override def close(): Unit = { }
     }
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
