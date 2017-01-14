@@ -462,14 +462,19 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             storage.delete(classOf[PojoBridge], obj.id)
 
             And("Recreating the object")
-            storage.create(obj)
+            eventually {
+                storage.create(obj)
+            }
 
             When("Retrieving the table")
-            val table2 = storage.getTable[Int, String](classOf[PojoBridge],
-                                                       obj.id, "score-table")
+            eventually {
+                val table2 = storage.getTable[Int, String](classOf[PojoBridge],
+                                                           obj.id,
+                                                           "score-table")
 
-            Then("The table should be a different instance")
-            (table1 ne table2) shouldBe true
+                Then("The table should be a different instance")
+                (table1 ne table2) shouldBe true
+            }
         }
 
         scenario("State table directory writes to storage") {
