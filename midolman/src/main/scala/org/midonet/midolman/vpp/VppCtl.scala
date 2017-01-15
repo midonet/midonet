@@ -16,45 +16,23 @@
 
 package org.midonet.midolman.vpp
 
-import java.util.concurrent.TimeoutException
+import scala.concurrent.{ExecutionContext, Future}
 
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import org.midonet.containers.ContainerCommons
 
-import com.typesafe.scalalogging.Logger
+trait VppCtl extends ContainerCommons {
 
-import org.midonet.util.process.ProcessHelper
-import org.midonet.util.process.ProcessHelper.OutputStreams.{StdError, StdOutput}
+    private val logFunction = (line: String) => log.debug(s"vppctl: $line")
 
-object VppCtl {
-    final val DefaultTimeout = 1 minute
-}
-
-class VppCtl(log: Logger, timeout: Duration = VppCtl.DefaultTimeout)
-            (implicit ec: ExecutionContext) {
-    def exec(vppCommand: String): Future[_] = {
+    def vppCtl(vppCommand: String)(implicit ec: ExecutionContext): Future[_] = {
         val command = s"vppctl $vppCommand"
         log debug s"Executing command: `$command`"
 
-        val process = ProcessHelper.newProcess(command)
-            .logOutput(log.underlying, "vppctl", StdOutput, StdError)
-            .run()
-
-        val promise = Promise[Unit]
         Future {
-            if (!process.waitFor(timeout.toMillis, MILLISECONDS)) {
-                process.destroy()
-                log warn s"Command `$command` timed out"
-                throw new TimeoutException(s"Command `$command` timed out")
-            }
-            log debug s"Command `$command` exited with code ${process.exitValue()}"
-            if (process.exitValue == 0) {
-                promise.trySuccess(())
-            } else {
-                promise.tryFailure(new Exception(
-                    s"Command failed with result ${process.exitValue}"))
-            }
+            val code = execute(command, logFunction)
+            log debug s"Command `$command` exited with code $code"
+            if (code != 0)
+                throw new Exception(s"Command failed with result $code")
         }
-        promise.future
     }
 }

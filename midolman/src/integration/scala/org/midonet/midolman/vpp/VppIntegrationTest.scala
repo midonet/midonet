@@ -411,6 +411,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
             val api = new VppApi("test")
             val datapath = createDatapath("foobar")
             val ovs = new VppOvs(datapath, fip64config)
+            val vppCtl = new VppCtl { }
 
             log.info("Creating dummy uplink port")
 
@@ -424,7 +425,7 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
                                                 uplinkDp.getPortNo,
                                                 fip64config,
                                                 VppController.VppFlowStateCfg,
-                                                api, ovs, log))
+                                                api, ovs, vppCtl, log))
                 assertCmdInNs(uplinkns, s"ip a add 2001::2/64 dev ${uplinkns}ns")
 
                 setup foreach { s => Await.result(s.execute(), 1 minute) }
