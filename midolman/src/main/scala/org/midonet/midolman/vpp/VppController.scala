@@ -29,8 +29,6 @@ import scala.concurrent.{Await, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
-import com.typesafe.scalalogging.Logger
-
 import rx.{Observer, Subscription}
 
 import org.midonet.cluster.data.storage.StateTableEncoder.GatewayHostEncoder
@@ -164,8 +162,6 @@ class VppController(protected override val hostId: UUID,
         override def onCompleted(): Unit = { /* ignore */ }
     }
 
-    private val vppCtl = new VppCtl(Logger(log.underlying))
-
     protected override def doStart(): Unit = {
         startFip64()
         notifyStarted()
@@ -222,14 +218,10 @@ class VppController(protected override val hostId: UUID,
             vppApi = createApiConnection(VppConnectMaxRetries)
         }
 
-        val uplinkSetup = new VppUplinkSetup(portId,
-                                             portAddress.getAddress,
+        val uplinkSetup = new VppUplinkSetup(portId, portAddress.getAddress,
                                              dpNumber.intValue(),
-                                             vt.config.fip64,
-                                             VppFlowStateCfg,
-                                             vppApi,
-                                             vppOvs,
-                                             Logger(log.underlying))
+                                             vt.config.fip64, VppFlowStateCfg,
+                                             vppApi, vppOvs, log)
 
         val result = {
             uplinks.put(portId, uplinkSetup) match {
@@ -288,9 +280,7 @@ class VppController(protected override val hostId: UUID,
     private def attachDownlink(): Future[_] = {
         log debug s"Attach downlink VXLAN port"
 
-        val setup = new VppDownlinkSetup(vt.config.fip64,
-                                         vppApi,
-                                         Logger(log.underlying));
+        val setup = new VppDownlinkSetup(vt.config.fip64, vppApi, log);
         {
             downlink match {
                 case None => Future.successful(Unit)
@@ -321,9 +311,8 @@ class VppController(protected override val hostId: UUID,
                              vrf: Int, vni: Int,
                              routerPortMac: MAC) : Future[_] = {
         log debug s"Creating downlink tunnel for port:$portId VRF:$vrf VNI:$vni"
-        val setup = new VppVxlanTunnelSetup(vt.config.fip64,
-                                            vni, vrf, routerPortMac,
-                                            vppApi, Logger(log.underlying))
+        val setup = new VppVxlanTunnelSetup(vt.config.fip64, vni, vrf,
+                                            routerPortMac, vppApi, log)
 
         {
             vxlanTunnels.replace(portId, setup) match {
@@ -360,10 +349,8 @@ class VppController(protected override val hostId: UUID,
     private def addExternalNetwork(networkId: UUID,
                                    subnets: Seq[IPv6Subnet]): Future[_] = {
         if (!externalNetworks.containsKey(networkId)) {
-            val dropRoutes = new VppBlackHoleRoutes("BlackHoleRoutes",
-                                                    vppApi,
-                                                    subnets,
-                                                    Logger(log.underlying))
+            val dropRoutes = new VppBlackHoleRoutes("Blackhole routes",
+                                                    vppApi, subnets, log)
             externalNetworks.put(networkId,
                                  new ExternalNetwork(networkId,
                                      hostId, vt, dropRoutes))
@@ -445,11 +432,8 @@ class VppController(protected override val hostId: UUID,
         poolFor(portId, natPool) flatMap { pool =>
             if (pool.nonEmpty) {
                 log debug s"Allocated NAT pool at port $portId is ${pool.get}"
-                val setup = new Fip64Setup(floatingIp, fixedIp,
-                                           vppApi,
-                                           vt.config.fip64,
-                                           Logger(log.underlying),
-                                           pool.get.start,
+                val setup = new Fip64Setup(floatingIp, fixedIp, vppApi,
+                                           vt.config.fip64, log, pool.get.start,
                                            pool.get.end, vrf, vni)
                 setup.execute()
             } else {
@@ -466,9 +450,8 @@ class VppController(protected override val hostId: UUID,
         log debug s"Disassociating FIP at port $portId (VRF $vrf): " +
                   s"$floatingIp -> $fixedIp"
 
-        val setup = new Fip64Setup(floatingIp, fixedIp,
-                                   vppApi, vt.config.fip64,
-                                   Logger(log.underlying))
+        val setup = new Fip64Setup(floatingIp, fixedIp, vppApi, vt.config.fip64,
+                                   log)
         setup.rollback()
     }
 
@@ -507,8 +490,7 @@ class VppController(protected override val hostId: UUID,
 
             val newSetup = new Fip64FlowStateFlows(vppOvs, vppPort,
                                                    underlayPorts,
-                                                   tunnelRoutes.toSeq,
-                                                   Logger(log.underlying))
+                                                   tunnelRoutes.toSeq, log)
             val previous = uplinkFlowStateFlows
             uplinkFlowStateFlows = Some(newSetup)
 

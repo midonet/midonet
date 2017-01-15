@@ -22,7 +22,7 @@ import scala.collection.{Set, mutable}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
-import com.typesafe.scalalogging.Logger
+import com.typesafe.scalalogging.{Logger => ScalaLogger}
 
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
@@ -35,6 +35,7 @@ import org.midonet.odp.DpPort
 import org.midonet.packets.{IPSubnet, _}
 import org.midonet.util.EthtoolOps
 import org.midonet.util.concurrent.{FutureSequenceWithRollback, FutureTaskWithRollback}
+import org.midonet.util.logging.Logger
 
 object VppSetup extends MidolmanLogging {
 
@@ -435,7 +436,8 @@ object VppSetup extends MidolmanLogging {
 
 class VppSetup(setupName: String, log: Logger)
               (implicit ec: ExecutionContext)
-    extends FutureSequenceWithRollback(setupName, log)(ec)
+    extends FutureSequenceWithRollback(setupName,
+                                       ScalaLogger(log.underlying))(ec)
 
 class VppUplinkSetup(uplinkPortId: UUID,
                      uplinkPortAddress: IPv6Addr,
@@ -451,8 +453,6 @@ class VppUplinkSetup(uplinkPortId: UUID,
     import VppSetup._
 
     private final val VppUplinkVRF = 0
-
-    private val vppctl = new VppCtl(log)
 
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
