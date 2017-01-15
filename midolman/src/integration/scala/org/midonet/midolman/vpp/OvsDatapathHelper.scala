@@ -20,12 +20,11 @@ import java.nio.ByteBuffer
 
 import scala.concurrent.duration._
 
-import com.typesafe.scalalogging.Logger
-
 import org.midonet.ErrorCode
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{Datapath, OvsNetlinkFamilies, OvsProtocol}
+import org.midonet.util.logging.Logger
 
 /**
   * Create/delete Ovs Datapath, mainly for test purposes

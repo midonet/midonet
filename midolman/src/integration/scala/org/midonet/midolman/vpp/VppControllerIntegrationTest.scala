@@ -23,7 +23,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import com.codahale.metrics.MetricRegistry
-import com.typesafe.scalalogging.Logger
 
 import org.junit.Assert
 import org.junit.runner.RunWith
@@ -40,14 +39,14 @@ import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.util.TestDatapathState
 import org.midonet.midolman.{DatapathState, SimulationBackChannel}
 import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort}
 import org.midonet.packets.IPv6Subnet
-import org.midonet.util.concurrent._
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent._
+import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
 class VppControllerIntegrationTest extends FeatureSpec with Matchers

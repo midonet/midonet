@@ -16,17 +16,15 @@
 
 package org.midonet.midolman.vpp
 
-import java.nio.ByteBuffer
-import java.util.{ArrayList, UUID}
 import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.{ArrayList, UUID}
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 import com.google.inject.Guice
 import com.typesafe.config.{Config, ConfigFactory}
-import com.typesafe.scalalogging.Logger
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.test.TestingServer
@@ -36,18 +34,16 @@ import org.scalatest.FeatureSpec
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.ErrorCode
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{MidonetBackendTestModule, MidonetTestBackend}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.conf.HostIdGenerator
-import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.UnderlayResolver
-import org.midonet.netlink._
-import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.midolman.config.Fip64Config
 import org.midonet.odp._
-import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeyEtherType, FlowKeys}
+import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.packets._
+import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
 class VppIntegrationTest extends FeatureSpec with TopologyBuilder
