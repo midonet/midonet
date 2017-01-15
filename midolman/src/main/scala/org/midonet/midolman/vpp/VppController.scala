@@ -97,7 +97,7 @@ class VppController(protected override val hostId: UUID,
                     datapathState: DatapathState,
                     vppOvs: VppOvs,
                     protected override val vt: VirtualTopology)
-    extends VppExecutor with VppFip64 with VppState {
+    extends VppExecutor with VppFip64 with VppState with VppCtl {
 
     import VppController._
 
@@ -163,8 +163,6 @@ class VppController(protected override val hostId: UUID,
         override def onCompleted(): Unit = { /* ignore */ }
     }
 
-    private val vppCtl = new VppCtl(Logger(log.underlying))
-
     protected override def doStart(): Unit = {
         startFip64()
         notifyStarted()
@@ -228,6 +226,7 @@ class VppController(protected override val hostId: UUID,
                                              VppFlowStateCfg,
                                              vppApi,
                                              vppOvs,
+                                             this,
                                              Logger(log.underlying))
 
         val result = {
@@ -432,11 +431,11 @@ class VppController(protected override val hostId: UUID,
         poolFor(portId, natPool) flatMap { pool =>
             if (pool.nonEmpty) {
                 log debug s"Allocated NAT pool at port $portId is ${pool.get}"
-                vppCtl.exec(s"ip route table $vrf add $fixedIp/32 " +
-                            s"via ${vt.config.fip64.vppInternalGateway}") flatMap { _ =>
-                    vppCtl.exec(s"fip64 add $floatingIp $fixedIp " +
-                                s"pool ${pool.get.start} ${pool.get.end}" +
-                                s" table $vrf vni $vni")
+                vppCtl(s"ip route table $vrf add $fixedIp/32 " +
+                       s"via ${vt.config.fip64.vppInternalGateway}") flatMap { _ =>
+                    vppCtl(s"fip64 add $floatingIp $fixedIp " +
+                           s"pool ${pool.get.start} ${pool.get.end}" +
+                           s" table $vrf vni $vni")
                 }
             } else {
                 // We complete the future successfully, since there is nothing
@@ -452,8 +451,8 @@ class VppController(protected override val hostId: UUID,
         log debug s"Disassociating FIP at port $portId (VRF $vrf): " +
                   s"$floatingIp -> $fixedIp"
 
-        vppCtl.exec(s"fip64 del $floatingIp") flatMap { _ =>
-            vppCtl.exec(s"ip route table $vrf del $fixedIp/32")
+        vppCtl(s"fip64 del $floatingIp") flatMap { _ =>
+            vppCtl(s"ip route table $vrf del $fixedIp/32")
         }
     }
 

@@ -408,6 +408,7 @@ class VppUplinkSetup(uplinkPortId: UUID,
                      flowStateConf: VppFlowStateConfig,
                      vppApi: VppApi,
                      vppOvs: VppOvs,
+                     vppCtl: VppCtl,
                      log: Logger)
                      (implicit ec: ExecutionContext)
     extends VppSetup("VPP uplink setup", log) {
@@ -415,8 +416,6 @@ class VppUplinkSetup(uplinkPortId: UUID,
     import VppSetup._
 
     private final val VppUplinkVRF = 0
-
-    private val vppctl = new VppCtl(log)
 
     private val uplinkSuffix = uplinkPortId.toString.substring(0, 8)
     private val uplinkVppName = s"vpp-$uplinkSuffix"
@@ -469,12 +468,12 @@ class VppUplinkSetup(uplinkPortId: UUID,
 
         @throws[Exception]
         override def execute() = {
-            vppctl.exec(s"fip64 sync ${flowStateConf.vrfOut}")
+            vppCtl.vppCtl(s"fip64 sync ${flowStateConf.vrfOut}")
         }
 
         @throws[Exception]
         override def rollback() = {
-            vppctl.exec(s"fip64 sync disable")
+            vppCtl.vppCtl(s"fip64 sync disable")
         }
     }
 
