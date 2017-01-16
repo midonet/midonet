@@ -445,12 +445,13 @@ class VppController(protected override val hostId: UUID,
         poolFor(portId, natPool) flatMap { pool =>
             if (pool.nonEmpty) {
                 log debug s"Allocated NAT pool at port $portId is ${pool.get}"
-                vppCtl.exec(s"ip route table $vrf add $fixedIp/32 " +
-                            s"via ${vt.config.fip64.vppInternalGateway}") flatMap { _ =>
-                    vppCtl.exec(s"fip64 add $floatingIp $fixedIp " +
-                                s"pool ${pool.get.start} ${pool.get.end}" +
-                                s" table $vrf vni $vni")
-                }
+                val setup = new Fip6Setup(floatingIp, fixedIp,
+                                          vppApi,
+                                          vt.config.fip64,
+                                          Logger(log.underlying),
+                                          pool.get.start,
+                                          pool.get.end, vrf, vni)
+                setup.execute()
             } else {
                 // We complete the future successfully, since there is nothing
                 // to rollback.
@@ -465,9 +466,10 @@ class VppController(protected override val hostId: UUID,
         log debug s"Disassociating FIP at port $portId (VRF $vrf): " +
                   s"$floatingIp -> $fixedIp"
 
-        vppCtl.exec(s"fip64 del $floatingIp") flatMap { _ =>
-            vppCtl.exec(s"ip route table $vrf del $fixedIp/32")
-        }
+        val setup = new Fip6Setup(floatingIp, fixedIp,
+                                  vppApi, vt.config.fip64,
+                                  Logger(log.underlying))
+        setup.rollback()
     }
 
     private def handleExternalRoutesUpdate(port: RouterPort): Future[_] = {
