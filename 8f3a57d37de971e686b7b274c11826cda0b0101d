@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_25cb6020",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-16T01:56:45Z",
+      "side": 1,
+      "message": "provides",
+      "range": {
+        "startLine": 36,
+        "startChar": 49,
+        "endLine": 36,
+        "endChar": 58
+      },
+      "revId": "8f3a57d37de971e686b7b274c11826cda0b0101d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8578ecf3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-16T01:56:45Z",
+      "side": 1,
+      "message": "single",
+      "range": {
+        "startLine": 40,
+        "startChar": 21,
+        "endLine": 40,
+        "endChar": 26
+      },
+      "revId": "8f3a57d37de971e686b7b274c11826cda0b0101d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_45c89422",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-16T01:56:45Z",
+      "side": 1,
+      "message": "is this WIP?",
+      "range": {
+        "startLine": 151,
+        "startChar": 12,
+        "endLine": 151,
+        "endChar": 14
+      },
+      "revId": "8f3a57d37de971e686b7b274c11826cda0b0101d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
