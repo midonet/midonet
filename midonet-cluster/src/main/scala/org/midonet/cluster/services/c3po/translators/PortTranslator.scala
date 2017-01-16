@@ -205,6 +205,9 @@ class PortTranslator(stateTableStorage: StateTableStorage,
                               // DHCP may have already been deleted.
                               ignoreNonExistingDhcp = true)
             deleteMetaDataServiceRoute(tx, nPort)
+        } else if (isVipV2Port(nPort)) {
+            // Delete the ARP entries for associated Floating IP.
+            deleteFloatingIpArpEntries(tx, nPort)
         }
         addContextOps(tx, portContext)
     }

@@ -266,9 +266,11 @@ For VIF, DHCP, non-uplink Router Interface and Router Gateway ports:
    the port
  * Remove the matching MidoNet port.
 
-For VIP ports,
+For VIP ports:
 
  * Remove the matching MidoNet port.
+ * Remove the MidoNet network ARP table entry referencing the floating IPs
+   associated with the port.
 
 ## ROUTER
 

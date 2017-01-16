@@ -1448,6 +1448,68 @@ class VipPortTranslationTest extends VifPortTranslationTest {
     }
 }
 
+@RunWith(classOf[JUnitRunner])
+class VipV2PortTranslationTest extends VifPortTranslationTest {
+    val vipPortWithFloatingIpIds = nPortFromTxt(s"""
+        $portBaseUp
+        floating_ip_ids { $fipId1 }
+        floating_ip_ids { $fipId2 }
+        """)
+
+    before {
+        initMockStorage()
+        translator = new PortTranslator(stateTableStorage, seqDispenser)
+
+        bind(networkId, nNetworkBase)
+        bind(networkId, midoNetwork)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
+    }
+
+    protected val vipPortUp = nPortFromTxt(portBaseUp + """
+        device_owner: LOADBALANCERV2
+                                                        """)
+    protected val vipPortDown = nPortFromTxt(portBaseDown + """
+        device_owner: LOADBALANCERV2
+                                                            """)
+
+    "VIP port CREATE" should "create a MidoNet port" in {
+        translator.translate(transaction, CreateOp(vipPortUp))
+        midoOps should contain(CreateOp(mPortWithChains))
+    }
+
+    "VIP port UPDATE" should "update port admin state" in {
+        bind(portId, mPortDownWithChains)
+        bind(portId, vipPortUp)
+        bind(inboundChainId, inboundChain)
+        bind(outboundChainId, outboundChain)
+        bind(spoofChainId, antiSpoofChain)
+
+        translator.translate(transaction, UpdateOp(vipPortDown))
+        midoOps should contain(UpdateOp(mPortDownWithChains))
+    }
+
+    "VIP port DELETE" should "delete the MidoNet Port" in {
+        bind(portId, vipPortUp)
+        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
+        midoOps should contain(DeleteOp(classOf[Port], portId))
+    }
+
+    "DELETE VIP port with floating IPs attached" should "delete the ARP " +
+    "table entries" in {
+        bind(portId, vipPortWithFloatingIpIds)
+        bind(fipId1, floatingIp1)
+        bind(fipId2, floatingIp2)
+        bind(tntRouterId, nTntRouter)
+        bind(gwPortId, nGwPort)
+        when(storage.getAll(classOf[IPAddrGroup], Seq()))
+            .thenReturn(Future.successful(Seq()))
+
+        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
+        midoOps should contain (DeleteNode(fip1ArpEntryPath))
+        midoOps should contain (DeleteNode(fip2ArpEntryPath))
+    }
+}
+
 class RouterInterfacePortTranslationTest extends PortTranslatorTest {
     import PortManager._
 
