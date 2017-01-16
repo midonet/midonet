@@ -33,7 +33,7 @@ class MidonetClusterHost(Service):
         try:
             self.get_midonet_api().get_hosts()
             return 'up'
-        except:
+        except Exception:
             return 'down'
 
     def get_service_name(self):

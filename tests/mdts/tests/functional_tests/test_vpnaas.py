@@ -125,7 +125,7 @@ class VT_vpn_three_sites(NeutronTopologyManager):
                     'security_group_rule': {
                         'direction': 'ingress',
                         'security_group_id': port['port']['security_groups'][0]}}))
-        except:
+        except Exception:
             LOG.debug('Security group already created... continuing.')
 
         if not self.get_resource('ikepolicy_' + tag):

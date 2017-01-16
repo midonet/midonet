@@ -40,5 +40,5 @@ class CombinedFailure(FailureBase):
         for failure in reversed(self._failures):
             try:
                 failure.eject()
-            except:
+            except Exception:
                 LOG.exception(sys.exc_info()[1])

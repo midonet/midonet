@@ -113,7 +113,7 @@ class Router(ResourceBase):
         for key in self._ports:
             try:
                 self._ports[key].destroy()
-            except:
+            except Exception:
                 # The port might have been deleted before
                 pass
         self._ports = {}
@@ -135,7 +135,7 @@ class Router(ResourceBase):
         for key in self._routes:
             try:
                 self._routes[key].destroy()
-            except:
+            except Exception:
                 # The route might have been deleted before in a test
                 pass
         self._routes = {}
@@ -160,7 +160,7 @@ class Router(ResourceBase):
         for key in self._routers:
             try:
                 self._routers[key].destroy()
-            except:
+            except Exception:
                 # The router might have been remove before in a test
                 pass
         self._routers = {}
@@ -179,7 +179,7 @@ class Router(ResourceBase):
         for key in self._bridges:
             try:
                 self._bridges[key].destroy()
-            except:
+            except Exception:
                 # The bridge might have been removed before in a test
                 pass
         self._bridges = {}

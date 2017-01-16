@@ -54,7 +54,7 @@ class MidonetAgentHost(Service):
                     return 'up' if h.is_alive() else 'down'
             LOG.error('Host %s not found.' % midonet_host_id)
             return 'down'
-        except:
+        except Exception:
             return 'down'
 
     def get_service_name(self):

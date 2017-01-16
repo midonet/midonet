@@ -155,7 +155,7 @@ def update_with_setup(func, setup, teardown):
                         func.teardown_executed = False
                         setup()
                         _old_s()
-                except:
+                except Exception:
                     # Finish unbinding and cleaning topology
                     func.setup_executed = False
                     func.teardown_executed = True
@@ -170,7 +170,7 @@ def update_with_setup(func, setup, teardown):
                         func.setup_executed = True
                         func.teardown_executed = False
                         setup()
-                except:
+                except Exception:
                     # Finish unbinding and cleaning topology
                     func.setup_executed = False
                     func.teardown_executed = True
@@ -188,7 +188,7 @@ def update_with_setup(func, setup, teardown):
                     func.teardown_executed = True
                     try:
                         _old_t()
-                    except:
+                    except Exception:
                         # Finish unbinding and cleaning topology
                         teardown()
                         raise
@@ -377,7 +377,7 @@ def ipv4_int(ipv4_str):
         part_int = 0
         try:
             part_int = int(part)
-        except:
+        except Exception:
             raise Exception('Incorrect IPv4 address format: %s' % ipv4_str)
         addr_int = addr_int * 256 + part_int
     return addr_int

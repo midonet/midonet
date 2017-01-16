@@ -137,7 +137,7 @@ def test_new_interface_becomes_visible():
             assert_that(new_interface, not_none(), iface_name)
             agent.destroy_vmguest(iface)
             break
-        except:
+        except Exception:
             if attempts > 0:
                 attempts -= 1
                 time.sleep(5)
