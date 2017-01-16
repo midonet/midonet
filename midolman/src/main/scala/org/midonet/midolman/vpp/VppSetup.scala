@@ -372,6 +372,25 @@ object VppSetup extends MidolmanLogging {
         }
     }
 
+    class VppAddFip64(override val name: String,
+                      floatingIp: IPv6Addr,
+                      fixedIp: IPv4Addr,
+                      poolStart: IPv4Addr,
+                      poolEnd: IPv4Addr,
+                      vrf: Int, vni: Int,
+                      vppApi: VppApi)
+                     (implicit ec: ExecutionContext)
+    extends FutureTaskWithRollback {
+
+        override def execute(): Future[Any] = {
+            vppApi.fip64Add(floatingIp, fixedIp, poolStart, poolEnd, vrf, vni)
+        }
+
+        override def rollback(): Future[Any] = {
+            vppApi.fip64Del(floatingIp)
+        }
+    }
+
     /* on rollback, removes all entries on a fip table in VPP
        This is required specially for IPv6 VRF tables, otherwise
        VPP crashes the next time it accesses the VRF table after
@@ -486,12 +505,12 @@ class VppUplinkSetup(uplinkPortId: UUID,
 
         @throws[Exception]
         override def execute() = {
-            vppctl.exec(s"fip64 sync ${flowStateConf.vrfOut}")
+            vppApi.fip64SynEnable(flowStateConf.vrfOut)
         }
 
         @throws[Exception]
         override def rollback() = {
-            vppctl.exec(s"fip64 sync disable")
+            vppApi.fip64SyncDisable()
         }
     }
 
@@ -756,6 +775,54 @@ class VppFlowStateInVxlanTunnelSetup(fip64conf: Fip64Config,
     add(setIpAddress)
 }
 
+/**
+  *
+  * @param floatingIp ip from external ipv6 subnet
+  * @param fixedIp ip of a private port
+  * @param vppApi handler for jvpp
+  * @param fip64conf
+  * @param log
+  * @param poolStart start address of NAT pool
+  * @param poolEnd end address of NAT pool
+  * @param vrf vrf of this tenant router
+  * @param vni vni of this tenant router
+  * @param ec execution context
+  */
+class Fip64Setup(floatingIp: IPv6Addr,
+                fixedIp: IPv4Addr,
+                vppApi: VppApi,
+                fip64conf: Fip64Config,
+                log: Logger,
+                poolStart: IPv4Addr = IPv4Addr.AnyAddress,
+                poolEnd: IPv4Addr = IPv4Addr.AnyAddress,
+                vrf: Int = -1, vni: Int = -1)
+               (implicit ec: ExecutionContext)
+    extends VppSetup(s"Fip64 setup", log)(ec) {
+
+    import VppSetup.{VppAddRoute, VppAddFip64}
+
+    val fip6 = new VppAddFip64(s"fip64 $floatingIp <-> $fixedIp",
+                               floatingIp, fixedIp,
+                               poolStart,
+                               poolEnd,
+                               vrf, vni, vppApi)
+    val routeToVxlan = new VppAddRoute(s"route to vxlan for $fixedIp",
+        IPSubnet.fromString(fixedIp.toString, 32).asInstanceOf[IPv4Subnet],
+                                       Some(fip64conf.vppInternalGateway), None,
+                                       vrf, vppApi)
+    add(fip6)
+    add(routeToVxlan)
+}
+
+/**
+  *
+  * @param vppOvs wrapper to talt to linux ovs library
+  * @param vppPort ovs port number for vxlan port
+  * @param underlayPorts physical ports
+  * @param tunnelRoutes routes for underlay vxlan tunnel
+  * @param log
+  * @param ec execution context for async calls
+  */
 class Fip64FlowStateFlows(vppOvs: VppOvs,
                           vppPort: Int,
                           underlayPorts: Seq[Int],
