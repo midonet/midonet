@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_854a2cc4",
+        "filename": "tests/mdts/lib/port_group_port_test.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-16T00:31:17Z",
+      "side": 1,
+      "message": "i guess it makes more sense to fix port_group_port to raise something more specific than Exception.",
+      "revId": "9c6a20ee3c80d249adf8ef7f768070cadaf98861",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
