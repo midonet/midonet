@@ -160,7 +160,7 @@ class VirtualTopologyManager(TopologyManager):
         """
         try:
             self.resolve_reference(referrer, setter, reference_spec)
-        except:
+        except Exception:
             self.register_resource_reference(referrer, setter, reference_spec)
 
     def resolve_resource_reference(self, reference):

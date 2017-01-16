@@ -92,7 +92,7 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont = service.get_container_by_hostname(container)
         try:
             cont.vppctl('delete host-interface name %s' % port)
-        except:
+        except Exception:
             LOG.error("Erroring deleting interface %s from vpp" % port)
 
     def add_port_to_vpp(self, container, port, mac, address, vrf=0):
@@ -115,7 +115,7 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont = service.get_container_by_hostname(container)
         try:
             cont.vppctl('ip route del %s table %s' % (prefix, vrf))
-        except:
+        except Exception:
             LOG.error("Erroring deleting route %s from vpp in table %s" % (prefix, vrf))
 
     def add_route_to_vpp(self, container, prefix, via, port, vrf=0):
@@ -747,7 +747,7 @@ class TCPSessionClient:
         cont.try_command_blocking('ip netns del %s' % self.ns)
         try:
             cont.try_command_blocking('pkill -f nc')
-        except:
+        except Exception:
             pass
         self.io.close()
 
@@ -953,7 +953,7 @@ def test_fragments():
         try:
             container.try_command_blocking('pkill %s -f %s' % (signal, pattern))
             return True
-        except:
+        except Exception:
             return False
 
     def is_running(container, pattern):
@@ -969,7 +969,7 @@ def test_fragments():
                     if len(parts) == 2:
                         result[parts[0]] = parts[1]
             return result
-        except:
+        except Exception:
             raise Exception('No output')
 
     # sends one fragmented packet from client to server, and validates

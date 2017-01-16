@@ -218,7 +218,7 @@ def ping_to_vtep(bridge_name, port_index, dest_ip,
                     "Ping to from {0}.{1} to {2} failed.".format(bridge_name,
                                                                  port_index,
                                                                  dest_ip))
-    except:
+    except Exception:
         if retries == 0:
             assert_that(-1, equal_to(0),
                         "Ping to from {0}.{1} to {2} failed.".format(bridge_name,

@@ -116,7 +116,7 @@ def feed_mac(port, iface):
         ip = port.get_mn_resource().get_port_address()
         iface.send_arp_request(ip)
         time.sleep(1)
-    except:
+    except Exception:
         LOG.warn('Oops, sending ARP from the receiver VM failed.')
         raise
 
@@ -160,7 +160,7 @@ def check_return_flow(port, iface, dst_port_no, dropped=False, retries=0):
                        src_ipv4='172.16.42.1')
     try:
         wait_on_futures([f, fs])
-    except:
+    except Exception:
         if retries > 0:
             time.sleep(5)
             check_return_flow(port, iface, dst_port_no, dropped, retries - 1)

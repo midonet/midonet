@@ -80,7 +80,7 @@ def feed_receiver_mac(receiver):
                                                   within_sec(10)))
         receiver.send_arp_request(router_ip)
         wait_on_futures([f1])
-    except:
+    except Exception:
         LOG.warn('Oops, sending ARP from the receiver VM failed.')
 
 

@@ -31,7 +31,7 @@ class NeutronHost(Service):
             api = self.get_neutron_api()
             api.list_networks()
             return 'up'
-        except:
+        except Exception:
             return 'down'
 
     def get_service_name(self):

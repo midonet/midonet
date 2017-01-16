@@ -91,7 +91,7 @@ def setup_package():
             destroy_simple_topology(topology)
             LOG.debug("MDTS ready to run tests.")
             return
-        except:
+        except Exception:
             destroy_simple_topology(topology)
             current_attempts += 1
             LOG.debug("MDTS failed to bind port... check again. Attempt: %d" %

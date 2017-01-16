@@ -287,7 +287,7 @@ def test_compat_flowstate():
             check_return_flow(public_vm2, private_vm1, snat_1['ip'], snat_1['port'], 50000, 80)
             check_return_flow(public_vm1, private_vm2, snat_2['ip'], snat_2['port'], 50000, 80)
             break
-        except:
+        except Exception:
             if attempts > 0:
                 time.sleep(5)
                 attempts -= 1

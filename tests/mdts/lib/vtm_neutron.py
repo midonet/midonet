@@ -163,5 +163,5 @@ class NeutronTopologyManager(TopologyManager):
                 self.api.create_security_group_rule({
                     'security_group_rule': rule_definition
                 }))
-        except:
+        except Exception:
             pass

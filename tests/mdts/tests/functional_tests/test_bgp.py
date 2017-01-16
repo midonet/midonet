@@ -200,7 +200,7 @@ def ping_to_inet(count=5, interval=1, port=2, retries=3):
                                                             timeout=20)
 
         assert_that(exit_status, equal_to(0), "Ping did not return any data")
-    except:
+    except Exception:
         if retries == 0:
             raise RuntimeError("Ping did not return any data and returned -1")
         LOG.debug("BGP: failed ping to inet... (%d retries left)" % retries)
@@ -499,7 +499,7 @@ def test_multisession_icmp_with_redundancy():
     failure1.inject()
     try:
         ping_to_inet()
-    except:
+    except Exception:
         for failure in failures:
             failure.eject()
         raise
@@ -509,7 +509,7 @@ def test_multisession_icmp_with_redundancy():
     failure2.inject()
     try:
         ping_to_inet()
-    except:
+    except Exception:
         for failure in failures:
             failure.eject()
         raise
@@ -519,7 +519,7 @@ def test_multisession_icmp_with_redundancy():
     failure3.inject()
     try:
         ping_to_inet()
-    except:
+    except Exception:
         for failure in failures:
             failure.eject()
         raise
