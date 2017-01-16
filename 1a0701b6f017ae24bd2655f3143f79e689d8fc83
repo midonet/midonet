@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_050dfc8f",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-16T00:40:49Z",
+      "side": 1,
+      "message": "i guess it\u0027s more common to put a space before ¥",
+      "range": {
+        "startLine": 52,
+        "startChar": 33,
+        "endLine": 52,
+        "endChar": 34
+      },
+      "revId": "1a0701b6f017ae24bd2655f3143f79e689d8fc83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
