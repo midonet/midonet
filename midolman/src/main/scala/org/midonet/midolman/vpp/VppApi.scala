@@ -331,6 +331,20 @@ class VppApi(connectionName: String)(implicit ec: ExecutionContext)
         execVppRequest(request, lib.fip64Del)
     }
 
+    /**
+      * @param vrf vrf that should be used to send state flow packets
+      * @return future to track asyncrhonous operation
+      */
+    def fip64SynEnable(vrf: Int) : Future[Any] = {
+        val request = new Fip64SyncEnable()
+        request.vrfId = vrf
+        execVppRequest(request, lib.fip64SyncEnable)
+    }
+
+    def fip64SyncDisable: Future[Any] = {
+        execVppRequest(new Fip64SyncDisable(), lib.fip64SyncDisable)
+    }
+
     private def addDelVxlanTunnel(srcVtep: IPv4Addr,
                                   dstVtep: IPv4Addr,
                                   vni: Int,
