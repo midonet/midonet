@@ -33,6 +33,7 @@ TCP_SERVER_PORT = 9999
 TCP_CLIENT_PORT = 9998
 LRU_SIZE_SINGLE_TENANT = 2
 
+
 class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
     def cleanup_veth(self, container, name):
         cont = service.get_container_by_hostname(container)
@@ -117,7 +118,7 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         except:
             LOG.error("Erroring deleting route %s from vpp in table %s" % (prefix, vrf))
 
-    def add_route_to_vpp(self, container, prefix, via, port, vrf = 0):
+    def add_route_to_vpp(self, container, prefix, via, port, vrf=0):
         cont = service.get_container_by_hostname(container)
         self.addCleanup(self.del_route_from_vpp, container, prefix, via, port, vrf)
         cont.vppctl('ip route add %s via %s host-%s table %s' % (prefix, via, port, vrf))
@@ -127,7 +128,7 @@ class NeutronVPPTopologyManagerBase(NeutronTopologyManager):
         cont = service.get_container_by_hostname(container)
         fip64DelCmd = "fip64 del %s" % ip6fip
         self.addCleanup(cont.vppctl, fip64DelCmd)
-        vni = 0x123456 # unused
+        vni = 0x123456  # unused
         cont.vppctl("fip64 add %s %s pool %s %s table %d vni %d" % (ip6fip,
                                                                     ip4fixed,
                                                                     ip4PoolStart,
@@ -346,6 +347,7 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         service.get_container_by_hostname('midolman1').\
             exec_command_blocking("restart midolman")
 
+
 # Neutron topology with a single tenant and uplink
 # configured
 class SingleTenantAndUplinkWithVPP(UplinkWithVPP):
@@ -415,14 +417,14 @@ class SingleTenantWithNeutronIPv6FIP(UplinkWithVPP):
                     {'floating_network_id': self.pubnet['id'],
                      'floating_ip_address': 'cccc:bbbb::3',
                      'port_id': self.port1['id'],
-                     'tenant_id': 'admin'}
-                }
+                     'tenant_id': 'admin'}}
             )
         )
 
     def build(self, binding_data=None):
         super(SingleTenantWithNeutronIPv6FIP, self).build(binding_data)
         self.build_tenant()
+
 
 class FIP6Reuse(SingleTenantWithNeutronIPv6FIP):
 
@@ -431,12 +433,13 @@ class FIP6Reuse(SingleTenantWithNeutronIPv6FIP):
         privnet = self.get_resource('private-tenant')['network']
         self.port2 = self.create_port('port2', privnet)
         fip6id = self.fip6['floatingip']['id']
-        self.api.update_floatingip(fip6id, {'floatingip': {'port_id': None }})
+        self.api.update_floatingip(fip6id, {'floatingip': {'port_id': None}})
         self.api.update_floatingip(fip6id,
-            {'floatingip': {'port_id': self.port2['id'] } }
+            {'floatingip': {'port_id': self.port2['id']}}
         )
         self.addCleanup(self.api.update_floatingip,
-            fip6id, {'floatingip': {'port_id': None }})
+            fip6id, {'floatingip': {'port_id': None}})
+
 
 class TenantDualStack(SingleTenantWithNeutronIPv6FIP):
 
@@ -449,6 +452,7 @@ class TenantDualStack(SingleTenantWithNeutronIPv6FIP):
         pubsubnets.append(pubsubnet4)
         return pubsubnets
 
+
 class DualUplinkAssymetric(SingleTenantWithNeutronIPv6FIP):
 
     def build(self, binding_data=None):
@@ -457,9 +461,9 @@ class DualUplinkAssymetric(SingleTenantWithNeutronIPv6FIP):
         self.build_uplink("3001::/64", "midolman2", "bgp0")
 
         self.setup_remote_host('quagga1', 'bgp1',
-            gw_address="2001::2",
-            local_address="bbbb::2",
-            local_router="bbbb::1")
+                               gw_address="2001::2",
+                               local_address="bbbb::2",
+                               local_router="bbbb::1")
         self.set_gateway_address('quagga1', "3001::2/64", "bgp2")
         self.flush_all()
         self.flush_neighbours('quagga1', 'bgp2')
@@ -481,6 +485,7 @@ class DualUplinkAssymetric(SingleTenantWithNeutronIPv6FIP):
         cont_services = service.get_container_by_hostname(container)
         self.addCleanup(self.unset_gateway_address, cont_services, gw_address, interface)
         cont_services.exec_command('ip a add %s dev %s' % (gw_address, interface))
+
 
 # Neutron topology with a 3 tenants and uplink
 # configured
@@ -646,6 +651,7 @@ def stop_server(container):
     cont_services = service.get_container_by_hostname(container)
     cont_services.try_command_blocking("pkill ncat")
 
+
 def client_prepare(container, namespace):
     cont_services = service.get_container_by_hostname(container)
 
@@ -693,8 +699,10 @@ def client_check_result(container, stream, count=100):
         LOG.info("%s: RESULT: lines[%d] = %s" % (container, i, lines[i]))
         assert(lines[i] == wanted)
 
+
 class TCPSessionClient:
     instance_id = 0
+
     def __init__(self, container, gateway, address, prefix, server, port):
         ns = 'client%d' % self.__class__.instance_id
         self.ns = ns
@@ -708,7 +716,7 @@ class TCPSessionClient:
         cont.try_command_blocking('ip l set up dev %sdp' % ns)
         cont.try_command_blocking('ip a add %s/%d dev %sdp' % (gateway, prefix, ns))
         cont.try_command_blocking('ip netns exec %s ip link set up dev lo' % ns)
-        cont.try_command_blocking('ip netns exec %s ip link set up dev %sns' % (ns,ns))
+        cont.try_command_blocking('ip netns exec %s ip link set up dev %sns' % (ns, ns))
         cont.try_command_blocking(
             'ip netns exec %s ip a add %s/%d dev %sns' % (ns, address, prefix, ns))
         cont.try_command_blocking(
@@ -730,18 +738,19 @@ class TCPSessionClient:
             LOG.debug('Sent: ' + msg)
             LOG.debug('Out: ' + output)
             return output == msg + "$\n"
-        except:
+        except Exception:
             return False
 
     def close(self):
         cont = service.get_container_by_hostname(self.container)
         cont.try_command_blocking('ip link del %sdp' % self.ns)
-        cont.try_command_blocking('ip netns del %s'% self.ns)
+        cont.try_command_blocking('ip netns del %s' % self.ns)
         try:
             cont.try_command_blocking('pkill -f nc')
         except:
             pass
         self.io.close()
+
 
 class DockerIOExecutor:
     def __init__(self, container, command):
@@ -803,6 +812,7 @@ def test_neutron_fip6():
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
 
+
 @attr(version="v1.2.0")
 @bindings(binding_fip6reuse,
           binding_manager=BindingManager(vtm=FIP6Reuse()))
@@ -845,6 +855,7 @@ def test_client_server_ipv6():
 
     stop_server('midolman2')
 
+
 @attr(version="v1.2.0")
 @bindings(binding_multihost_singletenant,
           binding_manager=BindingManager(vtm=SingleTenantAndUplinkWithVPP()))
@@ -864,9 +875,8 @@ def test_lru():
         fip = 'cccc:bbbb::2'
         container = 'quagga1'
 
-        cont = service.get_container_by_hostname(container)
-
         address_counter = [0]
+
         def new_client():
             address_counter[0] += 1
             idx = address_counter[0]
@@ -878,7 +888,7 @@ def test_lru():
         # validate existing clients
         for i in range(LRU_SIZE_SINGLE_TENANT):
             client = new_client()
-            clients.append( client )
+            clients.append(client)
             ping_from_inet(container, fip, 10, namespace=client.ns)
             client.start()
             assert(client.verify())
@@ -911,6 +921,7 @@ def test_lru():
         if extra is not None:
             extra.close()
 
+
 @nottest
 @attr(version="v1.2.0")
 @bindings(binding_multihost_singletenant_neutronfip6,
@@ -920,6 +931,7 @@ def test_2uplinks_assymetric():
     Title: Provider router with two uplinks. Only second uplink VPP has egress route for IPV6 traffic
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
+
 
 @attr(version="v1.2.0")
 @bindings(binding_multihost_singletenant_neutronfip6,
@@ -934,8 +946,8 @@ def test_fragments():
     # from IPv6 client at quagga1 to IPv4 server at midolman2, and then
     # the other way around
 
-    CLIENT_PY_NAME='frag-client.py'
-    SERVER_PY_NAME='frag-server.py'
+    CLIENT_PY_NAME = 'frag-client.py'
+    SERVER_PY_NAME = 'frag-server.py'
 
     def kill(container, pattern, signal=''):
         try:
@@ -1034,7 +1046,7 @@ data, address = sock.recvfrom(65536)
 print 'CLIENT=' + address[0]
 print 'HASH=' + hashlib.sha256(data).hexdigest()
         """
-        for host in [ quagga1, midolman2 ]:
+        for host in [quagga1, midolman2]:
             host.put_file(CLIENT_PY_NAME, client_py)
             host.put_file(SERVER_PY_NAME, server_py)
 
@@ -1052,12 +1064,15 @@ print 'HASH=' + hashlib.sha256(data).hexdigest()
         run_fragmentation_test(midolman2, namespace, quagga1, 'ip6',
                                ip4client, '192.168.0.2', "bbbb::2")
     finally:
-        for host in [ quagga1, midolman2 ]:
+        for host in [quagga1, midolman2]:
             kill(host, CLIENT_PY_NAME)
             kill(host, SERVER_PY_NAME)
             host.exec_command('rm %s %s' % (CLIENT_PY_NAME, SERVER_PY_NAME))
 
-binding_manager=BindingManager(vtm=TenantDualStack())
+
+binding_manager = BindingManager(vtm=TenantDualStack())
+
+
 @bindings(binding_multihost_singletenant_neutronfip6,
           binding_manager=binding_manager)
 def test_tenant_dual_stack():
