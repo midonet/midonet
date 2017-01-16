@@ -505,12 +505,12 @@ class VppUplinkSetup(uplinkPortId: UUID,
 
         @throws[Exception]
         override def execute() = {
-            vppctl.exec(s"fip64 sync ${flowStateConf.vrfOut}")
+            vppApi.fip64SynEnable(flowStateConf.vrfOut)
         }
 
         @throws[Exception]
         override def rollback() = {
-            vppctl.exec(s"fip64 sync disable")
+            vppApi.fip64SyncDisable()
         }
     }
 
