@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_d1fa26bd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-16T15:58:10Z",
+      "side": 1,
+      "message": "nit: add scaladoc",
+      "range": {
+        "startLine": 328,
+        "startChar": 5,
+        "endLine": 328,
+        "endChar": 55
+      },
+      "revId": "97d9a4b73e0024e49effc8890dbdd75b1b920ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_f1ae4a97",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 791,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-16T15:58:10Z",
+      "side": 1,
+      "message": "Fip64",
+      "range": {
+        "startLine": 791,
+        "startChar": 6,
+        "endLine": 791,
+        "endChar": 10
+      },
+      "revId": "97d9a4b73e0024e49effc8890dbdd75b1b920ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_d1cb4652",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-16T15:58:10Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 800,
+        "startChar": 23,
+        "endLine": 800,
+        "endChar": 27
+      },
+      "revId": "97d9a4b73e0024e49effc8890dbdd75b1b920ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_d18a26bf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 804,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-16T15:58:10Z",
+      "side": 1,
+      "message": "I think this shouldn\u0027t be needed, since the contract of setup is the `execute` will add the fip, and `rollback` delete it",
+      "range": {
+        "startLine": 804,
+        "startChar": 4,
+        "endLine": 804,
+        "endChar": 54
+      },
+      "revId": "97d9a4b73e0024e49effc8890dbdd75b1b920ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_91c5ce3d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppSetup.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 805,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-16T15:58:10Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 805,
+        "startChar": 44,
+        "endLine": 805,
+        "endChar": 48
+      },
+      "revId": "97d9a4b73e0024e49effc8890dbdd75b1b920ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
