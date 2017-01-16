@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_b73682e5",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppIntegrationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-16T22:25:49Z",
+      "side": 1,
+      "message": "What about this, shall we change all the vppctl call to JVPP?",
+      "range": {
+        "startLine": 561,
+        "startChar": 24,
+        "endLine": 562,
+        "endChar": 56
+      },
+      "revId": "aede7113597b32f32298cd68c5fcd58946b80c7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
