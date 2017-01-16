@@ -22,6 +22,30 @@
       "revId": "2356108625e0028ab10ee4021a4963983bee59f0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_9c1e0562",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/vpp/VppApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-16T16:18:55Z",
+      "side": 1,
+      "message": "Done.\nI thought that if a method does not change state of this process we should avoid parentheses as well",
+      "parentUuid": "fabf19d9_31c042e0",
+      "range": {
+        "startLine": 344,
+        "startChar": 8,
+        "endLine": 344,
+        "endChar": 24
+      },
+      "revId": "2356108625e0028ab10ee4021a4963983bee59f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
