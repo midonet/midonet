@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-import cassandra
 from cassandra.cluster import Cluster
 import logging
 from mdts.lib.binding_manager import BindingManager
