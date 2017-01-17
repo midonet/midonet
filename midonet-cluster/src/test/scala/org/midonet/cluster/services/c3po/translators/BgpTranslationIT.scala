@@ -485,8 +485,8 @@ class BgpTranslationIT extends C3POMinionTestBase {
         // Create edge router.
         val edgeRtrId = createRouter(5)
         val edgeRtrUplNwIfPortId = createRouterInterfacePort(
-            6, uplNetworkId, uplNwSubnetId, edgeRtrId, "10.0.0.2",
-            "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
+            6, uplNetworkId, List(IPAlloc("10.0.0.2", uplNwSubnetId)),
+            edgeRtrId, "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
         createRouterInterface(7, edgeRtrId, edgeRtrUplNwIfPortId, uplNwSubnetId)
 
 
@@ -531,7 +531,7 @@ class BgpTranslationIT extends C3POMinionTestBase {
         val nwId = createTenantNetwork(firstTaskId, external = external)
         val snId = createSubnet(firstTaskId + 1, nwId, cidr)
         val rifPortId = createRouterInterfacePort(
-            firstTaskId + 2, nwId, snId, rtrId, ipAddr)
+            firstTaskId + 2, nwId, List(IPAlloc(ipAddr, snId)), rtrId)
         createRouterInterface(firstTaskId + 4, rtrId, rifPortId, snId)
         rifPortId
     }
