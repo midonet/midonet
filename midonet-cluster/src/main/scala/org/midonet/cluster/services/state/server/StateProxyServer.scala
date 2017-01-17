@@ -16,11 +16,13 @@
 
 package org.midonet.cluster.services.state.server
 
-import java.net.InetAddress
+import java.net.{InetAddress, InetSocketAddress, NetworkInterface}
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{Executors, ScheduledFuture, ThreadFactory, TimeUnit}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import com.typesafe.scalalogging.Logger
@@ -31,12 +33,14 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.{Channel, ChannelFuture, ChannelOption}
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
 
+import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster._
-import org.midonet.cluster.services.state.StateTableManager
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHandler}
 import org.midonet.cluster.services.state.server.ChannelUtil._
 import org.midonet.cluster.services.state.server.StateProxyServer._
+import org.midonet.cluster.services.state.{StateProxyService, StateTableManager}
 import org.midonet.util.concurrent.{CallingThreadExecutionContext, NamedThreadFactory}
 import org.midonet.util.functors.makeRunnable
 
@@ -78,12 +82,15 @@ object StateProxyServer {
       */
     private case object ShutDown extends State
 
+    private val AnyLocalAddress = new InetSocketAddress(0).getAddress
+
 }
 
 /**
   * Implements a Netty server for the State Proxy service.
   */
-class StateProxyServer(config: StateProxyConfig, manager: StateTableManager) {
+class StateProxyServer(config: StateProxyConfig, manager: StateTableManager,
+                       discovery: MidonetDiscovery) {
 
     private val log = Logger(LoggerFactory.getLogger(StateProxyLog))
 
@@ -111,6 +118,8 @@ class StateProxyServer(config: StateProxyConfig, manager: StateTableManager) {
     private val bootstrap = new ServerBootstrap
 
     private val serverChannelPromise = Promise[Channel]()
+
+    @volatile private var serviceHandler: MidonetServiceHandler = _
 
     // Set the event loop groups for the server channels: the acceptor group
     // handles new connection requests, the message group handles I/O for
@@ -146,6 +155,8 @@ class StateProxyServer(config: StateProxyConfig, manager: StateTableManager) {
       * configuration.
       */
     def close(): Unit = {
+
+        unregisterDiscovery()
 
         // Synchronize with the completion of the bind operation.
         var oldState: State = null
@@ -249,20 +260,88 @@ class StateProxyServer(config: StateProxyConfig, manager: StateTableManager) {
     /**
       * @return The address to which the server socket will bind.
       */
-    private def serverAddress: InetAddress = {
-        InetAddress.getByName(config.serverAddress)
+    private def serverAddress: Option[InetAddress] = {
+
+        def isUnicast(address: InetAddress): Boolean = {
+            !address.isAnyLocalAddress &&
+            !address.isLinkLocalAddress &&
+            !address.isLoopbackAddress &&
+            !address.isMulticastAddress
+        }
+
+        val address =
+            if (StringUtils.isNotBlank(config.serverAddress))
+                InetAddress.getByName(config.serverAddress)
+            else
+                StateProxyServer.AnyLocalAddress
+
+        if (!address.isAnyLocalAddress) {
+            // Address is specific: use the address.
+            Some(address)
+        } else if (StringUtils.isNotBlank(config.serverInterface)) {
+            // Use the address of the specified interface.
+            val interface =
+                try NetworkInterface.getByName(config.serverInterface)
+                catch { case NonFatal(_) => null }
+            if (interface ne null) {
+                val addresses = interface.getInetAddresses.asScala
+                                         .filter(isUnicast).toList
+                if (addresses.isEmpty) {
+                    log error s"Network interface ${config.serverInterface} " +
+                              "has no unicast IP address: state proxy " +
+                              "server disabled"
+                    None
+                } else if (addresses.size > 1) {
+                    log error s"Network interface ${config.serverInterface} " +
+                              "has multiple local IP addresses: state proxy " +
+                              "server disabled"
+                    None
+                } else {
+                    log debug s"Using network interface ${config.serverInterface} " +
+                              s"with IP address ${addresses.head}"
+                    Some(addresses.head)
+                }
+            } else {
+                log error s"Network interface ${config.serverInterface} not " +
+                          s"found: state proxy server disabled"
+                None
+            }
+        } else {
+            // Use any local address.
+            val addresses = NetworkInterface.getNetworkInterfaces.asScala
+                .filter(interface => interface.isUp && !interface.isLoopback)
+                .flatMap(_.getInetAddresses.asScala)
+                .filter(isUnicast)
+                .toList
+
+            if (addresses.isEmpty) {
+                log error "No IP address available: state proxy server disabled"
+                None
+            } else if (addresses.size > 1) {
+                log error "Host has multiple IP addresses and requires a " +
+                          "specific configuration: state proxy server disabled"
+                None
+            } else {
+                log debug s"Using IP address ${addresses.head}"
+                Some(addresses.head)
+            }
+        }
+
     }
 
     /**
       * Binds a new channel to the current server address and port.
       */
     private def bind(): Unit = {
-        val address = serverAddress
+        val address = serverAddress match {
+            case Some(a) => a
+            case None => return
+        }
         val port = config.serverPort
 
         log info s"Starting server at $address:$port..."
 
-        val channelFuture = bootstrap.bind(serverAddress, config.serverPort)
+        val channelFuture = bootstrap.bind(address, port)
         if (!state.compareAndSet(Init, Binding(channelFuture))) {
             channelFuture.asScala.onComplete {
                 case Success(channel) => channel.close()
@@ -288,6 +367,9 @@ class StateProxyServer(config: StateProxyConfig, manager: StateTableManager) {
     private def bindCompleted(address: InetAddress, port: Int,
                               channel: Channel): Unit = {
         log info s"Server started at $address:$port"
+
+        registerDiscovery(address, port)
+
         val oldState = state.get()
         oldState match {
             case Binding(_) =>
@@ -344,7 +426,10 @@ class StateProxyServer(config: StateProxyConfig, manager: StateTableManager) {
       * transitions into an [[Init]] state and calls the [[bind()]] method.
       */
     private def retry(): Unit = {
-        log debug s"Retrying to bind server at $serverAddress:${config.serverPort}"
+        val address = serverAddress
+        val port = config.serverPort
+
+        log debug s"Retrying to bind server at $address:$port"
         val oldState = state.get()
         oldState match {
             case Retry(_) =>
@@ -352,6 +437,29 @@ class StateProxyServer(config: StateProxyConfig, manager: StateTableManager) {
                     bind()
                 }
             case _ => // Ignore
+        }
+    }
+
+    /**
+      * Registers this state proxy server to service discovery with the
+      * specified address and port.
+      */
+    private def registerDiscovery(address: InetAddress, port: Int): Unit = {
+
+        log debug s"Registering ${address.getHostAddress}:$port to " +
+                  s"service discovery for service ${StateProxyService.Name}"
+        serviceHandler = discovery
+            .registerServiceInstance(StateProxyService.Name,
+                                     address.getHostAddress, port)
+    }
+
+    /**
+      * Unregisters this state proxy server from service discovery.
+      */
+    private def unregisterDiscovery(): Unit = {
+        if (serviceHandler ne null) {
+            serviceHandler.unregister()
+            serviceHandler = null
         }
     }
 
