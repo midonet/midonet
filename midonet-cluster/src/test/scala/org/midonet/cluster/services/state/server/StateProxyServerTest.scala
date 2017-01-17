@@ -16,14 +16,14 @@
 
 package org.midonet.cluster.services.state.server
 
-import java.net.{BindException, ServerSocket, SocketAddress}
+import java.net._
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.concurrent.Await
-import scala.util.Random
 import scala.concurrent.duration._
+import scala.util.Random
 import scala.util.control.NonFatal
 
 import com.typesafe.config.ConfigFactory
@@ -50,10 +50,11 @@ import rx.subjects.PublishSubject
 import org.midonet.cluster.StateProxyConfig
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.rpc.State.ProxyRequest.{Ping, Subscribe, Unsubscribe}
-import org.midonet.cluster.rpc.State.ProxyResponse.{Acknowledge, Notify}
 import org.midonet.cluster.rpc.State.ProxyResponse.Error.Code
+import org.midonet.cluster.rpc.State.ProxyResponse.{Acknowledge, Notify}
 import org.midonet.cluster.rpc.State.{KeyValue, ProxyRequest, ProxyResponse}
-import org.midonet.cluster.services.state.{StateTableException, StateTableManager}
+import org.midonet.cluster.services.discovery.FakeDiscovery
+import org.midonet.cluster.services.state.{StateProxyService, StateTableException, StateTableManager}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.packets.MAC
 import org.midonet.util.MidonetEventually
@@ -64,7 +65,8 @@ import org.midonet.util.reactivex.TestAwaitableObserver
 class StateProxyServerTest extends FeatureSpec with Matchers
                            with GivenWhenThen with MidonetEventually {
 
-    private class TestClient(port: Int) extends ChannelInboundHandlerAdapter {
+    private class TestClient(address: String, port: Int)
+        extends ChannelInboundHandlerAdapter {
 
         private val subject = PublishSubject.create[AnyRef]
         private val eventLoop = new NioEventLoopGroup()
@@ -192,6 +194,7 @@ class StateProxyServerTest extends FeatureSpec with Matchers
 
     private val random = new Random()
     private val timeout = 30 seconds
+    private val discovery = new FakeDiscovery
 
     private def localPort: Int = {
         var port = -1
@@ -215,11 +218,13 @@ class StateProxyServerTest extends FeatureSpec with Matchers
                           workerThreads: Int = 1,
                           maxPendingConnections: Int = 10,
                           bindRetryInterval: Int = 1): StateProxyConfig = {
+        //val address = localAddress
         val port = localPort
         new StateProxyConfig(ConfigFactory.parseString(
             s"""
-               |cluster.state_proxy.server.address : 0.0.0.0
+               |cluster.state_proxy.server.address : "127.0.0.1"
                |cluster.state_proxy.server.port : $port
+               |cluster.state_proxy.server.interface : ""
                |cluster.state_proxy.server.supervisor_threads : $supervisorThreads
                |cluster.state_proxy.server.worker_threads : $workerThreads
                |cluster.state_proxy.server.max_pending_connections : $maxPendingConnections
@@ -234,11 +239,11 @@ class StateProxyServerTest extends FeatureSpec with Matchers
                           manager: StateTableManager =
                               Mockito.mock(classOf[StateTableManager]))
     : StateProxyServer = {
-        new StateProxyServer(config, manager)
+        new StateProxyServer(config, manager, discovery)
     }
 
     private def newClient(config: StateProxyConfig): TestClient = {
-        new TestClient(config.serverPort)
+        new TestClient(config.serverAddress, config.serverPort)
     }
 
     private def subscribe(requestId: Long, objectClass: Class[_], objectId: UUID,
@@ -397,6 +402,28 @@ class StateProxyServerTest extends FeatureSpec with Matchers
             And("Both servers can be closed")
             server1.close()
             server2.close()
+        }
+
+        scenario("Service registers in service discovery") {
+            Given("A state proxy server")
+            val config = newConfig()
+            val server = newServer(config)
+            val address = config.serverAddress
+            val port = config.serverPort
+
+            When("The server binds to the local port")
+            val channel = server.serverChannel.await(timeout)
+
+            Then("The service is registered in service discovery")
+            discovery.registeredServices should contain only
+                StateProxyService.Name -> new URI(null, null, address, port,
+                                                  null, null, null)
+
+            When("The server closes")
+            server.close()
+
+            Then("The service is not registered in service discovery")
+            discovery.registeredServices shouldBe empty
         }
     }
 
