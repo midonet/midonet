@@ -147,7 +147,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val rifMac = "fa:16:3e:7d:c3:0e"
         val rifIp = "10.0.0.1"
         createRouterInterfacePort(
-            90, privateNwId, privateSnId, tRouterId, rifIp, rifMac)
+            90, privateNwId, List(IPAlloc(rifIp, privateSnId)),
+            tRouterId, rifMac)
 
         // Create a legacy ReplicatedMap for the external Network ARP table.
         val arpTable = stateTableStorage.bridgeArpTable(extNetworkId)
@@ -281,11 +282,13 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         val extNw2RifMac = "20:00:00:00:00:02"
         val extNw2RifPort = createRouterInterfacePort(
-            110, extNw2Id, extNw2SnId, rtrId, "20.0.0.2", extNw2RifMac)
+            110, extNw2Id, List(IPAlloc("20.0.0.2", extNw2SnId)),
+            rtrId, extNw2RifMac)
         createRouterInterface(120, rtrId, extNw2RifPort, extNw2SnId)
 
         val prvNwRifPortId = createRouterInterfacePort(
-            130, prvNwId, prvNwSnId, rtrId, "30.0.0.2", "30:00:00:00:00:02")
+            130, prvNwId, List(IPAlloc("30.0.0.2", prvNwSnId)),
+            rtrId, "30:00:00:00:00:02")
         createRouterInterface(140, rtrId, prvNwRifPortId, prvNwSnId)
 
         // Wait for topology operations to finish.
@@ -359,7 +362,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         eventually(storage.exists(classOf[Router], rtrId).await() shouldBe true)
         // Hook private net up to router
         val prvNwRifPortId = createRouterInterfacePort(
-            130, prvNwId, prvNwSnId, rtrId, "10.0.0.2", "30:00:00:00:00:02")
+            130, prvNwId, List(IPAlloc("10.0.0.2", prvNwSnId)),
+            rtrId, "30:00:00:00:00:02")
         createRouterInterface(140, rtrId, prvNwRifPortId, prvNwSnId)
         eventually {
             val prvNwRifPeerPortId =

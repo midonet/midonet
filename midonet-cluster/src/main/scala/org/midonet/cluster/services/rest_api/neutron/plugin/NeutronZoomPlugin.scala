@@ -241,7 +241,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     // Since the ports are already deleted by the time this is called,
     // there is nothing to do.  See NeutronPlugin for ref.
     override def removeRouterInterface(routerId: UUID, ri: RouterInterface)
-    : RouterInterface = ri
+    : RouterInterface = update[RouterInterface](ri)
 
     override def updateFloatingIp(id: UUID,
                                   floatingIp: FloatingIp): FloatingIp = {
