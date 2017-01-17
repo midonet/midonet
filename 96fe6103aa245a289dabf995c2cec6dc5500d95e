@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_7768ea87",
+        "filename": "midolman/src/test/scala/org/midonet/containers/HaProxyContainerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-17T00:09:07Z",
+      "side": 1,
+      "message": "stale comment",
+      "range": {
+        "startLine": 166,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 25
+      },
+      "revId": "96fe6103aa245a289dabf995c2cec6dc5500d95e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
