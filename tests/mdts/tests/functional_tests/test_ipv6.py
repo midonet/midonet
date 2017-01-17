@@ -453,6 +453,31 @@ class TenantDualStack(SingleTenantWithNeutronIPv6FIP):
         return pubsubnets
 
 
+class UplinkDualStack(SingleTenantWithNeutronIPv6FIP):
+
+    def build_uplink(self, cidr, host, interface):
+        id = int(cidr[0])
+        uplinknet = self.create_network("uplink%d" % id, uplink=True)
+        (net_pref, prefix_len) = cidr.split('/')
+        ipv4_gw_ip = '10.1.0.1'
+        ipv6_gw_ip = net_pref + "1"
+        self.create_subnet("uplinksubnet4_%d" % id, uplinknet, '10.1.0.0/24',
+                           enable_dhcp=False, version=4)
+        self.create_subnet("uplinksubnet6_%d" % id, uplinknet, cidr,
+                           enable_dhcp=False, version=6)
+        uplink_port = self.create_port("uplinkport%d" % id, uplinknet,
+                                       host_id=host,
+                                       interface=interface,
+                                       fixed_ips=[ipv4_gw_ip, ipv6_gw_ip])
+
+        self.add_router_interface(self._edgertr, port=uplink_port)
+        self.uplink_ports.append(uplink_port)
+
+
+class FullDualStack(TenantDualStack, UplinkDualStack):
+    pass
+
+
 class DualUplinkAssymetric(SingleTenantWithNeutronIPv6FIP):
 
     def build(self, binding_data=None):
@@ -609,13 +634,19 @@ binding_multihost_multitenant = {
     ]
 }
 
+BM_dual_ext = BindingManager(vtm=TenantDualStack())
+BM_dual_full = BindingManager(vtm=FullDualStack())
+
 
 # Runs ping command with given ip address from given containter
 # Count provides the number of packets ping will send.
 # The number must be positive
 def ping_from_inet(container, ip='2001::1', count=4, namespace=None):
     count = max(1, count)
-    ping_cmd = "ping6"
+    if ':' in ip:
+        ping_cmd = "ping6"
+    else:
+        ping_cmd = "ping"
     cmd = "%s %s %s -c %d" % (
         "ip netns exec %s" % namespace if namespace else "",
         ping_cmd, ip, count)
@@ -1070,18 +1101,44 @@ print 'HASH=' + hashlib.sha256(data).hexdigest()
             host.exec_command('rm %s %s' % (CLIENT_PY_NAME, SERVER_PY_NAME))
 
 
-binding_manager = BindingManager(vtm=TenantDualStack())
+@bindings(binding_multihost_singletenant_neutronfip6,
+          binding_manager=BM_dual_ext)
+def test_dual_stack_external_network():
+    """
+    Title: Tenant router is attached to both ipv4 and ipv6 external subnets.
+    """
+    ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
+    vmport = BM_dual_ext.get_interface_on_vport('port1')
+    cmd = 'ping -c 10 -i 0.5 200.0.0.1'
+    (result, exec_id) = vmport.do_execute(cmd, stream=True)
+    retcode = vmport.compute_host.check_exit_status(exec_id, result, timeout=120)
+    assert(retcode == 0)
 
 
 @bindings(binding_multihost_singletenant_neutronfip6,
-          binding_manager=binding_manager)
-def test_tenant_dual_stack():
+          binding_manager=BindingManager(vtm=UplinkDualStack()))
+def test_dual_stack_uplink():
     """
-    Title: Tenant router is attached to both ipv4 and ipv6 external subnents.
+    Title: Edge router is attached to both ipv4 and ipv6 uplink subnets.
     """
     ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
-    vmport = binding_manager.get_interface_on_vport('port1')
+    ping_from_inet('quagga1', '10.1.0.1', 10)
+
+
+@bindings(binding_multihost_singletenant_neutronfip6,
+          binding_manager=BM_dual_full)
+def test_dual_stack_full():
+    """
+    Title: Tenant router is attached to both ipv4 and ipv6 external subnets.
+    """
+    ping_from_inet('quagga1', 'cccc:bbbb::3', 10, namespace='ip6')
+    vmport = BM_dual_full.get_interface_on_vport('port1')
     cmd = 'ping -c 10 -i 0.5 200.0.0.1'
+    (result, exec_id) = vmport.do_execute(cmd, stream=True)
+    retcode = vmport.compute_host.check_exit_status(exec_id, result, timeout=120)
+    assert(retcode == 0)
+
+    cmd = 'ping -c 10 -i 0.5 10.1.0.1'
     (result, exec_id) = vmport.do_execute(cmd, stream=True)
     retcode = vmport.compute_host.check_exit_status(exec_id, result, timeout=120)
     assert(retcode == 0)
