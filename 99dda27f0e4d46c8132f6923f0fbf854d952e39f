@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_2227cb65",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-17T15:02:56Z",
+      "side": 1,
+      "message": "s",
+      "range": {
+        "startLine": 556,
+        "startChar": 75,
+        "endLine": 556,
+        "endChar": 76
+      },
+      "revId": "99dda27f0e4d46c8132f6923f0fbf854d952e39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_022a872c",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/vpp/VppIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 564,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-17T15:02:56Z",
+      "side": 1,
+      "message": "Wait future to terminate",
+      "range": {
+        "startLine": 561,
+        "startChar": 24,
+        "endLine": 564,
+        "endChar": 40
+      },
+      "revId": "99dda27f0e4d46c8132f6923f0fbf854d952e39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
