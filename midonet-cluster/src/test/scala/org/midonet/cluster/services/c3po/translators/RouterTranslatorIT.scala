@@ -137,7 +137,8 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         // Create a router interface
         val rtrIfId = createRouterInterfacePort(
-            8, nwId, subnetId, routerId, "192.168.1.2", "02:02:02:02:02:02")
+            8, nwId, List(IPAlloc("192.168.1.2", subnetId)), routerId,
+            "02:02:02:02:02:02")
         createRouterInterface(9, routerId, rtrIfId, subnetId)
 
         // Update with extra routes
@@ -194,7 +195,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Create edge router.
         val routerId = createRouter(4)
         val uplinkPortId = createRouterInterfacePort(
-            5, networkId, subnetId, routerId, "2001::1",
+            5, networkId, List(IPAlloc("2001::1", subnetId)), routerId,
             "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
         createRouterInterface(6, routerId, uplinkPortId, subnetId)
 
@@ -253,8 +254,8 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Create edge router.
         val edgeRtrId = createRouter(5)
         val edgeRtrUplNwIfPortId = createRouterInterfacePort(
-            6, uplNetworkId, uplNwSubnetId, edgeRtrId, "10.0.0.2",
-            "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
+            6, uplNetworkId, List(IPAlloc("10.0.0.2", uplNwSubnetId)),
+            edgeRtrId, "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
         createRouterInterface(7, edgeRtrId, edgeRtrUplNwIfPortId, uplNwSubnetId)
 
         // Create external network.
@@ -265,8 +266,9 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
                                              "10.0.1.0")
 
         val edgeRtrExtNwIfPortId = createRouterInterfacePort(
-            11, extNwId, extNwSubnetId, edgeRtrId,
-            "10.0.1.2", "03:03:03:03:03:03")
+            11, extNwId, List(IPAlloc("10.0.1.2", extNwSubnetId)),
+            edgeRtrId,
+            "03:03:03:03:03:03")
         createRouterInterface(12, edgeRtrId,
                               edgeRtrExtNwIfPortId, extNwSubnetId)
         val extNwArpTable = stateTableStorage.bridgeArpTable(extNwId)
@@ -410,8 +412,8 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Create edge router.
         val edgeRouterId = createRouter(4)
         val uplinkPortId = createRouterInterfacePort(
-            5, uplinkNetworkId, uplinkSubnetId, edgeRouterId, "2001::1",
-            "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
+            5, uplinkNetworkId, List(IPAlloc("2001::1", uplinkSubnetId)),
+            edgeRouterId, "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
         createRouterInterface(6, edgeRouterId, uplinkPortId, uplinkSubnetId)
 
         // Create external network.
@@ -421,8 +423,9 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
             ipVersion = 6)
 
         val extPortId = createRouterInterfacePort(
-            9, extNetworkId, extSubnetId, edgeRouterId,
-            "2002::2", "03:03:03:03:03:03")
+            9, extNetworkId, List(IPAlloc("2002::2", extSubnetId)),
+            edgeRouterId,
+            "03:03:03:03:03:03")
         createRouterInterface(10, edgeRouterId, extPortId, extSubnetId)
 
         // Create tenant router.

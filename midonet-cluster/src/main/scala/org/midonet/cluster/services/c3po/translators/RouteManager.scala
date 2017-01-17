@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
@@ -54,9 +54,14 @@ trait RouteManager {
             .setRouterId(routerId)
 
     protected def newLocalRoute(portId: UUID, portAddress: IPAddress): Route = {
+        val srcSubnet = if (portAddress.getVersion == IPVersion.V6) {
+            IPSubnetUtil.AnyIPv6Subnet
+        } else {
+            IPSubnetUtil.AnyIPv4Subnet
+        }
         Route.newBuilder
              .setId(RouteManager.localRouteId(portId, portAddress))
-             .setSrcSubnet(IPSubnetUtil.AnyIPv4Subnet)
+             .setSrcSubnet(srcSubnet)
              .setDstSubnet(IPSubnetUtil.fromAddress(portAddress))
              .setNextHop(NextHop.LOCAL)
              .setWeight(DEFAULT_WEIGHT)
