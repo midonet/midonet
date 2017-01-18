@@ -19,9 +19,10 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.{UUID => JUUID}
 
 import org.midonet.cluster.data.storage.Transaction
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
+import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, VpnService}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -123,12 +124,22 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
             tx.create(redirectRule)
         }
 
+        val skipAllSnatRule = Rule.newBuilder()
+            .setId(skipAllSnatRuleId(routerPort.getId))
+            .setChainId(skipAllSnatChainId(routerId))
+            .setType(Rule.Type.LITERAL_RULE)
+            .setCondition(Condition.newBuilder()
+                            .addOutPortIds(routerPort.getId))
+            .setAction(Action.ACCEPT)
+            .build()
+
         tx.create(routerPort)
         tx.create(vpnRoute)
         tx.create(localRoute)
         tx.create(scg)
         tx.create(sc)
         tx.create(modifiedVpnService)
+        tx.create(skipAllSnatRule)
     }
 
     override protected def translateDelete(tx: Transaction,
@@ -165,6 +176,8 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
 
             tx.delete(classOf[Port], container.getPortId, ignoresNeo = true)
             tx.delete(classOf[ServiceContainerGroup], container.getServiceGroupId,
+                      ignoresNeo = true)
+            tx.delete(classOf[Rule], skipAllSnatRuleId(container.getPortId),
                       ignoresNeo = true)
         }
     }
@@ -263,6 +276,9 @@ protected[translators] object VpnServiceTranslator {
     /** ID of route directing traffic addressed to 169.254.x.x/30 to the VPN. */
     def vpnContainerRouteId(containerId: UUID): UUID =
         containerId.xorWith(0x645a41fb3e1641a3L, 0x90d28456127bee31L)
+
+    def skipAllSnatRuleId(portId: UUID): UUID =
+        portId.xorWith(0x18baa5f8d02e72fcL, 0x405455f633b7fc67L)
 
     val VpnServiceType = "IPSEC"
 
