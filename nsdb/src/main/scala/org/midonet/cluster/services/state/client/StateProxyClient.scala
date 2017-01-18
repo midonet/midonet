@@ -86,12 +86,15 @@ import org.midonet.util.functors.makeAction0
 class StateProxyClient(conf: StateProxyClientConfig,
                        discoveryService: MidonetDiscovery,
                        executor: ScheduledExecutorService,
-                       eventLoopGroup: NioEventLoopGroup)
+                       eventLoopGroup: NioEventLoopGroup,
+                       discoveryPolicy: MidonetDiscoveryPolicy[MidonetServiceHostAndPort]
+                            = new RandomPolicy[MidonetServiceHostAndPort])
                       (implicit ec: ExecutionContext)
 
         extends PersistentConnection[ProxyRequest, ProxyResponse] (
                                      StateProxyService.Name,
-                                     executor)(ec, eventLoopGroup)
+                                     executor,
+                                     conf.connectTimeout)(ec, eventLoopGroup)
         with StateTableClient {
 
     import StateProxyClient._
@@ -102,7 +105,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
     private val state = new StateProxyClientStates
     private val outstandingPing = new AtomicReference[(RequestId, Long)](0, 0L)
 
-    private val discovery = MidonetDiscoverySelector.random(
+    private val discovery = MidonetDiscoverySelector.withPolicy(discoveryPolicy)(
         discoveryService.getClient[MidonetServiceHostAndPort](StateProxyService.Name))
 
     private val connectionSubject = BehaviorSubject.create(ConnectionState.Disconnected)
