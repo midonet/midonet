@@ -861,18 +861,6 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         classInfo.keySet.toSet
     }
 
-    // We should have public subscription methods, but we don't currently
-    // need them, and this is easier to implement for testing.
-    @VisibleForTesting
-    protected[cluster] def getNodeValue(path: String): String = {
-        val data = curator.getData.forPath(path)
-        if (data == null) null else new String(data)
-    }
-
-    @VisibleForTesting
-    protected[cluster] def getNodeChildren(path: String): Seq[String] = {
-        curator.getChildren.forPath(path).asScala
-    }
 
     @inline
     protected[cluster] def classPath(clazz: Class[_]): String = {
