@@ -54,7 +54,7 @@ trait ChainManager {
     protected def skipSnatChainId(deviceId: UUID) =
         deviceId.xorWith(0x77e52b9ea61aae18L, 0xcf5e9a5f30deb1fbL)
 
-    protected def floatNat64ChainId(deviceId: UUID) =
+    protected def skipAllSnatChainId(deviceId: UUID) =
         deviceId.xorWith(0x46da815f6c664a20L, 0x0042ff946a15addaL)
 
     /** Deterministically generate anti spoof chain ID from device ID. */

@@ -73,8 +73,8 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
                                            floatSnatExactChainName(nRouter.getId))
         val floatSnatChain = newChain(floatSnatChainId(nRouter.getId),
                                       floatSnatChainName(nRouter.getId))
-        val floatNat64Chain = newChain(floatNat64ChainId(nRouter.getId),
-                                       floatNat64ChainName(nRouter.getId))
+        val skipAllSnatChain = newChain(skipAllSnatChainId(nRouter.getId),
+                                       skipAllSnatChainName(nRouter.getId))
         val skipSnatChain = newChain(skipSnatChainId(nRouter.getId),
                                      skipSnatChainName(nRouter.getId))
 
@@ -92,10 +92,10 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         val routerInterfacePortGroup = newRouterInterfacePortGroup(
             nRouter.getId, nRouter.getTenantId).build()
 
-        List(floatSnatExactChain, floatSnatChain, floatNat64Chain, skipSnatChain,
+        List(floatSnatExactChain, floatSnatChain, skipAllSnatChain, skipSnatChain,
              inChain, outChain, fwdChain, router, portGroup,
              routerInterfacePortGroup,
-             jumpRule(outChain.getId, floatNat64Chain.getId),
+             jumpRule(outChain.getId, skipAllSnatChain.getId),
              jumpRule(outChain.getId, floatSnatExactChain.getId),
              jumpRule(outChain.getId, floatSnatChain.getId),
              jumpRule(outChain.getId, skipSnatChain.getId)).foreach(tx.create)
@@ -113,7 +113,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
                   ignoresNeo = true)
         tx.delete(classOf[Chain], floatSnatChainId(nRouter.getId), ignoresNeo = true)
         tx.delete(classOf[Chain], skipSnatChainId(nRouter.getId), ignoresNeo = true)
-        tx.delete(classOf[Chain], floatNat64ChainId(nRouter.getId), ignoresNeo = true)
+        tx.delete(classOf[Chain], skipAllSnatChainId(nRouter.getId), ignoresNeo = true)
         tx.delete(classOf[PortGroup], PortManager.portGroupId(nRouter.getId),
                   ignoresNeo = true)
         tx.delete(classOf[PortGroup],
@@ -298,8 +298,8 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         // This is needed to stop rule processing and avoid ipv4 snat
 
         val skipNat4Rule = Rule.newBuilder()
-            .setId(floatNat64ChainId(port.getId))
-            .setChainId(floatNat64ChainId(nRouter.getId))
+            .setId(skipAllSnatChainId(port.getId))
+            .setChainId(skipAllSnatChainId(nRouter.getId))
             .setFipPortId(port.getId)
             .setType(Rule.Type.LITERAL_RULE)
             .setCondition(Commons.Condition.newBuilder()
@@ -548,7 +548,7 @@ object RouterTranslator {
 
     def floatSnatChainName(id: UUID) = "OS_FLOAT_SNAT_" + id.asJava
 
-    def floatNat64ChainName(id: UUID) = "OS_FLOAT_NAT64_" + id.asJava
+    def skipAllSnatChainName(id: UUID) = "OS_SKIP_ALL_SNAT_" + id.asJava
 
     def skipSnatChainName(id: UUID) = "OS_SKIP_SNAT_" + id.asJava
 

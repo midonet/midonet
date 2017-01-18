@@ -297,8 +297,8 @@ class RouterInterfaceTranslator(sequenceDispenser: SequenceDispenser,
     : Unit = {
         if (!isUplink) {
             val skipNat4Rule = Rule.newBuilder()
-                .setId(floatNat64ChainId(port.getId))
-                .setChainId(floatNat64ChainId(ri.getId))
+                .setId(skipAllSnatChainId(port.getId))
+                .setChainId(skipAllSnatChainId(ri.getId))
                 .setFipPortId(port.getId)
                 .setType(Rule.Type.LITERAL_RULE)
                 .setCondition(Commons.Condition.newBuilder()
