@@ -20,6 +20,7 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicReference
 
 import scala.PartialFunction._
+import scala.concurrent.duration._
 import scala.concurrent.{Future, Promise}
 
 import com.google.protobuf.Message
@@ -78,7 +79,8 @@ class Connection[S <: Message, R <: Message]
                 (host: String,
                  port: Int,
                  observer: Observer[R],
-                 decoder: R)
+                 decoder: R,
+                 connectTimeout: Duration = Connection.DefaultConnectTimeout)
                 (implicit eventLoopGroup: NioEventLoopGroup)
 
     extends SimpleChannelInboundHandler[Message] {
@@ -113,6 +115,9 @@ class Connection[S <: Message, R <: Message]
         .option[java.lang.Boolean](ChannelOption.TCP_NODELAY, true)
         // we want async close
         .option[java.lang.Integer](ChannelOption.SO_LINGER, -1)
+        // set connection timeout
+        .option[java.lang.Integer](ChannelOption.CONNECT_TIMEOUT_MILLIS,
+                                   connectTimeout.toMillis.toInt)
         .handler(new ChannelInitializer[io.netty.channel.Channel] {
             override def initChannel(ch: Channel) = {
                 initPipeline(ch.pipeline(), channelHandler)
@@ -253,6 +258,8 @@ class Connection[S <: Message, R <: Message]
 }
 
 object Connection {
+
+    val DefaultConnectTimeout = 5 seconds
 
     private sealed trait State
     private case object Init extends State
