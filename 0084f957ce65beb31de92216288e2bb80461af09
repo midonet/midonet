@@ -93,6 +93,30 @@
       "revId": "0084f957ce65beb31de92216288e2bb80461af09",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_cef4b888",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1151,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-18T11:33:40Z",
+      "side": 1,
+      "message": "If lunch MDTS and run\n\"ping 10.2.0.1\" from guagga1 container its working",
+      "parentUuid": "fabf19d9_5dd4e445",
+      "range": {
+        "startLine": 1151,
+        "startChar": 3,
+        "endLine": 1151,
+        "endChar": 45
+      },
+      "revId": "0084f957ce65beb31de92216288e2bb80461af09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
