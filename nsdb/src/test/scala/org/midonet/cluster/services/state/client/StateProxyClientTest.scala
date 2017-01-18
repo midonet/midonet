@@ -43,6 +43,8 @@ import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.rpc.State
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
+import org.midonet.cluster.services.discovery.MidonetServiceHostAndPort
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{Connected, ConnectionState, Disconnected}
 import org.midonet.util.MidonetEventually
 
 abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
@@ -126,7 +128,9 @@ class StateProxyClientTest extends FeatureSpec
 
     class TestObjects(val softReconnectDelay: Duration = 200 milliseconds,
                       val maxAttempts: Int = 30,
-                      val hardReconnectDelay: Duration = 1 second) {
+                      val hardReconnectDelay: Duration = 1 second,
+                      val connectTimeout: Duration = 2 seconds,
+                      genServerList: MidonetServiceHostAndPort => Seq[MidonetServiceHostAndPort] = List(_)) {
 
         val executor = new ScheduledThreadPoolExecutor(1)
         executor.setMaximumPoolSize(1)
@@ -179,12 +183,14 @@ class StateProxyClientTest extends FeatureSpec
               |state_proxy.soft_reconnect_delay=${softReconnectDelay.toMillis}ms
               |state_proxy.max_soft_reconnect_attempts=$maxAttempts
               |state_proxy.hard_reconnect_delay=${hardReconnectDelay.toMillis}ms
+              |state_proxy.connect_timeout=${connectTimeout.toMillis}ms
             """.stripMargin
         )
 
         val conf = new StateProxyClientConfig(STATE_PROXY_CFG_OBJECT)
 
-        val discoveryService = new DiscoveryMock("localhost",server.port)
+        val serverAddress = MidonetServiceHostAndPort("localhost", server.port)
+        val discoveryService = new DiscoveryMockList(genServerList(serverAddress))
         val client = new StateProxyClient(conf,
                                           discoveryService,
                                           executor,
@@ -969,5 +975,65 @@ class StateProxyClientTest extends FeatureSpec
 
             t.close()
         }
+    }
+
+    feature("connection timeout") {
+        scenario("connection timeout works") {
+
+            val badServer = MidonetServiceHostAndPort("192.0.2.0", 19)
+            val softDelay = 200 milliseconds
+            val hardDelay = 500 milliseconds
+            val connectTimeout = 2 seconds
+
+            Given("a client")
+            val t = new TestObjects(softDelay, 0, hardDelay,
+                                    connectTimeout,
+                                    genServerList = _ => List(badServer))
+
+            val startTime = System.nanoTime()
+            t.client.start()
+
+            And("an observer")
+            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observer).isUnsubscribed shouldBe
+            false
+
+            eventually {
+                Mockito.verify(observer).onNext(Disconnected)
+            }
+
+            val took = System.nanoTime() - startTime
+            val ratio = took.toDouble / connectTimeout.toNanos
+            ratio should be >= 1.0
+            ratio should be <  2.0
+            t.close()
+        }
+    }
+
+    scenario("Uses the next server if failed") {
+
+        val badServer = MidonetServiceHostAndPort("192.0.2.0", 19)
+        val softDelay = 200 milliseconds
+        val hardDelay = 500 milliseconds
+        val connectTimeout = 500 milliseconds
+
+        Given("a client")
+        val t = new TestObjects(softDelay, 0, hardDelay,
+                                connectTimeout,
+                                genServerList = List(badServer, _))
+
+        val startTime = System.nanoTime()
+        t.client.start()
+
+        And("an observer")
+        val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+        t.client.connection.subscribe(observer).isUnsubscribed shouldBe
+        false
+
+        eventually {
+            Mockito.verify(observer).onNext(Connected)
+        }
+
+        t.close()
     }
 }
