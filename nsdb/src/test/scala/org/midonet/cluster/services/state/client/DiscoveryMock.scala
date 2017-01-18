@@ -25,7 +25,11 @@ import rx.Observable
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryClient, MidonetServiceHandler, MidonetServiceHostAndPort}
 import org.midonet.cluster.services.state.StateProxyService
 
-class DiscoveryMock(host: String, port: Int) extends MidonetDiscovery {
+class DiscoveryMock(host: String, port: Int)
+    extends DiscoveryMockList(List( MidonetServiceHostAndPort(host,port) ))
+
+class DiscoveryMockList(servers: Seq[MidonetServiceHostAndPort])
+    extends MidonetDiscovery {
 
     override def stop(): Unit = {}
 
@@ -36,7 +40,7 @@ class DiscoveryMock(host: String, port: Int) extends MidonetDiscovery {
                 override def stop(): Unit = {}
 
                 override val instances: Seq[MidonetServiceHostAndPort] =
-                    List( MidonetServiceHostAndPort(host,port) )
+                    servers
 
                 val observable: Observable[Seq[MidonetServiceHostAndPort]] = null
 
@@ -51,6 +55,4 @@ class DiscoveryMock(host: String, port: Int) extends MidonetDiscovery {
 
     override def registerServiceInstance(serviceName: String, url: java.net.URI)
         : MidonetServiceHandler = throw new Exception("Method unimplemented in mock")
-
-
 }

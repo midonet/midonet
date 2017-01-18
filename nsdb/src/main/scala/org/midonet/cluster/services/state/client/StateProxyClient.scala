@@ -91,7 +91,8 @@ class StateProxyClient(conf: StateProxyClientConfig,
 
         extends PersistentConnection[ProxyRequest, ProxyResponse] (
                                      StateProxyService.Name,
-                                     executor)(ec, eventLoopGroup)
+                                     executor,
+                                     conf.connectTimeout)(ec, eventLoopGroup)
         with StateTableClient {
 
     import StateProxyClient._
