@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_9354ab21",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-18T09:22:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_62614339",
+      "range": {
+        "startLine": 477,
+        "startChar": 0,
+        "endLine": 504,
+        "endChar": 45
+      },
+      "revId": "0084f957ce65beb31de92216288e2bb80461af09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_a2dcfb12",
         "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-01-17T15:42:32Z",
       "side": 1,
       "message": "I guess this ping always works in MDTS regardless of the test setup. We are pinging bgp0 interface of midolman2 which is connected by virtual bridge to bgp1 interface of quagga1 container.",
+      "range": {
+        "startLine": 1151,
+        "startChar": 3,
+        "endLine": 1151,
+        "endChar": 45
+      },
+      "revId": "0084f957ce65beb31de92216288e2bb80461af09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_5dd4e445",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1151,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-18T09:22:16Z",
+      "side": 1,
+      "message": "but this address is configured on the provider router as part of the dual stack uplink test\n\nthis ping wouldn\u0027t work for instance in the previous test, where the provider router is not configured with IPv4",
+      "parentUuid": "fabf19d9_a2dcfb12",
       "range": {
         "startLine": 1151,
         "startChar": 3,
