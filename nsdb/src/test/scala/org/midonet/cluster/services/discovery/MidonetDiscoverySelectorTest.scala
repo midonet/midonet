@@ -49,7 +49,7 @@ class MidonetDiscoverySelectorTest extends FeatureSpec with Matchers {
     }
 
     def expect[T,S <: Seq[T]](
-            factory: MidonetDiscoveryClient[T] => MidonetDiscoverySelector[T],
+            factory: MidonetDiscoverySelector.Factory[T],
             given: S,
             expected: S): Unit =
         expect(factory(new MockDiscoveryClient(given)), expected)
