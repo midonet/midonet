@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scala.annotation.tailrec
 import scala.collection.breakOut
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
@@ -634,7 +633,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 val end = System.nanoTime()
                 metrics.performance.addReadChildrenLatency(end - start)
                 assert(CuratorEventType.CHILDREN == evt.getType)
-                getAll(clazz, evt.getChildren).onComplete {
+                getAll(clazz, evt.getChildren.asScala).onComplete {
                     case Success(l) => all trySuccess l
                     case Failure(t) => all tryFailure t
                 } (CallingThreadExecutionContext)
