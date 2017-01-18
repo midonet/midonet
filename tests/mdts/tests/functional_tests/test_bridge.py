@@ -258,7 +258,7 @@ def test_two_isolated_bridges():
     receiver = BM.get_iface_for_port('bridge-000-002', 1)
 
     f2 = async_assert_that(receiver,
-                           should_NOT_receive('', within_sec(5)))
+                           should_NOT_receive('icmp', within_sec(5)))
 
     f1 = sender.ping4(receiver, 0.5, 3, False, 100)
 
