@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_99b04945",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-18T17:02:39Z",
+      "side": 1,
+      "message": "This exactly what we dont want.",
+      "range": {
+        "startLine": 320,
+        "startChar": 69,
+        "endLine": 323,
+        "endChar": 45
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_59bab124",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-18T17:02:39Z",
+      "side": 1,
+      "message": "If address is set at the same time, it must be for an address available on that interface.",
+      "range": {
+        "startLine": 330,
+        "startChar": 74,
+        "endLine": 332,
+        "endChar": 41
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_996969c1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-18T17:02:39Z",
+      "side": 1,
+      "message": "loopback should be ok. we need it for testing, no?",
+      "range": {
+        "startLine": 268,
+        "startChar": 21,
+        "endLine": 268,
+        "endChar": 38
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_f99e25b7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-18T17:02:39Z",
+      "side": 1,
+      "message": "tell the user the use the server.address option. they should be able to use the interface and address option in tandem also.",
+      "range": {
+        "startLine": 296,
+        "startChar": 0,
+        "endLine": 296,
+        "endChar": 79
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_19755997",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-18T17:02:39Z",
+      "side": 1,
+      "message": "It would be good to specify which configuration options can be used to fix this.",
+      "range": {
+        "startLine": 322,
+        "startChar": 36,
+        "endLine": 322,
+        "endChar": 49
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_f977459d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-18T17:02:39Z",
+      "side": 1,
+      "message": "info",
+      "range": {
+        "startLine": 325,
+        "startChar": 20,
+        "endLine": 325,
+        "endChar": 25
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
