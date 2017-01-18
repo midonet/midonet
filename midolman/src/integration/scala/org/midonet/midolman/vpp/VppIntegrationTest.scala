@@ -544,15 +544,23 @@ class VppIntegrationTest extends FeatureSpec with TopologyBuilder
                                       + s" ${bviMac.toString} dev ${ns}ns")
 
                     val fip = IPv6Addr.fromString(s"3001::$id")
-                    assertVppCtl(s"fip64 add ${fip} 192.168.0.1 "
-                                 + "pool 10.0.0.1 10.0.0.1 "
-                                 + s"table ${id}")
+                    val fixed4 = IPv4Addr.fromString("192.168.0.1")
+                    val poolStart = IPv4Addr.fromString("10.0.0.1")
+                    val poolEnd = poolStart
+                    val vrf = id
+                    val vni = 0
+                    Await.result(api.fip64Add(fip, fixed4, poolStart, poolEnd, vrf, vni),
+                                 1 minute)
 
                     val setupVxlan = new VppVxlanTunnelSetup(
                         fip64config, id, id, nsMac, api, log)
                     setupVxlan.execute() flatMap { _ =>
-                        assertVppCtl(s"ip route table $id add 192.168.0.1/32 "
-                                     + "via 172.16.0.1")
+                        Await.result(api.addRoute(IPSubnet.fromCidr("192.168.0.1/32"),
+                                                  Some(IPAddr.fromString("172.16.0.1")),
+                                                  None,
+                                                  id),
+                                     1 minute)
+
                         Future.successful(AnyRef)
                     }
                     fip
