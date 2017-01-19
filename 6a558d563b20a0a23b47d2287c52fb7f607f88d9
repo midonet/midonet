@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_45c99e77",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1008,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-19T12:21:51Z",
+      "side": 1,
+      "message": "this flakes for me, perhaps because of the floating point stuff. Why not do\nval diff \u003d Math.abs(took - connectTimeout.toNanos)\ndiff should be \u003c\u003d (1 second).toNano",
+      "range": {
+        "startLine": 1008,
+        "startChar": 0,
+        "endLine": 1008,
+        "endChar": 34
+      },
+      "revId": "6a558d563b20a0a23b47d2287c52fb7f607f88d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
