@@ -146,7 +146,8 @@ class ConnectionTest extends FeatureSpec
         scenario("Simple connection works") {
 
             Given("A connection to a local server")
-            val client = new ProxyConnection(host,server.port,observer,decoder)
+            val client = new ProxyConnection(host, server.address.port,
+                                             observer, decoder)
 
             When("An asynchronous connection is triggered")
             val future = client.connect()
@@ -184,7 +185,8 @@ class ConnectionTest extends FeatureSpec
         scenario("Early close invalidates connection") {
 
             Given("A connection to a local server")
-            val client = new ProxyConnection(host,server.port,observer,decoder)
+            val client = new ProxyConnection(host, server.address.port,
+                                             observer, decoder)
             When("The connection is closed before connecting")
             client.close()
 
@@ -204,7 +206,8 @@ class ConnectionTest extends FeatureSpec
         scenario("Can't be reconnected") {
 
             Given("A connection to a local server")
-            val client = new ProxyConnection(host,server.port,observer,decoder)
+            val client = new ProxyConnection(host, server.address.port,
+                                             observer, decoder)
 
             When("The connection is successful")
             Await.result(client.connect(),1 second)
@@ -235,7 +238,8 @@ class ConnectionTest extends FeatureSpec
             val serverObserverMock = Mockito.mock(classOf[Observer[Message]])
             val server = new TestServer(ProxyRequest.getDefaultInstance)
             server.attachedObserver = serverObserverMock
-            val client = new ProxyConnection(host,server.port,observer,decoder)
+            val client = new ProxyConnection(host, server.address.port,
+                                             observer, decoder)
 
             When("An asynchronous connection is triggered")
             val future = client.connect()
@@ -263,7 +267,8 @@ class ConnectionTest extends FeatureSpec
             Given("A connection to a local server")
             val observer = Mockito.mock(classOf[Observer[ProxyResponse]])
             val server = new TestServer(ProxyRequest.getDefaultInstance)
-            val client = new ProxyConnection(host,server.port,observer,decoder)
+            val client = new ProxyConnection(host, server.address.port,
+                                             observer, decoder)
 
             And("a counting observer")
             val countingObserver = new CountingObserver[Message]
@@ -305,7 +310,8 @@ class ConnectionTest extends FeatureSpec
             val serverObserverMock = Mockito.mock(classOf[Observer[Message]])
             val server = new TestServer(ProxyRequest.getDefaultInstance)
             server.attachedObserver = serverObserverMock
-            val client = new ProxyConnection(host,server.port,observer,decoder)
+            val client = new ProxyConnection(host, server.address.port,
+                                             observer, decoder)
 
             When("An asynchronous connection is triggered")
             val future = client.connect()
@@ -332,7 +338,7 @@ class ConnectionTest extends FeatureSpec
             val server = new TestServer(ProxyRequest.getDefaultInstance)
             val countingObserver = new CountingObserver[ProxyResponse]
             val client = new ProxyConnection(host,
-                                             server.port,
+                                             server.address.port,
                                              countingObserver,
                                              decoder)
             server.attachedObserver = serverObserverMock
