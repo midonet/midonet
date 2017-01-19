@@ -16,43 +16,27 @@
 
 package org.midonet.cluster.services.state.client
 
-import scala.reflect.runtime.universe._
+import scala.collection.mutable.ArrayBuffer
+import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceHostAndPort}
 
-import org.apache.zookeeper.KeeperException.UnimplementedException
+class MockDiscoverySelector(initInstances: Seq[MidonetServiceHostAndPort])
+    extends MidonetDiscoverySelector[MidonetServiceHostAndPort] {
 
-import rx.Observable
+    val instanceList = ArrayBuffer(initInstances:_*)
 
-import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryClient, MidonetServiceHandler, MidonetServiceHostAndPort}
-import org.midonet.cluster.services.state.StateProxyService
-
-class DiscoveryMock(host: String, port: Int)
-    extends DiscoveryMockList(List( MidonetServiceHostAndPort(host,port) ))
-
-class DiscoveryMockList(servers: Seq[MidonetServiceHostAndPort])
-    extends MidonetDiscovery {
-
-    override def stop(): Unit = {}
-
-    override def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
-        : MidonetDiscoveryClient[S] = {
-        if (serviceName.equals(StateProxyService.Name)) {
-            new MidonetDiscoveryClient[MidonetServiceHostAndPort] {
-                override def stop(): Unit = {}
-
-                override val instances: Seq[MidonetServiceHostAndPort] =
-                    servers
-
-                val observable: Observable[Seq[MidonetServiceHostAndPort]] = null
-
-            }.asInstanceOf[MidonetDiscoveryClient[S]]
+    override def getInstance: Option[MidonetServiceHostAndPort] =
+        if (instanceList.size > 0) {
+            Some(instanceList.remove(0))
         } else {
-            throw new Exception("Wrong service name")
+            None
         }
-    }
 
-    override def registerServiceInstance(serviceName: String, address: String, port: Int)
-        : MidonetServiceHandler = throw new Exception("Method unimplemented in mock")
+    def clear(): Unit = instanceList.clear()
 
-    override def registerServiceInstance(serviceName: String, url: java.net.URI)
-        : MidonetServiceHandler = throw new Exception("Method unimplemented in mock")
+    def prependInstance(instance: MidonetServiceHostAndPort): Unit =
+        instanceList.prepend(instance)
+
+    def appendInstance(instance: MidonetServiceHostAndPort): Unit =
+        instanceList.append(instance)
 }
+

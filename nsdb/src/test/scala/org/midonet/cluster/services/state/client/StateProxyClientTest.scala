@@ -129,8 +129,7 @@ class StateProxyClientTest extends FeatureSpec
     class TestObjects(val softReconnectDelay: Duration = 200 milliseconds,
                       val maxAttempts: Int = 30,
                       val hardReconnectDelay: Duration = 1 second,
-                      val connectTimeout: Duration = 2 seconds,
-                      genServerList: MidonetServiceHostAndPort => Seq[MidonetServiceHostAndPort] = List(_)) {
+                      val connectTimeout: Duration = 2 seconds) {
 
         val executor = new ScheduledThreadPoolExecutor(1)
         executor.setMaximumPoolSize(1)
@@ -189,13 +188,12 @@ class StateProxyClientTest extends FeatureSpec
 
         val conf = new StateProxyClientConfig(STATE_PROXY_CFG_OBJECT)
 
-        val serverAddress = MidonetServiceHostAndPort("localhost", server.port)
-        val discoveryService = new DiscoveryMockList(genServerList(serverAddress))
+        val discovery = new MockDiscoverySelector(
+            List.fill(10)(MidonetServiceHostAndPort("localhost", server.port)))
         val client = new StateProxyClient(conf,
-                                          discoveryService,
+                                          discovery,
                                           executor,
-                                          eventLoopGroup,
-                                          discoveryPolicy = new RoundRobinPolicy[MidonetServiceHostAndPort])
+                                          eventLoopGroup)
 
         def close(): Unit = {
             try {
@@ -988,58 +986,57 @@ class StateProxyClientTest extends FeatureSpec
 
             Given("a client")
             val t = new TestObjects(softDelay, 0, hardDelay,
-                                    connectTimeout,
-                                    genServerList = _ => List(badServer))
+                                    connectTimeout)
+            t.discovery.clear()
+            t.discovery.prependInstance(badServer)
 
             val startTime = System.nanoTime()
             t.client.start()
 
             And("an observer")
-            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
-            t.client.connection.subscribe(observer).isUnsubscribed shouldBe
-            false
+            val obs = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(obs).isUnsubscribed shouldBe false
 
             eventually {
-                Mockito.verify(observer).onNext(Disconnected)
+                Mockito.verify(obs).onNext(Disconnected)
             }
 
             val took = System.nanoTime() - startTime
             val expected = connectTimeout.toNanos
             val diff = Math.abs(took - expected)
-            diff should be <= (1 second).toNanos
+            diff should be <= connectTimeout.toNanos
             t.close()
         }
-    }
 
-    scenario("Uses the next server if failed") {
+        scenario("Uses the next server if failed") {
 
-        val badServer = MidonetServiceHostAndPort("192.0.2.0", 19)
-        val softDelay = 200 milliseconds
-        val hardDelay = 500 milliseconds
-        val connectTimeout = 2 seconds
+            val badServer = MidonetServiceHostAndPort("192.0.2.0", 19)
+            val softDelay = 200 milliseconds
+            val hardDelay = 500 milliseconds
+            val connectTimeout = 2 seconds
 
-        Given("a client")
-        val t = new TestObjects(softDelay, 0, hardDelay,
-                                connectTimeout,
-                                genServerList = List(badServer, _))
+            Given("a client")
+            val t = new TestObjects(softDelay, 0, hardDelay,
+                                    connectTimeout)
+            t.discovery.prependInstance(badServer)
 
-        val startTime = System.nanoTime()
-        t.client.start()
+            val startTime = System.nanoTime()
+            t.client.start()
 
-        And("an observer")
-        val observer = Mockito.mock(classOf[Observer[ConnectionState]])
-        t.client.connection.subscribe(observer).isUnsubscribed shouldBe
-        false
+            And("an observer")
+            val obs = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(obs).isUnsubscribed shouldBe false
 
-        eventually {
-            t.server.hasClient shouldBe true
+            eventually {
+                t.server.hasClient shouldBe true
+            }
+
+            val took = System.nanoTime() - startTime
+            val expected = connectTimeout.toNanos + hardDelay.toNanos
+            val diff = Math.abs(took - expected)
+            diff should be <= connectTimeout.toNanos
+
+            t.close()
         }
-
-        val took = System.nanoTime() - startTime
-        val expected = connectTimeout.toNanos + hardDelay.toNanos
-        val diff = Math.abs(took - expected)
-        diff should be <= (1 second).toNanos
-
-        t.close()
     }
 }
