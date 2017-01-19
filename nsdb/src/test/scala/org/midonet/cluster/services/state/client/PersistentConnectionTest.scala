@@ -143,7 +143,7 @@ class PersistentConnectionTest extends FeatureSpec
 
         Given("A connection and a server")
         val server = new TestServer(ProxyRequest.getDefaultInstance)
-        val c = new TestConnection(server.port)
+        val c = new TestConnection(server.address.port)
 
         scenario("connect using start") {
 
@@ -192,7 +192,7 @@ class PersistentConnectionTest extends FeatureSpec
 
     feature("reconnects on error") {
         val server = new TestServer(ProxyRequest.getDefaultInstance)
-        val c = new TestConnection(server.port) {
+        val c = new TestConnection(server.address.port) {
             override def onNext(msg: ProxyResponse): Unit = {
                 throw new Exception
             }
@@ -221,7 +221,7 @@ class PersistentConnectionTest extends FeatureSpec
         scenario("close while reconnecting") {
 
             Given("A connection to a server")
-            val c = new TestConnection(server.port)
+            val c = new TestConnection(server.address.port)
 
             When("It is connected")
             c.start()
@@ -274,7 +274,7 @@ class PersistentConnectionTest extends FeatureSpec
         scenario("multiple starts in parallel") {
 
             Given("A disconnected client")
-            val c = new TestConnection(server.port)
+            val c = new TestConnection(server.address.port)
 
             When("Start is called in parallel")
             val tries = 50
@@ -303,7 +303,7 @@ class PersistentConnectionTest extends FeatureSpec
     feature("I/O works") {
 
         val server = new TestServer(ProxyRequest.getDefaultInstance)
-        val c = new TestConnection(server.port)
+        val c = new TestConnection(server.address.port)
 
         val serverObserverMock = Mockito
             .mock(classOf[Observer[Message]])
@@ -341,7 +341,7 @@ class PersistentConnectionTest extends FeatureSpec
             for (count <- 1 to 1) {
 
                 Given("A persistent connection")
-                val c = new TestConnection(server.port)
+                val c = new TestConnection(server.address.port)
 
                 When("It is established")
                 c.start()

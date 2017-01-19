@@ -188,8 +188,7 @@ class StateProxyClientTest extends FeatureSpec
 
         val conf = new StateProxyClientConfig(STATE_PROXY_CFG_OBJECT)
 
-        val discovery = new MockDiscoverySelector(
-            List.fill(10)(MidonetServiceHostAndPort("localhost", server.port)))
+        val discovery = new MockDiscoverySelector(List.fill(10)(server.address))
         val client = new StateProxyClient(conf,
                                           discovery,
                                           executor,
