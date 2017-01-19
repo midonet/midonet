@@ -17,7 +17,7 @@ package org.midonet.cluster.data.storage
 
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong, AtomicReference}
+import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -63,7 +63,6 @@ import org.midonet.util.functors._
  */
 class InMemoryStorage extends Storage with StateStorage with StateTableStorage
                               with StateTablePaths {
-    override protected val version = new AtomicLong(1)
     override protected val rootPath = "/inMemoryStorage"
     override protected val zoomPath = "/inMemoryStorage"
 
@@ -543,7 +542,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
                         if (tableInfo.contains(clazz)) {
                             for ((name, provider) <- tableInfo(clazz).tables) {
                                 tablesDirectory.ensureHas(
-                                    tableRootPath(clazz, id, name, version.get),
+                                    tableRootPath(clazz, id, name),
                                     null)
                             }
                         }
@@ -848,7 +847,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
                                (implicit key: ClassTag[K], value: ClassTag[V])
     : StateTable[K, V] = {
         val path = if (args.nonEmpty) {
-            tablePath(clazz, id, name, version.longValue(), args: _*)
+            tablePath(clazz, id, name, args: _*)
         } else {
             tableRootPath(clazz, id, name)
         }
@@ -908,7 +907,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
     override def tableArguments(clazz: Class[_], id: ObjId, name: String,
                                 args: Any*): Future[Set[String]] = {
         val path = if (args.nonEmpty) {
-            tablePath(clazz, id, name, version.longValue(), args: _*)
+            tablePath(clazz, id, name, args: _*)
         } else {
             tableRootPath(clazz, id, name)
         }

@@ -61,7 +61,7 @@ class StorageErrorMetricsTest extends FlatSpec
                       with ZoomIntrospector {
             override def publicInternalObservable[T](clazz: Class[T], id: Any)
             : Observable[T] = {
-                internalObservable(clazz, id, version.get, () => {})
+                internalObservable(clazz, id, () => {})
             }
         }
         storage.registerClass(classOf[PojoBridge])

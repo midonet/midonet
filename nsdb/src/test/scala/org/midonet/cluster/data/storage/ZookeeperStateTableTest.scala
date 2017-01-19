@@ -218,10 +218,10 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             val storage = setupStorage()
 
             Then("The paths are correct")
-            val version = storage.version.get
+            val version = 0
             val id = UUID.randomUUID()
-            storage.tablesPath() shouldBe s"$zkRoot/zoom/$version/tables"
-            storage.tablesGlobalPath() shouldBe
+            storage.tablesPath shouldBe s"$zkRoot/zoom/$version/tables"
+            storage.tablesGlobalPath shouldBe
                 s"$zkRoot/zoom/$version/tables/global"
             storage.tablesClassPath(classOf[PojoBridge]) shouldBe
                 s"$zkRoot/zoom/$version/tables/PojoBridge"
@@ -235,7 +235,7 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0"
             storage.tablePath(classOf[PojoBridge], id, "name", version, 0, 1) shouldBe
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0/1"
-            storage.tablePath("name", version) shouldBe
+            storage.tablePath("name") shouldBe
                 s"$zkRoot/zoom/$version/tables/global/name"
 
             And("The legacy paths are correct for a network")
@@ -260,7 +260,7 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             val storage = setupStorage()
 
             And("A path for global tables")
-            val path = storage.tablesGlobalPath()
+            val path = storage.tablesGlobalPath
 
             Then("Tables path created with storage")
             curator.checkExists().forPath(path) should not be null
