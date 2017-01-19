@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_7fa435a5",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-19T09:30:26Z",
+      "side": 1,
+      "message": "Yeah, the message was wrong.",
+      "parentUuid": "fabf19d9_99b04945",
+      "range": {
+        "startLine": 320,
+        "startChar": 69,
+        "endLine": 323,
+        "endChar": 45
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_59bab124",
         "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-01-18T17:02:39Z",
       "side": 1,
       "message": "If address is set at the same time, it must be for an address available on that interface.",
+      "range": {
+        "startLine": 330,
+        "startChar": 74,
+        "endLine": 332,
+        "endChar": 41
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_5fcdf15b",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-19T09:30:26Z",
+      "side": 1,
+      "message": "So this is a design question:\n- if the address is set, but the interface isn\u0027t, I assume that we use that address (regardless of the interface)\n- if both the address and the interface are set: does the address have to be from the interface? wouldn\u0027t that break existing configs, unless the customer also updates the interface?\n- if neither are set, we start the state proxy only if there is one IP address. if there is a single interface with IPv4/IPv6, should we start in this case (i.e. pick IPv4 over IPv6)?",
+      "parentUuid": "fabf19d9_59bab124",
       "range": {
         "startLine": 330,
         "startChar": 74,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_df2ea1f9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-19T09:30:26Z",
+      "side": 1,
+      "message": "then, for a server with a single interface/IP, this filter will always return two addresses: the interface IP and the loopback, and won\u0027t start the proxy; shall we make this a special case (e.g. if there are only two addresses, one is loopback, ignore the loopback)? also, loopback shouldn\u0027t be published to service discovery, right? so that needs special handling as well",
+      "parentUuid": "fabf19d9_996969c1",
+      "range": {
+        "startLine": 268,
+        "startChar": 21,
+        "endLine": 268,
+        "endChar": 38
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_f99e25b7",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2017-01-18T17:02:39Z",
       "side": 1,
       "message": "tell the user the use the server.address option. they should be able to use the interface and address option in tandem also.",
+      "range": {
+        "startLine": 296,
+        "startChar": 0,
+        "endLine": 296,
+        "endChar": 79
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_df15819b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-19T09:30:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_f99e25b7",
       "range": {
         "startLine": 296,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_bf0c0d95",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-19T09:30:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_19755997",
+      "range": {
+        "startLine": 322,
+        "startChar": 36,
+        "endLine": 322,
+        "endChar": 49
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_f977459d",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 1
@@ -128,6 +248,30 @@
       "writtenOn": "2017-01-18T17:02:39Z",
       "side": 1,
       "message": "info",
+      "range": {
+        "startLine": 325,
+        "startChar": 20,
+        "endLine": 325,
+        "endChar": 25
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_9f0f0988",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-19T09:30:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_f977459d",
       "range": {
         "startLine": 325,
         "startChar": 20,
