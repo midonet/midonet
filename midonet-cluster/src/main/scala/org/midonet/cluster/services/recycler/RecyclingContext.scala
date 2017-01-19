@@ -153,7 +153,7 @@ class RecyclingContext(val config: RecyclerConfig,
 
         val statBefore = new Stat
         log debug s"Verifying if NSDB is recyclable ${step()}"
-        getData(store.basePath, statBefore)
+        getData(store.zoomPath, statBefore)
 
         if (start - statBefore.getMtime < interval.toMillis) {
             log debug "Skipping NSDB recycling: already recycled at " +
@@ -163,14 +163,14 @@ class RecyclingContext(val config: RecyclerConfig,
 
 
         log debug s"Marking NSDB for recycling at $start ${step()}"
-        val statAfter = setNode(store.basePath, Recycler.Data,
+        val statAfter = setNode(store.zoomPath, Recycler.Data,
                                 statBefore.getVersion)
 
         version =
-            try  Integer.parseInt(ZKPaths.getNodeFromPath(store.basePath))
+            try  Integer.parseInt(ZKPaths.getNodeFromPath(store.zoomPath))
             catch {
                 case e: NumberFormatException =>
-                    log error s"Invalid NSDB version for path ${store.basePath}"
+                    log error s"Invalid NSDB version for path ${store.zoomPath}"
                     throw new RecyclingException("Invalid NSDB version",
                                                  isError = true, inner = null)
             }
@@ -199,7 +199,7 @@ class RecyclingContext(val config: RecyclerConfig,
     private def collectNamespaces(): Unit = {
 
         log debug s"Collecting namespaces ${step()}"
-        namespaces = getChildren(store.statePath(version)).asScala.toSet
+        namespaces = getChildren(store.statePath).asScala.toSet
 
         log debug s"Collected ${namespaces.size} namespaces"
     }
@@ -228,7 +228,7 @@ class RecyclingContext(val config: RecyclerConfig,
 
             try {
                 log debug s"Verifying namespace $namespace"
-                val path = store.stateNamespacePath(namespace, version)
+                val path = store.stateNamespacePath(namespace)
                 getData(path, stat)
 
                 if (stat.getCtime < timestamp) {
@@ -269,7 +269,7 @@ class RecyclingContext(val config: RecyclerConfig,
         log debug s"Collecting object state ${step()}"
 
         for (host <- hosts; clazz <- store.classes) {
-            val path = store.stateClassPath(host, clazz, version)
+            val path = store.stateClassPath(host, clazz)
 
             // State paths are created on demand, we must check whether they
             // exist.
@@ -307,7 +307,7 @@ class RecyclingContext(val config: RecyclerConfig,
                 log debug s"Verifying object ${clazz.getSimpleName}:$id " +
                           s"at host $host"
 
-                val path = store.stateObjectPath(host, clazz, id, version)
+                val path = store.stateObjectPath(host, clazz, id)
                 getData(path, stat)
 
                 if (stat.getCtime < timestamp) {
@@ -339,7 +339,7 @@ class RecyclingContext(val config: RecyclerConfig,
 
         for (clazz <- store.classes) {
             val objects =
-                getChildren(store.tablesClassPath(clazz, version)).asScala.toSet
+                getChildren(store.tablesClassPath(clazz)).asScala.toSet
             tableObjects.put(clazz, objects)
             totalTables += objects.size
 
@@ -368,7 +368,7 @@ class RecyclingContext(val config: RecyclerConfig,
                 log debug s"Verifying tables for object ${clazz.getSimpleName}" +
                           s":$id"
 
-                val path = store.tablesObjectPath(clazz, id, version)
+                val path = store.tablesObjectPath(clazz, id)
                 getData(path, stat)
 
                 if (stat.getCtime < timestamp) {
