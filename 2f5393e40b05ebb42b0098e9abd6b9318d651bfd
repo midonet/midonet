@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_df08e1db",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-19T09:11:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_3fe8fd0f",
+      "range": {
+        "startLine": 127,
+        "startChar": 8,
+        "endLine": 127,
+        "endChar": 24
+      },
+      "revId": "2f5393e40b05ebb42b0098e9abd6b9318d651bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_bf0f6de0",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-19T09:11:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_5fd97182",
+      "range": {
+        "startLine": 127,
+        "startChar": 69,
+        "endLine": 127,
+        "endChar": 75
+      },
+      "revId": "2f5393e40b05ebb42b0098e9abd6b9318d651bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_1fe3f934",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2017-01-19T08:55:01Z",
       "side": 1,
       "message": "do we need this default if the value is provided by configuration?",
+      "range": {
+        "startLine": 83,
+        "startChar": 41,
+        "endLine": 83,
+        "endChar": 76
+      },
+      "revId": "2f5393e40b05ebb42b0098e9abd6b9318d651bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_5fca916f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-19T09:11:15Z",
+      "side": 1,
+      "message": "It\u0027s only used by some unit tests. I can remove the default, but then I feel like I\u0027ll have to move Connection.DefaultConnectTimeout to some other place",
+      "parentUuid": "fabf19d9_1fe3f934",
       "range": {
         "startLine": 83,
         "startChar": 41,
