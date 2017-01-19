@@ -44,6 +44,7 @@ import rx.Notification._
 import rx.Observable.OnSubscribe
 import rx.{Notification, Observable, Subscriber}
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, deserializerOf, serialize}
@@ -123,6 +124,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     private[storage] val topologyLockPath = s"$zoomPath/locks/zoom-topology"
     private[storage] val transactionLocksPath = zoomPath + s"/zoomlocks/lock"
     private[storage] val modelPath = zoomPath + s"/models"
+    private[storage] val objectsPath = zoomPath + s"/objects"
     @volatile private var lockFree = false
 
     private val executor = newSingleThreadExecutor(
@@ -211,17 +213,13 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 "Could not acquire current zxid.", ex)
         }
 
-        private def getPath(clazz: Class[_], id: ObjId) = {
-            ZookeeperObjectMapper.this.objectPath(clazz, id)
-        }
-
         override def assertRegistered(clazz: Class[_]): Unit = {
             ZookeeperObjectMapper.this.assertRegistered(clazz)
         }
 
         override def getSnapshot(clazz: Class[_], id: ObjId)
         : Observable[ObjSnapshot] = {
-            val path = getPath(clazz, id)
+            val path = objectPath(clazz, id)
 
             asObservable {
                 curator.getData.inBackground(_).forPath(path)
@@ -276,16 +274,16 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
 
             for ((Key(clazz, id), txOp) <- ops) txn = txOp match {
                 case TxCreate(obj) =>
-                    val path = getPath(clazz, id)
+                    val path = objectPath(clazz, id)
                     Log.debug(s"Create: $path")
                     txn.create.forPath(path, serialize(obj)).and
                 case TxUpdate(obj, ver) =>
-                    val path = getPath(clazz, id)
+                    val path = objectPath(clazz, id)
                     Log.debug(s"Update ($ver): $path")
                     txn.setData().withVersion(ver)
                         .forPath(path, serialize(obj)).and
                 case TxDelete(ver) =>
-                    val path = getPath(clazz, id)
+                    val path = objectPath(clazz, id)
                     Log.debug(s"Delete ($ver): $path")
                     txn.delete.withVersion(ver).forPath(path).and
                 case TxCreateNode(value) =>
@@ -480,6 +478,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
         for (clazz <- classes) {
             txn = txn.check().forPath(classPath(clazz)).and()
+            txn = txn.check().forPath(altClassPath(clazz)).and()
             txn = txn.check().forPath(stateClassPath(namespace, clazz)).and()
             txn = txn.check().forPath(tablesClassPath(clazz)).and()
         }
@@ -497,6 +496,8 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             for (clazz <- classes) {
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                                classPath(clazz))
+                ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                               altClassPath(clazz))
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                                stateClassPath(namespace, clazz))
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
@@ -833,6 +834,16 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     protected[cluster] override def objectPath(clazz: Class[_], id: ObjId)
     : String = {
         classPath(clazz) + "/" + getIdString(id)
+    }
+
+    @inline
+    protected[cluster] def altClassPath(clazz: Class[_]): String = {
+        objectsPath + "/" + clazz.getSimpleName
+    }
+
+    @inline
+    protected[cluster] def altObjectPath(clazz: Class[_], id: ObjId): String = {
+        altClassPath(clazz) + "/" + getIdString(id)
     }
 
     protected[cluster] def isLockFree = lockFree
