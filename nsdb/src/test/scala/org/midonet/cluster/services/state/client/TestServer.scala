@@ -32,6 +32,8 @@ import io.netty.handler.logging.LoggingHandler
 
 import rx.Observer
 
+import org.midonet.cluster.services.discovery.MidonetServiceHostAndPort
+
 class TestServer(decoder: MessageLite,
                  verbose: Boolean = false) extends Observer[Message] {
 
@@ -46,8 +48,8 @@ class TestServer(decoder: MessageLite,
     val workerGroup = new NioEventLoopGroup(1)
 
     var serverChannel: ServerSocketChannel = null
-
-    var port: Int = 0
+    private var port = 0
+    def address = MidonetServiceHostAndPort("localhost", port)
 
     setOnline
 
@@ -74,10 +76,8 @@ class TestServer(decoder: MessageLite,
         serverChannel = serverFuture.channel match {
             case c: ServerSocketChannel => c
         }
-
         port = serverChannel.localAddress.getPort
-
-        log.info(s"Listening on port $port")
+        log.info(s"Listening on port ${port}")
     }
 
     def setOffline(): Unit = {
