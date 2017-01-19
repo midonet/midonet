@@ -28,6 +28,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.observers.TestObserver
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.StorageTestClasses._
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.util.reactivex.{AwaitableObserver, TestAwaitableObserver}
@@ -852,6 +853,38 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
             zoom.classPath(classOf[PojoBridge]) shouldBe
                 s"$zkRoot/zoom/${zoom.version}/models/PojoBridge"
+        }
+    }
+
+    feature("Test paths") {
+        scenario("Constant paths") {
+            zoom.rootPath shouldBe "/test"
+            zoom.zoomPath shouldBe "/test/zoom"
+            zoom.topologyLockPath shouldBe "/test/zoom/0/locks/zoom-topology"
+            zoom.transactionLocksPath shouldBe "/test/zoom/0/zoomlocks/lock"
+            zoom.modelPath shouldBe "/test/zoom/0/models"
+            zoom.objectsPath shouldBe "/test/zoom/0/objects"
+        }
+
+        scenario("Object paths") {
+            val id = UUID.randomUUID()
+            zoom.objectPath(classOf[Object], id) shouldBe
+                s"/test/zoom/0/models/Object/$id"
+            zoom.altObjectPath(classOf[Object], id) shouldBe
+                s"/test/zoom/0/objects/Object/$id"
+        }
+
+        scenario("Paths are created for objects") {
+            Given("A bridge")
+            val bridge = createPojoBridge(name = "0")
+
+            When("The bridge is created")
+            zoom.create(bridge)
+
+            Then("The model path exists")
+            val p =  zoom.objectPath(bridge.getClass, bridge.id)
+            curator.checkExists().forPath(
+                zoom.objectPath(bridge.getClass, bridge.id)) should not be null
         }
     }
 }
