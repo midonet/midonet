@@ -16,6 +16,9 @@
 
 package org.midonet.util.netty;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+
 import com.google.common.util.concurrent.AbstractService;
 
 import org.slf4j.Logger;
@@ -40,7 +43,7 @@ public class ServerFrontEnd extends AbstractService {
         LoggerFactory.getLogger(ServerFrontEnd.class);
 
     private final boolean datagram;
-    private final int port;
+    private final SocketAddress bindAddress;
     private final Integer rcvbufSize;
     private final EventLoopGroup boss;
     private final EventLoopGroup wrkr = new NioEventLoopGroup();
@@ -50,22 +53,39 @@ public class ServerFrontEnd extends AbstractService {
 
     public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter,
                                      int port) {
-        return new ServerFrontEnd(adapter, port, true, null);
+        return udp(adapter, port, null);
     }
     public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter,
                                      int port, Integer rcvbufSize) {
-        return new ServerFrontEnd(adapter, port, true, rcvbufSize);
+        return udp(adapter, new InetSocketAddress(port), rcvbufSize);
+    }
+
+    public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter,
+                                     SocketAddress bindAddress) {
+        return udp(adapter, bindAddress, null);
+    }
+
+    public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter,
+                                     SocketAddress bindAddress,
+                                     Integer rcvbufSize) {
+        return new ServerFrontEnd(adapter, bindAddress, true, rcvbufSize);
     }
 
     public static ServerFrontEnd tcp(ChannelInboundHandlerAdapter adapter,
                                      int port) {
-        return new ServerFrontEnd(adapter, port, false, null);
+        return tcp(adapter, new InetSocketAddress(port));
     }
 
-    private ServerFrontEnd(ChannelInboundHandlerAdapter adapter, int port,
+    public static ServerFrontEnd tcp(ChannelInboundHandlerAdapter adapter,
+                                     SocketAddress bindAddress) {
+        return new ServerFrontEnd(adapter, bindAddress, false, null);
+    }
+
+    private ServerFrontEnd(ChannelInboundHandlerAdapter adapter,
+                           SocketAddress bindAddress,
                            boolean datagram, Integer rcvbufSize) {
         this.adapter = adapter;
-        this.port = port;
+        this.bindAddress = bindAddress;
         this.datagram = datagram;
         this.rcvbufSize = rcvbufSize;
         if(datagram) {
@@ -80,7 +100,7 @@ public class ServerFrontEnd extends AbstractService {
 
         try {
             if(datagram) {
-                log.info("Starting Netty UDP server on port {}", port);
+                log.info("Starting Netty UDP server on {}", bindAddress);
                 Bootstrap boot = new Bootstrap();
                 boot.group(wrkr)
                     .channel(NioDatagramChannel.class)
@@ -89,16 +109,16 @@ public class ServerFrontEnd extends AbstractService {
                     boot.option(ChannelOption.SO_RCVBUF, rcvbufSize)
                         .option(ChannelOption.RCVBUF_ALLOCATOR,
                                 new FixedRecvByteBufAllocator(rcvbufSize));
-                sock = boot.bind(port).sync();
+                sock = boot.bind(bindAddress).sync();
             } else {
-                log.info("Starting Netty TCP server on port {}", port);
+                log.info("Starting Netty TCP server on {}", bindAddress);
                 ServerBootstrap boot = new ServerBootstrap();
                 boot.group(boss, wrkr)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(adapter)
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .option(ChannelOption.SO_KEEPALIVE, true);
-                sock = boot.bind(port).sync();
+                sock = boot.bind(bindAddress).sync();
             }
             log.info("Netty server started");
             notifyStarted();
