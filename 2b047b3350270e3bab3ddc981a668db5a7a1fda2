@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_9fa2694a",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 1031,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-19T10:43:36Z",
+      "side": 1,
+      "message": "It sends the disconnect only after a number of failed connections. In this test this number is zero (second param for TestObjects), so yes, it sends the disconnect after first failure.",
+      "parentUuid": "fabf19d9_7f55554e",
+      "range": {
+        "startLine": 1027,
+        "startChar": 0,
+        "endLine": 1031,
+        "endChar": 13
+      },
+      "revId": "2b047b3350270e3bab3ddc981a668db5a7a1fda2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_1f4ad9ac",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-01-19T09:34:50Z",
       "side": 1,
       "message": "You should also verify that this took ~5s, like you do in the other test.",
+      "range": {
+        "startLine": 1032,
+        "startChar": 0,
+        "endLine": 1035,
+        "endChar": 9
+      },
+      "revId": "2b047b3350270e3bab3ddc981a668db5a7a1fda2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_0abbb5e6",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-19T10:43:36Z",
+      "side": 1,
+      "message": "Problem is that currently, StateProxyClient chooses an entry from discovery at random (this was done to prevent concurrent clients from selecting the same entry). I will parametrise the discovery selection algorithm so that it can be tested",
+      "parentUuid": "fabf19d9_1f4ad9ac",
       "range": {
         "startLine": 1032,
         "startChar": 0,
