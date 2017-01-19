@@ -34,7 +34,7 @@ import org.junit.runner.RunWith
 import org.mockito.Matchers.any
 import org.mockito.Mockito
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
+import org.scalatest.{FeatureSpec, GivenWhenThen, Informer, Matchers}
 import org.slf4j.LoggerFactory
 
 import rx.Observer
@@ -47,7 +47,9 @@ import org.midonet.cluster.services.discovery._
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState, Disconnected}
 import org.midonet.util.MidonetEventually
 
-abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
+class TestServerHandler(server: TestServer,
+                        goodUUID: UUID) extends Observer[Message] {
+    val subscriptionId = new AtomicInteger(0)
 
     private val log = Logger(LoggerFactory.getLogger(classOf[TestServerHandler]))
 
@@ -92,8 +94,32 @@ abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
         server.write(response)
     }
 
-    protected def onSubscribe(requestId: Long, msg: ProxyRequest.Subscribe): Unit
-    protected def onUnsubscribe(requestId: Long, msg: ProxyRequest.Unsubscribe): Unit
+    private def onSubscribe(requestId: Long,
+                            msg: ProxyRequest.Subscribe): Unit = {
+
+        val b = ProxyResponse.newBuilder().setRequestId(requestId)
+        val uuid = new UUID(msg.getObjectId.getMsb,
+                            msg.getObjectId.getLsb)
+
+        if (uuid.compareTo(goodUUID) == 0) {
+            val ack = ProxyResponse.Acknowledge.newBuilder()
+                .setSubscriptionId(subscriptionId.incrementAndGet)
+            server.write(b.setAcknowledge(ack).build())
+        } else {
+            val err = ProxyResponse.Error.newBuilder()
+                        .setCode(ProxyResponse.Error.Code.INVALID_ARGUMENT)
+                        .setDescription("Table doesn't exists")
+            server.write(b.setError(err).build())
+        }
+    }
+
+    protected def onUnsubscribe(requestId: Long,
+                                msg: ProxyRequest.Unsubscribe): Unit = {
+        val ack = ProxyResponse.Acknowledge.newBuilder()
+            .setSubscriptionId(msg.getSubscriptionId)
+        server.write(ProxyResponse.newBuilder().setRequestId(requestId)
+                         .setAcknowledge(ack).build())
+    }
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -101,6 +127,14 @@ class StateProxyClientTest extends FeatureSpec
                                    with Matchers
                                    with GivenWhenThen
                                    with MidonetEventually {
+    val log = LoggerFactory.getLogger(getClass)
+
+    override val info = new Informer() {
+        override def apply(message: String,
+                           payload: Option[Any] = None): Unit = {
+            log.info(message)
+        }
+    }
 
     val goodUUID = UUID.randomUUID()
     val existingTable = new StateSubscriptionKey(
@@ -140,40 +174,8 @@ class StateProxyClientTest extends FeatureSpec
         val eventLoopGroup = new NioEventLoopGroup(numPoolThreads)
 
         val server = new TestServer(ProxyRequest.getDefaultInstance)
-        server.attachedObserver = new TestServerHandler(server) {
-
-            val subscriptionId = new AtomicInteger(0)
-
-            override protected def onSubscribe(requestId: Long,
-                                               msg: ProxyRequest.Subscribe): Unit = {
-
-                val b = ProxyResponse.newBuilder().setRequestId(requestId)
-
-                val uuid = new UUID(msg.getObjectId.getMsb,
-                                    msg.getObjectId.getLsb)
-
-                if (uuid.compareTo(goodUUID) == 0) {
-                    server.write(
-                        b.setAcknowledge(ProxyResponse.Acknowledge.newBuilder()
-                                             .setSubscriptionId(subscriptionId
-                                                                    .incrementAndGet))
-                            .build())
-                } else {
-                    server.write(
-                        b.setError(ProxyResponse.Error.newBuilder()
-                            .setCode(ProxyResponse.Error.Code.INVALID_ARGUMENT)
-                            .setDescription("Table doesn't exists"))
-                            .build())
-                }
-            }
-
-            protected def onUnsubscribe(requestId: Long,
-                                        msg: ProxyRequest.Unsubscribe): Unit = {
-                server.write(ProxyResponse.newBuilder().setRequestId(requestId)
-                    .setAcknowledge(ProxyResponse.Acknowledge.newBuilder()
-                        .setSubscriptionId(msg.getSubscriptionId).build()).build())
-            }
-        }
+        val serverHandler = new TestServerHandler(server, goodUUID)
+        server.attachedObserver = serverHandler
 
         val STATE_PROXY_CFG_OBJECT = ConfigFactory.parseString(
             s"""
