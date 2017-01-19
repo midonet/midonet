@@ -22,6 +22,29 @@
       "revId": "2b047b3350270e3bab3ddc981a668db5a7a1fda2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_1f4ad9ac",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-19T09:34:50Z",
+      "side": 1,
+      "message": "You should also verify that this took ~5s, like you do in the other test.",
+      "range": {
+        "startLine": 1032,
+        "startChar": 0,
+        "endLine": 1035,
+        "endChar": 9
+      },
+      "revId": "2b047b3350270e3bab3ddc981a668db5a7a1fda2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
