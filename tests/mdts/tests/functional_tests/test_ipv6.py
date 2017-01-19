@@ -967,14 +967,15 @@ def test_fragments():
         srv_out = server.exec_command('ip netns exec %s python %s %s' % (
             serverns, SERVER_PY_NAME, listen_addr), detach=False, stream=True)
 
+        cli_out = []
         # need to send the fragmented packet a few times, because there might
         # be fragments lost. It usually succeeds at the second attempt
         for i in range(10):
             time.sleep(2)
             if is_running(server, SERVER_PY_NAME):
-                cli_out = client.exec_command('ip netns exec %s python %s %s %s' % (
+                cli_out.append(client.exec_command('ip netns exec %s python %s %s %s' % (
                     clientns, CLIENT_PY_NAME, client_addr, server_addr),
-                    detach=False, stream=True)
+                    detach=False, stream=True))
             else:
                 # the server stopped after receiving a full packet
                 break
@@ -988,7 +989,9 @@ def test_fragments():
         else:
             kill(client, CLIENT_PY_NAME)
 
-        client = get_output(cli_out[0])
+        client = {}
+        for elem in cli_out:
+            client.update(get_output(elem[0]))
         server = get_output(srv_out[0])
 
         assert(client['HASH'] == server['HASH'])
