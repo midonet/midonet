@@ -471,7 +471,7 @@ class KeystoneClient(config: KeystoneConfig) {
         try return f(currentToken.id)
         catch {
             case _: KeystoneUnauthorizedException
-                if authenticateOnUnauthorized && !adminToken.isStatic =>
+                if authenticateOnUnauthorized && !currentToken.isStatic =>
                 adminToken = null
         }
         withAdminToken(authenticateOnUnauthorized = false)(f)
