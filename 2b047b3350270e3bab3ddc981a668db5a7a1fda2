@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_7f55554e",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 1031,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-19T09:33:48Z",
+      "side": 1,
+      "message": "does the client send a disconnected after it fails to connect to the first one?",
+      "range": {
+        "startLine": 1027,
+        "startChar": 0,
+        "endLine": 1031,
+        "endChar": 13
+      },
+      "revId": "2b047b3350270e3bab3ddc981a668db5a7a1fda2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
