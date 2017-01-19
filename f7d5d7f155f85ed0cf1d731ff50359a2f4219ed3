@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_5fd731bf",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-19T09:39:43Z",
+      "side": 1,
+      "message": "\"if both the address and the interface are set: does the address have to be from the interface? wouldn\u0027t that break existing configs, unless the customer also updates the interface?\"\n\nIt won\u0027t break existing configs for sure, as existing configs won\u0027t have the interface set. The rationale for it is to make it possible to listen on an interface with multiple addresses.\n\n\"if neither are set, we start the state proxy only if there is one IP address. if there is a single interface with IPv4/IPv6, should we start in this case (i.e. pick IPv4 over IPv6)?\"\n\nYa, I guess this works. We don\u0027t support IPv6 underlay, so the constraint should really be \"one IPv4 address\".",
+      "parentUuid": "fabf19d9_5fcdf15b",
+      "range": {
+        "startLine": 330,
+        "startChar": 74,
+        "endLine": 332,
+        "endChar": 41
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_996969c1",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 1
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "then, for a server with a single interface/IP, this filter will always return two addresses: the interface IP and the loopback, and won\u0027t start the proxy; shall we make this a special case (e.g. if there are only two addresses, one is loopback, ignore the loopback)? also, loopback shouldn\u0027t be published to service discovery, right? so that needs special handling as well",
       "parentUuid": "fabf19d9_996969c1",
+      "range": {
+        "startLine": 268,
+        "startChar": 21,
+        "endLine": 268,
+        "endChar": 38
+      },
+      "revId": "f7d5d7f155f85ed0cf1d731ff50359a2f4219ed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_9feb8978",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-19T09:39:43Z",
+      "side": 1,
+      "message": "Actually, leave this as it is. If a user specified 127.0.0.1 specifically in the config it will work.",
+      "parentUuid": "fabf19d9_df2ea1f9",
       "range": {
         "startLine": 268,
         "startChar": 21,
