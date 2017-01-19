@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.state.client
 
+import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
 
 import scala.collection.mutable.{HashMap => MutableHashMap}
@@ -160,7 +161,8 @@ private[client] object StateProxyClientStates {
 
     case class Connected(subscribers: SubscriberMap,
                          subscriptions: SubscriptionMap,
-                         transactions: TransactionMap) extends State {
+                         transactions: TransactionMap,
+                         pingPongFuture: Future[_]) extends State {
         override def toString = "connected"
     }
 

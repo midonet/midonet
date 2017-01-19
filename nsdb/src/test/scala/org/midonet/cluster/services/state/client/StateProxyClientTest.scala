@@ -18,7 +18,7 @@ package org.midonet.cluster.services.state.client
 
 import java.util.UUID
 import java.util.concurrent.ScheduledThreadPoolExecutor
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -50,14 +50,19 @@ import org.midonet.util.MidonetEventually
 class TestServerHandler(server: TestServer,
                         goodUUID: UUID) extends Observer[Message] {
     val subscriptionId = new AtomicInteger(0)
+    val hung = new AtomicBoolean(false)
 
     private val log = Logger(LoggerFactory.getLogger(classOf[TestServerHandler]))
 
+    def hang(): Unit = { hung.set(true) }
+
     protected def onNext(msg: Message): Unit = {
-        msg match {
-            case req: ProxyRequest => handleRequest(req)
-            case _ =>
-                throw new Exception(s"Received unknown message type: $msg")
+        if (!hung.get) {
+            msg match {
+                case req: ProxyRequest => handleRequest(req)
+                case _ =>
+                    throw new Exception(s"Received unknown message type: $msg")
+            }
         }
     }
 
@@ -163,7 +168,8 @@ class StateProxyClientTest extends FeatureSpec
     class TestObjects(val softReconnectDelay: Duration = 200 milliseconds,
                       val maxAttempts: Int = 30,
                       val hardReconnectDelay: Duration = 1 second,
-                      val connectTimeout: Duration = 2 seconds) {
+                      val connectTimeout: Duration = 2 seconds,
+                      val readTimeout: Duration = 3 seconds) {
 
         val executor = new ScheduledThreadPoolExecutor(1)
         executor.setMaximumPoolSize(1)
@@ -185,6 +191,7 @@ class StateProxyClientTest extends FeatureSpec
               |state_proxy.max_soft_reconnect_attempts=$maxAttempts
               |state_proxy.hard_reconnect_delay=${hardReconnectDelay.toMillis}ms
               |state_proxy.connect_timeout=${connectTimeout.toMillis}ms
+              |state_proxy.read_timeout=${readTimeout.toMillis}ms
             """.stripMargin
         )
 
@@ -1038,6 +1045,81 @@ class StateProxyClientTest extends FeatureSpec
             diff should be <= connectTimeout.toNanos
 
             t.close()
+        }
+    }
+
+    feature("Failure detection") {
+        val readTimeout = 3.seconds
+        scenario("Client fails over within $readTimeout, if a server hangs") {
+            Given("a client")
+            val t = new TestObjects(readTimeout=readTimeout)
+
+            And("2 servers")
+            val server2 = new TestServer(ProxyRequest.getDefaultInstance)
+            val serverHandler2 = new TestServerHandler(server2, goodUUID)
+            server2.attachedObserver = serverHandler2
+
+            t.discovery.prependInstance(server2.address)
+
+            When("the client is started")
+            val startTime = System.nanoTime()
+            t.client.start()
+
+            val obs = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(obs).isUnsubscribed shouldBe false
+
+            Then("it should connect to a server")
+            eventually {
+                t.client.currentAddress shouldBe Some(server2.address)
+                t.client.isConnected shouldBe true
+            }
+
+            When("that server hangs")
+            serverHandler2.hang()
+
+            Then("the client should disconnect, and reconnect to another server")
+            eventually(timeout(readTimeout*1.5)) {
+                t.client.currentAddress shouldBe Some(t.server.address)
+                t.client.isConnected shouldBe true
+            }
+
+            And("this should take no longer than 10 seconds")
+            val took = System.nanoTime - startTime
+            took should be <= (readTimeout + (readTimeout/4)).toNanos
+            t.close()
+        }
+
+        scenario("Client doesn't fail over, if server is just quiet") {
+            Given("a client")
+            val t = new TestObjects(readTimeout=readTimeout)
+
+            And("2 servers")
+            val server2 = new TestServer(ProxyRequest.getDefaultInstance)
+            val serverHandler2 = new TestServerHandler(server2, goodUUID)
+            server2.attachedObserver = serverHandler2
+
+            t.discovery.prependInstance(server2.address)
+
+            When("the client is started")
+            val startTime = System.nanoTime()
+            t.client.start()
+
+            val obs = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(obs).isUnsubscribed shouldBe false
+
+            Then("it should connect to a server")
+            eventually {
+                t.client.currentAddress shouldBe Some(server2.address)
+                t.client.isConnected shouldBe true
+            }
+
+            When("that server says nothing")
+
+            Then("the client should stay connected")
+            Thread.sleep((readTimeout*1.5).toMillis)
+
+            t.client.currentAddress shouldBe Some(server2.address)
+            t.client.isConnected shouldBe true
         }
     }
 }
