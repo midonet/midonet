@@ -17,7 +17,6 @@
 package org.midonet.cluster.data.storage
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
 import scala.collection.JavaConverters._
@@ -53,7 +52,6 @@ import org.midonet.util.functors.makeRunnable
 
 trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
 
-    protected def version: AtomicLong
     protected def rootPath: String
     protected def zoomPath: String
     protected def pathExists(path: String): Boolean
@@ -62,62 +60,49 @@ trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
                            args: Any*): String = {
         legacyTablePath(clazz, id, name, args) match {
             case Some(path) if pathExists(path) => path
-            case _ => tablePath(clazz, id, name, version.longValue(), args:_*)
+            case _ =>
+                val rootPath = tableRootPath(clazz, id, name)
+                if (args.isEmpty) {
+                    rootPath
+                } else {
+                    args.foldLeft(new StringBuilder(rootPath)) {
+                        (sb, s) => sb.append('/').append(s)
+                    }.toString()
+                }
         }
     }
 
     @inline
-    private[cluster] def tablesPath(version: Long = version.longValue()): String = {
-        s"$zoomPath/$version/tables"
+    override def tablePath(name: String): String = {
+        tablesGlobalPath + "/" + name
     }
 
     @inline
-    private[cluster] def tablesGlobalPath(version: Long = version.longValue())
+    private[cluster] def tablesPath: String = {
+        s"$zoomPath/tables"
+    }
+
+    @inline
+    private[cluster] def tablesGlobalPath: String = {
+        s"$zoomPath/tables/global"
+    }
+
+    @inline
+    private[cluster] def tablesClassPath(clazz: Class[_]): String = {
+        tablesPath + "/" + clazz.getSimpleName
+    }
+
+    @inline
+    private[cluster] def tablesObjectPath(clazz: Class[_], id: ObjId): String = {
+        tablesClassPath(clazz) + "/" + getIdString(id)
+    }
+
+    @inline
+    private[cluster] def tableRootPath(clazz: Class[_], id: ObjId, name: String)
     : String = {
-        s"$zoomPath/$version/tables/global"
+        tablesObjectPath(clazz, id) + "/" + name
     }
 
-    @inline
-    private[cluster] def tablesClassPath(clazz: Class[_],
-                                         version: Long = version.longValue()): String = {
-        tablesPath(version) + "/" + clazz.getSimpleName
-    }
-
-    @inline
-    private[cluster] def tablesObjectPath(clazz: Class[_], id: ObjId,
-                                          version: Long = version.longValue()): String = {
-        tablesClassPath(clazz, version) + "/" + getIdString(id)
-    }
-
-    @inline
-    private[cluster] def tableRootPath(clazz: Class[_], id: ObjId, name: String,
-                                       version: Long = version.longValue()): String = {
-        tablesObjectPath(clazz, id, version) + "/" + name
-    }
-
-    @inline
-    private[cluster] def tablePath(clazz: Class[_], id: ObjId, name: String,
-                                   version: Long, args: Any*): String = {
-        val rootPath = tableRootPath(clazz, id, name, version)
-        if (args.isEmpty) {
-            rootPath
-        } else {
-            args.foldLeft(new StringBuilder(rootPath)) {
-                (sb, s) => sb.append('/').append(s)
-            }.toString()
-        }
-    }
-
-    @inline
-    override def tablePath(name: String): String =
-        tablePath(name, version.longValue())
-
-    @inline
-    private[cluster] def tablePath(name: String,
-                                   version: Long)
-    : String = {
-        tablesGlobalPath(version) + "/" + name
-    }
 }
 
 trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
@@ -130,8 +115,6 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
         protected val pathsToDelete = new ConcurrentHashMap[String, Void]
 
         protected def executorService: ExecutorService
-
-        protected def version: Long
 
         protected def ops: mutable.LinkedHashMap[Key, TxOp]
 
@@ -153,7 +136,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
             val list = new ListBuffer[(Key, TxOp)]
             for ((Key(clazz, id), txOp) <- ops) txOp match {
                 case TxCreate(_) if tableInfo(clazz).tables.nonEmpty =>
-                    val objPath = tablesObjectPath(clazz, id, version)
+                    val objPath = tablesObjectPath(clazz, id)
                     if (!nodeExists(objPath)) {
                         list += Key(null, objPath) -> TxCreateNode()
                     }
@@ -161,7 +144,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
                     for ((name, provider) <- tableInfo(clazz).tables) {
                         val hasLegacyPath =
                             legacyTablePath(clazz, id, name).exists(nodeExists)
-                        val tablePath = tableRootPath(clazz, id, name, version)
+                        val tablePath = tableRootPath(clazz, id, name)
                         if (!hasLegacyPath && !nodeExists(tablePath)) {
                             list += Key(null, tablePath) -> TxCreateNode()
                         }
@@ -180,7 +163,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
             executorService.submit(makeRunnable {
                 for ((Key(clazz, id), txOp) <- ops) txOp match {
                     case TxDelete(_) =>
-                        val path = tablesObjectPath(clazz, id, version)
+                        val path = tablesObjectPath(clazz, id)
                         try {
                             ZKPaths.deleteChildren(
                                 curator.getZookeeperClient.getZooKeeper, path,
@@ -203,8 +186,6 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
     protected def curator: CuratorFramework
 
     protected def stateTables: StateTableClient
-
-    protected def version: AtomicLong
 
     protected def reactor: Reactor
 
@@ -244,7 +225,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
             if (oldTable ne null) {
                 table = oldTable
             } else {
-                internalObservable(clazz, id, version.get, {
+                internalObservable(clazz, id, {
                     cache.remove(tableKey, table)
                 })
                     .asInstanceOf[Observable[Any]]
@@ -338,7 +319,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
       * [[StateTable.Key]].
       */
     private def newGlobalTable(key: StateTable.Key): StateTable[Any, Any] = {
-        val path = tablePath(key.name, version.longValue)
+        val path = tablePath(key.name)
 
         // Get the provider for the state table name.
         val provider = getProvider(key.keyClass, key.valueClass, key.name)
