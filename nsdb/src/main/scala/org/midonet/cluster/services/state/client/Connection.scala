@@ -30,6 +30,7 @@ import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.protobuf.{ProtobufDecoder, ProtobufEncoder, ProtobufVarint32FrameDecoder, ProtobufVarint32LengthFieldPrepender}
+import io.netty.handler.timeout.{ReadTimeoutException, ReadTimeoutHandler}
 
 import rx.Observer
 
@@ -80,7 +81,8 @@ class Connection[S <: Message, R <: Message]
                  port: Int,
                  observer: Observer[R],
                  decoder: R,
-                 connectTimeout: Duration = Connection.DefaultConnectTimeout)
+                 connectTimeout: Duration = Connection.DefaultConnectTimeout,
+                 readTimeout: Duration = Connection.DefaultReadTimeout)
                 (implicit eventLoopGroup: NioEventLoopGroup)
 
     extends SimpleChannelInboundHandler[Message] {
@@ -102,7 +104,8 @@ class Connection[S <: Message, R <: Message]
 
         pipeline.addLast("frameEncoder", new  ProtobufVarint32LengthFieldPrepender)
         pipeline.addLast("protobufEncoder", new ProtobufEncoder())
-
+        pipeline.addLast("readTimeoutHandler",
+                         new ReadTimeoutHandler(readTimeout.toSeconds.toInt))
         pipeline.addLast(channelHandler)
     }
 
@@ -239,7 +242,6 @@ class Connection[S <: Message, R <: Message]
 
     protected override def exceptionCaught(ctx: ChannelHandlerContext,
                                            cause: Throwable): Unit = {
-
         state.getAndSet(Closed) match {
             case Connected(_) =>
                 ctx.close()
@@ -260,6 +262,7 @@ class Connection[S <: Message, R <: Message]
 object Connection {
 
     val DefaultConnectTimeout = 5 seconds
+    val DefaultReadTimeout = 10 seconds
 
     private sealed trait State
     private case object Init extends State
