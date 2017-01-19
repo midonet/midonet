@@ -118,7 +118,6 @@ class StateTableCacheTest extends FeatureSpec with Matchers with GivenWhenThen
         override protected def pathExists(path: String): Boolean = false
         override protected def rootPath: String = ZK_ROOT
         override protected def zoomPath: String = ZK_ROOT
-        override protected def version = new AtomicLong()
 
         override def getTable[K, V](clazz: Class[_], id: Any, name: String,
                                     args: Any*)

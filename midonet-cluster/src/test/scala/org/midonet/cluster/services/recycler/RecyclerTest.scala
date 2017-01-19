@@ -175,7 +175,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             And("The NSDB timestamp")
             val stat = new Stat
-            curator.getData.storingStatIn(stat).forPath(store.basePath)
+            curator.getData.storingStatIn(stat).forPath(store.zoomPath)
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
@@ -199,7 +199,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             And("The NSDB timestamp")
             val stat = new Stat
-            curator.getData.storingStatIn(stat).forPath(store.basePath)
+            curator.getData.storingStatIn(stat).forPath(store.zoomPath)
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
@@ -223,7 +223,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             And("The NSDB timestamp")
             val stat = new Stat
-            curator.getData.storingStatIn(stat).forPath(store.basePath)
+            curator.getData.storingStatIn(stat).forPath(store.zoomPath)
             recycler.mockedClock.time =
                 stat.getMtime + clusterConfig.recycler.interval.toMillis + 1
 
@@ -242,7 +242,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             recycler.stopAsync().awaitTerminated()
 
             And("The NSDB timestamp should be updated")
-            curator.getData.storingStatIn(stat).forPath(store.basePath)
+            curator.getData.storingStatIn(stat).forPath(store.zoomPath)
             currentTimestamp should be < stat.getMtime
         }
 
@@ -252,7 +252,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             And("The NSDB timestamp")
             val stat = new Stat
-            curator.getData.storingStatIn(stat).forPath(store.basePath)
+            curator.getData.storingStatIn(stat).forPath(store.zoomPath)
             recycler.mockedClock.time =
                 stat.getMtime + clusterConfig.recycler.interval.toMillis + 1
 
@@ -309,12 +309,12 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             And("The NSDB timestamp")
             val stat = new Stat
-            curator.getData.storingStatIn(stat).forPath(store.basePath)
+            curator.getData.storingStatIn(stat).forPath(store.zoomPath)
             recycler.mockedClock.time =
                 stat.getMtime + clusterConfig.recycler.interval.toMillis + 1
 
             When("Deleting the NSDB path")
-            curator.delete().deletingChildrenIfNeeded().forPath(store.basePath)
+            curator.delete().deletingChildrenIfNeeded().forPath(store.zoomPath)
 
             And("The recycler starts")
             recycler.startAsync().awaitRunning()
