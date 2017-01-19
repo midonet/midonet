@@ -30,6 +30,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.observers.TestObserver
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.StorageTestClasses._
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.MidonetBackendTest
@@ -887,6 +888,42 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             Then("The topology lock should exist")
             curator.checkExists().forPath(zoom.topologyLockPath) should not be null
+        }
+    }
+
+    feature("Test paths") {
+        scenario("Constant paths") {
+            zoom.rootPath shouldBe "/test"
+            zoom.zoomPath shouldBe "/test/zoom/0"
+            zoom.topologyLockPath shouldBe "/test/zoom/0/locks/zoom-topology"
+            zoom.transactionLocksPath shouldBe "/test/zoom/0/zoomlocks/lock"
+            zoom.modelPath shouldBe "/test/zoom/0/models"
+            zoom.objectsPath shouldBe "/test/zoom/0/objects"
+        }
+
+        scenario("Object paths") {
+            val id = UUID.randomUUID()
+            zoom.objectPath(classOf[Object], id) shouldBe
+                s"/test/zoom/0/models/Object/$id"
+            zoom.objectPath2(classOf[Object], id) shouldBe
+                s"/test/zoom/0/objects/Object/$id"
+            zoom.objectProvenancePath(classOf[Object], id) shouldBe
+                s"/test/zoom/0/objects/Object/$id/provenance"
+            zoom.objectOwnerPath(classOf[Object], id , ZoomOwner.ClusterApi) shouldBe
+                s"/test/zoom/0/objects/Object/$id/provenance/${ZoomOwner.ClusterApi.name}"
+        }
+
+        scenario("Paths are created for objects") {
+            Given("A bridge")
+            val bridge = createPojoBridge(name = "0")
+
+            When("The bridge is created")
+            zoom.create(bridge)
+
+            Then("The model path exists")
+            val p =  zoom.objectPath(bridge.getClass, bridge.id)
+            curator.checkExists().forPath(
+                zoom.objectPath(bridge.getClass, bridge.id)) should not be null
         }
     }
 }
