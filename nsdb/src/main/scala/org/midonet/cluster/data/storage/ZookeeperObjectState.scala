@@ -35,7 +35,6 @@ import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.CuratorUtil.asObservable
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage.{NoOwnerId, StringEncoding}
-import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectState.{KeyIndex, MultiObservable, SingleObservable, makeThrowable}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.{DirectoryObservableClosedException, NodeObservable, NodeObservableClosedException, PathDirectoryObservable}
@@ -117,15 +116,13 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
 
     private val stateKeyMap: Func1[Any, StateKey] = makeFunc1(_ => null)
 
-    protected def objectPath(clazz: Class[_], id: ObjId, version: Long): String
+    protected def objectPath(clazz: Class[_], id: ObjId): String
 
     protected def zoomPath: String
 
     protected def curator: CuratorFramework
 
     protected def failFastCurator: CuratorFramework
-
-    protected def version: AtomicLong
 
     private[storage] def totalSingleObservableCount: Int =
         singleObservables.size
@@ -328,13 +325,12 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                                key: String): Observable[StateKey] = {
         assertBuilt()
         val index = KeyIndex(namespace, clazz, id.toString, key)
-        val ver = version.longValue()
         Observable.create(new OnSubscribe[StateKey] {
             override def call(child: Subscriber[_ >: StateKey]): Unit = {
                 if (getKeyType(clazz, key).isSingle) {
-                    singleObservable(index, ver) subscribe child
+                    singleObservable(index) subscribe child
                 } else {
-                    multiObservable(index, ver) subscribe child
+                    multiObservable(index) subscribe child
                 }
             }
         })
@@ -364,46 +360,41 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                                                         .getSessionId
 
     @inline
-    private[cluster] def statePath(version: Long = version.longValue()): String = {
-        s"$zoomPath/$version/state"
+    private[cluster] def statePath: String = {
+        s"$zoomPath/state"
     }
 
     @inline
-    private[cluster] def stateNamespacePath(namespace: String,
-                                            version: Long = version.longValue())
+    private[cluster] def stateNamespacePath(namespace: String)
     : String = {
-        s"${statePath(version)}/$namespace"
+        s"$statePath/$namespace"
     }
 
     @inline
-    private[cluster] def stateClassPath(namespace: String, clazz: Class[_],
-                                        version: Long = version.longValue())
+    private[cluster] def stateClassPath(namespace: String, clazz: Class[_])
     : String = {
-        stateNamespacePath(namespace, version) + "/" + clazz.getSimpleName
+        stateNamespacePath(namespace) + "/" + clazz.getSimpleName
     }
 
     @inline
     private[cluster] def stateObjectPath(namespace: String, clazz: Class[_],
-                                         id: ObjId,
-                                         version: Long = version.longValue())
+                                         id: ObjId)
     : String = {
-        stateClassPath(namespace, clazz, version) + "/" + getIdString(id)
+        stateClassPath(namespace, clazz) + "/" + getIdString(id)
     }
 
     @inline
     private[cluster] def keyPath(namespace: String, clazz: Class[_], id: ObjId,
-                                 key: String,
-                                 version: Long = version.longValue())
+                                 key: String)
     : String = {
-        stateObjectPath(namespace, clazz, id, version) + "/" + key
+        stateObjectPath(namespace, clazz, id) + "/" + key
     }
 
     @inline
     private[cluster] def valuePath(namespace: String, clazz: Class[_],
-                                   id: ObjId, key: String, value: String,
-                                   version: Long = version.longValue())
+                                   id: ObjId, key: String, value: String)
     : String = {
-        keyPath(namespace, clazz, id, key, version) + "/" + value
+        keyPath(namespace, clazz, id, key) + "/" + value
     }
 
     /** Returns a function that converts a [[CuratorEvent]] into a
@@ -605,10 +596,9 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
     /** Returns a node observable for the state path of the given object.
       * This observable is used to detect when an object is deleted, in
       * order to complete single-value key observables. */
-    private def objectObservable(clazz: Class[_], id: ObjId, version: Long,
-                                 onClose: => Unit)
+    private def objectObservable(clazz: Class[_], id: ObjId, onClose: => Unit)
     : Observable[StateKey] = {
-        internalObservable(clazz, id, version, onClose)
+        internalObservable(clazz, id, onClose)
             .ignoreElements()
             .map[StateKey](stateKeyMap)
             .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
@@ -621,7 +611,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
       * for the key path that ignores deletions. Completion of the observable
       * is ensured by filtering elements through the object observable using
       * `takeUntil`. */
-    private def singleObservable(index: KeyIndex, version: Long)
+    private def singleObservable(index: KeyIndex)
     : Observable[StateKey] = {
 
         val namespace = index.namespace
@@ -633,7 +623,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             return Observable.just(SingleValueKey(index.key, None, NoOwnerId))
         }
 
-        val path = keyPath(namespace, clazz, getIdString(id), key, version)
+        val path = keyPath(namespace, clazz, getIdString(id), key)
 
         singleObservables.getOrElse(index, {
             val ref = singleObservableRef.getAndIncrement()
@@ -653,14 +643,14 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                         SingleValueKey(index.key, None, NoOwnerId)
                     }
                 })
-                .takeUntil(objectObservable(clazz, id, version, {
+                .takeUntil(objectObservable(clazz, id, {
                     singleObservables.remove(index, SingleObservable(ref))
                 }))
                 .onErrorResumeNext(makeFunc1((t: Throwable) => {
                     t match {
                         case e: NodeObservableClosedException=>
                             metrics.error.stateObservableClosedCounter.inc()
-                            singleObservable(index, version)
+                            singleObservable(index)
                         case e: Throwable =>
                             metrics.error.stateObservableErrorCounter.inc()
                             Observable.error(e)
@@ -675,8 +665,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
 
     /** Returns an observable for a multi-value key, using a
       * [[PathDirectoryObservable]] for the key path. */
-    private def multiObservable(index: KeyIndex, version: Long)
-    : Observable[StateKey] = {
+    private def multiObservable(index: KeyIndex): Observable[StateKey] = {
 
         val namespace = index.namespace
         val id = index.id
@@ -687,8 +676,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             return Observable.just(MultiValueKey(index.key, Set()))
         }
 
-        val path = keyPath(namespace, clazz, getIdString(id), key,
-                           version)
+        val path = keyPath(namespace, clazz, getIdString(id), key)
 
         multiObservables.getOrElse(index, {
             val ref = multiObservableRef.getAndIncrement()
@@ -706,14 +694,14 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                 .map[StateKey](makeFunc1[Set[String], StateKey] {
                     MultiValueKey(key, _)
                 })
-                .takeUntil(objectObservable(clazz, id, version, {
+                .takeUntil(objectObservable(clazz, id, {
                     multiObservables.remove(index, MultiObservable(ref))
                 }))
                 .onErrorResumeNext(makeFunc1((t: Throwable) => {
                     t match {
                         case e: DirectoryObservableClosedException =>
                             metrics.error.stateObservableClosedCounter.inc()
-                            multiObservable(index, version)
+                            multiObservable(index)
                         case e: Throwable =>
                             metrics.error.stateObservableErrorCounter.inc()
                             Observable.error(e)
@@ -738,7 +726,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
         asObservable {
             zk.checkExists()
               .inBackground(_)
-              .forPath(objectPath(clazz, id, version.get))
+              .forPath(objectPath(clazz, id))
         }.map[Notification[StateResult]] {
             asResult(clazz, id, key, value, owner(zk))
         }.dematerialize[StateResult]

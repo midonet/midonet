@@ -11,7 +11,6 @@ trait StorageInternals {
       * identifier and storage version.
       */
     protected def internalObservable[T](clazz: Class[T], id: ObjId,
-                                        version: Long, onClose: => Unit)
-    : Observable[T]
+                                        onClose: => Unit): Observable[T]
 
 }
