@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_ebcac0a0",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-20T10:28:26Z",
+      "side": 1,
+      "message": "missing \"is considered\" or similar",
+      "range": {
+        "startLine": 133,
+        "startChar": 39,
+        "endLine": 133,
+        "endChar": 61
+      },
+      "revId": "9248f9c202dff2c4e719800c44e5b1ca0960fc91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_2b38b89f",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1053,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-20T10:28:26Z",
+      "side": 1,
+      "message": "s\"...\" modifier missing",
+      "range": {
+        "startLine": 1053,
+        "startChar": 43,
+        "endLine": 1053,
+        "endChar": 55
+      },
+      "revId": "9248f9c202dff2c4e719800c44e5b1ca0960fc91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
