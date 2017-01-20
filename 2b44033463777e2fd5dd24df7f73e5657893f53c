@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_61212ffb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_f012af61",
+      "range": {
+        "startLine": 24,
+        "startChar": 34,
+        "endLine": 24,
+        "endChar": 43
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_b00d5740",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "braces are not needed",
+      "range": {
+        "startLine": 28,
+        "startChar": 48,
+        "endLine": 28,
+        "endChar": 56
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_411cebc0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_b00d5740",
       "range": {
         "startLine": 28,
         "startChar": 48,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_217a17f2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_101c0376",
+      "range": {
+        "startLine": 34,
+        "startChar": 32,
+        "endLine": 34,
+        "endChar": 51
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_d03e8bd9",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "this method is only used here, you could just leave the code as is",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 23
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_0199531f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Given it is 30 lines block of code would it be cleaner to move it to a separate function?",
+      "parentUuid": "fabf19d9_d03e8bd9",
       "range": {
         "startLine": 100,
         "startChar": 8,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_c186bbda",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_8b0fc42d",
+      "range": {
+        "startLine": 109,
+        "startChar": 27,
+        "endLine": 109,
+        "endChar": 42
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_0b2a947e",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_61780ff3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_0b2a947e",
+      "range": {
+        "startLine": 132,
+        "startChar": 12,
+        "endLine": 132,
+        "endChar": 22
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_2b4e786f",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -151,6 +295,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "oldSubnets",
+      "range": {
+        "startLine": 133,
+        "startChar": 12,
+        "endLine": 133,
+        "endChar": 24
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_4173cb15",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_2b4e786f",
       "range": {
         "startLine": 133,
         "startChar": 12,
@@ -209,6 +377,54 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_41e18b99",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_6b4c7070",
+      "range": {
+        "startLine": 137,
+        "startChar": 74,
+        "endLine": 137,
+        "endChar": 79
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_61e6cfb5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_6b3590d8",
+      "range": {
+        "startLine": 137,
+        "startChar": 32,
+        "endLine": 137,
+        "endChar": 34
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_0b9f34b5",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -220,6 +436,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "this is just to confirm: so the subnets you receive in the JSON when doing a PUT for delete router interface are the ones to remove, right?",
+      "range": {
+        "startLine": 141,
+        "startChar": 7,
+        "endLine": 141,
+        "endChar": 63
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_818563ae",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Correct",
+      "parentUuid": "fabf19d9_0b9f34b5",
       "range": {
         "startLine": 141,
         "startChar": 7,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_0164b346",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Nice. Done. Thanks",
+      "parentUuid": "fabf19d9_cb7ffc64",
+      "range": {
+        "startLine": 142,
+        "startChar": 8,
+        "endLine": 142,
+        "endChar": 63
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_ebf3e008",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -266,6 +530,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "then this is not needed",
+      "range": {
+        "startLine": 144,
+        "startChar": 48,
+        "endLine": 144,
+        "endChar": 53
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_e15adf82",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_ebf3e008",
       "range": {
         "startLine": 144,
         "startChar": 48,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_c15d9b7a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_cbf6dcf8",
+      "range": {
+        "startLine": 146,
+        "startChar": 58,
+        "endLine": 146,
+        "endChar": 63
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_8bd90486",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -312,6 +624,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "replace with _",
+      "range": {
+        "startLine": 147,
+        "startChar": 39,
+        "endLine": 147,
+        "endChar": 46
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_a1550751",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "It generates weird compiler error otherwise, scala cannot correctly deduce type of the function. Seems a scala bug :)",
+      "parentUuid": "fabf19d9_8bd90486",
       "range": {
         "startLine": 147,
         "startChar": 39,
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_a1dce7e4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_8b78e42c",
+      "range": {
+        "startLine": 156,
+        "startChar": 8,
+        "endLine": 158,
+        "endChar": 63
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_4ba9ac7a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -358,6 +718,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "why do you update  the backreferences manually here? why don\u0027t just delete the route, which you already do below\n\nI think this for can be removed",
+      "range": {
+        "startLine": 160,
+        "startChar": 8,
+        "endLine": 172,
+        "endChar": 9
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8150c35f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done!",
+      "parentUuid": "fabf19d9_4ba9ac7a",
       "range": {
         "startLine": 160,
         "startChar": 8,
@@ -393,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_c1d47bbe",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_8b9fc44f",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 46
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_6baeb086",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -404,6 +812,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "fixedIp.getIpAddress",
+      "range": {
+        "startLine": 180,
+        "startChar": 47,
+        "endLine": 180,
+        "endChar": 54
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_81d7a3be",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_6baeb086",
       "range": {
         "startLine": 180,
         "startChar": 47,
@@ -439,6 +871,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_01cb931f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_eb09a02d",
+      "range": {
+        "startLine": 478,
+        "startChar": 16,
+        "endLine": 478,
+        "endChar": 30
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_9008132f",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -450,6 +906,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "not needed",
+      "range": {
+        "startLine": 488,
+        "startChar": 8,
+        "endLine": 488,
+        "endChar": 24
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_21efb788",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_9008132f",
       "range": {
         "startLine": 488,
         "startChar": 8,
@@ -485,6 +965,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_01f2736f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 499,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_7030df01",
+      "range": {
+        "startLine": 499,
+        "startChar": 18,
+        "endLine": 499,
+        "endChar": 24
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_2bb798d9",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -496,6 +1000,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "so this can be a: fixedIp: IPAllocation",
+      "range": {
+        "startLine": 541,
+        "startChar": 41,
+        "endLine": 541,
+        "endChar": 65
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_e1e89f7e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 541,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_2bb798d9",
       "range": {
         "startLine": 541,
         "startChar": 41,
@@ -531,6 +1059,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_c1eb5b77",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_0bba94c0",
+      "range": {
+        "startLine": 562,
+        "startChar": 42,
+        "endLine": 562,
+        "endChar": 70
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_ebb080df",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -554,6 +1106,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_a103c741",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 568,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_ebb080df",
+      "range": {
+        "startLine": 565,
+        "startChar": 12,
+        "endLine": 568,
+        "endChar": 13
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_cbb37ce8",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
         "patchSetId": 2
@@ -565,6 +1141,30 @@
       "writtenOn": "2017-01-20T11:33:04Z",
       "side": 1,
       "message": "these 2 fields do the same thing, why don\u0027t keep just the last one?\n\nor if you don\u0027t want to modify the usages for this method, then just add an overloaded version",
+      "range": {
+        "startLine": 801,
+        "startChar": 54,
+        "endLine": 802,
+        "endChar": 67
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_c10fdb86",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 802,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-20T19:59:43Z",
+      "side": 1,
+      "message": "Done.\nNotice that current Neutron API has both fields subnetId and subnetIds. It seem to be redundant, but it is there",
+      "parentUuid": "fabf19d9_cbb37ce8",
       "range": {
         "startLine": 801,
         "startChar": 54,
