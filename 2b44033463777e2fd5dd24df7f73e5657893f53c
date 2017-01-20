@@ -1,0 +1,579 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_f012af61",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "undo",
+      "range": {
+        "startLine": 24,
+        "startChar": 34,
+        "endLine": 24,
+        "endChar": 43
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_b00d5740",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "braces are not needed",
+      "range": {
+        "startLine": 28,
+        "startChar": 48,
+        "endLine": 28,
+        "endChar": 56
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_101c0376",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "undo",
+      "range": {
+        "startLine": 34,
+        "startChar": 32,
+        "endLine": 34,
+        "endChar": 51
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_d03e8bd9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "this method is only used here, you could just leave the code as is",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 23
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8b0fc42d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "if this method is not used, throw an exception",
+      "range": {
+        "startLine": 109,
+        "startChar": 27,
+        "endLine": 109,
+        "endChar": 42
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_0b2a947e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "this should be fixedIps?",
+      "range": {
+        "startLine": 132,
+        "startChar": 12,
+        "endLine": 132,
+        "endChar": 22
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_2b4e786f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "oldSubnets",
+      "range": {
+        "startLine": 133,
+        "startChar": 12,
+        "endLine": 133,
+        "endChar": 24
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_6b3590d8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "fixedIp",
+      "range": {
+        "startLine": 137,
+        "startChar": 32,
+        "endLine": 137,
+        "endChar": 34
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_6b4c7070",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "subnet",
+      "range": {
+        "startLine": 137,
+        "startChar": 74,
+        "endLine": 137,
+        "endChar": 79
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_0b9f34b5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "this is just to confirm: so the subnets you receive in the JSON when doing a PUT for delete router interface are the ones to remove, right?",
+      "range": {
+        "startLine": 141,
+        "startChar": 7,
+        "endLine": 141,
+        "endChar": 63
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_cb7ffc64",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "I think you can avoid many of these operations by doing:\n\n        val fixedIps \u003d nPort.getFixedIpsList.asScala\n        val oldSubnets \u003d oldRouterPort.getPortSubnetList.asScala\n        val removeSubnets \u003d ri.getSubnetIdsList.asScala.toSet\n        // Get ids of \"current\" subnets of the router interface, they might\n        // differ from the subnets of the neutron port, if router-interface-delete\n        // is called with subnet\u003dsubnet_id parameter several times.\n        val keepSubnets \u003d\n            for (fixedIp \u003c- fixedIps\n                 if oldSubnets.exists(_.getAddress \u003d\u003d fixedIp.getIpAddress.getAddress) \u0026\u0026\n                    !removeSubnets.contains(fixedIp.getSubnetId))\n                yield fixedIp.getSubnetId",
+      "range": {
+        "startLine": 142,
+        "startChar": 8,
+        "endLine": 142,
+        "endChar": 63
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_ebf3e008",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "then this is not needed",
+      "range": {
+        "startLine": 144,
+        "startChar": 48,
+        "endLine": 144,
+        "endChar": 53
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_cbf6dcf8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 146,
+        "startChar": 58,
+        "endLine": 146,
+        "endChar": 63
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8bd90486",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "replace with _",
+      "range": {
+        "startLine": 147,
+        "startChar": 39,
+        "endLine": 147,
+        "endChar": 46
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8b78e42c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "I think this is too expensive for just getting the addresses you want to remove. This is just:\n\n  val removeFixedIps \u003d\n            for (fixedIp \u003c- fixedIps if removeSubnets.contains(fixedIp.getSubnetId)) yield fixedIp",
+      "range": {
+        "startLine": 156,
+        "startChar": 8,
+        "endLine": 158,
+        "endChar": 63
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_4ba9ac7a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "why do you update  the backreferences manually here? why don\u0027t just delete the route, which you already do below\n\nI think this for can be removed",
+      "range": {
+        "startLine": 160,
+        "startChar": 8,
+        "endLine": 172,
+        "endChar": 9
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8b9fc44f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "Then, this can be:\n\n  for (fixedIp \u003c- removeFixedIps) { ... }",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 46
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_6baeb086",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "fixedIp.getIpAddress",
+      "range": {
+        "startLine": 180,
+        "startChar": 47,
+        "endLine": 180,
+        "endChar": 54
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_eb09a02d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "Maybe change the name of this method to addPortAddresses\n\nAlso, move it up above the other addPortAddress methods, so they are grouped and easier to understand to somebody reading the code",
+      "range": {
+        "startLine": 478,
+        "startChar": 16,
+        "endLine": 478,
+        "endChar": 30
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_9008132f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 488,
+        "startChar": 8,
+        "endLine": 488,
+        "endChar": 24
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_7030df01",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 499,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "make the return type a Seq, then there\u0027s no need to create another list and this can be removed",
+      "range": {
+        "startLine": 499,
+        "startChar": 18,
+        "endLine": 499,
+        "endChar": 24
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_2bb798d9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 541,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "so this can be a: fixedIp: IPAllocation",
+      "range": {
+        "startLine": 541,
+        "startChar": 41,
+        "endLine": 541,
+        "endChar": 65
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_0bba94c0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 562,
+        "startChar": 42,
+        "endLine": 562,
+        "endChar": 70
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_ebb080df",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 568,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "and here just determine if the fixedIp is a gateway Ip:\n\n  val nSubnet \u003d tx.get(classOf[NeutronSubnet], fixedIp.getSubnetId)\n\n            val isGateway \u003d nSubnet.hasGatewayIp \u0026\u0026\n                            fixedIp.getIpAddress \u003d\u003d nSubnet.getGatewayIp\n\n            if (isGateway) {\n                deleteMetadataServiceRoute(tx, routerPortId, fixedIp.getIpAddress)\n            }",
+      "range": {
+        "startLine": 565,
+        "startChar": 12,
+        "endLine": 568,
+        "endChar": 13
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_cbb37ce8",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 802,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-20T11:33:04Z",
+      "side": 1,
+      "message": "these 2 fields do the same thing, why don\u0027t keep just the last one?\n\nor if you don\u0027t want to modify the usages for this method, then just add an overloaded version",
+      "range": {
+        "startLine": 801,
+        "startChar": 54,
+        "endLine": 802,
+        "endChar": 67
+      },
+      "revId": "2b44033463777e2fd5dd24df7f73e5657893f53c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
