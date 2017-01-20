@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_30894727",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-20T08:53:10Z",
+      "side": 1,
+      "message": "The cases where we return None, we should advise the use of the configuration options they should use to resolve the option. Add something like \"To resolve this issue, set state_proxy.interface or state_proxy.address in mn-conf.\" to each error message.",
+      "range": {
+        "startLine": 263,
+        "startChar": 16,
+        "endLine": 263,
+        "endChar": 29
+      },
+      "revId": "64ceae3764db60eed9fd2fe1cf5342f8e561cd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
