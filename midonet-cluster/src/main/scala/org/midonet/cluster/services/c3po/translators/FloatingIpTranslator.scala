@@ -141,36 +141,41 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
                                         dynamic = false))
             .build()
 
+        // Note: this rule can be per FIP-processing router ports,
+        // not per FIP.  however, currently there's no scalable way to
+        // find FIPs handled by the same router port.
+        val skipSnatRule = Rule.newBuilder
+            .setId(fipSkipSnatRuleId(fip.getId))
+            .setType(Rule.Type.LITERAL_RULE)
+            .setAction(Rule.Action.RETURN)
+            .setFipPortId(fip.getPortId)
+            .setCondition(anyFragCondition
+                .addInPortIds(rtrPortId)
+                .setInPortInv(true)
+                .addOutPortIds(rtrPortId)
+                .setOutPortInv(true)
+                .setConjunctionInv(true))
+            .build()
+
         val inChain = tx.get(classOf[Chain], iChainId)
         val outChain = tx.get(classOf[Chain], oChainId)
         val floatSnatExactChain = tx.get(classOf[Chain],
                                          floatSnatExactChainId(rId))
         val floatSnatChain = tx.get(classOf[Chain], floatSnatChainId(rId))
+        val skipSnatChain = tx.get(classOf[Chain], skipSnatChainId(rId))
 
         tx.create(snatRule)
         tx.create(snatExactRule)
         tx.create(dnatRule)
+        tx.create(skipSnatRule)
 
         tx.update(prependRules(inChain, dnatRule.getId))
         tx.update(prependRules(floatSnatExactChain, snatExactRule.getId))
+        tx.update(prependRules(skipSnatChain, skipSnatRule.getId))
         if (isGwPort) {
             tx.update(prependRules(floatSnatChain, snatRule.getId))
         } else {
             tx.update(appendRule(floatSnatChain, snatRule.getId))
-
-            // Note: this rule can be per FIP-processing router ports,
-            // not per FIP.  however, currently there's no scalable way to
-            // find FIPs handled by the same router port.
-            val skipSnatRule = Rule.newBuilder
-                .setId(fipSkipSnatRuleId(fip.getId))
-                .setChainId(skipSnatChainId(rId))
-                .setType(Rule.Type.LITERAL_RULE)
-                .setAction(Rule.Action.ACCEPT)
-                .setFipPortId(fip.getPortId)
-                .setCondition(anyFragCondition.addInPortIds(rtrPortId))
-                .build()
-
-            tx.create(skipSnatRule)
         }
     }
 
