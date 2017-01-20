@@ -67,7 +67,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         r1SnatChain.getRuleIdsCount shouldBe 0
         val r1SkipSnatChain = storage.get(classOf[Chain],
                                           skipSnatChainId(r1Id)).await()
-        r1SkipSnatChain.getRuleIdsCount shouldBe 0
+        r1SkipSnatChain.getRuleIdsCount shouldBe 1
 
         val pgId = PortManager.portGroupId(r1.getId)
         val pg = eventually(storage.get(classOf[PortGroup], pgId).await())
@@ -973,8 +973,9 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         inChain.getRuleIdsCount shouldBe 0
         outChain.getRuleIdsCount shouldBe 4  // Four jumps
         Seq(outSnatRuleId(rtrId), dstRewrittenSnatRuleId(rtrId),
-            skipSnatGwPortRuleId(rtrId), inReverseSnatRuleId(rtrId))
+            skipSnatOutGwPortRuleId(rtrId), skipSnatInGwPortRuleId(rtrId),
+            inReverseSnatRuleId(rtrId))
             .map(storage.exists(classOf[Rule], _).await()) shouldBe
-            Seq(false, false, false, false)
+            Seq(false, false, false, false, false)
     }
 }
