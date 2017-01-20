@@ -50,13 +50,7 @@ project.ext {
                "com.typesafe.akka:akka-actor_2.11:${versions.akka}"],
         akkatest: "com.typesafe.akka:akka-testkit_2.11:${versions.akka}",
         aspectj: "org.aspectj:aspectjrt:1.8.0",
-        cassandra: dependencies.create("com.datastax.cassandra:cassandra-driver-core:2.0.10") {
-            exclude group: 'com.codahale.metrics', module: 'metrics-core'},
-        cassandraunit: dependencies.create("org.cassandraunit:cassandra-unit:2.0.2.2") {
-            exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-            exclude group: 'org.hamcrest', module: 'hamcrest-core'
-            exclude group: 'org.hamcrest', module: 'hamcrest-all'
-            exclude group: 'org.hamcrest', module: 'hamcrest-integration'},
+        cassandra: "com.datastax.cassandra:cassandra-driver-core:2.0.10",
         collections4: 'org.apache.commons:commons-collections4:4.0',
         commons_cli: "commons-cli:commons-cli:1.2",
         commons_codec: "commons-codec:commons-codec:1.9",
