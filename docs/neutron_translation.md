@@ -294,10 +294,42 @@ Here's how rules for a logical router would look like:
 
     POSTROUTING (outfilter)
 
+        ==== skipSnatChain start
+            // Apply SNAT (floating-ip SNAT or router's default SNAT)
+            // if it came from or is going to external-like network.
+            // (router interfaces with floating-ips, and the gateway port)
+            //
+            // Note: iptables based implementations need to "emulate" inport
+            // match (eg. using marks in PREROUTING) as it isn't available
+            // in POSTROUTING.
+            [per floating-ip]
+            (inport) matches (floating-ip port) -> RETURN
+            (outport) matches (floating-ip port) -> RETURN
+            [if default SNAT is enabled on the router]
+            inport == the gateway port -> RETURN
+            outport == the gateway port -> RETURN
+
+            ----- ordering barrier
+
+            // ... Otherwise, do not apply SNAT unless floating-ip DNAT
+            // was applied in PREROUTING.
+            // This allows E-W traffic to use fixed-ips even when those
+            // have floating-ips assigned.
+            //
+            // Note: "--ctstate DNAT" might be used for iptables-based
+            // implementations.
+            dst-rewritten == false -> ACCEPT  // terminates
+        ==== skipSnatChain end
+
+        // N-S traffic, or the original destination was a floating-ip.
+
+        ----- ordering barrier
+
         ==== floatSnatExactChain start
             // floating ip snat
             // multiple rules in order to implement priority (which
             // floating-ip to use)
+            //
             // Note: "floating-ip port" below is a router port, either
             // the router gateway port or router interface, which owns
             // the corresponding floating-ip configured.
@@ -318,37 +350,21 @@ Here's how rules for a logical router would look like:
 
         ----- ordering barrier
 
-        ==== skipSnatChain start
-            // do not apply default snat if it came from external-like network
-            // (router interfaces with floating-ips, and the gateway port)
-            // Note: iptables based implementations need to "emulate" inport
-            // match (eg. using marks in PREROUTING) as it isn't available
-            // in POSTROUTING.
-            [per floating-ip]
-            (inport) matches (floating-ip port) -> ACCEPT  // non gateway port
-            [if default SNAT is enabled on the router]
-            inport == the gateway port -> ACCEPT
-        ==== skipSnatChain end
-
-        ----- ordering barrier
-
         // apply the default snat for the gateway port
         [if default SNAT is enabled on the router]
         outport == the gateway port -> default snat, ACCEPT
 
-        // for non-float -> float traffic  (cf. bug 1428887)
-        // "dst-rewritten" condition here means float dnat was applied in
-        // prerouting.  in case of iptables based implementations,
-        // "--ctstate DNAT" might be used.
-        [if default SNAT is enabled on the router]
-        dst-rewritten -> default snat, ACCEPT
+        // This rule ensures the return traffic for
+        // a fixed-ip -> floating-ip traffic come back to the router.
+        // (cf. bug 1428887)
+        // NOTYET
+        // [if default SNAT is enabled on the router]
+        // dst-rewritten -> default snat, ACCEPT
 
         // MidoNet-specific "same subnet" rules
         [per RIF]
         (inport == outport == rif) && dst != 169.254.169.254
             -> snat to rif ip, ACCEPT
-
-        // non-float -> non-float in tenant traffic would come here
 
 </pre>
 
