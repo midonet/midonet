@@ -78,6 +78,16 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         val skipSnatChain = newChain(skipSnatChainId(nRouter.getId),
                                      skipSnatChainName(nRouter.getId))
 
+        val skipSnatAcceptRule = Rule.newBuilder
+            .setId(skipSnatAcceptRuleId(nRouter.getId))
+            .setType(Rule.Type.LITERAL_RULE)
+            .setAction(Action.ACCEPT)
+            .setChainId(skipSnatChainId(nRouter.getId))
+            .setCondition(anyFragCondition
+                .setMatchNwDstRewritten(true)
+                .setConjunctionInv(true))
+            .build()
+
         // This is actually only needed for edge routers, but edge routers are
         // only defined by having an interface to an uplink network, so it's
         // simpler just to create a port group for every router than to
@@ -93,12 +103,13 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
             nRouter.getId, nRouter.getTenantId).build()
 
         List(floatSnatExactChain, floatSnatChain, floatNat64Chain, skipSnatChain,
+             skipSnatAcceptRule,
              inChain, outChain, fwdChain, router, portGroup,
              routerInterfacePortGroup,
              jumpRule(outChain.getId, floatNat64Chain.getId),
+             jumpRule(outChain.getId, skipSnatChain.getId),
              jumpRule(outChain.getId, floatSnatExactChain.getId),
-             jumpRule(outChain.getId, floatSnatChain.getId),
-             jumpRule(outChain.getId, skipSnatChain.getId)).foreach(tx.create)
+             jumpRule(outChain.getId, floatSnatChain.getId)).foreach(tx.create)
 
         createGatewayPort(tx, nRouter, router)
     }
@@ -451,12 +462,6 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
             .setChainId(router.getInboundFilterId)
         def inRuleConditionBuilder = Condition.newBuilder
             .setNwDstIp(portSubnet)
-        def skipSnatGwPortRuleBuilder() = Rule.newBuilder
-            .setId(skipSnatGwPortRuleId(router.getId))
-            .setType(Rule.Type.LITERAL_RULE)
-            .setAction(Action.ACCEPT)
-            .setChainId(skipSnatChainId(router.getId))
-            .setCondition(anyFragCondition.addInPortIds(portId))
         def dstRewrittenSnatRuleBuilder() =
             outRuleBuilder(dstRewrittenSnatRuleId(router.getId))
             .setCondition(anyFragCondition.setMatchNwDstRewritten(true))
@@ -467,6 +472,22 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
                                             dynamic = true,
                                             config.translators.dynamicNatPortStart,
                                             config.translators.dynamicNatPortEnd))
+
+        val skipSnatGwPortRule = Rule.newBuilder
+            .setId(skipSnatGwPortRuleId(router.getId))
+            .setType(Rule.Type.LITERAL_RULE)
+            .setAction(Action.RETURN)
+            .setCondition(anyFragCondition
+                .addInPortIds(portId)
+                .setInPortInv(true)
+                .addOutPortIds(portId)
+                .setOutPortInv(true)
+                .setConjunctionInv(true))
+            .build()
+        val skipSnatChain = tx.get(classOf[Chain],
+                                   skipSnatChainId(router.getId))
+        tx.create(skipSnatGwPortRule)
+        tx.update(prependRules(skipSnatChain, skipSnatGwPortRule.getId))
 
         List(applySnat(outRuleBuilder(outSnatRuleId(nRouter.getId))
                  .setCondition(outRuleConditionBuilder)),
@@ -486,8 +507,7 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
                  .setAction(Action.DROP)
                  .setCondition(inRuleConditionBuilder
                                    .setNwProto(ICMP.PROTOCOL_NUMBER)
-                                   .setNwProtoInv(true)),
-             skipSnatGwPortRuleBuilder()
+                                   .setNwProtoInv(true))
         ).foreach(bldr => tx.create(bldr.build()))
     }
 
@@ -573,4 +593,6 @@ object RouterTranslator {
 
     def skipSnatGwPortRuleId(routerId: UUID): UUID =
         routerId.xorWith(0x6f90386f458e12ffL, 0x6ec14164bde7cee6L)
+    def skipSnatAcceptRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0x9483a5a98a0098fbL, 0xb6fa7a44027c7faaL)
 }
