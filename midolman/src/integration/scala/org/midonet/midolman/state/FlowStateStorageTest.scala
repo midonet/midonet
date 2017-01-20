@@ -23,7 +23,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -77,9 +76,6 @@ class FlowStateStorageTest extends FeatureSpec
         """.stripMargin
         val config = MidolmanConfig.forTests(confValues)
 
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra()
-
-        Thread.sleep(15000L)
         cass = new CassandraClient(config.zookeeper, config.cassandra,
                                    "MidonetFlowState",
                                    FlowStateStorage.SCHEMA,
