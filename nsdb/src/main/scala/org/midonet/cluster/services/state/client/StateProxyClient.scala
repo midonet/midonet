@@ -84,11 +84,9 @@ import org.midonet.util.functors.makeAction0
   * a server comes online, the Connected event will be delivered.
   */
 class StateProxyClient(conf: StateProxyClientConfig,
-                       discoveryService: MidonetDiscovery,
+                       discovery: MidonetDiscoverySelector[MidonetServiceHostAndPort],
                        executor: ScheduledExecutorService,
-                       eventLoopGroup: NioEventLoopGroup,
-                       discoveryPolicy: MidonetDiscoveryPolicy[MidonetServiceHostAndPort]
-                            = new RandomPolicy[MidonetServiceHostAndPort])
+                       eventLoopGroup: NioEventLoopGroup)
                       (implicit ec: ExecutionContext)
 
         extends PersistentConnection[ProxyRequest, ProxyResponse] (
@@ -104,9 +102,6 @@ class StateProxyClient(conf: StateProxyClientConfig,
 
     private val state = new StateProxyClientStates
     private val outstandingPing = new AtomicReference[(RequestId, Long)](0, 0L)
-
-    private val discovery = MidonetDiscoverySelector.withPolicy(discoveryPolicy)(
-        discoveryService.getClient[MidonetServiceHostAndPort](StateProxyService.Name))
 
     private val connectionSubject = BehaviorSubject.create(ConnectionState.Disconnected)
 
