@@ -24,7 +24,6 @@ import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import scala.concurrent.duration._
 import org.scalatest.junit.JUnitRunner
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
 import org.scalatest.time.{Millis, Seconds, Span}
 
@@ -60,9 +59,6 @@ class FlowTracingAppenderTest extends FeatureSpec
                                                  Span(100, Millis))
 
     before {
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra()
-        Thread.sleep(15000L)
-
         val confValues = s"""
           |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
           |cassandra.servers = "127.0.0.1:9142"

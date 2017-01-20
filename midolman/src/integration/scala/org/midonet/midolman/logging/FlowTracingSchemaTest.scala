@@ -21,7 +21,6 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
@@ -61,9 +60,6 @@ class FlowTracingSchemaTest extends FeatureSpec
     val flowTraceId4 = UUIDs.timeBased
 
     before {
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra()
-        Thread.sleep(15000L)
-
         val confValues = s"""
           |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
           |cassandra.servers = "127.0.0.1:9142"
