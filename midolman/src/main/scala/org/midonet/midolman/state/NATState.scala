@@ -185,6 +185,7 @@ trait NatState extends FlowState { this: PacketContext =>
 
     private def dnatTransformation(natKey: NatKey, binding: NatBinding): Unit = {
         wcmatch.setNetworkDst(binding.networkAddress)
+        markNwDstRewritten()
         if (!isIcmp)
             wcmatch.setDstPort(binding.transportPort)
     }
@@ -262,6 +263,7 @@ trait NatState extends FlowState { this: PacketContext =>
         if (isIcmp) {
             val changedIp = if (wcmatch.getNetworkDstIP == natKey.networkDst) {
                 wcmatch.setNetworkDst(binding.networkAddress)
+                markNwDstRewritten()
                 true
             } else {
                 false
@@ -273,6 +275,7 @@ trait NatState extends FlowState { this: PacketContext =>
             changedIp || transformedICMP
         } else {
             wcmatch.setNetworkDst(binding.networkAddress)
+            markNwDstRewritten()
             wcmatch.setDstPort(binding.transportPort)
             true
         }
