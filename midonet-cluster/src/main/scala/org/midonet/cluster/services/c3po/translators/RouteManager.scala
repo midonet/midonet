@@ -220,8 +220,10 @@ object RouteManager {
     def fipReverseDnatRuleId(fipId: UUID): UUID =
         fipId.xorWith(0x9a8e6c1863e2232eL, 0xe40c77c188694ac0L)
 
-    def fipSkipSnatRuleId(fipId: UUID): UUID =
+    def fipSkipSnatRule1Id(fipId: UUID): UUID =
         fipId.xorWith(0x30eddc1fede9b578L, 0x1df21b732ecf45afL)
+    def fipSkipSnatRule2Id(fipId: UUID): UUID =
+        fipId.xorWith(0x7b37aca83867e33aL, 0xc52b8965e7d9cf14L)
 
     // Deterministically generate the extra route IDs based on the router ID
     // and the route attributes.

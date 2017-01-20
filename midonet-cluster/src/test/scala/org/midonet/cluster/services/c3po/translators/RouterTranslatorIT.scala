@@ -67,7 +67,7 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
         r1SnatChain.getRuleIdsCount shouldBe 0
         val r1SkipSnatChain = storage.get(classOf[Chain],
                                           skipSnatChainId(r1Id)).await()
-        r1SkipSnatChain.getRuleIdsCount shouldBe 0
+        r1SkipSnatChain.getRuleIdsCount shouldBe 1
 
         val pgId = PortManager.portGroupId(r1.getId)
         val pg = eventually(storage.get(classOf[PortGroup], pgId).await())
