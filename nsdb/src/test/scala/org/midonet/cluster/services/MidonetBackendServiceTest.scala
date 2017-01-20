@@ -114,6 +114,7 @@ class MidonetBackendServiceTest extends FeatureSpec with Matchers
                    |state_proxy.network_threads=1
                    |state_proxy.max_soft_reconnect_attempts=1
                    |state_proxy.soft_reconnect_delay=30s
+                   |state_proxy.connect_timeout=5s
                 """.stripMargin))
 
             And("A mock curator")
