@@ -192,6 +192,7 @@ class StateProxyConfig(val conf: Config) extends MinionConfig[StateProxy] {
     def cacheThreads = conf.getInt(s"$prefix.cache_threads")
     def serverAddress = conf.getString(s"$prefix.server.address")
     def serverPort = conf.getInt(s"$prefix.server.port")
+    def serverInterface = conf.getString(s"$prefix.server.interface")
     def serverSupervisorThreads =
         conf.getInt(s"$prefix.server.supervisor_threads")
     def serverWorkerThreads =
