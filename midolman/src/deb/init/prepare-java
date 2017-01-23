@@ -67,3 +67,17 @@ if [ -z "$JAVA_HOME" ] ; then
 fi
 
 JAVA="$JAVA_HOME/bin/java"
+
+# param: exact process name
+function midonet_kill_process {
+    SIGNAL=
+    TRY=0
+    while pkill $SIGNAL -f $1
+    do
+        echo "$0: Sent termination signal to running node"
+        TRY=$((TRY+1))
+        test $TRY -eq 3 && SIGNAL='-9'
+        test $TRY -eq 5 && break
+        sleep 1
+    done
+}

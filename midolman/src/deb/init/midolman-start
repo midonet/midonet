@@ -59,6 +59,13 @@ JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 
 set -x
 
+midonet_kill_process $MIDO_MAIN
+GET_JMX_USER="netstat -nlp | grep \"^tcp.*:${JMX_PORT}\W\" | awk '{print \$NF}'"
+JMX_PORT_USER=$(eval $GET_JMX_PORT)
+if [ -n  "$JMX_PORT_USER" ]; then
+    echo "WARNING: JMX port $JMX_PORT is used by: $JMX_PORT_USER start will probably fail"
+fi
+
 JAVA_OPTS="$JVM_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR -Dlogback.configurationFile=$MIDO_CFG/logback.xml"
 if [ "xyes" = "x$DEBUG" ] ; then
     JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$MIDO_DEBUG_PORT,server=y,suspend=y"
