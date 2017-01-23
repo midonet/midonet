@@ -51,7 +51,7 @@ JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=/var/log/midolman/"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError"
-JVM_OPTS="$JVM_OPTS -XX:OnOutOfMemoryError=\"kill;-3;%p\""
+JVM_OPTS="$JVM_OPTS -XX:+CrashOnOutOfMemoryError"
 
 # Do not use biased locking
 JVM_OPTS="$JVM_OPTS -XX:-UseBiasedLocking"
@@ -85,6 +85,9 @@ JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midolman/gc-`date +%Y%m%d_%H%M%S`.log"
 # http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6342561 (short version:
 # comment out this entry to enable IPv6 support).
 # JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
+
+# uncomment to log configuration passwords
+# JVM_OPTS="$JVM_OPTS -Dmidonet.show_config_passwords"
 
 # uncomment to disable JMX
 # JMXDISABLE=true
