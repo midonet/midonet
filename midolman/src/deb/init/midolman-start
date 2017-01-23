@@ -59,6 +59,16 @@ JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 
 set -x
 
+GET_JMX_PORT="netstat -nlp | grep :${JMX_PORT} | awk '{print \$NF}' | cut -d/ -f1"
+JMX_PORT_PID=$(eval $GET_JMX_PORT)
+while [ -n  "$JMX_PORT_PID" ]
+do
+    echo "JMX port $JMX_PORT is used by PID: $JMX_PORT_PID, killing the process"
+    kill -9 $JMX_PORT_PID
+    sleep 1
+    JMX_PORT_PID=$(eval $GET_JMX_PORT)
+done
+
 JAVA_OPTS="$JVM_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR -Dlogback.configurationFile=$MIDO_CFG/logback.xml"
 if [ "xyes" = "x$DEBUG" ] ; then
     JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$MIDO_DEBUG_PORT,server=y,suspend=y"
