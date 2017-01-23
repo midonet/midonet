@@ -21,16 +21,14 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.collection.breakOut
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext._
 import scala.concurrent.{Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
-import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.Message
 
 import org.apache.curator.framework.CuratorFramework
@@ -57,10 +55,10 @@ import org.midonet.cluster.data.{Obj, ObjId, getIdString}
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException, PathCacheClosedException}
-import org.midonet.util.{ImmediateRetriable, Retriable}
-import org.midonet.util.concurrent.NamedThreadFactory
+import org.midonet.util.concurrent.{CallingThreadExecutionContext, NamedThreadFactory}
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeFunc1
+import org.midonet.util.{ImmediateRetriable, Retriable}
 
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
@@ -133,7 +131,6 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
 
     private val executor = newSingleThreadExecutor(
         new NamedThreadFactory("zoom", isDaemon = true))
-    private implicit val executionContext = fromExecutorService(executor)
 
     private val objectObservableRef = new AtomicLong()
 
@@ -617,7 +614,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     : Future[Seq[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
-        Future.sequence(ids.map(get(clazz, _)))
+        Future.sequence(ids.map(get(clazz, _)))(breakOut, CallingThreadExecutionContext)
     }
 
     /**
@@ -636,10 +633,10 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 val end = System.nanoTime()
                 metrics.performance.addReadChildrenLatency(end - start)
                 assert(CuratorEventType.CHILDREN == evt.getType)
-                getAll(clazz, evt.getChildren).onComplete {
+                getAll(clazz, evt.getChildren.asScala).onComplete {
                     case Success(l) => all trySuccess l
                     case Failure(t) => all tryFailure t
-                }
+                } (CallingThreadExecutionContext)
             }
         }
 
@@ -861,18 +858,6 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         classInfo.keySet.toSet
     }
 
-    // We should have public subscription methods, but we don't currently
-    // need them, and this is easier to implement for testing.
-    @VisibleForTesting
-    protected[cluster] def getNodeValue(path: String): String = {
-        val data = curator.getData.forPath(path)
-        if (data == null) null else new String(data)
-    }
-
-    @VisibleForTesting
-    protected[cluster] def getNodeChildren(path: String): Seq[String] = {
-        curator.getChildren.forPath(path).asScala
-    }
 
     @inline
     protected[cluster] def classPath(clazz: Class[_]): String = {
