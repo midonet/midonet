@@ -241,7 +241,7 @@ packaging {
     vendor = project.vendor
     url = project.url
     description = 'Midolman is a virtual network controller'
-    dependencies = ['haproxy', 'midonet-tools', 'vpp']
+    dependencies = ['haproxy', 'vpp']
     confFiles = ['/etc/midolman/midolman-env.sh',
                  '/etc/midolman/midolman-env.sh.compute.large',
                  '/etc/midolman/midolman-env.sh.gateway.large',
@@ -269,6 +269,7 @@ debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
+        '-d', "midonet-tools (>= ${project.debVersion})",
         '-d', 'python',
         '-d', 'python-setproctitle',
         '-d', 'quagga (>= 0.99.23)',
@@ -289,6 +290,7 @@ rpm.doFirst {
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
+        '-d', "midonet-tools >= ${project.rpmVersion}",
         '-d', 'python',
         '-d', 'quagga >= 0.99.23',
         '-d', 'libreswan >= 1.15.0',
