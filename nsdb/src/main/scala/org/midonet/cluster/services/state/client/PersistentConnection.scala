@@ -64,7 +64,8 @@ import org.midonet.cluster.services.discovery.MidonetServiceHostAndPort
 abstract class PersistentConnection[S <: Message, R <: Message]
                                    (name: String,
                                     executor: ScheduledExecutorService,
-                                    connectTimeout: Duration)
+                                    connectTimeout: Duration,
+                                    readTimeout: Duration)
                                    (implicit context: ExecutionContext,
                                     eventLoopGroup: NioEventLoopGroup)
         extends Observer[R] {
@@ -80,7 +81,7 @@ abstract class PersistentConnection[S <: Message, R <: Message]
     protected val log =
         Logger(LoggerFactory.getLogger("org.midonet.nsdb.state-proxy-client"))
     private val state = new AtomicReference(Init : State)
-    private var currentAddress: Option[MidonetServiceHostAndPort] = None
+    var currentAddress: Option[MidonetServiceHostAndPort] = None
 
     def isConnected: Boolean = cond(state.get) { case Connected(_) => true }
     def isConnecting: Boolean = cond(state.get) {
@@ -212,7 +213,8 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                                                         address.port,
                                                         this,
                                                         getMessagePrototype,
-                                                        connectTimeout)
+                                                        connectTimeout,
+                                                        readTimeout)
                     connection.connect() onComplete {
                         case Success(_) =>
                             val newState = Connected(connection)
