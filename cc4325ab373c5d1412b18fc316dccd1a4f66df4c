@@ -22,6 +22,30 @@
       "revId": "cc4325ab373c5d1412b18fc316dccd1a4f66df4c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8780d047",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/management/MeteringTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-01-23T09:30:45Z",
+      "side": 0,
+      "message": "oops, maybe i forgot to add.",
+      "parentUuid": "fabf19d9_274d846c",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 18
+      },
+      "revId": "cc4325ab373c5d1412b18fc316dccd1a4f66df4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
