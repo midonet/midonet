@@ -25,7 +25,7 @@ import org.midonet.packets.{IPv4Addr, MAC}
 /** Provides a Neutron model translator for VIP. */
 class VipTranslator(protected val storage: ReadOnlyStorage,
                     protected val stateTableStorage: StateTableStorage)
-        extends Translator[NeutronVIP] with StateTableManager {
+        extends Translator[NeutronVIP] {
 
     private def translate(nVip: NeutronVIP): Vip.Builder = {
         val mVipBldr = Vip.newBuilder

@@ -28,7 +28,7 @@ import org.midonet.util.concurrent.toFutureOps
 
 class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
                                protected val stateTableStorage: StateTableStorage)
-    extends Translator[RemoteMacEntry] with StateTableManager {
+    extends Translator[RemoteMacEntry] {
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(tx: Transaction,

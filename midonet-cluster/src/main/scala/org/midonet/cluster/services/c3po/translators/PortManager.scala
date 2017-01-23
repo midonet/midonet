@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,63 +104,26 @@ trait PortManager extends ChainManager with RouteManager {
     }
 
     /**
-     * Returns operations to bind the specified port to the specified host
-     * and interface. Port and host must exist in Midonet topology, and neither
-     * the port nor the interface may already be bound on the specified host.
-     */
-    @Deprecated
-    protected def bindPortOps(port: Port, hostId: UUID, ifName: String)
-    : OperationList = {
-        if (port.hasHostId) throw new IllegalStateException(
-            s"Port ${port.getId} is already bound.")
-
-        val updatedPort = port.toBuilder
-            .setHostId(hostId)
-            .setInterfaceName(ifName)
-        List(Update(updatedPort.build()))
-    }
-
-    /**
-      * Returns operations to bind the specified port to the specified host
-      * and interface. Port and host must exist in Midonet topology, and neither
-      * the port nor the interface may already be bound on the specified host.
+      * Bind the specified port to the specified host and interface. Port and
+      * host must exist in Midonet topology, and neither the port nor the
+      * interface may already be bound on the specified host.
       */
-    protected def bindPortOps(tx: Transaction, port: Port, hostId: UUID,
-                              ifName: String): Unit = {
-        if (port.hasHostId) throw new IllegalStateException(
-            s"Port ${port.getId} is already bound.")
+    @throws[IllegalStateException]
+    protected def bindPort(tx: Transaction, port: Port, hostId: UUID,
+                           interfaceName: String): Unit = {
+        if (port.hasHostId)
+            throw new IllegalStateException(s"Port ${port.getId.asJava} is " +
+                                            s"already bound.")
 
-        val updatedPort = port.toBuilder
-            .setHostId(hostId)
-            .setInterfaceName(ifName)
-        tx.update(updatedPort.build())
-    }
-
-    @Deprecated
-    protected def isOnUplinkNetwork(np: NeutronPort) = {
-        NetworkTranslator.isUplinkNetwork(
-            storage.get(classOf[NeutronNetwork], np.getNetworkId).await())
+        tx.update(port.toBuilder
+                      .setHostId(hostId)
+                      .setInterfaceName(interfaceName)
+                      .build())
     }
 
     protected def isOnUplinkNetwork(tx: Transaction, np: NeutronPort) = {
         NetworkTranslator.isUplinkNetwork(tx.get(classOf[NeutronNetwork],
                                                  np.getNetworkId))
-    }
-
-    @Deprecated
-    protected def getHostIdByName(hostName: String) : UUID = {
-        // FIXME: Find host ID by looping through all hosts
-        // This is temporary until host ID of MidoNet could be
-        // deterministically fetched from the host name.
-        val hosts = storage.getAll(classOf[Host])
-                        .await().filter(_.getName == hostName)
-
-        hosts.size match {
-            case 1 => hosts.head.getId
-            case 0 => throw new NotFoundException(classOf[Host], hostName)
-            case _ => throw new ObjectNameNotUniqueException(classOf[Host],
-                                                             hostName)
-        }
     }
 
     protected def getHostIdByName(tx: Transaction, hostName: String) : UUID = {
@@ -173,30 +136,6 @@ trait PortManager extends ChainManager with RouteManager {
         }
 
         host.getId
-    }
-
-    /* Update DHCP configuration by applying the given updateFun. */
-    @Deprecated
-    protected def updateDhcpEntries(
-            nPort: NeutronPort,
-            subnetCache: mutable.Map[UUID, Dhcp.Builder],
-            updateFun: (Dhcp.Builder, String, IPAddress,
-                        JList[ExtraDhcpOpts]) => Unit,
-            ignoreNonExistingDhcp: Boolean = false): Unit = {
-        for (ipAlloc <- nPort.getFixedIpsList.asScala) {
-            try {
-                val subnet = subnetCache.getOrElseUpdate(
-                    ipAlloc.getSubnetId,
-                    storage.get(classOf[Dhcp],
-                                ipAlloc.getSubnetId).await().toBuilder)
-                val mac = nPort.getMacAddress
-                val ipAddress = ipAlloc.getIpAddress
-                updateFun(subnet, mac, ipAddress, nPort.getExtraDhcpOptsList)
-            } catch {
-                case nfe: NotFoundException if ignoreNonExistingDhcp =>
-                // Ignores DHCPs already deleted.
-            }
-        }
     }
 
     /**
@@ -236,7 +175,6 @@ trait PortManager extends ChainManager with RouteManager {
     /**
       * Operations to delete a port's security chains (in, out, antispoof).
       */
-    @Deprecated
     protected def deleteSecurityChainsOps(portId: UUID)
     : Seq[Operation[Chain]] = {
         Seq(Delete(classOf[Chain], inChainId(portId)),
@@ -247,31 +185,11 @@ trait PortManager extends ChainManager with RouteManager {
     /**
       * Operations to delete a port's security chains (in, out, antispoof).
       */
-    protected def deleteSecurityChainsOps(tx: Transaction, portId: UUID)
+    protected def deleteSecurityChains(tx: Transaction, portId: UUID)
     : Unit = {
         tx.delete(classOf[Chain], inChainId(portId), ignoresNeo = true)
         tx.delete(classOf[Chain], outChainId(portId), ignoresNeo = true)
         tx.delete(classOf[Chain], antiSpoofChainId(portId), ignoresNeo = true)
-    }
-
-    /** Operations to remove a port's IP addresses from its IPAddrGroups */
-    @Deprecated
-    protected def removeIpsFromIpAddrGroupsOps(port: NeutronPort)
-    : Seq[Operation[IPAddrGroup]] = {
-        // Remove the fixed IPs from IP Address Groups
-        val ips = port.getFixedIpsList.asScala.map(_.getIpAddress)
-        val sgIds = port.getSecurityGroupsList.asScala.toList
-        val addrGrps = storage.getAll(classOf[IPAddrGroup], sgIds).await()
-        for (addrGrp <- addrGrps) yield {
-            val addrGrpBldr = addrGrp.toBuilder
-            for (ipPort <- addrGrpBldr.getIpAddrPortsBuilderList.asScala) {
-                if (ips.contains(ipPort.getIpAddress)) {
-                    val idx = ipPort.getPortIdsList.indexOf(port.getId)
-                    if (idx >= 0) ipPort.removePortIds(idx)
-                }
-            }
-            Update(addrGrpBldr.build())
-        }
     }
 
     /**
