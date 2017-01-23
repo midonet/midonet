@@ -51,7 +51,7 @@ JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=/var/log/midolman/"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError"
-JVM_OPTS="$JVM_OPTS -XX:OnOutOfMemoryError=\"kill;-3;%p\""
+JVM_OPTS="$JVM_OPTS -XX:+CrashOnOutOfMemoryError"
 
 # Do not use biased locking
 JVM_OPTS="$JVM_OPTS -XX:-UseBiasedLocking"

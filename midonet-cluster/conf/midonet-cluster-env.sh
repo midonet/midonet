@@ -109,7 +109,7 @@ JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmn${HEAP_NEWSIZE}"
 JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=/var/log/midonet-cluster/"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError"
-JVM_OPTS="$JVM_OPTS -XX:OnOutOfMemoryError=\"kill;-3;%p\""
+JVM_OPTS="$JVM_OPTS -XX:+CrashOnOutOfMemoryError"
 
 # GC tuning options
 JVM_OPTS="$JVM_OPTS -XX:+UseG1GC"
