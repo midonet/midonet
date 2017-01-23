@@ -41,7 +41,7 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
-import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryClient, MidonetDiscoveryImpl, MidonetServiceHandler}
+import org.midonet.cluster.services.discovery._
 import org.midonet.cluster.services.state.StateProxyService
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => StateClientConnectionState}
 import org.midonet.cluster.services.state.client.{StateProxyClient, StateSubscriptionKey, StateTableClient}
@@ -193,25 +193,29 @@ class MidonetBackendService(config: MidonetBackendConfig,
                         Executors.CallerRunsPolicy)
                 discoveryService = new MidonetDiscoveryImpl(
                     curator, discoveryServiceExecutor, config)
-            }
-            if (config.enableStateProxy && config.stateClient.enabled) {
-                log info "Starting state proxy client"
-                stateProxyClientExecutor =
-                    Executors.singleThreadScheduledExecutor(
-                        StateProxyService.Name,
-                        isDaemon = true,
-                        Executors.CallerRunsPolicy)
-                val ec = ExecutionContext.fromExecutor(stateProxyClientExecutor)
-                val numNettyThreads = config.stateClient.numNetworkThreads
-                val eventLoopGroup = new NioEventLoopGroup(numNettyThreads)
 
-                stateProxyClient = new StateProxyClient(
-                    config.stateClient,
-                    discoveryService,
-                    stateProxyClientExecutor,
-                    eventLoopGroup)(ec)
+                if (config.enableStateProxy && config.stateClient.enabled) {
+                    log info "Starting state proxy client"
+                    stateProxyClientExecutor =
+                        Executors.singleThreadScheduledExecutor(
+                            StateProxyService.Name,
+                            isDaemon = true,
+                            Executors.CallerRunsPolicy)
+                    val ec = ExecutionContext.fromExecutor(stateProxyClientExecutor)
+                    val numNettyThreads = config.stateClient.numNetworkThreads
+                    val eventLoopGroup = new NioEventLoopGroup(numNettyThreads)
 
-                stateProxyClient.start()
+                    val discoverySelector = MidonetDiscoverySelector.random(
+                        discoveryService.getClient[MidonetServiceHostAndPort](
+                        StateProxyService.Name))
+                    stateProxyClient = new StateProxyClient(
+                        config.stateClient,
+                        discoverySelector,
+                        stateProxyClientExecutor,
+                        eventLoopGroup)(ec)
+
+                    stateProxyClient.start()
+                }
             }
 
             log.info("Setting up storage bindings")
