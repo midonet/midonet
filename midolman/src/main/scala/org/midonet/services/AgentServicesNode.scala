@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Midokura SARL
+ * Copyright 2017 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,8 @@ import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
-import com.google.inject.{AbstractModule, Guice, Singleton}
+import com.google.inject.{AbstractModule, Guice, Module, Singleton}
 import com.typesafe.scalalogging.Logger
-
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
@@ -34,6 +33,7 @@ import org.midonet.cluster.services._
 import org.midonet.cluster.storage._
 import org.midonet.conf.{HostIdGenerator, LoggerLevelWatcher, MidoNodeConfigurator}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.services.AgentMinionModule
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion._
 
@@ -141,10 +141,31 @@ object AgentServicesNode extends App {
         }
     }
 
+    private def classpathModules(): List[Module] = {
+        log.info("Scanning classpath for agent minion injector modules...")
+
+        val modules = reflections.getSubTypesOf(classOf[Module])
+
+        modules.filter(_.getAnnotation(classOf[AgentMinionModule]) != null)
+            .map { module =>
+                try {
+                    log.info(s"Creating minion module from ${module.getName}")
+                    module.getConstructors()(0)
+                        .newInstance()
+                        .asInstanceOf[Module]
+                } catch {
+                    case NonFatal(e) =>
+                        log.warn("Failed to create minion module from " +
+                            s"${module.getName}", e)
+                        null
+                }
+            }.filter(_ != null).toList
+    }
+
     protected var injector = Guice.createInjector(
         new MidonetBackendModule(midolmanConf.zookeeper, Some(reflections),
-                                 metrics),
-        servicesNodeModule
+                                 metrics)
+            :: servicesNodeModule :: classpathModules()
     )
 
     private val daemon = new Daemon(nodeId, servicesExecutor, minions.toList, injector)
