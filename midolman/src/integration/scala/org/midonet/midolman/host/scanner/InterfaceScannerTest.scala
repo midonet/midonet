@@ -23,18 +23,21 @@ import scala.concurrent.Promise
 import scala.sys.process._
 
 import com.typesafe.scalalogging.Logger
+
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, FeatureSpec, Matchers}
+import org.scalatest.junit.JUnitRunner
 import org.scalatest.time._
+import org.scalatest.{BeforeAndAfterAll, FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
-import rx.{Subscription, Observer}
+
+import rx.{Observer, Subscription}
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.odp.util.TapWrapper
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.IntegrationTests._
+import org.midonet.util.MidonetEventually
 
 object InterfaceScannerTest {
     val TEST_IF_NAME = "if-scanner-test"
@@ -46,7 +49,8 @@ object InterfaceScannerTest {
 class InterfaceScannerTest extends FeatureSpec
                            with BeforeAndAfterAll
                            with Matchers
-                           with ScalaFutures {
+                           with ScalaFutures
+                           with MidonetEventually {
     import InterfaceScannerTest._
 
     val scanner: InterfaceScanner = DefaultInterfaceScanner()
@@ -81,19 +85,15 @@ class InterfaceScannerTest extends FeatureSpec
             val originalIfDescSize: Int = interfaceDescriptions.size
 
             scanner.subscribe(new Observer[Set[InterfaceDescription]] {
-                private var initialScanned = false
                 val obs = TestObserver { descs: Set[InterfaceDescription] =>
                     descs.exists(desc => desc.getName == TEST_IF_NAME)
                 }
                 override def onCompleted(): Unit = obs.onCompleted()
                 override def onError(t: Throwable): Unit = obs.onError(t)
                 override def onNext(descs: Set[InterfaceDescription]): Unit = {
-                    if (initialScanned &&
-                        (descs.size == (originalIfDescSize + 1))) {
+                    if (descs.size > originalIfDescSize) {
                         obs.onNext(descs)
                         obs.onCompleted()
-                    } else {
-                        initialScanned = true  // Ignore the initial scan.
                     }
                 }
             })
@@ -120,18 +120,20 @@ class InterfaceScannerTest extends FeatureSpec
 
             tap.down()
 
+            var exists = true
             scanner.subscribe(new Observer[Set[InterfaceDescription]] {
                 private var initialScanned = false
                 val obs = TestObserver { descs: Set[InterfaceDescription] =>
-                    !descs.exists(desc => desc.getName == TEST_IF_NAME)
+                    exists = descs.exists(_.getName == TEST_IF_NAME)
+                    true
                 }
                 override def onCompleted(): Unit = obs.onCompleted()
                 override def onError(t: Throwable): Unit = obs.onError(t)
                 override def onNext(descs: Set[InterfaceDescription]): Unit = {
-                    if (initialScanned &&
-                        (descs.size == (originalIfDescSize - 1))) {
+                    if (initialScanned) {
                         obs.onNext(descs)
-                        obs.onCompleted()
+                        if (!exists && descs.size == (originalIfDescSize - 1))
+                            obs.onCompleted()
                     } else {
                         initialScanned = true  // Ignore the initial scan.
                     }
@@ -141,7 +143,9 @@ class InterfaceScannerTest extends FeatureSpec
             tap.remove()
 
             whenReady(promise.future, timeout(TEST_TIMEOUT_SPAN)) {
-                result: String => result should be (OK)
+                result: String =>
+                    result should be (OK)
+                    exists should be (false)
             }
         }
 
@@ -152,24 +156,24 @@ class InterfaceScannerTest extends FeatureSpec
 
             val originalIfDescSize: Int = interfaceDescriptions.size
 
+            var stage = 0
             scanner.subscribe(new Observer[Set[InterfaceDescription]] {
-                private var initialScanned = false
                 val obs = TestObserver { descs: Set[InterfaceDescription] =>
-                    descs.exists(desc =>
-                        desc.getInetAddresses.exists(inetAddr =>
-                            inetAddr.getAddress.length == 4 &&
-                                IPv4Addr.fromBytes(inetAddr.getAddress) ==
-                                    IPv4Addr.fromString(TEST_IP_ADDR)))
+                    val exists = descs.exists(desc =>
+                                     desc.getInetAddresses.exists(inetAddr =>
+                                         inetAddr.getAddress.length == 4 &&
+                                         IPv4Addr.fromBytes(inetAddr.getAddress) ==
+                                         IPv4Addr.fromString(TEST_IP_ADDR)))
+                    if (((stage&1)!=0) ^ exists) {
+                        stage += 1
+                    }
+                    true
                 }
                 override def onCompleted(): Unit = obs.onCompleted()
                 override def onError(t: Throwable): Unit = obs.onError(t)
                 override def onNext(descs: Set[InterfaceDescription]): Unit = {
-                    if (initialScanned && (descs.size == originalIfDescSize)) {
-                        obs.onNext(descs)
-                        obs.onCompleted()
-                    } else {
-                        initialScanned = true  // Ignore the initial scan.
-                    }
+                    obs.onNext(descs)
+                    if (stage==1) obs.onCompleted()
                 }
             })
 
@@ -179,7 +183,9 @@ class InterfaceScannerTest extends FeatureSpec
 
             try {
                 whenReady(promise.future, timeout(TEST_TIMEOUT_SPAN)) {
-                    result: String => result should be (OK)
+                    result: String =>
+                        result should be (OK)
+                        stage should be (1)
                 }
             } finally {
                 s"ip address flush dev $TEST_IF_NAME".!
@@ -195,39 +201,48 @@ class InterfaceScannerTest extends FeatureSpec
 
             val originalIfDescSize: Int = interfaceDescriptions.size
 
-            if (s"ip a add $TEST_IP_ADDR dev $TEST_IF_NAME".! != 0) {
-                promise.failure(TestPrepareException)
-            }
-
+            var stage = 0
             scanner.subscribe(new Observer[Set[InterfaceDescription]] {
-                private var initialScanned = false
                 val obs = TestObserver { descs: Set[InterfaceDescription] =>
-                    !descs.exists(desc =>
-                        desc.getInetAddresses.exists(inetAddr =>
-                            inetAddr.getAddress.length == 4 &&
-                                IPv4Addr.fromBytes(inetAddr.getAddress) ==
-                                    IPv4Addr.fromString(TEST_IP_ADDR)))
+                    val exists = descs.exists(desc =>
+                                     desc.getInetAddresses.exists(inetAddr =>
+                                         inetAddr.getAddress.length == 4 &&
+                                            IPv4Addr.fromBytes(inetAddr.getAddress) ==
+                                                IPv4Addr.fromString(TEST_IP_ADDR)))
+                    if (((stage&1)!=0) ^ exists) {
+                        stage += 1
+                    }
+                    true
                 }
                 override def onCompleted(): Unit = obs.onCompleted()
                 override def onError(t: Throwable): Unit = obs.onError(t)
                 override def onNext(descs: Set[InterfaceDescription]): Unit = {
-                    if (initialScanned && (descs.size == originalIfDescSize)) {
-                        obs.onNext(descs)
-                        obs.onCompleted()
-                    } else {
-                        initialScanned = true  // Ignore the initial scan.
-                    }
+                    obs.onNext(descs)
+                    if (stage==2) obs.onCompleted()
                 }
             })
+
+            eventually {
+                stage should be (0)
+            }
+
+            if (s"ip a add $TEST_IP_ADDR dev $TEST_IF_NAME".! != 0) {
+                promise.failure(TestPrepareException)
+            }
+
+            eventually {
+                stage should be (1)
+            }
 
             if (s"ip address del $TEST_IP_ADDR dev $TEST_IF_NAME".! != 0) {
                 promise.tryFailure(TestPrepareException)
             }
 
-
             try {
                 whenReady(promise.future, timeout(TEST_TIMEOUT_SPAN)) {
-                    result: String => result should be (OK)
+                    result: String =>
+                        result should be (OK)
+                        stage should be (2)
                 }
             } finally {
                 tap.down()
@@ -238,15 +253,20 @@ class InterfaceScannerTest extends FeatureSpec
         scenario("""Subscribing the interface scanner should notify the
                    |current interface descriptions.
                  """.stripMargin.replaceAll("\n", " ")) {
+
             implicit val promise = Promise[String]()
             val tap = new TapWrapper(TEST_IF_NAME, true)
             tap.up()
+
+            eventually {
+                interfaceDescriptions.exists(_.getName == TEST_IF_NAME) should be (true)
+            }
 
             val subscription: Subscription =
                 scanner.subscribe(new Observer[Set[InterfaceDescription]] {
                     private var initialScanned = false
                     val obs = TestObserver { descs: Set[InterfaceDescription] =>
-                        descs == interfaceDescriptions
+                        descs.exists(_.getName == TEST_IF_NAME)
                     }
 
                     override def onCompleted(): Unit = obs.onCompleted()
