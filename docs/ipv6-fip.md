@@ -498,16 +498,14 @@ The related files in the forked VPP repository are:
 
 ## Midolman implementation
 
-A new actor is in charge of managing the Midonet VPP service, starting it under
+An actor is in charge of managing the Midonet VPP service. It is started on
 demand on notification on the creation of a router port with IPv6 (usually from
-a tenant router).
+the provider router).
 
-The following steps are done in that case:
+The following steps taken.
 
  1. Start the VPP process: to assure it runs from a known state, any other VPP
-    process (initiated or not by Midonet) are killed, so the listening port
-    (5002) is available for the new VPP process. So, having another VPP
-    instances in the same host is not recommended.
+    process (initiated or not by Midonet) are killed. This ensures that the listening port (5002) is available for the new VPP process. Having multiple VPP instances on the same host is not recommended.
  2. Link OVS and VPP with the uplink (a dedicated veth pair)
  3. Link VPP and midolman with the downlink (a dedicated veth pair).
  4. Install needed flows in OVS to redirect IPv6 traffic to VPP through the
@@ -517,9 +515,3 @@ Although not all of them used, there are utility methods to communicate to OVS
 in a more direct way, and utility methods to communicate with VPP using a Java
 interface.
 
-## Neutron integration
-
-Despite not done yet, the target is that the IPv6 FIP could be configured by
-using neutron command that will be forwarded by the Midonet Neutron plugin to
-the Midonet Cluster (API) that will translate to Midonet specific configuration
-data.
