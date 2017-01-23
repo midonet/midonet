@@ -368,11 +368,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
             isSubscribed = true
             notifications.connect()
         }
-        // Push the current statuses of interfaces to the observer.
-        val currentState: Set[InterfaceDescription] = filteredIfDescSet
-        if (currentState.nonEmpty) {
-            obs.onNext(currentState)
-        }
+
         subscription
     }
 
