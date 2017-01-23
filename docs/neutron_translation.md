@@ -283,8 +283,8 @@ Here's how rules for a logical router would look like:
     PREROUTING (infilter)
 
         // floating ip dnat
-        [per FIP]
-        (dst) matches (fip) -> float dnat, ACCEPT
+        [per floating-ip]
+        (dst) matches (floating-ip) -> float dnat, ACCEPT
 
         // rev-snat for the default snat
         [if default SNAT is enabled on the router]
@@ -298,34 +298,36 @@ Here's how rules for a logical router would look like:
 
         ==== floatSnatExactChain start
             // floating ip snat
-            // multiple rules in order to implement priority (which FIP to use)
-            // Note: "fip port" below is a router port, either the router gateway
-            // port or router interface, which owns the corresponding FIP
-            // configured.
-            [per FIP]
-            (outport, src) matches (fip port, fip) -> float snat, ACCEPT
+            // multiple rules in order to implement priority (which
+            // floating-ip to use)
+            // Note: "floating-ip port" below is a router port, either
+            // the router gateway port or router interface, which owns
+            // the corresponding floating-ip configured.
+            [per floating-ip]
+            (outport, src) matches (floating-ip port, fixed-ip) ->
+                                                      float snat, ACCEPT
         ==== floatSnatExactChain end
 
         ----- ordering barrier
 
         ==== floatSnatChain start
             [per FIP]
-            (src) matches (fip) -> float snat, ACCEPT  // gateway port
+            (src) matches (fixed-ip) -> float snat, ACCEPT  // gateway port
             ----- ordering barrier
             [per FIP]
-            (src) matches (fip) -> float snat, ACCEPT  // non gateway port
+            (src) matches (fixed-ip) -> float snat, ACCEPT  // non gateway port
         ==== floatSnatChain end
 
         ----- ordering barrier
 
         ==== skipSnatChain start
             // do not apply default snat if it came from external-like network
-            // (router interfaces with FIPs, and the gateway port)
+            // (router interfaces with floating-ips, and the gateway port)
             // Note: iptables based implementations need to "emulate" inport
             // match (eg. using marks in PREROUTING) as it isn't available
             // in POSTROUTING.
-            [per FIP]
-            (inport) matches (fip port) -> ACCEPT  // non gateway port
+            [per floating-ip]
+            (inport) matches (floating-ip port) -> ACCEPT  // non gateway port
             [if default SNAT is enabled on the router]
             inport == the gateway port -> ACCEPT
         ==== skipSnatChain end
