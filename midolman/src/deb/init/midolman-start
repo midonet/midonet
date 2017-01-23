@@ -59,6 +59,9 @@ JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 
 set -x
 
+midonet_kill_process $MIDO_MAIN
+midonet_check_tcp_port $JMX_PORT
+
 JAVA_OPTS="$JVM_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR -Dlogback.configurationFile=$MIDO_CFG/logback.xml"
 if [ "xyes" = "x$DEBUG" ] ; then
     JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$MIDO_DEBUG_PORT,server=y,suspend=y"

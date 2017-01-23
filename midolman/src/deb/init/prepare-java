@@ -67,3 +67,26 @@ if [ -z "$JAVA_HOME" ] ; then
 fi
 
 JAVA="$JAVA_HOME/bin/java"
+
+# param: exact process name
+function midonet_kill_process {
+    SIGNAL=
+    TRY=0
+    while pkill $SIGNAL -f $1
+    do
+        echo "$0: Sent termination signal to running node"
+        TRY=$((TRY+1))
+        test $TRY -eq 3 && SIGNAL='-9'
+        test $TRY -eq 5 && break
+        sleep 1
+    done
+}
+
+# param: port number to check
+function midonet_check_tcp_port {
+    JMX_PORT_USER=$(netstat -nlp | awk "/^tcp.*:$1[ \t]/  {print \$NF}")
+    if [ -n  "$JMX_PORT_USER" ]; then
+        echo "WARNING: JMX port $1 is used by: $JMX_PORT_USER \
+start will probably fail"
+    fi
+}
