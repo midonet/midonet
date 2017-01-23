@@ -503,6 +503,21 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
         return buf;
     }
 
+    static public ByteBuffer describeSetMasterRequest(ByteBuffer buf, Link link,
+                                                      int masterIndex) {
+        IfinfoMsg ifi = link.ifi;
+        buf.put(ifi.family);
+        buf.put((byte) 0);
+        buf.putShort(ifi.type);
+        buf.putInt(ifi.index);
+        buf.putInt(ifi.flags);
+        buf.putInt(ifi.change);
+
+        NetlinkMessage.writeIntAttr(buf, Attr.IFLA_MASTER, masterIndex);
+
+        return buf;
+    }
+
     static public ByteBuffer describeDelRequest(ByteBuffer buf, Link link) {
         IfinfoMsg ifi = link.ifi;
         buf.put(ifi.family);
