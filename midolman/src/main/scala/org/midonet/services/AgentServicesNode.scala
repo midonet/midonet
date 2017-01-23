@@ -24,9 +24,8 @@ import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
-import com.google.inject.{AbstractModule, Guice, Singleton}
+import com.google.inject.{AbstractModule, Guice, Module, Singleton}
 import com.typesafe.scalalogging.Logger
-
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
@@ -34,6 +33,7 @@ import org.midonet.cluster.services._
 import org.midonet.cluster.storage._
 import org.midonet.conf.{HostIdGenerator, LoggerLevelWatcher, MidoNodeConfigurator}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.services.injector.{AgentMinionModule, MinionModuleCreator}
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion._
 
@@ -141,10 +141,32 @@ object AgentServicesNode extends App {
         }
     }
 
+    private def classpathModules(): List[Module] = {
+        log.info("Scanning classpath for minion injector plugins...")
+
+        val creators = reflections.getSubTypesOf(classOf[MinionModuleCreator])
+
+        creators.filter(_.getAnnotation(classOf[AgentMinionModule]) != null)
+            .map { creator =>
+                try {
+                    log.info(s"Creating minion module from ${creator.getName}")
+                    val instance = creator.getConstructors()(0)
+                        .newInstance()
+                        .asInstanceOf[MinionModuleCreator]
+                    instance.create()
+                } catch {
+                    case NonFatal(e) =>
+                        log.warn("Failed to create minion module from " +
+                            s"${creator.getName}", e)
+                        null
+                }
+            }.filter(_ != null).toList
+    }
+
     protected var injector = Guice.createInjector(
         new MidonetBackendModule(midolmanConf.zookeeper, Some(reflections),
-                                 metrics),
-        servicesNodeModule
+                                 metrics)
+            :: servicesNodeModule :: classpathModules()
     )
 
     private val daemon = new Daemon(nodeId, servicesExecutor, minions.toList, injector)
