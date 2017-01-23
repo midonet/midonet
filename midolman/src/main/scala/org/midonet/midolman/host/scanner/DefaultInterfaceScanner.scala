@@ -366,6 +366,13 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
     override
     def subscribe(obs: Observer[Set[InterfaceDescription]],
                   scheduler: Option[Scheduler] = None): Subscription = {
+
+        // Push the current statuses of interfaces to the observer.
+        val currentState: Set[InterfaceDescription] = filteredIfDescSet
+        if (currentState.nonEmpty) {
+            obs.onNext(currentState)
+        }
+
         val subscription = scheduler match {
             case Some(sched) => notifications.observeOn(sched).subscribe(obs)
             case None => notifications.subscribe(obs)
@@ -375,11 +382,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
             isSubscribed = true
             notifications.connect()
         }
-        // Push the current statuses of interfaces to the observer.
-        val currentState: Set[InterfaceDescription] = filteredIfDescSet
-        if (currentState.nonEmpty) {
-            obs.onNext(currentState)
-        }
+
         subscription
     }
 
