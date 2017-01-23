@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_f3274eb4",
+        "filename": "midolman/src/deb/init/midolman-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-23T17:14:50Z",
+      "side": 1,
+      "message": "Also, you might want to filter for TCP entries only (i.e. grep ^tcp) so that we don\u0027t accidentally kill an innocent process using the same port number in UDP.",
+      "range": {
+        "startLine": 62,
+        "startChar": 27,
+        "endLine": 62,
+        "endChar": 28
+      },
+      "revId": "9b37ab71467b01b6f5bd65cc51baa832efb3302b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_131ac26e",
+        "filename": "midolman/src/deb/init/midolman-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-23T17:14:50Z",
+      "side": 1,
+      "message": "Consider adding a \\W at the end of the pattern, to make sure it doesn\u0027t match :7200: inside an IPv6 address for example.",
+      "range": {
+        "startLine": 62,
+        "startChar": 34,
+        "endLine": 62,
+        "endChar": 46
+      },
+      "revId": "9b37ab71467b01b6f5bd65cc51baa832efb3302b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
