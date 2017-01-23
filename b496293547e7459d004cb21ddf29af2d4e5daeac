@@ -34,6 +34,24 @@
       "revId": "b496293547e7459d004cb21ddf29af2d4e5daeac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_53239a05",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-23T22:55:16Z",
+      "side": 1,
+      "message": "i suspect it was related to SG but i don\u0027t remember.",
+      "parentUuid": "fabf19d9_98e15101",
+      "revId": "b496293547e7459d004cb21ddf29af2d4e5daeac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
