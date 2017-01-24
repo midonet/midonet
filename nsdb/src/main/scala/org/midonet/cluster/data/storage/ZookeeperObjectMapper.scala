@@ -21,15 +21,12 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.annotation.tailrec
-import scala.collection.breakOut
 import scala.collection.JavaConverters._
+import scala.collection.breakOut
 import scala.collection.concurrent.TrieMap
-import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
-
-import com.google.protobuf.Message
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
@@ -133,7 +130,6 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
 
     private val objectObservableRef = new AtomicLong()
 
-    private val simpleNameToClass = new mutable.HashMap[String, Class[_]]()
     private val objectObservables = new TrieMap[Key, ObjectObservable]
     private val classObservables = new TrieMap[Class[_], ClassObservable]
 
@@ -194,7 +190,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
      * be lost.
      */
     private class ZoomTransactionManager
-            extends TransactionManager(classInfo.toMap, allBindings)
+            extends TransactionManager(objectClasses, bindings)
             with StateTableTransactionManager {
 
         protected override def executorService = executor
@@ -219,8 +215,8 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             ZookeeperObjectMapper.this.objectPath(clazz, id)
         }
 
-        override def isRegistered(clazz: Class[_]): Boolean = {
-            ZookeeperObjectMapper.this.isRegistered(clazz)
+        override def assertRegistered(clazz: Class[_]): Unit = {
+            ZookeeperObjectMapper.this.assertRegistered(clazz)
         }
 
         override def getSnapshot(clazz: Class[_], id: ObjId)
@@ -446,44 +442,20 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         extends TransactionRetriable with ImmediateRetriable
 
     /**
-     * Registers the class for use. This method is not thread-safe, and
-     * initializes a variety of structures which could not easily be
-     * initialized dynamically in a thread-safe manner.
-     *
-     * Most operations require prior registration, including declareBinding.
-     * Ideally this method should be called at startup for all classes
-     * intended to be stored in this instance of ZookeeperObjectManager.
-     */
-    override def registerClass(clazz: Class[_]): Unit = {
-        assert(!isBuilt)
-        val name = clazz.getSimpleName
-        simpleNameToClass.get(name) match {
-            case Some(_) =>
-                throw new IllegalStateException(
-                    s"A class with the simple name $name is already " +
-                    s"registered. Registering multiple classes with the same " +
-                    s"simple name is not supported.")
-            case None =>
-                simpleNameToClass.put(name, clazz)
-        }
-
-        classInfo(clazz) = makeInfo(clazz)
-        stateInfo(clazz) = new StateInfo
-        tableInfo(clazz) = new TableInfo
+      * @see [[Storage.onRegisterClass()]]
+      */
+    protected override def onRegisterClass(clazz: Class[_]): Unit = {
+        super.onRegisterClass(clazz)
     }
 
-    override def isRegistered(clazz: Class[_]): Boolean = {
-        val registered = classInfo.contains(clazz)
-        if (!registered)
-            Log.warn(s"Class ${clazz.getSimpleName} is not registered.")
-        registered
-    }
-
-    override def build(): Unit = {
+    /**
+      * @see [[Storage.onBuild()]]
+      */
+    protected override def onBuild(): Unit = {
+        super.onBuild()
         ensureClassNodes()
         lockFreeAndWatch(async = false)
         metrics.build(this)
-        super.build()
     }
 
     /**
@@ -498,8 +470,8 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
      * creating them if needed.
      */
     private def ensureClassNodes(): Unit = {
-        val classes = classInfo.keySet
-        assert(classes.forall(isRegistered))
+        val classes = objectClasses.keySet
+        classes.foreach(assertRegistered)
 
         // First try a multi-check for all the classes. If they already exist,
         // as they usually will except on the first startup, we can verify this
@@ -530,7 +502,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                                tablesClassPath(clazz))
             }
         } catch {
-            case ex: Exception => throw new InternalObjectMapperException(ex)
+            case NonFatal(e) => throw new InternalObjectMapperException(e)
         }
     }
 
@@ -555,7 +527,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     @throws[ServiceUnavailableException]
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
         val path = objectPath(clazz, id)
         val p = Promise[T]()
         val start = System.nanoTime()
@@ -578,7 +550,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     override def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId])
     : Future[Seq[T]] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
         Future.sequence(ids.map(get(clazz, _)))(breakOut, CallingThreadExecutionContext)
     }
 
@@ -588,7 +560,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     @throws[ServiceUnavailableException]
     override def getAll[T](clazz: Class[T]): Future[Seq[T]] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
 
         val all = Promise[Seq[T]]()
         val start = System.nanoTime()
@@ -622,7 +594,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     @throws[ServiceUnavailableException]
     override def exists(clazz: Class[_], id: ObjId): Future[Boolean] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
         val p = Promise[Boolean]()
         val cb = new BackgroundCallback {
             override def processResult(client: CuratorFramework,
@@ -700,7 +672,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     @throws[ServiceUnavailableException]
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
 
         Observable.create(new OnSubscribe[T] {
             override def call(child: Subscriber[_ >: T]): Unit = {
@@ -764,7 +736,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     @throws[ServiceUnavailableException]
     override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
 
         classObservables.getOrElse(clazz, {
             val cache = new ClassSubscriptionCache(clazz, classPath(clazz),
@@ -818,11 +790,6 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         }
     }
 
-    protected[cluster] def classes: Set[Class[_]] = {
-        classInfo.keySet.toSet
-    }
-
-
     @inline
     protected[cluster] def classPath(clazz: Class[_]): String = {
         modelPath + "/" + clazz.getSimpleName
@@ -852,25 +819,6 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
 
 object ZookeeperObjectMapper {
 
-    private[storage] final class MessageClassInfo(clazz: Class[_])
-        extends ClassInfo(clazz) {
-
-        val idFieldDesc =
-            ProtoFieldBinding.getMessageField(clazz, FieldBinding.ID_FIELD)
-
-        def idOf(obj: Obj) = obj.asInstanceOf[Message].getField(idFieldDesc)
-    }
-
-    private[storage] final class JavaClassInfo(clazz: Class[_])
-        extends ClassInfo(clazz) {
-
-        val idField = clazz.getDeclaredField(FieldBinding.ID_FIELD)
-
-        idField.setAccessible(true)
-
-        def idOf(obj: Obj) = idField.get(obj)
-    }
-
     private case class ObjectObservable(ref: Long,
                                         nodeObservable: NodeObservable = null,
                                         objectObservable: Observable[_] = null) {
@@ -892,21 +840,5 @@ object ZookeeperObjectMapper {
 
     protected val Log = LoggerFactory.getLogger("org.midonet.nsdb")
     private val OnCloseDefault = { }
-
-    private[storage] def makeInfo(clazz: Class[_])
-    : ClassInfo = {
-        try {
-            if (classOf[Message].isAssignableFrom(clazz)) {
-                new MessageClassInfo(clazz)
-            } else {
-                new JavaClassInfo(clazz)
-            }
-        } catch {
-            case ex: Exception =>
-                throw new IllegalArgumentException(
-                    s"Class $clazz does not have a field named 'id', or the " +
-                    "field could not be made accessible.", ex)
-        }
-    }
 
 }

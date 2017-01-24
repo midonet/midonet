@@ -18,30 +18,38 @@ package org.midonet.cluster.data.storage
 
 import java.util.UUID
 
-import scala.collection.concurrent.TrieMap
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage.StateTableEncoder.{Ip4ToMacEncoder, MacToIdEncoder, MacToIp4Encoder}
+import org.midonet.cluster.data.storage.StateTableStorage.{ObjectTablesMap, TableInfo, TableProvider, TablesMap}
 import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.packets.{IPv4Addr, MAC}
 
-/**
-  * Specifies the properties of a [[StateTable]], which includes the key and
-  * value classes, which normally are hidden by erasure, and the table provider
-  * class. The latter is used to create state table instances using Guice.
-  */
-private[storage] case class TableProvider(key: Class[_], value: Class[_],
-                                          clazz: Class[_ <: StateTable[_,_]])
 
-/**
-  * Stores the registered tables for a given object class.
-  */
-private[storage] class TableInfo {
-    val tables = new TrieMap[String, TableProvider]
+object StateTableStorage {
+
+    type TablesMap = Map[String, TableProvider]
+
+    type ObjectTablesMap = Map[Class[_], TablesMap]
+
+    /**
+      * Specifies the properties of a [[StateTable]], which includes the key and
+      * value classes, which normally are hidden by erasure, and the table provider
+      * class. The latter is used to create state table instances using Guice.
+      */
+    private[storage] case class TableProvider(key: Class[_], value: Class[_],
+                                              clazz: Class[_ <: StateTable[_,_]])
+
+    /**
+      * Stores the registered tables for a given object class.
+      */
+    private[storage] class TableInfo extends mutable.HashMap[String, TableProvider]
+
 }
 
 /**
@@ -50,7 +58,11 @@ private[storage] class TableInfo {
   */
 trait StateTableStorage extends Storage {
 
-    protected[this] val tableInfo = new TrieMap[Class[_], TableInfo]
+    private val mutex = new Object
+
+    private val objectTableProviders = new mutable.HashMap[Class[_], TableInfo]
+
+    @volatile private var currentObjectTables: ObjectTablesMap = Map.empty
 
     /**
      * Registers a new state table for the given class. The state table is
@@ -70,14 +82,13 @@ trait StateTableStorage extends Storage {
             throw new IllegalStateException(
                 "Cannot register a state table after building the storage")
         }
-        if (!isRegistered(clazz)) {
-            throw new IllegalArgumentException(
-                s"Class ${clazz.getSimpleName} is not registered")
-        }
+        assertRegistered(clazz)
+
         val newProvider = TableProvider(key, value, provider)
-        val oldProvider = tableInfo(clazz).tables.getOrElse(name, {
-            tableInfo(clazz).tables.putIfAbsent(name, newProvider)
-                .getOrElse(newProvider)
+
+        val oldProvider = objectTableProviders(clazz).getOrElse(name, {
+            objectTableProviders(clazz).put(name, newProvider)
+            newProvider
         })
         if (newProvider != oldProvider) {
             throw new IllegalArgumentException(
@@ -149,4 +160,52 @@ trait StateTableStorage extends Storage {
             MacToIp4Encoder.encodePersistentPath(mac, address)
     }
 
+    /**
+      * @return An immutable copy of the current object tables.
+      */
+    protected def objectTables: ObjectTablesMap = currentObjectTables
+
+    /**
+      * @see [[Storage.onRegisterClass()]]
+      */
+    protected abstract override def onRegisterClass(clazz: Class[_])
+    : Unit = {
+        mutex.synchronized {
+            objectTableProviders.put(clazz, new TableInfo)
+        }
+        super.onRegisterClass(clazz)
+    }
+
+    /**
+      * @see [[Storage.onBuild()]]
+      */
+    protected abstract override def onBuild(): Unit = {
+        mutex.synchronized {
+            currentObjectTables = objectTableProviders.mapValues(_.toMap).toMap
+        }
+        super.onBuild()
+    }
+
+    /** Gets the table provider for the given object, key and value classes. */
+    @throws[IllegalArgumentException]
+    protected def getProvider(clazz: Class[_], key: Class[_], value: Class[_],
+                              name: String): TableProvider = {
+        val provider = objectTables
+            .getOrElse(clazz, throw new IllegalArgumentException(
+                s"Class ${clazz.getSimpleName} is not registered"))
+            .getOrElse(name, throw new IllegalArgumentException(
+                s"Table $name is not registered for class ${clazz.getSimpleName}"))
+
+        if (provider.key != key) {
+            throw new IllegalArgumentException(
+                s"Table $name for class ${clazz.getSimpleName} has different " +
+                s"key class ${provider.key.getSimpleName}")
+        }
+        if (provider.value != value) {
+            throw new IllegalArgumentException(
+                s"Table $name for class ${clazz.getSimpleName} has different " +
+                s"value class ${provider.value.getSimpleName}")
+        }
+        provider
+    }
 }
