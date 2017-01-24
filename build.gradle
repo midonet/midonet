@@ -168,7 +168,7 @@ project.ext {
                                 replaceAll(/-hf/, "+hf")
     rpmVersion = midonetVersion.replaceAll(/-.*$/, "")
     rpmRelease = midonetVersion.replaceAll(/^[^-]+$/, "1.0").
-                                replaceAll(/^.*(hf\d*)$/, "1.0.\$1").
+                                replaceAll(/^.*(hf\d*)$/, "1.1.\$1").
                                 replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}.${gitrev}").
                                 replaceAll(/^.*-(.*)$/, "0.1.\$1")
     rpmRelease = "${rpmRelease}.${project.rhelTarget}"
