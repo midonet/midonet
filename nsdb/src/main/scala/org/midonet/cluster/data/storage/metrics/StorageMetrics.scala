@@ -46,7 +46,7 @@ class StorageMetrics(registry: MetricRegistry) {
         registry.register(name(classOf[StorageGauge], "classObservables"), gauge {
             zoom.classObservableCount
         })
-        for (clazz <- zoom.classes) {
+        for (clazz <- zoom.objectClasses.keys) {
             registry.register(name(classOf[StorageGauge], "objectObservables",
                                    clazz.getSimpleName), gauge {
                 zoom.objectObservableCount(clazz)

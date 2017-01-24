@@ -18,30 +18,38 @@ package org.midonet.cluster.data.storage
 
 import java.util.UUID
 
-import scala.collection.concurrent.TrieMap
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage.StateTableEncoder.{Fip64Encoder, Ip4ToMacEncoder, MacToIdEncoder, MacToIp4Encoder}
+import org.midonet.cluster.data.storage.StateTableStorage.{ObjectTablesMap, TableInfo, TableProvider, TablesMap}
 import org.midonet.cluster.data.storage.model.{ArpEntry, Fip64Entry}
 import org.midonet.cluster.models.{Neutron, Topology}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.packets.{IPv4Addr, MAC}
 
-/**
-  * Specifies the properties of a [[StateTable]], which includes the key and
-  * value classes, which normally are hidden by erasure, and the table provider
-  * class. The latter is used to create state table instances using Guice.
-  */
-private[storage] case class TableProvider(key: Class[_], value: Class[_],
-                                          clazz: Class[_ <: StateTable[_,_]])
 
-/**
-  * Stores the registered tables for a given object class.
-  */
-private[storage] class TableInfo {
-    val tables = new TrieMap[String, TableProvider]
+object StateTableStorage {
+
+    type TablesMap = Map[String, TableProvider]
+
+    type ObjectTablesMap = Map[Class[_], TablesMap]
+
+    /**
+      * Specifies the properties of a [[StateTable]], which includes the key and
+      * value classes, which normally are hidden by erasure, and the table provider
+      * class. The latter is used to create state table instances using Guice.
+      */
+    private[storage] case class TableProvider(key: Class[_], value: Class[_],
+                                              clazz: Class[_ <: StateTable[_,_]])
+
+    /**
+      * Stores the registered tables for a given object class.
+      */
+    private[storage] class TableInfo extends mutable.HashMap[String, TableProvider]
+
 }
 
 /**
@@ -50,8 +58,13 @@ private[storage] class TableInfo {
   */
 trait StateTableStorage extends Storage {
 
-    protected[this] val tables = new TrieMap[String, TableProvider]
-    protected[this] val tableInfo = new TrieMap[Class[_], TableInfo]
+    private val mutex = new Object
+
+    private val globalTableProviders = new mutable.HashMap[String, TableProvider]
+    private val objectTableProviders = new mutable.HashMap[Class[_], TableInfo]
+
+    @volatile private var currentGlobalTables: TablesMap = Map.empty
+    @volatile private var currentObjectTables: ObjectTablesMap = Map.empty
 
     /**
       * Registers a global state table. The state table is identified by the
@@ -62,9 +75,9 @@ trait StateTableStorage extends Storage {
       * state table with same parameters was already registered.
       */
     @throws[IllegalStateException]
-    def registerTable[K, V](key: Class[K], value: Class[V], name: String,
+    final def registerTable[K, V](key: Class[K], value: Class[V], name: String,
                             provider: Class[_ <: StateTable[K,V]]): Unit = {
-        if (!registerTable(tables, key, value, name, provider)) {
+        if (!registerTable(globalTableProviders, key, value, name, provider)) {
             throw new IllegalArgumentException(
                 s"Global table for key ${key.getSimpleName} " +
                 s"value ${value.getSimpleName} name $name is already " +
@@ -86,12 +99,8 @@ trait StateTableStorage extends Storage {
     def registerTable[K, V](clazz: Class[_], key: Class[K],
                             value: Class[V], name: String,
                             provider: Class[_ <: StateTable[K,V]]): Unit = {
-        if (!isRegistered(clazz)) {
-            throw new IllegalArgumentException(
-                s"Class ${clazz.getSimpleName} is not registered")
-        }
-
-        if (!registerTable(tableInfo(clazz).tables, key, value, name, provider)) {
+        assertRegistered(clazz)
+        if (!registerTable(objectTableProviders(clazz), key, value, name, provider)) {
             throw new IllegalArgumentException(
                 s"Table for class ${clazz.getSimpleName} key ${key.getSimpleName} " +
                 s"value ${value.getSimpleName} name $name is already " +
@@ -184,18 +193,99 @@ trait StateTableStorage extends Storage {
             Fip64Encoder.encodePersistentPath(entry, null)
     }
 
-    private def registerTable[K,V](map: TrieMap[String, TableProvider],
+    private def registerTable[K,V](map: mutable.Map[String, TableProvider],
                                    key: Class[K], value: Class[V], name: String,
                                    provider: Class[_ <: StateTable[K,V]])
-    : Boolean = {
+    : Boolean = mutex.synchronized {
         if (isBuilt) {
             throw new IllegalStateException(
                 "Cannot register a state table after building the storage")
         }
-        val newProvider = TableProvider(key, value, provider)
-        map.getOrElse(name, {
-            map.putIfAbsent(name, newProvider).getOrElse(newProvider)
-        }) == newProvider
+        if (!map.contains(name)) {
+            map.put(name, TableProvider(key, value, provider))
+            true
+        } else {
+            false
+        }
+    }
+
+    /**
+      * @return An immutable copy of the current global tables.
+      */
+    protected def globalTables: TablesMap = currentGlobalTables
+
+    /**
+      * @return An immutable copy of the current object tables.
+      */
+    protected def objectTables: ObjectTablesMap = currentObjectTables
+
+    /**
+      * @see [[Storage.onRegisterClass()]]
+      */
+    protected abstract override def onRegisterClass(clazz: Class[_])
+    : Unit = {
+        mutex.synchronized {
+            objectTableProviders.put(clazz, new TableInfo)
+        }
+        super.onRegisterClass(clazz)
+    }
+
+    /**
+      * @see [[Storage.onBuild()]]
+      */
+    protected abstract override def onBuild(): Unit = {
+        mutex.synchronized {
+            currentGlobalTables = globalTableProviders.toMap
+            currentObjectTables = objectTableProviders.mapValues(_.toMap).toMap
+        }
+        super.onBuild()
+    }
+
+    /** Gets the table provider for the given object, key and value classes. */
+    @throws[IllegalArgumentException]
+    protected def getProvider(clazz: Class[_], key: Class[_], value: Class[_],
+                              name: String): TableProvider = {
+        val provider = objectTables
+            .getOrElse(clazz, throw new IllegalArgumentException(
+                s"Class ${clazz.getSimpleName} is not registered"))
+            .getOrElse(name, throw new IllegalArgumentException(
+                s"Table $name is not registered for class ${clazz.getSimpleName}"))
+
+        if (provider.key != key) {
+            throw new IllegalArgumentException(
+                s"Table $name for class ${clazz.getSimpleName} has different " +
+                s"key class ${provider.key.getSimpleName}")
+        }
+        if (provider.value != value) {
+            throw new IllegalArgumentException(
+                s"Table $name for class ${clazz.getSimpleName} has different " +
+                s"value class ${provider.value.getSimpleName}")
+        }
+        provider
+    }
+
+    /** Gets the table provider for the given global table,
+      * key and value classes. */
+    @throws[IllegalArgumentException]
+    protected def getProvider(key: Class[_], value: Class[_],
+                            name: String): TableProvider = {
+        val provider = globalTables
+            .getOrElse(name, throw new IllegalArgumentException(
+                s"Global table $name is not registered"))
+
+        if (provider.key != key) {
+            throw new IllegalArgumentException(
+                s"Global table $name has different " +
+                s"key class ${provider.key.getSimpleName} rather than " +
+                s"expected ${key.getSimpleName}")
+        }
+        if (provider.value != value) {
+            throw new IllegalArgumentException(
+                s"Global table $name has different " +
+                s"value class ${provider.value.getSimpleName} rather than " +
+                s"expected ${value.getSimpleName}")
+        }
+        provider
     }
 
 }

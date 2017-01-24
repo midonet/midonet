@@ -258,7 +258,7 @@ class RecyclingContext(val config: RecyclerConfig,
 
         log debug s"Collecting objects ${step()}"
 
-        for (clazz <- store.classes) {
+        for (clazz <- store.objectClasses.keys) {
             val objects = getChildren(store.classPath(clazz)).asScala.toSet
             modelObjects.put(clazz, objects)
 
@@ -268,7 +268,7 @@ class RecyclingContext(val config: RecyclerConfig,
 
         log debug s"Collecting object state ${step()}"
 
-        for (host <- hosts; clazz <- store.classes) {
+        for (host <- hosts; clazz <- store.objectClasses.keys) {
             val path = store.stateClassPath(host, clazz)
 
             // State paths are created on demand, we must check whether they
@@ -337,7 +337,7 @@ class RecyclingContext(val config: RecyclerConfig,
 
         log debug s"Collecting tables ${step()}"
 
-        for (clazz <- store.classes) {
+        for (clazz <- store.objectClasses.keys) {
             val objects =
                 getChildren(store.tablesClassPath(clazz)).asScala.toSet
             tableObjects.put(clazz, objects)
@@ -360,7 +360,7 @@ class RecyclingContext(val config: RecyclerConfig,
         log debug s"Deleting orphan object tables ${step()}"
 
         val stat = new Stat()
-        for (clazz <- store.classes;
+        for (clazz <- store.objectClasses.keys;
              id <- tableObjects.get(clazz)
              if !modelObjects.get(clazz).contains(id)) {
 

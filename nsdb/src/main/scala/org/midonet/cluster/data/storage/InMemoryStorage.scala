@@ -44,7 +44,6 @@ import org.midonet.cluster.data.storage.InMemoryStorage._
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
-import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, serialize}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId, getIdString}
@@ -503,10 +502,10 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
 
 
     private class InMemoryTransactionManager
-            extends TransactionManager(classInfo.toMap, allBindings) {
+            extends TransactionManager(objectClasses, bindings) {
 
-        override def isRegistered(clazz: Class[_]): Boolean = {
-            InMemoryStorage.this.isRegistered(clazz)
+        override def assertRegistered(clazz: Class[_]): Unit = {
+            InMemoryStorage.this.assertRegistered(clazz)
         }
 
         override def getSnapshot(clazz: Class[_], id: ObjId)
@@ -539,8 +538,8 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
                 op match {
                     case TxCreate(obj) =>
                         classes.get(clazz).create(id, obj)
-                        if (tableInfo.contains(clazz)) {
-                            for ((name, provider) <- tableInfo(clazz).tables) {
+                        if (objectTables.contains(clazz)) {
+                            for ((name, provider) <- objectTables(clazz)) {
                                 tablesDirectory.ensureHas(
                                     tableRootPath(clazz, id, name),
                                     null)
@@ -587,7 +586,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
 
         classes.get(clazz).asInstanceOf[ClassNode[T]].get(id)
     }
@@ -595,21 +594,21 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
     override def getAll[T](clazz: Class[T],
                            ids: Seq[_ <: ObjId]): Future[Seq[T]] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
 
         classes.get(clazz).asInstanceOf[ClassNode[T]].getAll(ids)
     }
 
     override def getAll[T](clazz: Class[T]): Future[Seq[T]] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
 
         classes.get(clazz).asInstanceOf[ClassNode[T]].getAll
     }
 
     override def exists(clazz: Class[_], id: ObjId): Future[Boolean] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
 
         classes.get(clazz).exists(id)
     }
@@ -650,7 +649,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
     /** Create an object without referential integrity protection. */
     def createRaw(obj: Obj): Unit = {
         val clazz = obj.getClass
-        val id = classInfo(obj.getClass).idOf(obj)
+        val id = objectClasses(obj.getClass).idOf(obj)
         classes(clazz).validateCreate(id)
         classes(clazz).create(id, obj)
         classes(clazz).emitUpdates()
@@ -659,7 +658,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
     /** Update an object without referential integrity protection. */
     def updateRaw(obj: Obj): Unit = {
         val clazz = obj.getClass
-        val id = classInfo(obj.getClass).idOf(obj)
+        val id = objectClasses(obj.getClass).idOf(obj)
         val snapshot = classes(clazz).getSnapshot(id)
         classes(clazz).validateUpdate(id, snapshot.version)
         classes(clazz).update(id, obj, snapshot.version)
@@ -676,52 +675,33 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
 
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
         classes.get(clazz).asInstanceOf[ClassNode[T]].observable(id)
     }
 
     override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
         classes.get(clazz).asInstanceOf[ClassNode[T]].observable
     }
 
     def observableError(clazz: Class[_], id: ObjId, e: Throwable): Unit = {
         assertBuilt()
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
         classes.get(clazz).observableError(id, e)
     }
 
-    override def registerClass(clazz: Class[_]): Unit = {
+    protected override def onRegisterClass(clazz: Class[_]): Unit = {
         classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
             case c: ClassNode[_] => throw new IllegalStateException(
                 s"Class $clazz is already registered.")
             case _ =>
         }
-
-        classInfo += clazz -> makeInfo(clazz)
+        super.onRegisterClass(clazz)
     }
 
-    override def isRegistered(clazz: Class[_]): Boolean = {
-        classes.containsKey(clazz)
-    }
-
-    @throws[IllegalStateException]
-    override def registerKey(clazz: Class[_], key: String,
-                             keyType: KeyType): Unit = {
-        if (isBuilt) {
-            throw new IllegalStateException("Cannot register a key after " +
-                                            "building the storage")
-        }
-        if (!isRegistered(clazz)) {
-            throw new IllegalArgumentException(s"Class ${clazz.getSimpleName}" +
-                                               s" is not registered")
-        }
-
-        stateInfo.getOrElse(clazz, {
-            val info = new StateInfo
-            stateInfo.putIfAbsent(clazz, info).getOrElse(info)
-        }).keys += key -> keyType
+    protected override def onBuild(): Unit = {
+        super.onBuild()
     }
 
     @throws[ServiceUnavailableException]
@@ -825,21 +805,6 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
     }
 
     /**
-      * @see [[StateTableStorage.registerTable()]]
-      */
-    override def registerTable[K, V](clazz: Class[_], key: Class[K],
-                                     value: Class[V], name: String,
-                                     provider: Class[_ <: StateTable[K,V]])
-    : Unit = {
-        val newProvider = TableProvider(key, value, provider)
-        tableInfo.putIfAbsent(clazz, new TableInfo)
-        tableInfo(clazz).tables.getOrElse(name, {
-            tableInfo(clazz).tables.putIfAbsent(name, newProvider)
-                .getOrElse(newProvider)
-        })
-    }
-
-    /**
       * @see [[StateTableStorage.getTable()]]
       */
     override def getTable[K, V](clazz: Class[_], id: ObjId, name: String,
@@ -915,51 +880,6 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
         Future.fromTry(Try {
             tablesDirectory.getChildren(path, null).asScala.toSet
         })
-    }
-
-    /** Gets the table provider for the given object, key and value classes. */
-    @throws[IllegalArgumentException]
-    private def getProvider(clazz: Class[_], key: Class[_], value: Class[_],
-                            name: String): TableProvider = {
-        val provider = tableInfo.getOrElse(clazz, throw new IllegalArgumentException(
-            s"Class ${clazz.getSimpleName} is not registered")).tables
-            .getOrElse(name, throw new IllegalArgumentException(
-            s"Table $name is not registered for class ${clazz.getSimpleName}"))
-
-        if (provider.key != key) {
-            throw new IllegalArgumentException(
-                s"Table $name for class ${clazz.getSimpleName} has different " +
-                    s"key class ${provider.key.getSimpleName}")
-        }
-        if (provider.value != value) {
-            throw new IllegalArgumentException(
-                s"Table $name for class ${clazz.getSimpleName} has different " +
-                    s"value class ${provider.value.getSimpleName}")
-        }
-        provider
-    }
-
-    /** Gets the global table provider for the given key and value classes and
-      * table name */
-    @throws[IllegalArgumentException]
-    private def getProvider(key: Class[_], value: Class[_],
-                            name:String): TableProvider = {
-        val provider = tables.getOrElse(name, throw new IllegalArgumentException(
-            s"Global table $name is not registered"))
-
-        if (provider.key != key) {
-            throw new IllegalArgumentException(
-                s"Global table $name has different " +
-                s"key class ${provider.key.getSimpleName} rather than " +
-                s"expected ${key.getSimpleName}")
-        }
-        if (provider.value != value) {
-            throw new IllegalArgumentException(
-                s"Global table $name has different " +
-                s"value class ${provider.value.getSimpleName} rather than " +
-                s"expected ${value.getSimpleName}")
-        }
-        provider
     }
 
     private def asBytes(s: String) = if (s != null) s.getBytes else null

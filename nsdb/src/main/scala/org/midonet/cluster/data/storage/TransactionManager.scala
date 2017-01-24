@@ -21,19 +21,14 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-import com.google.common.collect.Multimap
-
 import rx.Observable
 
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.cluster.data.storage.TransactionManager.{BindingsMap, ClassesMap}
+import org.midonet.cluster.data.storage.Storage.{BindingsMap, ClassesMap}
 import org.midonet.util.collection.PathMap
 
 object TransactionManager {
-
-    type ClassesMap = Map[Class[_], ClassInfo]
-    type BindingsMap = Multimap[Class[_], FieldBinding]
 
     case class Key(clazz: Class[_], id: String)
 
@@ -124,7 +119,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
     protected val nodeOps = new PathMap[TxNodeOp]
     nodeOps("/") = TxNodeExists // The root node always exists.
 
-    protected def isRegistered(clazz: Class[_]): Boolean
+    protected def assertRegistered(clazz: Class[_]): Unit
 
     protected def getSnapshot(clazz: Class[_], id: ObjId): Observable[ObjSnapshot]
 
@@ -235,7 +230,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
     @throws[ConcurrentModificationException]
     @throws[ObjectExistsException]
     override def create(obj: Obj): Unit = {
-        assert(isRegistered(obj.getClass))
+        assertRegistered(obj.getClass)
         // Allow a creation of an object with an exclusive ownership type, whose
         // ownership may later be claimed by others with an Update operation.
 
@@ -273,7 +268,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
     override def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
 
         val clazz = obj.getClass
-        assert(isRegistered(clazz), s"Class is not registered: " + clazz)
+        assertRegistered(clazz)
 
         val thisId = getObjectId(obj)
         val snapshot = cachedGet(clazz, thisId).getOrElse(
@@ -347,7 +342,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
     @throws[InternalObjectMapperException]
     @throws[ConcurrentModificationException]
     override def delete(clazz: Class[_], id: ObjId, ignoresNeo: Boolean): Unit = {
-        assert(isRegistered(clazz))
+        assertRegistered(clazz)
         val key = getKey(clazz, id)
 
         val ObjSnapshot(thisObj, thisVersion) = try {
