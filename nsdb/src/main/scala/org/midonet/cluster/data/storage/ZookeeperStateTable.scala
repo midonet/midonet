@@ -135,13 +135,13 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
 
             val list = new ListBuffer[(Key, TxOp)]
             for ((Key(clazz, id), txOp) <- ops) txOp match {
-                case TxCreate(_) if tableInfo(clazz).tables.nonEmpty =>
+                case TxCreate(_) if objectTables(clazz).nonEmpty =>
                     val objPath = tablesObjectPath(clazz, id)
                     if (!nodeExists(objPath)) {
                         list += Key(null, objPath) -> TxCreateNode()
                     }
 
-                    for ((name, provider) <- tableInfo(clazz).tables) {
+                    for ((name, provider) <- objectTables(clazz)) {
                         val hasLegacyPath =
                             legacyTablePath(clazz, id, name).exists(nodeExists)
                         val tablePath = tableRootPath(clazz, id, name)
@@ -340,50 +340,6 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
                    .asInstanceOf[StateTable[Any, Any]]
     }
 
-    /** Gets the table provider for the given object, key and value classes. */
-    @throws[IllegalArgumentException]
-    private def getProvider(clazz: Class[_], key: Class[_], value: Class[_],
-                            name: String): TableProvider = {
-        val provider = tableInfo.getOrElse(clazz, throw new IllegalArgumentException(
-            s"Class ${clazz.getSimpleName} is not registered")).tables
-                .getOrElse(name, throw new IllegalArgumentException(
-            s"Table $name is not registered for class ${clazz.getSimpleName}"))
-
-        if (provider.key != key) {
-            throw new IllegalArgumentException(
-                s"Table $name for class ${clazz.getSimpleName} has different " +
-                s"key class ${provider.key.getSimpleName}")
-        }
-        if (provider.value != value) {
-            throw new IllegalArgumentException(
-                s"Table $name for class ${clazz.getSimpleName} has different " +
-                s"value class ${provider.value.getSimpleName}")
-        }
-        provider
-    }
-
-    /** Gets the table provider for the given global table,
-      * key and value classes. */
-    @throws[IllegalArgumentException]
-    private def getProvider(key: Class[_], value: Class[_],
-                            name: String): TableProvider = {
-        val provider = tables.getOrElse(name, throw new IllegalArgumentException(
-            s"Global table $name is not registered"))
-
-        if (provider.key != key) {
-            throw new IllegalArgumentException(
-                s"Global table $name has different " +
-                s"key class ${provider.key.getSimpleName} rather than " +
-                s"expected ${key.getSimpleName}")
-        }
-        if (provider.value != value) {
-            throw new IllegalArgumentException(
-                s"Global table $name has different " +
-                s"value class ${provider.value.getSimpleName} rather than " +
-                s"expected ${value.getSimpleName}")
-        }
-        provider
-    }
 
     /** Returns `true` if the specified path exists.
       */

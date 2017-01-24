@@ -53,7 +53,7 @@ trait ZoomStorageTester extends StorageTester
         Array(classOf[Network], classOf[Chain], classOf[Port], classOf[Router],
               classOf[Rule])
 
-    val bindings = Array(
+    val fieldBindings = Array(
             new ZoomBinding(
                     classOf[Network], "inbound_filter_id", DeleteAction.CLEAR,
                     classOf[Chain], "network_inbound_ids", DeleteAction.CLEAR),
@@ -149,17 +149,11 @@ trait ZoomStorageTester extends StorageTester
         zoom.observable(clazz)
     }
 
-    override def isRegistered(c: Class[_]): Boolean = {
-        zoom.isRegistered(c)
-    }
-
-    override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
-
     override protected def setup(): Unit = {
         zoom = new ZookeeperObjectMapper(config, "host", curator, curator,
                                          stateTables, reactor,
                                          new StorageMetrics(new MetricRegistry))
-        registerClasses(deviceClasses, bindings)
+        registerClasses(deviceClasses, fieldBindings)
         zoom.build()
     }
 
@@ -195,15 +189,8 @@ trait ZoomStorageTester extends StorageTester
         }
     }
 
-    override def declareBinding(leftClass: Class[_], leftFieldName: String,
-                                onDeleteLeft: DeleteAction,
-                                rightClass: Class[_], rightFieldName: String,
-                                onDeleteRight: DeleteAction): Unit = {
-        zoom.declareBinding(leftClass, leftFieldName, onDeleteLeft,
-                            rightClass, rightFieldName, onDeleteRight)
-    }
+    protected override def onRegisterClass(clazz: Class[_]): Unit = { }
 
-    override def build() = zoom.build()
-    override def isBuilt: Boolean = zoom.isBuilt
+    protected override def onBuild(): Unit = { }
 
 }

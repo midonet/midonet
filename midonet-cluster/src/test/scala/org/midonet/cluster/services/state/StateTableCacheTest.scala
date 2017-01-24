@@ -129,10 +129,8 @@ class StateTableCacheTest extends FeatureSpec with Matchers with GivenWhenThen
         override def tableArguments(clazz: Class[_], id: Any, name: String,
                                     args: Any*): Future[Set[String]] = ???
         override def multi(ops: Seq[PersistenceOp]): Unit = ???
-        override def isRegistered(clazz: Class[_]): Boolean = ???
         override def observable[T](clazz: Class[T], id: Any): Observable[T] = ???
         override def observable[T](clazz: Class[T]): Observable[Observable[T]] = ???
-        override def registerClass(clazz: Class[_]): Unit = ???
         override def transaction(): Transaction = ???
         override def tryTransaction[R](f: (Transaction) => R): R = ???
         override def get[T](clazz: Class[T], id: Any): Future[T] = ???
