@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_68f7c8f5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-24T10:39:06Z",
+      "side": 1,
+      "message": "Added more explanation",
+      "parentUuid": "fabf19d9_f3962eef",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 68
+      },
+      "revId": "661abc103a7fa69b62d74e26ca1957eee1599ce7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_d399ea20",
         "filename": "/COMMIT_MSG",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-01-24T00:08:22Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 56
+      },
+      "revId": "661abc103a7fa69b62d74e26ca1957eee1599ce7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_28daf078",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-24T10:39:06Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "fabf19d9_d399ea20",
       "range": {
         "startLine": 16,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_e819987a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-24T10:39:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_738b3ec4",
+      "range": {
+        "startLine": 118,
+        "startChar": 32,
+        "endLine": 118,
+        "endChar": 80
+      },
+      "revId": "661abc103a7fa69b62d74e26ca1957eee1599ce7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_33fee637",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2017-01-24T00:08:22Z",
       "side": 1,
       "message": "can this be changed?",
+      "range": {
+        "startLine": 152,
+        "startChar": 13,
+        "endLine": 152,
+        "endChar": 21
+      },
+      "revId": "661abc103a7fa69b62d74e26ca1957eee1599ce7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_682468ae",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-24T10:39:06Z",
+      "side": 1,
+      "message": "isUplink is constant for given router interface port but one can remove all ipv6 subnets and convert it to ipv4 only port. Was this your question or you mean something else, please explain?",
+      "parentUuid": "fabf19d9_33fee637",
       "range": {
         "startLine": 152,
         "startChar": 13,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_685b482f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-24T10:39:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_93ec9290",
+      "range": {
+        "startLine": 242,
+        "startChar": 16,
+        "endLine": 242,
+        "endChar": 30
+      },
+      "revId": "661abc103a7fa69b62d74e26ca1957eee1599ce7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_73045e49",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2017-01-24T00:08:22Z",
       "side": 1,
       "message": "it isn\u0027t obvious why not delete.  (warrants a comment i guess)",
+      "range": {
+        "startLine": 244,
+        "startChar": 24,
+        "endLine": 244,
+        "endChar": 30
+      },
+      "revId": "661abc103a7fa69b62d74e26ca1957eee1599ce7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_4843e442",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-24T10:39:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_73045e49",
       "range": {
         "startLine": 244,
         "startChar": 24,
