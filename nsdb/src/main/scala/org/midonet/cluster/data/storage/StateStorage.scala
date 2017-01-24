@@ -16,12 +16,13 @@
 
 package org.midonet.cluster.data.storage
 
-import scala.collection.concurrent.TrieMap
+import scala.collection.mutable
 
 import rx.Observable
 
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage.KeyType.KeyType
+import org.midonet.cluster.data.storage.StateStorage.{StateInfo, StateMap}
 
 /**
  * The [[KeyType]] enumeration defines how values can be written to a state
@@ -82,13 +83,6 @@ case class MultiValueKey(key: String, value: Set[String]) extends StateKey {
  */
 case class StateResult(ownerId: Long)
 
-/**
- * Stores the registered keys for a given class.
- */
-private[storage] final class StateInfo {
-    val keys = new TrieMap[String, KeyType]
-}
-
 object StateStorage {
 
     /** Owner identifier returned as result when there is no owner. */
@@ -96,6 +90,13 @@ object StateStorage {
 
     /** Encoding used for string conversion to byte array. */
     final val StringEncoding = "UTF-8"
+
+    type StateMap = Map[Class[_], Map[String, KeyType]]
+
+    /**
+      * Stores the registered keys for a given class.
+      */
+    private[storage] final class StateInfo extends mutable.HashMap[String, KeyType]
 
 }
 
@@ -127,17 +128,30 @@ object StateStorage {
  * uses [[KeyType.Multiple]], such that the state storage allows multiple values
  * for the same key.
  */
-trait StateStorage {
+trait StateStorage extends Storage {
 
-    protected[this] val stateInfo = new TrieMap[Class[_], StateInfo]
+    private final val mutex = new Object
+
+    private val stateInfo = new mutable.HashMap[Class[_], StateInfo]
+
+    @volatile private var currentStates: StateMap = Map.empty
 
     protected def namespace: String
 
     /** Registers a new key for a class using the specified key type. */
     @throws[IllegalStateException]
     @throws[IllegalArgumentException]
-    def registerKey(clazz: Class[_], key: String, keyType: KeyType)
-    : Unit
+    final def registerKey(clazz: Class[_], key: String, keyType: KeyType)
+    : Unit = mutex.synchronized {
+        if (isBuilt) {
+            throw new IllegalStateException(
+                "Cannot register a state key after building the storage")
+        }
+
+        assertRegistered(clazz)
+
+        stateInfo.getOrElseUpdate(clazz, new StateInfo).put(key, keyType)
+    }
 
     /** Adds a value to a key for the object with the specified class and
       * identifier to the state for the current namespace. The method is
@@ -227,12 +241,32 @@ trait StateStorage {
       */
     def failFastOwnerId: Long
 
+    /**
+      * @see [[Storage.onRegisterClass()]]
+      */
+    protected abstract override def onRegisterClass(clazz: Class[_]): Unit = {
+        mutex.synchronized {
+            stateInfo.put(clazz, new StateInfo)
+        }
+        super.onRegisterClass(clazz)
+    }
+
+    /**
+      * @see [[Storage.onBuild()]]
+      */
+    protected abstract override def onBuild(): Unit = {
+        mutex.synchronized {
+            currentStates = stateInfo.mapValues(_.toMap).toMap
+        }
+        super.onBuild()
+    }
+
     /** Gets the key type for the given class and key. */
     @throws[IllegalArgumentException]
     protected[this] def getKeyType(clazz: Class[_], key: String): KeyType = {
-        stateInfo.getOrElse(clazz, throw new IllegalArgumentException(
-            s"Class ${clazz.getSimpleName} is not registered")).keys
-                 .getOrElse(key, throw new IllegalArgumentException(
+        currentStates.getOrElse(clazz, throw new IllegalArgumentException(
+            s"Class ${clazz.getSimpleName} is not registered"))
+                     .getOrElse(key, throw new IllegalArgumentException(
             s"Key $key is not registered for class ${clazz.getSimpleName}"))
     }
 

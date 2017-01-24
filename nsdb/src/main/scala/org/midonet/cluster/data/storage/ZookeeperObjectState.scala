@@ -33,7 +33,6 @@ import rx.{Notification, Observable, Subscriber}
 
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.CuratorUtil.asObservable
-import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage.{NoOwnerId, StringEncoding}
 import org.midonet.cluster.data.storage.ZookeeperObjectState.{KeyIndex, MultiObservable, SingleObservable, makeThrowable}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
@@ -134,25 +133,6 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
     private[storage] def startedMultiObservableCount: Int =
         multiObservables.values.count(_.directoryObservable.isStarted)
 
-    @throws[IllegalStateException]
-    @throws[IllegalArgumentException]
-    override def registerKey(clazz: Class[_], key: String, keyType: KeyType)
-    : Unit = {
-        if (isBuilt) {
-            throw new IllegalStateException("Cannot register a key after " +
-                                            "building the storage")
-        }
-
-        if (!isRegistered(clazz)) {
-            throw new IllegalArgumentException(s"Class ${clazz.getSimpleName}" +
-                                               s" is not registered")
-        }
-
-        stateInfo.getOrElse(clazz, {
-            val info = new StateInfo
-            stateInfo.putIfAbsent(clazz, info).getOrElse(info)
-        }).keys += key -> keyType
-    }
 
     /**
      * Adding a value works as follows:
