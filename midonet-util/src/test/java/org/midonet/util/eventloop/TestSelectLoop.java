@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -257,7 +258,7 @@ public class TestSelectLoop {
         pipe1.sink().write(message);
         message.rewind();
         pipe2.sink().write(message);
-        ((SimpleSelectLoop)loop).doLoopOnce();
+        loop.doLoopOnce(30000);
         assertTrue(eventOrder.get(0) == listener2);
         assertTrue(eventOrder.get(1) == listener1);
 
@@ -274,8 +275,67 @@ public class TestSelectLoop {
         pipe1.sink().write(message);
         message.rewind();
         pipe2.sink().write(message);
-        ((SimpleSelectLoop)loop).doLoopOnce();
+        loop.doLoopOnce(30000);
         assertTrue(eventOrder.get(0) == listener1);
         assertTrue(eventOrder.get(1) == listener2);
     }
+
+    /**
+     * This tests reproduces the bug in MI-1981, were a CancelledException
+     * was thrown by SelectLoop during event dispatch, when one of the
+     * SelectionKeys keys has somehow become invalidated.
+     *
+     * I have managed to reproduce the crash only by cancelling a key object
+     * from inside the handleEvent method for a different key object. Didn't
+     * manage to reproduce the crash by using the SelectLoop interface alone
+     * (i.e. using unregister() from a handler)
+     */
+    @Test
+    public void testKeyCancelled() throws IOException, InterruptedException {
+
+        class MyListener implements SelectListener {
+            public SelectionKey key = null;
+
+            @Override
+            public void handleEvent(SelectionKey key) throws IOException {
+                if (this.key == null) {
+                    this.key = key;
+                } else {
+                    this.key.cancel();
+                }
+                ScatteringByteChannel channel =
+                    (ScatteringByteChannel) key.channel();
+                channel.read(ByteBuffer.allocate(8));
+            }
+        }
+
+        MyListener listener1 = new MyListener();
+        MyListener listener2 = new MyListener();
+
+        pipe1.sink().write(message); message.rewind();
+        pipe2.sink().write(message); message.rewind();
+
+        loop.register(channel1, SelectionKey.OP_READ,
+                      listener1, SelectLoop.Priority.NORMAL);
+        loop.register(channel2, SelectionKey.OP_READ,
+                      listener2, SelectLoop.Priority.NORMAL);
+
+        loop.doLoopOnce(100);
+
+        // swap keys, so each handler cancels the other's key
+        SelectionKey saved = listener1.key;
+        listener1.key = listener2.key;
+        listener2.key = saved;
+
+        pipe1.sink().write(message); message.rewind();
+        pipe2.sink().write(message); message.rewind();
+
+        // here, one of the handler will cancel the other's key while it is
+        // pending for dispatch, causing a CancelledKeyException
+        loop.doLoopOnce(100);
+
+        loop.shutdown();
+        reactor.shutDownNow();
+    }
+
 }
