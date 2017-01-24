@@ -90,6 +90,8 @@ public interface SelectLoop {
      */
     public void doLoop() throws IOException;
 
+    public void doLoopOnce(long timeout) throws IOException;
+
     /**
      * Force this select loop to return immediately and re-enter select, useful
      * for example if a new item has been added to the select loop while it
