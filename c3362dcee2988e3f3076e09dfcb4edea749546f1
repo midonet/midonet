@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_85a0c544",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-24T09:13:07Z",
+      "side": 1,
+      "message": "Typo",
+      "range": {
+        "startLine": 324,
+        "startChar": 4,
+        "endLine": 324,
+        "endChar": 5
+      },
+      "revId": "c3362dcee2988e3f3076e09dfcb4edea749546f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_c5bd9d69",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-24T09:13:07Z",
+      "side": 1,
+      "message": "missing verb",
+      "range": {
+        "startLine": 346,
+        "startChar": 4,
+        "endLine": 346,
+        "endChar": 21
+      },
+      "revId": "c3362dcee2988e3f3076e09dfcb4edea749546f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_c5647d23",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-24T09:13:07Z",
+      "side": 1,
+      "message": "check",
+      "range": {
+        "startLine": 370,
+        "startChar": 4,
+        "endLine": 370,
+        "endChar": 61
+      },
+      "revId": "c3362dcee2988e3f3076e09dfcb4edea749546f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_657131e0",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-24T09:13:07Z",
+      "side": 1,
+      "message": "creates",
+      "range": {
+        "startLine": 384,
+        "startChar": 13,
+        "endLine": 384,
+        "endChar": 19
+      },
+      "revId": "c3362dcee2988e3f3076e09dfcb4edea749546f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_257459cd",
+        "filename": "docs/ipv6-fip.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-24T09:13:07Z",
+      "side": 1,
+      "message": "enters",
+      "range": {
+        "startLine": 393,
+        "startChar": 16,
+        "endLine": 393,
+        "endChar": 21
+      },
+      "revId": "c3362dcee2988e3f3076e09dfcb4edea749546f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
