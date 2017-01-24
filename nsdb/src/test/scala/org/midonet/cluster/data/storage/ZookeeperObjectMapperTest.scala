@@ -889,12 +889,4 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             curator.checkExists().forPath(zoom.topologyLockPath) should not be null
         }
     }
-
-    feature("Test Zookeeper") {
-        scenario("Test get path") {
-            val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
-            zoom.classPath(classOf[PojoBridge]) shouldBe
-                s"$zkRoot/zoom/${zoom.version}/models/PojoBridge"
-        }
-    }
 }

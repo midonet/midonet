@@ -119,14 +119,13 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
 
     import ZookeeperObjectMapper._
 
-    protected[storage] override val version = new AtomicLong(0)
+    private final val version = new AtomicLong(0)
     protected[cluster] override val rootPath = config.rootKey
-    protected[storage] override val zoomPath = s"$rootPath/zoom"
+    protected[cluster] override val zoomPath = s"$rootPath/zoom/${version.get}"
 
-    private[cluster] val basePath = s"$zoomPath/" + version.get
-    private[storage] val topologyLockPath = s"$basePath/locks/zoom-topology"
-    private[storage] val transactionLocksPath = basePath + s"/zoomlocks/lock"
-    private[storage] val modelPath = basePath + s"/models"
+    private[storage] val topologyLockPath = s"$zoomPath/locks/zoom-topology"
+    private[storage] val transactionLocksPath = zoomPath + s"/zoomlocks/lock"
+    private[storage] val modelPath = zoomPath + s"/models"
     @volatile private var lockFree = false
 
     private val executor = newSingleThreadExecutor(
@@ -194,7 +193,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
      * added. Since updates are not incremental, the first backreference will
      * be lost.
      */
-    private class ZoomTransactionManager(val version: Long)
+    private class ZoomTransactionManager
             extends TransactionManager(classInfo.toMap, allBindings)
             with StateTableTransactionManager {
 
@@ -217,7 +216,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         }
 
         private def getPath(clazz: Class[_], id: ObjId) = {
-            ZookeeperObjectMapper.this.objectPath(clazz, id, version)
+            ZookeeperObjectMapper.this.objectPath(clazz, id)
         }
 
         override def isRegistered(clazz: Class[_]): Boolean = {
@@ -690,7 +689,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         assertBuilt()
         if (ops.isEmpty) return
 
-        val manager = new ZoomTransactionManager(version.longValue())
+        val manager = new ZoomTransactionManager
         try {
             ops.foreach {
                 case CreateOp(obj) =>
@@ -726,7 +725,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     @throws[ServiceUnavailableException]
     override def transaction(): Transaction = {
         assertBuilt()
-        new ZoomTransactionManager(version.longValue())
+        new ZoomTransactionManager
     }
 
     /**
@@ -741,7 +740,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             override def call(child: Subscriber[_ >: T]): Unit = {
                 // Only request and subscribe to the internal, cache-able
                 // observable when a child subscribes.
-                internalObservable[T](clazz, id, version.get, OnCloseDefault)
+                internalObservable[T](clazz, id, OnCloseDefault)
                     .subscribe(child)
             }
         })
@@ -755,11 +754,10 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
       * close handler removes it from the cache.
       */
     protected override def internalObservable[T](clazz: Class[T], id: ObjId,
-                                                 version: Long,
                                                  onClose: => Unit)
     : Observable[T] = {
         val key = Key(clazz, getIdString(id))
-        val path = objectPath(clazz, id, version)
+        val path = objectPath(clazz, id)
 
         objectObservables.getOrElse(key, {
             val ref = objectObservableRef.getAndIncrement()
@@ -776,7 +774,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
                     case e: NodeObservableClosedException =>
                         metrics.error.objectObservableClosedCounter.inc()
-                        internalObservable(clazz, id, version, OnCloseDefault)
+                        internalObservable(clazz, id, OnCloseDefault)
                     case e: NoNodeException =>
                         metrics.error.objectNotFoundExceptionCounter.inc()
                         Observable.error(new NotFoundException(clazz, id))
@@ -865,8 +863,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     }
 
     @inline
-    protected[cluster] override def objectPath(clazz: Class[_], id: ObjId,
-                                               version: Long = version.longValue())
+    protected[cluster] override def objectPath(clazz: Class[_], id: ObjId)
     : String = {
         classPath(clazz) + "/" + getIdString(id)
     }
