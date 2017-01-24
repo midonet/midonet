@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_b3455671",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2017-01-24T05:35:15Z",
+      "side": 1,
+      "message": "I\u0027d say let\u0027s not worry about the complexity introduced by \u0027router-interface-fip\u0027 extension.  But that requires a separate discussion altogether.",
+      "revId": "b3cc2cd1cd02a48f77711a3468ea053700dba961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
