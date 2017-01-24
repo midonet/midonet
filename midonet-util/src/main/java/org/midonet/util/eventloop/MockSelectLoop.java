@@ -47,10 +47,14 @@ public class MockSelectLoop implements SelectLoop {
 
     public void doLoop() throws IOException {
         while (dontStop) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {}
+            doLoopOnce(100);
         }
+    }
+
+    public void doLoopOnce(long timeout) throws IOException {
+        try {
+            Thread.sleep(timeout);
+        } catch (InterruptedException e) {}
     }
 
     public void wakeup() {}
