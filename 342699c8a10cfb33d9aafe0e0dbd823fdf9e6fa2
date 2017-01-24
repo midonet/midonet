@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_9eedb627",
+        "filename": "midolman/src/integration/scala/org/midonet/IntegrationTests.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-24T15:10:55Z",
+      "side": 1,
+      "message": "remove comment",
+      "range": {
+        "startLine": 23,
+        "startChar": 13,
+        "endLine": 23,
+        "endChar": 69
+      },
+      "revId": "342699c8a10cfb33d9aafe0e0dbd823fdf9e6fa2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
