@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_9e513611",
+        "filename": "midonet-util/src/main/java/org/midonet/util/eventloop/SelectLoop.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-24T15:09:11Z",
+      "side": 1,
+      "message": "javadoc?",
+      "range": {
+        "startLine": 93,
+        "startChar": 4,
+        "endLine": 93,
+        "endChar": 60
+      },
+      "revId": "a4014d1ee2f607dac785053edb52fd2476940534",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
