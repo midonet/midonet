@@ -27,6 +27,7 @@ object ZoomMetadata {
     }
 
     object ZoomOwner {
+        final val None = ZoomOwner(0, "none")
         final val ClusterApi = ZoomOwner(0x101, "cluster:api")
         final val ClusterNeutron = ZoomOwner(0x102, "cluster:neutron")
         final val ClusterContainers = ZoomOwner(0x103, "cluster:containers")
