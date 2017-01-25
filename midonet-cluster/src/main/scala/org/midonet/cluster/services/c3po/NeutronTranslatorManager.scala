@@ -107,7 +107,7 @@ class NeutronTranslatorManager(config: ClusterConfig,
         classOf[FirewallLog] -> new FirewallLogTranslator(),
         classOf[FloatingIp] -> new FloatingIpTranslator(stateTableStore),
         classOf[GatewayDevice] -> new GatewayDeviceTranslator(stateTableStore),
-        classOf[IPSecSiteConnection] -> new IPSecSiteConnectionTranslator(),
+        classOf[IPSecSiteConnection] -> new IPSecSiteConnectionTranslator(sequenceDispenser),
         classOf[L2GatewayConnection] -> new L2GatewayConnectionTranslator(stateTableStore),
         classOf[NeutronBgpPeer] -> new BgpPeerTranslator(stateTableStore, sequenceDispenser),
         classOf[NeutronBgpSpeaker] -> new BgpSpeakerTranslator(stateTableStore),
@@ -135,7 +135,7 @@ class NeutronTranslatorManager(config: ClusterConfig,
         classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(),
         classOf[TapService] -> new TapServiceTranslator(),
         classOf[TapFlow] -> new TapFlowTranslator(),
-        classOf[VpnService] -> new VpnServiceTranslator(sequenceDispenser)
+        classOf[VpnService] -> new VpnServiceTranslator
     )
 
     private def store: Storage = backend.store
