@@ -17,10 +17,12 @@ package org.midonet.util.process;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AbstractService;
+import com.sun.tools.internal.jxc.SchemaGenerator;
 
 import org.slf4j.Logger;
 
@@ -44,6 +46,7 @@ public class MonitoredDaemonProcess extends AbstractService {
     final private Consumer<Exception> exitAction;
     final protected UnixClock clock = UnixClock$.MODULE$.apply();
     final private LinkedList<Long> startEvents;
+    private Map<String, String> envVars;
 
     volatile protected Process process;
 
@@ -57,6 +60,15 @@ public class MonitoredDaemonProcess extends AbstractService {
         this.period = period;
         this.exitAction = exitAction;
         this.startEvents = new LinkedList<>();
+        this.envVars = null;
+    }
+
+    public MonitoredDaemonProcess(String cmd, Logger log, String prefix,
+                                  int retriesPerPeriod, long period,
+                                  Map<String, String> envVars,
+                                  Consumer<Exception> exitAction) {
+        this(cmd, log, prefix, retriesPerPeriod, period, exitAction);
+        this.envVars = envVars;
     }
 
     @Override
@@ -90,9 +102,13 @@ public class MonitoredDaemonProcess extends AbstractService {
 
     @VisibleForTesting
     protected void createProcess() {
-        process = ProcessHelper.newDaemonProcess(cmd, log, prefix)
-            .addExitHandler(exitHandler)
-            .run();
+        ProcessHelper.RunnerConfiguration runner = ProcessHelper
+            .newDaemonProcess(cmd, log, prefix)
+            .addExitHandler(exitHandler);
+        if (this.envVars != null) {
+            runner.setEnvVariables(envVars);
+        }
+        process = runner.run();
         log.info("Process ``{}`` starting with pid {} at time {}",
                  cmd, ProcessHelper.getProcessPid(process), clock.time());
     }
