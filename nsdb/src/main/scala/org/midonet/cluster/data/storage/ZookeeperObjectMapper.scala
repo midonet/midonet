@@ -22,11 +22,13 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.collection.breakOut
+import scala.collection.{breakOut, mutable}
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.{Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
+
+import com.google.common.util.concurrent.SettableFuture
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
@@ -40,14 +42,12 @@ import org.apache.zookeeper._
 import org.apache.zookeeper.data.Stat
 import org.slf4j.{Logger, LoggerFactory}
 
-import rx.Notification._
 import rx.Observable.OnSubscribe
 import rx.{Notification, Observable, Subscriber}
 
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
-import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.data.storage.TransactionManager._
-import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, deserializerOf, serialize}
+import org.midonet.cluster.data.storage.ZoomSerializer.{createObject, deserialize, deserializerOf, serialize, updateObject}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId, getIdString}
 import org.midonet.cluster.services.state.client.StateTableClient
@@ -191,11 +191,14 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
      * added. Since updates are not incremental, the first backreference will
      * be lost.
      */
-    private class ZoomTransactionManager
+    private class ZoomTransactionManager(owner: ZoomOwner)
             extends TransactionManager(objectClasses, bindings)
             with StateTableTransactionManager {
 
         protected override def executorService = executor
+
+        // This is a transaction-local cache of the raw object data.
+        private val raw = new mutable.HashMap[Key, ObjRaw]
 
         // Create an ephemeral node so that we can get Zookeeper's current
         // ZXID. This will allow us to determine if any of the nodes we read
@@ -213,50 +216,79 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 "Could not acquire current zxid.", ex)
         }
 
-        override def assertRegistered(clazz: Class[_]): Unit = {
+        protected override def assertRegistered(clazz: Class[_]): Unit = {
             ZookeeperObjectMapper.this.assertRegistered(clazz)
         }
 
-        override def getSnapshot(clazz: Class[_], id: ObjId)
-        : Observable[ObjSnapshot] = {
-            val path = objectPath(clazz, id)
+        @throws[ConcurrentModificationException]
+        @throws[NotFoundException]
+        @throws[InternalObjectMapperException]
+        protected override def getSnapshot(clazz: Class[_], id: ObjId)
+        : ObjSnapshot = {
+            val objPath = objectPath(clazz, id)
+            val rawPath = altObjectPath(clazz, id)
 
-            asObservable {
-                curator.getData.inBackground(_).forPath(path)
-            } map[Notification[ObjSnapshot]] makeFunc1 { event =>
-                if (event.getResultCode == Code.OK.intValue()) {
-                    if (event.getStat.getMzxid > zxid) {
-                        createOnError(new ConcurrentModificationException(
-                            s"${clazz.getSimpleName} with ID " +
-                            s"${getIdString(id)} was modified during " +
-                            s"the transaction."))
-                    } else {
-                        createOnNext(
-                            ObjSnapshot(deserialize(event.getData, clazz).asInstanceOf[Obj],
-                                        event.getStat.getVersion))
-                    }
-                } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    createOnError(new NotFoundException(clazz, id))
-                } else {
-                    createOnError(new InternalObjectMapperException(
-                        KeeperException.create(Code.get(event.getResultCode), path)))
+            val objectFuture = asyncGet(objPath)
+            val rawFuture = asyncGet(rawPath)
+
+            val objectEvent = objectFuture.get()
+            val rawEvent = rawFuture.get()
+
+            if (objectEvent.getResultCode == Code.OK.intValue()) {
+                if (objectEvent.getStat.getMzxid > zxid ||
+                    rawEvent.getStat.getMzxid > zxid) {
+                    throw new ConcurrentModificationException(
+                        s"${clazz.getSimpleName} with ID " +
+                        s"${getIdString(id)} was modified during " +
+                        s"the transaction.")
                 }
-            } dematerialize()
+
+                // Backwards compatibility: ignore if the raw node does not
+                // exist.
+                if (rawEvent.getResultCode == Code.OK.intValue()) {
+                    raw.put(TransactionManager.getKey(clazz, id),
+                            ObjRaw(rawEvent.getData, rawEvent.getStat.getVersion))
+                } else if (rawEvent.getResultCode != Code.NONODE.intValue()) {
+                    throw new InternalObjectMapperException(
+                        KeeperException.create(Code.get(rawEvent.getResultCode),
+                                               rawPath))
+                }
+
+                ObjSnapshot(deserialize(objectEvent.getData, clazz)
+                                .asInstanceOf[Obj],
+                            objectEvent.getStat.getVersion)
+            } else if (objectEvent.getResultCode == Code.NONODE.intValue()) {
+                throw new NotFoundException(clazz, id)
+            } else {
+                throw new InternalObjectMapperException(
+                    KeeperException.create(Code.get(objectEvent.getResultCode),
+                                           objPath))
+            }
         }
 
-        override def getIds(clazz: Class[_]): Observable[Seq[ObjId]] = {
+        @throws[InternalObjectMapperException]
+        protected override def getIds(clazz: Class[_]): Seq[ObjId] = {
             val path = classPath(clazz)
+            val event = asyncGetChildren(path).get()
 
-            asObservable {
-                curator.getChildren.inBackground(_).forPath(path)
-            } map[Notification[Seq[ObjId]]] makeFunc1 { event =>
-                if (event.getResultCode == Code.OK.intValue()) {
-                    createOnNext(event.getChildren.asScala)
-                } else {
-                    createOnError(new InternalObjectMapperException(
-                        KeeperException.create(Code.get(event.getResultCode), path)))
-                }
-            } dematerialize()
+            if (event.getResultCode == Code.OK.intValue()) {
+                event.getChildren.asScala
+            } else {
+                throw new InternalObjectMapperException(
+                    KeeperException.create(Code.get(event.getResultCode), path))
+            }
+        }
+
+        private def asyncGet(path: String): java.util.concurrent.Future[CuratorEvent] = {
+            val future = SettableFuture.create[CuratorEvent]()
+            curator.getData.inBackground(AsyncCallback, future).forPath(path)
+            future
+        }
+
+        private def asyncGetChildren(path: String): java.util.concurrent.Future[CuratorEvent] = {
+            val future = SettableFuture.create[CuratorEvent]()
+            curator.getChildren.inBackground(AsyncCallback, future).forPath(path)
+            future
         }
 
         /** Commits the operations from the current transaction to the storage
@@ -269,32 +301,62 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         @throws[StorageNodeNotFoundException]
         override def commit(): Unit = {
             val ops = flattenOps ++ createStateTableOps
-            var txn =
+            val txn =
                 curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
 
-            for ((Key(clazz, id), txOp) <- ops) txn = txOp match {
-                case TxCreate(obj) =>
-                    val path = objectPath(clazz, id)
+            for ((key, txOp) <- ops) txOp match {
+                case TxCreate(obj, change) =>
+                    var path = objectPath(key.clazz, key.id)
                     Log.debug(s"Create: $path")
-                    txn.create.forPath(path, serialize(obj)).and
-                case TxUpdate(obj, ver) =>
-                    val path = objectPath(clazz, id)
+                    txn.create.forPath(path, serialize(obj))
+
+                    path = altObjectPath(key.clazz, key.id)
+                    Log.debug(s"Create: $path")
+                    txn.create.forPath(path, createObject(owner, change,
+                                                          version = 0))
+                case TxUpdate(obj, ver, change) =>
+                    var path = objectPath(key.clazz, key.id)
                     Log.debug(s"Update ($ver): $path")
-                    txn.setData().withVersion(ver)
-                        .forPath(path, serialize(obj)).and
-                case TxDelete(ver) =>
-                    val path = objectPath(clazz, id)
+                    txn.setData().withVersion(ver).forPath(path, serialize(obj))
+
+                    path = altObjectPath(key.clazz, key.id)
+                    raw.get(key) match {
+                        case Some(ObjRaw(data, v)) =>
+                            val d = updateObject(data, owner, change, ver + 1)
+                            // Returns null if the provenance data has not
+                            // changed.
+                            if (d ne null) {
+                                Log.debug(s"Update ($v): $path")
+                                txn.setData().withVersion(v).forPath(path, d)
+                            } else {
+                                Log.debug(s"Skip update: $path")
+                            }
+                        case None =>
+                            Log.debug(s"Create: $path")
+                            txn.create.forPath(path, createObject(owner, change,
+                                                                  ver + 1))
+                    }
+                case TxDelete(ver, change) =>
+                    var path = objectPath(key.clazz, key.id)
                     Log.debug(s"Delete ($ver): $path")
-                    txn.delete.withVersion(ver).forPath(path).and
+                    txn.delete.withVersion(ver).forPath(path)
+
+                    path = altObjectPath(key.clazz, key.id)
+                    raw.get(key) match {
+                        case Some(ObjRaw(_, v)) =>
+                            Log.debug(s"Delete: $path")
+                            txn.delete().withVersion(v).forPath(path)
+                        case None =>
+                    }
                 case TxCreateNode(value) =>
-                    Log.debug(s"Create node: $id")
-                    txn.create.forPath(id, asBytes(value)).and
+                    Log.debug(s"Create node: ${key.id}")
+                    txn.create.forPath(key.id, asBytes(value))
                 case TxUpdateNode(value) =>
-                    Log.debug(s"Update node: $id")
-                    txn.setData().forPath(id, asBytes(value)).and
+                    Log.debug(s"Update node: ${key.id}")
+                    txn.setData().forPath(key.id, asBytes(value))
                 case TxDeleteNode =>
-                    Log.debug(s"Delete node: $id")
-                    txn.delete.forPath(id).and
+                    Log.debug(s"Delete node: ${key.id}")
+                    txn.delete.forPath(key.id)
                 case TxNodeExists =>
                     throw new InternalObjectMapperException(
                         "TxNodeExists should have been filtered by flattenOps.")
@@ -322,7 +384,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             deleteStateTables()
         }
 
-        override protected def nodeExists(path: String): Boolean = {
+        protected override def nodeExists(path: String): Boolean = {
             val stat = curator.checkExists.forPath(path)
             if ((stat ne null) && stat.getMzxid > zxid) {
                 throw new ConcurrentModificationException(
@@ -331,7 +393,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             stat ne null
         }
 
-        override protected def childrenOf(path: String): Seq[String] = {
+        protected override def childrenOf(path: String): Seq[String] = {
             val prefix = if (path == "/") path else path + "/"
             try {
                 curator.getChildren.forPath(path).asScala.map(prefix + _)
@@ -350,6 +412,20 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 case NonFatal(e) =>
                     Log.warn(s"Delete transaction lock node $lockPath failed", e)
             }
+        }
+
+        /**
+          * Gets the descendants for the specified path in post-order
+          * traversal to facilitate deletion.
+          */
+        private def descendantsOf(path: String): Seq[String] = {
+            val children = childrenOf(path)
+            val descendants = new mutable.MutableList[String]
+            for (child <- children) {
+                descendants ++= descendantsOf(child)
+            }
+            descendants += path
+            descendants
         }
 
         /** Get a string as bytes, or null if the string is null. */
@@ -665,7 +741,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         assertBuilt()
         if (ops.isEmpty) return
 
-        val manager = new ZoomTransactionManager
+        val manager = new ZoomTransactionManager(ZoomOwner.None)
         try {
             ops.foreach {
                 case CreateOp(obj) =>
@@ -699,9 +775,9 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
       * [[java.util.ConcurrentModificationException]].
       */
     @throws[ServiceUnavailableException]
-    override def transaction(): Transaction = {
+    override def transaction(owner: ZoomOwner): Transaction = {
         assertBuilt()
-        new ZoomTransactionManager
+        new ZoomTransactionManager(owner)
     }
 
     /**
@@ -802,14 +878,14 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
     @throws[StorageException]
-    override def tryTransaction[R](f: (Transaction) => R): R = {
+    override def tryTransaction[R](owner: ZoomOwner)(f: (Transaction) => R): R = {
         val lock =
             if (!lockFree) new InterProcessSemaphoreMutex(curator, topologyLockPath)
             else null
         if ((lock eq null) ||
             lock.acquire(config.lockTimeoutMs, TimeUnit.MILLISECONDS)) {
             try TransactionRetriable.retry(Log, "Transaction") {
-                val tx = transaction()
+                val tx = transaction(owner)
                 try {
                     val result = f(tx)
                     tx.commit()
@@ -886,7 +962,17 @@ object ZookeeperObjectMapper {
         override def hashCode: Int = cache.hashCode
     }
 
+    private case class ObjRaw(data: Array[Byte], version: Int)
+
     protected val Log = LoggerFactory.getLogger("org.midonet.nsdb")
     private val OnCloseDefault = { }
+
+    private object AsyncCallback extends BackgroundCallback {
+        override def processResult(client: CuratorFramework,
+                                   event: CuratorEvent): Unit = {
+            val future = event.getContext.asInstanceOf[SettableFuture[CuratorEvent]]
+            future.set(event)
+        }
+    }
 
 }
