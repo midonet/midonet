@@ -26,12 +26,15 @@ import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.protobuf.{Message, TextFormat}
 
+import org.apache.commons.lang.StringUtils
 import org.apache.curator.framework.recipes.cache.ChildData
 
 import rx.Notification
 import rx.functions.Func1
 
 import org.midonet.cluster.data.Obj
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
+import org.midonet.cluster.models.Commons.ZoomProvenance
 import org.midonet.util.functors.makeFunc1
 
 private[storage] object ZoomSerializer {
@@ -80,6 +83,36 @@ private[storage] object ZoomSerializer {
                 }
             }
         }).asInstanceOf[Func1[ChildData, Notification[T]]]
+    }
+
+    /**
+      * Serializes the provenance data for the specified owner and change
+      * identifier.
+      */
+    def serializeProvenance(owner: ZoomOwner, change: Int): Array[Byte] = {
+        ZoomProvenance.newBuilder()
+            .setVersion(Storage.ProductVersion)
+            .setCommit(Storage.ProductCommit)
+            .setOwner(owner.id)
+            .setChange(change)
+            .build()
+            .toByteArray
+    }
+
+    @throws[InternalObjectMapperException]
+    def deserializeSnapshot[T](data: Array[Byte], clazz: Class[T]): T = {
+        val objectSize = (data(0).toInt << 24) |
+                         (data(1).toInt << 16) |
+                         (data(2).toInt << 8) |
+                         data(3)
+        if (data.length < objectSize + 6) {
+            throw new InternalObjectMapperException(
+                "Invalid metadata data length: must be at least " +
+                s"${objectSize + 6} but it is ${data.length}")
+        }
+        val objectData = new Array[Byte](objectSize)
+        System.arraycopy(data, 4, objectData, 0, objectSize)
+        deserialize(objectData, clazz)
     }
 
     @throws[InternalObjectMapperException]

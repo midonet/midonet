@@ -54,6 +54,13 @@ message MetadataEntry {
     optional string value = 2;
 }
 
+message ZoomProvenance {
+    optional string version = 1;
+    optional string commit = 2;
+    optional int32 owner = 3;
+    optional int32 change = 4;
+}
+
 enum RuleDirection {
     EGRESS = 0;
     INGRESS = 1;

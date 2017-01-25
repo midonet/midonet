@@ -24,7 +24,9 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import rx.Notification
 
 import StorageTest._
+import org.midonet.cluster.data.ZoomMetadata._
 import org.midonet.cluster.data.storage.StorageTestClasses.PojoBridge
+import org.midonet.cluster.models.Commons.ZoomProvenance
 import org.midonet.cluster.models.Topology.Network
 
 @RunWith(classOf[JUnitRunner])
@@ -78,6 +80,22 @@ class ZoomSerializerTest extends FeatureSpec with Matchers with GivenWhenThen {
 
         And("The messages should be equal")
         message1 shouldBe message2
+    }
+
+    scenario("Test provenance serialization") {
+        Given("An owner and change number")
+        val owner = ZoomOwner.ClusterContainers
+        val change = 100
+
+        When("Serializing the provenance data")
+        val data = ZoomSerializer.serializeProvenance(owner, change)
+
+        Then("The data can be deserialized to provenance")
+        val provenance = ZoomProvenance.parseFrom(data)
+        provenance.getVersion shouldBe Storage.ProductVersion
+        provenance.getCommit shouldBe Storage.ProductCommit
+        provenance.getOwner shouldBe owner.id
+        provenance.getChange shouldBe change
     }
 
     scenario("Test Protobuf message deserializer handles exceptions") {
