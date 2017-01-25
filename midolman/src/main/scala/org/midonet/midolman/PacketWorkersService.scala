@@ -49,6 +49,18 @@ import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.logging.Logger
 
+object PacketWorkersService {
+    def numWorkers(config: MidolmanConfig) = {
+        val n = config.simulationThreads
+        if (n <= 0)
+            1
+        else if (n > 16)
+            16
+        else
+            n
+    }
+}
+
 abstract class PacketWorkersService extends AbstractService {
     def workers: IndexedSeq[PacketWorker]
 }
@@ -65,20 +77,13 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
                                   clock: NanoClock,
                                   metricsRegistry: MetricRegistry,
                                   counter: StatisticalCounter,
-                                  actorSystem: ActorSystem)
+                                  actorSystem: ActorSystem,
+                                  flowTablePreallocation: FlowTablePreallocation)
         extends PacketWorkersService with Runnable with MidolmanLogging {
 
     override def logSource = "org.midonet.packet-worker.packet-worker-supervisor"
 
-    val numWorkers = {
-        val n = config.simulationThreads
-        if (n <= 0)
-            1
-        else if (n > 16)
-            16
-        else
-            n
-    }
+    val numWorkers = PacketWorkersService.numWorkers(config)
 
     val connTrackStateTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock)
     val natStateTable = new ShardedFlowStateTable[NatKey, NatBinding](clock)
@@ -159,7 +164,8 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
             connTrackShard, natShard, traceShard,
             peerResolver, natLeaser,
             metrics, flowRecorder,
-            vt, counter.addAndGet(index, _: Int))
+            vt, counter.addAndGet(index, _: Int),
+            flowTablePreallocation)
 
         new DisruptorPacketWorker(workflow, metrics, index)
     }

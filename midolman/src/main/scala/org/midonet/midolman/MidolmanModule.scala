@@ -64,7 +64,8 @@ import org.midonet.util.eventloop.{Reactor, SelectLoop, SimpleSelectLoop}
 class MidolmanModule(injector: Injector,
                      config: MidolmanConfig,
                      metricRegistry: MetricRegistry,
-                     reflections: Reflections) extends AbstractModule {
+                     reflections: Reflections,
+                     flowTablePreallocation: FlowTablePreallocation) extends AbstractModule {
     private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanModule])
 
     override def configure(): Unit = {
@@ -154,7 +155,8 @@ class MidolmanModule(injector: Injector,
                                                         backChannel, vt,
                                                         NanoClock.DEFAULT,
                                                         metricRegistry,
-                                                        counter, as)
+                                                        counter, as,
+                                                        flowTablePreallocation)
         bind(classOf[PacketWorkersService]).toInstance(workersService)
 
         val dpConnectionManager = upcallDatapathConnectionManager(
@@ -326,12 +328,14 @@ class MidolmanModule(injector: Injector,
                                              clock: NanoClock,
                                              metricsRegistry: MetricRegistry,
                                              counter: StatisticalCounter,
-                                             actorSystem: ActorSystem)
+                                             actorSystem: ActorSystem,
+                                             flowTablePreallocation: FlowTablePreallocation)
             : PacketWorkersService =
         new PacketWorkersServiceImpl(config, hostIdProvider, dpChannel, dpState,
                                      flowProcessor, natBlockAllocator, peerResolver,
                                      backChannel, vt, clock,
-                                     metricsRegistry, counter, actorSystem)
+                                     metricsRegistry, counter, actorSystem,
+                                     flowTablePreallocation)
 
     protected def connectionPool(): DatapathConnectionPool =
         new OneToOneConnectionPool(

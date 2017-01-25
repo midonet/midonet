@@ -241,9 +241,13 @@ public class Midolman {
                                      metricRegistry),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class)
         );
+        FlowTablePreallocation preallocation
+            = new FlowTablePreallocation(config);
+        preallocation.allocateAndTenure();
 
         injector = injector.createChildInjector(
-            new MidolmanModule(injector, config, metricRegistry, reflections));
+                new MidolmanModule(injector, config, metricRegistry,
+                                   reflections, preallocation));
 
         ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
             .setJson(true)
@@ -267,9 +271,6 @@ public class Midolman {
 
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
-
-        log.info("Running manual GC to tenure pre-allocated objects");
-        System.gc();
 
         if (config.lockMemory())
             lockMemory();
