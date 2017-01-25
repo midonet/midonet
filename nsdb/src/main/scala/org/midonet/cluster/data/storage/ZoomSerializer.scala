@@ -19,6 +19,8 @@ package org.midonet.cluster.data.storage
 import java.io.StringWriter
 import java.nio.charset.Charset
 
+import javax.annotation.Nullable
+
 import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
 
@@ -104,8 +106,10 @@ private[storage] object ZoomSerializer {
     /**
       * Serializes the provenance data for an existing object with the
       * specified current object, owner and change identifier and data version.
+      * The method returns null if the provenance data has not changed.
       */
     @throws[InternalObjectMapperException]
+    @Nullable
     def updateObject(current: Array[Byte], owner: ZoomOwner, change: Int,
                      version: Int)
     : Array[Byte] = {
@@ -114,19 +118,25 @@ private[storage] object ZoomSerializer {
             catch {
                 case NonFatal(e) => throw new InternalObjectMapperException(e)
             }
-        var index = 0
-        while (index < objectBuilder.getProvenanceCount) {
-            val provenanceBuilder = objectBuilder.getProvenanceBuilder(index)
-            // Consolidate provenance in a previous entry from the same owner.
-            if (provenanceBuilder.getChangeOwner == owner.id) {
-                provenanceBuilder
-                    .setProductVersion(Storage.ProductVersion)
-                    .setProductCommit(Storage.ProductCommit)
-                    .setChangeType(change)
-                    .setChangeVersion(version)
-                return objectBuilder.build().toByteArray
+        val count = objectBuilder.getProvenanceCount
+        if (count > 0) {
+            val provenanceBuilder = objectBuilder.getProvenanceBuilder(count - 1)
+            // Consolidate provenance in the last entry from the same owner.
+            if (provenanceBuilder.getChangeOwner == owner.id &&
+                provenanceBuilder.getProductVersion == Storage.ProductVersion &&
+                provenanceBuilder.getProductCommit == Storage.ProductCommit) {
+                if ((provenanceBuilder.getChangeType & change) != 0) {
+                    // If the provenance change type is already included in
+                    // the previous change, return null (no need to update).
+                    return null
+                } else {
+                    // If the provenance change type has changed, update the
+                    // change type.
+                    provenanceBuilder
+                        .setChangeType(change | provenanceBuilder.getChangeType)
+                    return objectBuilder.build().toByteArray
+                }
             }
-            index += 1
         }
         objectBuilder.addProvenance(ZoomProvenance.newBuilder()
                                         .setProductVersion(Storage.ProductVersion)
