@@ -29,6 +29,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ContainersLog
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer}
@@ -130,7 +131,7 @@ abstract class DatapathBoundContainerDelegate (backend: MidonetBackend)
     private def tryTx(f: (Transaction) => Unit)
                      (implicit handler: PartialFunction[Throwable, Unit] =
                          PartialFunction.empty): Unit = {
-        try backend.store.tryTransaction(f)
+        try backend.store.tryTransaction(ZoomOwner.ClusterContainers)(f)
         catch {
             case NonFatal(e) if handler.isDefinedAt(e) =>
                 handler(e)

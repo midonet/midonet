@@ -26,6 +26,7 @@ import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
@@ -170,7 +171,7 @@ class C3POStorageManager(config: ClusterConfig,
         // Storage interface and implementing classes.
         for (task <- txn.tasks) try {
             val newState = C3POState.at(task.taskId)
-            val tx = backend.store.transaction()
+            val tx = backend.store.transaction(ZoomOwner.ClusterNeutron)
             try {
                 translate(tx, task.op)
                 tx.update(newState)
