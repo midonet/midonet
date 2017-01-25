@@ -22,6 +22,7 @@ import scala.concurrent.duration._
 
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.{FlowStateStore => FlowState}
+import org.midonet.midolman.FlowTablePreallocation
 
 object FlowExpirationIndexer {
     sealed abstract class Expiration {
@@ -58,15 +59,19 @@ object FlowExpirationIndexer {
 trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
     import FlowExpirationIndexer._
 
-    protected val maxFlows: Int
+    protected val preallocation: FlowTablePreallocation
 
     private val expirationQueues = new Array[ArrayDeque[ManagedFlow]](maxType)
 
     {
-        expirationQueues(ERROR_CONDITION_EXPIRATION.typeId) = new ArrayDeque(maxFlows / 3)
-        expirationQueues(FLOW_EXPIRATION.typeId) = new ArrayDeque(maxFlows)
-        expirationQueues(STATEFUL_FLOW_EXPIRATION.typeId) = new ArrayDeque(maxFlows)
-        expirationQueues(TUNNEL_FLOW_EXPIRATION.typeId) = new ArrayDeque(maxFlows / 3)
+        expirationQueues(ERROR_CONDITION_EXPIRATION.typeId) =
+            preallocation.takeErrorExpirationQueue()
+        expirationQueues(FLOW_EXPIRATION.typeId) =
+            preallocation.takeFlowExpirationQueue()
+        expirationQueues(STATEFUL_FLOW_EXPIRATION.typeId) =
+            preallocation.takeStatefulFlowExpirationQueue()
+        expirationQueues(TUNNEL_FLOW_EXPIRATION.typeId) =
+            preallocation.takeTunnelFlowExpirationQueue()
     }
 
     abstract override def registerFlow(flow: ManagedFlow): Unit = {
@@ -102,7 +107,7 @@ trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
             excessFlows += expirationQueues(i).size()
             i += 1
         }
-        excessFlows -= maxFlows
+        excessFlows -= preallocation.maxFlows
 
         if (excessFlows > 0) {
             log.debug(s"Evicting $excessFlows excess flows")
