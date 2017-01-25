@@ -15,12 +15,16 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.Properties
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.control.NonFatal
 
 import com.google.common.collect.{ArrayListMultimap, ImmutableListMultimap, Multimap, Multimaps}
 import com.google.protobuf.Message
+
+import org.apache.commons.lang.StringUtils
 
 import rx.Observable
 
@@ -130,6 +134,9 @@ object Storage {
     type ClassesMap = Map[Class[_], ClassInfo]
     type BindingsMap = Multimap[Class[_], FieldBinding]
 
+    final val ProductVersion = productVersion
+    final val ProductCommit = productCommit
+
     abstract class ClassInfo(val clazz: Class[_]) {
         def idOf(obj: Obj): ObjId
     }
@@ -167,6 +174,22 @@ object Storage {
                     s"Class $clazz does not have a field named 'id', or the " +
                     "field could not be made accessible.", e)
         }
+    }
+
+    private def productVersion: String = {
+        StringUtils.defaultIfEmpty(getClass.getPackage.getImplementationVersion,
+                                   StringUtils.EMPTY)
+    }
+
+    private def productCommit: String = {
+        val gitStream =
+            getClass.getClassLoader.getResourceAsStream("git.properties")
+        if (gitStream ne null) {
+            val properties = new Properties()
+            properties.load(gitStream)
+            StringUtils.defaultIfEmpty(properties.getProperty("git.commit.id"),
+                                       StringUtils.EMPTY)
+        } else StringUtils.EMPTY
     }
 
 }
