@@ -64,7 +64,7 @@ class MockPacketWorkflow(config: MidolmanConfig,
                                traceStateTable, peerResolver,
                                HappyGoLuckyLeaser, metrics,
                                flowRecorder, vt,
-                               _ => { }) {
+                               _ => { }, new MockFlowTablePreallocation(config)) {
     override def runWorkflow(pktCtx: PacketContext) = {
         packetCtxTrap.offer(pktCtx)
         super.runWorkflow(pktCtx)

@@ -237,7 +237,8 @@ class PacketWorkflow(
             val metrics: PacketPipelineMetrics,
             val flowRecorder: FlowRecorder,
             val vt: VirtualTopology,
-            val packetOut: Int => Unit)
+            val packetOut: Int => Unit,
+            override val preallocation: FlowTablePreallocation)
         extends EventHandler[PacketWorkflow.PacketRef]
         with TimeoutHandler
         with DisruptorBackChannel
