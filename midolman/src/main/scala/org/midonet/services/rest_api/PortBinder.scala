@@ -20,6 +20,7 @@ import java.util.UUID
 
 import scala.util.control.NonFatal
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.UUIDUtil._
@@ -30,7 +31,7 @@ class PortBinder(storage: Storage, stateStorage: StateStorage) {
     def bindPort(portId: UUID, hostId: UUID, deviceName: String): Unit = {
         val protoHostId = hostId.asProto
         log debug s"Binding port $portId"
-        try storage.tryTransaction { tx =>
+        try storage.tryTransaction(ZoomOwner.AgentBinding) { tx =>
             val oldPort = tx.get(classOf[Port], portId)
             val newPortBldr = oldPort.toBuilder
                 .setHostId(protoHostId)
@@ -55,7 +56,7 @@ class PortBinder(storage: Storage, stateStorage: StateStorage) {
         val pHostId = hostId.asProto
 
         log debug s"Unbinding port $portId"
-        try storage.tryTransaction { tx =>
+        try storage.tryTransaction(ZoomOwner.AgentBinding) { tx =>
             val oldPort = tx.get(classOf[Port], portId)
 
             // Unbind only if the port is currently bound to an interface on

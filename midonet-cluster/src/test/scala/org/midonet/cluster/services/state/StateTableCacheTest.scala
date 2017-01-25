@@ -34,6 +34,7 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import rx.Observable
 
 import org.midonet.cluster.StateProxyConfig
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.rest_api.models.Bridge
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
@@ -131,8 +132,8 @@ class StateTableCacheTest extends FeatureSpec with Matchers with GivenWhenThen
         override def multi(ops: Seq[PersistenceOp]): Unit = ???
         override def observable[T](clazz: Class[T], id: Any): Observable[T] = ???
         override def observable[T](clazz: Class[T]): Observable[Observable[T]] = ???
-        override def transaction(): Transaction = ???
-        override def tryTransaction[R](f: (Transaction) => R): R = ???
+        override def transaction(owner: ZoomOwner): Transaction = ???
+        override def tryTransaction[R](owner: ZoomOwner)(f: (Transaction) => R): R = ???
         override def get[T](clazz: Class[T], id: Any): Future[T] = ???
         override def exists(clazz: Class[_], id: Any): Future[Boolean] = ???
         override def getAll[T](clazz: Class[T], ids: Seq[_ <: Any]): Future[Seq[T]] = ???

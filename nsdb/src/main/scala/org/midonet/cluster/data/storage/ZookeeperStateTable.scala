@@ -135,7 +135,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
 
             val list = new ListBuffer[(Key, TxOp)]
             for ((Key(clazz, id), txOp) <- ops) txOp match {
-                case TxCreate(_) if objectTables(clazz).nonEmpty =>
+                case TxCreate(_,_) if objectTables(clazz).nonEmpty =>
                     val objPath = tablesObjectPath(clazz, id)
                     if (!nodeExists(objPath)) {
                         list += Key(null, objPath) -> TxCreateNode()
@@ -162,7 +162,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths
         protected def deleteStateTables(): Unit = {
             executorService.submit(makeRunnable {
                 for ((Key(clazz, id), txOp) <- ops) txOp match {
-                    case TxDelete(_) =>
+                    case TxDelete(_,_) =>
                         val path = tablesObjectPath(clazz, id)
                         try {
                             ZKPaths.deleteChildren(

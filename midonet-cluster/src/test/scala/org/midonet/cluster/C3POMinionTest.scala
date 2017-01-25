@@ -34,6 +34,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.neutron.NeutronResourceType
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, BgpPeer => BgpPeerType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateTableStorage, Storage}
@@ -99,7 +100,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                    json: JsonNode, rsrcId: UUID): Unit = {
         val op = Create(NeutronDeserializer.toMessage(json.toString,
                                                       rsrcType.clazz))
-        storage.tryTransaction { tx =>
+        storage.tryTransaction(ZoomOwner.None) { tx =>
             manager.translate(tx, op)
         }
     }
@@ -109,7 +110,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                    json: JsonNode, rsrcId: UUID): Unit = {
         val op = Update(NeutronDeserializer.toMessage(json.toString,
                                                       rsrcType.clazz))
-        storage.tryTransaction { tx =>
+        storage.tryTransaction(ZoomOwner.None) { tx =>
             manager.translate(tx, op)
         }
     }
@@ -118,7 +119,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                    rsrcType: NeutronResourceType[_ <: Message],
                                    rsrcId: UUID): Unit = {
         val op = Delete(rsrcType.clazz, rsrcId)
-        storage.tryTransaction { tx =>
+        storage.tryTransaction(ZoomOwner.None) { tx =>
             manager.translate(tx, op)
         }
     }
