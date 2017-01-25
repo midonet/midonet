@@ -428,6 +428,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     }
 
     override def build(): Unit = {
+        Log.info(s"Initializing NSDB version ${Storage.ProductVersion}:" +
+                 s"${Storage.ProductCommit}")
+
         ensureClassNodes()
         super.build()
     }

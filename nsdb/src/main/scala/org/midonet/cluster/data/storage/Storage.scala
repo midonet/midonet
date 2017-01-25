@@ -15,12 +15,16 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.Properties
+
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
 
 import com.google.common.collect.{ArrayListMultimap, Multimap, Multimaps}
 import com.google.protobuf.Message
+
+import org.apache.commons.lang.StringUtils
 
 import rx.Observable
 
@@ -126,6 +130,71 @@ class StorageException(val msg: String, val cause: Throwable)
     def this(cause: Throwable) {
         this("", cause)
     }
+}
+
+object Storage {
+
+    type ClassesMap = Map[Class[_], ClassInfo]
+    type BindingsMap = Multimap[Class[_], FieldBinding]
+
+    final val ProductVersion = productVersion
+    final val ProductCommit = productCommit
+
+    abstract class ClassInfo(val clazz: Class[_]) {
+        def idOf(obj: Obj): ObjId
+    }
+
+    private[storage] final class MessageClassInfo(clazz: Class[_])
+        extends ClassInfo(clazz) {
+
+        private val idFieldDesc =
+            ProtoFieldBinding.getMessageField(clazz, FieldBinding.ID_FIELD)
+
+        def idOf(obj: Obj) = obj.asInstanceOf[Message].getField(idFieldDesc)
+    }
+
+    private[storage] final class JavaClassInfo(clazz: Class[_])
+        extends ClassInfo(clazz) {
+
+        private val idField = clazz.getDeclaredField(FieldBinding.ID_FIELD)
+
+        idField.setAccessible(true)
+
+        def idOf(obj: Obj) = idField.get(obj)
+    }
+
+    @throws[IllegalArgumentException]
+    private def makeInfo(clazz: Class[_]): ClassInfo = {
+        try {
+            if (classOf[Message].isAssignableFrom(clazz)) {
+                new MessageClassInfo(clazz)
+            } else {
+                new JavaClassInfo(clazz)
+            }
+        } catch {
+            case NonFatal(e) =>
+                throw new IllegalArgumentException(
+                    s"Class $clazz does not have a field named 'id', or the " +
+                    "field could not be made accessible.", e)
+        }
+    }
+
+    private def productVersion: String = {
+        StringUtils.defaultIfEmpty(getClass.getPackage.getImplementationVersion,
+                                   StringUtils.EMPTY)
+    }
+
+    private def productCommit: String = {
+        val gitStream =
+            getClass.getClassLoader.getResourceAsStream("git.properties")
+        if (gitStream ne null) {
+            val properties = new Properties()
+            properties.load(gitStream)
+            StringUtils.defaultIfEmpty(properties.getProperty("git.commit.id"),
+                                       StringUtils.EMPTY)
+        } else StringUtils.EMPTY
+    }
+
 }
 
 /**
