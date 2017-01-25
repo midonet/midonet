@@ -15,8 +15,10 @@
  */
 package org.midonet.util.process;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -44,12 +46,21 @@ public class MonitoredDaemonProcess extends AbstractService {
     final private Consumer<Exception> exitAction;
     final protected UnixClock clock = UnixClock$.MODULE$.apply();
     final private LinkedList<Long> startEvents;
+    final private Map<String, String> envVars;
 
     volatile protected Process process;
 
     public MonitoredDaemonProcess(String cmd, Logger log, String prefix,
                                   int retriesPerPeriod, long period,
                                   Consumer<Exception> exitAction) {
+        this(cmd, log, prefix, retriesPerPeriod, period, exitAction,
+             Collections.emptyMap());
+    }
+
+    public MonitoredDaemonProcess(String cmd, Logger log, String prefix,
+                                  int retriesPerPeriod, long period,
+                                  Consumer<Exception> exitAction,
+                                  Map<String, String> envVars) {
         this.cmd = cmd;
         this.log = log;
         this.prefix = prefix;
@@ -57,6 +68,7 @@ public class MonitoredDaemonProcess extends AbstractService {
         this.period = period;
         this.exitAction = exitAction;
         this.startEvents = new LinkedList<>();
+        this.envVars = envVars;
     }
 
     @Override
@@ -90,8 +102,10 @@ public class MonitoredDaemonProcess extends AbstractService {
 
     @VisibleForTesting
     protected void createProcess() {
-        process = ProcessHelper.newDaemonProcess(cmd, log, prefix)
+        process = ProcessHelper
+            .newDaemonProcess(cmd, log, prefix)
             .addExitHandler(exitHandler)
+            .setEnvVariables(envVars)
             .run();
         log.info("Process ``{}`` starting with pid {} at time {}",
                  cmd, ProcessHelper.getProcessPid(process), clock.time());
