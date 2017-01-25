@@ -28,6 +28,7 @@ import scala.util.control.NonFatal
 
 import akka.actor._
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
@@ -125,7 +126,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                                      rethrowException: Boolean = false)
     : Unit = {
         try {
-            store.tryTransaction { tx =>
+            store.tryTransaction(ZoomOwner.AgentHaProxy) { tx =>
                 val pool = tx.get(classOf[Pool], poolId)
                 tx.update(pool.toBuilder.setMappingStatus(status).build())
             }
@@ -177,7 +178,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
                     // The vip may have changed. If so, we need to change the
                     // routes on the router.
-                    store.tryTransaction { tx =>
+                    store.tryTransaction(ZoomOwner.AgentHaProxy) { tx =>
                         if (config.vip != conf.vip) {
                             if (routeId != null) {
                                 tx.delete(classOf[Route], routeId, ignoresNeo = true)
@@ -256,7 +257,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     protected def setMembersStatus(activeMemberIds: Set[UUID],
                                    inactiveMemberIds: Set[UUID]):Unit = {
 
-        store.tryTransaction { tx =>
+        store.tryTransaction(ZoomOwner.AgentHaProxy) { tx =>
             val upMembers = tx
                 .getAll(classOf[PoolMember], activeMemberIds.toSeq)
             for (activeMember <- upMembers) {
@@ -474,7 +475,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     def hookNamespaceToRouter(): Unit = {
         if (routerId == null)
             return
-        store.tryTransaction { tx =>
+        store.tryTransaction(ZoomOwner.AgentHaProxy) { tx =>
             val host = tx.get(classOf[Host], toProto(hostId))
             val ports = tx.getAll(classOf[Port], host.getPortIdsList)
 
@@ -506,7 +507,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     def unhookNamespaceFromRouter():Unit = {
         if (routerPortId != null) {
             // This should delete the route also
-            store.tryTransaction { tx =>
+            store.tryTransaction(ZoomOwner.AgentHaProxy) { tx =>
                 tx.delete(classOf[Port], routerPortId, ignoresNeo = true)
             }
 

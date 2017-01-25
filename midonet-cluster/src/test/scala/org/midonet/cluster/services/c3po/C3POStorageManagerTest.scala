@@ -22,13 +22,14 @@ import com.google.protobuf.Message
 
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
-import org.mockito.Matchers.{anyObject, argThat, eq => mockEq, notNull}
+import org.mockito.Matchers.{anyObject, argThat, notNull, eq => mockEq}
 import org.mockito.Mockito._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 
 import org.midonet.cluster.ClusterConfig
-import org.midonet.cluster.data.storage.{PersistenceOp, Storage, StorageException, Transaction => ZoomTransaction, UpdateValidator}
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
+import org.midonet.cluster.data.storage.{PersistenceOp, Storage, StorageException, UpdateValidator, Transaction => ZoomTransaction}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute}
 import org.midonet.cluster.models.Topology.{Network, Port}
@@ -91,7 +92,8 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     override def beforeEach() = {
         storage = mock(classOf[Storage])
         transaction = mock(classOf[ZoomTransaction])
-        when(storage.transaction()).thenReturn(transaction)
+        when(storage.transaction(ZoomOwner.ClusterNeutron))
+            .thenReturn(transaction)
         when(storage.get(classOf[C3POState], C3POState.ID))
             .thenReturn(Future.successful(C3POState.at(2)))
 

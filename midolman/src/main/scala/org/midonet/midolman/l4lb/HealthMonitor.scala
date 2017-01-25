@@ -32,6 +32,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.{Logger, LoggerFactory}
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
@@ -232,7 +233,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
     private def setPoolMappingStatus(poolId: UUID, status: PoolHMMappingStatus)
     : Unit = {
         try {
-            store.tryTransaction { tx =>
+            store.tryTransaction(ZoomOwner.AgentHaProxy) { tx =>
                 val pool = tx.get(classOf[Pool], poolId)
                 tx.update(pool.toBuilder.setMappingStatus(status).build())
             }

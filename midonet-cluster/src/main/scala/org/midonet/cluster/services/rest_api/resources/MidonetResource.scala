@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory.getLogger
 import org.midonet.cluster._
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse
 import org.midonet.cluster.rest_api._
@@ -404,7 +405,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def tryTx(f: (ResourceTransaction) => Response): Response = {
         try {
-            store.tryTransaction { tx =>
+            store.tryTransaction(ZoomOwner.ClusterApi) { tx =>
                 f(new ResourceTransaction(tx))
             }
         } catch {

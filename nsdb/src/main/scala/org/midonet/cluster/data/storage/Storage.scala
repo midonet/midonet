@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils
 
 import rx.Observable
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.Storage.{BindingsMap, ClassInfo, ClassesMap}
 import org.midonet.cluster.data.{Obj, ObjId}
@@ -271,7 +272,7 @@ trait Storage extends ReadOnlyStorage {
      * completed or that the transaction will fail with a
      * [[java.util.ConcurrentModificationException]].
      */
-    def transaction(): Transaction
+    def transaction(owner: ZoomOwner = ZoomOwner.None): Transaction
 
     /**
      * Provide an Observable that emits updates to the specified object
@@ -321,7 +322,7 @@ trait Storage extends ReadOnlyStorage {
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
     @throws[StorageException]
-    def tryTransaction[R](f: (Transaction) => R): R
+    def tryTransaction[R](owner: ZoomOwner)(f: (Transaction) => R): R
 
     /**
       * Registers a new object class in storage.
