@@ -25,8 +25,8 @@ import org.midonet.cluster.data.{getIdString, ObjId}
 class InternalObjectMapperException private[storage](message: String,
                                                      cause: Throwable)
     extends StorageException(message, cause) {
-    private[storage] def this(cause: Throwable) = this(null, cause)
-    private[storage] def this(msg: String) = this(msg, null)
+    def this(cause: Throwable) = this(null, cause)
+    def this(msg: String) = this(msg, null)
 }
 
 /**

@@ -23,6 +23,7 @@ import scala.collection.mutable.ArrayBuffer
 
 import rx.Observable
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomChange
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.Storage.{BindingsMap, ClassesMap}
@@ -36,9 +37,9 @@ object TransactionManager {
 
     sealed trait TxOp
     sealed trait TxNodeOp extends TxOp
-    case class TxCreate(obj: Obj) extends TxOp
-    case class TxUpdate(obj: Obj, version: Int) extends TxOp
-    case class TxDelete(version: Int) extends TxOp
+    case class TxCreate(obj: Obj, change: Int) extends TxOp
+    case class TxUpdate(obj: Obj, version: Int, change: Int) extends TxOp
+    case class TxDelete(version: Int, change: Int) extends TxOp
     case class TxCreateNode(value: String = null) extends TxNodeOp
     case class TxUpdateNode(value: String = null) extends TxNodeOp
     case object TxDeleteNode extends TxNodeOp
@@ -71,7 +72,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
     // modifications are applied to the cached copies, until the commit. If,
     // because of a concurrent modification, any of the cached objects become
     // out-of-date, the transaction will fail.
-    private val objCache = new mutable.HashMap[Key, Option[ObjSnapshot]]()
+    private val cache = new mutable.HashMap[Key, Option[ObjSnapshot]]()
     // This is an ordered map of all operations to be applied to ZooKeeper by
     // this transaction. Each operation specified by the user will update the
     // list of operations in this list, such that there will only be a single
@@ -135,14 +136,16 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
     @throws[InternalObjectMapperException]
     @throws[ConcurrentModificationException]
     private def cachedGet(clazz: Class[_], id: ObjId): Option[ObjSnapshot] = {
-        objCache.getOrElseUpdate(getKey(clazz, id),
-                                 Some(getSnapshot(clazz, id).toBlocking.first()))
+        val key = getKey(clazz, id)
+        cache.getOrElseUpdate(key, {
+            Some(getSnapshot(clazz, id).toBlocking.first())
+        })
     }
 
     private def getObjectId(obj: Obj) = classes(obj.getClass).idOf(obj)
 
     private def isDeleted(key: Key): Boolean = ops.get(key) match {
-        case Some(TxDelete(_)) => true
+        case Some(TxDelete(_,_)) => true
         case _ => false
     }
 
@@ -160,7 +163,8 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
             val updatedThatObj =
                 bdg.addBackReference(snapshot.obj, thatId, thisId)
             updateCacheAndOp(bdg.getReferencedClass, thatId,
-                             updatedThatObj.asInstanceOf[Obj])
+                             updatedThatObj.asInstanceOf[Obj],
+                             ZoomChange.BackReference)
         }
     }
 
@@ -176,7 +180,8 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
         cachedGet(bdg.getReferencedClass, thatId).foreach { snapshot =>
             val updatedThatObj = bdg.clearBackReference(snapshot.obj, thisId)
             updateCacheAndOp(bdg.getReferencedClass, thatId,
-                             updatedThatObj.asInstanceOf[Obj])
+                             updatedThatObj.asInstanceOf[Obj],
+                             ZoomChange.BackReference)
         }
     }
 
@@ -219,7 +224,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
       */
     @throws[ConcurrentModificationException]
     override def exists(clazz: Class[_], id: ObjId): Boolean = {
-        objCache.getOrElseUpdate(getKey(clazz, id), {
+        cache.getOrElseUpdate(getKey(clazz, id), {
             try Some(getSnapshot(clazz, id).toBlocking.first())
             catch { case e: NotFoundException => None }
         }).isDefined
@@ -237,19 +242,19 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
         val thisId = getObjectId(obj)
         val key = getKey(obj.getClass, thisId)
 
-        val current = objCache.get(key)
+        val current = cache.get(key)
         if (current.nonEmpty && current.get.nonEmpty) {
             throw new ObjectExistsException(key.clazz, key.id)
         }
 
-        objCache(key) = ops.get(key) match {
+        cache(key) = ops.get(key) match {
             case None =>
                 // No previous op: add a TxCreate
-                ops += key -> TxCreate(obj)
+                ops += key -> TxCreate(obj, ZoomChange.Data.id)
                 Some(ObjSnapshot(obj, NewObjectVersion))
-            case Some(TxDelete(ver)) =>
+            case Some(TxDelete(ver, change)) =>
                 // Previous delete: add a TxUpdate with new object
-                ops(key) = TxUpdate(obj, ver)
+                ops(key) = TxUpdate(obj, ver, change | ZoomChange.Data.id)
                 Some(ObjSnapshot(obj, ver))
             case Some(_) =>
                 throw new ObjectExistsException(key.clazz, key.id)
@@ -297,17 +302,19 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
                 addBackreference(binding, thisId, addedThatId)
         }
 
-        updateCacheAndOp(clazz, thisId, snapshot, newThisObj)
+        updateCacheAndOp(clazz, thisId, snapshot, newThisObj,
+                         ZoomChange.Data)
     }
 
     /**
      * Updates the cached object with the specified object.
      */
-    private def updateCacheAndOp(clazz: Class[_], id: ObjId, obj: Obj)
+    private def updateCacheAndOp(clazz: Class[_], id: ObjId, obj: Obj,
+                                 change: ZoomChange.Value)
     : Unit = {
         val snapshot = cachedGet(clazz, id).getOrElse(
             throw new NotFoundException(clazz, id))
-        updateCacheAndOp(clazz, id, snapshot, obj)
+        updateCacheAndOp(clazz, id, snapshot, obj, change)
     }
 
     /**
@@ -315,23 +322,24 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
      * method requires the current object snapshot.
      */
     private def updateCacheAndOp(clazz: Class[_], id: ObjId,
-                                 snapshot: ObjSnapshot, obj: Obj): Unit = {
+                                 snapshot: ObjSnapshot, obj: Obj,
+                                 change: ZoomChange.Value): Unit = {
         val key = getKey(clazz, id)
 
         ops.get(key) match {
             case None =>
                 // No previous op: add a TxUpdate with new object
-                ops += key -> TxUpdate(obj, snapshot.version)
-            case Some(TxCreate(_)) =>
+                ops += key -> TxUpdate(obj, snapshot.version, change.id)
+            case Some(TxCreate(_, c)) =>
                 // Previous create: add a TxCreate with new object
-                ops(key) = TxCreate(obj)
-            case Some(TxUpdate(_,_)) =>
+                ops(key) = TxCreate(obj, c | change.id)
+            case Some(TxUpdate(_,_, c)) =>
                 // Previous update: add a TxUpdate with new object
-                ops(key) = TxUpdate(obj, snapshot.version)
+                ops(key) = TxUpdate(obj, snapshot.version, c | change.id)
             case Some(_) =>
                 throw new NotFoundException(key.clazz, key.id)
         }
-        objCache(key) = Some(ObjSnapshot(obj, snapshot.version))
+        cache(key) = Some(ObjSnapshot(obj, snapshot.version))
     }
 
     /* If ignoresNeo (ignores deletion on non-existing objects) is true,
@@ -366,21 +374,21 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
         ops.get(key) match {
             case None =>
                 // No previous op: add a TxDelete
-                ops += key -> TxDelete(thisVersion)
-            case Some(TxCreate(_)) =>
+                ops += key -> TxDelete(thisVersion, ZoomChange.Data.id)
+            case Some(TxCreate(_,_)) =>
                 // Previous create: remove the op
                 ops -= key
-            case Some(TxUpdate(_, ver)) =>
+            case Some(TxUpdate(_, ver, change)) =>
                 // Previous update: add a TxDelete
-                ops(key) = TxDelete(ver)
+                ops(key) = TxDelete(ver, change | ZoomChange.Data.id)
             case Some(op) =>
                 throw new InternalObjectMapperException(
                     s"Unexpected op $op for delete", null)
         }
-        objCache(key) = None
+        cache(key) = None
 
             // Do not remove bindings if the object was not deleted
-        if (objCache(key).isDefined) {
+        if (cache(key).isDefined) {
             return
         }
 

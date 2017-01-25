@@ -18,18 +18,17 @@ package org.midonet.cluster.data.storage
 import scala.concurrent.Future
 
 import com.codahale.metrics.MetricRegistry
-import com.typesafe.config.ConfigFactory
 
 import org.apache.zookeeper.KeeperException
 import org.scalatest.Suite
 
 import rx.Observable
 
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId}
-import org.midonet.cluster.models.Topology.{Chain, Network, Port, Router, Rule}
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.MidonetBackendTest
 
 /**
@@ -133,12 +132,12 @@ trait ZoomStorageTester extends StorageTester
         zoom.multi(ops)
     }
 
-    override def transaction(): Transaction = {
-        zoom.transaction()
+    override def transaction(owner: ZoomOwner): Transaction = {
+        zoom.transaction(owner)
     }
 
-    override def tryTransaction[R](f: (Transaction) => R): R = {
-        zoom.tryTransaction(f)
+    override def tryTransaction[R](owner: ZoomOwner)(f: (Transaction) => R): R = {
+        zoom.tryTransaction(owner)(f)
     }
 
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {

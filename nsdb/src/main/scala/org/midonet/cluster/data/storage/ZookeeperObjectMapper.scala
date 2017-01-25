@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.collection.breakOut
+import scala.collection.{breakOut, mutable}
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.{Future, Promise}
 import scala.util.control.NonFatal
@@ -47,7 +47,7 @@ import rx.{Notification, Observable, Subscriber}
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.data.storage.TransactionManager._
-import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, deserializerOf, serialize}
+import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, deserializerOf, serialize, serializeProvenance}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId, getIdString}
 import org.midonet.cluster.services.state.client.StateTableClient
@@ -191,7 +191,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
      * added. Since updates are not incremental, the first backreference will
      * be lost.
      */
-    private class ZoomTransactionManager
+    private class ZoomTransactionManager(owner: ZoomOwner)
             extends TransactionManager(objectClasses, bindings)
             with StateTableTransactionManager {
 
@@ -213,11 +213,11 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 "Could not acquire current zxid.", ex)
         }
 
-        override def assertRegistered(clazz: Class[_]): Unit = {
+        protected override def assertRegistered(clazz: Class[_]): Unit = {
             ZookeeperObjectMapper.this.assertRegistered(clazz)
         }
 
-        override def getSnapshot(clazz: Class[_], id: ObjId)
+        protected override def getSnapshot(clazz: Class[_], id: ObjId)
         : Observable[ObjSnapshot] = {
             val path = objectPath(clazz, id)
 
@@ -244,7 +244,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             } dematerialize()
         }
 
-        override def getIds(clazz: Class[_]): Observable[Seq[ObjId]] = {
+        protected override def getIds(clazz: Class[_]): Observable[Seq[ObjId]] = {
             val path = classPath(clazz)
 
             asObservable {
@@ -269,32 +269,59 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         @throws[StorageNodeNotFoundException]
         override def commit(): Unit = {
             val ops = flattenOps ++ createStateTableOps
-            var txn =
+            val txn =
                 curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
 
-            for ((Key(clazz, id), txOp) <- ops) txn = txOp match {
-                case TxCreate(obj) =>
-                    val path = objectPath(clazz, id)
+            for ((key, txOp) <- ops) txOp match {
+                case TxCreate(obj, change) =>
+                    var path = objectPath(key.clazz, key.id)
                     Log.debug(s"Create: $path")
-                    txn.create.forPath(path, serialize(obj)).and
-                case TxUpdate(obj, ver) =>
-                    val path = objectPath(clazz, id)
+                    txn.create.forPath(path, serialize(obj))
+
+                    path = objectPath2(key.clazz, key.id)
+                    Log.debug(s"Create: $path")
+                    txn.create.forPath(path)
+
+                    path = objectProvenancePath(key.clazz, key.id)
+                    Log.debug(s"Create: $path")
+                    txn.create.forPath(path)
+
+                    path = objectOwnerPath(key.clazz, key.id, owner)
+                    Log.debug(s"Create $path")
+                    txn.create.forPath(path, serializeProvenance(owner, change))
+                case TxUpdate(obj, ver, change) =>
+                    var path = objectPath(key.clazz, key.id)
                     Log.debug(s"Update ($ver): $path")
-                    txn.setData().withVersion(ver)
-                        .forPath(path, serialize(obj)).and
-                case TxDelete(ver) =>
-                    val path = objectPath(clazz, id)
+                    txn.setData().withVersion(ver).forPath(path, serialize(obj))
+
+                    path = objectOwnerPath(key.clazz, key.id, owner)
+                    if (curator.checkExists.forPath(path) eq null) {
+                        Log.debug(s"Create: $path")
+                        txn.setData().forPath(path, serializeProvenance(owner, change))
+                    } else {
+                        Log.debug(s"Update: $path")
+                        txn.setData().forPath(path, serializeProvenance(owner, change))
+                    }
+                case TxDelete(ver, change) =>
+                    val path = objectPath(key.clazz, key.id)
                     Log.debug(s"Delete ($ver): $path")
-                    txn.delete.withVersion(ver).forPath(path).and
+                    txn.delete.withVersion(ver).forPath(path)
+
+                    // TODO: Maybe this can be done asynchronously if the
+                    // TODO: transaction succeeds.
+                    for (path <- descendantsOf(objectPath2(key.clazz, key.id))) {
+                        Log.debug(s"Delete: $path")
+                        txn.delete().forPath(path)
+                    }
                 case TxCreateNode(value) =>
-                    Log.debug(s"Create node: $id")
-                    txn.create.forPath(id, asBytes(value)).and
+                    Log.debug(s"Create node: ${key.id}")
+                    txn.create.forPath(key.id, asBytes(value))
                 case TxUpdateNode(value) =>
-                    Log.debug(s"Update node: $id")
-                    txn.setData().forPath(id, asBytes(value)).and
+                    Log.debug(s"Update node: ${key.id}")
+                    txn.setData().forPath(key.id, asBytes(value))
                 case TxDeleteNode =>
-                    Log.debug(s"Delete node: $id")
-                    txn.delete.forPath(id).and
+                    Log.debug(s"Delete node: ${key.id}")
+                    txn.delete.forPath(key.id)
                 case TxNodeExists =>
                     throw new InternalObjectMapperException(
                         "TxNodeExists should have been filtered by flattenOps.")
@@ -322,7 +349,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             deleteStateTables()
         }
 
-        override protected def nodeExists(path: String): Boolean = {
+        protected override def nodeExists(path: String): Boolean = {
             val stat = curator.checkExists.forPath(path)
             if ((stat ne null) && stat.getMzxid > zxid) {
                 throw new ConcurrentModificationException(
@@ -331,7 +358,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
             stat ne null
         }
 
-        override protected def childrenOf(path: String): Seq[String] = {
+        protected override def childrenOf(path: String): Seq[String] = {
             val prefix = if (path == "/") path else path + "/"
             try {
                 curator.getChildren.forPath(path).asScala.map(prefix + _)
@@ -350,6 +377,20 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 case NonFatal(e) =>
                     Log.warn(s"Delete transaction lock node $lockPath failed", e)
             }
+        }
+
+        /**
+          * Gets the descendants for the specified path in post-order
+          * traversal to facilitate deletion.
+          */
+        private def descendantsOf(path: String): Seq[String] = {
+            val children = childrenOf(path)
+            val descendants = new mutable.MutableList[String]
+            for (child <- children) {
+                descendants ++= descendantsOf(child)
+            }
+            descendants += path
+            descendants
         }
 
         /** Get a string as bytes, or null if the string is null. */
@@ -665,7 +706,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         assertBuilt()
         if (ops.isEmpty) return
 
-        val manager = new ZoomTransactionManager
+        val manager = new ZoomTransactionManager(ZoomOwner.None)
         try {
             ops.foreach {
                 case CreateOp(obj) =>
@@ -699,9 +740,9 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
       * [[java.util.ConcurrentModificationException]].
       */
     @throws[ServiceUnavailableException]
-    override def transaction(): Transaction = {
+    override def transaction(owner: ZoomOwner): Transaction = {
         assertBuilt()
-        new ZoomTransactionManager
+        new ZoomTransactionManager(owner)
     }
 
     /**
@@ -802,14 +843,14 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
     @throws[StorageException]
-    override def tryTransaction[R](f: (Transaction) => R): R = {
+    override def tryTransaction[R](owner: ZoomOwner)(f: (Transaction) => R): R = {
         val lock =
             if (!lockFree) new InterProcessSemaphoreMutex(curator, topologyLockPath)
             else null
         if ((lock eq null) ||
             lock.acquire(config.lockTimeoutMs, TimeUnit.MILLISECONDS)) {
             try TransactionRetriable.retry(Log, "Transaction") {
-                val tx = transaction()
+                val tx = transaction(owner)
                 try {
                     val result = f(tx)
                     tx.commit()

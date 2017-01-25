@@ -26,7 +26,6 @@ import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.protobuf.{Message, TextFormat}
 
-import org.apache.commons.lang.StringUtils
 import org.apache.curator.framework.recipes.cache.ChildData
 
 import rx.Notification

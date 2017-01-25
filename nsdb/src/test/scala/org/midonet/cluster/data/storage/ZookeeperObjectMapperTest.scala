@@ -759,7 +759,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             val bridge = createPojoBridge()
 
             When("Executing a transaction")
-            storage.tryTransaction { tx =>
+            storage.tryTransaction(ZoomOwner.None) { tx =>
                 tx.create(bridge)
             }
 
@@ -778,7 +778,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             And("The ten modifying threads")
             val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
                 override def run(): Unit = {
-                    storage.tryTransaction { tx =>
+                    storage.tryTransaction(ZoomOwner.None) { tx =>
                         val b = tx.get(classOf[PojoBridge], bridge.id)
                         Thread.sleep(50)
                         val i = Integer.parseInt(b.name) + 1
@@ -810,7 +810,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             And("The ten modifying threads")
             val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
                 override def run(): Unit = {
-                    storage.tryTransaction { tx =>
+                    storage.tryTransaction(ZoomOwner.None) { tx =>
                         try {
                             Thread.sleep(50 * index)
                             // The following tx.get causes
@@ -859,7 +859,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             And("The ten modifying threads")
             val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
                 override def run(): Unit = {
-                    storage.tryTransaction { tx =>
+                    storage.tryTransaction(ZoomOwner.None) { tx =>
                         val b = tx.get(classOf[PojoBridge], bridge.id)
                         val i = Integer.parseInt(b.name) + 1
                         b.name = i.toString
