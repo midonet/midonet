@@ -16,7 +16,7 @@
 
 package org.midonet.midolman
 
-import java.util.ArrayList
+import java.util.{ArrayDeque, ArrayList}
 
 import org.jctools.queues.SpscArrayQueue
 
@@ -26,6 +26,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.midolman.flows.{FlowIndexer, FlowTagIndexer, _}
+import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -43,6 +44,70 @@ object FlowController {
     private[midolman] val IndexMask = (1 << IndexShift) - 1
 }
 
+
+class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
+    import FlowController._
+
+    override def logSource: String = "org.midonet.midolman.prealloc"
+
+    private val indexToFlows = new ArrayList[Array[ManagedFlow]](
+        config.simulationThreads)
+    private val managedFlowPools = new ArrayList[ArrayObjectPool[ManagedFlow]](
+        config.simulationThreads)
+    private val meterRegistries = new ArrayList[MeterRegistry](
+        config.simulationThreads)
+
+    private val errorExpirationQueues = new ArrayList[ArrayDeque[ManagedFlow]](
+        config.simulationThreads)
+    private val flowExpirationQueues = new ArrayList[ArrayDeque[ManagedFlow]](
+        config.simulationThreads)
+    private val statefulFlowExpirationQueues =
+        new ArrayList[ArrayDeque[ManagedFlow]](config.simulationThreads)
+    private val tunnelFlowExpirationQueues =
+        new ArrayList[ArrayDeque[ManagedFlow]](config.simulationThreads)
+
+    val maxFlows = Math.min(
+        ((config.datapath.maxFlowCount /
+              config.simulationThreads) * 1.2).toInt,
+        (1 << IndexShift) - 1)
+
+    def allocateAndTenure() {
+        var i = 0
+        val indexToFlowsSize = Util.findNextPositivePowerOfTwo(maxFlows)
+        log.info("Preallocating flow table structures, max flows = "
+                     + s"${config.datapath.maxFlowCount}, worker threads = "
+                     + s"${config.simulationThreads}")
+        while (i < config.simulationThreads) {
+            indexToFlows.add(new Array[ManagedFlow](indexToFlowsSize))
+            managedFlowPools.add(new ArrayObjectPool[ManagedFlow](
+                                     maxFlows, new ManagedFlow(_)))
+            meterRegistries.add(new MeterRegistry(maxFlows))
+
+            errorExpirationQueues.add(new ArrayDeque(maxFlows/3))
+            flowExpirationQueues.add(new ArrayDeque(maxFlows))
+            statefulFlowExpirationQueues.add(new ArrayDeque(maxFlows))
+            tunnelFlowExpirationQueues.add(new ArrayDeque(maxFlows/3))
+
+            i += 1
+        }
+        log.info("Running manual GC to tenure pre-allocated objects")
+        System.gc()
+    }
+
+    def takeIndexToFlow(): Array[ManagedFlow] = indexToFlows.remove(0)
+    def takeManagedFlowPool(): ArrayObjectPool[ManagedFlow] =
+        managedFlowPools.remove(0)
+    def takeMeterRegistry(): MeterRegistry = meterRegistries.remove(0)
+    def takeErrorExpirationQueue(): ArrayDeque[ManagedFlow] =
+        errorExpirationQueues.remove(0)
+    def takeFlowExpirationQueue(): ArrayDeque[ManagedFlow] =
+        flowExpirationQueues.remove(0)
+    def takeStatefulFlowExpirationQueue(): ArrayDeque[ManagedFlow] =
+        statefulFlowExpirationQueues.remove(0)
+    def takeTunnelFlowExpirationQueue(): ArrayDeque[ManagedFlow] =
+        tunnelFlowExpirationQueues.remove(0)
+}
+
 trait FlowController extends FlowIndexer with FlowTagIndexer
                      with FlowExpirationIndexer with DisruptorBackChannel {
     import FlowController._
@@ -54,21 +119,19 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     protected val workerId: Int
     val metrics: PacketPipelineMetrics
 
+    protected val preallocation: FlowTablePreallocation
+
     private var curIndex = -1
     private var numFlows = 0
 
-    protected val maxFlows = Math.min(
-        ((config.datapath.maxFlowCount / config.simulationThreads) * 1.2).toInt,
-        (1 << IndexShift) - 1)
-    private var indexToFlow = new Array[ManagedFlow](
-        Util.findNextPositivePowerOfTwo(maxFlows))
+    private var indexToFlow = preallocation.takeIndexToFlow()
     private var mask = indexToFlow.length - 1
 
-    val meters = new MeterRegistry(maxFlows)
+    val meters = preallocation.takeMeterRegistry()
     Metering.registerAsMXBean(meters)
 
-    private val managedFlowPool = new ArrayObjectPool[ManagedFlow](
-        maxFlows, new ManagedFlow(_))
+    private val managedFlowPool = preallocation.takeManagedFlowPool()
+
     private val oversubscriptionFlowPool = new NoOpPool[ManagedFlow](
         new ManagedFlow(_))
 

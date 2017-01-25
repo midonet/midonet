@@ -60,7 +60,8 @@ class MockMidolmanModule(override val hostId: UUID,
                          config: MidolmanConfig,
                          actorService: MidolmanActorsService)
         extends MidolmanModule(injector, config, new MetricRegistry,
-                               new Reflections("org.midonet")) {
+                               new Reflections("org.midonet"),
+                               new MockFlowTablePreallocation(config)) {
 
     val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
 
@@ -135,7 +136,8 @@ class MockMidolmanModule(override val hostId: UUID,
                                                       backend: MidonetBackend,
                                                       metricsRegistry: MetricRegistry,
                                                       counter: StatisticalCounter,
-                                                      actorSystem: ActorSystem)
+                                                      actorSystem: ActorSystem,
+                                                      preallocation: FlowTablePreallocation)
             : PacketWorkersService =
         new PacketWorkersService() {
             override def workers: IndexedSeq[PacketWorker] = IndexedSeq()
