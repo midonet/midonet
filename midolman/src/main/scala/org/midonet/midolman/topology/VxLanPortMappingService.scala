@@ -80,7 +80,7 @@ object VxLanPortMappingService {
 class VxLanPortMappingService(vt: VirtualTopology)
     extends AbstractService with MidolmanLogging {
 
-    override def logSource = "org.midonet.devices.vxgw-port-mapping"
+    override def logSource = "org.midonet.devices.vtep-port-mapping"
 
     private val store = vt.backend.store
     private val stateStore = vt.backend.stateStore
