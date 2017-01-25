@@ -33,7 +33,7 @@ import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslat
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.services.c3po.translators.PortTranslator._
 import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator._
-import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
+import org.midonet.cluster.services.c3po.translators.IPSecSiteConnectionTranslator._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.IPSubnetUtil.{fromAddress, AnyIPv4Subnet}
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
