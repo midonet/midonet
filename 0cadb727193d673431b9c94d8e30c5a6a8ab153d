@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_6c9a3565",
+        "filename": "midolman/src/main/scala/org/midonet/services/AgentServicesNode.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-25T10:50:26Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 159,
+        "startChar": 28,
+        "endLine": 159,
+        "endChar": 52
+      },
+      "revId": "0cadb727193d673431b9c94d8e30c5a6a8ab153d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_ac904d44",
+        "filename": "midolman/src/main/scala/org/midonet/services/AgentServicesNode.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-25T10:50:26Z",
+      "side": 1,
+      "message": "Can the return type be a Seq? Then you wouldn\u0027t need to convert to a List.",
+      "range": {
+        "startLine": 162,
+        "startChar": 31,
+        "endLine": 162,
+        "endChar": 38
+      },
+      "revId": "0cadb727193d673431b9c94d8e30c5a6a8ab153d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
