@@ -270,6 +270,140 @@ the following actions:
      uplink
 </pre>
 
+### Downlink Setup
+
+The IPv6 uplink has a corresponding IPv6 downlink which carries
+IPv6-to-IPv4 translated traffic back to OVS, and carries IPv4 traffic
+which needs translation to VPP. The packets traversing this path are
+VxLan encapsulated, with the VNI respresenting the tenant router for
+whom the translation is being done.
+
+The downlink consists of:
+
+* A veth pair
+  - One end is connected to VPP and assigned the address
+    169.254.124.1/30.
+  - The other end is assigned 169.254.124.2/30. It is _not_ attached
+    to OVS.
+
+* A vxlan tunnel port, created in OVS with UDP port 5231.
+
+<pre>
+      +-----------+
+      |           |
+      |  VPP      |
+      |        o downlink-vpp (169.254.124.1/30)
+      +--------|--+               userspace
+  -------------|-------------------------------
+               |                  kernel
+  udp   o      o downlink-tun (169.254.124.2/30)
+  5231  |
+      --|----------------
+      | o tunnel port   |
+      |                 |
+      |     OVS         |
+      -------------------
+</pre>
+
+### Example packet path
+
+In the following example:
+  * IP6 source is 3001::1/64
+  * IP6 dest is 2001::1/64
+  * IP4 source range is 100.64.0.0/10
+  * IP4 dest is 192.168.0.1
+  * Tenant VNI is 345
+  * Tenant VRF is 12
+  * eth0 is the uplink port on the gateway.
+  * Gateway underlay IP is 172.16.0.1
+  * Compute underlay IP is 172.16.0.2
+  * The 5231 tunnel port is port 7 in OVS
+
+#### Ingress packets
+
+1. A packet, **[IP6{src=3001::1,dst=2001::1}/Payload]** enters eth0.
+2. The packet enters OVS.
+  * OVS matches the packet against the ipv6 flow, forwards to VPP.
+3. The packet enters ip6 lookup node in VPP.
+  * The packet matches the fip64 adjacency in the fib, and is
+    forwarded to ip6-fip64.
+4. ip6-fip64 looks up 2001::1 in its translation list. Finds that it
+   belongs to the tenant with VRF 12
+  * ip6-fip64 allocates 100.64.0.1 from the IP4 source range.
+  * the packet is rewritten as
+    **[IP4{src=100.64.0.1,dst=192.168.0.1}/Payload]**.
+  * the TX vrf is set to 12.
+  * the packet is sent to ip4-lookup.
+5. ip4-lookup does a lookup for the packet in VRF 12.
+  * It finds an adjecency that sends the packet to a bridge domain
+    which contains a vxlan interface configured with tunnel 345.
+6. vxlan adds a vxlan header to the packet
+  * Packet now looks like
+    **[IP4{src=169.254.124.1,dst=169.254.124.2}/UDP{src=5231,dst=5231}/VXLan{VNI=345}/IP4{src=10.0.0.1,dst=192.168.0.1}/Payload]**.
+  * vxlan forwards the packet to ip4-lookup, with TX vrf set to 1
+7. ip4-lookup finds an adjacency for 169.254.124.2, since downlink-vpp
+   is on vrf 1
+  * the packet is sent via downlink-vpp.
+8. The packet appears at downlink-tun.
+  * the linux kernel sees that is a udp packet with dst port 5231.
+  * the kernel pushes the packet to the ovs tunnel port for 5231.
+9. OVS cannot match the packet to any flow.
+  * The packet is sent to the upcall handler.
+10. The midonet agent receives the packet.
+  * The flow match contains
+    TunnelKey{tunnelid=345, ip4src=169.254.124.1, ip4dst=169.254.124.2}.
+  * The agent uses the tunnelid to find the port on the tenant router
+    from which simulation should start.
+11. The agent starts simulation of the packet from the port.
+12. The rest of the simulation occurs as normal.
+
+### Egress packets
+
+1. Normal simulation has occurred to the point where the packet enters
+   the tenant router.
+  * The packet is currently
+    **[IP4{src=192.168.0.1,dst=10.0.0.1}/Payload]**.
+2. The packet matches the route for 100.64.0.0/10 and is sent to the
+   route's port.
+3. The port has a list of all gateway hosts with active ipv6 uplink
+   ports.
+  * It selects one of these gateways and forwards the packet there,
+    via a tunnel.
+  * The tunnel key used is the tenant router VNI.
+  * Packet is
+    **[IP4{src=172.16.124.2,dst=172.16.124.1}/UDP{src=6677,dst=6677}/VXLan{VNI=345}/IP4{src=192.168.0.1,dst=100.64.0.1}/Payload]**.
+  * 6677 is vxlan_overlay_udp_port in agent config.
+4. The packet arrives at the gateway host.
+  * It enters OVS through the vxlan overlay port.
+  * It doesn't match anything, so is sent to the upcall handler.
+5. The packet enters midolman.
+  * The flow match contains
+    TunnelKey{tunnelid=345,ip4src=172.16.0.2,ip4dst=172.16.0.1}.
+  * The agent knows from the tunnel key, that this is a packet for ip6
+    translation.
+6. The agent creates a flow to send the packet to VPP.
+  * The flow contains the actions
+    SetKey{TunnelKey{tunnelid=345,ip4src=169.254.124.2,ip4dst=169.254.124.1}}
+    & Output{Port=7}.
+  * The packet is executed with the same action.
+  * The packet now appears as:
+    **[IP4{src=169.254.124.2,dst=169.254.124.1}/UDP{src=5231,dst=5231}/VXLan{VNI=345}/IP4{src=192.168.0.1,dst=100.64.0.1}/Payload]**.
+7. The packet traverses the 5231 tunnel port and enters the kernel.
+  * The kernel forwards the packet to 169.254.124.1 via downlink-tun.
+  * The packets enters VPP.
+8. ip4-lookup sees this is a vxlan packet so forwards to vxlan.
+  * vxlan sees that the VNI is 345, so sets the TX vrf to 12.
+  * vxlan strips off the vxlan headers.
+  * The packet now looks like
+    **[IP4{src=192.168.0.1,dst=100.64.0.1}/Payload]**.
+  * vxlan forwards the packet to a bvi loopback device, which passes
+    it to ip4-lookup.
+9. ip4-lookup forwards the packet to ip4-fip64.
+10. ip4-fip64, using the vrf and packet parameters, translates the
+    packet to ip6.
+  * The packet now looks like **[IP6{src=2001::1,dst=3001::1}/Payload]**.
+  * The packet is sent out the uplink interface, eth0.
+
 ### State sharing
 Several uplink ports of the same PR might be attached to different
 VPPs. For resilent connection these VPPs must share the information
@@ -364,16 +498,14 @@ The related files in the forked VPP repository are:
 
 ## Midolman implementation
 
-A new actor is in charge of managing the Midonet VPP service, starting it under
+An actor is in charge of managing the Midonet VPP service. It is started on
 demand on notification on the creation of a router port with IPv6 (usually from
-a tenant router).
+the provider router).
 
-The following steps are done in that case:
+The following steps taken.
 
  1. Start the VPP process: to assure it runs from a known state, any other VPP
-    process (initiated or not by Midonet) are killed, so the listening port
-    (5002) is available for the new VPP process. So, having another VPP
-    instances in the same host is not recommended.
+    process (initiated or not by Midonet) are killed. This ensures that the listening port (5002) is available for the new VPP process. Having multiple VPP instances on the same host is not recommended.
  2. Link OVS and VPP with the uplink (a dedicated veth pair)
  3. Link VPP and midolman with the downlink (a dedicated veth pair).
  4. Install needed flows in OVS to redirect IPv6 traffic to VPP through the
@@ -383,9 +515,3 @@ Although not all of them used, there are utility methods to communicate to OVS
 in a more direct way, and utility methods to communicate with VPP using a Java
 interface.
 
-## Neutron integration
-
-Despite not done yet, the target is that the IPv6 FIP could be configured by
-using neutron command that will be forwarded by the Midonet Neutron plugin to
-the Midonet Cluster (API) that will translate to Midonet specific configuration
-data.
