@@ -759,7 +759,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             val bridge = createPojoBridge()
 
             When("Executing a transaction")
-            storage.tryTransaction { tx =>
+            storage.tryTransaction(ZoomOwner.None) { tx =>
                 tx.create(bridge)
             }
 
@@ -778,7 +778,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             And("The ten modifying threads")
             val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
                 override def run(): Unit = {
-                    storage.tryTransaction { tx =>
+                    storage.tryTransaction(ZoomOwner.None) { tx =>
                         val b = tx.get(classOf[PojoBridge], bridge.id)
                         Thread.sleep(50)
                         val i = Integer.parseInt(b.name) + 1
@@ -810,7 +810,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             And("The ten modifying threads")
             val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
                 override def run(): Unit = {
-                    storage.tryTransaction { tx =>
+                    storage.tryTransaction(ZoomOwner.None) { tx =>
                         try {
                             Thread.sleep(50 * index)
                             // The following tx.get causes
@@ -859,7 +859,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             And("The ten modifying threads")
             val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
                 override def run(): Unit = {
-                    storage.tryTransaction { tx =>
+                    storage.tryTransaction(ZoomOwner.None) { tx =>
                         val b = tx.get(classOf[PojoBridge], bridge.id)
                         val i = Integer.parseInt(b.name) + 1
                         b.name = i.toString
@@ -879,7 +879,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             b.name shouldBe "10"
         }
 
-        scenario("Storate creates the lock path") {
+        scenario("Storage creates the lock path") {
             Given("Storage does not have the lock path")
             curator.checkExists().forPath(zoom.topologyLockPath) shouldBe null
 
@@ -917,9 +917,23 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             zoom.create(bridge)
 
             Then("The model path exists")
-            val p =  zoom.objectPath(bridge.getClass, bridge.id)
             curator.checkExists().forPath(
                 zoom.objectPath(bridge.getClass, bridge.id)) should not be null
+        }
+    }
+
+    feature("Test provenance") {
+        scenario("Storage creates provenance nodes for new objects") {
+            Given("A bridge with owner")
+            val bridge = createPojoBridge(name = "0")
+            val owner = ZoomOwner.ClusterNeutron
+
+            When("Creating the bridge in storage")
+            zoom.tryTransaction(owner) { _.create(bridge) }
+
+            Then("The provenance node exists")
+            //curator.checkExists().forPath(
+            //    zoom.objectProvenancePath(bridge.getClass, bridge.id, owner)) should not be null
         }
     }
 }
