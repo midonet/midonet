@@ -238,10 +238,14 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     override def addRouterInterface(routerId: UUID, ri: RouterInterface)
     : RouterInterface = create[RouterInterface](ri)
 
-    // Since the ports are already deleted by the time this is called,
-    // there is nothing to do.  See NeutronPlugin for ref.
+    // When neutron router interface port contains several
+    // subnets, only some of them might be deleted from router interface with:
+    //    router-interface-delete <router_id> subnet=<subnet_id>
+    // If this is the case, we should just update the port without removing it.
+    // If whole port is deleted this call does nothing since all the work is done
+    // by port interface translator.
     override def removeRouterInterface(routerId: UUID, ri: RouterInterface)
-    : RouterInterface = ri
+    : RouterInterface = update[RouterInterface](ri)
 
     override def updateFloatingIp(id: UUID,
                                   floatingIp: FloatingIp): FloatingIp = {
