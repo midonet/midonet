@@ -118,7 +118,7 @@ object LinkOps {
                 case ip: IPv4Addr => addr.ipv4.add(ip)
                 case ip: IPv6Addr => addr.ipv6.add(ip)
             }
-            if( delete ) {
+            if (delete) {
                 protocol.prepareAddrDel(buf, addr)
             } else {
                 protocol.prepareAddrNew(buf, addr)
@@ -131,6 +131,26 @@ object LinkOps {
             if (mac ne null) {
 
             }
+        } finally {
+            channel.close()
+        }
+    }
+
+    def setMaster(link: Link, master: String): Unit = {
+        val (channel, protocol) = prepare()
+        try {
+            val buf = BytesUtil.instance.allocateDirect(2048)
+            val writer = new NetlinkBlockingWriter(channel)
+            val reader = new NetlinkReader(channel)
+
+            protocol.prepareLinkGet(buf, master)
+            writer.write(buf)
+            val dev = readLink(reader, buf)
+
+            buf.clear()
+            protocol.prepareLinkSetMaster(buf, link, dev.ifi.index)
+            writer.write(buf)
+            reader.read(buf) // in case there are errors
         } finally {
             channel.close()
         }

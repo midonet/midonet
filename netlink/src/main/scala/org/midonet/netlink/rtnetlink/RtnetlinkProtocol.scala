@@ -126,6 +126,14 @@ final class RtnetlinkProtocol(pid: Int) {
         message.finalize(pid)
     }
 
+    def prepareLinkSetMaster(buf: ByteBuffer, link: Link, masterIdx: Int)
+    : Unit = {
+        val message = messageFor(buf, Rtnetlink.Type.SETLINK)
+            .withFlags((NLFlag.REQUEST | NLFlag.ACK).toShort)
+        Link.describeSetMasterRequest(buf, link, masterIdx)
+        message.finalize(pid)
+    }
+
     def prepareLinkSet(buf: ByteBuffer, link: Link): Unit = {
         val message = messageFor(buf, Rtnetlink.Type.SETLINK)
             .withFlags(NLFlag.REQUEST)
