@@ -19,6 +19,8 @@ package org.midonet.cluster.data.storage
 import java.io.StringWriter
 import java.nio.charset.Charset
 
+import javax.annotation.Nullable
+
 import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
 
@@ -88,7 +90,7 @@ private[storage] object ZoomSerializer {
       * Serializes the provenance data for the a new object with the
       * specified owner and change identifier and data version.
       */
-    def createObject(owner: ZoomOwner, change: Int, version: Int)
+    def createProvenance(owner: ZoomOwner, change: Int, version: Int)
     : Array[Byte] = {
         ZoomObject.newBuilder()
             .addProvenance(ZoomProvenance.newBuilder()
@@ -104,37 +106,44 @@ private[storage] object ZoomSerializer {
     /**
       * Serializes the provenance data for an existing object with the
       * specified current object, owner and change identifier and data version.
+      * The method returns null if the provenance data has not changed.
       */
     @throws[InternalObjectMapperException]
-    def updateObject(current: Array[Byte], owner: ZoomOwner, change: Int,
-                     version: Int)
+    @Nullable
+    def updateProvenance(current: Array[Byte], owner: ZoomOwner, change: Int,
+                         version: Int)
     : Array[Byte] = {
-        val objectBuilder =
+        val builder =
             try ZoomObject.parseFrom(current).toBuilder
             catch {
                 case NonFatal(e) => throw new InternalObjectMapperException(e)
             }
-        var index = 0
-        while (index < objectBuilder.getProvenanceCount) {
-            val provenanceBuilder = objectBuilder.getProvenanceBuilder(index)
-            // Consolidate provenance in a previous entry from the same owner.
-            if (provenanceBuilder.getChangeOwner == owner.id) {
-                provenanceBuilder
-                    .setProductVersion(Storage.ProductVersion)
-                    .setProductCommit(Storage.ProductCommit)
-                    .setChangeType(change)
-                    .setChangeVersion(version)
-                return objectBuilder.build().toByteArray
+        val count = builder.getProvenanceCount
+        if (count > 0 &&
+            builder.getProvenanceBuilder(count - 1).getChangeOwner == owner.id &&
+            builder.getProvenanceBuilder(count - 1).getProductVersion == Storage.ProductVersion &&
+            builder.getProvenanceBuilder(count - 1).getProductCommit == Storage.ProductCommit) {
+            if ((builder.getProvenanceBuilder(count - 1).getChangeType & change) != 0) {
+                // If the provenance change type is already included in
+                // the previous change, return null (no need to update).
+                null
+            } else {
+                // If the provenance change type has changed, update the
+                // change type.
+                builder.getProvenanceBuilder(count - 1)
+                    .setChangeType(change |
+                                   builder.getProvenanceBuilder(count - 1).getChangeType)
+                builder.build().toByteArray
             }
-            index += 1
+        } else {
+            builder.addProvenance(ZoomProvenance.newBuilder()
+                                            .setProductVersion(Storage.ProductVersion)
+                                            .setProductCommit(Storage.ProductCommit)
+                                            .setChangeOwner(owner.id)
+                                            .setChangeType(change)
+                                            .setChangeVersion(version))
+            builder.build().toByteArray
         }
-        objectBuilder.addProvenance(ZoomProvenance.newBuilder()
-                                        .setProductVersion(Storage.ProductVersion)
-                                        .setProductCommit(Storage.ProductCommit)
-                                        .setChangeOwner(owner.id)
-                                        .setChangeType(change)
-                                        .setChangeVersion(version))
-        objectBuilder.build().toByteArray
     }
 
     @throws[InternalObjectMapperException]
