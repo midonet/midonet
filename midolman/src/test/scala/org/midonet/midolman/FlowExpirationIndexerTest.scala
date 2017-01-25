@@ -23,6 +23,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.{ManagedFlow, FlowExpirationIndexer, FlowIndexer}
 import org.midonet.midolman.util.MidolmanSpec
 
@@ -32,6 +33,11 @@ class FlowExpirationIndexerTest extends MidolmanSpec {
     class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowIndexer {
         val workerId = 0
         val maxFlows = 4
+
+        val preallocation = new MockFlowTablePreallocation(
+            MidolmanConfig.forTests) {
+            override val maxFlows = FlowAddRemover.this.maxFlows
+        }
 
         override def removeFlow(flow: ManagedFlow): Unit =
             flowsRemoved += flow
