@@ -16,25 +16,19 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import java.util.{UUID => JUUID}
-
 import org.midonet.cluster.data.storage.Transaction
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
+import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, VpnService}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
-import org.midonet.cluster.util.IPAddressUtil._
-import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser, UUIDUtil}
-import org.midonet.containers
-import org.midonet.packets.{IPv4Subnet, MAC}
 
-class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
-    extends Translator[VpnService] with ChainManager with PortManager
-            with RouteManager with RuleManager {
-    import VpnServiceTranslator._
+class VpnServiceTranslator
+    extends Translator[VpnService] with ChainManager
+            with RouteManager {
 
+    // Does not create service container. Service container is created
+    //  by the first vpn connection
     override protected def translateCreate(tx: Transaction,
                                            vpn: VpnService): Unit = {
         val routerId = vpn.getRouterId
@@ -45,10 +39,13 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
         val existing = tx.getAll(classOf[VpnService], router.getVpnServiceIdsList)
         existing.headOption match {
             case Some(existingVpnService) =>
-                tx.create(vpn.toBuilder
-                              .setContainerId(existingVpnService.getContainerId)
-                              .setExternalIp(existingVpnService.getExternalIp)
-                              .build())
+                val newVpnServiceBuilder = vpn.toBuilder
+                    .setExternalIp(existingVpnService.getExternalIp)
+                if (existingVpnService.hasContainerId) {
+                    newVpnServiceBuilder
+                        .setContainerId(existingVpnService.getContainerId)
+                }
+                tx.create(newVpnServiceBuilder.build())
                 return
             case None =>
         }
@@ -72,101 +69,16 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
                 "Only IPv4 endpoints are currently supported")
         }
 
-        val containerId = JUUID.randomUUID
-        val portSubnet = findPortSubnet(tx, router)
-        val routerPort = createRouterPort(tx, router, portSubnet)
-        val vpnRoute = newNextHopPortRoute(id = vpnContainerRouteId(containerId.asProto),
-                                           nextHopPortId = routerPort.getId,
-                                           dstSubnet = portSubnet.asProto)
-        val localRoute = newLocalRoute(routerPort.getId,
-                                       routerPort.getPortAddress)
-
-        val chainId = if (router.hasLocalRedirectChainId) {
-            router.getLocalRedirectChainId
-        } else {
-            val id = JUUID.randomUUID
-            val chain = newChain(id.asProto, "LOCAL_REDIRECT_" + routerId.asJava)
-            tx.create(chain)
-
-            val routerWithChain = router.toBuilder
-                .setLocalRedirectChainId(id.asProto)
-                .build()
-            tx.update(routerWithChain)
-
-            id.asProto
-        }
-
-        val redirectRules = makeRedirectRules(
-            chainId, externalIp, routerPort.getId)
-
-        // TODO: Set port group ID (MI-300).
-        val scg = ServiceContainerGroup.newBuilder
-            .setId(UUIDUtil.randomUuidProto)
-            .setPolicy(ServiceContainerPolicy.LEAST_SCHEDULER)
-            .build()
-
-        val sc = ServiceContainer.newBuilder
-            .setId(containerId.asProto)
-            .setServiceGroupId(scg.getId)
-            .setPortId(routerPort.getId)
-            .setServiceType(VpnServiceType)
-            .setConfigurationId(routerId)
-            .build()
-
-
         val modifiedVpnService = vpn.toBuilder
-            .setContainerId(sc.getId)
             .setExternalIp(externalIp)
             .build()
-
-        for (redirectRule <- redirectRules) {
-            tx.create(redirectRule)
-        }
-
-        tx.create(routerPort)
-        tx.create(vpnRoute)
-        tx.create(localRoute)
-        tx.create(scg)
-        tx.create(sc)
         tx.create(modifiedVpnService)
     }
 
     override protected def translateDelete(tx: Transaction,
                                            vpn: VpnService): Unit = {
-        val router = tx.get(classOf[Router], vpn.getRouterId)
-
-        val otherServices = tx.getAll(classOf[VpnService],
-                                      router.getVpnServiceIdsList)
-            .count((other: VpnService) => {
-                       vpn.getContainerId == other.getContainerId &&
-                       vpn.getId != other.getId
-                   })
-        if (otherServices == 0) {
-            if (router.hasLocalRedirectChainId) {
-                val chainId = router.getLocalRedirectChainId
-                val chain = tx.get(classOf[Chain], chainId)
-                val rules = tx.getAll(classOf[Rule], chain.getRuleIdsList())
-                val rulesToDelete = filterVpnRedirectRules(vpn.getExternalIp, rules)
-                    .map(_.getId)
-                if (rulesToDelete.size == chain.getRuleIdsCount) {
-                    tx.update(router.toBuilder
-                                  .clearLocalRedirectChainId()
-                                  .clearVpnServiceIds()
-                                  .build())
-                    tx.delete(classOf[Chain], chainId, ignoresNeo = true)
-                } else { // just delete the rules
-                    for (ruleId <- rulesToDelete) {
-                        tx.delete(classOf[Rule], ruleId, ignoresNeo = true)
-                    }
-                }
-            }
-
-            val container = tx.get(classOf[ServiceContainer], vpn.getContainerId)
-
-            tx.delete(classOf[Port], container.getPortId, ignoresNeo = true)
-            tx.delete(classOf[ServiceContainerGroup], container.getServiceGroupId,
-                      ignoresNeo = true)
-        }
+        // ServiceContainer is removed by last deleted connection, so
+        // no too much work to do here
     }
 
     override protected def translateUpdate(tx: Transaction,
@@ -188,140 +100,12 @@ class VpnServiceTranslator(sequenceDispenser: SequenceDispenser)
             val oldVpn = tx.get(classOf[VpnService], vpn.getId)
             val newVpn = vpn.toBuilder
                 .addAllIpsecSiteConnectionIds(oldVpn.getIpsecSiteConnectionIdsList)
-                .setContainerId(oldVpn.getContainerId)
                 .setExternalIp(oldVpn.getExternalIp)
-                .build()
-            List(Update(newVpn))
+                if (oldVpn.hasContainerId) {
+                    newVpn.setContainerId(oldVpn.getContainerId)
+                }
+            List(Update(newVpn.build()))
         case _ => super.retainHighLevelModel(tx, op)
-    }
-
-    private def findPortSubnet(tx: Transaction, router: Router): IPv4Subnet = {
-        val currentPorts = tx.getAll(classOf[Port], router.getPortIdsList)
-        containers.findLocalSubnet(currentPorts)
-    }
-
-    @throws[NoSuchElementException]
-    private def createRouterPort(tx: Transaction, router: Router,
-                                 subnet: IPv4Subnet): Port = {
-
-        val routerAddr = containers.routerPortAddress(subnet)
-        val routerSubnet = new IPv4Subnet(routerAddr, subnet.getPrefixLen)
-
-        val portId = JUUID.randomUUID
-        val interfaceName = s"vpn-${portId.toString.substring(0, 8)}"
-        val builder = Port.newBuilder
-            .setId(portId.asProto)
-            .setRouterId(router.getId)
-            .addPortSubnet(routerSubnet.asProto)
-            .setPortAddress(routerAddr.asProto)
-            .setPortMac(MAC.random().toString)
-            .setInterfaceName(interfaceName)
-        assignTunnelKey(builder, sequenceDispenser)
-        builder.build()
-    }
-
-    private def makeRedirectRules(chainId: UUID,
-                                  externalIp: IPAddress,
-                                  portId: UUID): List[Rule] = {
-        val localEndpointIp = IPSubnetUtil.fromAddress(externalIp)
-
-        // Redirect ESP traffic addressed to local endpoint to VPN port.
-        val espRuleBldr = redirectRuleBuilder(
-            id = Some(UUIDUtil.randomUuidProto),
-            chainId = chainId,
-            targetPortId = portId)
-        espRuleBldr.getConditionBuilder
-            .setNwDstIp(localEndpointIp)
-            .setNwProto(50) // ESP
-
-        // Redirect UDP traffic addressed to local endpoint on port 500 to VPN
-        // port.
-        val udpRuleBldr = redirectRuleBuilder(
-            id = Some(UUIDUtil.randomUuidProto),
-            chainId = chainId,
-            targetPortId = portId)
-        udpRuleBldr.getConditionBuilder
-            .setNwDstIp(localEndpointIp)
-            .setNwProto(17) // UDP
-            .setTpDst(RangeUtil.toProto(500, 500)) // IKE UDP port.
-
-        val udp4500RuleBldr = redirectRuleBuilder(
-            id = Some(UUIDUtil.randomUuidProto),
-            chainId = chainId,
-            targetPortId = portId)
-        udp4500RuleBldr.getConditionBuilder
-            .setNwDstIp(localEndpointIp)
-            .setNwProto(17) // UDP
-            .setTpDst(RangeUtil.toProto(4500, 4500)) // IKE Nat traversal
-
-        List(espRuleBldr.build(), udpRuleBldr.build(), udp4500RuleBldr.build())
-    }
-}
-
-protected[translators] object VpnServiceTranslator {
-
-    /** ID of route directing traffic addressed to 169.254.x.x/30 to the VPN. */
-    def vpnContainerRouteId(containerId: UUID): UUID =
-        containerId.xorWith(0x645a41fb3e1641a3L, 0x90d28456127bee31L)
-
-    val VpnServiceType = "IPSEC"
-
-    def isRedirectRule(r: Rule): Boolean = {
-        r.getType == Rule.Type.L2TRANSFORM_RULE &&
-            r.getAction == Rule.Action.REDIRECT
-    }
-
-    def isRedirectForEndpointRule(r: Rule, ip: IPSubnet): Boolean = {
-        val isForEndpoint = r.getCondition.hasNwDstIp &&
-            r.getCondition.getNwDstIp.equals(ip)
-        isRedirectRule(r) && isForEndpoint
-    }
-
-    def isESPRule(r: Rule): Boolean = {
-        val condition = r.getCondition
-        condition.hasNwProto &&
-            condition.getNwProto == 50 &&
-            !condition.getNwProtoInv
-    }
-
-    def isUDP500Rule(r: Rule): Boolean = {
-        val condition = r.getCondition
-        condition.hasNwProto &&
-            condition.getNwProto == 17 &&
-            !condition.getNwProtoInv &&
-            condition.getTpDst.getStart == 500 &&
-            condition.getTpDst.getEnd == 500 &&
-            !condition.getTpDstInv
-    }
-
-    def isUDP4500Rule(r: Rule): Boolean = {
-        val condition = r.getCondition
-
-        condition.hasNwProto &&
-            condition.getNwProto == 17 &&
-            !condition.getNwProtoInv &&
-            condition.getTpDst.getStart == 4500 &&
-            condition.getTpDst.getEnd == 4500 &&
-            !condition.getTpDstInv
-    }
-
-    def updateVpnRedirectRules(newExternalIp: IPAddress, rules: List[Rule]): List[Rule] = {
-        val localEndpointIp = IPSubnetUtil.fromAddress(newExternalIp)
-        for (rule <- rules) yield {
-            val bldr = rule.toBuilder
-            bldr.getConditionBuilder.setNwDstIp(localEndpointIp)
-            bldr.build()
-        }
-    }
-
-    def filterVpnRedirectRules(externalIp: IPAddress, rules: Seq[Rule]): List[Rule] = {
-        val localEndpointIp = IPSubnetUtil.fromAddress(externalIp)
-
-        rules.filter((r:Rule) => {
-                        isRedirectForEndpointRule(r, localEndpointIp) &&
-                            (isESPRule(r) || isUDP500Rule(r) || isUDP4500Rule(r))
-                    })
-            .toList
     }
 }
 
