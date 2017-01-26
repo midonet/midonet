@@ -21,10 +21,9 @@ import scala.collection.JavaConversions._
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
 import org.midonet.cluster.models.Neutron.{GatewayDevice, RemoteMacEntry}
 import org.midonet.cluster.models.Topology.{Port, Router}
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{CreateNode, DeleteNode, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.util.concurrent.toFutureOps
 
 class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
                                protected val stateTableStorage: StateTableStorage)
@@ -35,39 +34,34 @@ class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
                                            rm: RemoteMacEntry)
     : OperationList = {
         // Get the ports on the gateway device's router.
-        val gwDev = storage.get(classOf[GatewayDevice], rm.getDeviceId).await()
-        val router = storage.get(classOf[Router], gwDev.getResourceId).await()
-        val ports = storage.getAll(classOf[Port], router.getPortIdsList).await()
+        val gwDev  = tx.get(classOf[GatewayDevice], rm.getDeviceId)
+        val router = tx.get(classOf[Router], gwDev.getResourceId)
+        val ports  = tx.getAll(classOf[Port], router.getPortIdsList)
 
         // For each port with the same VNI, add a peering table entry. Remember
         // which ports have this in their peering tables.
         val rmBldr = rm.toBuilder
-        val mapEntryOps = for {
-            p <- ports if p.hasVni && p.getVni == rm.getSegmentationId
-        } yield {
+        for (p <- ports if p.hasVni && p.getVni == rm.getSegmentationId) {
             rmBldr.addPortIds(p.getId)
-            CreateNode(stateTableStorage.portPeeringEntryPath(
+            tx.createNode(stateTableStorage.portPeeringEntryPath(
                 p.getId.asJava, MAC.fromString(rm.getMacAddress),
-                IPv4Addr(rm.getVtepAddress.getAddress)))
+                IPv4Addr(rm.getVtepAddress.getAddress)), null)
         }
 
-        // Update the RemoteMacEntry if it was added to any ports.
-        if (rmBldr.getPortIdsList == rm.getPortIdsList) {
-            mapEntryOps.toList
-        } else {
-            mapEntryOps.toList :+ Update(rmBldr.build())
-        }
+        tx.create(rmBldr.build())
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            rm: RemoteMacEntry)
     : OperationList = {
-        val ports = storage.getAll(classOf[Port], rm.getPortIdsList).await()
-        for (p <- ports.toList) yield {
-            DeleteNode(stateTableStorage.portPeeringEntryPath(
+        val ports = tx.getAll(classOf[Port], rm.getPortIdsList)
+        for (p <- ports.toList) {
+            tx.deleteNode(stateTableStorage.portPeeringEntryPath(
                 p.getId.asJava, MAC.fromString(rm.getMacAddress),
                 IPv4Addr(rm.getVtepAddress.getAddress)))
         }
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
@@ -75,4 +69,14 @@ class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
     : OperationList = {
         throw new NotImplementedError("RemoteMacEntry update not supported.")
     }
+
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[RemoteMacEntry])
+    : List[Operation[RemoteMacEntry]] = {
+        op match {
+            case Create(nm) => List() // Do nothing
+            case _ => super.retainHighLevelModel(tx, op)
+        }
+    }
+
 }
