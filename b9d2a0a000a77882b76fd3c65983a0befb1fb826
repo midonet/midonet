@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_db59f55b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-26T09:33:52Z",
+      "side": 1,
+      "message": "so it\u0027s possible that here we allocate for more simulation threads than PacketWorkersService.numWorkers(config) would return. was this done on purpose?",
+      "range": {
+        "startLine": 80,
+        "startChar": 19,
+        "endLine": 80,
+        "endChar": 43
+      },
+      "revId": "b9d2a0a000a77882b76fd3c65983a0befb1fb826",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
