@@ -722,7 +722,8 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    metrics,
                                    NullFlowRecorder(),
                                    injector.getInstance(classOf[VirtualTopology]),
-                                   packetOut) {
+                                   packetOut,
+                                   new MockFlowTablePreallocation(injector.getInstance(classOf[MidolmanConfig]))) {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
         var generatedException: Exception = _
