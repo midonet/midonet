@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_16b17f47",
+        "filename": "nsdb/src/main/scala/org/midonet/management/MidolmanDump.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-26T15:35:29Z",
+      "side": 1,
+      "message": "what is cwd?",
+      "range": {
+        "startLine": 69,
+        "startChar": 25,
+        "endLine": 69,
+        "endChar": 28
+      },
+      "revId": "095961878fbda7c3518f65c869b109d0f5229e11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
