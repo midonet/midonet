@@ -1,0 +1,257 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_2d97893b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "I think it\u0027s better to make this a class that takes Storage as argument, and implements the cache rather to mixin with the current implementation.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 38
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8da8d578",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "it seems to me that every call to the method cache will create en entirely new set of subscriptions for the objects in that class. if this is a cacheable storage, why not cache the classes that already are subscribed",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 13
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_cda24d99",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "this subscription is never unsubscribed, there should be a mechanism to do that",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 78
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_0d9cc55b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "use one of the loggers we define in the config schema",
+      "range": {
+        "startLine": 60,
+        "startChar": 46,
+        "endLine": 60,
+        "endChar": 71
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_adab9974",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "we shouldn\u0027t create a thread for every call of the method cache()\nideally the cache shouldn\u0027t need any new thread at all",
+      "range": {
+        "startLine": 67,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 53
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_8dbfb5a9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "perhaps you should add the object id to the message if not null?",
+      "range": {
+        "startLine": 99,
+        "startChar": 24,
+        "endLine": 99,
+        "endChar": 75
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_adc27932",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "this perhaps should be a debug, otherwise we risk flooding the log with error messages",
+      "range": {
+        "startLine": 99,
+        "startChar": 11,
+        "endLine": 100,
+        "endChar": 38
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_6ddfc10d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "I think contains and remove can be done as a single op",
+      "range": {
+        "startLine": 103,
+        "startChar": 33,
+        "endLine": 104,
+        "endChar": 30
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_4dbd1db6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "the reason this is private is that\u0027s mutable and unsynchronized; use the objectClasses method below that\u0027s already public and returns an immutable copy",
+      "range": {
+        "startLine": 186,
+        "startChar": 4,
+        "endLine": 186,
+        "endChar": 13
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_0dea85ac",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/CacheableStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "these tests should be independent from the storage tests",
+      "range": {
+        "startLine": 28,
+        "startChar": 36,
+        "endLine": 28,
+        "endChar": 56
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_cdd00df9",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/CacheableStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-27T17:59:57Z",
+      "side": 1,
+      "message": "here and for all lines below: fix indentation",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 8
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
