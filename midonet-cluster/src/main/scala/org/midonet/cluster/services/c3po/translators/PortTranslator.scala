@@ -940,7 +940,9 @@ class PortTranslator(stateTableStorage: StateTableStorage,
                       ignoresNeo = true)
             tx.delete(classOf[Rule], inReverseSnatRuleId(rtrId),
                       ignoresNeo = true)
-            tx.delete(classOf[Rule], skipSnatGwPortRuleId(rtrId),
+            tx.delete(classOf[Rule], skipSnatOutGwPortRuleId(rtrId),
+                      ignoresNeo = true)
+            tx.delete(classOf[Rule], skipSnatInGwPortRuleId(rtrId),
                       ignoresNeo = true)
             tx.delete(classOf[Rule], dstRewrittenSnatRuleId(rtrId),
                       ignoresNeo = true)

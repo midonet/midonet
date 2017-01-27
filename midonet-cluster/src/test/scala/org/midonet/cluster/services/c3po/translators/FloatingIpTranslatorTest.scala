@@ -180,7 +180,8 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
 
     protected val snatExactRuleId = RouteManager.fipSnatExactRuleId(fipId)
     protected val snatRuleId = RouteManager.fipSnatRuleId(fipId)
-    protected val skipSnatRuleId = RouteManager.fipSkipSnatRuleId(fipId)
+    protected val skipSnatOutRuleId = RouteManager.fipSkipSnatOutRuleId(fipId)
+    protected val skipSnatInRuleId = RouteManager.fipSkipSnatInRuleId(fipId)
     protected val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
     protected val reverseIcmpDnatRuleId = RouteManager.fipReverseDnatRuleId(fipId)
 
@@ -231,9 +232,9 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         """)
     protected val snatExact = snatExactRule(nTntRouterGatewayPortId, fipPortId)
 
-    protected def skipSnatRule(gatewayPortId: UUID, sourcePortId: UUID) =
+    protected def skipSnatOutRule(gatewayPortId: UUID, sourcePortId: UUID) =
         mRuleFromTxt(s"""
-            id { $skipSnatRuleId }
+            id { $skipSnatOutRuleId }
             type: LITERAL_RULE
             action: ACCEPT
             condition {
@@ -242,7 +243,19 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             }
             fip_port_id { $sourcePortId }
         """)
-    protected val skipSnat = skipSnatRule(nTntRouterGatewayPortId, fipPortId)
+    protected def skipSnatInRule(gatewayPortId: UUID, sourcePortId: UUID) =
+        mRuleFromTxt(s"""
+            id { $skipSnatInRuleId }
+            type: LITERAL_RULE
+            action: ACCEPT
+            condition {
+                in_port_ids { ${tenantGwPortId(gatewayPortId)} }
+                fragment_policy: ANY
+            }
+            fip_port_id { $sourcePortId }
+        """)
+    protected val skipSnatOut = skipSnatOutRule(nTntRouterGatewayPortId, fipPortId)
+    protected val skipSnatIn = skipSnatInRule(nTntRouterGatewayPortId, fipPortId)
 
     protected def dnatRule(gatewayPortId: UUID, destPortId: UUID,
                            fixedIpAddr: IPAddress = fipFixedIpAddr) =
@@ -668,7 +681,8 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bind(fipId, boundFip)
         bind(snatExactRuleId, snatExact)
         bind(snatRuleId, snat)
-        bind(skipSnatRuleId, skipSnat)
+        bind(skipSnatOutRuleId, skipSnatOut)
+        bind(skipSnatInRuleId, skipSnatIn)
         translator.translate(transaction, Update(fipMovedRtr2Port2))
 
         verify(transaction).deleteNode(fipArpEntryPath)

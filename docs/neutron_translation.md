@@ -296,10 +296,44 @@ Here's how rules for a logical router would look like:
 
     POSTROUTING (outfilter)
 
+        ==== skipSnatChain start
+            // Apply SNAT (floating-ip SNAT or router's default SNAT)
+            // 1. it goes to an external-like network,
+            // (that is, router interfaces with floating-ips, and
+            // the gateway port)
+            // or 2. it's E-W traffic.  (Neither in/outport is external-like)
+            //
+            // Note: iptables based implementations need to "emulate" inport
+            // match (eg. using marks in PREROUTING) as it isn't available
+            // in POSTROUTING.
+            [per floating-ip]
+            (outport) matches (floating-ip port) -> RETURN
+            [if default SNAT is enabled on the router]
+            outport == the gateway port -> RETURN
+
+            ----- ordering barrier
+
+            [per floating-ip]
+            (inport) matches (floating-ip port) -> ACCEPT  // terminates
+            [if default SNAT is enabled on the router]
+            inport == the gateway port -> ACCEPT  // terminates
+
+            // dst-rewritten=true here means either 1. floating-ip DNAT,
+            // or 2. rev-SNAT was applied in PREROUTING.
+            // Note: "--ctstate DNAT" might be used for iptables-based
+            // implementations.
+            dst-rewritten == false -> ACCEPT  // terminates
+        ==== skipSnatChain end
+
+        // N-S traffic, or the original destination was a floating-ip.
+
+        ----- ordering barrier
+
         ==== floatSnatExactChain start
             // floating ip snat
             // multiple rules in order to implement priority (which
             // floating-ip to use)
+            //
             // Note: "floating-ip port" below is a router port, either
             // the router gateway port or router interface, which owns
             // the corresponding floating-ip configured.
@@ -320,28 +354,18 @@ Here's how rules for a logical router would look like:
 
         ----- ordering barrier
 
-        ==== skipSnatChain start
-            // do not apply default snat if it came from external-like network
-            // (router interfaces with floating-ips, and the gateway port)
-            // Note: iptables based implementations need to "emulate" inport
-            // match (eg. using marks in PREROUTING) as it isn't available
-            // in POSTROUTING.
-            [per floating-ip]
-            (inport) matches (floating-ip port) -> ACCEPT  // non gateway port
-            [if default SNAT is enabled on the router]
-            inport == the gateway port -> ACCEPT
-        ==== skipSnatChain end
-
-        ----- ordering barrier
-
         // apply the default snat for the gateway port
         [if default SNAT is enabled on the router]
         outport == the gateway port -> default snat, ACCEPT
 
-        // for non-float -> float traffic  (cf. bug 1428887)
-        // "dst-rewritten" condition here means float dnat was applied in
-        // prerouting.  in case of iptables based implementations,
-        // "--ctstate DNAT" might be used.
+        // This rule ensures the return traffic for
+        // a fixed-ip -> floating-ip traffic come back to the router.
+        // (cf. bug 1428887)
+        // Also, this ensures that dst-rewritten=true for the return
+        // traffic, so that skipSnatChain works as expected.
+        // REVISIT: What to do when default SNAT is disabled?
+        // Note that we allow floating-ips associated via router
+        // interfaces.  Do we even care?
         [if default SNAT is enabled on the router]
         dst-rewritten -> default snat, ACCEPT
 
@@ -349,8 +373,6 @@ Here's how rules for a logical router would look like:
         [per RIF]
         (inport == outport == rif) && dst != 169.254.169.254
             -> snat to rif ip, ACCEPT
-
-        // non-float -> non-float in tenant traffic would come here
 
 </pre>
 
