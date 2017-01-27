@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Midokura SARL
+ * Copyright 2017 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                             protected override val reactor: Reactor,
                             protected implicit override val metrics: StorageMetrics)
     extends ZookeeperObjectState with ZookeeperStateTable with Storage
-    with StorageInternals {
+    with CacheableStorage with StorageInternals {
 
     import ZookeeperObjectMapper._
 

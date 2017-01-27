@@ -183,7 +183,7 @@ trait Storage extends ReadOnlyStorage {
     private val fieldBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
 
     private val classNames = new mutable.HashSet[String]()
-    private val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
+    protected val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
 
     @volatile private var currentClasses: ClassesMap = Map.empty
     @volatile private var currentBindings: BindingsMap = ImmutableListMultimap.of()

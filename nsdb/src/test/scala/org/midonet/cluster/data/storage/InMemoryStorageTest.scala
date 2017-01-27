@@ -15,15 +15,19 @@
  */
 package org.midonet.cluster.data.storage
 
+import scala.concurrent.duration._
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.conf.HostIdGenerator
 
 @RunWith(classOf[JUnitRunner])
-class InMemoryStorageTest extends StorageTest {
+class InMemoryStorageTest extends CacheableStorageTest {
 
     HostIdGenerator.useTemporaryHostId()
+
+    override val cacheTimeout: Duration = 1 second
 
     before {
         val inMemoryStorage = new InMemoryStorage
