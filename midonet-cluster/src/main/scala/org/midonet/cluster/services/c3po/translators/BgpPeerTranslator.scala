@@ -224,11 +224,9 @@ object BgpPeerTranslator {
                   ignoresNeo = true)
     }
 
-    @Deprecated
-    def isBgpSpeakerConfigured(storage: ReadOnlyStorage, routerId: UUID) = {
-        import org.midonet.util.concurrent._
-        val peers = storage.getAll(classOf[NeutronBgpPeer]).await()
-        peers.exists(peer => peer.getBgpSpeaker.getLogicalRouter == routerId)
+    def isBgpSpeakerConfigured(tx: Transaction, routerId: UUID) = {
+        val peers = tx.getAll(classOf[NeutronBgpPeer])
+        peers.exists(_.getBgpSpeaker.getLogicalRouter == routerId)
     }
 
     def makeBgpNetwork(routerId: UUID, subnet: IPSubnet, id: UUID)

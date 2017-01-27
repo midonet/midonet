@@ -58,10 +58,9 @@ import org.midonet.util.reactivex._
 
 object MidonetResource {
 
-    private final val log = getLogger(RestApiLog)
     private final val StorageAttempts = 3
 
-    private final val lockOpNumber = new AtomicInteger(1)
+    private final val LockOpNumber = new AtomicInteger(1)
 
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
@@ -78,12 +77,12 @@ object MidonetResource {
     }
 
     final class FutureOps[T](val future: Future[T]) extends AnyVal {
-        def getOrThrow(implicit timeout: FiniteDuration): T = tryRead {
-            Await.result(future, timeout)
+        def getOrThrow(implicit timeout: FiniteDuration, log: Logger): T = {
+            tryRead { Await.result(future, timeout) }
         }
     }
 
-    protected[resources] def tryRead[T](f: => T): T = {
+    protected[resources] def tryRead[T](f: => T)(implicit log: Logger): T = {
         try {
             f
         } catch {
@@ -194,14 +193,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
         Logger(getLogger(restApiResourceLog(getClass)))
 
     private def validator = resContext.validator
-    protected def store = resContext.backend.store
+    private def store = resContext.backend.store
     protected def stateStore = resContext.backend.stateStore
     protected def stateTableStore = resContext.backend.stateTableStore
     protected def uriInfo = resContext.uriInfo
-
-    /* Determines whether a zookeeper lock is needed when performing
-       CRUD operations. This variable can be overridden in subclasses. */
-    protected val zkLockNeeded = true
 
     class ResourceTransaction(val tx: Transaction) {
 
@@ -428,7 +423,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
                 log.error("Failed to convert resource {} to message {}",
                           resource, resource.getZoomClass, e)
                 throw new InternalServerErrorHttpException(
-                    "Can't handle resource " +  resource)
+                    "Cannot handle resource " +  resource)
         }
     }
 
@@ -509,10 +504,9 @@ abstract class MidonetResource[T >: Null <: UriResource]
       * concurrently that may result in a [[ConcurrentModificationException]].
       */
     private def zkLock[R](f: => Response): Response = {
-        val lock = new ZkOpLock(resContext.lockFactory, lockOpNumber.getAndIncrement,
+        val lock = new ZkOpLock(resContext.lockFactory,
+                                LockOpNumber.getAndIncrement,
                                 ZookeeperLockFactory.ZOOM_TOPOLOGY)
-
-        if (!zkLockNeeded) return f
 
         try lock.acquire(resContext.config.nsdbLockTimeoutMs,
                          TimeUnit.MILLISECONDS) catch {
