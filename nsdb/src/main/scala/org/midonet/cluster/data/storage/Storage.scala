@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2017 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,7 +183,7 @@ trait Storage extends ReadOnlyStorage {
     private val fieldBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
 
     private val classNames = new mutable.HashSet[String]()
-    private val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
+    protected val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
 
     @volatile private var currentClasses: ClassesMap = Map.empty
     @volatile private var currentBindings: BindingsMap = ImmutableListMultimap.of()

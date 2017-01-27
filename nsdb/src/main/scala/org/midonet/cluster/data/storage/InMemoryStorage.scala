@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Midokura SARL
+ * Copyright 2017 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ import org.midonet.util.functors._
  * A simple in-memory implementation of the [[Storage]] trait, equivalent to
  * the [[ZookeeperObjectMapper]] to use within unit tests.
  */
-class InMemoryStorage extends Storage with StateStorage with StateTableStorage
-                              with StateTablePaths {
+class InMemoryStorage extends Storage with CacheableStorage with StateStorage
+                              with StateTableStorage with StateTablePaths {
     override protected val rootPath = "/inMemoryStorage"
     override protected val zoomPath = "/inMemoryStorage"
 

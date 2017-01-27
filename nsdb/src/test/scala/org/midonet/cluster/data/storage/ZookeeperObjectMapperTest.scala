@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2017 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +36,14 @@ import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.reactivex.{AwaitableObserver, TestAwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
-class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
+class ZookeeperObjectMapperTest extends CacheableStorageTest
+                                        with MidonetBackendTest
                                         with GivenWhenThen with Eventually {
 
     import StorageTest._
 
     private val timeout = 5 seconds
+    override val cacheTimeout: Duration = 5 seconds
     private val hostId = UUID.randomUUID.toString
     private var zoom: ZookeeperObjectMapper = _
 
