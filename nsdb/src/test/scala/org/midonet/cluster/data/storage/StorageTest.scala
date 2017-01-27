@@ -598,7 +598,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
         scenario("Test register duplicate class") {
             val st = createStorage
             st.registerClass(classOf[PojoBridge])
-            intercept[IllegalStateException] {
+            intercept[IllegalArgumentException] {
                 st.registerClass(classOf[PojoBridge])
             }
         }
@@ -608,7 +608,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
         scenario("Test bind unregistered class") {
             val st = createStorage
             st.registerClass(classOf[Router])
-            intercept[AssertionError] {
+            intercept[IllegalArgumentException] {
                 st.declareBinding(
                     classOf[Router], "inbound_filter_id", DeleteAction.CLEAR,
                     classOf[Chain], "router_ids", DeleteAction.CLEAR)
@@ -663,7 +663,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Test create for unregistered class") {
-            intercept[AssertionError] {
+            intercept[IllegalArgumentException] {
                 storage.create(LoadBalancer.getDefaultInstance)
             }
         }
@@ -721,7 +721,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Test update for unregistered class") {
-            intercept[AssertionError] {
+            intercept[IllegalArgumentException] {
                 storage.update(LoadBalancer.getDefaultInstance)
             }
         }
@@ -888,7 +888,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Test delete for unregistered class") {
-            intercept[AssertionError] {
+            intercept[IllegalArgumentException] {
                 storage.delete(classOf[LoadBalancer], UUID.randomUUID)
             }
         }

@@ -25,8 +25,8 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import rx.Observable
 
 import org.midonet.cluster.data._
+import org.midonet.cluster.data.storage.Storage.{ClassesMap, MessageClassInfo}
 import org.midonet.cluster.data.storage.TransactionManager._
-import org.midonet.cluster.data.storage.ZookeeperObjectMapper.MessageClassInfo
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.TestModels.FakeDevice
 
@@ -51,8 +51,10 @@ class TransactionManagerTest extends FeatureSpec with Matchers
         var getSnapshotCount = 0
         var getIdsCount = 0
 
-        protected override def isRegistered(clazz: Class[_]): Boolean = {
-            classes.contains(clazz)
+        protected override def assertRegistered(clazz: Class[_]): Unit = {
+            if (!classes.contains(clazz)) {
+                throw new IllegalArgumentException
+            }
         }
 
         protected override def getSnapshot(clazz: Class[_], id: ObjId)

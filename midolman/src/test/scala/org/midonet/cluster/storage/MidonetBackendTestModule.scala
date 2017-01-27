@@ -45,24 +45,7 @@ class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend
     }
 
     private val inMemoryZoom: InMemoryStorage = new InMemoryStorage()
-    inMemoryZoom.registerTable(classOf[Topology.Network], classOf[MAC],
-                               classOf[UUID], MidonetBackend.MacTable,
-                               classOf[MacIdStateTable])
-    inMemoryZoom.registerTable(classOf[Topology.Network], classOf[IPv4Addr],
-                               classOf[MAC], MidonetBackend.Ip4MacTable,
-                               classOf[Ip4MacStateTable])
-    inMemoryZoom.registerTable(classOf[Router], classOf[IPv4Addr],
-                               classOf[ArpEntry], MidonetBackend.ArpTable,
-                               classOf[ArpStateTable])
-    inMemoryZoom.registerTable(classOf[Topology.Port], classOf[MAC],
-                               classOf[IPv4Addr], MidonetBackend.PeeringTable,
-                               classOf[MacIp4StateTable])
-    inMemoryZoom.registerTable(classOf[NeutronNetwork], classOf[UUID],
-                               classOf[AnyRef], MidonetBackend.GatewayTable,
-                               classOf[GatewayHostStateTable])
-    inMemoryZoom.registerTable(classOf[NeutronNetwork], classOf[Fip64Entry],
-                               classOf[AnyRef], MidonetBackend.Fip64Table,
-                               classOf[Fip64StateTable])
+
     val connectionState =
         BehaviorSubject.create[ConnectionState](ConnectionState.CONNECTED)
 
@@ -78,7 +61,26 @@ class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend
     override val discovery: MidonetDiscovery = new FakeDiscovery
 
     override def doStart(): Unit = {
-        MidonetBackend.setupBindings(store, stateStore)
+        MidonetBackend.setupBindings(store, stateStore, () => {
+            inMemoryZoom.registerTable(classOf[Topology.Network], classOf[MAC],
+                                       classOf[UUID], MidonetBackend.MacTable,
+                                       classOf[MacIdStateTable])
+            inMemoryZoom.registerTable(classOf[Topology.Network], classOf[IPv4Addr],
+                                       classOf[MAC], MidonetBackend.Ip4MacTable,
+                                       classOf[Ip4MacStateTable])
+            inMemoryZoom.registerTable(classOf[Router], classOf[IPv4Addr],
+                                       classOf[ArpEntry], MidonetBackend.ArpTable,
+                                       classOf[ArpStateTable])
+            inMemoryZoom.registerTable(classOf[Topology.Port], classOf[MAC],
+                                       classOf[IPv4Addr], MidonetBackend.PeeringTable,
+                                       classOf[MacIp4StateTable])
+            inMemoryZoom.registerTable(classOf[NeutronNetwork], classOf[UUID],
+                                       classOf[AnyRef], MidonetBackend.GatewayTable,
+                                       classOf[GatewayHostStateTable])
+            inMemoryZoom.registerTable(classOf[NeutronNetwork], classOf[Fip64Entry],
+                                       classOf[AnyRef], MidonetBackend.Fip64Table,
+                                       classOf[Fip64StateTable])
+        })
         notifyStarted()
     }
 
