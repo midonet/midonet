@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_c7822f94",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 840,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-27T10:19:08Z",
+      "side": 1,
+      "message": "can we use a more descriptive name ?",
+      "range": {
+        "startLine": 840,
+        "startChar": 27,
+        "endLine": 840,
+        "endChar": 37
+      },
+      "revId": "f982b5f45d4491a988a3f4a7252a6553ec8aa8e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_a77dfbb2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-01-27T10:19:08Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 845,
+        "startChar": 27,
+        "endLine": 845,
+        "endChar": 38
+      },
+      "revId": "f982b5f45d4491a988a3f4a7252a6553ec8aa8e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
