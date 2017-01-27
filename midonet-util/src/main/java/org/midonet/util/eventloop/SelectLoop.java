@@ -91,6 +91,16 @@ public interface SelectLoop {
     public void doLoop() throws IOException;
 
     /**
+     * Executes one iteration of the IO loop. This function will return when
+     * one or more IO events are received, or when the timeout passes, whichever
+     * comes first.
+     *
+     * @param timeout number of milliseconds to wait for events until
+     *                the function returns. If zero, it will block indefinitely.
+     */
+    public void doLoopOnce(long timeout) throws IOException;
+
+    /**
      * Force this select loop to return immediately and re-enter select, useful
      * for example if a new item has been added to the select loop while it
      * was already blocked.

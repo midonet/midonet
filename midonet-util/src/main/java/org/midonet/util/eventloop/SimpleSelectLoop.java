@@ -32,6 +32,7 @@ written prior permission.
 package org.midonet.util.eventloop;
 
 import java.io.IOException;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
@@ -272,11 +273,11 @@ public class SimpleSelectLoop implements SelectLoop {
         log.debug("starting");
 
         while (dontStop) {
-            doLoopOnce();
+            doLoopOnce(this.timeout);
         }
     }
 
-    void doLoopOnce() throws IOException {
+    public void doLoopOnce(long timeout) throws IOException {
         log.trace("looping");
 
         synchronized (registerLock) {
@@ -330,25 +331,33 @@ public class SimpleSelectLoop implements SelectLoop {
             }
 
             for (SelectionKey sk : selectedKeys) {
-                int ops = sk.readyOps();
-                SelectableChannel ch = sk.channel();
-                synchronized (registerLock) {
-                    for (Registration reg: registrations.get(ch)) {
-                        if (ops == 0) {
-                            break;
-                        } else if ((reg.ops & ops) != 0) {
-                            try {
-                                reg.listener.handleEvent(sk);
-                            } catch (Exception e) {
-                                log.error("Callback threw an exception", e);
+                int ops;
+
+                try {
+                    ops = sk.readyOps();
+                } catch (CancelledKeyException e) {
+                    ops = 0;
+                }
+                if (ops != 0) {
+                    SelectableChannel ch = sk.channel();
+                    synchronized (registerLock) {
+                        for (Registration reg : registrations.get(ch)) {
+                            if ((reg.ops & ops) != 0) {
+                                try {
+                                    reg.listener.handleEvent(sk);
+                                } catch (Exception e) {
+                                    log.error("Callback threw an exception", e);
+                                }
+                                // We report each ready-op once, so after
+                                // dispatching the event we clear it from ops.
+                                ops &= ~reg.ops;
+                                if (ops == 0) break;
                             }
-                            // We report each ready-op once, so after
-                            // dispatching the event we clear it from ops.
-                            ops &= ~reg.ops;
                         }
                     }
                 }
             }
+
             if (endOfLoopCallback != null) {
                 try {
                     endOfLoopCallback.run();
