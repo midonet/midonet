@@ -64,7 +64,7 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
     extends DeviceMapper(classOf[PoolHealthMonitorMap],
                          PoolHealthMonitorMapper.PoolHealthMonitorMapKey, vt) {
 
-    override def logSource = "org.midonet.devices.poolhealthmonitor"
+    override def logSource = "org.midonet.devices.pool-health-monitor"
 
     private case class
     PoolHealthMonitorEntry(poolId: UUID, poolHealthMonitor: PoolHealthMonitor)
