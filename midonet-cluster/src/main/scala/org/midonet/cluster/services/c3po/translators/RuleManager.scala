@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import org.midonet.cluster.models.Commons.{Condition, IPAddress, UUID}
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action._
 import org.midonet.cluster.models.Topology.Rule.{JumpRuleData, NatRuleData, NatTarget}
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
 
 /**
  * Contains rule-related operations shared by multiple translators.
  */
 trait RuleManager {
+
     protected def newRule(chainId: UUID): Rule.Builder =
         Rule.newBuilder().setChainId(chainId).setId(UUIDUtil.randomUuidProto)
 
@@ -118,12 +118,6 @@ trait RuleManager {
             .setAction(Rule.Action.REDIRECT)
         bldr.getTransformRuleDataBuilder.setTargetPortId(targetPortId)
         bldr
-    }
-
-    protected def toRuleIdList(ops: Seq[Operation[Rule]]) = ops.map {
-        case Create(r: Rule) => r.getId
-        case Update(r: Rule, _) => r.getId
-        case Delete(_, id) => id
     }
 
     /**

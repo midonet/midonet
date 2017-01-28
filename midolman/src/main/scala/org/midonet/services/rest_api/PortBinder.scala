@@ -21,46 +21,30 @@ import java.util.UUID
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.util.UUIDUtil
-import org.midonet.conf.HostIdGenerator
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.ImmediateRetriable
 
-trait PortBinder {
+class PortBinder(storage: Storage, stateStorage: StateStorage,
+                 lockFactory: ZookeeperLockFactory) extends ImmediateRetriable {
 
-    def bindPort(portId: UUID, hostId: UUID, deviceName: String)
-    def unbindPort(portId: UUID, hostId: UUID)
-
-    def bindPort(portId: UUID, deviceName: String): Unit = {
-        bindPort(portId, HostIdGenerator.getHostId, deviceName)
-    }
-
-    def unbindPort(portId: UUID): Unit = {
-        unbindPort(portId, HostIdGenerator.getHostId)
-    }
-}
-
-class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
-                     lockFactory: ZookeeperLockFactory) extends PortBinder
-                                                        with ImmediateRetriable {
-
-    import RestApiService.log
+    import BindingApiService.log
 
     override def maxRetries = 3
 
-    override def bindPort(portId: UUID, hostId: UUID,
-                          deviceName: String): Unit = {
+    def bindPort(portId: UUID, hostId: UUID, deviceName: String): Unit = {
+        val protoHostId = hostId.asProto
         val update = retry(log.underlying, s"Binding port $portId") {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
             val newPortBldr = oldPort.toBuilder
-                .setHostId(UUIDUtil.toProto(hostId))
+                .setHostId(protoHostId)
                 .setInterfaceName(deviceName)
             // If binding from a different host before unbinding,
             // update previous host. This is necessary since in Nova, bind
             // on the new host happens before unbind on live migration, and
             // we need to update the previous host to know where to fetch the
             // flow state from.
-            if (oldPort.hasHostId && oldPort.getHostId != hostId) {
+            if (oldPort.hasHostId && (oldPort.getHostId != protoHostId)) {
                 newPortBldr.setPreviousHostId(oldPort.getHostId)
             }
             tx.update(newPortBldr.build)
@@ -74,8 +58,8 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
         }
     }
 
-    override def unbindPort(portId: UUID, hostId: UUID): Unit = {
-        val pHostId = UUIDUtil.toProto(hostId)
+    def unbindPort(portId: UUID, hostId: UUID): Unit = {
+        val pHostId = hostId.asProto
 
         val update = retry(log.underlying, s"Unbinding port $portId") {
             val tx = storage.transaction()
@@ -98,8 +82,7 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
 
         if (update.isLeft) {
             val e = update.left.get
-            log.error(
-                s"Unable to unbind port $portId from host $hostId", e)
+            log.error(s"Unable to unbind port $portId from host $hostId", e)
             throw e
         }
     }
