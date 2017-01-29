@@ -108,10 +108,6 @@ class SubnetTranslator extends Translator[NeutronSubnet]
             return
         }
 
-        if (ns.isIpv6)
-            throw new IllegalArgumentException(
-                "IPv6 Subnets are not supported in this version of Midonet.")
-
         val oldDhcp = tx.get(classOf[Dhcp], ns.getId)
         val newDhcpBldr = oldDhcp.toBuilder
             .setEnabled(ns.getEnableDhcp)
