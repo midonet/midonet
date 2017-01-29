@@ -132,6 +132,38 @@ class SubnetTranslatorIT extends C3POMinionTestBase {
         }
     }
 
+
+    it should "produce an equivalent Dhcp ipv6 Object" in {
+        val cidr = "1000::/100"
+        val netId = createTenantNetwork(10)
+        val subId = createSubnet(20, netId, cidr, ipVersion = 6)
+        checkDhcp(subId, netId, cidr)
+    }
+
+    it should "support several ipv6 subnets" in {
+        val cidr1 = "1000::/100"
+        val cidr2 = "2000::/96"
+        val netId = createTenantNetwork(10)
+        val sub1Id = createSubnet(20, netId, cidr1, ipVersion = 6)
+        checkDhcp(sub1Id, netId, cidr1)
+
+        val sub2Id = createSubnet(30, netId, cidr2, ipVersion = 6)
+        checkDhcp(sub2Id, netId, cidr2)
+    }
+
+    it should "update an equivalent Dhcp ipv6 Object" in {
+        val cidr = "1000::/100"
+        val netId = createTenantNetwork(10)
+        val sub1Id = UUID.randomUUID()
+        createSubnet(20, netId, cidr, sub1Id, ipVersion = 6)
+        checkDhcp(sub1Id, netId, cidr)
+
+        val newCidr = "2000::/100"
+        val newGatewayIp = "3000::1"
+        updateSubnet(40, netId, newCidr, sub1Id, newGatewayIp, ipVersion = 6)
+        checkDhcp(sub1Id, netId, newCidr, newGatewayIp)
+    }
+
     private def checkNoDhcp(subId: UUID, nSubExists: Boolean = true): Unit = {
         eventually {
             storage.exists(classOf[NeutronSubnet], subId).await() shouldBe nSubExists
