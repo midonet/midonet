@@ -166,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_5197f339",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:14:00Z",
+      "side": 1,
+      "message": "How do I do that? Should I make StorageCache extend Logging and set the logSource (and logMark) values, as in the ScalableStateTable?",
+      "parentUuid": "fabf19d9_0d9cc55b",
+      "range": {
+        "startLine": 60,
+        "startChar": 46,
+        "endLine": 60,
+        "endChar": 71
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_adab9974",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
         "patchSetId": 2
