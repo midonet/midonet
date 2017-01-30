@@ -18,6 +18,7 @@ package org.midonet.cluster.rest_api.network;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -114,6 +115,34 @@ public class TestPort {
         port.setNetworkAddress(networkAddr);
         port.setNetworkLength(networkLen);
         port.setPortAddress(portAddr);
+        return port;
+    }
+
+    public static DtoRouterPort createRouterPort(UUID id,
+                                                 UUID deviceId,
+                                                 List<String> addresses) {
+        DtoRouterPort port = new DtoRouterPort();
+        port.setId(id);
+        port.setDeviceId(deviceId);
+        port.setPortSubnet(addresses);
+        return port;
+    }
+
+    public static DtoRouterPort createRouterPort(UUID id,
+                                                 UUID deviceId,
+                                                 List<String> addresses,
+                                                 UUID vifId,
+                                                 UUID inboundFilterId,
+                                                 UUID outboundFilterId) {
+        DtoRouterPort port = new DtoRouterPort();
+        port.setId(id);
+        port.setAdminStateUp(true);
+        port.setDeviceId(deviceId);
+        port.setPortSubnet(addresses);
+        port.setVifId(vifId);
+        port.setInboundFilterId(inboundFilterId);
+        port.setOutboundFilterId(outboundFilterId);
+
         return port;
     }
 
@@ -938,6 +967,99 @@ public class TestPort {
             ports = dtoResource.getAndVerifyOk(r.getPorts(),
                     APPLICATION_PORT_V3_COLLECTION_JSON(), DtoRouterPort[].class);
             assertEquals(0, ports.length);
+        }
+
+
+        @Test
+        public void testRouterPortCompatibility() {
+
+            // Get the router and chains
+            DtoRouter r = topology.getRouter("router1");
+
+            // Test: v5.4 router port (ipv4 first)
+            List<String> ips = Arrays.asList("10.0.0.1/24",
+                                             "22.22.22.22/22",
+                                             "2017:0:0:0:0:0:0:32/64");
+
+            DtoRouterPort port = createRouterPort(null,
+                                                  r.getId(),
+                                                  ips);
+
+            assertNull(port.getNetworkAddress());
+            assertNull(port.getPortAddress());
+            assertEquals(0, port.getNetworkLength());
+
+            port = dtoResource.postAndVerifyCreated(r.getPorts(),
+                                                   APPLICATION_PORT_V3_JSON(),
+                                                   port,
+                                                   DtoRouterPort.class);
+
+            assertEquals(ips, port.getPortSubnet());
+            assertEquals("10.0.0.0", port.getNetworkAddress());
+            assertEquals("10.0.0.1", port.getPortAddress());
+            assertEquals(24, port.getNetworkLength());
+
+            // Test: v5.4 router port (ipv6 first)
+            ips = Arrays.asList("2017:0:0:0:0:0:0:32/64",
+                                "22.22.22.22/22");
+
+            port = createRouterPort(null,
+                                    r.getId(),
+                                    ips);
+
+            port = dtoResource.postAndVerifyCreated(r.getPorts(),
+                                                   APPLICATION_PORT_V3_JSON(),
+                                                   port,
+                                                   DtoRouterPort.class);
+
+            assertEquals(ips, port.getPortSubnet());
+            assertEquals("22.22.20.0", port.getNetworkAddress());
+            assertEquals("22.22.22.22", port.getPortAddress());
+            assertEquals(22, port.getNetworkLength());
+
+            // Test: v5.4 router port with no IPv4 address
+            ips = Arrays.asList("2017:0:0:0:0:0:0:32/64");
+
+            port = createRouterPort(null,
+                                    r.getId(),
+                                    ips);
+
+            assertNull(port.getNetworkAddress());
+            assertNull(port.getPortAddress());
+            assertEquals(0, port.getNetworkLength());
+
+            port = dtoResource.postAndVerifyCreated(r.getPorts(),
+                                                   APPLICATION_PORT_V3_JSON(),
+                                                   port,
+                                                   DtoRouterPort.class);
+
+            assertEquals(ips, port.getPortSubnet());
+            assertNull(port.getNetworkAddress());
+            assertNull(port.getPortAddress());
+            assertEquals(0, port.getNetworkLength());
+
+            // Test: v5.2 router port
+            ips = Arrays.asList("10.0.0.1/24");
+
+            port = createRouterPort(null,
+                                    r.getId(),
+                                    "10.0.0.0",
+                                    24,
+                                    "10.0.0.1");
+
+            assertNotNull(port.getNetworkAddress());
+            assertNotNull(port.getPortAddress());
+            assertEquals(24, port.getNetworkLength());
+
+            port = dtoResource.postAndVerifyCreated(r.getPorts(),
+                                                    APPLICATION_PORT_V3_JSON(),
+                                                    port,
+                                                    DtoRouterPort.class);
+
+            assertEquals(ips, port.getPortSubnet());
+            assertEquals("10.0.0.0", port.getNetworkAddress());
+            assertEquals("10.0.0.1", port.getPortAddress());
+            assertEquals(24, port.getNetworkLength());
         }
     }
 
