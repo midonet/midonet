@@ -15,8 +15,11 @@
  */
 package org.midonet.management
 
-import java.io.IOException
-import java.lang.management.{ManagementFactory, RuntimeMXBean}
+import java.io.{BufferedWriter, File, FileWriter, IOException}
+import java.lang.management.{ManagementFactory, RuntimeMXBean, ThreadMXBean}
+import java.lang.management.ManagementFactory.THREAD_MXBEAN_NAME
+import java.lang.management.ManagementFactory.getThreadMXBean
+import java.lang.management.ManagementFactory.newPlatformMXBeanProxy
 import java.nio.file.Paths
 
 import javax.management.openmbean.{CompositeData, TabularDataSupport}
@@ -45,10 +48,16 @@ object MidolmanDump extends App {
         val host = opt[String]("host", short = 'h', default = Option(DefaultHost),
                                descr = "Host")
         val output = opt[String]("output", short = 'o', default = None,
-                                 descr = "Output file")
+                                 descr = "Output file. Will be created on process" +
+                                         " machine for heap dump and on current" +
+                                         " machine for stack trace dump")
 
         val dumpAll = opt[Boolean]("all", short = 'a', default = Some(DefaultDumpAllObjects),
                                    descr = "Include unreachable objects")
+
+        val dumpStackTrace = opt[Boolean]("stack-trace", short = 't',
+            default = Some(false),
+                descr = "Dump stack trace of all threads to given file")
 
         printedName = "mm-dump"
 
@@ -118,10 +127,30 @@ object MidolmanDump extends App {
             Paths.get(getVMWorkingDirectory(conn)).resolve(destinationPath)
         }
 
-        System.err.println(s"$INFO Dumping heap to $host:$fullPath ...")
+        if (opts.dumpStackTrace.get.get) {
+            val file = new File(destinationFile)
+            if (file.exists()) {
+                System.err.println(s"$ERROR output file $destinationFile" +
+                " already exists")
+            } else {
+                System.err.println(s"$INFO Dumping stack trace to $destinationPath ...")
+                val tmbean = newPlatformMXBeanProxy(conn,
+                                                   THREAD_MXBEAN_NAME,
+                                                   classOf[ThreadMXBean])
 
-        val onlyLiveObjects = ! opts.dumpAll.get.get
-        bean.dumpHeap(destinationFile, onlyLiveObjects)
+                val bw = new BufferedWriter(new FileWriter(file))
+                bw.write(s"Total threads: " + tmbean.getThreadCount + "\n\n")
+                tmbean.dumpAllThreads(tmbean.isObjectMonitorUsageSupported,
+                    tmbean.isSynchronizerUsageSupported)
+                    .map(_.toString) foreach (bw.write(_))
+                bw.close()
+            }
+        } else {
+            System.err.println(s"$INFO Dumping heap to $host:$fullPath ...")
+
+            val onlyLiveObjects = ! opts.dumpAll.get.get
+            bean.dumpHeap(destinationFile, onlyLiveObjects)
+        }
 
     } catch {
         case e: IOException =>
