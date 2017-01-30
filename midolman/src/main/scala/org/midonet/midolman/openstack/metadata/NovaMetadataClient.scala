@@ -18,7 +18,9 @@ package org.midonet.midolman.openstack.metadata
 
 import java.io.InputStream
 
+import com.sun.jersey.api.client.config.DefaultClientConfig
 import com.sun.jersey.api.client.{Client, ClientResponse, UniformInterfaceException}
+import com.sun.jersey.core.impl.provider.entity.ByteArrayProvider
 
 import org.apache.commons.io.IOUtils
 
@@ -95,7 +97,8 @@ object NovaMetadataClient {
                      novaMetadataUrl: String,
                      sharedSecret: String): String = {
         val instanceIdSig = signInstanceId(sharedSecret, info.instanceId)
-        val client = new Client
+        val cc = new DefaultClientConfig(classOf[ByteArrayProvider])
+        val client = Client.create(cc)
         val url = novaMetadataUrl + path
         Log debug s"$method request from instance:${info.instanceId} to $url"
 
