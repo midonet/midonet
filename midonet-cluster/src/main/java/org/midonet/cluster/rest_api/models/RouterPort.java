@@ -37,11 +37,11 @@ import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 
 public class RouterPort extends Port {
 
-    @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
     public String networkAddress;
 
@@ -49,11 +49,9 @@ public class RouterPort extends Port {
     @Max(32)
     public int networkLength;
 
-    @JsonIgnore
     @ZoomField(name = "port_subnet", converter = IPSubnetUtil.Converter.class)
-    public List<IPSubnet<?>> portSubnet;
+    public List<String> portSubnet;
 
-    @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
     @ZoomField(name = "port_address", converter = IPAddressUtil.Converter.class)
     public String portAddress;
@@ -110,19 +108,31 @@ public class RouterPort extends Port {
 
     @Override
     public void afterFromProto(Message message) {
-        if (portSubnet.size() > 0) {
-            networkAddress = portSubnet.get(0).getAddress().toString();
-            networkLength = portSubnet.get(0).getPrefixLen();
+        if (!portSubnet.isEmpty()) {
+            for (String subnetStr : portSubnet) {
+                try {
+                    IPv4Subnet subnet = IPv4Subnet.fromCidr(subnetStr);
+                    portAddress = subnet.getAddress().toString();
+                    networkAddress = subnet.toNetworkAddress().toString();
+                    networkLength = subnet.getPrefixLen();
+                    break;
+                }
+                catch(Exception e) {
+                    // ignore parsing exception (subnetStr is IPv6)
+                }
+            }
         }
     }
 
     @Override
     public void beforeToProto() {
         if (StringUtils.isNotEmpty(networkAddress)) {
+
             // MidoNet 5.2 or earlier API does not support setting multiple
             // addresses using these fields.
             portSubnet = new ArrayList<>(1);
-            portSubnet.add(IPSubnet.fromString(networkAddress, networkLength));
+            portSubnet.add(IPSubnet.fromString(networkAddress, networkLength)
+                               .toString());
         }
     }
 
