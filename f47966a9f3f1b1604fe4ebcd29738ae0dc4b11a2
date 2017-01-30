@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_ea95ec86",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-30T15:17:32Z",
+      "side": 1,
+      "message": "I think this code can stay as is for backwards compatibility, i.e. when reading from NSDB, we set the networkAddress and networkLength to the first subnet (older clients will read this)",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 124,
+        "endChar": 9
+      },
+      "revId": "f47966a9f3f1b1604fe4ebcd29738ae0dc4b11a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_4af17800",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-30T15:17:32Z",
+      "side": 1,
+      "message": "I think this was also fine as is\n\nhere we should check whether networkAddress is set: if it is this means an older client that uses old fields, so we should override whatever it is in the portSubnet as before; it it\u0027s not the portSubnet already contains the correct info from the JSON",
+      "range": {
+        "startLine": 129,
+        "startChar": 8,
+        "endLine": 130,
+        "endChar": 60
+      },
+      "revId": "f47966a9f3f1b1604fe4ebcd29738ae0dc4b11a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
