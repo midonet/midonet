@@ -46,6 +46,30 @@
       "revId": "22f72dc2da13ce2b8499f8614d2b279c740f7933",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_ff27f3c7",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/VPNaaSTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-01-30T10:18:40Z",
+      "side": 1,
+      "message": "Ok! I just wanted to ensure tests are stable in slow midocloud environment",
+      "parentUuid": "fabf19d9_64323661",
+      "range": {
+        "startLine": 72,
+        "startChar": 67,
+        "endLine": 72,
+        "endChar": 77
+      },
+      "revId": "22f72dc2da13ce2b8499f8614d2b279c740f7933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
