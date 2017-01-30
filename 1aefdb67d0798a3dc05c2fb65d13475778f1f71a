@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_4458528a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-30T08:41:06Z",
+      "side": 1,
+      "message": "nit: line too long\n\nyou could just say that the client is missing the json serializer",
+      "revId": "1aefdb67d0798a3dc05c2fb65d13475778f1f71a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
