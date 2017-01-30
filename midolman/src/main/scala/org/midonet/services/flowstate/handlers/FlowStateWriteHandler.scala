@@ -147,7 +147,7 @@ class FlowStateWriteHandler(context: Context,
         while (buffer.position < buffer.limit()) {
             ownedPorts += new UUID(buffer.getLong, buffer.getLong)
         }
-        log debug s"Received new owned ports: $ownedPorts}"
+        log debug s"Received new owned ports: $ownedPorts"
         // check the difference to release the writers
         val unboundPorts = cachedOwnedPortIds -- ownedPorts
         for (unboundPort <- unboundPorts) {
