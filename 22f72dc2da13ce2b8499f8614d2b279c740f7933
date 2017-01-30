@@ -22,6 +22,30 @@
       "revId": "22f72dc2da13ce2b8499f8614d2b279c740f7933",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_64323661",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/VPNaaSTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-30T08:34:25Z",
+      "side": 1,
+      "message": "well, this could be left to the default, the value doesn\u0027t matter anyway since the underlying InMemoryStorage will complete the future immediately",
+      "parentUuid": "fabf19d9_99f7f758",
+      "range": {
+        "startLine": 72,
+        "startChar": 67,
+        "endLine": 72,
+        "endChar": 77
+      },
+      "revId": "22f72dc2da13ce2b8499f8614d2b279c740f7933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
