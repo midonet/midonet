@@ -305,9 +305,6 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                 txn.commit()
             } catch {
                 case bve: BadVersionException =>
-                    // NoNodeException is assumed to be due to concurrent delete
-                    // operation because we already successfully fetched any
-                    // objects that are being updated.
                     throw new ConcurrentModificationException(bve)
                 case e: KeeperException =>
                     rethrowException(ops, e)
@@ -398,6 +395,9 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                     case (Key(_, path), TxDeleteNode) =>
                         throw new StorageNodeNotFoundException(path)
                     case _ =>
+                        // NoNodeException is assumed to be due to concurrent
+                        // delete operation because we already successfully
+                        // fetched any objects that are being updated.
                         throw new ConcurrentModificationException(e)
                 }
             case e: NotEmptyException => opForException(ops, e) match {
