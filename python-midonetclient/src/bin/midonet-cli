@@ -327,6 +327,14 @@ class IPv4Address(ValueType):
         except:
             return False
 
+class IPv6Address(ValueType):
+    def is_valid(self, value):
+        try:
+            socket.inet_pton(socket.AF_INET6, value)
+            return True
+        except:
+            return False
+
 class L4PortNumber(ValueType):
     def is_valid(self, value):
         try:
@@ -379,6 +387,25 @@ class IPv4Subnet(ValueType):
 class UUID(ValueType):
     def is_valid(self, value):
         return True if uuid_pattern.match(value) is not None else False
+
+class IPSubnet(ValueType):
+    def is_valid(self, value):
+        values = value.split('/')
+        if not values:
+            return False
+        address = values.pop(0)
+        if not IPv4Address().is_valid(address) and \
+           not IPv6Address().is_valid(address):
+            return False
+        if not values:
+            return True
+        try:
+            mask = int(values.pop(0))
+        except:
+            return False
+        if mask < 0 or mask > 32 or values:
+            return False
+        return True
 
 ################################################################################
 # Object member types
@@ -2549,16 +2576,6 @@ class RouterPort(ObjectType):
                                  getter = 'get_port_mac',
                                  setter = 'port_mac',
                                  optional = False))
-        self.put_attr(SingleAttr(name = 'address',
-                                 value_type = IPv4Address(),
-                                 getter = 'get_port_address',
-                                 setter = 'port_address'))
-        self.put_attr(CidrPair(name = 'net',
-                               value_type = StringType(),
-                               addr_getter = 'get_network_address',
-                               mask_getter = 'get_network_length',
-                               addr_setter = 'network_address',
-                               mask_setter = 'network_length'))
         self.put_attr(SingleAttr(name = 'peer',
                                  value_type = PortRef(),
                                  getter = 'get_peer_id',
@@ -2604,6 +2621,12 @@ class RouterPort(ObjectType):
                                  element_type = MacIp,
                                  list_method = 'get_remote_peers',
                                  factory_method = 'add_remote_peer'))
+        self.put_attr(ListAttr(name = 'addresses',
+                               element_type = IPSubnet(),
+                               getter = 'get_addresses',
+                               setter = 'set_addresses',
+                               unsetter = 'set_addresses',
+                               optional = True))
 
 
 # L4LB features

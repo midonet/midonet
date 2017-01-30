@@ -211,3 +211,10 @@ class Port(resource_base.ResourceBase,
     def qos_policy_id(self, id_):
         self.dto['qosPolicyId'] = id_
         return self
+
+    def set_addresses(self, addresses):
+        self.dto['portSubnet'] = addresses
+        return self
+
+    def get_addresses(self):
+        return self.dto['portSubnet']
