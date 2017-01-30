@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_d1e54338",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "Agreed, it\u0027s cleaner this way. I\u0027ll have a StorageCache class that takes a storage as argument, as opposed to extending Storage.",
+      "parentUuid": "fabf19d9_2d97893b",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 38
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_8da8d578",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_31cd9fb7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "That makes sense, will do. However, I think it\u0027s better to have this per StorageCache object: every call to .observable() of the same StorageCache creates an observable without adding unnecessary observers internally. If the user creates two StorageCache objects, and calls observable from each of them, then there\u0027ll still be two independent sets of cache and observers.",
+      "parentUuid": "fabf19d9_8da8d578",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 13
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_cda24d99",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2017-01-27T17:59:57Z",
       "side": 1,
       "message": "this subscription is never unsubscribed, there should be a mechanism to do that",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 78
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_f1c3a787",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "That\u0027s a good point, but I\u0027m not sure how to implement that... I\u0027d assume that, when the observer is garbage collected, so is the observable that comes from the storage, and any zookeeper watcher dies with it...",
+      "parentUuid": "fabf19d9_cda24d99",
       "range": {
         "startLine": 53,
         "startChar": 8,
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_d1bc2308",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "Good point, I switched to a thread-safe hashmap implementation instead.",
+      "parentUuid": "fabf19d9_adab9974",
+      "range": {
+        "startLine": 67,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 53
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_8dbfb5a9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
         "patchSetId": 2
@@ -128,6 +224,30 @@
       "writtenOn": "2017-01-27T17:59:57Z",
       "side": 1,
       "message": "perhaps you should add the object id to the message if not null?",
+      "range": {
+        "startLine": 99,
+        "startChar": 24,
+        "endLine": 99,
+        "endChar": 75
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_713e778d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_8dbfb5a9",
       "range": {
         "startLine": 99,
         "startChar": 24,
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_1175fb62",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_adc27932",
+      "range": {
+        "startLine": 99,
+        "startChar": 11,
+        "endLine": 100,
+        "endChar": 38
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_6ddfc10d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
         "patchSetId": 2
@@ -174,6 +318,30 @@
       "writtenOn": "2017-01-27T17:59:57Z",
       "side": 1,
       "message": "I think contains and remove can be done as a single op",
+      "range": {
+        "startLine": 103,
+        "startChar": 33,
+        "endLine": 104,
+        "endChar": 30
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_11fcdbb6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CacheableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "The idea was more to avoid publishing an event for a cache that didn\u0027t change, but I think the .distinctUntilChanged() is enough.",
+      "parentUuid": "fabf19d9_6ddfc10d",
       "range": {
         "startLine": 103,
         "startChar": 33,
@@ -209,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_f1f847c5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "Reverted. And yeah, I missed the objectClasses completely... My bad.",
+      "parentUuid": "fabf19d9_4dbd1db6",
+      "range": {
+        "startLine": 186,
+        "startChar": 4,
+        "endLine": 186,
+        "endChar": 13
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_0dea85ac",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/CacheableStorageTest.scala",
         "patchSetId": 2
@@ -232,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_b1fe4fac",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/CacheableStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_0dea85ac",
+      "range": {
+        "startLine": 28,
+        "startChar": 36,
+        "endLine": 28,
+        "endChar": 56
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_cdd00df9",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/CacheableStorageTest.scala",
         "patchSetId": 2
@@ -243,6 +459,30 @@
       "writtenOn": "2017-01-27T17:59:57Z",
       "side": 1,
       "message": "here and for all lines below: fix indentation",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 8
+      },
+      "revId": "4f313719107c751a61c4820224d3d5537590acbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_912eab41",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/CacheableStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-30T11:02:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_cdd00df9",
       "range": {
         "startLine": 30,
         "startChar": 0,
