@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_9484595e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageCache.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-30T12:13:36Z",
+      "side": 1,
+      "message": "this could be Map.empty",
+      "range": {
+        "startLine": 46,
+        "startChar": 46,
+        "endLine": 46,
+        "endChar": 65
+      },
+      "revId": "fbe84a48fa7d231675b4287f85e73d197626e52e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_54a36100",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageCache.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-30T12:13:36Z",
+      "side": 1,
+      "message": "so for storage, we use nsdb as logger, maybe:\n\norg.midonet.nsdb.cache",
+      "range": {
+        "startLine": 66,
+        "startChar": 42,
+        "endLine": 66,
+        "endChar": 62
+      },
+      "revId": "fbe84a48fa7d231675b4287f85e73d197626e52e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
