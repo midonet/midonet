@@ -69,24 +69,6 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
                                 postRouteChainName(nRouter.getId))
         val fwdChain = newChain(router.getForwardChainId,
                                 forwardChainName(nRouter.getId))
-        val floatSnatExactChain = newChain(floatSnatExactChainId(nRouter.getId),
-                                           floatSnatExactChainName(nRouter.getId))
-        val floatSnatChain = newChain(floatSnatChainId(nRouter.getId),
-                                      floatSnatChainName(nRouter.getId))
-        val floatNat64Chain = newChain(floatNat64ChainId(nRouter.getId),
-                                       floatNat64ChainName(nRouter.getId))
-        val skipSnatChain = newChain(skipSnatChainId(nRouter.getId),
-                                     skipSnatChainName(nRouter.getId))
-
-        val skipSnatAcceptRule = Rule.newBuilder
-            .setId(skipSnatAcceptRuleId(nRouter.getId))
-            .setType(Rule.Type.LITERAL_RULE)
-            .setAction(Action.ACCEPT)
-            .setChainId(skipSnatChainId(nRouter.getId))
-            .setCondition(anyFragCondition
-                .setMatchNwDstRewritten(true)
-                .setConjunctionInv(true))
-            .build()
 
         // This is actually only needed for edge routers, but edge routers are
         // only defined by having an interface to an uplink network, so it's
@@ -102,16 +84,45 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
         val routerInterfacePortGroup = newRouterInterfacePortGroup(
             nRouter.getId, nRouter.getTenantId).build()
 
-        List(floatSnatExactChain, floatSnatChain, floatNat64Chain, skipSnatChain,
-             skipSnatAcceptRule,
-             inChain, outChain, fwdChain, router, portGroup,
-             routerInterfacePortGroup,
-             jumpRule(outChain.getId, floatNat64Chain.getId),
-             jumpRule(outChain.getId, skipSnatChain.getId),
-             jumpRule(outChain.getId, floatSnatExactChain.getId),
-             jumpRule(outChain.getId, floatSnatChain.getId)).foreach(tx.create)
+        List(inChain, outChain, fwdChain, router, portGroup,
+             routerInterfacePortGroup).foreach(tx.create)
+        createSnatChains(tx, nRouter.getId)
 
         createGatewayPort(tx, nRouter, router)
+    }
+
+    private def createSnatChains(tx: Transaction, routerId: UUID): Unit = {
+        val floatSnatExactChain = newChain(floatSnatExactChainId(routerId),
+                                           floatSnatExactChainName(routerId))
+        val floatSnatChain = newChain(floatSnatChainId(routerId),
+                                      floatSnatChainName(routerId))
+        val floatNat64Chain = newChain(floatNat64ChainId(routerId),
+                                       floatNat64ChainName(routerId))
+        val skipSnatChain = newChain(skipSnatChainId(routerId),
+                                     skipSnatChainName(routerId))
+        val outChainBldr =
+            tx.get(classOf[Chain], outChainId(routerId)).toBuilder
+
+        for(chain <- Seq(skipSnatChain, floatSnatChain,
+                         floatSnatExactChain, floatNat64Chain)) {
+            tx.create(chain)
+            val rule = jumpRule(null, chain.getId)
+            tx.create(rule)
+            outChainBldr.addRuleIds(0, rule.getId)
+        }
+
+        tx.update(outChainBldr.build())
+
+        val skipSnatAcceptRule = Rule.newBuilder
+            .setId(skipSnatAcceptRuleId(routerId))
+            .setType(Rule.Type.LITERAL_RULE)
+            .setAction(Action.ACCEPT)
+            .setChainId(skipSnatChainId(routerId))
+            .setCondition(anyFragCondition
+                              .setMatchNwDstRewritten(true)
+                              .setConjunctionInv(true))
+            .build()
+        tx.create(skipSnatAcceptRule)
     }
 
     override protected def translateDelete(tx: Transaction,
@@ -137,7 +148,13 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
 
     override protected def translateUpdate(tx: Transaction,
                                            nRouter: NeutronRouter): Unit = {
-        checkOldRouterTranslation(tx, nRouter.getId)
+        if (isOldRouterTranslation(tx, nRouter.getId)) {
+            if (isSnatEnabled(nRouter))
+                checkOldRouterTranslation(tx, nRouter.getId)
+            else
+                createSnatChains(tx, nRouter.getId)
+        }
+
         val router = tx.get(classOf[Router], nRouter.getId)
 
         tx.update(router.toBuilder
