@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_400f1788",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-31T02:32:30Z",
+      "side": 1,
+      "message": "this can be 2-\u003e1, can\u0027t it?",
+      "revId": "6c364a18617ace79ad053b74590227686f92d6c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
