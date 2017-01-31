@@ -22,6 +22,30 @@
       "revId": "07d069dbae3de03eeb28bb38fd6955a04e24f6a6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_768f852a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-01-31T10:42:21Z",
+      "side": 1,
+      "message": "this is to keep compatibility with code in midonet-enterprise that may have to register their own owner if they want to support provenance + all unit tests",
+      "parentUuid": "fabf19d9_006d9f30",
+      "range": {
+        "startLine": 275,
+        "startChar": 36,
+        "endLine": 275,
+        "endChar": 53
+      },
+      "revId": "07d069dbae3de03eeb28bb38fd6955a04e24f6a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
