@@ -16,6 +16,24 @@
       "revId": "6c364a18617ace79ad053b74590227686f92d6c1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_1bd4f4e9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-01-31T08:48:27Z",
+      "side": 1,
+      "message": "Absolutely, will fix that.",
+      "parentUuid": "fabf19d9_400f1788",
+      "revId": "6c364a18617ace79ad053b74590227686f92d6c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
