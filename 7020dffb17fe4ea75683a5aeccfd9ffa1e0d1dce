@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_c0f7a757",
+        "filename": "nsdb/src/main/scala/org/midonet/management/MidolmanDump.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-31T05:33:52Z",
+      "side": 1,
+      "message": "writing to dump.hprof by default looks confusing.\nisn\u0027t it simpler to output to stdout?",
+      "range": {
+        "startLine": 143,
+        "startChar": 32,
+        "endLine": 143,
+        "endChar": 47
+      },
+      "revId": "7020dffb17fe4ea75683a5aeccfd9ffa1e0d1dce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
