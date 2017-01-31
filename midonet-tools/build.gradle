@@ -54,7 +54,6 @@ packaging {
     description = 'Command line tools for MidoNet, a virtual network controller'
     fpmOpts = ['-a', 'all',
                '--category', 'network',
-               '--url', 'http://midokura.com',
                '--epoch', '2']
 }
 
