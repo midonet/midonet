@@ -28,14 +28,18 @@ trait RouterManager extends ChainManager {
 
     // REVISIT(yamamoto): Ideally we can upgrade translation online.
     // It would be a challenge to do it without disrupting agents, though.
-    @throws[UnsupportedOperationException]
     protected def checkOldRouterTranslation(tx: Transaction,
                                             routerId: UUID): Unit = {
-        val chainId = floatSnatExactChainId(routerId)
-
-        if (!tx.exists(classOf[Chain], chainId)) {
-            throw new UnsupportedOperationException(
-                s"Router $routerId has an old incompatible translation")
+        if (isOldRouterTranslation(tx, routerId)) {
+            throw new IllegalStateException(
+                s"Router $routerId must be updated to work properly with the " +
+                s"newest version of Midonet. Please disable and re-enable " +
+                s"SNAT on the router's gateway.")
         }
+    }
+
+    protected def isOldRouterTranslation(tx: Transaction,
+                                         routerId: UUID): Boolean = {
+        !tx.exists(classOf[Chain], floatSnatExactChainId(routerId))
     }
 }

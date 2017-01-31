@@ -29,8 +29,13 @@ import org.midonet.cluster.util.UUIDUtil
  */
 trait RuleManager {
 
-    protected def newRule(chainId: UUID): Rule.Builder =
-        Rule.newBuilder().setChainId(chainId).setId(UUIDUtil.randomUuidProto)
+    protected def newRule(chainId: UUID): Rule.Builder = {
+        val bldr = Rule.newBuilder()
+        bldr.setId(UUIDUtil.randomUuidProto)
+        if (chainId != null)
+            bldr.setChainId(chainId)
+        bldr
+    }
 
     protected def returnFlowRule(chainId: UUID): Rule =
         newRule(chainId)
