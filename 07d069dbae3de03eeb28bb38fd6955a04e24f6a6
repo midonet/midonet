@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_006d9f30",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-01-31T04:21:59Z",
+      "side": 1,
+      "message": "does this need the default?",
+      "range": {
+        "startLine": 275,
+        "startChar": 36,
+        "endLine": 275,
+        "endChar": 53
+      },
+      "revId": "07d069dbae3de03eeb28bb38fd6955a04e24f6a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
