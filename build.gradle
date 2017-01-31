@@ -20,7 +20,7 @@ project.ext {
     midonetVersion = "5.6-SNAPSHOT"
     vendor = 'MidoNet'
     maintainer = "MidoNet user list <midonet-user@midonet.org>"
-    url = "http://midonet.org"
+    url = "https://www.midonet.org"
 
     neutron_compatibility = ["kilo", "liberty"]
 
