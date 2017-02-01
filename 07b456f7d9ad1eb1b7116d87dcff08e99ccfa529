@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_a70722c9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-01T09:37:32Z",
+      "side": 1,
+      "message": "This method changes from async to sync. Is this ok?",
+      "range": {
+        "startLine": 227,
+        "startChar": 10,
+        "endLine": 227,
+        "endChar": 21
+      },
+      "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_07200e47",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-01T09:37:32Z",
+      "side": 1,
+      "message": "These names are confusing. If it\u0027s provenance, it should be named so.",
+      "range": {
+        "startLine": 113,
+        "startChar": 8,
+        "endLine": 113,
+        "endChar": 20
+      },
+      "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_c71576e5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-01T09:37:32Z",
+      "side": 1,
+      "message": "multiple points of return. Better to put an else here and remove the returns.",
+      "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
