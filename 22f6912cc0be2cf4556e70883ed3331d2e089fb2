@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "fabf19d9_acbca9dc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2017-02-01T07:12:34Z",
+      "side": 1,
+      "message": "I think we can remove this comment (or update to describe the upgrade logic for SNAT).",
+      "revId": "22f6912cc0be2cf4556e70883ed3331d2e089fb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_00023f3d",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterManager.scala",
         "patchSetId": 1
@@ -13,6 +30,23 @@
       "writtenOn": "2017-01-31T05:24:19Z",
       "side": 1,
       "message": "and re-associate floating-ips?",
+      "revId": "22f6912cc0be2cf4556e70883ed3331d2e089fb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_2c7f7916",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2017-02-01T07:12:34Z",
+      "side": 1,
+      "message": "Alternatively:\n\n        if (isSnatEnabled(nRouter)) {\n            checkOldRouterTranslation(tx, nRouter.getId)\n        } else if (isOldRouterTranslation(tx, nRouter.getId)) {\n            createSnatChains(tx, nRouter.getId)\n        }",
       "revId": "22f6912cc0be2cf4556e70883ed3331d2e089fb2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
