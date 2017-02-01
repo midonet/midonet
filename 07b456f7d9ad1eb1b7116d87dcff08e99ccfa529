@@ -128,6 +128,24 @@
       "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_47b96678",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-01T10:31:59Z",
+      "side": 1,
+      "message": "or\nval provBuilder \u003d if (count \u003e 0) {...} else null\nif (provBuilder !\u003d null \u0026\u0026 ...\n\nIt\u0027s not really important though, so whatever you think is best.",
+      "parentUuid": "fabf19d9_c7f7b657",
+      "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
