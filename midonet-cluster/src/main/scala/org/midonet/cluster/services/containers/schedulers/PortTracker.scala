@@ -23,8 +23,9 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.containers.{ObjectTracker, Context}
+import org.midonet.containers.{Context, ObjectTracker}
 import org.midonet.util.functors._
 
 /** Processes notifications for active state of the specified port. The
@@ -44,11 +45,13 @@ class PortTracker(val portId: UUID, context: Context)
     private val portObservable = context.store
         .observable(classOf[Port], portId)
         .distinctUntilChanged()
+        .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
         .observeOn(context.scheduler)
         .doOnNext(makeAction1(portUpdated))
         .doOnCompleted(makeAction0 { mark.onCompleted() })
     private val portActiveObservable = context.stateStore
         .keyObservable(portStateSubject, classOf[Port], portId, ActiveKey)
+        .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
         .observeOn(context.scheduler)
         .map[Boolean](makeFunc1(state => { portStateReady = true; state.nonEmpty }))
 

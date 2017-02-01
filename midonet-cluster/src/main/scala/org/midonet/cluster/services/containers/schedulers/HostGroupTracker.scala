@@ -23,8 +23,9 @@ import scala.collection.JavaConverters._
 import rx.Observable
 
 import org.midonet.cluster.models.Topology.HostGroup
+import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.containers.{Context, ObjectTracker, CollectionTracker}
+import org.midonet.containers.{CollectionTracker, Context, ObjectTracker}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc2}
 
 /** Processes notifications for the container service running at the hosts in
@@ -55,6 +56,7 @@ class HostGroupTracker(hostGroupId: UUID, context: Context)
     private val hostGroupObservable = context.store
         .observable(classOf[HostGroup], hostGroupId)
         .distinctUntilChanged()
+        .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
         .observeOn(context.scheduler)
         .doOnNext(makeAction1(hostGroupUpdated))
         .doOnCompleted(makeAction0(hostGroupDeleted()))
