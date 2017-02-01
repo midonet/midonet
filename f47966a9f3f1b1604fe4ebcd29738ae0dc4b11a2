@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_4ab29807",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-01T09:14:06Z",
+      "side": 1,
+      "message": "reviewed f2f: looks good",
+      "parentUuid": "fabf19d9_ea95ec86",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 124,
+        "endChar": 9
+      },
+      "revId": "f47966a9f3f1b1604fe4ebcd29738ae0dc4b11a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_4af17800",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
         "patchSetId": 1
