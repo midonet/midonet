@@ -116,8 +116,6 @@ public class HostServiceTest {
     public void setup(Boolean backendEnabled) throws Exception {
         HostIdGenerator.useTemporaryHostId();
         hostId = HostIdGenerator.getHostId();
-        config = config.withValue("zookeeper.use_new_stack",
-            ConfigValueFactory.fromAnyRef(backendEnabled));
 
         injector = Guice.createInjector(new SerializationModule(),
                                         new TestModule());

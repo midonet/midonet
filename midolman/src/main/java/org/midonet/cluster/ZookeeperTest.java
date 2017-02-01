@@ -71,8 +71,6 @@ public abstract class ZookeeperTest {
         Config config = MidoNodeConfigurator.bootstrapConfig(None);
         config = config.withValue("zookeeper.root_key",
             ConfigValueFactory.fromAnyRef(zkRoot));
-        config = config.withValue("zookeeper.use_new_stack",
-            ConfigValueFactory.fromAnyRef(true));
         config = config.withValue("zookeeper.zookeeper_hosts",
             ConfigValueFactory.fromAnyRef("127.0.0.1:" + ZK_PORT));
         config = config.withValue("zookeeper.curator_enabled",

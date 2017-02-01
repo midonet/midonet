@@ -117,9 +117,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
             .withValue("zookeeper.base_retry",
                 ConfigValueFactory.fromAnyRef("1s"))
             .withValue("zookeeper.curator_enabled",
-                ConfigValueFactory.fromAnyRef(true))
-            .withValue("zookeeper.use_new_stack",
-                ConfigValueFactory.fromAnyRef(false));
+                ConfigValueFactory.fromAnyRef(true));
         log.info("Loaded zookeeper config: {}", ret.root().render());
         return ret;
     }

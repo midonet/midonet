@@ -96,7 +96,6 @@ public class FuncTest {
                               "true")
                 .contextParam(getConfigKey("zookeeper", "midolman_root_key"), zkRoot)
                 .contextParam(getConfigKey("zookeeper", "root_key"), zkRoot)
-                .contextParam(getConfigKey("zookeeper", "use_new_stack"), "false")
                 .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 
