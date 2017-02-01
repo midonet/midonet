@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_67e6aab1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-01T10:28:55Z",
+      "side": 1,
+      "message": "I changed it because the usage was synchronous anyway, like:\n\n  getSnapshot.toBlocking.first\n\nSince the asynchronous observable was just an overhead in this case and the usage is internal to the transaction manager, I figured that we can make it synchronous for now and just change it back the future if needed.",
+      "parentUuid": "fabf19d9_a70722c9",
+      "range": {
+        "startLine": 227,
+        "startChar": 10,
+        "endLine": 227,
+        "endChar": 21
+      },
+      "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_07200e47",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_e7faba42",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-01T10:28:55Z",
+      "side": 1,
+      "message": "will do",
+      "parentUuid": "fabf19d9_07200e47",
+      "range": {
+        "startLine": 113,
+        "startChar": 8,
+        "endLine": 113,
+        "endChar": 20
+      },
+      "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_c71576e5",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
         "patchSetId": 4
@@ -59,6 +107,24 @@
       "writtenOn": "2017-02-01T09:37:32Z",
       "side": 1,
       "message": "multiple points of return. Better to put an else here and remove the returns.",
+      "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_c7f7b657",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-01T10:28:55Z",
+      "side": 1,
+      "message": "So it will look something like this:\n\n        if (count \u003e 0) {\n            val provenanceBuilder \u003d objectBuilder.getProvenanceBuilder(count - 1)\n            // Consolidate provenance in the last entry from the same owner.\n            if (provenanceBuilder.getChangeOwner \u003d\u003d owner.id \u0026\u0026\n                provenanceBuilder.getProductVersion \u003d\u003d Storage.ProductVersion \u0026\u0026\n                provenanceBuilder.getProductCommit \u003d\u003d Storage.ProductCommit) {\n                if ((provenanceBuilder.getChangeType \u0026 change) !\u003d 0) {\n                    // If the provenance change type is already included in\n                    // the previous change, return null (no need to update).\n                    null\n                } else {\n                    // If the provenance change type has changed, update the\n                    // change type.\n                    provenanceBuilder\n                        .setChangeType(change | provenanceBuilder.getChangeType)\n                    objectBuilder.build().toByteArray\n                }\n            } else {\n                objectBuilder.addProvenance(ZoomProvenance.newBuilder()\n                                                .setProductVersion(Storage.ProductVersion)\n                                                .setProductCommit(Storage.ProductCommit)\n                                                .setChangeOwner(owner.id)\n                                                .setChangeType(change)\n                                                .setChangeVersion(version))\n                objectBuilder.build().toByteArray\n            }\n        } else {\n            objectBuilder.addProvenance(ZoomProvenance.newBuilder()\n                                            .setProductVersion(Storage.ProductVersion)\n                                            .setProductCommit(Storage.ProductCommit)\n                                            .setChangeOwner(owner.id)\n                                            .setChangeType(change)\n                                            .setChangeVersion(version))\n            objectBuilder.build().toByteArray\n        }",
+      "parentUuid": "fabf19d9_c71576e5",
       "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
