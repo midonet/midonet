@@ -253,6 +253,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
                     .keyObservable(namespaceSubject, classOf[ServiceContainer],
                                    containerId, StatusKey)
                     .onErrorResumeNext(Observable.just(null))
+                    .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
                     .observeOn(context.scheduler)
                     .filter(makeFunc1(containerStatusUpdated))
                     .map[Feedback](makeFunc1(_ => StatusFeedback))

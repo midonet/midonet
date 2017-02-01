@@ -26,6 +26,7 @@ import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
 import org.midonet.cluster.models.State.ContainerServiceStatus
 import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.containers.{Context, ObjectTracker}
 import org.midonet.util.functors._
 
@@ -41,6 +42,7 @@ class HostTracker(hostId: UUID, context: Context)
 
     override val observable = context.stateStore
         .keyObservable(hostId.toString, classOf[Host], hostId, ContainerKey)
+        .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
         .observeOn(context.scheduler)
         .map[HostEvent](makeFunc1(buildEvent))
         .distinctUntilChanged()
