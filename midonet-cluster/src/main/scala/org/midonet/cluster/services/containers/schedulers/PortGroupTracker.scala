@@ -23,8 +23,9 @@ import scala.collection.JavaConverters._
 import rx.Observable
 
 import org.midonet.cluster.models.Topology.PortGroup
+import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.containers.{Context, CollectionTracker, ObjectTracker}
+import org.midonet.containers.{CollectionTracker, Context, ObjectTracker}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc3}
 
 /** Processes notifications for the container service running at the hosts where
@@ -64,6 +65,7 @@ class PortGroupTracker(portGroupId: UUID, context: Context)
     private val portGroupObservable = context.store
         .observable(classOf[PortGroup], portGroupId)
         .distinctUntilChanged()
+        .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
         .observeOn(context.scheduler)
         .doOnNext(makeAction1(portGroupUpdated))
         .doOnCompleted(makeAction0(portGroupDeleted()))
