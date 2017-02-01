@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_2c0f7938",
+        "filename": "nsdb/src/main/scala/org/midonet/management/MidolmanDump.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-01T08:46:43Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 165,
+        "startChar": 33,
+        "endLine": 165,
+        "endChar": 34
+      },
+      "revId": "771ee0baf8c7a7460053c6e3befd5848a890d795",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
