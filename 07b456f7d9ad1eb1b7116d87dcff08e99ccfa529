@@ -164,6 +164,24 @@
       "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_f21b9a71",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-01T11:13:30Z",
+      "side": 1,
+      "message": "yes, this is one option I had",
+      "parentUuid": "fabf19d9_b201a207",
+      "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
