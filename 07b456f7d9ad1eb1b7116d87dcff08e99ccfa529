@@ -146,6 +146,24 @@
       "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_b201a207",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-01T10:56:38Z",
+      "side": 1,
+      "message": "actually, another alternative would have been\n\nval count \u003d builder.getProvenanceCount\nif (count \u003e 0 \u0026\u0026 {\n            val b \u003d builder.getProvenanceBuilder(count - 1)\n            b.getChangeOwner \u003d\u003d owner.id \u0026\u0026\n                b.getProductVersion \u003d\u003d Storage.ProductVersion \u0026\u0026\n                b.getProductCommit \u003d\u003d Storage.ProductCommit)})\n{\n            if ((builder.getProvenanceBuilder(count - 1).getChangeType \u0026 change) !\u003d 0) {\n                // If the provenance change type is already included in",
+      "parentUuid": "fabf19d9_47b96678",
+      "revId": "07b456f7d9ad1eb1b7116d87dcff08e99ccfa529",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
