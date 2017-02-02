@@ -75,6 +75,7 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     val conf = config.resolve()
 
     def bridgeArpEnabled = getBoolean(s"$PREFIX.midolman.enable_bridge_arp")
+
     def bgpKeepAlive = getDuration(s"$PREFIX.midolman.bgp_keepalive", TimeUnit.SECONDS).toInt
     def bgpHoldTime = getDuration(s"$PREFIX.midolman.bgp_holdtime", TimeUnit.SECONDS).toInt
     def bgpConnectRetry = getDuration(s"$PREFIX.midolman.bgp_connect_retry", TimeUnit.SECONDS).toInt
@@ -87,6 +88,9 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     def datapathName = Try(getString(s"$PREFIX.midolman.datapath")).getOrElse("midonet")
 
     def lockMemory = getBoolean(s"$PREFIX.midolman.lock_memory")
+
+    def statsHttpServerPort: Int =
+        getInt(s"$PREFIX.midolman.stats_http_server_port")
 
     val bridge = new BridgeConfig(conf, schema)
     val router = new RouterConfig(conf, schema)
