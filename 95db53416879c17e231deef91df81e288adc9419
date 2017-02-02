@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_18050c13",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-02T09:57:38Z",
+      "side": 1,
+      "message": "yes, the number of devices never shrinks, so there\u0027d never be a reason for this buffer to shrink.",
+      "parentUuid": "fabf19d9_38d1f0fa",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 14
+      },
+      "revId": "95db53416879c17e231deef91df81e288adc9419",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_d8067485",
         "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_53cda564",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-02T09:57:38Z",
+      "side": 1,
+      "message": "oh, there should only be setLength. i guess i put clear when i was just sketching the solution, and never removed it. It shouldn\u0027t exist, because it doesn\u0027t exist on java.lang.StringBuilder. Seems scala has a StringBuilder as well, but I don\u0027t want to use that. I may change this to using something else.",
+      "parentUuid": "fabf19d9_d8067485",
+      "range": {
+        "startLine": 153,
+        "startChar": 23,
+        "endLine": 153,
+        "endChar": 28
+      },
+      "revId": "95db53416879c17e231deef91df81e288adc9419",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_18acec8a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2017-02-02T02:22:06Z",
       "side": 1,
       "message": "is this meant to signal the thread blocking on accept?",
+      "range": {
+        "startLine": 180,
+        "startChar": 8,
+        "endLine": 180,
+        "endChar": 22
+      },
+      "revId": "95db53416879c17e231deef91df81e288adc9419",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_b306411b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-02T09:57:38Z",
+      "side": 1,
+      "message": "yes, exactly.",
+      "parentUuid": "fabf19d9_18acec8a",
       "range": {
         "startLine": 180,
         "startChar": 8,
