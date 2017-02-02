@@ -46,6 +46,29 @@
       "revId": "c2bdb7fefe13e7d06bf52f1142d6b4a58be1a1a6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_4928549a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-02-02T15:16:08Z",
+      "side": 1,
+      "message": "if writeHeaders throws here, i.e. because the client has closed, this will propagate the exception to the main loop.\n\nA client closing the connection at any moment before receiving the full reply will cause the server to restart.",
+      "range": {
+        "startLine": 169,
+        "startChar": 16,
+        "endLine": 169,
+        "endChar": 61
+      },
+      "revId": "c2bdb7fefe13e7d06bf52f1142d6b4a58be1a1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
