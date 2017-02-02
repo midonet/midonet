@@ -178,16 +178,30 @@ class ProcMon(ISelectLoopObserver):
 
     def on_sigterm(self):
         msg('signal received, exiting')
-        self.terminate(5, signal.SIGTERM)
+        self.terminate(10, signal.SIGTERM)
+
+    def wait_on_children(self, pgid, timeout):
+        for i in range(timeout):
+            try:
+                time.sleep(1)
+                os.kill(pgid, 0)
+            except OSError:
+                return True
+        return False
 
     def terminate(self, timeout, signum):
         pid = self.child_pid
         if pid > 0:
+            pgid = os.getpgid(pid)
+            msg('Terminating child process with timeout %d seconds (pid:%d pgid:%d)' % (
+                timeout, pid, pgid))
             os.kill(pid, signum)
-            for i in range(timeout):
-                self.select_loop.loop(1.0)
-            err('child did not stop gracefully in 5 seconds, killing')
-            os.kill(pid, signal.SIGKILL)
+            if self.wait_on_children(pgid, timeout):
+                os.killpg(pgid, signal.SIGKILL)
+                return
+            err('Child did not stop gracefully in %d seconds, killing (pid:%d pgid:%d)' % (
+                timeout, pid, pgid))
+            os.killpg(pgid, signal.SIGKILL)
 
     def on_signal(self, signum):
         if signum == signal.SIGQUIT:
