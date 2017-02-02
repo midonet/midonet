@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_38d1f0fa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-02-02T02:22:06Z",
+      "side": 1,
+      "message": "this intentionally keeps a buffer which never shrink?",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 14
+      },
+      "revId": "95db53416879c17e231deef91df81e288adc9419",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_d8067485",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-02-02T02:22:06Z",
+      "side": 1,
+      "message": "any reason to mix clear and setLength(0) in a method?",
+      "range": {
+        "startLine": 153,
+        "startChar": 23,
+        "endLine": 153,
+        "endChar": 28
+      },
+      "revId": "95db53416879c17e231deef91df81e288adc9419",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_18acec8a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-02-02T02:22:06Z",
+      "side": 1,
+      "message": "is this meant to signal the thread blocking on accept?",
+      "range": {
+        "startLine": 180,
+        "startChar": 8,
+        "endLine": 180,
+        "endChar": 22
+      },
+      "revId": "95db53416879c17e231deef91df81e288adc9419",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
