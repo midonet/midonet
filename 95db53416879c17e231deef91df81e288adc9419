@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fabf19d9_8e6c32d1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-02-02T11:36:44Z",
+      "side": 1,
+      "message": "Nit: Check only for startsWith \"HTTP/1.\" to support HTTP/1.0 clients, for example not so recent versions of wget.",
+      "range": {
+        "startLine": 35,
+        "startChar": 23,
+        "endLine": 35,
+        "endChar": 30
+      },
+      "revId": "95db53416879c17e231deef91df81e288adc9419",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_38d1f0fa",
         "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
         "patchSetId": 1
