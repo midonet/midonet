@@ -50,6 +50,24 @@
       "revId": "22f6912cc0be2cf4556e70883ed3331d2e089fb2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_18fbcc48",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2017-02-02T04:51:37Z",
+      "side": 1,
+      "message": "Good point. Unfortunately, I\u0027m no longer in a position where I can easily check for regressions, so I\u0027d like to leave this as is until we get some tests in place.",
+      "parentUuid": "fabf19d9_2c7f7916",
+      "revId": "22f6912cc0be2cf4556e70883ed3331d2e089fb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
