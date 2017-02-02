@@ -29,8 +29,9 @@ import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber, Subscription}
 
 import org.midonet.cluster.models.Topology.Host
+import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.containers.{Context, CollectionTracker}
+import org.midonet.containers.{CollectionTracker, Context}
 import org.midonet.util.functors._
 
 /**
@@ -61,6 +62,7 @@ class AnywhereHostSelector(context: Context) extends HostSelector {
 
     // Handles updates from all hosts.
     private val hostsObservable = context.store.observable(classOf[Host])
+        .onBackpressureBuffer(ContainerService.SchedulingBufferSize)
         .observeOn(context.scheduler)
         .flatMap(makeFunc1(_.take(1)))
         .doOnNext(makeAction1(newHost))
