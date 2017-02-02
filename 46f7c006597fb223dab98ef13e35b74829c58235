@@ -22,6 +22,30 @@
       "revId": "46f7c006597fb223dab98ef13e35b74829c58235",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_6938b83d",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-02T14:40:59Z",
+      "side": 1,
+      "message": "I understand that this breaks some compatibility for older clients, which would read back a subnet that includes the address, but it is needed to ensure the correct address for newer clients, is that right?\n\nanother note: maybe we should have set portAddress to null such that this would look like a port created with a 5.6 client",
+      "parentUuid": "fabf19d9_ce9d8abd",
+      "range": {
+        "startLine": 129,
+        "startChar": 35,
+        "endLine": 129,
+        "endChar": 46
+      },
+      "revId": "46f7c006597fb223dab98ef13e35b74829c58235",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
