@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_492974e5",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 8
+      },
+      "lineNbr": 2629,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-02T14:45:27Z",
+      "side": 1,
+      "message": "changing an address means enumerating all addresses, including those that didn\u0027t change, is this so?",
+      "range": {
+        "startLine": 2624,
+        "startChar": 8,
+        "endLine": 2629,
+        "endChar": 48
+      },
+      "revId": "e3d08a1b09e82ba76672c0f82379bcb788f8285d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
