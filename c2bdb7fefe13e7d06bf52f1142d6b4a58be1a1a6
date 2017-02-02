@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fabf19d9_e9016807",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-02-02T15:19:50Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 35,
+        "startChar": 8,
+        "endLine": 35,
+        "endChar": 21
+      },
+      "revId": "c2bdb7fefe13e7d06bf52f1142d6b4a58be1a1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_ee016e07",
         "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
         "patchSetId": 3
@@ -42,6 +65,29 @@
         "startChar": 28,
         "endLine": 63,
         "endChar": 42
+      },
+      "revId": "c2bdb7fefe13e7d06bf52f1142d6b4a58be1a1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_a406f51a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-02-02T15:19:50Z",
+      "side": 1,
+      "message": "Maybe it\u0027s out of scope, but this could use a timeout.",
+      "range": {
+        "startLine": 126,
+        "startChar": 30,
+        "endLine": 126,
+        "endChar": 38
       },
       "revId": "c2bdb7fefe13e7d06bf52f1142d6b4a58be1a1a6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
