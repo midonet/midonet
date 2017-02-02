@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_ce9d8abd",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-02T11:38:22Z",
+      "side": 1,
+      "message": "is this safe to change? older clients may only send networkAddress.",
+      "range": {
+        "startLine": 129,
+        "startChar": 35,
+        "endLine": 129,
+        "endChar": 46
+      },
+      "revId": "46f7c006597fb223dab98ef13e35b74829c58235",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
