@@ -87,6 +87,7 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     def datapathName = Try(getString(s"$PREFIX.midolman.datapath")).getOrElse("midonet")
 
     def lockMemory = getBoolean(s"$PREFIX.midolman.lock_memory")
+    def statsServerPort = getInt(s"$PREFIX.midolman.stats_server_port")
 
     val bridge = new BridgeConfig(conf, schema)
     val router = new RouterConfig(conf, schema)
