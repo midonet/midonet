@@ -22,6 +22,30 @@
       "revId": "e3d08a1b09e82ba76672c0f82379bcb788f8285d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_e98e08cf",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 8
+      },
+      "lineNbr": 2629,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-02-02T15:06:33Z",
+      "side": 1,
+      "message": "Yes. I have tried with Collection but it seemed more complicated as it involves API calls for each modification, so we would need API support for modifying individual entries in the address list.",
+      "parentUuid": "fabf19d9_492974e5",
+      "range": {
+        "startLine": 2624,
+        "startChar": 8,
+        "endLine": 2629,
+        "endChar": 48
+      },
+      "revId": "e3d08a1b09e82ba76672c0f82379bcb788f8285d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
