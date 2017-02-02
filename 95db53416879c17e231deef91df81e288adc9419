@@ -49,6 +49,29 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_332591c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2017-02-02T11:19:37Z",
+      "side": 1,
+      "message": "Nit: Use CRLF ( \"\\r\\n\" ) as a line separator",
+      "range": {
+        "startLine": 104,
+        "startChar": 36,
+        "endLine": 104,
+        "endChar": 38
+      },
+      "revId": "95db53416879c17e231deef91df81e288adc9419",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_d8067485",
         "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
         "patchSetId": 1
