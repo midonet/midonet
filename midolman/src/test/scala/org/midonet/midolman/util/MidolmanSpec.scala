@@ -133,7 +133,12 @@ trait MidolmanSpec extends FeatureSpecLike
     }
 
     protected def fillConfig(config: Config = ConfigFactory.empty) : Config = {
-        val defaults = """cassandra.servers = "localhost:9171""""
+        // HTTP service is lunched at random available port in utit tests to
+        // allow their parallel execution
+        val defaults =
+            """cassandra.servers = "localhost:9171"
+              |agent.midolman.stats_http_server_port = 0
+            """.stripMargin
 
         config.withFallback(ConfigFactory.parseString(defaults))
     }
