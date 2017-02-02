@@ -30,8 +30,9 @@ import org.slf4j.LoggerFactory;
  * bucket.done();
  */
 public class Bucket {
-    protected static final Logger log = LoggerFactory.getLogger(Bucket.class);
-    protected static final boolean isTraceEnabled = log.isTraceEnabled();
+    private static final Logger log = LoggerFactory
+        .getLogger("org.midonet.io.htb");
+    private static final boolean isTraceEnabled = log.isTraceEnabled();
 
     private final TokenBucket tb;
     private final int multiplier;
