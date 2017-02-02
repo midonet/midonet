@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.util.concurrent.AbstractService;
@@ -32,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.PacketWorkersService;
 import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.host.services.TcRequestHandler;
+import org.midonet.midolman.management.SimpleHTTPServerService;
 import org.midonet.midolman.state.PeerResolver;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopology;
@@ -83,6 +86,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject
     PeerResolver resolver;
+
+    @Inject(optional = true)
+    SimpleHTTPServerService statsHttpService;
 
     private JmxReporter jmxReporter = null;
 
@@ -186,6 +192,8 @@ public class MidolmanService extends AbstractService {
         services.add(tcRequestHandler);
         services.add(vppController);
         services.add(qosService);
+        if (statsHttpService != null)
+            services.add(statsHttpService);
         return services;
     }
 }
