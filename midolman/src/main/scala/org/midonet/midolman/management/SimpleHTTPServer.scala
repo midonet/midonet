@@ -46,6 +46,14 @@ object SimpleHTTPServer {
         def writeResponse(writer: BufferedWriter): Unit
     }
 
+    object DefaultHandler extends SimpleHTTPServer.Handler {
+        val Contents = "Not yet implemented"
+        override val path = "/device_stats"
+        override def writeResponse(writer: BufferedWriter): Unit = {
+            writer.append(Contents)
+        }
+    }
+
     class HTTPException(val code: Int) extends Exception
     class HTTPNotFoundException extends HTTPException(NotFound)
     class HTTPBadRequestException extends HTTPException(BadRequest)

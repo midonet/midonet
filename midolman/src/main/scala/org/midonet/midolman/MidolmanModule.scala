@@ -26,7 +26,9 @@ import scala.concurrent.{ExecutionContext, Future}
 import akka.actor.{ActorSystem, OneForOneStrategy, SupervisorStrategy}
 
 import com.codahale.metrics.MetricRegistry
+import com.google.common.collect.Lists
 import com.google.inject.name.Names
+import com.google.inject.util.Providers
 import com.google.inject.{AbstractModule, Injector, Key}
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
@@ -47,6 +49,7 @@ import org.midonet.midolman.host.services.{HostService, QosService, TcRequestHan
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.rule.{DisruptorRuleLogEventChannel, RuleLogEventChannel}
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
+import org.midonet.midolman.management.{SimpleHTTPServer, SimpleHTTPServerService}
 import org.midonet.midolman.monitoring.metrics.{DatapathMetrics, PacketExecutorMetrics}
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
@@ -138,6 +141,13 @@ class MidolmanModule(injector: Injector,
 
         val qService = qosService(scanner, host, tcRequestHandler)
         bind(classOf[QosService]).toInstance(qService)
+
+        val statsHttpSvc = statsHttpService()
+        if (config.statsHttpServerEnabled) {
+            bind(classOf[SimpleHTTPServerService]).toInstance(statsHttpSvc)
+        } else {
+            bind(classOf[SimpleHTTPServerService]).toProvider(Providers.of(null))
+        }
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
 
@@ -373,6 +383,12 @@ class MidolmanModule(injector: Injector,
                              hostId: UUID,
                              tcRequestHandler: TcRequestHandler): QosService =
         QosService(scanner, hostId, tcRequestHandler)
+
+    protected def statsHttpService(): SimpleHTTPServerService = {
+        new SimpleHTTPServerService(
+            config.statsHttpServerPort,
+                Lists.newArrayList(SimpleHTTPServer.DefaultHandler))
+    }
 
     protected def bindHostService(): Unit =
         bind(classOf[HostService]).asEagerSingleton()
