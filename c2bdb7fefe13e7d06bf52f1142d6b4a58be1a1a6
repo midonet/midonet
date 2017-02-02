@@ -22,6 +22,30 @@
       "revId": "c2bdb7fefe13e7d06bf52f1142d6b4a58be1a1a6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_a9c13056",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-02T14:27:00Z",
+      "side": 1,
+      "message": "This writer is only ever created once per server. It\u0027s reused, so we can afford the 8KB. However there\u0027s a buffered reader below we could get rid of. Too much trouble though. This is a fixed cost per request, which we can handle easily.\n\nOther allocations per request are.\n1. Socket.accept\n2. creating the input stream\n3. creating the output stream\n4. parsing the first line of input.\n\nWe could optimize these out, but it\u0027s not worth it as they won\u0027t contribute a huge amount to GC. They may even be handled by escape analysis.",
+      "parentUuid": "fabf19d9_ee016e07",
+      "range": {
+        "startLine": 63,
+        "startChar": 28,
+        "endLine": 63,
+        "endChar": 42
+      },
+      "revId": "c2bdb7fefe13e7d06bf52f1142d6b4a58be1a1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
