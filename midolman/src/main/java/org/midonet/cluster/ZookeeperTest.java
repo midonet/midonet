@@ -73,8 +73,6 @@ public abstract class ZookeeperTest {
             ConfigValueFactory.fromAnyRef(zkRoot));
         config = config.withValue("zookeeper.zookeeper_hosts",
             ConfigValueFactory.fromAnyRef("127.0.0.1:" + ZK_PORT));
-        config = config.withValue("zookeeper.curator_enabled",
-            ConfigValueFactory.fromAnyRef(true));
         return config;
     }
 

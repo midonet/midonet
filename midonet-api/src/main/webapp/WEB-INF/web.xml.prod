@@ -136,10 +136,6 @@
     <param-name>zookeeper-midolman_root_key</param-name>
     <param-value>/midonet/v1</param-value>
   </context-param>
-  <context-param>
-    <param-name>zookeeper-curator_enabled</param-name>
-    <param-value>true</param-value>
-  </context-param>
 
   <!-- Used to uniquely identify an API process for cluster services -->
   <context-param>

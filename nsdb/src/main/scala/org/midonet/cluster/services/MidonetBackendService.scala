@@ -31,9 +31,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     protected override def doStart(): Unit = {
         try {
-            if (cfg.curatorEnabled) {
-                curator.start()
-            }
+            curator.start()
             notifyStarted()
         } catch {
             case e: Exception => this.notifyFailed(e)

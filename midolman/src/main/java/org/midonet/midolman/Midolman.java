@@ -120,8 +120,7 @@ public class Midolman {
 
     /**
      * Used to expose a Curator instance in Midolman for general purpose
-     * usage. This will be shared with the midoconf module.  It will *not*
-     * pay attention to the nsdb.curator_enabled property in conf.
+     * usage. This will be shared with the midoconf module.
      */
     class GeneralPurposeCuratorModule extends AbstractModule {
         private final CuratorFramework curator;

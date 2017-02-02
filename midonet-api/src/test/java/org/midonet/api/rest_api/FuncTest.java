@@ -92,8 +92,6 @@ public class FuncTest {
                 .contextParam(getConfigKey("zookeeper",
                                            "zookeeper_hosts"),
                               FuncTest.ZK_TEST_SERVER)
-                .contextParam(getConfigKey("zookeeper", "curator_enabled"),
-                              "true")
                 .contextParam(getConfigKey("zookeeper", "midolman_root_key"), zkRoot)
                 .contextParam(getConfigKey("zookeeper", "root_key"), zkRoot)
                 .contextPath(CONTEXT_PATH).clientConfig(config);
