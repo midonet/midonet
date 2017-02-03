@@ -42,7 +42,6 @@ import org.midonet.cluster.topology.TopologyBuilder._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.containers._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
@@ -1644,7 +1643,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.vpnServiceSubscription shouldBe null
         }
 
-        scenario("Container should fail if router has no external port") {
+        scenario("Container should succeed if router has no external port") {
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
@@ -1667,6 +1666,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             And("A container")
             val container = new TestIPSecContainer(vt, containerExecutor)
 
+            And("A container health observer subscribed to the container")
+            val obs = new TestObserver[ContainerStatus]()
+            container.status subscribe obs
+
             And("A container port for the VPN service")
             val cp = ContainerPort(portId = port.getId.asJava,
                                    hostId = null,
@@ -1677,12 +1680,17 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            intercept[IPSecException] {
-                container.create(cp).await()
-            }
+            container.create(cp).await() shouldBe None
 
             And("The container should not call the setup commands")
             container.commands should have size 0
+
+            And("The container status should be RUNNING")
+            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(
+                Code.RUNNING, "",
+                s"VPN service on router ${router.getId.asJava} does not have " +
+                "a port that matches the VPN external address " +
+                s"${vpn.getExternalIp.asIPv4Address}")
         }
 
         scenario("Container should ignore a VPN service without external IP") {
@@ -1708,6 +1716,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             And("A container")
             val container = new TestIPSecContainer(vt, containerExecutor)
 
+            And("A container health observer subscribed to the container")
+            val obs = new TestObserver[ContainerStatus]()
+            container.status subscribe obs
+
             And("A container port for the VPN service")
             val cp = ContainerPort(portId = port.getId.asJava,
                                    hostId = null,
@@ -1722,6 +1734,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             Then("The container should not call the setup commands")
             container.commands should have size 0
+
+            And("The container status should be RUNNING")
+            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(
+                Code.RUNNING, "", "VPN router has no external IP")
         }
 
         scenario("Container should ignore multiple VPN services with distinct external IP addresses") {
@@ -1750,6 +1766,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             And("A container")
             val container = new TestIPSecContainer(vt, containerExecutor)
 
+            And("A container health observer subscribed to the container")
+            val obs = new TestObserver[ContainerStatus]()
+            container.status subscribe obs
+
             And("A container port for the VPN service")
             val cp = ContainerPort(portId = port.getId.asJava,
                                    hostId = null,
@@ -1764,6 +1784,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             Then("The container should not call the setup commands")
             container.commands should have size 0
+
+            And("The container status should be RUNNING")
+            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(
+                Code.RUNNING, "", "VPN router has no external IP")
         }
 
         scenario("Container should ignore delete if not started") {
