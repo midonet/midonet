@@ -46,6 +46,29 @@
       "revId": "07d069dbae3de03eeb28bb38fd6955a04e24f6a6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_f86023d1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-02-03T14:56:11Z",
+      "side": 1,
+      "message": "Unreachable",
+      "range": {
+        "startLine": 388,
+        "startChar": 11,
+        "endLine": 388,
+        "endChar": 18
+      },
+      "revId": "07d069dbae3de03eeb28bb38fd6955a04e24f6a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
