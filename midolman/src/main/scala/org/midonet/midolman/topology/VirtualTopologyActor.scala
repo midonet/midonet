@@ -293,6 +293,8 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
     private val subscribers = HashMultimap.create[UUID, ActorRef]()
     private val managers = new util.HashMap[UUID, ActorRef]()
 
+    private var actorCounter = 0
+
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
 
@@ -355,7 +357,9 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
             val props = Props {
                 managerFactory()
             }.withDispatcher(context.props.dispatcher)
-            managers.put(req.id, context.actorOf(props, req.managerName))
+            val uniqueName = s"${req.managerName}_$actorCounter"
+            actorCounter += 1
+            managers.put(req.id, context.actorOf(props, uniqueName))
         }
     }
 
@@ -505,4 +509,7 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
             log.error("Received unexpected message: {}", unexpected)
         case _ =>
     }
+
+    // exposes the managers map for testing
+    def managerOf(dev: UUID): Option[ActorRef] = Option(managers.get(dev))
 }

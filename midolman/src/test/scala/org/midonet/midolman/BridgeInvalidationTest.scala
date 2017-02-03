@@ -246,13 +246,12 @@ class BridgeInvalidationTest extends MidolmanSpec
             Thread.sleep(macPortExpiration)
             // Since the check for the expiration of the MAC port association is
             // done every 2 seconds, let's trigger it
-            val bridgeManagerPath =
-                VirtualTopologyActor.path + "/BridgeManager-" + bridge.id.toString
-            val bridgeManager = actorSystem.actorSelection(bridgeManagerPath)
+            val bridgeManager = VirtualTopologyActor.as[VirtualTopologyActor].managerOf(bridge.id)
+            assert(bridgeManager.isDefined)
 
             And("A flow invalidation is produced")
             eventually {
-                bridgeManager ! CheckExpiredMacPorts()
+                bridgeManager.get ! CheckExpiredMacPorts()
                 flowInvalidator should invalidate(leftPortUnicastInvalidation)
             }
         }
