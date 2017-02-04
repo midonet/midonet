@@ -22,6 +22,8 @@ import scala.collection.mutable
 
 import com.google.inject._
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
+
+import org.scalactic.source
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen}
 import org.scalatest.{Informer, Matchers, OneInstancePerTest}
 import org.slf4j.LoggerFactory
@@ -33,17 +35,17 @@ import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.{FlowTranslator, DatapathState, MockMidolmanModule}
+import org.midonet.midolman.{DatapathState, FlowTranslator, MockMidolmanModule}
 import org.midonet.midolman.cluster._
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.MidolmanService
-import org.midonet.midolman.simulation.{PacketContext, CustomMatchers}
+import org.midonet.midolman.simulation.{CustomMatchers, PacketContext}
 import org.midonet.midolman.util.mock.MockMidolmanActors
 import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
 import org.midonet.odp.ports.VxLanTunnelPort.VXLAN_DEFAULT_DST_PORT
 import org.midonet.odp.{Datapath, DpPort}
-import org.midonet.odp.flows.{FlowActions, FlowActionOutput}
+import org.midonet.odp.flows.{FlowActionOutput, FlowActions}
 import org.midonet.util.collection.IPv4InvalidationArray
 
 /**
@@ -64,7 +66,8 @@ trait MidolmanSpec extends FeatureSpecLike
     val log = LoggerFactory.getLogger(getClass)
 
     override val info = new Informer() {
-        override def apply(message: String, payload: Option[Any] = None): Unit = {
+        override def apply(message: String, payload: Option[Any] = None)
+                          (implicit pos: source.Position): Unit = {
             log.info(message)
         }
     }

@@ -53,7 +53,7 @@ import org.midonet.util.eventloop.{Reactor, TryCatchReactor}
 class ArpRequestBrokerTest extends Suite
                              with BeforeAndAfter
                              with BeforeAndAfterAll
-                             with ShouldMatchers {
+                             with Matchers {
     private final val ARP_RETRY = 1 * 1000
     private final val ARP_TIMEOUT = 6 * 1000
     private final val ARP_STALE = 100 * 1000

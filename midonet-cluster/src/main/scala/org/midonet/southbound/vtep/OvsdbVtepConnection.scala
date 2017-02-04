@@ -21,7 +21,6 @@ import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent._
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
-import scala.async.Async
 import scala.concurrent.ExecutionContext.fromExecutor
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -458,8 +457,8 @@ class OvsdbVtepConnection(mgmtIp: IPv4Addr, mgmtPort: Int,
       * method receives as argument a [[Handler]], which is a partial function
       * to which the current connection state is applied.
       */
-    private def handle(handler: Handler): Future[Unit] = Async.async {
-        Async.await(handler(state.get))
+    private def handle(handler: Handler): Future[Unit] = {
+        handler(state.get)
     }
 
     /** Opens a NETTY channel to the current VTEP end-point. The method is

@@ -47,7 +47,7 @@ import org.midonet.util.concurrent.toFutureOps
 @RunWith(classOf[JUnitRunner])
 class NeutronZoomPluginTest extends FeatureSpec
                                    with BeforeAndAfter
-                                   with ShouldMatchers
+                                   with Matchers
                                    with GivenWhenThen
                                    with CuratorTestFramework
                                    with MidonetEventually {
@@ -66,8 +66,6 @@ class NeutronZoomPluginTest extends FeatureSpec
                |state_proxy.enabled : false
                |cluster.rest_api.request_timeout : 10s
             """.stripMargin)
-        //val backendConfig = new MidonetBackendConfig(config)
-        //val apiConfig = new RestApiConfig(ConfigFactory.empty())
         val clusterConfig = ClusterConfig.forTests(config)
         MidonetBackend.isCluster = true
         backend = new MidonetBackendService(clusterConfig.backend,

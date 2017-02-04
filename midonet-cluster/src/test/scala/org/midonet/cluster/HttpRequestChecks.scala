@@ -27,7 +27,7 @@ import scala.reflect.ClassTag
 
 import com.sun.jersey.api.client.{ClientResponse, WebResource}
 
-import org.scalatest.ShouldMatchers
+import org.scalatest.Matchers
 
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.rest_api.FuncTest
@@ -35,7 +35,7 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 /** Utility assertions for JerseyTests to be used in REST API tests.
   */
-trait HttpRequestChecks extends ShouldMatchers {
+trait HttpRequestChecks extends Matchers {
 
     def resource: WebResource
 

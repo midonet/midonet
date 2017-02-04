@@ -17,16 +17,29 @@
 apply plugin: 'scala'
 
 dependencies {
-    compile libraries.akka, libraries.commons_cli, libraries.commons_conf,
-            libraries.commons_io, libraries.commons_lang3, libraries.disruptor,
-            libraries.findbugs, libraries.guava,
+    compile libraries.akka,
+            libraries.commons_cli,
+            libraries.commons_conf,
+            libraries.commons_io,
+            libraries.commons_lang3,
+            libraries.disruptor,
+            libraries.findbugs,
+            libraries.guava,
+            libraries.guice,
             libraries.hdrhistogram,
-            libraries.infinispan, libraries.jackson_core,
-            libraries.jackson_databind, libraries.jackson_annotations,
-            libraries.jsch, libraries.logback_logstash, libraries.netty,
-            libraries.metrics, libraries.protobuf, libraries.rx, libraries.scala,
-            libraries.sun_tools, libraries.scala_logging, libraries.jna,
-            libraries.scala_async, libraries.guice
+            libraries.infinispan,
+            libraries.jackson_core,
+            libraries.jackson_databind,
+            libraries.jackson_annotations,
+            libraries.jna,
+            libraries.logback_logstash,
+            libraries.netty,
+            libraries.metrics,
+            libraries.protobuf,
+            libraries.rx,
+            libraries.scala,
+            libraries.sun_tools,
+            libraries.scala_logging
 
     testCompile libraries.scalatest, libraries.scalacheck,
                 libraries.hamcrest_lib, libraries.hamcrest_integration,

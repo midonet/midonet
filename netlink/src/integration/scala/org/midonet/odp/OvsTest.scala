@@ -1,4 +1,5 @@
-/* * Copyright 2015 Midokura SARL
+/*
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +28,7 @@ import org.midonet.odp.test.{DatapathTest => DpTest, PortTest, MegaFlowTest, Flo
 import org.midonet.util.IntegrationTests
 
 @RunWith(classOf[JUnitRunner])
-class OvsTest extends FeatureSpec with BeforeAndAfterAll with ShouldMatchers with
+class OvsTest extends FeatureSpec with BeforeAndAfterAll with Matchers with
         DpTest with FlowTest with MegaFlowTest with PortTest {
 
     var baseConnection: OvsDatapathConnection = _

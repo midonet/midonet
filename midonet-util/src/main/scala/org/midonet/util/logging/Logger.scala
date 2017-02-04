@@ -20,8 +20,9 @@ import scala.language.experimental.macros
 
 import com.typesafe.scalalogging.{Logger => Wrapper}
 
+import net.logstash.logback.marker.LogstashBasicMarker
+
 import org.apache.commons.lang.StringUtils
-import org.slf4j.helpers.LogstashBasicMarker
 import org.slf4j.{Marker, Logger => Underlying}
 
 /**

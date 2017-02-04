@@ -19,7 +19,6 @@ package org.midonet.minion
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 
-import scala.async.Async._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -80,7 +79,7 @@ final class Daemon(val nodeId: UUID,
      */
     private def startMinion[D <: Minion](minionDef: MinionDef[D])
                                         (implicit ct: ClassTag[D])
-    : Future[D] = async {
+    : Future[D] = Future {
         val minion = injector.getInstance(minionDef.clazz)
         if (minion.isEnabled) {
             log.info(s"Starting cluster minion: ${minionDef.name}")

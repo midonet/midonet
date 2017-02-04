@@ -25,7 +25,7 @@ import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.quagga.BgpdConfiguration._
 
 @RunWith(classOf[JUnitRunner])
-class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
+class BgpdTest extends Suite with BeforeAndAfter with Matchers {
     val idx = 5
     val PREFIX = 172 * (1<<24) + 23 * (1<<16)
     val BGP_VTY_LOCAL_IP = new IPv4Subnet(IPv4Addr.fromInt(PREFIX + 1 + 4 * idx), 30)

@@ -82,7 +82,6 @@ dependencies {
     testCompile project(path: ':midolman', configuration: 'tests')
     testCompile project(path: ':midonet-util', configuration: 'tests')
     testCompile libraries.curator_test,
-                libraries.grizzly_servlet,
                 libraries.hamcrest_lib,
                 libraries.httpclient,
                 libraries.jersey_grizzly,

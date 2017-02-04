@@ -39,7 +39,7 @@ class DisruptorPacketWorker(packetWorkflow: PacketWorkflow,
                             metrics: PacketPipelineMetrics,
                             index: Int)
         extends Thread(s"packet-worker-${index}")
-        with ExceptionHandler
+        with ExceptionHandler[Object]
         with PacketWorker with MidolmanLogging {
     override def logSource = s"org.midonet.packet-worker.packet-worker-$index"
 

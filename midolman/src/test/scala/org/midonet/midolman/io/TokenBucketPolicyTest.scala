@@ -20,16 +20,16 @@ import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{OneInstancePerTest, ShouldMatchers, BeforeAndAfter, FeatureSpec}
+import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers, OneInstancePerTest}
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort, GreTunnelPort}
+import org.midonet.odp.ports.{GreTunnelPort, NetDevPort, VxLanTunnelPort}
 import org.midonet.util._
 
 @RunWith(classOf[JUnitRunner])
 class TokenBucketPolicyTest extends FeatureSpec
                             with BeforeAndAfter
-                            with ShouldMatchers
+                            with Matchers
                             with OneInstancePerTest {
     var policy: TokenBucketPolicy = _
     val multiplier = 2

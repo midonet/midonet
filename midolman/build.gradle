@@ -86,9 +86,8 @@ dependencies {
     testCompile project(path: ':nsdb', configuration: 'tests')
     testCompile project(path: ':midonet-util', configuration: 'tests')
     testCompile libraries.akkatest, libraries.scalatest,
-                libraries.jsonpath_assert,
                 libraries.curator_test, libraries.mockit,
-                libraries.test_frameworks, libraries.jsonpath
+                libraries.test_frameworks
 }
 
 cobertura {

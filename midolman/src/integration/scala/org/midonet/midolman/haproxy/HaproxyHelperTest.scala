@@ -18,19 +18,20 @@ package org.midonet.midolman.haproxy
 
 import java.util.UUID
 
+import scala.sys.process._
+
 import org.junit.runner.RunWith
-import org.midonet.midolman.l4lb._
+import org.scalatest.{FeatureSpec, Matchers}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec, ShouldMatchers}
 import org.slf4j.LoggerFactory
 
-import scala.sys.process._
+import org.midonet.midolman.l4lb._
 
 @RunWith(classOf[JUnitRunner])
 class HaproxyHelperTest extends FeatureSpec
                         with Eventually
-                        with ShouldMatchers {
+                        with Matchers {
 
     import HaproxyHelper._
 

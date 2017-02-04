@@ -60,7 +60,7 @@ import org.midonet.util.MidonetEventually
 class HaproxyTest extends MidolmanSpec
                           with TopologyBuilder
                           with TopologyMatchers
-                          with ShouldMatchers
+                          with Matchers
                           with SpanSugar
                           with MidonetEventually {
 

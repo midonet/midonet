@@ -24,7 +24,7 @@ import scala.util.Random
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FunSuite, ShouldMatchers}
+import org.scalatest.{FunSuite, Matchers}
 
 import org.midonet.cluster.models.Commons.Int32Range
 import org.midonet.cluster.models.Topology.{Dhcp, Network}
@@ -33,7 +33,7 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{IPv4Addr, IPv6Addr}
 
 @RunWith(classOf[JUnitRunner])
-class ProtoTextPrettifierTest extends FunSuite with ShouldMatchers {
+class ProtoTextPrettifierTest extends FunSuite with Matchers {
 
     test("UUID") {
         val uuid = randomUUID()

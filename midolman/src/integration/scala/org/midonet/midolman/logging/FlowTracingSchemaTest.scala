@@ -40,7 +40,7 @@ import org.midonet.packets.MAC
 @RunWith(classOf[JUnitRunner])
 class FlowTracingSchemaTest extends FeatureSpec
         with BeforeAndAfter
-        with ShouldMatchers
+        with Matchers
         with CuratorTestFramework
         with OneInstancePerTest {
     val log = LoggerFactory.getLogger(classOf[FlowTracingSchemaTest])

@@ -72,13 +72,13 @@ object SixWind {
             }
         }
 
-        val options: JMap[_, _] = Map(
+        val options: JMap[String, _] = Map(
             Library.OPTION_FUNCTION_MAPPER -> functionMapper
         ).asJava
 
         Native.loadLibrary(libraryName,
                            classOf[SixWind],
-                           options).asInstanceOf[SixWind]
+                           options)
     }
 
     private def createRealLibrary(lib: SixWind): SixWind = {

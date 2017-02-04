@@ -17,7 +17,6 @@ package org.midonet.cluster.rest_api.validation;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import javax.validation.ConstraintValidator;
@@ -40,4 +39,7 @@ public class GuiceConstraintValidatorFactory implements
         return injector.getInstance(key);
     }
 
+    @Override
+    public void releaseInstance(ConstraintValidator<?, ?> instance) {
+    }
 }

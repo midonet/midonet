@@ -24,7 +24,7 @@ import scala.concurrent.{Future, Promise}
 import com.typesafe.config.ConfigFactory
 
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.api.GetChildrenBuilder
+import org.apache.curator.framework.api.{ErrorListenerPathable, GetChildrenBuilder}
 import org.apache.curator.framework.listen.Listenable
 import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListener}
 import org.apache.zookeeper.Watcher
@@ -56,10 +56,13 @@ import org.midonet.util.eventloop.Reactor
 class StateTableManagerTest extends FeatureSpec with Matchers
                             with GivenWhenThen with BeforeAndAfter {
 
+    trait GetChildren extends GetChildrenBuilder
+                      with ErrorListenerPathable[java.util.List[String]]
+
     private class TestBackend extends MidonetBackend {
         val connectionListener =
             Mockito.mock(classOf[Listenable[ConnectionStateListener]])
-        val getChildren = Mockito.mock(classOf[GetChildrenBuilder])
+        val getChildren = Mockito.mock(classOf[GetChildren])
 
         override def stateStore: StateStorage = ???
         override def store: Storage = ???

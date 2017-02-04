@@ -46,7 +46,6 @@ import org.midonet.util.eventloop.Reactor
 
 @RunWith(classOf[JUnitRunner])
 class WritableFloodingProxyHeraldTest extends FeatureSpec
-                                      with ShouldMatchers
                                       with Matchers
                                       with TopologyBuilder
                                       with BeforeAndAfter {

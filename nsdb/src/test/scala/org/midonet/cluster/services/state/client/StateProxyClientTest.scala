@@ -33,6 +33,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import org.junit.runner.RunWith
 import org.mockito.Matchers.any
 import org.mockito.Mockito
+import org.scalactic.source
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Informer, Matchers}
 import org.slf4j.LoggerFactory
@@ -135,8 +136,8 @@ class StateProxyClientTest extends FeatureSpec
     val log = LoggerFactory.getLogger(getClass)
 
     override val info = new Informer() {
-        override def apply(message: String,
-                           payload: Option[Any] = None): Unit = {
+        override def apply(message: String, payload: Option[Any] = None)
+                          (implicit pos: source.Position): Unit = {
             log.info(message)
         }
     }

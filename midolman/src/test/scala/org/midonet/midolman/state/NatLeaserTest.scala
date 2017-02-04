@@ -37,7 +37,7 @@ import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
 class NatLeaserTest extends FeatureSpec
-                            with ShouldMatchers
+                            with Matchers
                             with OneInstancePerTest {
 
     val dev = UUID.randomUUID()

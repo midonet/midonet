@@ -36,7 +36,7 @@ import org.midonet.util.concurrent._
 import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
-class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneInstancePerTest {
+class DatapathPortEntanglerTest extends FlatSpec with Matchers with OneInstancePerTest {
 
     val entangler = new DatapathPortEntangler {
         val log = Logger(NOPLogger.NOP_LOGGER)

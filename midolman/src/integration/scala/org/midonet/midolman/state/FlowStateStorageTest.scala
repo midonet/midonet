@@ -42,7 +42,7 @@ import org.midonet.util.concurrent.toFutureOps
 @RunWith(classOf[JUnitRunner])
 class FlowStateStorageTest extends FeatureSpec
                             with BeforeAndAfter
-                            with ShouldMatchers
+                            with Matchers
                             with OneInstancePerTest
                             with GivenWhenThen
                             with CuratorTestFramework

@@ -44,7 +44,7 @@ import scala.concurrent.Await
 @RunWith(classOf[JUnitRunner])
 class FlowTracingAppenderTest extends FeatureSpec
                               with BeforeAndAfter
-                              with ShouldMatchers
+                              with Matchers
                               with CuratorTestFramework
                               with OneInstancePerTest {
     val log = LoggerFactory.getLogger(classOf[FlowTracingAppenderTest])

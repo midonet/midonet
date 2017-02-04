@@ -40,7 +40,7 @@ import org.midonet.util.logging.{RollingOutputStream, SizeBasedRollingStaticHead
 abstract class RuleLogEventHandler extends EventHandler[RuleLogEvent]
                                            with LifecycleAware
                                            with MidolmanLogging
-                                           with ExceptionHandler {
+                                           with ExceptionHandler[Any] {
 
     protected val headerEncoder = new MessageHeader
     protected val eventEncoder = new RuleLogEventEncoder

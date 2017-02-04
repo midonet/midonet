@@ -21,7 +21,7 @@ import scala.sys.process._
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec, ShouldMatchers}
+import org.scalatest.{FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.host.services.TcRequestHandler
@@ -31,7 +31,7 @@ import org.midonet.netlink.rtnetlink.LinkOps
 @RunWith(classOf[JUnitRunner])
 class TcIntegrationTest extends FeatureSpec
                         with Eventually
-                        with ShouldMatchers {
+                        with Matchers {
 
     val log = LoggerFactory.getLogger(classOf[TcIntegrationTest])
 

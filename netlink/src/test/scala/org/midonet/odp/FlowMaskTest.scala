@@ -30,7 +30,7 @@ import org.midonet.odp.flows._
 import org.midonet.packets.{IPv4, IPv4Addr, MAC}
 
 @RunWith(classOf[JUnitRunner])
-class FlowMaskTest  extends FlatSpec with ShouldMatchers {
+class FlowMaskTest extends FlatSpec with Matchers {
     type Expected = (Array[FlowKey], FlowMatch) => Unit
 
     val rand = ThreadLocalRandom.current()

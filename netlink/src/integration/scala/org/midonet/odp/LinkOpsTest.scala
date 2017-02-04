@@ -21,11 +21,11 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.netlink.rtnetlink.{Link, LinkOps}
-import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Subnet, MAC}
 
 
 @RunWith(classOf[JUnitRunner])
-class LinkOpsTest extends FeatureSpec with BeforeAndAfterAll with ShouldMatchers {
+class LinkOpsTest extends FeatureSpec with BeforeAndAfterAll with Matchers {
 
     private val devMac = MAC.random()
     private val peerMac = MAC.random()

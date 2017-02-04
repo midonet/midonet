@@ -16,7 +16,6 @@
 
 package org.midonet.midolman.vpp
 
-import scala.async.Async
 import scala.concurrent.Future
 
 import org.junit.runner.RunWith
@@ -126,7 +125,7 @@ class VppExecutorTest extends FeatureSpec with Matchers with GivenWhenThen {
             @volatile var result = Seq[Int]()
             val handler: Receive = {
                 case value: Int =>
-                    Async.async {
+                    Future {
                         result = result :+ value
                         value
                     }
