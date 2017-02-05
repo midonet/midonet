@@ -269,8 +269,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         @throws[StorageNodeNotFoundException]
         override def commit(): Unit = {
             val ops = flattenOps ++ createStateTableOps
-            var txn =
-                curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
+            var txn = curator.inTransaction()
 
             for ((Key(clazz, id), txOp) <- ops) txn = txOp match {
                 case TxCreate(obj) =>

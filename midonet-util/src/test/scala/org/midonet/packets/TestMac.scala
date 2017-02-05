@@ -32,7 +32,7 @@ class TestMac extends Suite with Checkers with Matchers {
     import TestMac._
 
     // Random MAC address generator for ScalaCheck.
-    val randomMacGen: Gen[MAC] = Gen.wrap(MAC.random)
+    val randomMacGen: Gen[MAC] = Gen.delay(MAC.random)
 
     def testConversions = check(Prop.forAll(randomMacGen) { (mac: MAC) =>
         val macStr: String = mac.toString

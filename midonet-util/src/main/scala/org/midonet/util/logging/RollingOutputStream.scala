@@ -17,6 +17,7 @@
 package org.midonet.util.logging
 
 import java.io._
+import java.nio.charset.Charset
 import java.util.UUID
 
 import scala.sys.process._
@@ -262,7 +263,8 @@ abstract class RollingOutputStream(val path: String, val maxFiles: Int,
         cfgBldr ++= s"rotate $maxFiles\n"
         if (compressOldFiles) cfgBldr ++= "compress\n"
         cfgBldr += '}'
-        FileUtils.writeStringToFile(confFile, cfgBldr.toString)
+        FileUtils.writeStringToFile(confFile, cfgBldr.toString,
+                                    Charset.defaultCharset())
 
         // Flush stream before rotating.
         if (out != null) {

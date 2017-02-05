@@ -35,7 +35,7 @@ class HermitObservableTest extends FeatureSpec with Matchers {
     }
 
     def noTerminalEventsOn(ts: TestSubscriber[_]): Unit = {
-        ts.getOnCompletedEvents shouldBe empty
+        ts.getCompletions shouldBe empty
         ts.assertNoErrors()
     }
 
@@ -70,13 +70,13 @@ class HermitObservableTest extends FeatureSpec with Matchers {
 
             ts1.requestMore(1)
             ts1.getOnNextEvents should have size 2
-            ts1.getOnCompletedEvents should have size 1
+            ts1.getCompletions should have size 1
             ts1.getOnErrorEvents shouldBe empty
             sub1.unsubscribe()
 
             val sub3 = hermit.subscribe(ts3)
             ts3.getOnNextEvents should have size 2
-            ts3.getOnCompletedEvents should have size 1
+            ts3.getCompletions should have size 1
             ts3.getOnErrorEvents shouldBe empty
             sub3.isUnsubscribed shouldBe true
         }
