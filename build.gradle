@@ -51,6 +51,7 @@ project.ext {
         akkatest: "com.typesafe.akka:akka-testkit_2.11:${versions.akka}",
         aspectj: "org.aspectj:aspectjrt:1.8.0",
         cassandra: "com.datastax.cassandra:cassandra-driver-core:2.0.10",
+        chronicle_queue: "net.openhft:chronicle-queue:4.5.24",
         collections4: 'org.apache.commons:commons-collections4:4.0',
         commons_cli: "commons-cli:commons-cli:1.2",
         commons_codec: "commons-codec:commons-codec:1.9",

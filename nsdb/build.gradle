@@ -38,6 +38,7 @@ dependencies {
     compile project(':midonet-util')
 
     compile libraries.cassandra,
+            libraries.chronicle_queue,
             libraries.collections4,
             libraries.commons_cli,
             libraries.commons_lang3,
