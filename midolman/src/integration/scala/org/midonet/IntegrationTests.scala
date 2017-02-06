@@ -31,8 +31,14 @@ object IntegrationTests {
              classOf[org.midonet.midolman.management.MeteringTest]
         ) map { _.getCanonicalName }
 
+    val allocTests =
+        List(classOf[org.midonet.midolman.monitoring.MeterRegistryAllocationTest]
+        ) map { _.getCanonicalName }
+
     def main(args: Array[String]): Unit = {
-        if (args.length == 0) {
+        if (args.length == 1 && args(0) == "allocTests") {
+            JUnitCore.main(allocTests:_*)
+        } else if (args.length == 0) {
             JUnitCore.main(defaultTests:_*)
         } else {
             JUnitCore.main(args:_*)
