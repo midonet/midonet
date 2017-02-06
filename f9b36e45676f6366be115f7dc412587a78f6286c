@@ -1,0 +1,124 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_e62747b4",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/management/MeteringTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T14:38:53Z",
+      "side": 1,
+      "message": "minimal",
+      "range": {
+        "startLine": 97,
+        "startChar": 43,
+        "endLine": 97,
+        "endChar": 47
+      },
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_c62c439b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/monitoring/MeterRegistryTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T14:38:53Z",
+      "side": 1,
+      "message": "a good test here would be to create a lot of meters, like 10000, and show that the number of allocations is less than 100, i.e. that the allocations do not grow with the number of meters serialized.",
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_430b852a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T14:38:53Z",
+      "side": 1,
+      "message": "already exists in Integer",
+      "range": {
+        "startLine": 37,
+        "startChar": 8,
+        "endLine": 37,
+        "endChar": 14
+      },
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_0618fb73",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T14:38:53Z",
+      "side": 1,
+      "message": "needs unit test",
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_6615773e",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T14:38:53Z",
+      "side": 1,
+      "message": "in",
+      "range": {
+        "startLine": 58,
+        "startChar": 28,
+        "endLine": 58,
+        "endChar": 30
+      },
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_261bff74",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T14:38:53Z",
+      "side": 1,
+      "message": "unneeded.",
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
