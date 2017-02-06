@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_906fa5fb",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T12:32:37Z",
+      "side": 1,
+      "message": "Rephrase\n\nTo allow configuration of such addresses from neutron, translation, the primitives for subnets, ports, router, router interfaces and floatingips were extended to handle IPv6 addresses:",
+      "range": {
+        "startLine": 13,
+        "startChar": 11,
+        "endLine": 15,
+        "endChar": 51
+      },
+      "revId": "bb33ce4de12457ffc939454684b7499b33540524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_f064a122",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T12:32:37Z",
+      "side": 1,
+      "message": "stateful",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 9
+      },
+      "revId": "bb33ce4de12457ffc939454684b7499b33540524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_7079b1c7",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T12:32:37Z",
+      "side": 1,
+      "message": "can",
+      "range": {
+        "startLine": 130,
+        "startChar": 35,
+        "endLine": 130,
+        "endChar": 40
+      },
+      "revId": "bb33ce4de12457ffc939454684b7499b33540524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_5076add7",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T12:32:37Z",
+      "side": 1,
+      "message": "However",
+      "range": {
+        "startLine": 131,
+        "startChar": 9,
+        "endLine": 131,
+        "endChar": 15
+      },
+      "revId": "bb33ce4de12457ffc939454684b7499b33540524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_307fb9ac",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T12:32:37Z",
+      "side": 1,
+      "message": "Remove the also",
+      "range": {
+        "startLine": 132,
+        "startChar": 24,
+        "endLine": 132,
+        "endChar": 30
+      },
+      "revId": "bb33ce4de12457ffc939454684b7499b33540524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_107cb5b3",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T12:32:37Z",
+      "side": 1,
+      "message": "The port",
+      "range": {
+        "startLine": 501,
+        "startChar": 28,
+        "endLine": 501,
+        "endChar": 32
+      },
+      "revId": "bb33ce4de12457ffc939454684b7499b33540524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_f04b8185",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T12:32:37Z",
+      "side": 1,
+      "message": "address",
+      "range": {
+        "startLine": 534,
+        "startChar": 55,
+        "endLine": 534,
+        "endChar": 61
+      },
+      "revId": "bb33ce4de12457ffc939454684b7499b33540524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_b0418965",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T12:32:37Z",
+      "side": 1,
+      "message": "Note",
+      "range": {
+        "startLine": 547,
+        "startChar": 35,
+        "endLine": 547,
+        "endChar": 41
+      },
+      "revId": "bb33ce4de12457ffc939454684b7499b33540524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_1053953a",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-06T12:32:37Z",
+      "side": 1,
+      "message": "missing )",
+      "range": {
+        "startLine": 678,
+        "startChar": 53,
+        "endLine": 678,
+        "endChar": 54
+      },
+      "revId": "bb33ce4de12457ffc939454684b7499b33540524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
