@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_a17019a5",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/management/MeteringTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2017-02-06T16:46:28Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "fabf19d9_e62747b4",
+      "range": {
+        "startLine": 97,
+        "startChar": 43,
+        "endLine": 97,
+        "endChar": 47
+      },
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_c62c439b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/monitoring/MeterRegistryTest.scala",
         "patchSetId": 1
@@ -36,6 +60,24 @@
       "writtenOn": "2017-02-06T14:38:53Z",
       "side": 1,
       "message": "a good test here would be to create a lot of meters, like 10000, and show that the number of allocations is less than 100, i.e. that the allocations do not grow with the number of meters serialized.",
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_86f52bee",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/monitoring/MeterRegistryTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2017-02-06T16:46:28Z",
+      "side": 1,
+      "message": "True, I will update it",
+      "parentUuid": "fabf19d9_c62c439b",
       "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_464a7327",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2017-02-06T16:46:28Z",
+      "side": 1,
+      "message": "It seems java.lang.Integer.digits is package local. Is there available as public elsewhere?",
+      "parentUuid": "fabf19d9_430b852a",
+      "range": {
+        "startLine": 37,
+        "startChar": 8,
+        "endLine": 37,
+        "endChar": 14
+      },
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_0618fb73",
         "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
         "patchSetId": 1
@@ -76,6 +142,24 @@
       "writtenOn": "2017-02-06T14:38:53Z",
       "side": 1,
       "message": "needs unit test",
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_c66443ba",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2017-02-06T16:46:28Z",
+      "side": 1,
+      "message": "Yes, I was preparing them (I should have marked it as a draft)",
+      "parentUuid": "fabf19d9_0618fb73",
       "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_865acbf0",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2017-02-06T16:46:28Z",
+      "side": 1,
+      "message": "ok, thanks",
+      "parentUuid": "fabf19d9_6615773e",
+      "range": {
+        "startLine": 58,
+        "startChar": 28,
+        "endLine": 58,
+        "endChar": 30
+      },
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_261bff74",
         "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
         "patchSetId": 1
@@ -116,6 +224,24 @@
       "writtenOn": "2017-02-06T14:38:53Z",
       "side": 1,
       "message": "unneeded.",
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_e17a9187",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2017-02-06T16:46:28Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "fabf19d9_261bff74",
       "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
