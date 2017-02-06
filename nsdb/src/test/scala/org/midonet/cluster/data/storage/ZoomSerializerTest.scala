@@ -89,7 +89,7 @@ class ZoomSerializerTest extends FeatureSpec with Matchers with GivenWhenThen {
         val version = 200
 
         When("Serializing the provenance data")
-        val data = ZoomSerializer.createObject(owner, change, version)
+        val data = ZoomSerializer.createProvenance(owner, change, version)
 
         Then("The data can be deserialized to provenance")
         val obj = ZoomObject.parseFrom(data)
@@ -105,60 +105,56 @@ class ZoomSerializerTest extends FeatureSpec with Matchers with GivenWhenThen {
     scenario("Test update object with the same owner") {
         Given("The data for the current object")
         val data1 =
-            ZoomSerializer.createObject(ZoomOwner.ClusterContainers, 100, 200)
+            ZoomSerializer.createProvenance(ZoomOwner.ClusterContainers, 1, 0)
 
-        When("Updating the object with the same owner")
+        When("Updating the object with the same owner and change type")
         val data2 =
-            ZoomSerializer.updateObject(data1, ZoomOwner.ClusterContainers,
-                                        101, 201)
+            ZoomSerializer.updateProvenance(data1, ZoomOwner.ClusterContainers,
+                                            1, 1)
+
+        Then("The data should be null")
+        data2 shouldBe null
+
+        When("Updating the object with different owner and change type")
+        val data3 =
+            ZoomSerializer.updateProvenance(data1, ZoomOwner.ClusterContainers,
+                                            2, 2)
 
         Then("The data can be deserialized to provenance")
-        val obj1 = ZoomObject.parseFrom(data2)
+        val obj1 = ZoomObject.parseFrom(data3)
 
         obj1.getProvenanceCount shouldBe 1
         obj1.getProvenance(0).getProductVersion shouldBe Storage.ProductVersion
         obj1.getProvenance(0).getProductCommit shouldBe Storage.ProductCommit
         obj1.getProvenance(0).getChangeOwner shouldBe ZoomOwner.ClusterContainers.id
-        obj1.getProvenance(0).getChangeType shouldBe 101
-        obj1.getProvenance(0).getChangeVersion shouldBe 201
+        obj1.getProvenance(0).getChangeType shouldBe 3
+        obj1.getProvenance(0).getChangeVersion shouldBe 0
 
         When("Updating the object with a different owner")
-        val data3 =
-            ZoomSerializer.updateObject(data2, ZoomOwner.AgentBinding, 102, 202)
+        val data4 =
+            ZoomSerializer.updateProvenance(data1, ZoomOwner.AgentBinding, 2, 4)
 
         Then("The data can be deserialized to provenance")
-        val obj2 = ZoomObject.parseFrom(data3)
+        val obj2 = ZoomObject.parseFrom(data4)
 
         obj2.getProvenanceCount shouldBe 2
         obj2.getProvenance(0).getProductVersion shouldBe Storage.ProductVersion
         obj2.getProvenance(0).getProductCommit shouldBe Storage.ProductCommit
         obj2.getProvenance(0).getChangeOwner shouldBe ZoomOwner.ClusterContainers.id
-        obj2.getProvenance(0).getChangeType shouldBe 101
-        obj2.getProvenance(0).getChangeVersion shouldBe 201
+        obj2.getProvenance(0).getChangeType shouldBe 1
+        obj2.getProvenance(0).getChangeVersion shouldBe 0
         obj2.getProvenance(1).getProductVersion shouldBe Storage.ProductVersion
         obj2.getProvenance(1).getProductCommit shouldBe Storage.ProductCommit
         obj2.getProvenance(1).getChangeOwner shouldBe ZoomOwner.AgentBinding.id
-        obj2.getProvenance(1).getChangeType shouldBe 102
-        obj2.getProvenance(1).getChangeVersion shouldBe 202
+        obj2.getProvenance(1).getChangeType shouldBe 2
+        obj2.getProvenance(1).getChangeVersion shouldBe 4
 
         When("Updating the object with the last owner")
-        val data4 =
-            ZoomSerializer.updateObject(data2, ZoomOwner.AgentBinding, 103, 203)
+        val data5 =
+            ZoomSerializer.updateProvenance(data4, ZoomOwner.AgentBinding, 2, 4)
 
-        Then("The data can be deserialized to provenance")
-        val obj3 = ZoomObject.parseFrom(data4)
-
-        obj3.getProvenanceCount shouldBe 2
-        obj3.getProvenance(0).getProductVersion shouldBe Storage.ProductVersion
-        obj3.getProvenance(0).getProductCommit shouldBe Storage.ProductCommit
-        obj3.getProvenance(0).getChangeOwner shouldBe ZoomOwner.ClusterContainers.id
-        obj3.getProvenance(0).getChangeType shouldBe 101
-        obj3.getProvenance(0).getChangeVersion shouldBe 201
-        obj3.getProvenance(1).getProductVersion shouldBe Storage.ProductVersion
-        obj3.getProvenance(1).getProductCommit shouldBe Storage.ProductCommit
-        obj3.getProvenance(1).getChangeOwner shouldBe ZoomOwner.AgentBinding.id
-        obj3.getProvenance(1).getChangeType shouldBe 103
-        obj3.getProvenance(1).getChangeVersion shouldBe 203
+        Then("The data should be null")
+        data5 shouldBe null
     }
 
     scenario("Test update object on invalid data") {
@@ -167,8 +163,8 @@ class ZoomSerializerTest extends FeatureSpec with Matchers with GivenWhenThen {
 
         Then("Updating the object should fail")
         intercept[InternalObjectMapperException] {
-            ZoomSerializer.updateObject(data, ZoomOwner.ClusterContainers,
-                                        101, 201)
+            ZoomSerializer.updateProvenance(data, ZoomOwner.ClusterContainers,
+                                            101, 201)
         }
     }
 
