@@ -44,7 +44,7 @@ import org.midonet.services.flowstate.transfer.StateTransferProtocolParser.parse
 import org.midonet.services.flowstate.transfer.internal._
 
 import io.netty.buffer.ByteBuf
-import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.{ChannelFuture, ChannelHandlerContext}
 
 @RunWith(classOf[JUnitRunner])
 class FlowStateServiceTest extends FlowStateBaseTest
@@ -365,6 +365,9 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
             When("The response is handled")
             val mockedCtx: ChannelHandlerContext = mock(classOf[ChannelHandlerContext])
+            mockWhen(mockedCtx.writeAndFlush(mockito.any())).thenReturn(
+                mock(classOf[ChannelFuture]))
+
             handler.channelRead0(mockedCtx, request)
 
             Then("The handler sends a response to the client Agent")
@@ -387,6 +390,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
             When("The response is handled")
             val mockedCtx: ChannelHandlerContext = mock(classOf[ChannelHandlerContext])
+            mockWhen(mockedCtx.writeAndFlush(mockito.any())).thenReturn(
+                mock(classOf[ChannelFuture]))
             handler.channelRead0(mockedCtx, request)
 
             Then("The handler sends a response to the client Agent")
@@ -409,6 +414,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
             When("The response is handled")
             val mockedCtx: ChannelHandlerContext = mock(classOf[ChannelHandlerContext])
+            mockWhen(mockedCtx.writeAndFlush(mockito.any())).thenReturn(
+                mock(classOf[ChannelFuture]))
             handler.channelRead0(mockedCtx, request)
 
             Then("The handler sends a response to the client Agent")
@@ -479,6 +486,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
             When("The response is handled")
             val mockedCtx = mock(classOf[ChannelHandlerContext])
+            mockWhen(mockedCtx.writeAndFlush(mockito.any())).thenReturn(
+                mock(classOf[ChannelFuture]))
             handler.channelRead0(mockedCtx, request)
 
             And("The handler tries to read from local storage")
