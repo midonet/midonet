@@ -85,6 +85,7 @@ project.ext {
         jackson_core: "com.fasterxml.jackson.core:jackson-core:${versions.jackson}",
         jackson_databind: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}",
         jackson_jaxrs: "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${versions.jackson}",
+        java_allocation_instrumenter: "com.google.code.java-allocation-instrumenter:java-allocation-instrumenter:3.0.1",
         jcabi: "com.jcabi:jcabi-aspects:0.15.1",
         jctools: "org.jctools:jctools-core:1.1",
         jersey_bundle: "com.sun.jersey:jersey-bundle:${versions.jersey}",

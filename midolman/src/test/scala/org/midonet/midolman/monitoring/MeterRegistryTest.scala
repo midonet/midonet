@@ -15,20 +15,25 @@
  */
 package org.midonet.midolman.monitoring
 
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ArrayList, UUID}
 
 import scala.collection.JavaConverters._
-
-import org.scalatest.{Matchers, FeatureSpec}
+import com.google.monitoring.runtime.instrumentation.AllocationRecorder
+import com.google.monitoring.runtime.instrumentation.Sampler
+import org.scalatest.{FeatureSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
+import org.junit.Assert
 import org.junit.runner.RunWith
-
+import org.midonet.midolman.management.Metering
 import org.midonet.odp.flows.FlowStats
 import org.midonet.odp.FlowMatches
-import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
+import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.MeterTag
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 @RunWith(classOf[JUnitRunner])
 class MeterRegistryTest extends FeatureSpec with Matchers {
@@ -139,6 +144,104 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
                 registry.meters.get(deviceB.meterName).bytes should === (i * 100)
 
             }
+        }
+
+        val allocsNumber: AtomicInteger = new AtomicInteger(0)
+        val allocsSize: AtomicInteger = new AtomicInteger(0)
+
+        def assertZeroAlloc(runnable: Runnable, maxAllocsNumber: Int = 0, maxAllocsSize: Int = 0): Unit = {
+
+            val sampler = new Sampler() {
+                def sampleAllocation(count: Int, desc: String, newObject: Any, size: Long) = {
+                    allocsNumber.incrementAndGet()
+                    allocsSize.addAndGet(size.toInt)
+                }
+            }
+
+            AllocationRecorder.addSampler(sampler)
+            var initialAllocations = allocsNumber.get()
+            var initialAllocationsSize = allocsSize.get()
+            try {
+                AllocationRecorder.addSampler(sampler)
+                runnable.run()
+                AllocationRecorder.removeSampler(sampler)
+                AllocationRecorder.addSampler(sampler)
+                initialAllocations = allocsNumber.get()
+                initialAllocationsSize = allocsSize.get()
+                runnable.run()
+                val allocations = allocsNumber.get() - initialAllocations
+                val allocationsSize = allocsSize.get() - initialAllocationsSize
+                Assert.assertTrue("Check allocations number (" + allocations + " <= " + maxAllocsNumber,
+                    allocations <= maxAllocsNumber)
+                Assert.assertTrue("Check allocations size (" + allocationsSize + " <= " + maxAllocsSize,
+                    allocationsSize <= maxAllocsSize)
+            } catch{
+                case e: Exception => {
+                    AllocationRecorder.removeSampler(sampler)
+                    Assert.fail("A exception was catch ")
+                    return
+                }
+            }
+            AllocationRecorder.removeSampler(sampler)
+        }
+
+        scenario("append long with zero allocation") {
+            val buffer = new StringBuilder(1000)
+            val packets : Long = 10
+
+            val runnable = new Runnable {
+                override def run(): Unit = {
+                    org.midonet.util.StringUtil.append(buffer, packets)
+                    buffer.delete(0, buffer.capacity)
+                }
+            }
+
+            assertZeroAlloc(runnable)
+        }
+
+        scenario("append a meter with zero allocation v3") {
+            val buffer = new StringBuilder(1000)
+            val id : Int = 0
+            val key : String = "hola"
+            val packets : Long = 10
+            val bytes : Long = 12
+            val delim : Char = ' '
+
+            val runnable = new Runnable {
+                override def run(): Unit = {
+                    Metering.serializeMeter(key, packets, bytes, buffer, delim)
+                    buffer.delete(0, buffer.capacity)
+                }
+            }
+
+            assertZeroAlloc(runnable)
+        }
+
+        scenario("append a table of the meters with zero allocation") {
+            val registry = new MeterRegistry(10)
+            registry.trackFlow(matchA, tagsA)
+            registry.trackFlow(matchB, tagsB)
+
+            val stats = new FlowStats()
+            for (i <- 1 to 10) {
+                stats.packets = i
+                stats.bytes = i * 100
+                registry.updateFlow(matchA, stats)
+                registry.updateFlow(matchB, stats)
+            }
+
+            Metering.registerAsMXBean(registry)
+
+            val buffer = new StringBuilder(10000)
+
+            val runnable = new Runnable {
+                override def run(): Unit = {
+                    Metering.toTextTable(buffer, ' ')
+                    buffer.delete(0, buffer.capacity)
+                }
+            }
+
+            assertZeroAlloc(runnable, maxAllocsNumber = 1, maxAllocsSize = 56)
         }
     }
 }

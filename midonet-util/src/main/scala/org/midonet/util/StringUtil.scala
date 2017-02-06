@@ -32,4 +32,53 @@ object StringUtil {
 
     /** Returns null if o is null, otherwise o.toString. */
     def toStringOrNull(o: AnyRef) = if (o == null) null else o.toString
+
+    val LONG_MIN_VALUE_STRING = Long.MinValue.toString
+    val DIGITS = "0123456789"
+
+    /**
+      * Append the decimal representation of a long to a StringBuilder without
+      * allocate objects
+      *
+      * @param b the string builder
+      * @param i the long
+      */
+    def append(b: StringBuilder, i: Long): Unit = {
+        var x = i
+        // special case, as sign cannot be change for Long.MIN_VALUE
+        if(x == Long.MinValue) {
+            b.append(LONG_MIN_VALUE_STRING)
+            return
+        }
+        // for negative, just print and change sign
+        if(x < 0) {
+            b.append('-')
+            x = -x
+        }
+        // appending digits on reverse (first least significant ones)
+        val base = 10L
+        var start = b.length
+        do {
+            val d = (x % base).asInstanceOf[Int]
+            b.append(DIGITS.charAt(d))
+            x /= base
+        } while(x > 0)
+        var end = b.length - 1
+        // un-reverse the digits by swapping start and end till needed
+        while(start < end) {
+            val c = b.charAt(start)
+            b.setCharAt(start, b.charAt(end))
+            b.setCharAt(end, c)
+            start += 1
+            end -= 1
+        }
+    }
+
+    def append(b: StringBuilder, s: String): Unit = {
+        b.append(s)
+    }
+
+    def append(b: StringBuilder, c: Char): Unit = {
+        b.append(c)
+    }
 }

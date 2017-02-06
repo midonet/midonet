@@ -17,15 +17,16 @@ package org.midonet.midolman.management
 
 import java.lang.management._
 import java.util
-
+import java.util.Map.Entry
+import java.util.function.Consumer
 import javax.management._
 
+import com.google.common.annotations.VisibleForTesting
 import com.typesafe.scalalogging.Logger
-
 import org.slf4j.LoggerFactory
-
 import org.midonet.management.{FlowMeters, FlowStats, MeteringMXBean}
 import org.midonet.midolman.monitoring.MeterRegistry
+import org.midonet.util.StringUtil
 
 object Metering extends MeteringMXBean {
     private val Log =
@@ -96,4 +97,33 @@ object Metering extends MeteringMXBean {
                 Log.error("Failed to register metering JMX bean", e)
         }
     }
+
+    def toTextTable(buffer: StringBuilder, delim: Char = '\t') : Unit = {
+        var i = 0
+        while (i < registries.length) {
+            val meters = registries(i).meters
+            val keysEnum = meters.keys()
+            while (keysEnum.hasMoreElements) {
+                val key = keysEnum.nextElement()
+                val meter = meters.get(key)
+                serializeMeter(key, meter.getPackets, meter.getBytes, buffer, delim)
+            }
+            i += 1
+        }
+    }
+
+    def serializeMeter(key: String,
+                       packets: Long,
+                       bytes: Long,
+                       buffer: StringBuilder,
+                       delim: Char) : Unit = {
+        StringUtil.append(buffer, key)
+        StringUtil.append(buffer, delim)
+        StringUtil.append(buffer, packets)
+        StringUtil.append(buffer, delim)
+        StringUtil.append(buffer, bytes)
+        StringUtil.append(buffer, '\n')
+    }
+
+
 }
