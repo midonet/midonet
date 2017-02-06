@@ -89,6 +89,8 @@ dependencies {
                 libraries.jsonpath_assert,
                 libraries.curator_test, libraries.mockit,
                 libraries.test_frameworks, libraries.jsonpath
+
+    integrationCompile libraries.java_allocation_instrumenter
 }
 
 cobertura {
