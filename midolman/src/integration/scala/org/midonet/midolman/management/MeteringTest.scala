@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.management
 
+import java.io.{BufferedWriter, ByteArrayOutputStream, OutputStreamWriter}
 import java.lang.management.ManagementFactory
 import java.rmi.registry.LocateRegistry
 
@@ -32,9 +33,11 @@ import org.midonet.midolman.monitoring.MeterRegistry
 @RunWith(classOf[JUnitRunner])
 class MeteringTest extends FlatSpec with GivenWhenThen with Matchers {
 
-    private val jmxPort = 49997
+    private var jmxPortBase = 49997
 
     it should "register and return flow stats meters" in {
+        val jmxPort = jmxPortBase
+        jmxPortBase += 1
         Given("A meter registry for maximum 10 flows")
         val registry0 = new MeterRegistry(10)
         registry0.meters.put("meter0", new FlowStats(10, 100))
@@ -55,6 +58,7 @@ class MeteringTest extends FlatSpec with GivenWhenThen with Matchers {
         server.start()
 
         When("Registering the metering bean")
+        Metering.reset()
         Metering.registerAsMXBean(registry0)
         Metering.registerAsMXBean(registry1)
 
@@ -94,4 +98,48 @@ class MeteringTest extends FlatSpec with GivenWhenThen with Matchers {
         mbs.isRegistered(name) shouldBe false
     }
 
+    it should "generate non-JMX meter with zero allocation" in {
+        val jmxPort = jmxPortBase
+        jmxPortBase += 1
+
+        Given("A meter registry for maximum 10 flows")
+        val registry0 = new MeterRegistry(10)
+        registry0.meters.put("meter0", new FlowStats(10, 100))
+        registry0.meters.put("meter1", new FlowStats(20, 200))
+
+        val registry1 = new MeterRegistry(10)
+        registry1.meters.put("meter1", new FlowStats(30, 300))
+        registry1.meters.put("meter2", new FlowStats(40, 400))
+
+        And("A local registry and JMX server")
+        LocateRegistry.createRegistry(jmxPort)
+        val mbs = ManagementFactory.getPlatformMBeanServer
+        val url = new JMXServiceURL("service:jmx:rmi://localhost/jndi/rmi:" +
+                                    s"//localhost:$jmxPort/jmxrmi")
+        val server = JMXConnectorServerFactory.newJMXConnectorServer(url, null,
+                                                                     mbs)
+        val name = new ObjectName(MeteringMXBean.NAME)
+        server.start()
+
+        And("A string builder with enough capacity")
+        val bytes = new ByteArrayOutputStream()
+        val buffer = new BufferedWriter(new OutputStreamWriter(bytes))
+
+        When("Registering the metering bean")
+        Metering.reset()
+        Metering.registerAsMXBean(registry0)
+        Metering.registerAsMXBean(registry1)
+
+        And("The meters are retrieved as a text table")
+        Metering.toTextTable(buffer, ' ')
+        buffer.flush()
+
+        Then("The buffer contains correct string")
+        val meters = bytes.toString.split("\n")
+        meters should have length 4
+        meters should contain allOf ("meter0 10 100",
+                                     "meter1 20 200",
+                                     "meter1 30 300",
+                                     "meter2 40 400")
+    }
 }
