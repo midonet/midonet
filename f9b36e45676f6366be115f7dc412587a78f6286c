@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_68ed3db6",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-07T17:03:55Z",
+      "side": 1,
+      "message": "Ah, to hell with it then. This is fine. I don\u0027t expect the numerals of the roman script to change any time soon.",
+      "parentUuid": "fabf19d9_464a7327",
+      "range": {
+        "startLine": 37,
+        "startChar": 8,
+        "endLine": 37,
+        "endChar": 14
+      },
+      "revId": "f9b36e45676f6366be115f7dc412587a78f6286c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_0618fb73",
         "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtil.scala",
         "patchSetId": 1
