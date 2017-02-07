@@ -16,22 +16,21 @@
 
 package org.midonet.midolman
 
-import java.util.{ArrayDeque, ArrayList}
+import java.util.ArrayList
 
 import org.jctools.queues.SpscArrayQueue
 
 import org.midonet.ErrorCode._
 import org.midonet.Util
-import org.midonet.odp.FlowMatch
+import org.midonet.insights.Insights
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
-import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
-import org.midonet.midolman.flows.FlowExpirationIndexer.ExpirationQueue
+import org.midonet.midolman.flows.FlowExpirationIndexer.{Expiration, ExpirationQueue}
 import org.midonet.midolman.flows._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.simulation.PacketContext
+import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.{ArrayObjectPool, NoOpPool}
 import org.midonet.util.concurrent.WakerUpper.Parkable
@@ -138,7 +137,8 @@ class FlowControllerImpl(config: MidolmanConfig,
                          workerId: Int,
                          metrics: PacketPipelineMetrics,
                          meters: MeterRegistry,
-                         preallocation: FlowTablePreallocation)
+                         preallocation: FlowTablePreallocation,
+                         insights: Insights)
         extends FlowController with DisruptorBackChannel with MidolmanLogging {
     import FlowController._
 
@@ -153,7 +153,8 @@ class FlowControllerImpl(config: MidolmanConfig,
     private val expirationIndexer = new FlowExpirationIndexer(preallocation)
     private val deleter = new FlowControllerDeleterImpl(flowProcessor,
                                                         datapathId,
-                                                        meters)
+                                                        meters,
+                                                        insights)
 
     private val oversubscriptionFlowPool = new NoOpPool[ManagedFlowImpl](
         new ManagedFlowImpl(_))
@@ -246,6 +247,8 @@ class FlowControllerImpl(config: MidolmanConfig,
         tagIndexer.indexFlowTags(flow)
 
         meters.trackFlow(flow.flowMatch, flow.tags)
+        insights.flowAdded(flow.flowMatch, flow.tags,
+                           flow.absoluteExpirationNanos)
         var flowsAdded = 1
         if (flow.linkedFlow ne null) {
             indexFlow(flow.linkedFlow)
@@ -304,7 +307,8 @@ class FlowControllerImpl(config: MidolmanConfig,
 
 class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
                                 datapathId: Int,
-                                meters: MeterRegistry)
+                                meters: MeterRegistry,
+                                insights: Insights)
         extends FlowControllerDeleter with MidolmanLogging {
     private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
         flowProcessor.capacity)
@@ -381,6 +385,7 @@ class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
         log.debug(s"DP confirmed removal of ${req.flowMatch}")
         meters.updateFlow(flowMatch, flowMetadata.getStats)
         meters.forgetFlow(flowMatch)
+        insights.flowDeleted(flowMatch, flowMetadata)
         req.clear()
     }
 
