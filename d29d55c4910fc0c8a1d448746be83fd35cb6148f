@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_3d51c936",
+        "filename": "midolman/conf/midolman-env.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-07T16:06:12Z",
+      "side": 1,
+      "message": "wouldn\u0027t\nJVM_OPTS\u003d\"$JVM_OPTS \\\"-XX:OnOutOfMemoryError\u003dkill -9 %p\\\"\"\nalso work?\n\nIt would be less changes.",
+      "revId": "d29d55c4910fc0c8a1d448746be83fd35cb6148f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
