@@ -30,6 +30,7 @@ import com.lmax.disruptor._
 
 import org.slf4j.{LoggerFactory, MDC}
 
+import org.midonet.insights.Insights
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
@@ -241,7 +242,8 @@ class PacketWorkflow(
             val vt: VirtualTopology,
             val packetOut: Int => Unit,
             val preallocation: FlowTablePreallocation,
-            val cbRegistry: CallbackRegistry)
+            val cbRegistry: CallbackRegistry,
+            val insights: Insights)
         extends EventHandler[PacketWorkflow.PacketRef]
         with TimeoutHandler
         with DisruptorBackChannel
@@ -275,13 +277,13 @@ class PacketWorkflow(
     protected val flowController: FlowController = if (config.offHeapTables) {
         new NativeFlowController(config, clock, flowProcessor,
                                  datapathId, workerId, metrics,
-                                 meters, cbRegistry)
+                                 meters, cbRegistry, insights)
     } else {
         new FlowControllerImpl(config, clock, flowProcessor,
                                datapathId, workerId,
                                metrics, meters,
                                preallocation,
-                               cbRegistry)
+                               cbRegistry, insights)
     }
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
@@ -514,6 +516,8 @@ class PacketWorkflow(
         }
 
         meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
+        insights.flowSimulation(pktCtx.cookie, pktCtx.packet, pktCtx.inputPort,
+                                pktCtx.origMatch, pktCtx.flowTags, simRes)
         flowRecorder.record(pktCtx, simRes)
     }
 

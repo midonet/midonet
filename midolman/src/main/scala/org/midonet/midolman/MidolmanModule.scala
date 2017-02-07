@@ -40,10 +40,10 @@ import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
+import org.midonet.insights.Insights
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath._
-import org.midonet.midolman.flows.NativeFlowMatchList
 import org.midonet.midolman.host.scanner.{DefaultInterfaceScanner, InterfaceScanner}
 import org.midonet.midolman.host.services.{HostService, QosService, TcRequestHandler}
 import org.midonet.midolman.io._
@@ -86,6 +86,9 @@ class MidolmanModule(injector: Injector,
 
         bind(classOf[MetricRegistry]).toInstance(metricRegistry)
         bind(classOf[CallbackRegistry]).toInstance(cbRegistry)
+
+        val insights = new Insights(reflections, metricRegistry)
+        bind(classOf[Insights]).toInstance(insights)
 
         // We add an extra slot so that channels can return tokens
         // they obtained due to the multiplier effect but didn't use.
@@ -178,6 +181,7 @@ class MidolmanModule(injector: Injector,
                                                         NanoClock.DEFAULT,
                                                         backend,
                                                         metricRegistry,
+                                                        insights,
                                                         counter, as,
                                                         flowTablePreallocation)
         bind(classOf[PacketWorkersService]).toInstance(workersService)
@@ -359,6 +363,7 @@ class MidolmanModule(injector: Injector,
                                              clock: NanoClock,
                                              backend: MidonetBackend,
                                              metricsRegistry: MetricRegistry,
+                                             insights: Insights,
                                              counter: StatisticalCounter,
                                              actorSystem: ActorSystem,
                                              flowTablePreallocation: FlowTablePreallocation)
@@ -366,7 +371,7 @@ class MidolmanModule(injector: Injector,
         new PacketWorkersServiceImpl(config, hostIdProvider, dpChannel, dpState,
                                      flowProcessor, natBlockAllocator, peerResolver,
                                      backChannel, vt, clock, backend,
-                                     metricsRegistry, counter, actorSystem,
+                                     metricsRegistry, insights, counter, actorSystem,
                                      flowTablePreallocation, cbRegistry)
 
     protected def connectionPool(): DatapathConnectionPool =

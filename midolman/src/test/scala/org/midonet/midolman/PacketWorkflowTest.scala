@@ -23,6 +23,7 @@ import scala.concurrent.Promise
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.insights.Insights
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.config.MidolmanConfig
@@ -725,7 +726,8 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    injector.getInstance(classOf[VirtualTopology]),
                                    packetOut,
                                    new MockFlowTablePreallocation(injector.getInstance(classOf[MidolmanConfig])),
-                                   cbRegistry) {
+                                   cbRegistry,
+                                   Insights.NONE) {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
         var generatedException: Exception = _

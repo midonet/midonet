@@ -21,9 +21,8 @@ import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 
-import org.midonet.midolman.CallbackRegistry
+import org.midonet.insights.Insights
 import org.midonet.midolman.PacketWorkflow.SimulationResult
-import org.midonet.midolman.{SimulationBackChannel, _}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.monitoring.FlowRecorder
@@ -34,6 +33,7 @@ import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{PeerResolver, _}
 import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.{CallbackRegistry, SimulationBackChannel, _}
 import org.midonet.odp._
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.sdn.state.FlowStateTable
@@ -68,7 +68,8 @@ class MockPacketWorkflow(config: MidolmanConfig,
                                leaser, metrics,
                                flowRecorder, vt,
                                _ => { }, new MockFlowTablePreallocation(config),
-                               cbRegistry) {
+                               cbRegistry,
+                               Insights.NONE) {
     override def runWorkflow(pktCtx: PacketContext) = {
         packetCtxTrap.offer(pktCtx)
         super.runWorkflow(pktCtx)

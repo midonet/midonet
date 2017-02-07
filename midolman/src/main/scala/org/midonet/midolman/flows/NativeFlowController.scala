@@ -19,6 +19,7 @@ package org.midonet.midolman.flows
 import java.util.ArrayList
 
 import org.midonet.Util
+import org.midonet.insights.Insights
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatches
 import org.midonet.midolman.CallbackRegistry
@@ -51,7 +52,8 @@ class NativeFlowController(config: MidolmanConfig,
                            workerId: Int,
                            metrics: PacketPipelineMetrics,
                            meters: MeterRegistry,
-                           cbRegistry: CallbackRegistry) extends FlowController {
+                           cbRegistry: CallbackRegistry,
+                           insights: Insights) extends FlowController {
     NativeFlowController.loadNativeLibrary()
 
     private val numWorkers = PacketWorkersService.numWorkers(config)
@@ -63,7 +65,8 @@ class NativeFlowController(config: MidolmanConfig,
     private val expirer = JNI.createFlowExpirationIndexer()
     private val deleter = new FlowControllerDeleterImpl(flowProcessor,
                                                         datapathId,
-                                                        meters)
+                                                        meters,
+                                                        insights)
 
     override def addFlow(fmatch: FlowMatch, flowTags: ArrayList[FlowTag],
                          removeCallbacks: ArrayList[CallbackSpec],

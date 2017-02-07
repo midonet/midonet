@@ -16,25 +16,17 @@
 
 package org.midonet.midolman
 
-import scala.collection.JavaConversions._
-
 import com.google.common.collect.Lists
-
-import org.midonet.packets.Ethernet
-import org.midonet.sdn.flows.FlowTagger.FlowTag
-
-import org.slf4j.helpers.NOPLogger
-import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.insights.Insights
 import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback}
-import org.midonet.midolman.flows.{ManagedFlowImpl, FlowExpirationIndexer}
-import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.flows.{FlowExpirationIndexer, ManagedFlowImpl}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
-import org.midonet.util.functors.Callback0
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @RunWith(classOf[JUnitRunner])
 class FlowControllerTest extends MidolmanSpec {
@@ -49,7 +41,7 @@ class FlowControllerTest extends MidolmanSpec {
             config, clock, flowProcessor,
             0, 0, metrics,
             preallocation.takeMeterRegistry(),
-            preallocation, cbRegistry)
+            preallocation, cbRegistry, Insights.NONE)
     }
 
     feature("The flow controller processes flows") {

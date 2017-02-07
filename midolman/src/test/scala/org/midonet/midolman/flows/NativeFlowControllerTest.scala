@@ -23,6 +23,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.Util
+import org.midonet.insights.Insights
 import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.{FlowController, MockFlowTablePreallocation, PacketWorkersService}
@@ -50,7 +51,7 @@ class NativeFlowControllerTest extends MidolmanSpec {
             config, clock, flowProcessor,
             0, 0, metrics,
             preallocation.takeMeterRegistry(),
-            cbRegistry)
+            cbRegistry, Insights.NONE)
         val callbackCalledCbId = cbRegistry.registerCallback(
             new SerializableCallback() {
                 override def call(args: Array[Byte]): Unit = {
