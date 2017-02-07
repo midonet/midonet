@@ -31,10 +31,10 @@ import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser._
 import org.midonet.services.flowstate.transfer.internal._
 import org.midonet.util.io.stream.ByteBufferBlockWriter
-import org.midonet.util.{AwaitRetriable, ClosingRetriable, DefaultRetriable}
+import org.midonet.util.{AwaitRetriable, DefaultRetriable}
 
-trait FlowStateRequestClient extends DefaultRetriable with ClosingRetriable
-                                     with AwaitRetriable {
+trait FlowStateRequestClient extends DefaultRetriable
+        with AwaitRetriable {
 
     override def interval = flowStateConfig.connectionTimeout millis
 
@@ -74,15 +74,6 @@ trait FlowStateRequestClient extends DefaultRetriable with ClosingRetriable
         dis.readFully(buffer)
         buffer
     }
-
-    protected def retryClosing(closeable: Closeable, message: String)
-                              (retriable: => Unit): Unit = {
-        // Using the underlying logger here as scala does not allow
-        // defining the macros on the same compilation unit, and retryClosing
-        // resides in midonet-util, the same module as midonet logging.
-        retryClosing(log.underlying, message)(closeable)(retriable)
-    }
-
 }
 
 /*
@@ -94,27 +85,33 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
 
     def remoteFlowStateFrom(host: String, portId: UUID) = {
         val aggregator = new FlowStateAggregator
-        var socket: Socket = null
 
-        try retryClosing(socket, s"Request flow state to $host for port $portId") {
-            socket = initSocket()
-            val dis = new DataInputStream(socket.getInputStream)
+        try retry(log.underlying,
+                  s"Request flow state to $host for port $portId") {
+            val socket = initSocket()
+            try {
+                val dis = new DataInputStream(socket.getInputStream)
 
-            val request = buildStateRequestRemote(portId, host)
-            val response = sendRequest(socket, dis, request)
+                val request = buildStateRequestRemote(portId, host)
+                val response = sendRequest(socket, dis, request)
 
-            response match {
-                case StateAck(port) =>
-                    log debug s"Remote Ack received from previous owner of ${fromProto(port)}"
-                    pipelinedReadTranslatedState(dis, aggregator)
-                case StateError(code, description) =>
-                    log warn s"Ignoring response: $code error received from" +
+                response match {
+                    case StateAck(port) =>
+                        log info s"Remote Ack received from previous owner of ${fromProto(port)}"
+                        pipelinedReadTranslatedState(dis, aggregator)
+                    case StateError(code, description) =>
+                        log warn s"Ignoring response: $code error received from" +
                         s" previous owner: $description"
-                case _ =>
-                    log warn "Ignoring response: received a malformed/illegal" +
-                        s" response from $host"
+                    case _ =>
+                        log warn "Ignoring response: received a malformed/illegal" +
+                            s" response from $host"
+                }
+            } finally {
+                socket.close()
             }
-        } catch { case NonFatal(e) => }
+        } catch {
+            case NonFatal(e) => log.warn("Error requesting remote flow state", e)
+        }
 
         aggregator.batch()
     }
@@ -123,7 +120,8 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
         val aggregator = new FlowStateAggregator
         var socket: Socket = null
 
-        try retryClosing(socket, s"Request flow state to internal minion for port $portId") {
+        try retry(log.underlying,
+                  s"Request flow state to internal minion for port $portId") {
             socket = initSocket()
             val dis = new DataInputStream(socket.getInputStream)
 
@@ -132,7 +130,7 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
 
             response match {
                 case StateAck(port) =>
-                    log debug s"Internal Ack received from previous owner of ${fromProto(port)}"
+                    log info s"Internal Ack received from previous owner of ${fromProto(port)}"
                     pipelinedReadTranslatedState(dis, aggregator)
                 case StateError(code, description) =>
                     log warn s"Ignoring response: $code error received from" +
@@ -141,7 +139,9 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
                     log warn "Ignoring response: received a malformed/illegal" +
                         " response"
             }
-        } catch { case NonFatal(e) => }
+        } catch {
+            case NonFatal(e) => log.warn("Error requesting local flow state", e)
+        }
 
         aggregator.batch()
     }
@@ -176,7 +176,8 @@ class FlowStateRemoteClient(override val flowStateConfig: FlowStateConfig)
                                   writer: ByteBufferBlockWriter[_]): Unit = {
         var socket: Socket = null
 
-        try retryClosing(socket, s"Request raw flow state to $host for port $portId") {
+        try retry(log.underlying,
+                  s"Request raw flow state to $host for port $portId") {
             socket = initSocket(host)
             val dis = new DataInputStream(socket.getInputStream)
 
@@ -185,7 +186,7 @@ class FlowStateRemoteClient(override val flowStateConfig: FlowStateConfig)
 
             response match {
                 case StateAck(port) =>
-                    log debug s"Raw Ack received from previous owner of ${fromProto(port)}"
+                    log info s"Raw Ack received from previous owner of ${fromProto(port)}"
                     pipelinedReadWriteRawState(dis, writer)
                 case StateError(code, description) =>
                     log warn s"Ignoring response: $code error received from" +
@@ -194,7 +195,9 @@ class FlowStateRemoteClient(override val flowStateConfig: FlowStateConfig)
                     log warn "Ignoring response: received a malformed/illegal" +
                         s" response from $host"
             }
-        } catch { case NonFatal(e) => }
+        } catch {
+            case NonFatal(e) => log.warn("Error requesting raw flow state", e)
+        }
     }
 
     private def pipelinedReadWriteRawState(dis: DataInputStream,
