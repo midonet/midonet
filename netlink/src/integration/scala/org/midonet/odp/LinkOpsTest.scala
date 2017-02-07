@@ -20,8 +20,9 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.netlink.rtnetlink.Link.NestedAttrValue
 import org.midonet.netlink.rtnetlink.{Link, LinkOps}
-import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -46,6 +47,8 @@ class LinkOpsTest extends FeatureSpec with BeforeAndAfterAll with ShouldMatchers
             peer.getName should be ("sparkles")
             (dev.ifi.flags & Link.Flag.IFF_UP) should be (Link.Flag.IFF_UP)
             (peer.ifi.flags & Link.Flag.IFF_UP) should be (Link.Flag.IFF_UP)
+            dev.info.kind shouldBe NestedAttrValue.LinkInfo.KIND_VETH
+            peer.info.kind shouldBe NestedAttrValue.LinkInfo.KIND_VETH
             dev.mtu should be (9000)
             peer.mtu should be (9000)
             dev.mac should be (devMac)

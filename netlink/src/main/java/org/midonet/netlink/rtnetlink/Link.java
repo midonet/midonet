@@ -19,8 +19,11 @@ package org.midonet.netlink.rtnetlink;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 import com.google.common.base.Objects;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
@@ -255,7 +258,7 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
     }
 
     public interface NestedAttrValue {
-         interface LinkInfo {
+        interface LinkInfo {
             String KIND_TUN = "tun";
             String KIND_VETH = "veth";
             String KIND_BRIDGE = "bridge";
@@ -406,7 +409,15 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
                     case NestedAttr.LinkInfo.IFLA_INFO_KIND:
                         byte[] s = new byte[buf.remaining() - 1];
                         buf.get(s);
-                        info.kind = new String(s);
+                        // Since the longest length for the field is 7, netlink
+                        // assigns 7 bytes here, by padding with '0's to the
+                        // right
+                        int zeroIdx = ArrayUtils.indexOf(s, (byte) 0);
+                        if (zeroIdx == ArrayUtils.INDEX_NOT_FOUND) {
+                            info.kind = new String(s);
+                        } else {
+                            info.kind = new String(Arrays.copyOf(s, zeroIdx));
+                        }
                         break;
                     case NestedAttr.LinkInfo.IFLA_INFO_DATA:
                         byte[] data =  new byte[buf.remaining() - 1];
