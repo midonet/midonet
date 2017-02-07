@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_976af47f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/SimpleHTTPServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-07T10:34:19Z",
+      "side": 1,
+      "message": "will throw an exception the second time it runs.",
+      "range": {
+        "startLine": 206,
+        "startChar": 12,
+        "endLine": 206,
+        "endChar": 25
+      },
+      "revId": "c6a59f06d767791fe07409d482f2ec320468bc68",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
