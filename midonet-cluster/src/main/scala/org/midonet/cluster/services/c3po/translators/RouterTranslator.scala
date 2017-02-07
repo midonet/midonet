@@ -92,19 +92,28 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
     }
 
     private def createSnatChains(tx: Transaction, routerId: UUID): Unit = {
-        val floatSnatExactChain = newChain(floatSnatExactChainId(routerId),
-                                           floatSnatExactChainName(routerId))
-        val floatSnatChain = newChain(floatSnatChainId(routerId),
-                                      floatSnatChainName(routerId))
         val floatNat64Chain = newChain(floatNat64ChainId(routerId),
                                        floatNat64ChainName(routerId))
         val skipSnatChain = newChain(skipSnatChainId(routerId),
                                      skipSnatChainName(routerId))
+        val floatSnatExactChain = newChain(floatSnatExactChainId(routerId),
+                                           floatSnatExactChainName(routerId))
+        val floatSnatChain = newChain(floatSnatChainId(routerId),
+                                      floatSnatChainName(routerId))
         val outChainBldr =
             tx.get(classOf[Chain], outChainId(routerId)).toBuilder
 
-        for(chain <- Seq(skipSnatChain, floatSnatChain,
-                         floatSnatExactChain, floatNat64Chain)) {
+        // Add rules jumping to each of these chains to the beginning of the
+        // router's post-routing (out) chain. In the create case, the chain will
+        // be empty, but in the upgrade case there may already be other rules,
+        // so we can't append the jump rules.
+        //
+        // Note that the rules are added to the beginning of the chain
+        // individually, so they will end up in the opposite order of the Seq
+        // below. That is, the jump rule for floatNat64Chain will be first and
+        // the jump rule for floatSnatChain will be last.
+        for(chain <- Seq(floatSnatChain, floatSnatExactChain,
+                         skipSnatChain, floatNat64Chain)) {
             tx.create(chain)
             val rule = jumpRule(null, chain.getId)
             tx.create(rule)
