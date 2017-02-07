@@ -16,6 +16,24 @@
       "revId": "d29d55c4910fc0c8a1d448746be83fd35cb6148f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_e8702da6",
+        "filename": "midolman/conf/midolman-env.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2017-02-07T16:19:00Z",
+      "side": 1,
+      "message": "I don\u0027t think so, since the word splitting is still there:\nroot@midolman1:/# JVM_OPTS\u003d\"$JVM_OPTS \\\"-XX:OnOutOfMemoryError\u003dkill -9 %p\\\"\"\nroot@midolman1:/# ./args $JVM_OPTS\n3 args: \u003c\"-XX:OnOutOfMemoryError\u003dkill\u003e \u003c-9\u003e \u003c%p\"\u003e\nroot@midolman1:/#",
+      "parentUuid": "fabf19d9_3d51c936",
+      "revId": "d29d55c4910fc0c8a1d448746be83fd35cb6148f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
