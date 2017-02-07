@@ -37,6 +37,10 @@ if [ -z "$MIDO_JMX_PORT" ]; then
     JMX_PORT="7202"
 fi
 
+if [ -z "$JVM_ON_OUT_OF_MEM" ]; then
+    JVM_ON_OUT_OF_MEM="-XX:OnOutOfMemoryError=kill -9 %p"
+fi
+
 MIDO_CFG_FILE=midolman.conf
 
 exec >> $MIDO_LOG_DIR/minions-stderr.log
@@ -86,4 +90,4 @@ JAVA_OPTS="$JVM_OPTS -Dminions.log.dir=$MIDO_LOG_DIR \
 
 exec $JAVA $JAVA_LIBRARY_PATH \
             -cp $MIDO_JAR:$MIDO_PLUGINS/* \
-            $JAVA_OPTS $MIDO_MAIN $MIDO_CFG/$MIDO_CFG_FILE
+            $JAVA_OPTS "$JVM_ON_OUT_OF_MEM" $MIDO_MAIN $MIDO_CFG/$MIDO_CFG_FILE
