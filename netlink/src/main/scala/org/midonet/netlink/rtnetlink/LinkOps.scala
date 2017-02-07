@@ -82,6 +82,44 @@ object LinkOps {
         }
     }
 
+    def getLinkByName(devName: String): Link = {
+        val (channel, protocol) = prepare()
+        try {
+            val buf = BytesUtil.instance.allocateDirect(2048)
+            val writer = new NetlinkBlockingWriter(channel)
+            val reader = new NetlinkReader(channel)
+
+            protocol.prepareLinkGet(buf, devName)
+            writer.write(buf)
+            val dev = readLink(reader, buf)
+
+            buf.clear()
+            reader.read(buf)
+            dev
+        } finally {
+            channel.close()
+        }
+    }
+
+    def getLinkByIndex(ifIndex: Int): Link = {
+        val (channel, protocol) = prepare()
+        try {
+            val buf = BytesUtil.instance.allocateDirect(2048)
+            val writer = new NetlinkBlockingWriter(channel)
+            val reader = new NetlinkReader(channel)
+
+            protocol.prepareLinkGet(buf, ifIndex)
+            writer.write(buf)
+            val dev = readLink(reader, buf)
+
+            buf.clear()
+            reader.read(buf)
+            dev
+        } finally {
+            channel.close()
+        }
+    }
+
     def deleteLink(link: Link): Unit = {
         val (channel, protocol) = prepare()
         try {
@@ -103,7 +141,7 @@ object LinkOps {
         deleteLink(link)
     }
 
-    def setAddress(link: Link, ipsubnet: IPSubnet[_ <: IPAddr], mac: MAC = null, delete: Boolean = false): Unit = {
+    def setAddress(link: Link, ipsubnet: IPSubnet[_ <: IPAddr], delete: Boolean = false): Unit = {
         val (channel, protocol) = prepare()
         try {
             val buf = BytesUtil.instance.allocateDirect(2048)
@@ -127,10 +165,6 @@ object LinkOps {
             buf.clear()
             writer.write(buf)
             reader.read(buf) // in case there are errors
-
-            if (mac ne null) {
-
-            }
         } finally {
             channel.close()
         }
