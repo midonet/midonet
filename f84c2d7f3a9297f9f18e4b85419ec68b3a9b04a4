@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_7749a0b6",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/client/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-07T11:20:10Z",
+      "side": 1,
+      "message": "this is intentional, right?",
+      "range": {
+        "startLine": 100,
+        "startChar": 28,
+        "endLine": 100,
+        "endChar": 32
+      },
+      "revId": "f84c2d7f3a9297f9f18e4b85419ec68b3a9b04a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
