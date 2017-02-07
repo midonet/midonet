@@ -33,6 +33,7 @@ import org.reflections.Reflections
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.FlowStateStorage
+import org.midonet.insights.Insights
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath.{FlowProcessor, _}
@@ -135,6 +136,7 @@ class MockMidolmanModule(override val hostId: UUID,
                                                       clock: NanoClock,
                                                       backend: MidonetBackend,
                                                       metricsRegistry: MetricRegistry,
+                                                      insights: Insights,
                                                       counter: StatisticalCounter,
                                                       actorSystem: ActorSystem,
                                                       preallocation: FlowTablePreallocation)

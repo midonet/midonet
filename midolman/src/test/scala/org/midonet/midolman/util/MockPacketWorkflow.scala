@@ -21,6 +21,7 @@ import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 
+import org.midonet.insights.Insights
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.{SimulationBackChannel, _}
 import org.midonet.midolman.config.MidolmanConfig
@@ -63,7 +64,7 @@ class MockPacketWorkflow(config: MidolmanConfig,
                                connTrackStateTable, natStateTable,
                                traceStateTable, peerResolver,
                                HappyGoLuckyLeaser, metrics,
-                               flowRecorder, vt,
+                               flowRecorder, Insights.NONE, vt,
                                _ => { }, new MockFlowTablePreallocation(config)) {
     override def runWorkflow(pktCtx: PacketContext) = {
         packetCtxTrap.offer(pktCtx)

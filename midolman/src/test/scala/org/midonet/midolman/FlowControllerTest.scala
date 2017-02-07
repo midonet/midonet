@@ -18,16 +18,17 @@ package org.midonet.midolman
 
 import akka.actor.Actor
 import akka.testkit.{TestActorRef, TestProbe}
+
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.flows.{ManagedFlow, FlowExpirationIndexer}
+import org.midonet.insights.Insights
+import org.midonet.midolman.flows.{FlowExpirationIndexer, ManagedFlow}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
@@ -42,16 +43,17 @@ class FlowControllerTest extends MidolmanSpec {
 
     override def beforeTest(): Unit =
         flowController = TestActorRef(new {
-             val workerId = 0
-             val flowProcessor = FlowControllerTest.this.flowProcessor
-             val flowInvalidator = FlowControllerTest.this.simBackChannel
-             val config = FlowControllerTest.this.config
-             val metrics = FlowControllerTest.this.metrics
-             val clock = FlowControllerTest.this.clock
-             val datapathId = 0
-             implicit val system = FlowControllerTest.this.actorSystem
-             val actor = TestProbe()(system).ref
-             val preallocation = new MockFlowTablePreallocation(config)
+            val workerId = 0
+            val flowProcessor = FlowControllerTest.this.flowProcessor
+            val flowInvalidator = FlowControllerTest.this.simBackChannel
+            val config = FlowControllerTest.this.config
+            val metrics = FlowControllerTest.this.metrics
+            val clock = FlowControllerTest.this.clock
+            val datapathId = 0
+            implicit val system = FlowControllerTest.this.actorSystem
+            val actor = TestProbe()(system).ref
+            val insights = Insights.NONE
+            val preallocation = new MockFlowTablePreallocation(config)
         } with FlowController with Actor { def receive: Receive = { case _ => } }).underlyingActor
 
     feature("The flow controller processes flows") {
