@@ -72,11 +72,8 @@ class SimpleHTTPServer(port: Int, handlers: List[SimpleHTTPServer.Handler])
         close()
         log.info(s"Opening HTTP server socket")
         socket.set(new ServerSocket(port))
-        socket.get match {
-            case null =>
-            case s => log.info(
-                s"HTTP server listening on port ${s.getLocalPort}")
-        }
+        log.info(
+            s"HTTP server listening on port ${socket.get.getLocalPort}")
     }
 
     def close(): Unit = {
@@ -206,6 +203,7 @@ class SimpleHTTPServerService(port: Int,
     private def mainLoop(): Unit = {
         do {
             server.rebind()
+            notifyStarted()
             try {
                 do {
                     server.handleRequest()
@@ -223,7 +221,6 @@ class SimpleHTTPServerService(port: Int,
     }
 
     def run(): Unit = {
-        notifyStarted()
         try {
             mainLoop
         } finally {
