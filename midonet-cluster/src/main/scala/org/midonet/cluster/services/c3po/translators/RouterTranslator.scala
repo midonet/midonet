@@ -92,19 +92,19 @@ class RouterTranslator(sequenceDispenser: SequenceDispenser,
     }
 
     private def createSnatChains(tx: Transaction, routerId: UUID): Unit = {
-        val floatSnatExactChain = newChain(floatSnatExactChainId(routerId),
-                                           floatSnatExactChainName(routerId))
-        val floatSnatChain = newChain(floatSnatChainId(routerId),
-                                      floatSnatChainName(routerId))
         val floatNat64Chain = newChain(floatNat64ChainId(routerId),
                                        floatNat64ChainName(routerId))
         val skipSnatChain = newChain(skipSnatChainId(routerId),
                                      skipSnatChainName(routerId))
+        val floatSnatExactChain = newChain(floatSnatExactChainId(routerId),
+                                           floatSnatExactChainName(routerId))
+        val floatSnatChain = newChain(floatSnatChainId(routerId),
+                                      floatSnatChainName(routerId))
         val outChainBldr =
             tx.get(classOf[Chain], outChainId(routerId)).toBuilder
 
-        for(chain <- Seq(skipSnatChain, floatSnatChain,
-                         floatSnatExactChain, floatNat64Chain)) {
+        for(chain <- Seq(floatSnatChain, floatSnatExactChain,
+                         skipSnatChain, floatNat64Chain)) {
             tx.create(chain)
             val rule = jumpRule(null, chain.getId)
             tx.create(rule)
