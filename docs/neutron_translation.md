@@ -8,7 +8,12 @@ http://creativecommons.org/licenses/by/4.0/legalcode
 # Neutron - MidoNet Translations
 
 All the Neutron data is stored in the cluster and kept in sync with the Neutron
-database.
+database. Starting at version 5.4 there is a limited support for IPv6. Namely
+floating IPv6 addresses, FIP6, can be specified for private fixed IPv4
+addresses. To allow configuration of such addresses from neutron,
+translations of the primitives for subnets, ports, router, router interfaces
+and floatingips were extended to handle IPv6 addresses. The midonet implements
+stateful NAT64.
 
 
 ## NETWORK
@@ -85,7 +90,11 @@ and delete any routes which pass through the deleted subnet.
 
 ## PORT
 
+<div id="PORT_CREATE"/>
 ### CREATE
+
+Port is assumed to be IPv6 if its first fixed ip address is IPv6. The
+translation is generic except that IPv6 port does not modify ARP tables.
 
 If the port is on an uplink network, since the Midonet network does not exist
 for it, do not create a MidoNet network port.  For each edge router, there
@@ -118,9 +127,10 @@ the following steps):
 
    * mac_address, ip_address
 
-Note that in MidoNet a router port could only be assigned at most one IP
-address.  This is a current limitation of MidoNet.  Also, MidoNet does not
-store IP addresses on the MidoNet network ports.
+Note that in MidoNet a router port can only be assigned at most one IPv4
+address. However, several IPv6 addresses can be assigned. This is a current
+limitation of MidoNet. MidoNet does not store IP addresses on the
+MidoNet network ports.
 
 If the port is not a VIF port (device_owner == 'compute:nova'):
 
@@ -274,6 +284,7 @@ For VIP ports:
 
 ## ROUTER
 
+<div id="ROUTER_OVERVIEW"/>
 ### OVERVIEW
 
 Here's how rules for a logical router would look like:
@@ -351,6 +362,12 @@ Here's how rules for a logical router would look like:
             [per FIP]
             (src) matches (fixed-ip) -> float snat, ACCEPT  // non gateway port
         ==== floatSnatChain end
+
+        ==== floatNat64Chain start
+            // This is to prevent possible IPv4 Source NAT for IPv6 response
+            // NAT64 pool is 100.64.0.0/10 range as described by [RFC 6598]
+            (outport, dst) matches (gateway port, NAT64 pool) -> ACCEPT
+        ==== floatNat64Chain end
 
         ----- ordering barrier
 
@@ -464,10 +481,11 @@ A few interesting cases:
   a return traffic by VM-Z's network stack.
 
 
+<div id="ROUTER_CREATE"/>
 ### CREATE
 
-Create two new empty chains, then create a new MidoNet router with new chains
-set to its inbound and outbound filters.
+Create aforementioned new empty chains, then create a new MidoNet router
+with new chains set to its inbound and outbound filters.
 
 The following fields are copied over from the Neutron router to the MidoNet
 router:
@@ -480,20 +498,23 @@ If the router has 'gw_port_id' specified, the gateway must be configured:
 
  * This port is on an external network, and the matching MidoNet network must
    be linked to the router created.  The network ID is set in
-   'external_gateway_info'.
+   'external_gateway_info'. The port can have at most one IPv4 subnet, and any
+    number of  IPv6 subnets.
  * The new MidoNet router port getting linked gets the following fields copied
    from the Neutron gateway port:
 
      * fixed_ips[0].ip_address => portAddr
-     * fixed_ips[0].subnet.cidr => nwAddr, nwLength
+     * fixed_ips.foreach(_.subnet.cidr) => yield (nwAddr, nwLength)
      * mac_address => hwAddr
-
-  * The 'device_id' field of this port should match the router ID getting
+ * The 'device_id' field of this port should match the router ID getting
     created.  If each Neutron data gets stored in the cluster, 'device_id'
     field of this port should be updated to the router ID here since in the
     'create port' API that created this port, this router had not been created
     yet and the ID was unknown and never set.
-  * If 'snat_enabled' is set to true, add the following rules to the chains:
+
+For each subnet of the gateway port:
+ * If subnet is IPv4 and 'snat_enabled' is set to true, add the following
+    rules to the chains:
 
       * SNAT rule on the outbound chain with the target set to the router port
         IP address, going out of the port.
@@ -504,20 +525,31 @@ If the router has 'gw_port_id' specified, the gateway must be configured:
       * Drop rule for all the non-ICMP packets coming to the router port IP
         address.
 
-  * Add a default route on the midonet router with the next hop gateway IP
-    address set to the gateway IP of the subnet (fixed_ips[0].subnet)
+ * If subnet is IPv4 add a default route on the midonet router with the next
+   hop gateway IP address set to the gateway IP of the subnet. The next hop
+   type is set to 'PORT'
+ * If subnet is IPv6:
+
+     1. Find an available 169.254.x.y/30 subnet within the
+        169.254.0.0/16 range. Use the router port IPv4 address of this
+        subnet as destination for local route.
+     1. Assign a tunnel key to the port from a special FIP64 pool. The VNI
+        prefix for these tunnel keys is set to 0x2.
+     1. Add special route for NAT64 pool destination. The next hop type is
+        set to 'FIP64'
 
 Do not add a network route for the external network's subnet.  All the floating
 IP traffic is expected to be handled by the uplink router (forwarded by the
-default route).  The reason is that the midolman agent does not allow packets
-to ingress and egress on the same bridge port in the bridge simulation, so
-when two VMs with floating IP associated try to connect to each other, such
+default/FIP64 route).  The reason is that the midolman agent does not allow
+packets to ingress and egress on the same bridge port in the bridge simulation,
+so when two VMs with floating IP associated try to connect to each other, such
 traffic must egress out of the external network into the uplink router first
-before coming back to the network.
+before coming back to the network. Note that VMs with only FIP6 cannot
+connect to each other via external network.
 
 For each router, create a port group.  These port groups are used to group
 ports on each edge router. The ports on the same port group on the edge router
-shares flow states required for connection tracking and dynamic NAT.
+shares flow states required for connection tracking, dynamic NAT and NAT64.
 
 For each router, create a port group for Neutron router interfaces.
 These port groups are used to group ports for Neutron router interfaces
@@ -525,45 +557,50 @@ on each router.
 
 ### UPDATE
 
+The following fields are updated in the MidoNet router:
+
+ * admin_state_up => adminStateUp
+ * name => name (unused by MidoNet)
+ * tenant_id => tenantId
+
 If the router has 'gw_port_id' specified, the gateway must be (re)configured:
 
  * If the router is unlinked, link to the MidoNet network matching the external
    network specified in 'external_gateway_info'.
+
+For IPv4 subnet:
  * If 'snat_enabled' is true, add the SNAT rules described in the
    'Router:Create' section, if they do not already exist.
  * If 'snat_enabled' is false, delete the SNAT rules by referencing the router
    port ID and its IP.
- * Update the MAC table with the router port ID and MAC on the MidoNet network
  * Update the ARP table entry with the router port IP address and MAC on the
    MidoNet network
- * Update the midonet router to contain a route that has the next hop port ID
-   set to the newly specified 'gw_port_id'
+ * Update the MAC table with the router port ID and MAC on the MidoNet network
+ * Update the midonet router to contain a route that has the
+   next hop port ID set to the newly specified 'gw_port_id'.
 
 If the 'gw_port_id' is unset, that means that either this port was deleted or
 it never existed.  Either way, nothing needs to be done (SNAT is guaranteed to
 be disabled).
 
-ASSUMPTION 1: an UPDATE operation does NOT re-assign a new gateway port from the
-              old one. Router gateway port's explicitly deleted first and reset.
-ASSUMPTION 2: Router gateway port is always deleted by a DELETE operation on the
-              port, and the router UPDATE operation never implicitly deletes it
-              or unlinks the router from the external network.
+**ASSUMPTION 1**: an UPDATE operation does NOT re-assign a new gateway port
+from the old one. Router gateway port's explicitly deleted first and reset.
 
-The following fields are updated in the MidoNet router:
-
- * admin_state_up => adminStateUp
-
-'name' could be updated too, but it is unused in MidoNet.
+**ASSUMPTION 2**: Router gateway port is always deleted by a DELETE operation
+on the port, and the router UPDATE operation never implicitly deletes it
+or unlinks the router from the external network.
 
 For each extra route provided, add a new route entry in the routing table of
-the router. If BGP is configured on this router, then add a new BGP network
+the router. Both IPv6 and IPv4 routes are supported.
+If BGP is configured on this router, then add a new BGP network
 on this router corresponding to the extra route.
+**NOTE**: BGP works only for IPv4 in 5.4
 
 ### DELETE
 
-ASSUMPTION: Router gateway port is always explicitly deleted before the router
-            is deleted. Otherwise the port on the external network may not be
-            deleted.
+**ASSUMPTION**: Router gateway port is always explicitly deleted before
+the router is deleted. Otherwise the port on the external network may not
+be deleted.
 
 The following translations are required:
 
@@ -576,8 +613,11 @@ The following translations are required:
 ### CREATE
 
 router_interface contains a router ID, and both the port ID and the subnet
-ID of the network that the router is attached to.  The port must already exist.
-IPv6 subnet is not supported.
+IDs list of the network that the router is attached to. The port must already
+exist.  IPv6 subnets are supported since 5.4. Router interface can have at most
+one IPv4 subnet but many IPv6 subnets. When router interface is not on uplink
+network the translation for both IPv4 and IPv6 subnets is similar to
+translation of router gateway port.
 
 If the port is a VIF port, it means that a VIF port is getting converted to a
 router interface port:
@@ -601,13 +641,15 @@ For all cases:
  * Create a port on the router with the following fields set:
 
      * Determined router port IP address => portAddr
-     * fixed_ips[0].subnet.cidr => nwAddr, nwLength
+     * fixed_ips.foreach(_.subnet.cidr) => List((nwAddr, nwLength))
      * mac_address => hwAddr
 
- * Add a route to the CIDR of the subnet specified on the router, with the next
-   hop port set to the created router port.
+ *  Add a route to the CIDR of each subnet specified on the router, with the next
+    hop port set to the created router port.
 
- * If BGP speaker is configured on the router, BGP Network is created for the
+For IPv4 subnet:
+
+   * If BGP speaker is configured on the router, BGP Network is created for the
    network attached.  BGP speaker is configured on the router if there is a
    Quagga container associated with the router with the ID derived from this
    router ID.
@@ -615,25 +657,37 @@ For all cases:
 If the port is not on an uplink network:
 
  * With this router port, link the MidoNet router to the MidoNet network
-   corresponding to the Neutron network the subnet belongs to.
- * Add a route to the DHCP port for the metadata service.  This route must
-   match on the source coming from the provided subnet CIDR, and the
-   destination going to the metadata service IP, 169.254.169.254.
- * Update per-RIF SNAT rule as documented in ROUTER OVERVIEW section.
-   Add an SNAT rule with the target IP set to the router port IP address,
-   matching on traffic ingressing into and egressing out of the same router
-   port.  This is useful for VIP traffic because it needs the return flow to
-   come back to the router when the sender and the receiver exist on the same
-   subnet.  Make sure to also exclude metadata traffic since that is the one
-   exceptional case where we do not want this SNAT rule applied even if the
-   traffic ingresses into and egresses out of the same port.  Also add its
-   matching reverse SNAT rule.
+   corresponding to the Neutron network the subnets belongs to.
+
+  For IPv4 subnet:
+     * Add a route to the DHCP metadata service if IPv4 subnet has gateway
+       IP set.
+       This route must match on the source coming from the provided subnet CIDR,
+       and the destination going to the metadata service IP, 169.254.169.254.
+     * Update per-RIF SNAT rule as documented in ROUTER OVERVIEW section.
+       Add an SNAT rule with the target IP set to the router port IP address,
+       matching on traffic ingressing into and egressing out of the same router
+       port.  This is useful for VIP traffic because it needs the return flow to
+       come back to the router when the sender and the receiver exist on the
+       same subnet. Make sure to also exclude metadata traffic since that is
+       the one exceptional case where we do not want this SNAT rule applied
+       even if the traffic ingresses into and egresses out of the same port.
+       Also add its matching reverse SNAT rule.
+
+  For each IPv6 subnet (similar to IPv6 setup of router gateway port,
+   section <a href="#ROUTER_CREATE">ROUTER CREATE</a>):
+     * Add special skipNat4Rule to floatNat64 chain similar to IPv6 setup of
+       router gateway port
+     * Add special FIP64 route for NAT64 pool
  * Add the router port to the port group for Neutron router interfaces on
-   the router.
+   the router. If router interface has IPv6 subnet also assign tunnel key with
+   0x2 prefix to it, similar for router gateway port setup in section
+   <a href="#ROUTER_CREATE">ROUTER CREATE</a>
 
 
 If the port is on an uplink network, bind the router port according to the
-binding information provided in the Neutron port data.  See the PORT CREATE
+binding information provided in the Neutron port data.  See the
+<a href="#PORT_CREATE">PORT CREATE</a>
 section for more information on port binding.
 
 ### DELETE
@@ -652,7 +706,7 @@ No other action needed since the relevant ports should already been deleted by
 
 
 ## FLOATINGIP
-
+<div id="FLOATINGIP_CREATE"/>
 ### CREATE
 
 On the tenant router, which is specified in the 'router_id' of the Floating IP
@@ -660,21 +714,40 @@ data, add the NAT translation rules between 'fixed_ip_address' and
 'floating_ip_address' if the floating IP has an association with a fixed IP
 ('port_id' is set):
 
- * Create per-FIP rules as documented in ROUTER OVERVIEW section
+For IPv4 floating ip:
+ * Create per-FIP rules as documented in
+<a href="#ROUTER_OVERVIEW">ROUTER OVERVIEW</a> section
 
-Find a port on the tenant router which a) has a 'port_subnet' which contains the
-FIP address, and b) has a corresponding Neutron port (i.e., is not a Midonet-
-only port).  On the external network to which this router port's peer belongs,
+ * Find a port on the tenant router which
+    1. has a 'port_subnet' which contains the FIP address
+    1. has a corresponding Neutron port (i.e., is not a Midonet-
+only port).
+
+ * On the external network to which this router port's peer belongs,
 add an ARP entry for floating IP, and add the router port's MAC to the network's
 ARP table.
 
-ASSUMPTION: The floating IP's IP address does not change.
+**ASSUMPTION**: The floating IP's IP address does not change.
+
+For IPv6 floating ip:
+ * Check that tenant router has gateway port id specified.
+ * Ensure that fixed ip is IPv4
+ * Create a node in Zookeeper in "fip64_table/[external_network_id]/" subtree
+   and store there all information related to given floating ip:
+    * IPv4 fixed IP address
+    * IPv6 floating IP address
+    * NAT64 pool that correspond to this external net (might be a fraction of
+      whole NAT64 pool)
+    * Port id of the gateway port
+    * Router id of the corresponding tenant router
 
 ### UPDATE
 
 Inspect the floating IP and:
 
  * If port_id was / is null, do nothing
+
+If both old and new  FIPs are IPv4:
  * If port_id was null but is non-null, create an ARP entry and new NAT rules
  * If port_id was non-null but is null, delete the ARP entry and NAT rules
  * If port_id was / is non-null
@@ -692,13 +765,23 @@ Inspect the floating IP and:
 The ARP entry also needs to be updated / deleted upon router gateway port UPDATE
 / DELETE, which is triggered by router gateway port CRUD.
 
+If old or new FIP is FIP6:
+ * Delete old FIP as it describes section <a href="#FLOATINGIP_DELETE">
+    FLOATINGIP DELETE</a>
+ * Create new FIP as it describes section <a href="#FLOATINGIP_CREATE">
+   FLOATINGIP CREATE</a>
+
+<div id="FLOATINGIP_DELETE"/>
 ### DELETE
 
-Remove
- * all the DNAT and SNAT rules on the tenant router referencing the floating IP
+For IPv4 FIP remove:
+ * All the DNAT and SNAT rules on the tenant router referencing the floating IP
    address getting deleted, and
- * the ARP table entry for the floating IP address getting deleted.
+ * The ARP table entry for the floating IP address getting deleted.
 
+For IPv6 FIP remove corresponding node in Zookeeper. See section
+<a href="#FLOATINGIP_CREATE">FLOATINIP CREATE</a> for more details about node
+structure.
 
 ## SECURITYGROUP
 
