@@ -28,6 +28,7 @@ import com.codahale.metrics.MetricRegistry
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.insights.Insights
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.logging.MidolmanLogging
@@ -73,6 +74,7 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
                                clock: NanoClock,
                                backend: MidonetBackend,
                                metricsRegistry: MetricRegistry,
+                               insights: Insights,
                                counter: StatisticalCounter,
                                actorSystem: ActorSystem,
                                flowTablePreallocation: FlowTablePreallocation)
@@ -160,7 +162,7 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
             backChannelProcessor, flowProcessor,
             connTrackShard, natShard, traceShard,
             peerResolver, natLeaser,
-            metrics, flowRecorder,
+            metrics, flowRecorder, insights,
             vt, counter.addAndGet(index, _: Int),
             flowTablePreallocation)
 

@@ -23,6 +23,7 @@ import scala.concurrent.Promise
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.insights.Insights
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
@@ -721,6 +722,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    HappyGoLuckyLeaser,
                                    metrics,
                                    NullFlowRecorder(),
+                                   Insights.NONE,
                                    injector.getInstance(classOf[VirtualTopology]),
                                    packetOut,
                                    new MockFlowTablePreallocation(injector.getInstance(classOf[MidolmanConfig]))) {

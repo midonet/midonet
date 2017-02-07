@@ -30,6 +30,7 @@ import com.lmax.disruptor._
 
 import org.slf4j.{LoggerFactory, MDC}
 
+import org.midonet.insights.Insights
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
@@ -236,6 +237,7 @@ class PacketWorkflow(
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val flowRecorder: FlowRecorder,
+            val insights: Insights,
             val vt: VirtualTopology,
             val packetOut: Int => Unit,
             override val preallocation: FlowTablePreallocation)
@@ -491,6 +493,7 @@ class PacketWorkflow(
         }
 
         meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
+        insights.recordSimulation(pktCtx, simRes)
         flowRecorder.record(pktCtx, simRes)
     }
 
