@@ -206,6 +206,9 @@ class SimpleHTTPServerService(port: Int,
     private def mainLoop(): Unit = {
         do {
             server.rebind()
+            if (!isRunning) {
+                notifyStarted()
+            }
             try {
                 do {
                     server.handleRequest()
@@ -223,7 +226,6 @@ class SimpleHTTPServerService(port: Int,
     }
 
     def run(): Unit = {
-        notifyStarted()
         try {
             mainLoop
         } finally {
