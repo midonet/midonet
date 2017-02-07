@@ -61,6 +61,9 @@ set -x
 
 midonet_kill_process $MIDO_MAIN
 midonet_check_tcp_port $JMX_PORT
+if [ -z "$JVM_ON_OUT_OF_MEM" ]; then
+    JVM_ON_OUT_OF_MEM="-XX:OnOutOfMemoryError=kill -9 %p"
+fi
 
 JAVA_OPTS="$JVM_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR -Dlogback.configurationFile=$MIDO_CFG/logback.xml"
 if [ "xyes" = "x$DEBUG" ] ; then
@@ -73,9 +76,9 @@ if [ -x /usr/bin/wdog ] && [ -z "$WATCHDOG_DISABLE" ] ; then
     exec /usr/bin/wdog -d /var/log/midolman $WATCHDOG_TIMEOUT -- \
                 $JAVA $JAVA_LIBRARY_PATH \
                 -cp $MIDO_JAR:$MIDO_PLUGINS/* \
-                $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
+                $JAVA_OPTS "$JVM_ON_OUT_OF_MEM" $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
 else
     exec $JAVA $JAVA_LIBRARY_PATH \
                 -cp $MIDO_JAR:$MIDO_PLUGINS/* \
-                $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
+                $JAVA_OPTS "$JVM_ON_OUT_OF_MEM" $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
 fi
