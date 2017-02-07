@@ -55,7 +55,14 @@ class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         val r1Chains = getChains(r1.getInboundFilterId, r1.getOutboundFilterId)
         r1Chains.inChain.getRuleIdsCount shouldBe 0
-        r1Chains.outChain.getRuleIdsCount shouldBe 4  // four jumps
+
+        // Check order of out chain's jump rules.
+        val outRuleIds = r1Chains.outChain.getRuleIdsList.asScala
+        val outRules = storage.getAll(classOf[Rule], outRuleIds).await()
+        outRules.map(_.getJumpRuleData.getJumpChainId) shouldBe
+            List(floatNat64ChainId(r1Id), skipSnatChainId(r1Id),
+                 floatSnatExactChainId(r1Id), floatSnatChainId(r1Id))
+
         val r1FwdChain = storage.get(classOf[Chain],
                                      r1.getForwardChainId).await()
         r1FwdChain.getRuleIdsCount shouldBe 0
