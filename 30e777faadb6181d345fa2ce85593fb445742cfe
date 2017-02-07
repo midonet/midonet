@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_68677db7",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-07T16:38:42Z",
+      "side": 1,
+      "message": "I wouldn\u0027t make it optional. We should always start it.",
+      "range": {
+        "startLine": 124,
+        "startChar": 36,
+        "endLine": 124,
+        "endChar": 41
+      },
+      "revId": "30e777faadb6181d345fa2ce85593fb445742cfe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_480719ca",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-07T16:38:42Z",
+      "side": 1,
+      "message": "Select a port that\u0027s not commonly used. 80 is used all the time. we use 7200 \u0026 7202 for JMX, so maybe 7300 for this.",
+      "revId": "30e777faadb6181d345fa2ce85593fb445742cfe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
