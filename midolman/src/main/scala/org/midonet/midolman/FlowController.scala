@@ -22,6 +22,7 @@ import org.jctools.queues.SpscArrayQueue
 
 import org.midonet.ErrorCode._
 import org.midonet.Util
+import org.midonet.insights.Insights
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
@@ -117,6 +118,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     protected val flowProcessor: FlowProcessor
     protected val datapathId: Int
     protected val workerId: Int
+    protected def insights: Insights
     val metrics: PacketPipelineMetrics
 
     protected val preallocation: FlowTablePreallocation
@@ -282,6 +284,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         log.debug(s"DP confirmed removal of ${req.managedFlow}")
         meters.updateFlow(flowMatch, flowMetadata.getStats)
         meters.forgetFlow(flowMatch)
+        insights.recordFlow(req.managedFlow, flowMetadata)
         req.clear()
     }
 
