@@ -46,6 +46,30 @@
       "revId": "eb6981e01e49ab2120057276f55544c05044c62e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_d22cfd9a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-02-07T05:44:39Z",
+      "side": 1,
+      "message": "i see, thank you. i guess it warrants a comment.",
+      "parentUuid": "fabf19d9_321b3975",
+      "range": {
+        "startLine": 111,
+        "startChar": 36,
+        "endLine": 111,
+        "endChar": 39
+      },
+      "revId": "eb6981e01e49ab2120057276f55544c05044c62e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
