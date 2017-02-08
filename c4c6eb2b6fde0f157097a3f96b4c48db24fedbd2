@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_05bd7fb6",
+        "filename": "tests/mdts/lib/vtm_neutron.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-02-08T23:05:35Z",
+      "side": 1,
+      "message": "duplicate functionality with add_router_interface",
+      "range": {
+        "startLine": 191,
+        "startChar": 8,
+        "endLine": 191,
+        "endChar": 31
+      },
+      "revId": "c4c6eb2b6fde0f157097a3f96b4c48db24fedbd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
