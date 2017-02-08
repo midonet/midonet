@@ -90,22 +90,28 @@ class NeutronTopologyManager(TopologyManager):
             self.api.create_network({'network': network_params}))
         return network['network']
 
-    def create_subnet(self, name, network, cidr, enable_dhcp=True, version=4):
+    def create_subnet(self, name, network, cidr, enable_dhcp=True,
+                      version=4, gateway_ip=None):
+        subnet_params = {'name': name,
+                         'network_id': network['id'],
+                         'ip_version': version,
+                         'cidr': cidr,
+                         'enable_dhcp': enable_dhcp}
+        if gateway_ip is not None:
+            subnet_params['gateway_ip'] = gateway_ip
         subnet = self.create_resource(
-            self.api.create_subnet(
-                {'subnet':
-                    {'name': name,
-                     'network_id': network['id'],
-                     'ip_version': version,
-                     'cidr': cidr,
-                     'enable_dhcp': enable_dhcp}}))
+            self.api.create_subnet({'subnet': subnet_params}))
         return subnet['subnet']
 
-    def create_router(self, name):
+    def create_router(self, name, tenant_id='admin',
+                      external_net_id=None):
+        router_params = {'name': name,
+                         'tenant_id': tenant_id}
+        if external_net_id is not None:
+            router_params['external_gateway_info'] = \
+                {'network_id': external_net_id}
         router = self.create_resource(
-            self.api.create_router(
-                    {'router': {'name': name,
-                                'tenant_id': 'admin'}}))
+            self.api.create_router({'router': router_params}))
         return router['router']
 
     def set_router_gateway(self, router, network):
@@ -151,17 +157,45 @@ class NeutronTopologyManager(TopologyManager):
             self.api.create_port({'port': port_params}))
         return port['port']
 
-    def create_sg_rule(self, sgid, direction='ingress', protocol=None):
+    def create_sg_rule(self, sgid, direction='ingress', protocol=None,
+                       port_range=None):
         rule_definition = {
             'direction': direction,
             'security_group_id': sgid
         }
-        if protocol:
+        if protocol is not None:
             rule_definition['protocol'] = protocol
+        if port_range is not None:
+            rule_definition['port_range_min'] = port_range[0]
+            rule_definition['port_range_max'] = port_range[1]
+
         try:
-            self.create_resource(
+            sg_rule = self.create_resource(
                 self.api.create_security_group_rule({
                     'security_group_rule': rule_definition
                 }))
+            return sg_rule['security_group_rule']
         except Exception:
             pass
+
+    def create_floating_ip(self, name, network_id, port_id,
+                           tenant_id='admin'):
+        fip_params = {'floating_network_id': network_id,
+                      'port_id': port_id,
+                      'tenant_id': tenant_id}
+        fip = self.create_resource(
+            self.api.create_floatingip({'floatingip': fip_params}),
+            name=name)
+        return fip['floatingip']
+
+    def create_router_interface(self, base_name, router_id, subnet_id):
+        router_if = self.api.add_interface_router(
+            router_id, {'subnet_id': subnet_id})
+        self.set_resource(base_name + "_if", router_if)
+        router_if_port = self.api.show_port(router_if['port_id'])
+        router_if_ip =\
+            router_if_port['port']['fixed_ips'][0]['ip_address']
+        self.set_resource(base_name + "_ip", router_if_ip)
+        self.addCleanup(self.api.remove_interface_router,
+                        router_id, {'subnet_id': subnet_id})
+        return router_if
