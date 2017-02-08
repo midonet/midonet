@@ -1,0 +1,5 @@
+
+class Foobar {
+public:
+  Foobar();
+};
