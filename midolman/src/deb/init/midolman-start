@@ -105,7 +105,7 @@ fi
 MIDO_WATCHDOG_TIMEOUT="${WATCHDOG_TIMEOUT:-10}"
 
 if [ -x /usr/bin/wdog ] && [ -z "$WATCHDOG_DISABLE" ] ; then
-    exec /usr/bin/wdog -d /var/log/midolman $WATCHDOG_TIMEOUT -- \
+    exec /usr/bin/wdog  $WATCHDOG_TIMEOUT -- \
                 $JAVA $JAVA_LIBRARY_PATH \
                 -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
                 -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH \
