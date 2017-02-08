@@ -285,6 +285,11 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
             }
             return nbytes;
         }
+
+        @Override
+        public String toString() {
+            return String.format("{kind=%s}", this.kind);
+        }
     }
 
     @Override
@@ -292,12 +297,16 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
         StringBuilder sb = new StringBuilder();
         sb.append("Link[ifi=");
         sb.append(this.ifi);
+        sb.append(", info=");
+        sb.append(this.info);
         sb.append(", addr=");
         sb.append(null == mac ? "null" : mac.toString());
         sb.append(", name=");
         sb.append(ifname);
         sb.append(", mtu=");
         sb.append(mtu);
+        sb.append(", masterIndex=");
+        sb.append(masterIndex);
         sb.append("]");
         return sb.toString();
     }
@@ -307,6 +316,7 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
     private String ifname;
     public int mtu;
     public int link;
+    public int masterIndex;
     public byte operstate = OperStatus.IF_OPER_UNKNOWN;
     public final LinkInfo info = new LinkInfo();
 
@@ -338,6 +348,7 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
         l.mac = this.mac != null ? MAC.fromAddress(mac.getAddress()) : null;
         l.ifname = this.ifname;
         l.mtu = this.mtu;
+        l.masterIndex = this.masterIndex;
         return l;
     }
 
@@ -383,6 +394,11 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
                         byte[] s = new byte[buf.remaining() - 1];
                         buf.get(s);
                         this.ifname = new String(s);
+                        break;
+                    case Attr.IFLA_MASTER:
+                        if (buf.remaining() == 4) {
+                            this.masterIndex = buf.getInt();
+                        }
                         break;
                     case Attr.IFLA_MTU:
                         if (buf.remaining() != 4) {
@@ -482,6 +498,10 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
 
         if (mtu > 0) {
             NetlinkMessage.writeIntAttr(buf, Attr.IFLA_MTU, mtu);
+        }
+
+        if (masterIndex != 0) {
+            NetlinkMessage.writeIntAttr(buf, Attr.IFLA_MASTER, masterIndex);
         }
 
         if (operstate != OperStatus.IF_OPER_UNKNOWN) {
