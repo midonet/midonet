@@ -18,6 +18,8 @@ apply plugin: 'scala'
 apply plugin: 'application'
 apply from: "${rootProject.projectDir}/fpm.gradle"
 apply from: "${rootProject.projectDir}/git.gradle"
+apply plugin: 'cpp'
+apply plugin: 'google-test-test-suite'
 
 jar {
     manifest {
@@ -346,10 +348,52 @@ task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine += mainClassName
 }
 
-task testShell(type: Exec) {
-    commandLine 'src/test/shell/service_containers/vpn/vpn_basic_test'
+preparePkg.dependsOn manpages
+
+// native C++ library
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            googleTest {
+                headers.srcDir "$rootDir/tools/google-test-1.8.0/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile =
+                        file("$rootDir/tools/google-test-1.8.0/lib/linux-x86_64/libgtest.a")
+                }
+            }
+        }
+    }
+    components {
+        foobar(NativeLibrarySpec) {
+            baseName "foobar"
+        }
+    }
+    testSuites {
+        foobarTest(GoogleTestTestSuiteSpec) {
+            testing $.components.foobar
+        }
+    }
+    tasks.test {
+        dependsOn runFoobarTestGoogleTestExe
+    }
+
+    binaries {
+        all {
+            if (toolChain in Gcc) {
+                cppCompiler.args "--std=c++11"
+            }
+        }
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "googleTest", linkage: "static"
+
+             if (targetPlatform.operatingSystem.linux) {
+                 cppCompiler.args '-pthread'
+                 linker.args '-pthread'
+            }
+        }
+    }
 }
 
-integration.dependsOn testShell
-
-preparePkg.dependsOn manpages
+tasks.withType(RunTestExecutable) {
+    args "--gtest_output=xml:test_detail.xml"
+}
