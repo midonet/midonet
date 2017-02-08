@@ -47,96 +47,38 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         (net2, subnet2) = self.add_network('net_2', '10.0.1.0/24', '10.0.1.1')
         # public_x -> external port (associated to fip) on net x
         # private_x -> internal port on net x (for dynamic nat)
-        public_1 = self.add_port('public_1', net1['network']['id'])
-        self.add_port('private_1', net1['network']['id'])
-        public_2 = self.add_port('public_2', net2['network']['id'])
-        self.add_port('private_2', net2['network']['id'])
+        public_1 = self.create_port('public_1', net1)
+        self.create_port('private_1', net1)
+        public_2 = self.create_port('public_2', net2)
+        self.create_port('private_2', net2)
 
-        self.add_router('router_1',
-                        public['network']['id'],
-                        [subnet1['subnet']['id']])
-        self.add_router('router_2',
-                        public['network']['id'],
-                        [subnet2['subnet']['id']])
+        self.add_router('router_1', public['id'], [subnet1['id']])
+        self.add_router('router_2', public['id'], [subnet2['id']])
 
         # All ports share the same default SG, only need to set it once.
-        self.create_resource(
-                self.api.create_security_group_rule({
-                    'security_group_rule': {
-                        'direction': 'ingress',
-                        'port_range_min': 0,
-                        'port_range_max': 65535,
-                        'protocol': 'udp',
-                        'security_group_id': public_1['port']['security_groups'][0]
-                    }
-                }))
+        self.create_sg_rule(public_1['security_groups'][0],
+                            protocol='udp', port_range=[0, 65535])
 
-        self.create_resource(
-            self.api.create_floatingip({
-                'floatingip': {
-                    'floating_network_id': public['network']['id'],
-                    'port_id': public_1['port']['id'],
-                    'tenant_id': 'admin'
-                }
-            }), name='public_1_fip')
+        self.create_floating_ip('public_1_fip', public['id'],
+                                public_1['id'])
+        self.create_floating_ip('public_2_fip', public['id'],
+                                public_2['id'])
 
-        self.create_resource(
-            self.api.create_floatingip({
-                'floatingip': {
-                    'floating_network_id': public['network']['id'],
-                    'port_id': public_2['port']['id'],
-                    'tenant_id': 'admin'
-                }
-            }), name='public_2_fip')
-
-    def add_router(self, name, external_net, internal_subnets):
-        router_def = {'router': {'name': name,
-                                 'tenant_id': 'admin'}}
-
-        if external_net:
-            router_def['router']['external_gateway_info'] = \
-                {'network_id': external_net}
-
-        router = self.create_resource(
-            self.api.create_router(router_def))
+    def add_router(self, name, external_net_id, internal_subnets):
+        router = self.create_router(
+            name, external_net_id=external_net_id)
 
         for internal_subnet in internal_subnets:
-            router_if = self.api.add_interface_router(
-                router['router']['id'], {'subnet_id': internal_subnet})
-            self.set_resource(name + "_internal_if", router_if)
-            router_if_port = self.api.show_port(router_if['port_id'])
-            router_if_ip = router_if_port['port']['fixed_ips'][0]['ip_address']
-            self.set_resource(name + "_internal_ip", router_if_ip)
-            self.addCleanup(self.api.remove_interface_router,
-                            router['router']['id'],
-                            {'subnet_id': internal_subnet})
+            self.create_router_interface(name + '_internal',
+                                         router['id'], internal_subnet)
 
         return router
 
     def add_network(self, name, cidr, gateway, external=False):
-        network = self.create_resource(
-            self.api.create_network({'network': {'name': name,
-                                                 'admin_state_up': True,
-                                                 'router:external': external,
-                                                 'tenant_id': 'admin'}}))
-
-        subnet_def = {'subnet':
-                      {'name': network['network']['name'] + '_subnet',
-                       'network_id': network['network']['id'],
-                       'ip_version': 4,
-                       'cidr': cidr,
-                       'gateway_ip': gateway,
-                       'enable_dhcp': True}}
-
-        subnet = self.create_resource(self.api.create_subnet(subnet_def))
+        network = self.create_network(name, external)
+        subnet = self.create_subnet(
+            name + '_subnet', network, cidr, gateway_ip=gateway)
         return network, subnet
-
-    def add_port(self, name, network_id):
-        return self.create_resource(
-            self.api.create_port({'port': {'name': name,
-                                           'network_id': network_id,
-                                           'admin_state_up': True,
-                                           'tenant_id': 'admin'}}))
 
 VTM = VT_Networks_with_SG()
 BM = BindingManager(None, VTM)
