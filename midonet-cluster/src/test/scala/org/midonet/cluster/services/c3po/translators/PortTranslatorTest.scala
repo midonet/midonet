@@ -867,6 +867,8 @@ class VifPortBindingTranslationTest extends VifPortTranslationTest {
         bind(portId, mPortWithBinding)
         bind(portId, vifPortWithBinding)
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
+        bindAll(Seq(), Seq(), classOf[Rule])
+        bindAll(Seq(), Seq(), classOf[FloatingIp])
     }
 
     "VIF port UPDATE with no change " should "NOT update binding" in {
@@ -903,6 +905,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         bindAll(Seq(sgId1), Seq(ipAddrGroup1))
         bindAll(Seq(sgId2), Seq(ipAddrGroup2))
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
+        bindAll(Seq(), Seq(), classOf[Rule])
+        bindAll(Seq(), Seq(), classOf[FloatingIp])
     }
 
     "VIF port UPDATE" should "update port admin state" in {
@@ -1317,6 +1321,8 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
         bind(routeId, mRoute)
         bind(mdsRouteId, mMDSRoute)
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
+        bindAll(Seq(), Seq(), classOf[Rule])
+        bindAll(Seq(), Seq(), classOf[FloatingIp])
     }
 
     "DHCP port UPDATE" should "update port admin state" in {
@@ -1501,6 +1507,8 @@ class RouterInterfacePortUpdateDeleteTranslationTest
         bind(peerPortId, mRouterPortWithPeer)
         bind(routerId, mTenantRouter)
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
+        bindAll(Seq(), Seq(), classOf[Rule])
+        bindAll(Seq(), Seq(), classOf[FloatingIp])
     }
 
     "Router interface port UPDATE" should "NOT update Port" in {
@@ -1542,6 +1550,8 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
         bind(outSnatRuleId, null, classOf[Rule])
         bind(networkId, midoNetwork)
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
+        bindAll(Seq(), Seq(), classOf[Rule])
+        bindAll(Seq(), Seq(), classOf[FloatingIp])
     }
 
     private val nGatewayPort = nPortFromTxt(portBaseUp + """
