@@ -263,7 +263,7 @@ class StorageErrorMetricsTest extends FlatSpec
         Given("A bad bridge object")
         val id = UUID.randomUUID()
         curator.create().creatingParentsIfNeeded()
-                        .forPath(s"$zkRoot/0/models/PojoBridge/$id",
+                        .forPath(s"$zkRoot/zoom/0/models/PojoBridge/$id",
                                  "bad".getBytes)
 
         And("A bridge observer")
@@ -301,7 +301,7 @@ class StorageErrorMetricsTest extends FlatSpec
 
         When("Deleting the class node")
         curator.delete().deletingChildrenIfNeeded()
-               .forPath(s"$zkRoot/0/models/PojoBridge")
+               .forPath(s"$zkRoot/zoom/0/models/PojoBridge")
 
         And("Subscribing to the class observable")
         storage.observable(classOf[PojoBridge]).subscribe(observer)
