@@ -30,7 +30,7 @@ class PortBinder(storage: Storage, stateStorage: StateStorage) {
 
     def bindPort(portId: UUID, hostId: UUID, deviceName: String): Unit = {
         val protoHostId = hostId.asProto
-        log debug s"Binding port $portId"
+        log debug s"Binding port $portId to $deviceName on $hostId"
         try storage.tryTransaction(ZoomOwner.AgentBinding) { tx =>
             val oldPort = tx.get(classOf[Port], portId)
             val newPortBldr = oldPort.toBuilder

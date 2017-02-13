@@ -21,4 +21,6 @@ import scala.beans.BeanProperty
 class BindingInfo {
     @BeanProperty
     var interfaceName: String = _
+
+    override def toString = s"BindingInfo{interfaceName=$interfaceName}"
 }
