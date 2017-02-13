@@ -558,6 +558,13 @@ class InMemoryStorage extends Storage with StateStorage {
         new InMemoryTransactionManager
     }
 
+    override def tryTransaction[R](f: (Transaction) => R): R = {
+        val tx = transaction()
+        val result = f(tx)
+        tx.commit()
+        result
+    }
+
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
