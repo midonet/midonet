@@ -19,13 +19,11 @@ from mdts.lib.bindings import BindingManager
 from mdts.lib import sandbox
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
-from mdts.tests.utils.asserts import async_assert_that
-from mdts.tests.utils.asserts import receives
-from mdts.tests.utils.asserts import within_sec
 from mdts.tests.utils import conf
+from mdts.tests.utils.asserts import check_forward_flow
+from mdts.tests.utils.asserts import check_return_flow
 from mdts.tests.utils.utils import await_port_active
 from mdts.tests.utils.utils import bindings
-from mdts.tests.utils.utils import wait_on_futures
 from nose.tools import with_setup
 import time
 
@@ -139,39 +137,6 @@ def cleanup():
     service.loaded_containers = None
     agent = service.get_container_by_hostname('midolman1')
     agent.wait_for_status('up')
-
-
-def check_forward_flow(src_vm, dst_vm, fip, src_port, dst_port):
-    # Expect: Both vms (with fip) receive the packet
-    recv_filter = 'udp and port %d and ip dst %s' % (dst_port,
-                                                     dst_vm.get_ip())
-    f = async_assert_that(dst_vm,
-                          receives(recv_filter, within_sec(10)))
-    # When: Sending udp packet
-    #  src_vm (internal) -> dst_vm (fip)
-    src_vm.execute('hping3 -c 1 -q -2 -s %s -p %s %s' %
-                   (src_port, dst_port, fip))
-    wait_on_futures([f])
-
-    # tcpdump format:
-    # date net_proto src_ip.src_port > dst_ip.dst_port: transp_proto [...]
-    output = dst_vm.get_last_tcpdump_output()
-    snat_ip = output.split(' ')[2].rsplit('.', 1)[0]
-    snat_port = output.split(' ')[2].rsplit('.', 1)[1]
-
-    return {'ip': snat_ip, 'port': snat_port}
-
-
-def check_return_flow(src_vm, dst_vm, snat_ip, snat_port, dst_port, src_port):
-    # And expect: Both vms receive return traffic
-    recv_filter = 'udp and port %d and ip dst %s' % (dst_port,
-                                                     dst_vm.get_ip())
-    f = async_assert_that(dst_vm,
-                          receives(recv_filter, within_sec(10)))
-    # When: sending return flows
-    src_vm.execute('hping3 -c 1 -q -2 -s %s -p %s %s' %
-                   (src_port, snat_port, snat_ip))
-    wait_on_futures([f])
 
 
 @bindings(binding_multihost,
