@@ -15,8 +15,8 @@
  */
 package org.midonet.midolman.cluster.zookeeper;
 
-import com.google.inject.Key;
 import com.google.inject.PrivateModule;
+import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
@@ -42,9 +42,6 @@ public class ZookeeperConnectionModule extends PrivateModule {
     }
     @Override
     protected void configure() {
-
-        binder().requireExplicitBindings();
-
         requireBinding(MidonetBackendConfig.class);
 
         bindZookeeperConnection();
