@@ -39,7 +39,9 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
+
 import org.midonet.cluster.ClusterNode.Context
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}

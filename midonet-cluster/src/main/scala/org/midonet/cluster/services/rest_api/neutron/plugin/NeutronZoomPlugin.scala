@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.RestApiNeutronLog
 import org.midonet.cluster.data.ZoomConvert.fromProto
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, _}
 import org.midonet.cluster.data.{ZoomClass, ZoomConvert, ZoomObject}
 import org.midonet.cluster.models.Commons
@@ -61,7 +62,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     private def tryRead[T](f: => T): T = tryStorageOp(f)
 
     private def tryWrite(f: (Transaction) => Unit): Unit = {
-        tryStorageOp(store.tryTransaction(f))
+        tryStorageOp(store.tryTransaction(ZoomOwner.ClusterNeutron)(f))
     }
 
     /** Transform StorageExceptions to appropriate HTTP exceptions. */
