@@ -22,8 +22,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
-import rx.Observable
-
+import org.midonet.cluster.data.ZoomMetadata.ZoomChange
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper.MessageClassInfo
@@ -56,15 +55,15 @@ class TransactionManagerTest extends FeatureSpec with Matchers
         }
 
         protected override def getSnapshot(clazz: Class[_], id: ObjId)
-        : Observable[ObjSnapshot] = {
+        : ObjSnapshot = {
             getSnapshotCount += 1
-            if (id == defaultId) Observable.just(defaultSnapshot)
-            else Observable.error(new NotFoundException(clazz, id))
+            if (id == defaultId) defaultSnapshot
+            else throw new NotFoundException(clazz, id)
         }
 
-        protected override def getIds(clazz: Class[_]): Observable[Seq[ObjId]] = {
+        protected override def getIds(clazz: Class[_]): Seq[ObjId] = {
             getIdsCount += 1
-            Observable.just(Seq(defaultId))
+            Seq(defaultId)
         }
 
         protected override def nodeExists(path: String): Boolean = {
@@ -217,7 +216,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             Then("The manager adds the create operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain (opKey -> TxCreate(defaultDevice))
+            manager.getOps should contain (opKey -> TxCreate(
+                defaultDevice, ZoomChange.Data.id))
         }
 
         scenario("The object exists") {
@@ -251,7 +251,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             Then("The manager adds an update operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain (opKey -> TxUpdate(defaultDevice, 0))
+            manager.getOps should contain (opKey -> TxUpdate(
+                defaultDevice, 0, ZoomChange.Data.id))
         }
 
         scenario("The object is created twice") {
@@ -266,7 +267,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             And("The manager adds a one create operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain (opKey -> TxCreate(defaultDevice))
+            manager.getOps should contain (opKey -> TxCreate(
+                defaultDevice, ZoomChange.Data.id))
         }
 
         scenario("The object is created if it does not exist") {
@@ -284,7 +286,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             Then("The manager adds a create operation")
             val opKey = Key(classOf[FakeDevice], getIdString(notFoundId))
-            manager.getOps should contain (opKey -> TxCreate(notFoundDevice))
+            manager.getOps should contain (opKey -> TxCreate(
+                notFoundDevice, ZoomChange.Data.id))
         }
     }
 
@@ -311,7 +314,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             And("The manager adds an update operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain (opKey -> TxUpdate(defaultDevice, 0))
+            manager.getOps should contain (opKey -> TxUpdate(
+                defaultDevice, 0, ZoomChange.Data.id))
 
             And("The manager should have requested the snapshot")
             manager.getSnapshotCount shouldBe 1
@@ -337,7 +341,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             And("The manager adds an update operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain (opKey -> TxUpdate(obj, 0))
+            manager.getOps should contain (opKey -> TxUpdate(
+                obj, 0, ZoomChange.Data.id))
 
             And("The manager should have requested the snapshot")
             manager.getSnapshotCount shouldBe 1
@@ -364,7 +369,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             And("The manager adds an update operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain (opKey -> TxUpdate(defaultDevice, 0))
+            manager.getOps should contain (opKey -> TxUpdate(
+                defaultDevice, 0, ZoomChange.Data.id))
 
             And("The manager should have requested the snapshot")
             manager.getSnapshotCount shouldBe 1
@@ -427,7 +433,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             Then("The manager adds only a create operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain only (opKey -> TxCreate(newDevice))
+            manager.getOps should contain only (opKey -> TxCreate(
+                newDevice, ZoomChange.Data.id))
         }
 
         scenario("The object is updated twice in the same transaction") {
@@ -441,7 +448,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             Then("The manager adds only an update operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain only (opKey -> TxUpdate(newDevice, 0))
+            manager.getOps should contain only (opKey -> TxUpdate(
+                newDevice, 0, ZoomChange.Data.id))
 
         }
     }
@@ -456,7 +464,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             Then("The manager adds a delete operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain only (opKey -> TxDelete(0))
+            manager.getOps should contain only (opKey -> TxDelete(
+                0, ZoomChange.Data.id))
         }
 
         scenario("The object does not exist") {
@@ -484,7 +493,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             Then("The manager adds a delete operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain only (opKey -> TxDelete(0))
+            manager.getOps should contain only (opKey -> TxDelete(
+                0, ZoomChange.Data.id))
         }
 
         scenario("Deleting after creating should be no-op") {
@@ -513,7 +523,8 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
             Then("The manager adds only a delete operation")
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
-            manager.getOps should contain only (opKey -> TxDelete(0))
+            manager.getOps should contain only (opKey -> TxDelete(
+                0, ZoomChange.Data.id))
         }
     }
 

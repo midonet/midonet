@@ -28,9 +28,12 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
+import org.midonet.cluster.data.ZoomMetadata.{ZoomChange, ZoomOwner}
 import org.midonet.cluster.data.storage.StorageTestClasses._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
+import org.midonet.cluster.models.Zoom.ZoomObject
 import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.reactivex.{AwaitableObserver, TestAwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
@@ -767,7 +770,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             val bridge = createPojoBridge()
 
             When("Executing a transaction")
-            storage.tryTransaction { tx =>
+            storage.tryTransaction(ZoomOwner.None) { tx =>
                 tx.create(bridge)
             }
 
@@ -786,12 +789,52 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             And("The ten modifying threads")
             val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
                 override def run(): Unit = {
-                    storage.tryTransaction { tx =>
+                    storage.tryTransaction(ZoomOwner.None) { tx =>
                         val b = tx.get(classOf[PojoBridge], bridge.id)
                         Thread.sleep(50)
                         val i = Integer.parseInt(b.name) + 1
                         b.name = i.toString
                         tx.update(b)
+                    }
+                }
+            })
+
+            When("Starting all threads")
+            threads.foreach(_.start())
+
+            And("Waiting for all transactions to complete")
+            threads.foreach(_.join())
+
+            Then("The bridge name should have been incremented atomically")
+            val b = await(storage.get(classOf[PojoBridge], bridge.id))
+            b.name shouldBe "10"
+        }
+
+        scenario("Storage handles contention without lock, even if exception is wrapped") {
+            Given("A bridge")
+            val bridge = createPojoBridge(name = "0")
+            storage.create(bridge)
+
+            Then("The storage should be lock free")
+            storage.asInstanceOf[ZookeeperObjectMapper].isLockFree shouldBe true
+
+            And("The ten modifying threads")
+            val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
+                override def run(): Unit = {
+                    storage.tryTransaction(ZoomOwner.None) { tx =>
+                        try {
+                            Thread.sleep(50 * index)
+                            // The following tx.get causes
+                            // ConcurrentModificationException if other
+                            // thread pushed its change during the above sleep.
+                            val b = tx.get(classOf[PojoBridge], bridge.id)
+                            val i = Integer.parseInt(b.name) + 1
+                            b.name = i.toString
+                            tx.update(b)
+                        } catch {
+                            case e: Throwable =>
+                                throw new Throwable("wrapped", e)
+                        }
                     }
                 }
             })
@@ -827,7 +870,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             And("The ten modifying threads")
             val threads = for (index <- 0 until 10) yield new Thread(new Runnable {
                 override def run(): Unit = {
-                    storage.tryTransaction { tx =>
+                    storage.tryTransaction(ZoomOwner.None) { tx =>
                         val b = tx.get(classOf[PojoBridge], bridge.id)
                         val i = Integer.parseInt(b.name) + 1
                         b.name = i.toString
@@ -847,7 +890,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             b.name shouldBe "10"
         }
 
-        scenario("Storate creates the lock path") {
+        scenario("Storage creates the lock path") {
             Given("Storage does not have the lock path")
             curator.checkExists().forPath(zoom.topologyLockPath) shouldBe null
 
@@ -859,11 +902,139 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
         }
     }
 
-    feature("Test Zookeeper") {
-        scenario("Test get path") {
-            val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
-            zoom.classPath(classOf[PojoBridge]) shouldBe
-                s"$zkRoot/zoom/${zoom.version}/models/PojoBridge"
+    feature("Test paths") {
+        scenario("Constant paths") {
+            zoom.rootPath shouldBe "/test"
+            zoom.zoomPath shouldBe "/test/zoom/0"
+            zoom.topologyLockPath shouldBe "/test/zoom/0/locks/zoom-topology"
+            zoom.transactionLocksPath shouldBe "/test/zoom/0/zoomlocks/lock"
+            zoom.modelPath shouldBe "/test/zoom/0/models"
+            zoom.objectsPath shouldBe "/test/zoom/0/objects"
+        }
+
+        scenario("Object paths") {
+            val id = UUID.randomUUID()
+            zoom.objectPath(classOf[Object], id) shouldBe
+                s"/test/zoom/0/models/Object/$id"
+            zoom.altObjectPath(classOf[Object], id) shouldBe
+                s"/test/zoom/0/objects/Object/$id"
+        }
+
+        scenario("Paths are created for objects") {
+            Given("A bridge")
+            val bridge = createPojoBridge(name = "0")
+
+            When("The bridge is created")
+            zoom.create(bridge)
+
+            Then("The model path exists")
+            curator.checkExists().forPath(
+                zoom.objectPath(bridge.getClass, bridge.id)) should not be null
+        }
+    }
+
+    feature("Test provenance") {
+        scenario("Storage creates provenance nodes for new objects") {
+            Given("A bridge with owner")
+            val bridge = createPojoBridge(name = "0")
+            val owner = ZoomOwner.ClusterNeutron
+
+            When("Creating the bridge in storage")
+            zoom.tryTransaction(owner) { _.create(bridge) }
+
+            Then("The provenance data exists")
+            val path = zoom.altObjectPath(bridge.getClass, bridge.id)
+            val obj = ZoomObject.parseFrom(curator.getData.forPath(path))
+            obj.getProvenanceCount shouldBe 1
+            obj.getProvenance(0).getChangeOwner shouldBe ZoomOwner.ClusterNeutron.id
+            obj.getProvenance(0).getChangeType shouldBe ZoomChange.Data.id
+            obj.getProvenance(0).getChangeVersion shouldBe 0
+
+            When("Deleting the bridge in storage")
+            zoom.tryTransaction(owner) { _.delete(bridge.getClass, bridge.id) }
+
+            Then("The provenance data is deleted")
+            curator.checkExists().forPath(path) shouldBe null
+        }
+
+        scenario("Storage updates provenance for backreferences") {
+            Given("A network with owner")
+            val network = createProtoNetwork()
+
+            When("Creating the network in storage")
+            zoom.tryTransaction(ZoomOwner.ClusterNeutron) { _.create(network) }
+
+            And("Adding a port to the network")
+            val port = createProtoPort(networkId = network.getId.asJava)
+            zoom.tryTransaction(ZoomOwner.ClusterApi) { _.create(port) }
+
+            Then("The provenance data exists")
+            val path = zoom.altObjectPath(network.getClass, network.getId)
+            var obj = ZoomObject.parseFrom(curator.getData.forPath(path))
+            obj.getProvenanceCount shouldBe 2
+            obj.getProvenance(0).getChangeOwner shouldBe ZoomOwner.ClusterNeutron.id
+            obj.getProvenance(0).getChangeType shouldBe ZoomChange.Data.id
+            obj.getProvenance(0).getChangeVersion shouldBe 0
+            obj.getProvenance(1).getChangeOwner shouldBe ZoomOwner.ClusterApi.id
+            obj.getProvenance(1).getChangeType shouldBe ZoomChange.BackReference.id
+            obj.getProvenance(1).getChangeVersion shouldBe 1
+
+            When("Deleting the port")
+            zoom.tryTransaction(ZoomOwner.ClusterApi) {
+                _.delete(port.getClass, port.getId)
+            }
+
+            Then("The provenance data is not updated")
+            obj = ZoomObject.parseFrom(curator.getData.forPath(path))
+            obj.getProvenanceCount shouldBe 2
+            obj.getProvenance(1).getChangeOwner shouldBe ZoomOwner.ClusterApi.id
+            obj.getProvenance(1).getChangeType shouldBe ZoomChange.BackReference.id
+            obj.getProvenance(1).getChangeVersion shouldBe 1
+        }
+
+        scenario("Storage updates provenance on object updates") {
+            Given("A network with owner")
+            val network = createProtoNetwork()
+
+            When("Creating the network in storage")
+            zoom.tryTransaction(ZoomOwner.ClusterNeutron) { _.create(network) }
+
+            And("Updating the network in storage")
+            zoom.tryTransaction(ZoomOwner.ClusterNeutron) { _.update(network) }
+
+            Then("The provenance data is not updated")
+            val path = zoom.altObjectPath(network.getClass, network.getId)
+            var obj = ZoomObject.parseFrom(curator.getData.forPath(path))
+            obj.getProvenanceCount shouldBe 1
+            obj.getProvenance(0).getChangeOwner shouldBe ZoomOwner.ClusterNeutron.id
+            obj.getProvenance(0).getChangeType shouldBe ZoomChange.Data.id
+
+            When("Updating the network in storage")
+            zoom.tryTransaction(ZoomOwner.ClusterApi) { _.update(network) }
+
+            Then("The provenance data is updated")
+            obj = ZoomObject.parseFrom(curator.getData.forPath(path))
+            obj.getProvenanceCount shouldBe 2
+            obj.getProvenance(1).getChangeOwner shouldBe ZoomOwner.ClusterApi.id
+            obj.getProvenance(1).getChangeType shouldBe ZoomChange.Data.id
+
+            When("Updating the network in storage")
+            zoom.tryTransaction(ZoomOwner.ClusterApi) { _.update(network) }
+
+            Then("The provenance data is not updated")
+            obj = ZoomObject.parseFrom(curator.getData.forPath(path))
+            obj.getProvenanceCount shouldBe 2
+            obj.getProvenance(1).getChangeOwner shouldBe ZoomOwner.ClusterApi.id
+            obj.getProvenance(1).getChangeType shouldBe ZoomChange.Data.id
+
+            When("Updating the network in storage")
+            zoom.tryTransaction(ZoomOwner.ClusterNeutron) { _.update(network) }
+
+            Then("The provenance data is updated")
+            obj = ZoomObject.parseFrom(curator.getData.forPath(path))
+            obj.getProvenanceCount shouldBe 3
+            obj.getProvenance(2).getChangeOwner shouldBe ZoomOwner.ClusterNeutron.id
+            obj.getProvenance(2).getChangeType shouldBe ZoomChange.Data.id
         }
     }
 
