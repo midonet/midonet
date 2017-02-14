@@ -43,7 +43,6 @@ public class MockZookeeperConnectionModule extends ZookeeperConnectionModule {
         bind(ZkConnectionAwareWatcher.class)
             .to(SessionUnawareConnectionWatcher.class)
             .asEagerSingleton();
-        expose(ZkConnectionAwareWatcher.class);
     }
 
     @Override
