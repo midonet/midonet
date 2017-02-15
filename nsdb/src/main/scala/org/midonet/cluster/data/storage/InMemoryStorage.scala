@@ -31,7 +31,8 @@ import rx.Observable.OnSubscribe
 import rx._
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, namespaceId, PrimedSubject, asObservable, copyObj}
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
+import org.midonet.cluster.data.storage.InMemoryStorage._
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
@@ -447,12 +448,12 @@ class InMemoryStorage extends Storage with StateStorage {
         }
 
         override def getSnapshot(clazz: Class[_], id: ObjId)
-        : Observable[ObjSnapshot] = {
-            Observable.just(classes(clazz).getSnapshot(id))
+        : ObjSnapshot = {
+            classes(clazz).getSnapshot(id)
         }
 
-        override def getIds(clazz: Class[_]): Observable[Seq[ObjId]] = {
-            Observable.just(classes(clazz).ids.toSeq)
+        override def getIds(clazz: Class[_]): Seq[ObjId] = {
+            classes(clazz).ids.toSeq
         }
 
         override def commit(): Unit = {
@@ -460,11 +461,11 @@ class InMemoryStorage extends Storage with StateStorage {
             for ((key, op) <- ops) {
                 val clazz = classes(key.clazz)
                 op match {
-                    case TxCreate(obj) =>
+                    case TxCreate(obj, _) =>
                         clazz.validateCreate(key.id)
-                    case TxUpdate(obj, ver) =>
+                    case TxUpdate(obj, ver, _) =>
                         clazz.validateUpdate(key.id, ver)
-                    case TxDelete(ver) =>
+                    case TxDelete(ver, _) =>
                         clazz.validateDelete(key.id, ver)
                     case _ => throw new NotImplementedError(op.toString)
                 }
@@ -474,11 +475,11 @@ class InMemoryStorage extends Storage with StateStorage {
             for ((key, op) <- ops) {
                 val clazz = classes(key.clazz)
                 op match {
-                    case TxCreate(obj) =>
+                    case TxCreate(obj, _) =>
                         clazz.create(key.id, obj)
-                    case TxUpdate(obj, ver) =>
+                    case TxUpdate(obj, ver, _) =>
                         clazz.update(key.id, obj, ver)
-                    case TxDelete(ver) =>
+                    case TxDelete(ver, _) =>
                         clazz.delete(key.id, ver)
                     case _ => throw new NotImplementedError(op.toString)
                 }
@@ -555,13 +556,13 @@ class InMemoryStorage extends Storage with StateStorage {
         manager.commit()
     }
 
-    override def transaction(): Transaction = {
+    override def transaction(owner: ZoomOwner): Transaction = {
         assertBuilt()
         new InMemoryTransactionManager
     }
 
-    override def tryTransaction[R](f: (Transaction) => R): R = {
-        val tx = transaction()
+    override def tryTransaction[R](owner: ZoomOwner)(f: (Transaction) => R): R = {
+        val tx = transaction(owner)
         val result = f(tx)
         tx.commit()
         result
