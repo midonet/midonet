@@ -128,3 +128,11 @@ object Metering extends MeteringMXBean {
         StringUtil.append(writer, bytes).append('\n')
     }
 }
+
+class MeteringHTTPHandler extends SimpleHTTPServer.Handler {
+    override def path: String = "/device_stats"
+    def writeResponse(writer: BufferedWriter): Unit = {
+        Metering.toTextTable(writer)
+    }
+}
+
