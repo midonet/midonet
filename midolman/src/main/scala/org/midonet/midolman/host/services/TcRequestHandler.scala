@@ -140,6 +140,7 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory)
 
         override def run(): Unit = {
             try {
+                notifyStarted()
                 while (true) {
                     val request = q.take()
 
@@ -154,22 +155,21 @@ class TcRequestHandler(channelFactory: NetlinkChannelFactory)
                 }
             } catch {
                 case e: InterruptedException =>
+                    Thread.currentThread.interrupt()
                     log.info("QOS request handler thread interrupted.")
                 case e: NetlinkException =>
-                    log.error("error communicating with netlink: " +
-                              e.getMessage)
-                    e.printStackTrace()
+                    log.error("error communicating with netlink", e)
+            } finally {
+                notifyStopped()
             }
         }
     }
 
     def doStart() = {
         processingThread.start()
-        notifyStarted()
     }
 
     def doStop() = {
         processingThread.interrupt()
-        notifyStopped()
     }
 }
