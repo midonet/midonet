@@ -154,6 +154,7 @@ there are some prerequisites:
 * fpm (ruby gem) to build debian/rpm/tar packages
 * java 8 jdk
 * rpm
+* ronn to build man pages
 
 You will also need to install the protobufs compiler, version 2.6.1 from
 [here](https://github.com/google/protobuf/releases/tag/v2.6.0).  Use
@@ -228,8 +229,18 @@ The generated report will be available under build/ directory:
 ### Distro packages
 
 The build script provides targets to build debian, rpm and tar packages. In
-all cases packages will be found in midolman/build/packages/ and
-cluster/midonet-cluster/build/packages.
+all cases packages will be found in the following directories:
+
+    midolman/build/packages
+    midonet-cluster/build/packages
+    midonet-tools/build/packages
+    python-midonetclient
+
+On ubuntu you can install required packages with:
+
+    # apt-get install ruby-dev
+    # apt-get install ruby-ronn
+    # gem install fpm
 
 Building debian packages:
 
