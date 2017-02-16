@@ -236,7 +236,8 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
 
             if (objectEvent.getResultCode == Code.OK.intValue()) {
                 if (objectEvent.getStat.getMzxid > zxid ||
-                    rawEvent.getStat.getMzxid > zxid) {
+                    (rawEvent.getResultCode == Code.OK.intValue() &&
+                     rawEvent.getStat.getMzxid > zxid)) {
                     throw new ConcurrentModificationException(
                         s"${clazz.getSimpleName} with ID " +
                         s"${getIdString(id)} was modified during " +
