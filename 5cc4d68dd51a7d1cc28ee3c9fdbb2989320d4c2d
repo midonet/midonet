@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_639e4cba",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/TcRequestHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2017-02-17T01:50:04Z",
+      "side": 1,
+      "message": "We intentionally interrupt this thread when we stop the service, so we don\u0027t want to bubble it up.",
+      "range": {
+        "startLine": 158,
+        "startChar": 20,
+        "endLine": 158,
+        "endChar": 52
+      },
+      "revId": "5cc4d68dd51a7d1cc28ee3c9fdbb2989320d4c2d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
