@@ -34,9 +34,9 @@ import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.auth.MockAuthService
 import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.test.util.ZookeeperTestSuite
-import org.midonet.cluster.util.PortProvider
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.minion.Context
+import org.midonet.util.PortProvider
 
 @RunWith(classOf[JUnitRunner])
 class ConfResourceTest extends FeatureSpec
