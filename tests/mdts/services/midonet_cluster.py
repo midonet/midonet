@@ -42,7 +42,7 @@ class MidonetClusterHost(Service):
     def get_service_logs(self):
         return ['/var/log/midonet-cluster/midonet-cluster.log']
 
-    def get_midonet_api(self, timeout=120):
+    def get_midonet_api(self, timeout=300):
         # FIXME: Make sure the API is able to get topology information from ZK
         # ROOT CAUSE: the api does not retry when connected to a ZK instance
         # which just failed
