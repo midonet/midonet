@@ -167,6 +167,17 @@ class TransactionManagerTest extends FeatureSpec with Matchers
             manager.getSnapshotCount shouldBe 1
         }
 
+        scenario("Transaction manager does not return deleted objects in getAll()") {
+            Given("A transaction manager")
+            val manager = new TestableTransactionManager
+
+            When("The object is deleted")
+            manager.delete(classOf[FakeDevice], defaultId)
+
+            Then("Requesting all objects returns an empty list")
+            manager.getAll(classOf[FakeDevice]) should have size 0
+        }
+
         scenario("Transaction manager returns true for exists()") {
             Given("A transaction manager")
             val manager = new TestableTransactionManager
