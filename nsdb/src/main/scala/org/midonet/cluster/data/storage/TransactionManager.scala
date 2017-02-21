@@ -201,7 +201,8 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
     @throws[InternalObjectMapperException]
     @throws[ConcurrentModificationException]
     override def getAll[T](clazz: Class[T]): Seq[T] = {
-        getAll(clazz, getIds(clazz))
+        val ids = getIds(clazz).filterNot { id => isDeleted(getKey(clazz, id)) }
+        getAll(clazz, ids)
     }
 
     /** Gets the specified objects within the context of the current transaction.
