@@ -40,7 +40,7 @@ sudo modprobe 8021q
 
 # python SSH library (paramiko) dependencies on SSL
 # TODO: remove once Jenkins slave image has been regenerated including it
-sudo apt-get install --no-install-recommends -y libssl-dev libffi-dev
+sudo apt-get install --no-install-recommends -y libssl-dev libffi-dev libcurl4-openssl-dev
 
 # Upgrade docker daemon to latest version and configure to use v2 registry in artifactory
 if [ "$JENKINS_VERSION" == "v1" ]; then

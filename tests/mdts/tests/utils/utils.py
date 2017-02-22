@@ -18,15 +18,84 @@ Utility functions for functional tests.
 from copy import deepcopy
 from functools import wraps
 import inspect
+import json
 import logging
 from mdts.lib import subprocess_compat
 from mdts.lib.tenants import list_tenants
 from mdts.services import service
+import pycurl
+from StringIO import StringIO
 import subprocess
 import tempfile
 import time
 
 LOG = logging.getLogger(__name__)
+
+
+def http_get(url):
+    cbuffer = StringIO()
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.WRITEDATA, cbuffer)
+    c.perform()
+    c.close()
+    body = cbuffer.getvalue()
+    return body
+
+
+def http_post(url, json_data=None, filename=None, token=None):
+    cbuffer = StringIO()
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.WRITEDATA, cbuffer)
+    headers = ["Content-Type: application/json"]
+    if token:
+        headers.append("X-Auth-Token: %s" % token)
+    if json_data:
+        c.setopt(c.POSTFIELDS, json.dumps(json_data))
+    if filename:
+        c.setopt(c.HTTPPOST, [('fileupload', (c.FORM_FILE, file))])
+    c.setopt(c.HTTPHEADER, headers)
+    c.perform()
+    c.close()
+    body = cbuffer.getvalue()
+    return body
+
+
+def http_put(url, json_data=None, filename=None, token=None):
+    cbuffer = StringIO()
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.WRITEDATA, cbuffer)
+    c.setopt(pycurl.CUSTOMREQUEST, "PUT")
+    headers = ["Content-Type: application/json"]
+    if token:
+        headers.append("X-Auth-Token: %s" % token)
+    if json_data:
+        c.setopt(c.POSTFIELDS, json.dumps(json_data))
+    if filename:
+        c.setopt(c.HTTPPOST, [('fileupload', (c.FORM_FILE, file))])
+    c.setopt(c.HTTPHEADER, headers)
+    c.perform()
+    c.close()
+    body = cbuffer.getvalue()
+    return body
+
+
+def http_delete(url, token=None):
+    cbuffer = StringIO()
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.WRITEDATA, cbuffer)
+    c.setopt(pycurl.CUSTOMREQUEST, "DELETE")
+    headers = ["Content-Type: application/json"]
+    if token:
+        headers.append("X-Auth-Token: %s" % token)
+    c.setopt(c.HTTPHEADER, headers)
+    c.perform()
+    c.close()
+    body = cbuffer.getvalue()
+    return body
 
 
 def wait_on_futures(futures):
