@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_1aba3d0b",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-02-22T11:45:52Z",
+      "side": 1,
+      "message": "A bridge is just one of the types of link right? I would remove this for consistency, but I have no strong opinion",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_face69b6",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-02-22T11:45:52Z",
+      "side": 1,
+      "message": "val",
+      "range": {
+        "startLine": 93,
+        "startChar": 12,
+        "endLine": 93,
+        "endChar": 15
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_5ac0b57c",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-02-22T11:45:52Z",
+      "side": 1,
+      "message": "not needed , maybe add a reader.read(buf) for possible errors",
+      "range": {
+        "startLine": 103,
+        "startChar": 12,
+        "endLine": 105,
+        "endChar": 42
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_5ad9d582",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-02-22T11:45:52Z",
+      "side": 1,
+      "message": "this is not needed, you are already setting it in line 93 when you create the link object",
+      "range": {
+        "startLine": 107,
+        "startChar": 12,
+        "endLine": 117,
+        "endChar": 13
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_bac8f1a9",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-02-22T11:45:52Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 119,
+        "startChar": 12,
+        "endLine": 122,
+        "endChar": 42
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
