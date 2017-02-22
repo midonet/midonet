@@ -293,7 +293,7 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
     private var oldExteriorPorts = Set.empty[UUID]
     private var oldRouterMacPortMap = Map.empty[MAC, UUID]
     private var vlanPortMap: VlanPortMapImpl = null
-    private var vlanPeerBridgePortId: Option[UUID] = None
+    private var vlanPeerBridgePortIds: Seq[UUID] = Seq()
 
     private var traceChain: Option[UUID] = None
 
@@ -724,7 +724,7 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
 
         routerIpToMacMap.clear()
         vlanPortMap = new VlanPortMapImpl
-        vlanPeerBridgePortId = None
+        vlanPeerBridgePortIds = Seq[UUID]()
         vlanSet += UntaggedVlanId
 
         // Compute the VLAN bridge peer port ID.
@@ -748,7 +748,8 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
                         log.debug("Local port {} to peer port {} mapped to " +
                                   "VLAN ID {}", localPort.id, peerPort.id,
                                   Short.box(peerPort.vlanId))
-                        vlanPeerBridgePortId = Some(localPort.id)
+                        vlanPeerBridgePortIds = vlanPeerBridgePortIds :+
+                                                localPort.id
                     } else {
                         log.warn("Peer port {} has no VLAN ID", peerPort.id)
                     }
@@ -845,7 +846,7 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
             flowCount,
             inFilters,
             outFilters,
-            vlanPeerBridgePortId,
+            vlanPeerBridgePortIds,
             flowCallbackGenerator,
             oldRouterMacPortMap,
             routerIpToMacMap.toMap,

@@ -71,11 +71,11 @@ object Bridge {
   * Note that Bridges will *NOT* apply pre- or post- chains on vlan tagged
   * traffic (see MN-590)
   *
-  * @param vlanPortId this field is the id of the interior port of a peer Bridge
-  *                   connected to this device. This means that this Bridge is
-  *                   considered to be on VLAN X, Note that a vlan-unaware
-  *                   bridge can only be connected to a single vlan-aware device
-  *                   (thus having only a single optional value)
+  * @param vlanPortIds this field is the id of the interior port of a all peer Bridges
+  *                    connected to this device. This means that this Bridge is
+  *                    considered to be on VLAN X, Note that a vlan-unaware
+  *                    bridge can only be connected to a single vlan-aware device
+  *                    (thus having only a single optional value)
   * @param subnetIds only used for the new storage
   */
 class Bridge(val id: UUID,
@@ -86,7 +86,7 @@ class Bridge(val id: UUID,
              val flowCount: MacFlowCount,
              val inboundFilters: JList[UUID],
              val outboundFilters: JList[UUID],
-             val vlanPortId: Option[UUID],
+             val vlanPortIds: Seq[UUID],
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
@@ -116,7 +116,7 @@ class Bridge(val id: UUID,
     override def toString =
         s"Bridge [id=$id adminStateUp=$adminStateUp tunnelKey=$tunnelKey " +
         s"vlans=${vlanMacTableMap.keys} inboundFilters=$inboundFilters " +
-        s"outboundFilters=$outboundFilters vlanPortId=$vlanPortId " +
+        s"outboundFilters=$outboundFilters vlanPortIds=$vlanPortIds " +
         s"vlanToPorts=$vlanToPort exteriorPorts=$exteriorPorts]"
 
     /*
@@ -329,12 +329,17 @@ class Bridge(val id: UUID,
     private def multicastAction()(implicit context: PacketContext) = {
         context.addFlowTag(tagForBroadcast(id))
 
-        vlanPortId match {
-            case Some(vPId) if !context.inPortId.equals(vPId) =>
+        var peerVlansAction: Result = NoOp
+        for (vlanPort <- vlanPortIds if vlanPort != context.inPortId) {
+            peerVlansAction = ForkAction(peerVlansAction,
+                                         tryGet(classOf[Port], vlanPort).action)
+        }
+        peerVlansAction match {
+            case ForkAction(_,_) =>
                 // This VUB is connected to a VAB: send there too
                 context.log.debug("Add VLAN-aware bridge flooding")
-                Fork(floodAction, tryGet(classOf[Port], vPId).action)
-            case None if !vlanToPort.isEmpty => // A vlan-aware bridge
+                Fork(floodAction, peerVlansAction)
+            case NoOp if !vlanToPort.isEmpty => // A vlan-aware bridge
                 context.log.debug("VLAN-aware flooding")
                 multicastVlanAware(tryGet(classOf[BridgePort], context.inPortId))
             case _ => // A normal bridge
