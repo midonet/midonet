@@ -11,3 +11,4 @@ ipdb==0.8.1
 ipdbplugin==1.4.2
 setuptools==19.6.2
 paramiko==2.0.0
+pycurl
