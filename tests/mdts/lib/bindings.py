@@ -113,6 +113,28 @@ class BindingManager(fixtures.Fixture):
             self._mappings[vport_id] = iface
             await_port_active(vport_id)
 
+        # create and bind a "router", which is actually just a namespace
+        # residing on the host with multiple interfaces that can be bound
+        # to a port in midonet.
+        # Example definition:
+        #
+        # 'routers': [
+        #     {'bindings': [
+        #         {'vport': 'uplink_left',
+        #          'iface': 'l_tun',
+        #          'addr': '100.0.0.10/24'},
+        #         {'vport': 'uplink_right',
+        #          'iface': 'r_tun',
+        #          'addr': '200.0.0.10/24'}],
+        #      'name': 'UPL',
+        #      'host': 'midolman1'}],
+
+        for router_def in self._data.get('routers') or []:
+            hostname = router_def['host']
+            host = service.get_container_by_hostname(hostname)
+            host.create_netns_router(router_def['name'], router_def['bindings'])
+            self.addCleanup(host.destroy_router, router_def['name'])
+
     def unbind(self):
         self.cleanUp()
         self._cleanups = callmany.CallMany()

@@ -123,6 +123,24 @@ class MidonetAgentHost(Service):
     def vppctl(self, cmd):
         self.try_command_blocking("vppctl %s" % cmd)
 
+    def destroy_router(self, name):
+        self.exec_command('ip netns exec del %s' % name)
+
+    def create_netns_router(self, name, bindings):
+        self.exec_command('ip netns add %s' % name)
+        self.exec_command('ip netns exec %s ip link set lo up' % name)
+        for binding in bindings:
+            self.exec_command(
+                'ip link add dev %s type veth peer name p%s' %
+                (binding['iface'], binding['iface']))
+            self.exec_command('ip link set p%s up' % binding['iface'])
+            self.exec_command('ip link set %s up' % binding['iface'])
+            self.exec_command('ip link set dev p%s up netns %s' %
+                              (binding['iface'], name))
+            self.exec_command(
+                'ip netns exec %s ip addr add %s dev p%s' %
+                (name, binding['addr'], binding['iface']))
+
     def create_vmguest(self, **iface_kwargs):
         """
 
@@ -222,17 +240,19 @@ class MidonetAgentHost(Service):
     def destroy_provided(self, iface):
         pass
 
-    def bind_port(self, interface, mn_port_id, type=BindingType.API):
+    def bind_iface_port(self, iface, mn_port_id, type=BindingType.API):
         if type == BindingType.API:
-            host_ifname = interface.get_binding_ifname()
             host_id = self.get_midonet_host_id()
             self.get_api().get_host(host_id) \
                 .add_host_interface_port() \
                 .port_id(mn_port_id) \
-                .interface_name(host_ifname).create()
+                .interface_name(iface).create()
         elif type == BindingType.MMCTL:
             self.exec_command("mm-ctl --bind-port {} {}"
-                              .format(mn_port_id, interface.get_binding_ifname()))
+                              .format(mn_port_id, iface))
+
+    def bind_port(self, interface, mn_port_id, type=BindingType.API):
+        self.bind_iface_port(interface.get_binding_ifname(), mn_port_id, type)
 
     def unbind_port(self, interface, type=BindingType.API):
         port = None
