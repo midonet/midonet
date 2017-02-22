@@ -114,6 +114,14 @@ class NeutronTopologyManager(TopologyManager):
             self.api.create_router({'router': router_params}))
         return router['router']
 
+    def set_router_routes(self, router_id, cidr, nexthop):
+        self.api.update_router(router_id,
+                {'router': {
+                    'routes': [{'nexthop': nexthop,
+                        'destination': cidr}]}})
+        self.addCleanup(self.api.update_router, router_id,
+                        {'router': {'routes': []}})
+
     def set_router_gateway(self, router, network):
         router = self.api.update_router(router['id'],
                                         {'router': {
