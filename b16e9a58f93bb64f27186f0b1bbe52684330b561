@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_fa0309bd",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-02-22T11:54:45Z",
+      "side": 1,
+      "message": "No strong opinion here, either... But if the rest of the class is treating everything just as link, this is in fact better to remove.",
+      "parentUuid": "fabf19d9_1aba3d0b",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_face69b6",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-02-22T11:45:52Z",
       "side": 1,
       "message": "val",
+      "range": {
+        "startLine": 93,
+        "startChar": 12,
+        "endLine": 93,
+        "endChar": 15
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_7af819c5",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-02-22T11:54:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_face69b6",
       "range": {
         "startLine": 93,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_9a12cd08",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-02-22T11:54:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_5ac0b57c",
+      "range": {
+        "startLine": 103,
+        "startChar": 12,
+        "endLine": 105,
+        "endChar": 42
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_5ad9d582",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_ba0d91ea",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-02-22T11:54:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_5ad9d582",
+      "range": {
+        "startLine": 107,
+        "startChar": 12,
+        "endLine": 117,
+        "endChar": 13
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_bac8f1a9",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2017-02-22T11:45:52Z",
       "side": 1,
       "message": "not needed",
+      "range": {
+        "startLine": 119,
+        "startChar": 12,
+        "endLine": 122,
+        "endChar": 42
+      },
+      "revId": "b16e9a58f93bb64f27186f0b1bbe52684330b561",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_da0845dc",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/LinkOps.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-02-22T11:54:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fabf19d9_bac8f1a9",
       "range": {
         "startLine": 119,
         "startChar": 12,
