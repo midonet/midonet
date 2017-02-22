@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 import logging
 from mdts.lib.topology_manager import TopologyManager
 from mdts.tests.utils.utils import get_keystone_api
 from mdts.tests.utils.utils import get_neutron_api
+from mdts.tests.utils.utils import http_delete
+from mdts.tests.utils.utils import http_post
 from neutronclient.common.exceptions import NotFound
 
 LOG = logging.getLogger(__name__)
@@ -43,6 +46,7 @@ class NeutronTopologyManager(TopologyManager):
         super(NeutronTopologyManager, self).__init__()
         self.resources = {}
         self.api = get_neutron_api()
+        self.endpoint_url = self.api.httpclient.endpoint_url + '/v2.0/'
         self.keystone = get_keystone_api()
 
     def create_resource(self, resource, name=None, ignore_not_found=True):
@@ -78,6 +82,95 @@ class NeutronTopologyManager(TopologyManager):
         self.addCleanup(delete_ignoring_not_found, resource[rtype]['id'])
 
         return resource
+
+    def delete_gateway_device(self, gw_dev_id):
+        url = self.endpoint_url + 'gw/gateway_devices/'
+        http_delete(url + gw_dev_id, token=self.api.httpclient.auth_token)
+
+    def create_gateway_device(self, resource_id, name='dev',
+                              tunnel_ip=None, dev_type='router_vtep'):
+        url = self.endpoint_url + 'gw/gateway_devices.json'
+        gw_dict = {"type": dev_type,
+                   "resource_id": resource_id,
+                   "tenant_id": 'admin'}
+
+        if dev_type == 'router_vtep':
+            gw_dict["name"] = 'gwdev_' + name
+            gw_dict["tunnel_ips"] = [tunnel_ip]
+
+        gw_data = {"gateway_device": gw_dict}
+        post_ret = http_post(
+            url, gw_data, token=self.api.httpclient.auth_token)
+        gw = json.loads(post_ret)
+
+        self.addCleanup(self.delete_gateway_device, gw['gateway_device']['id'])
+
+        return gw['gateway_device']
+
+    def delete_l2_gateway(self, l2gw_id):
+        url = self.endpoint_url + 'l2-gateways/'
+        http_delete(url + l2gw_id, token=self.api.httpclient.auth_token)
+
+    def create_l2_gateway(self, name, gw_id):
+        url = self.endpoint_url + 'l2-gateways'
+        l2gw_dict = {"name": name,
+                     "devices": [{"device_id": gw_id}],
+                     "tenant_id": "admin"}
+
+        l2gw_data = {"l2_gateway": l2gw_dict}
+        post_ret = http_post(
+            url, l2gw_data, token=self.api.httpclient.auth_token)
+        l2gw = json.loads(post_ret)
+
+        self.addCleanup(self.delete_l2_gateway, l2gw['l2_gateway']['id'])
+
+        return l2gw['l2_gateway']
+
+    def delete_l2_gateway_connection(self, l2gw_conn_id):
+        url = self.endpoint_url + 'l2-gateway-connections/'
+        http_delete(url + l2gw_conn_id, token=self.api.httpclient.auth_token)
+
+    def create_l2_gateway_connection(self, net_id, segment_id, l2gw_id):
+        url = self.endpoint_url + 'l2-gateway-connections'
+        l2gw_conn_dict = {"network_id": net_id,
+                          "segmentation_id": segment_id,
+                          "l2_gateway_id": l2gw_id,
+                          "tenant_id": "admin"}
+
+        l2gw_conn_data = {"l2_gateway_connection": l2gw_conn_dict}
+        post_ret = http_post(
+            url, l2gw_conn_data, token=self.api.httpclient.auth_token)
+
+        l2gw_conn = json.loads(post_ret)
+
+        self.addCleanup(self.delete_l2_gateway_connection,
+                        l2gw_conn['l2_gateway_connection']['id'])
+
+        return l2gw_conn["l2_gateway_connection"]
+
+    def delete_remote_mac_entry(self, gwdev_id, rme_id):
+        url = (self.endpoint_url + 'gw/gateway_devices/' + gwdev_id +
+               '/remote_mac_entries/' + rme_id)
+        http_delete(url, token=self.api.httpclient.auth_token)
+
+    def create_remote_mac_entry(self, ip, mac, segment_id, gwdev_id):
+        url = (self.endpoint_url + 'gw/gateway_devices/' + gwdev_id +
+               '/remote_mac_entries')
+        rme_dict = {"vtep_address": ip,
+                    "mac_address": mac,
+                    "segmentation_id": segment_id,
+                    "tenant_id": "admin"}
+
+        rme_data = {"remote_mac_entry": rme_dict}
+        post_ret = http_post(
+            url, rme_data, token=self.api.httpclient.auth_token)
+
+        rme = json.loads(post_ret)
+
+        self.addCleanup(self.delete_remote_mac_entry, gwdev_id,
+                        rme['remote_mac_entry']['id'])
+
+        return rme['remote_mac_entry']
 
     def create_network(self, name, external=False, uplink=False):
         network_params = {'name': name,
