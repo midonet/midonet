@@ -387,7 +387,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be None")
-            device.vlanPortId shouldBe None
+            device.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -424,7 +424,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be the local port")
-            device.vlanPortId shouldBe Some(portId)
+            device.vlanPortIds shouldBe Seq(portId)
 
             And("There should be MAC learning tables for each VLAN")
             device.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -464,7 +464,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanToPort.getVlan(portId) shouldBe vlanId
 
             And("The bridge VLAN peer port ID should be None")
-            device.vlanPortId shouldBe None
+            device.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId)
@@ -506,7 +506,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanToPort.getVlan(portId) shouldBe vlanId
 
             And("The bridge VLAN peer port ID should be None")
-            device.vlanPortId shouldBe None
+            device.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId)
@@ -551,7 +551,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.vlanMacTableMap.keySet should contain only UntaggedVlanId
 
             And("The bridge VLAN peer port ID should be None on first update")
-            device1.vlanPortId shouldBe None
+            device1.vlanPortIds shouldBe empty
 
             And("There should be one VLAN on second update")
             device2.exteriorPorts shouldBe empty
@@ -559,7 +559,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device2.vlanToPort.getVlan(portId) shouldBe vlanId
 
             And("The bridge VLAN peer port ID should be None on second update")
-            device2.vlanPortId shouldBe None
+            device2.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device2.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId)
@@ -605,7 +605,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be the local port on first update")
-            device1.vlanPortId shouldBe Some(portId)
+            device1.vlanPortIds shouldBe Seq(portId)
 
             And("There should be MAC learning tables for each VLAN")
             device1.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -616,7 +616,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device2.vlanToPort.getVlan(portId) shouldBe vlanId
 
             And("The bridge VLAN peer port ID should be None on second update")
-            device2.vlanPortId shouldBe None
+            device2.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device2.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId)
@@ -662,7 +662,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.vlanToPort.getVlan(portId) shouldBe vlanId
 
             And("The bridge VLAN peer port ID should be None on first update")
-            device1.vlanPortId shouldBe None
+            device1.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device1.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId)
@@ -672,7 +672,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device2.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be None on second update")
-            device2.vlanPortId shouldBe None
+            device2.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device2.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -720,7 +720,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.vlanToPort.getVlan(portId) shouldBe vlanId
 
             And("The bridge VLAN peer port ID should be None on first update")
-            device1.vlanPortId shouldBe None
+            device1.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device1.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId)
@@ -730,7 +730,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device2.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be the local port on second update")
-            device2.vlanPortId shouldBe Some(portId)
+            device2.vlanPortIds shouldBe Seq(portId)
 
             And("There should be MAC learning tables for each VLAN")
             device2.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -777,7 +777,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.vlanToPort.getVlan(portId) shouldBe vlanId1
 
             And("The bridge VLAN peer port ID should be None on first update")
-            device1.vlanPortId shouldBe None
+            device1.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device1.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId1)
@@ -788,7 +788,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device2.vlanToPort.getVlan(portId) shouldBe vlanId2
 
             And("The bridge VLAN peer port ID should be None on second update")
-            device2.vlanPortId shouldBe None
+            device2.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device2.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId2)
@@ -832,7 +832,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be None on first update")
-            device1.vlanPortId shouldBe None
+            device1.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device1.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -842,7 +842,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device2.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be the local port on second update")
-            device2.vlanPortId shouldBe Some(portId)
+            device2.vlanPortIds shouldBe Seq(portId)
 
             And("There should be MAC learning tables for each VLAN")
             device2.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -889,7 +889,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.vlanToPort.getVlan(portId) shouldBe vlanId
 
             And("The bridge VLAN peer port ID should be None on first update")
-            device1.vlanPortId shouldBe None
+            device1.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device1.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId)
@@ -900,7 +900,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device2.vlanToPort.getVlan(portId) shouldBe vlanId
 
             And("The bridge VLAN peer port ID should be None on second update")
-            device2.vlanPortId shouldBe None
+            device2.vlanPortIds shouldBe empty
 
             And("There should be MAC learning tables for each VLAN")
             device2.vlanMacTableMap.keySet should contain allOf(UntaggedVlanId, vlanId)
@@ -946,7 +946,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be the local port on first update")
-            device1.vlanPortId shouldBe Some(portId)
+            device1.vlanPortIds shouldBe Seq(portId)
 
             And("There should be MAC learning tables for each VLAN")
             device1.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -956,7 +956,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device2.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be the local port on second update")
-            device2.vlanPortId shouldBe Some(portId)
+            device2.vlanPortIds shouldBe Seq(portId)
 
             And("There should be MAC learning tables for each VLAN")
             device2.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -1006,7 +1006,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device1.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be the local port on first update")
-            device1.vlanPortId shouldBe Some(portId)
+            device1.vlanPortIds shouldBe Seq(portId)
 
             And("There should be MAC learning tables for each VLAN")
             device1.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -1016,7 +1016,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device3.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be the local port on second update")
-            device3.vlanPortId shouldBe Some(portId)
+            device3.vlanPortIds shouldBe Seq(portId)
 
             And("There should be MAC learning tables for each VLAN")
             device3.vlanMacTableMap.keySet should contain only UntaggedVlanId
@@ -1054,7 +1054,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.exteriorPorts shouldBe empty
 
             And("The bridge VLAN peer port ID should be None")
-            device.vlanPortId shouldBe None
+            device.vlanPortIds shouldBe empty
 
             And("The MAC-port mapping for the router port should be set")
             device.macToLogicalPortId.toSeq should contain only ((peerPortMac, portId))
@@ -1195,13 +1195,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("The first update should see the first peer port")
             device1.exteriorPorts shouldBe empty
-            device1.vlanPortId shouldBe None
+            device1.vlanPortIds shouldBe empty
             device1.macToLogicalPortId.toSeq should contain only ((peerPortMac1, portId))
             device1.ipToMac.toSeq should contain only ((peerPortAddr1, peerPortMac1))
 
             And("The second update should see the second peer port")
             device3.exteriorPorts shouldBe empty
-            device3.vlanPortId shouldBe None
+            device3.vlanPortIds shouldBe empty
             device3.macToLogicalPortId.toSeq should contain only ((peerPortMac2, portId))
             device3.ipToMac.toSeq should contain only ((peerPortAddr2, peerPortMac2))
         }
@@ -1243,7 +1243,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be None")
-            device.vlanPortId shouldBe None
+            device.vlanPortIds shouldBe empty
 
             When("The peer port is updated")
             store.update(peerPort.setPortSubnet(randomIPv4Subnet))
@@ -1291,7 +1291,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanToPort.isEmpty shouldBe true
 
             And("The bridge VLAN peer port ID should be None")
-            device.vlanPortId shouldBe None
+            device.vlanPortIds shouldBe empty
 
             And("There should be no MAC-port or IP-MAC mappings")
             device.macToLogicalPortId.toSeq shouldBe empty
@@ -1367,6 +1367,62 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             And("There should be one exterior port")
             device1.exteriorPorts should contain only portId1
         }
+
+        scenario("Create interior ports VLAN peered to a bridge ports VLAN") {
+            val bridgeId = new UUID(0, 1)
+
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
+
+            When("Creating an interior port with a peer bridge and port")
+            val port1Id = new UUID(0, 2)
+            val port2Id = new UUID(0, 3)
+            val peer1BridgeId = new UUID(1, 1)
+            val peer1PortId = new UUID(1, 2)
+            val peer1VlanId: Short = 2
+
+            val peer2BridgeId = new UUID(2, 1)
+            val peer2PortId = new UUID(2, 2)
+            val peer2VlanId: Short = 3
+
+            val port1 = createBridgePort(id = port1Id, bridgeId = Some(bridgeId))
+            val port2 = createBridgePort(id = port2Id, bridgeId = Some(bridgeId))
+            val peer1Bridge = createBridge(id = peer1BridgeId)
+            val peer2Bridge = createBridge(id = peer2BridgeId)
+            val peer1Port = createBridgePort(id = peer1PortId,
+                                            bridgeId = Some(peer1BridgeId),
+                                            vlanId = Some(peer1VlanId))
+            val peer2Port = createBridgePort(id = peer2PortId,
+                                             bridgeId = Some(peer2BridgeId),
+                                             vlanId = Some(peer2VlanId))
+
+            store.multi(Seq(CreateOp(peer1Bridge), CreateOp(peer2Bridge),
+                            CreateOp(port1), CreateOp(port2),
+                            CreateOp(peer1Port), CreateOp(peer2Port),
+                            UpdateOp(port1.setPeerId(peer1PortId)),
+                            UpdateOp(port2.setPeerId(peer2PortId))))
+
+            Then("The observer should receive the update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val event1 = obs.getOnNextEvents.get(0)
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf bridge
+
+            And("There should be no exterior ports")
+            device.exteriorPorts shouldBe empty
+
+            And("There should be one VLAN")
+            device.vlanToPort shouldBe empty
+
+            And("The bridge VLAN peer port ID should be None")
+            device.vlanPortIds should contain allOf(port1Id, port2Id)
+
+            And("There should be MAC learning tables for each VLAN")
+            val bridge1 = store.get(classOf[TopologyBridge], peer1BridgeId).await()
+            //bridge1.getVxlanPortIdsCount shouldBe 1 ??
+            device.vlanMacTableMap.keySet shouldBe Set(UntaggedVlanId)
+        }
+
     }
 
     feature("Test flow invalidation") {
