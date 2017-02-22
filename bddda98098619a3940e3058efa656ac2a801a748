@@ -22,6 +22,30 @@
       "revId": "bddda98098619a3940e3058efa656ac2a801a748",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_1db59730",
+        "filename": "netlink/src/integration/scala/org/midonet/odp/LinkOpsTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2017-02-22T13:45:16Z",
+      "side": 1,
+      "message": "That\u0027s true. I could have all parameters with random values. Should I change that, and also for the Veth pair test?",
+      "parentUuid": "fabf19d9_dabf255f",
+      "range": {
+        "startLine": 68,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 26
+      },
+      "revId": "bddda98098619a3940e3058efa656ac2a801a748",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
