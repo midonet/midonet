@@ -26,6 +26,7 @@ import scala.util.control.NonFatal
 object LinkOps {
 
     case class Veth(dev: Link, peer: Link)
+    type Bridge = Link
 
     val VETH_INFO_UNSPEC: Byte = 0
     val VETH_INFO_PEER: Byte = 1
@@ -77,6 +78,30 @@ object LinkOps {
             peer = readLink(reader, buf)
 
             Veth(dev, peer)
+        } finally {
+            channel.close()
+        }
+    }
+
+    def createBridge(name: String = null,
+                     up: Boolean = true,
+                     mac: MAC = null,
+                     mtu: Int = 65535): Bridge = {
+        val (channel, protocol) = prepare()
+        try {
+            val buf = BytesUtil.instance.allocateDirect(2048)
+            val writer = new NetlinkBlockingWriter(channel)
+            val reader = new NetlinkReader(channel)
+
+            val bridge = build(name, up, mtu, mac)
+            bridge.info.kind = Link.NestedAttrValue.LinkInfo.KIND_BRIDGE
+
+            protocol.prepareLinkCreate(buf, bridge)
+            writer.write(buf)
+
+            buf.clear()
+            reader.read(buf)
+            bridge
         } finally {
             channel.close()
         }

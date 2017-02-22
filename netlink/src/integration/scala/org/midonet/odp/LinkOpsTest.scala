@@ -60,4 +60,25 @@ class LinkOpsTest extends FeatureSpec with BeforeAndAfterAll with ShouldMatchers
             LinkOps.deleteLink(dev)
         }
     }
+
+    feature("Bridge") {
+        scenario ("Can create and delete") {
+            val bridge = LinkOps.createBridge(
+                "fluffy",
+                up = true,
+                devMac,
+                9000
+            )
+
+            bridge.getName shouldBe "fluffy"
+            bridge.info.kind shouldBe NestedAttrValue.LinkInfo.KIND_BRIDGE
+            (bridge.ifi.flags & Link.Flag.IFF_UP) shouldBe (Link.Flag.IFF_UP)
+            bridge.mac shouldBe devMac
+            bridge.mtu shouldBe 9000
+
+            LinkOps.setAddress(bridge, IPv4Subnet.fromCidr("10.0.0.1/24"))
+
+            LinkOps.deleteLink(bridge)
+        }
+    }
 }
