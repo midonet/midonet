@@ -22,6 +22,30 @@
       "revId": "fce1669613c99a6e73a2f3c94fd76187d53ece70",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_ed8a341a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-02-22T08:51:10Z",
+      "side": 1,
+      "message": "getIds returns all the ids of a given class directly from storage. This is expected as the transaction has not been committed yet. This patch just filters those objects that were deleted during the transaction so the getAll is consistent with the transaction view.",
+      "parentUuid": "fabf19d9_edd5941b",
+      "range": {
+        "startLine": 204,
+        "startChar": 18,
+        "endLine": 204,
+        "endChar": 31
+      },
+      "revId": "fce1669613c99a6e73a2f3c94fd76187d53ece70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
