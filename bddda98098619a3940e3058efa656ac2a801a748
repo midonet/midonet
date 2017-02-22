@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_dabf255f",
+        "filename": "netlink/src/integration/scala/org/midonet/odp/LinkOpsTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-02-22T12:57:51Z",
+      "side": 1,
+      "message": "if you don\u0027t set the IFF_UP flag, I understand that it defaults to DOWN. I mean, we are not testing that setting up \u003d false actually sets the device to down.",
+      "range": {
+        "startLine": 68,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 26
+      },
+      "revId": "bddda98098619a3940e3058efa656ac2a801a748",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
