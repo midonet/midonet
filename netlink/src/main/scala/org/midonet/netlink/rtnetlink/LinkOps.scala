@@ -82,6 +82,30 @@ object LinkOps {
         }
     }
 
+    def createBridge(name: String = null,
+                     up: Boolean = true,
+                     mac: MAC = null,
+                     mtu: Int = 65535): Link = {
+        val (channel, protocol) = prepare()
+        try {
+            val buf = BytesUtil.instance.allocateDirect(2048)
+            val writer = new NetlinkBlockingWriter(channel)
+            val reader = new NetlinkReader(channel)
+
+            val bridge = build(name, up, mtu, mac)
+            bridge.info.kind = Link.NestedAttrValue.LinkInfo.KIND_BRIDGE
+
+            protocol.prepareLinkCreate(buf, bridge)
+            writer.write(buf)
+
+            buf.clear()
+            reader.read(buf)
+            bridge
+        } finally {
+            channel.close()
+        }
+    }
+
     def getLinkByName(devName: String): Link = {
         val (channel, protocol) = prepare()
         try {
