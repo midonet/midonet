@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.data.storage
 
-import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.{ArrayListMultimap, ListMultimap}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -24,6 +24,7 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.data.ZoomMetadata.ZoomChange
 import org.midonet.cluster.data._
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.Storage.{ClassesMap, MessageClassInfo}
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.models.Commons.UUID
@@ -35,13 +36,17 @@ class TransactionManagerTest extends FeatureSpec with Matchers
 
     private val classes: ClassesMap =
         Map(classOf[FakeDevice] -> new MessageClassInfo(classOf[FakeDevice]))
-    private val bindings =
+    private var bindings: ListMultimap[Class[_], FieldBinding] =
         ArrayListMultimap.create[Class[_], FieldBinding]()
 
     private val defaultId = UUID.newBuilder().setLsb(0L).setMsb(0L).build()
     private val notFoundId = UUID.newBuilder().setLsb(1L).setMsb(1L).build()
+    private val thisId = UUID.newBuilder().setLsb(2L).setMsb(2L).build()
+    private val thatId = UUID.newBuilder().setLsb(3L).setMsb(3L).build()
     private val defaultDevice = FakeDevice.newBuilder().setId(defaultId).build()
     private val notFoundDevice = FakeDevice.newBuilder().setId(notFoundId).build()
+    private val thisDevice = FakeDevice.newBuilder().setId(thisId).addThatIds(thatId).build()
+    private val thatDevice = FakeDevice.newBuilder().setId(thatId).build()
     private val defaultSnapshot = ObjSnapshot(defaultDevice, 0)
 
     private class TestableTransactionManager
@@ -538,6 +543,52 @@ class TransactionManagerTest extends FeatureSpec with Matchers
             val opKey = Key(classOf[FakeDevice], getIdString(defaultId))
             manager.getOps should contain only (opKey -> TxDelete(
                 0, ZoomChange.Data.id))
+        }
+
+        scenario("Deleting a referenced object without backreference (CASCADE)") {
+            Given("A binding with a null field")
+            bindings = ProtoFieldBinding
+                .createBindings(classOf[FakeDevice], "that_ids", CASCADE,
+                                classOf[FakeDevice], null, CLEAR)
+
+            And("A transaction manager")
+            val manager = new TestableTransactionManager
+
+            And("A fake object (that)")
+            manager.create(thatDevice)
+
+            And("A fake object (this) referencing another (that)")
+            manager.create(thisDevice)
+
+            When("When deleting this object")
+            manager.delete(classOf[FakeDevice], thisId)
+
+            Then("Both this and that object are deleted")
+            manager.exists(classOf[FakeDevice], thisId) shouldBe false
+            manager.exists(classOf[FakeDevice], thatId) shouldBe false
+        }
+
+        scenario("Deleting a referenced object without backreference (CLEAR)") {
+            Given("A binding with a null field")
+            bindings = ProtoFieldBinding
+                .createBindings(classOf[FakeDevice], "that_ids", CLEAR,
+                                classOf[FakeDevice], null, CLEAR)
+
+            And("A transaction manager")
+            val manager = new TestableTransactionManager
+
+            And("A fake object (that)")
+            manager.create(thatDevice)
+
+            And("A fake object (this) referencing another (that)")
+            manager.create(thisDevice)
+
+            When("When deleting this object")
+            manager.delete(classOf[FakeDevice], thisId)
+
+            Then("Only this object is deleted and clearing the backrefence is ignored")
+            manager.exists(classOf[FakeDevice], thisId) shouldBe false
+            manager.exists(classOf[FakeDevice], thatId) shouldBe true
         }
     }
 
