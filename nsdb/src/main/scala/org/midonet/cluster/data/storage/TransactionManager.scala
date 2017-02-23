@@ -390,8 +390,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
         }
 
         val thisId = getObjectId(thisObj)
-        for (binding <- bindings.get(key.clazz).asScala
-             if binding.hasBackReference;
+        for (binding <- bindings.get(key.clazz).asScala;
              thatId <- binding.getFwdReferenceAsList(thisObj).asScala.distinct
              if !isDeleted(getKey(binding.getReferencedClass, thatId))) {
 
@@ -399,8 +398,9 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
                 case DeleteAction.ERROR =>
                     throw new ObjectReferencedException(
                         key.clazz, key.id, binding.getReferencedClass, thatId)
-                case DeleteAction.CLEAR =>
+                case DeleteAction.CLEAR if binding.hasBackReference =>
                     clearBackreference(binding, thisId, thatId)
+                case DeleteAction.CLEAR =>
                 case DeleteAction.CASCADE =>
                     // Breaks if A has bindings with cascading delete to B
                     // and C, and B has a binding to C with ERROR semantics.

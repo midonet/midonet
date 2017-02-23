@@ -110,7 +110,7 @@ public class ZoomObjectTest {
 
         assertEquals(pojo.id, UUIDUtil.fromProto(message.getId()));
         assertEquals(pojo.name, message.getName());
-        assertEquals(pojo.portIds, message.getPortIdsList());
+        assertEquals(pojo.thatIds, message.getThatIdsList());
     }
 
     static TestMessage buildMessage() {
@@ -170,8 +170,8 @@ public class ZoomObjectTest {
         return FakeDevice.newBuilder()
             .setId(UUIDUtil.randomUuidProto())
             .setName(UUIDUtil.randomUuidProto().toString())
-            .addPortIds(UUIDUtil.randomUuidProto().toString())
-            .addPortIds(UUIDUtil.randomUuidProto().toString())
+            .addThatIds(UUIDUtil.randomUuidProto())
+            .addThatIds(UUIDUtil.randomUuidProto())
             .build();
     }
 
@@ -252,8 +252,8 @@ public class ZoomObjectTest {
     static void assertDevice(Device pojo, FakeDevice proto) {
         assertEquals(UUIDUtil.toProto(pojo.id), proto.getId());
         assertEquals(pojo.name, proto.getName());
-        for (int index = 0; index < proto.getPortIdsCount(); index++) {
-            assertEquals(pojo.portIds.get(index), proto.getPortIds(index));
+        for (int index = 0; index < proto.getThatIdsCount(); index++) {
+            assertEquals(pojo.thatIds.get(index), proto.getThatIds(index));
         }
     }
 
@@ -264,22 +264,22 @@ public class ZoomObjectTest {
         private UUID id;
         @ZoomField(name = "name")
         private String name;
-        @ZoomField(name = "port_ids")
-        private List<String> portIds;
+        @ZoomField(name = "that_ids")
+        private List<String> thatIds;
     }
 
     public static class DeviceWithConstructor extends ZoomObject {
         public final UUID id;
         public final String name;
-        public final List<String> portIds;
+        public final List<String> thatIds;
         @Zoom
         private DeviceWithConstructor(
             @ZoomField(name = "id") UUID id,
             @ZoomField(name = "name") String name,
-            @ZoomField(name = "port_ids") List<String> portIds) {
+            @ZoomField(name = "that_ids") List<String> thatIds) {
             this.id = id;
             this.name = name;
-            this.portIds = portIds;
+            this.thatIds = thatIds;
         }
     }
 

@@ -25,7 +25,7 @@ message FakeDevice {
     optional string name = 2;
 
     // Back references
-    repeated string port_ids = 101;
+    repeated UUID that_ids = 101;
 }
 
 message TestMessage {

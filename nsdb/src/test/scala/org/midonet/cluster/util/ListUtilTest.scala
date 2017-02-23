@@ -20,7 +20,8 @@ import java.util.{UUID => JUUID}
 
 import org.scalatest.FlatSpec
 
-import org.midonet.cluster.data.{ZoomField, ZoomClass, ZoomObject}
+import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.TestModels.FakeDevice
 import org.midonet.cluster.util.ListUtilTest.Device
 
@@ -54,9 +55,9 @@ class ListUtilTest extends FlatSpec {
     def assertDevice(proto: FakeDevice, pojo: Device): Unit = {
         assert(proto.getId.equals(pojo.id.asProto))
         assert(proto.getName.equals(pojo.name))
-        assert(proto.getPortIdsCount == pojo.portIds.size)
-        for (index <- 0 until proto.getPortIdsCount) {
-            assert(proto.getPortIds(index).equals(pojo.portIds(index)))
+        assert(proto.getThatIdsCount == pojo.thatIds.size)
+        for (index <- 0 until proto.getThatIdsCount) {
+            assert(proto.getThatIds(index).equals(pojo.thatIds(index)))
         }
     }
 
@@ -70,15 +71,15 @@ object ListUtilTest {
         val id: JUUID = null
         @ZoomField(name = "name")
         val name: String = null
-        @ZoomField(name = "port_ids")
-        val portIds: JList[String] = null
+        @ZoomField(name = "that_ids")
+        val thatIds: JList[UUID] = null
     }
 
     def buildDevice: FakeDevice = FakeDevice.newBuilder()
         .setId(UUIDUtil.randomUuidProto)
         .setName(UUIDUtil.randomUuidProto.toString)
-        .addPortIds(UUIDUtil.randomUuidProto.toString)
-        .addPortIds(UUIDUtil.randomUuidProto.toString)
+        .addThatIds(UUIDUtil.randomUuidProto)
+        .addThatIds(UUIDUtil.randomUuidProto)
         .build()
 
 }

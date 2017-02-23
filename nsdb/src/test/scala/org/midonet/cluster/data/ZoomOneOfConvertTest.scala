@@ -21,12 +21,14 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, FeatureSpec}
+import org.scalatest.{FeatureSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ZoomConvert.Factory
 import org.midonet.cluster.data.ZoomOneOfConvertTest._
+import org.midonet.cluster.models.Commons.{UUID => ProtoUUID}
 import org.midonet.cluster.models.TestModels._
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 
 @RunWith(classOf[JUnitRunner])
@@ -142,8 +144,8 @@ class ZoomOneOfConvertTest extends FeatureSpec with Matchers {
         FakeDevice.newBuilder
             .setId(UUID.randomUUID.asProto)
             .setName(UUID.randomUUID.toString)
-            .addAllPortIds(Seq(UUID.randomUUID.toString,
-                               UUID.randomUUID.toString).asJava)
+            .addAllThatIds(Seq(UUIDUtil.randomUuidProto,
+                               UUIDUtil.randomUuidProto).asJava)
             .build()
     }
 
@@ -151,7 +153,7 @@ class ZoomOneOfConvertTest extends FeatureSpec with Matchers {
         val device = new Device
         device.id = UUID.randomUUID
         device.name = UUID.randomUUID.toString
-        device.portIds = Set(UUID.randomUUID.toString, UUID.randomUUID.toString)
+        device.thatIds = Set(UUID.randomUUID, UUID.randomUUID)
         device
     }
 
@@ -208,15 +210,15 @@ object ZoomOneOfConvertTest {
         var id: UUID = _
         @ZoomField(name = "name")
         var name: String = _
-        @ZoomField(name = "port_ids")
-        var portIds: Set[String] = _
+        @ZoomField(name = "that_ids")
+        var thatIds: Set[ProtoUUID] = _
 
         def shouldEqual(device: FakeDevice): Unit = {
             device.hasId shouldBe true
             device.hasName shouldBe true
             id shouldBe device.getId.asJava
             name shouldBe device.getName
-            portIds should contain theSameElementsAs device.getPortIdsList.asScala
+            thatIds should contain theSameElementsAs device.getThatIdsList.asScala
         }
     }
 
