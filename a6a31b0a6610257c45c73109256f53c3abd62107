@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_836ca437",
+        "filename": "tests/mdts/tests/functional_tests/test_router_peering.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-23T03:16:50Z",
+      "side": 1,
+      "message": "license",
+      "revId": "a6a31b0a6610257c45c73109256f53c3abd62107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_63699025",
+        "filename": "tests/mdts/tests/functional_tests/test_router_peering.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-23T03:16:50Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 235,
+        "startChar": 9,
+        "endLine": 235,
+        "endChar": 18
+      },
+      "revId": "a6a31b0a6610257c45c73109256f53c3abd62107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
