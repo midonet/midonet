@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_6350705f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-02-23T03:29:43Z",
+      "side": 1,
+      "message": "i think this needs an update also.",
+      "range": {
+        "startLine": 76,
+        "startChar": 50,
+        "endLine": 78,
+        "endChar": 65
+      },
+      "revId": "b1072d3c670f8e8d28f977934f1376f7c560ac7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
