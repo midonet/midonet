@@ -106,9 +106,8 @@ public class RouterPort extends Port {
         return absoluteUri(ResourceUris.SERVICE_CONTAINERS(), serviceContainerId);
     }
 
-    @Override
-    public void afterFromProto(Message message) {
-        if (!portSubnet.isEmpty()) {
+    private void setupAddressFromSubnet() {
+        if (portSubnet != null && !portSubnet.isEmpty()) {
             for (String subnetStr : portSubnet) {
                 try {
                     IPv4Subnet subnet = IPv4Subnet.fromCidr(subnetStr);
@@ -125,9 +124,14 @@ public class RouterPort extends Port {
     }
 
     @Override
-    public void beforeToProto() {
-        if (StringUtils.isNotEmpty(portAddress)) {
+    public void afterFromProto(Message message) {
+        setupAddressFromSubnet();
+    }
 
+    @Override
+    public void beforeToProto() {
+        if (StringUtils.isNotEmpty(portAddress) &&
+            (portSubnet == null || portSubnet.isEmpty())) {
             // MidoNet 5.2 or earlier API does not support setting multiple
             // addresses using these fields.
             portSubnet = new ArrayList<>(1);
@@ -142,6 +146,7 @@ public class RouterPort extends Port {
         if (null == portMac) {
             portMac = MAC.random().toString();
         }
+        setupAddressFromSubnet();
     }
 
     @Override
