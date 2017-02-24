@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import org.midonet.client.dto.DtoRoute;
 import org.midonet.cluster.rest_api.host.rest_api.HostTopology;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
@@ -998,6 +999,23 @@ public class TestPort {
             assertEquals("10.0.0.0", port.getNetworkAddress());
             assertEquals("10.0.0.1", port.getPortAddress());
             assertEquals(24, port.getNetworkLength());
+
+            // Make sure the port route got added correctly to the router
+            DtoRoute[] portRoutes = dtoResource.getAndVerifyOk(
+                r.getRoutes(),
+                APPLICATION_ROUTE_COLLECTION_JSON(),
+                DtoRoute[].class);
+
+            boolean portRouteWasFound = false;
+            for (DtoRoute route: portRoutes) {
+                if (route.getSrcNetworkAddr().equals("0.0.0.0") &&
+                    route.getNextHopPort().equals(port.getId())) {
+                    assertEquals(port.getPortAddress(),
+                                 route.getDstNetworkAddr());
+                    portRouteWasFound = true;
+                }
+            }
+            assertTrue(portRouteWasFound);
 
             // Test: v5.4 router port (ipv6 first)
             ips = Arrays.asList("2017:0:0:0:0:0:0:32/64",
