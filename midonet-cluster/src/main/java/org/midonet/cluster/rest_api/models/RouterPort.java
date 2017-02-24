@@ -106,8 +106,7 @@ public class RouterPort extends Port {
         return absoluteUri(ResourceUris.SERVICE_CONTAINERS(), serviceContainerId);
     }
 
-    @Override
-    public void afterFromProto(Message message) {
+    private void _setupAddressFromSubnet() {
         if (!portSubnet.isEmpty()) {
             for (String subnetStr : portSubnet) {
                 try {
@@ -122,6 +121,11 @@ public class RouterPort extends Port {
                 }
             }
         }
+    }
+
+    @Override
+    public void afterFromProto(Message message) {
+        _setupAddressFromSubnet();
     }
 
     @Override
@@ -142,6 +146,7 @@ public class RouterPort extends Port {
         if (null == portMac) {
             portMac = MAC.random().toString();
         }
+        _setupAddressFromSubnet();
     }
 
     @Override
