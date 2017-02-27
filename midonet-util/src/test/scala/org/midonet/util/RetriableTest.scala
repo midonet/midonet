@@ -16,8 +16,10 @@
 package org.midonet.util
 
 import java.io.Closeable
+import java.util.concurrent.Executors
 
 import scala.collection.mutable
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
@@ -30,6 +32,10 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
 
     private val Log = LoggerFactory.getLogger("RetriableTest")
 
+    private val timeout = 10 seconds
+
+    private val executor = Executors.newSingleThreadScheduledExecutor()
+
     class TestableClosable extends Closeable {
 
         var closed = false
@@ -41,14 +47,28 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
     }
 
     // Needed since Mockito can't mock Scala's call by name
-    trait TestableRetriable extends Retriable {
+    trait TestableRetriable extends BlockingRetriable {
 
         override def maxRetries = 3
 
         var retries = 0
 
-        protected override def handleRetry[T](e: Throwable, r: Int, log: Logger,
-                                              message: String): Unit = {
+        protected override def handleRetry(e: Throwable, r: Int, log: Logger,
+                                           message: String): Unit = {
+            retries += 1
+        }
+    }
+
+    trait NonBlockingTestableRetriable extends NonBlockingDefaultRetriable with AwaitRetriable {
+
+        override def maxRetries = 3
+
+        override def interval = 100 millis
+
+        var retries = 0
+
+        protected abstract override def handleRetry(e: Throwable, r: Int, log: Logger,
+                                           message: String) = {
             retries += 1
         }
     }
@@ -59,8 +79,8 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
 
         var awaits = mutable.MutableList.empty[Long]
 
-        override def await(timeout: Long) = {
-            awaits += timeout
+        override def schedule(delay: Long) = {
+            awaits += delay
         }
     }
 
@@ -77,7 +97,6 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
             awaits += attempt -> backoff
             backoff
         }
-
     }
 
     feature("Retry on different retriables") {
@@ -207,6 +226,43 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
             val expected = Map(
                 0 -> 100, 1 -> 200, 2 -> 400, 3 -> 800, 4 -> 1600, 5 -> 2000)
             mockedRetriable.awaits shouldBe expected
+        }
+    }
+
+    feature("Retry on a non-blocking retriable") {
+        scenario("A successful task") {
+            Given("A non-blocking retriable")
+            val mockedRetriable = new NonBlockingTestableRetriable() {}
+
+            When("Called on a successful function")
+            val expected = "ok"
+            val future = mockedRetriable.retry(Log, "ok")(executor) { "ok" }
+
+            Then("The future completes succesfully")
+            val result = Await.result(future, timeout)
+            future.isCompleted shouldBe true
+            mockedRetriable.retries shouldBe 0
+
+            And("The expected result is wrapped in the result")
+            result shouldBe expected
+        }
+
+        scenario("Retrying on a failing function") {
+            Given("A failed task")
+            val mockedRetriable = new NonBlockingTestableRetriable() {}
+
+            When("Called on a failing function")
+            val future = mockedRetriable.retry(Log, "ko")(executor) {
+                throw new Exception
+            }
+
+            Then("The retriable is called max times")
+            val result = Await.result(future, timeout)
+            future.isCompleted shouldBe true
+            mockedRetriable.retries shouldBe mockedRetriable.maxRetries
+
+            And("The result is an error")
+            result.isInstanceOf[Exception] shouldBe true
         }
     }
 }
