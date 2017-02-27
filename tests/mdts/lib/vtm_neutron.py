@@ -136,8 +136,10 @@ class NeutronTopologyManager(TopologyManager):
                             router['id'],
                             {'port_id': port['id']})
 
-    def create_port(self, name, network,
-                    host_id=None, interface=None, fixed_ips=[]):
+    def create_port(self, name, network, host_id=None, interface=None,
+                    fixed_ips=[], port_security_enabled=False, mac=None,
+                    device_owner=None):
+
         port_params = {'name': name,
                        'network_id': network['id'],
                        'admin_state_up': True,
@@ -147,6 +149,13 @@ class NeutronTopologyManager(TopologyManager):
         if interface:
             port_params['binding:profile'] = {'type': 'dict',
                                               'interface_name': interface}
+        if port_security_enabled:
+            port_params['port_security_enabled'] = True
+        if mac:
+            port_params['mac'] = mac
+        if device_owner:
+            port_params['device_owner'] = device_owner
+
         for f in fixed_ips:
             if 'fixed_ips' not in port_params:
                 port_params['fixed_ips'] = []
