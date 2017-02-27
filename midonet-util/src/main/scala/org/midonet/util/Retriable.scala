@@ -16,15 +16,16 @@
 package org.midonet.util
 
 import java.io.Closeable
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit.MILLISECONDS
 
-import scala.annotation.tailrec
+import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.Duration
 import scala.util.Random
 import scala.util.control.NonFatal
 
-import com.google.common.annotations.VisibleForTesting
-
 import org.slf4j.Logger
+
 
 trait Retriable {
 
@@ -33,21 +34,8 @@ trait Retriable {
       */
     def maxRetries: Int
 
-    /**
-      * Calls the specified `retriable` function until the function completes
-      * without throwing an exception, or until the function is called a number
-      * of times equal to [[maxRetries]] + 1. The method returns the last
-      * result returned by the `retriable` function or it throws the last
-      * [[Throwable]].
-      */
     @throws[Throwable]
-    def retry[T](log: Logger, message: String)(retriable: => T): T = {
-        retry(maxRetries, log, message)(retriable)
-    }
-
-    @throws[Throwable]
-    @tailrec
-    private def retry[T](retries: Int, log: Logger, message: String)
+    protected def retry[T](retries: Int, log: Logger, message: String)
                         (retriable: => T): T = {
         try return retriable
         catch {
@@ -68,6 +56,62 @@ trait Retriable {
     protected def handleRetry[T](e: Throwable, retries: Int, log: Logger,
                                  message: String): Unit
 
+    protected def schedule(timeout: Long)
+
+}
+
+trait BlockingRetriable extends Retriable {
+
+    /**
+      * Calls the specified `retriable` function until the function completes
+      * without throwing an exception, or until the function is called a number
+      * of times equal to [[maxRetries]] + 1. The method returns the last
+      * result returned by the `retriable` function or it throws the last
+      * [[Throwable]].
+      */
+    @throws[Throwable]
+    def retry[T](log: Logger, message: String)(retriable: => T): T = {
+        retry(maxRetries, log, message)(retriable)
+    }
+
+    protected def schedule(timeout: Long) = Thread.sleep(timeout)
+
+}
+
+trait NonBlockingRetriable extends Retriable {
+
+    val runnable: Runnable
+
+    val executor: ScheduledExecutorService
+
+    /**
+      * Calls the specified `retriable` function until the function completes
+      * without throwing an exception, or until the function is called a number
+      * of times equal to [[maxRetries]] + 1. The method returns the last
+      * result returned by the `retriable` function or it throws the last
+      * [[Throwable]]. All retries are handled in a separate thread passed
+      * by parameter to not block the calling thread. WARNING: it will block
+      * the passed thread until it completes successfully or it fails.
+      */
+    @throws[Throwable]
+    def retry[T](log: Logger, message: String)(retriable: => T): Future[T] = {
+        val promise = Promise[T]
+        executor.execute(new Runnable() {
+            override def run(): Unit = {
+                try {
+                    val result = retry(maxRetries, log, message)(retriable)
+                    promise.trySuccess(result)
+                } catch {
+                    case NonFatal(e) =>
+                        promise.tryFailure(e)
+                }
+            }
+        })
+        promise.future
+    }
+
+    protected def schedule(timeout: Long) =
+        executor.schedule(runnable, timeout, MILLISECONDS)
 }
 
 trait ImmediateRetriable extends Retriable {
@@ -91,11 +135,8 @@ trait AwaitRetriable extends Retriable {
         log debug s"$message failed. Remaining retries: ${retries - 1}. " +
                   s"Retrying in ${interval toMillis} ms."
         super.handleRetry(e, retries, log, message)
-        await(interval toMillis)
+        schedule(interval toMillis)
     }
-
-    @VisibleForTesting
-    protected def await(timeout: Long) = Thread.sleep(timeout)
 }
 
 trait ExponentialBackoffRetriable extends Retriable {
@@ -113,11 +154,8 @@ trait ExponentialBackoffRetriable extends Retriable {
         log debug s"$message failed. Remaining attempts: ${retries -1}. " +
                   s"Retrying in $backoff ms."
         super.handleRetry(e, retries, log, message)
-        await(backoff)
+        schedule(backoff)
     }
-
-    @VisibleForTesting
-    protected def await(timeoutInterval: Int) = Thread.sleep(timeoutInterval)
 
     @inline
     protected def backoffTime(attempt: Int): Int = {
@@ -125,7 +163,7 @@ trait ExponentialBackoffRetriable extends Retriable {
     }
 }
 
-trait ClosingRetriable extends Retriable {
+trait ClosingRetriable extends BlockingRetriable {
 
     def retryClosing[T](log: Logger, message: String)
                        (closeable: Closeable)
@@ -138,7 +176,7 @@ trait ClosingRetriable extends Retriable {
     }
 }
 
-trait DefaultRetriable extends Retriable {
+trait DefaultRetriable extends BlockingRetriable {
 
     protected override def handleRetry[T](e: Throwable, r: Int, log: Logger,
                                           message: String): Unit = { }
