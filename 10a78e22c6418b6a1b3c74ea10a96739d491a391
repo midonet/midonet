@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_72bb8776",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2017-02-28T09:20:14Z",
+      "side": 1,
+      "message": "Right, but it looks like it\u0027s still in use?  Otherwise, is there a reason we are setting it in afterFromProto?  Should this patch remove it from use completely, or can we do that in a subsequent patch?",
+      "parentUuid": "fabf19d9_72c6e717",
+      "range": {
+        "startLine": 13,
+        "startChar": 17,
+        "endLine": 14,
+        "endChar": 46
+      },
+      "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_ef1fb007",
         "filename": "/COMMIT_MSG",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_d285b3ad",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2017-02-28T09:20:14Z",
+      "side": 1,
+      "message": "It shouldn\u0027t.  The beforeToProto and afterFromProto functions have no effect on the API side.  What was being received and sent before this patch should still be the case.",
+      "parentUuid": "fabf19d9_ef1fb007",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 65
+      },
+      "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_d2693327",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2017-02-28T09:06:07Z",
       "side": 1,
       "message": "we usually don\u0027t use methods with underscore",
+      "range": {
+        "startLine": 109,
+        "startChar": 17,
+        "endLine": 109,
+        "endChar": 18
+      },
+      "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_52c083e0",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2017-02-28T09:20:14Z",
+      "side": 1,
+      "message": "Okay, I will change.",
+      "parentUuid": "fabf19d9_d2693327",
       "range": {
         "startLine": 109,
         "startChar": 17,
