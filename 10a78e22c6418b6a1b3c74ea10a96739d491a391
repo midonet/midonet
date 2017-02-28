@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fabf19d9_72c6e717",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-28T09:06:07Z",
+      "side": 1,
+      "message": "I think the idea was that we\u0027re going to deprecate the portAddress field and no longer use it in MidoNet 5.4+",
+      "range": {
+        "startLine": 13,
+        "startChar": 17,
+        "endLine": 14,
+        "endChar": 46
+      },
+      "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_ef1fb007",
         "filename": "/COMMIT_MSG",
         "patchSetId": 3
@@ -18,6 +41,29 @@
         "startChar": 0,
         "endLine": 32,
         "endChar": 65
+      },
+      "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_d2693327",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-28T09:06:07Z",
+      "side": 1,
+      "message": "we usually don\u0027t use methods with underscore",
+      "range": {
+        "startLine": 109,
+        "startChar": 17,
+        "endLine": 109,
+        "endChar": 18
       },
       "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
