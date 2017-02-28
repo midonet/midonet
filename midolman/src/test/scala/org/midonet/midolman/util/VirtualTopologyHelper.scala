@@ -99,7 +99,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
 
     def throwAwayArpBroker(emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList): ArpRequestBroker =
         new ArpRequestBroker(new PacketEmitter(emitter),
-                             config, flowInvalidator, UnixClock.MOCK)
+                             config, flowInvalidator, clock)
 
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard())
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard())

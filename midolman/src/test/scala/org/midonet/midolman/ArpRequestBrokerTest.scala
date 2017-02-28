@@ -16,6 +16,7 @@
 package org.midonet.midolman
 
 import java.util.{ArrayDeque, UUID}
+import java.util.concurrent.TimeUnit.{NANOSECONDS => NANOS, MILLISECONDS => MILLIS}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
@@ -47,7 +48,7 @@ import org.midonet.odp.flows.FlowKeys
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.eventloop.{TryCatchReactor, Reactor}
-import org.midonet.util.UnixClock
+import org.midonet.util.concurrent.MockClock
 
 @RunWith(classOf[JUnitRunner])
 class ArpRequestBrokerTest extends Suite
@@ -109,7 +110,7 @@ class ArpRequestBrokerTest extends Suite
 
     var emittedPackets = new ArrayDeque[PacketEmitter.GeneratedPacket]()
 
-    val clock = UnixClock.MOCK
+    val clock = new MockClock
 
     val confValues = s"""
           |agent {
@@ -228,7 +229,7 @@ class ArpRequestBrokerTest extends Suite
     }
 
     def testUnrepliedArpLoop(): Unit = {
-        val timeout = clock.time + ARP_TIMEOUT
+        val timeout = clock.time + NANOS.convert(ARP_TIMEOUT, MILLIS)
 
         var futures = addMoreWaiters(List.empty)
 
@@ -246,14 +247,14 @@ class ArpRequestBrokerTest extends Suite
         }
 
         // go past the timeout by more than 1 retry interval
-        while (clock.time < timeout + ARP_RETRY*2) {
+        while (clock.time < timeout + NANOS.convert(ARP_RETRY*2, MILLIS)) {
             if (clock.time < timeout) {
                 for (f <- futures)
                     f should not be 'completed
                 futures = addMoreWaiters(futures)
             }
 
-            clock.time += loopDelta()
+            clock.time += NANOS.convert(loopDelta(), MILLIS)
             arpBroker.process()
 
             /*
@@ -289,14 +290,14 @@ class ArpRequestBrokerTest extends Suite
     }
 
     def testLocallyRepliedArpLoop(): Unit = {
-        val timeout = clock.time + ARP_TIMEOUT
+        val timeout = clock.time + NANOS.convert(ARP_TIMEOUT, MILLIS)
 
         var futures = addMoreWaiters(List.empty)
         arpBroker.process()
 
         while (clock.time < timeout/2) {
             for (i <- 1 to 4) {
-                clock.time += ARP_RETRY / 2
+                clock.time += NANOS.convert(ARP_RETRY / 2, MILLIS)
                 futures = addMoreWaiters(futures)
                 arpBroker.process()
             }
@@ -372,7 +373,7 @@ class ArpRequestBrokerTest extends Suite
         arpBroker.process()
 
         // let the entry go stale accounting for jitter.
-        clock.time += (ARP_STALE + ARP_STALE * STALE_JITTER).toLong
+        clock.time += NANOS.convert((ARP_STALE + ARP_STALE * STALE_JITTER).toLong, MILLIS)
         arpBroker.shouldProcess() should be (false)
         arpBroker.process()
         arps should be ('empty)
@@ -382,7 +383,7 @@ class ArpRequestBrokerTest extends Suite
         expectEmitArp()
 
         // let one arp retry iteration go by, expect another ARP
-        clock.time += (ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong
+        clock.time += NANOS.convert((ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong, MILLIS)
         arpBroker.shouldProcess() should be (true)
         arpBroker.process()
         expectEmitArp()
@@ -395,12 +396,12 @@ class ArpRequestBrokerTest extends Suite
             arpBroker.shouldProcess() should be (true)
         }
         arpBroker.process()
-        clock.time += (ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong * 2
+        clock.time += NANOS.convert((ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong * 2, MILLIS)
         arpBroker.process()
         arps should be ('empty)
 
         // let another retry interval go by without any ARPs on the wire
-        clock.time += (ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong * 2
+        clock.time += NANOS.convert((ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong * 2, MILLIS)
         arpBroker.shouldProcess() should be (false)
         arpBroker.process()
         arps should be ('empty)
@@ -414,7 +415,7 @@ class ArpRequestBrokerTest extends Suite
         arpBroker.process()
         arps.clear()
 
-        clock.time += ARP_EXPIRATION
+        clock.time += NANOS.convert(ARP_EXPIRATION, MILLIS)
         arpBroker.process()
         eventually(ZK_RTT_TIMEOUT) {
             arpCache.get(THEIR_IP) should be (null)
@@ -426,7 +427,7 @@ class ArpRequestBrokerTest extends Suite
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
         arpBroker.set(THEIR_IP, MY_MAC, router)
 
-        clock.time += ARP_EXPIRATION
+        clock.time += NANOS.convert(ARP_EXPIRATION, MILLIS)
 
         arpBroker.process()
     }
