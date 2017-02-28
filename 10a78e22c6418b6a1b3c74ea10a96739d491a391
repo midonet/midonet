@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_45d43b46",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-02-28T09:45:24Z",
+      "side": 1,
+      "message": "in the afterFromProto we set the field in the JSON, such that it\u0027s still available for legacy clients that use the 5.4 API (we want to keep the API compatible)\n\nlikewise, for writing we use the portAddress only if set explicitly by the client (meaning a legacy client that still uses the portAddress field)\n\nbtw, I see what bug you\u0027re trying to solve, maybe we should just alter that createFilter to use portSubnet instead",
+      "parentUuid": "fabf19d9_72bb8776",
+      "range": {
+        "startLine": 13,
+        "startChar": 17,
+        "endLine": 14,
+        "endChar": 46
+      },
+      "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_ef1fb007",
         "filename": "/COMMIT_MSG",
         "patchSetId": 3
