@@ -16,6 +16,8 @@
 
 package org.midonet.util.concurrent
 
+import java.util.concurrent.TimeUnit
+
 object NanoClock {
     val DEFAULT = new SystemNanoClock
 }
@@ -23,18 +25,26 @@ object NanoClock {
 trait NanoClock {
 
     /**
-     * The number of ticks in nanoseconds the clock has advanced since starting.
-     */
+      * The number of ticks in nanoseconds the clock has advanced since starting.
+      */
     def tick: Long
+
+    /**
+      * The current time in milliseconds since epoc
+      */
+    def timeMillis: Long
 }
 
 
 sealed class SystemNanoClock extends NanoClock {
-    override def tick = System.nanoTime()
+    override def tick = System.nanoTime
+    override def timeMillis = System.currentTimeMillis
 }
 
 sealed class MockClock extends NanoClock {
     var time = 0L
 
     override def tick = time
+    override def timeMillis =
+        TimeUnit.MILLISECONDS.convert(time, TimeUnit.NANOSECONDS)
 }
