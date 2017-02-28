@@ -189,8 +189,8 @@ class PacketWorkflow(
 
     protected val simulationExpireMillis = 5000L
 
-    private val waitingRoom = new WaitingRoom[PacketContext](
-                                        (simulationExpireMillis millis).toNanos)
+    protected val waitingRoom = new WaitingRoom[PacketContext](
+        (simulationExpireMillis millis).toNanos)
 
     private val genPacketEmitter = new PacketEmitter(new MpscArrayQueue(512))
 
@@ -594,6 +594,7 @@ class PacketWorkflow(
             case ErrorDrop =>
                 context.flowRemovedCallbacks.runAndClear()
                 context.clearFlowTags()
+                context.prepareForDrop()
                 addTranslatedFlow(context, FlowExpiration.ERROR_CONDITION_EXPIRATION)
             case ShortDrop =>
                 context.clearFlowTags()

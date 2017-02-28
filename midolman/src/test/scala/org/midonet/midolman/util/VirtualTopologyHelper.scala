@@ -261,7 +261,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        workflowTrap: PacketContext => SimulationResult = null,
                        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue] = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
                        natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
-                       traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
+                       traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard(),
+                       natLeaser: NatLeaser = HappyGoLuckyLeaser)
                       (implicit hostId: UUID, client: DataClient) = {
 
         val recorder = injector.getInstance(classOf[FlowRecorderFactory])
@@ -270,8 +271,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                                              clusterDataClient,
                                              simBackChannel, flowInvalidator,
                                              flowProcessor, conntrackTable,
-                                             natTable, traceTable, metrics,
-                                             recorder, packetCtxTrap,
+                                             natTable, traceTable, natLeaser,
+                                             metrics, recorder, packetCtxTrap,
                                              workflowTrap)
         val datapath = new Datapath(0, "midonet")
         val dpState = new DatapathState {

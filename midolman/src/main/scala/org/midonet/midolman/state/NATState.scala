@@ -29,6 +29,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets._
 import org.midonet.sdn.state.FlowStateTransaction
+import org.midonet.util.collection.Reducer
 
 object NatState {
     private val WILDCARD_PORT = 0
@@ -175,8 +176,18 @@ trait NatState extends FlowState { this: PacketContext =>
     var natTx: FlowStateTransaction[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
 
+    private val releaseUncommittedLeases =
+        new Reducer[NatKey, NatBinding, Unit]() {
+            override def apply(u: Unit, k: NatKey, v: NatBinding): Unit = {
+                releaseBinding(k, v, natLeaser)
+            }
+        }
+
     abstract override def clear(): Unit = {
         super.clear()
+        if (!natTx.isCommitted) {
+            natTx.fold((), releaseUncommittedLeases)
+        }
         natTx.flush()
     }
 

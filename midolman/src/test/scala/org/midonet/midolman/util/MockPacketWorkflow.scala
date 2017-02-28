@@ -56,6 +56,7 @@ class MockPacketWorkflow(config: MidolmanConfig,
                          connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
                          natStateTable: FlowStateTable[NatKey, NatBinding],
                          traceStateTable: FlowStateTable[TraceKey, TraceContext],
+                         leaser: NatLeaser,
                          metrics: PacketPipelineMetrics,
                          flowRecorder: FlowRecorder,
                          packetCtxTrap: JQueue[PacketContext],
@@ -70,7 +71,7 @@ class MockPacketWorkflow(config: MidolmanConfig,
                                connTrackStateTable, natStateTable,
                                traceStateTable,
                                Future.successful(new MockStateStorage),
-                               HappyGoLuckyLeaser, metrics,
+                               leaser, metrics,
                                flowRecorder, _ => {},
                                simBackChannel, as) {
     override def runWorkflow(pktCtx: PacketContext) = {
@@ -93,4 +94,6 @@ class MockPacketWorkflow(config: MidolmanConfig,
             process()
         }
     }
+
+    def postponedContexts = waitingRoom.count
 }
