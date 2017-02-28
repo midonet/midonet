@@ -35,7 +35,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.util.UnixClock
+import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.functors.makeAction1
 
 object ArpRequestBroker {
@@ -80,7 +80,7 @@ object ArpRequestBroker {
  */
 class ArpRequestBroker(config: MidolmanConfig,
                        backChannel: SimulationBackChannel,
-                       clock: UnixClock = UnixClock())
+                       clock: NanoClock = NanoClock.DEFAULT)
     extends MidolmanLogging {
 
     override def logSource = "org.midonet.devices.router.arp-table"
@@ -155,7 +155,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                                    arpCache: ArpCache,
                                    config: MidolmanConfig,
                                    backChannel: SimulationBackChannel,
-                                   clock: UnixClock = UnixClock())
+                                   clock: NanoClock = NanoClock.DEFAULT)
     extends MidolmanLogging {
 
     import ArpRequestBroker._
@@ -224,7 +224,7 @@ class SingleRouterArpRequestBroker(id: UUID,
 
     private def shouldArp(cacheEntry: ArpEntry): Boolean = {
         (cacheEntry eq null) || (cacheEntry.mac eq null) ||
-            (clock.time > (cacheEntry.stale + stalenessJitter))
+            (clock.timeMillis > (cacheEntry.stale + stalenessJitter))
     }
 
     private def upToDate(entry: ArpEntry): Boolean = !shouldArp(entry)
@@ -255,9 +255,9 @@ class SingleRouterArpRequestBroker(id: UUID,
         nextEvent = arpLoopQ.peek().nextTry
     }
 
-    def shouldProcess(): Boolean = (!macsDiscovered.isEmpty) || (clock.time >= nextEvent)
+    def shouldProcess(): Boolean = (!macsDiscovered.isEmpty) || (clock.timeMillis >= nextEvent)
 
-    private def arpLoopIsReady: Boolean = arpLoopQ.peek().nextTry < clock.time
+    private def arpLoopIsReady: Boolean = arpLoopQ.peek().nextTry < clock.timeMillis
 
     /*
      * Queries the ARP table, returning a MAC or throwing a NotYetException
@@ -313,7 +313,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                 "entry for {} with the same value ({}) exists.", ip, mac)
         } else {
             log.debug("Got address for {}: {}", ip, mac)
-            val now = clock.time
+            val now = clock.timeMillis
             val entry = new ArpEntry(mac, now + config.arptable.expiration,
                                                now + config.arptable.stale, 0)
             arpCache.add(ip, entry)
@@ -332,7 +332,7 @@ class SingleRouterArpRequestBroker(id: UUID,
     }
 
     private def processExpirations() {
-        while ((!expiryQ.isEmpty) && (expiryQ.peek()._1 <= clock.time)) {
+        while ((!expiryQ.isEmpty) && (expiryQ.peek()._1 <= clock.timeMillis)) {
             val (_, ip) = expiryQ.poll()
             val entry = arpCache.get(ip)
 
@@ -342,7 +342,7 @@ class SingleRouterArpRequestBroker(id: UUID,
              * that MidoNet would have to ARP again, and in this case the race
              * would not be possible because there would be no expirer to
              * race with the writer. */
-            if ((entry ne null) && (entry.expiry <= clock.time))
+            if ((entry ne null) && (entry.expiry <= clock.timeMillis))
                 arpCache.remove(ip)
         }
     }
@@ -408,7 +408,7 @@ class SingleRouterArpRequestBroker(id: UUID,
     }
 
     class ArpLoop(val ip: IPv4Addr, val port: RouterPort, val cookie: Long) {
-        private val timeout = clock.time + config.arptable.timeout
+        private val timeout = clock.timeMillis + config.arptable.timeout
 
         private val baseJitter = random.nextDouble() * RETRY_JITTER_GAP + RETRY_MIN_BASE_JITTER
         private var retries = -1
@@ -420,12 +420,12 @@ class SingleRouterArpRequestBroker(id: UUID,
 
         def tick() {
             retries += 1
-            _nextTry = clock.time + (config.arptable.retryInterval * jitter).toLong
+            _nextTry = clock.timeMillis + (config.arptable.retryInterval * jitter).toLong
         }
 
         tick()
 
-        def timedOut: Boolean = clock.time >= timeout
+        def timedOut: Boolean = clock.timeMillis >= timeout
     }
 
     object ImmortalLoop extends ArpLoop(IPv4Addr.fromString("255.255.255.255" ), null, -1) {

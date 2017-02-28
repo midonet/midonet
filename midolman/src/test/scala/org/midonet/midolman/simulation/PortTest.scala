@@ -55,7 +55,7 @@ class PortTest extends MidolmanSpec with TopologyBuilder {
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        arpBroker = new ArpRequestBroker(config, simBackChannel, UnixClock.mock())
+        arpBroker = new ArpRequestBroker(config, simBackChannel, clock)
     }
 
     private def activePort(rules: Rule*): Port = {
