@@ -237,6 +237,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue] = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
                        natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
                        traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard(),
+                       natLeaser: NatLeaser = HappyGoLuckyLeaser,
                        flowRecorder: FlowRecorder = NullFlowRecorder())
                       (implicit hostId: UUID) = {
         val dpState = new DatapathState {
@@ -285,7 +286,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         new MockPacketWorkflow(config, hostId, dpState, clock, dpChannel,
                                virtualTopology, simBackChannel, flowProcessor,
                                conntrackTable, natTable,
-                               traceTable, peerResolver, metrics, flowRecorder,
+                               traceTable, peerResolver, natLeaser,
+                               metrics, flowRecorder,
                                packetCtxTrap, workflowTrap)
     }
 }

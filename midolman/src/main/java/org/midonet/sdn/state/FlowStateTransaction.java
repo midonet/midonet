@@ -56,10 +56,13 @@ public class FlowStateTransaction<K, V> {
     private ArrayList<K> touchKeys = new ArrayList<>();
     private ArrayList<V> touchVals = new ArrayList<>();
     private HashSet<K> deletes = new HashSet<>();
+    private boolean committed = false;
 
     public FlowStateTransaction(FlowStateTable<K, V> underlyingState) {
         parent = underlyingState;
     }
+
+    public boolean isCommitted() { return committed; }
 
     public int size() {
         return keys.size() + refs.size();
@@ -75,6 +78,7 @@ public class FlowStateTransaction<K, V> {
         deletes.clear();
         touchKeys.clear();
         touchVals.clear();
+        committed = false;
     }
 
     /**
@@ -89,6 +93,8 @@ public class FlowStateTransaction<K, V> {
 
         for (int i = 0; i < touchKeys.size(); i++)
             parent.touch(touchKeys.get(i), touchVals.get(i));
+
+        committed = true;
     }
 
     public <U> U fold(U seed, Reducer<K, V, U> func) {

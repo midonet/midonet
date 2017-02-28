@@ -253,8 +253,8 @@ class PacketWorkflow(
     protected val simulationExpireMillis = 5000L
     private val maxPooledContexts = config.maxPooledContexts
 
-    private val waitingRoom = new WaitingRoom[PacketContext](
-                                        (simulationExpireMillis millis).toNanos)
+    protected val waitingRoom = new WaitingRoom[PacketContext](
+        (simulationExpireMillis millis).toNanos)
 
     private val contextPool = new ArrayDeque[PacketContext](maxPooledContexts)
     private val processingRoom = new ArrayDeque[PacketContext]()
@@ -669,6 +669,7 @@ class PacketWorkflow(
             case ErrorDrop =>
                 context.flowRemovedCallbacks.runAndClear()
                 context.clearFlowTags()
+                context.prepareForDrop()
                 addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
             case ShortDrop =>
                 context.clearFlowTags()
