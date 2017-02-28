@@ -121,7 +121,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     }
 
     def throwAwayArpBroker(): ArpRequestBroker =
-        new ArpRequestBroker(config, simBackChannel, UnixClock.mock())
+        new ArpRequestBroker(config, simBackChannel, clock)
 
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard())
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard())
