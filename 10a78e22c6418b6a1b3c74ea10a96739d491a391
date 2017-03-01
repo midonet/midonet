@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_76a5b4b3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-03-01T00:26:03Z",
+      "side": 1,
+      "message": "i thought an address update with old api usage should make the port have a single address. this change prevents it, doesn\u0027t it?",
+      "parentUuid": "fabf19d9_d285b3ad",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 65
+      },
+      "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_d2693327",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
         "patchSetId": 3
