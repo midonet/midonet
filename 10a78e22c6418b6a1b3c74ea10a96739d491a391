@@ -168,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_96ede890",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2017-03-01T04:43:25Z",
+      "side": 1,
+      "message": "I don\u0027t see how it would change anything as far as the CLI or API is concerned.  The CLI hasn\u0027t changed, nor has the API side (the only thing that has changed is the interface with ZK).  The input and output to the REST API is the same as before, so both old and new API versions should work.  The only possible difference I could see is if the API gets sent both portAddress AND portSubnet at the same time, which I don\u0027t think ever happens (old sets portAddress only, while new sets portSubnet).",
+      "parentUuid": "fabf19d9_76a5b4b3",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 65
+      },
+      "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_d2693327",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
         "patchSetId": 3
