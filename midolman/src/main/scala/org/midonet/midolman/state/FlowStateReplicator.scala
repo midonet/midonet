@@ -237,7 +237,7 @@ class FlowStateReplicator(
         }
     }
 
-    def buildFlowState(context: PacketContext): Unit = {
+    private def buildFlowState(context: PacketContext): Unit = {
         val flowStateMessage = flowStateEncoder.encodeTo(
             context.stateMessage)
         uuidToSbe(hostId, flowStateMessage.sender)
