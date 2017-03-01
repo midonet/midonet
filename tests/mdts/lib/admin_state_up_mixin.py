@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-class AdminStateUpMixin:
+class AdminStateUpMixin(object):
     def disable(self):
         self._setAdminState(False)
 

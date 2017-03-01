@@ -21,7 +21,7 @@ from mock import MagicMock
 import unittest
 
 
-class TestResourceClassA:
+class TestResourceClassA(object):
     def __init__(self, name):
         self._name = name
 
@@ -32,7 +32,7 @@ class TestResourceClassA:
         self._id = id
 
 
-class TestResourceClassB:
+class TestResourceClassB(object):
     def __init__(self, name):
         self._name = name
 
