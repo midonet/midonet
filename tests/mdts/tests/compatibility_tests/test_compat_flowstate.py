@@ -132,7 +132,7 @@ def cleanup():
     # Wipe out the container
     sandbox.remove_container(agent)
     # Restart sandbox, the --no-recreate flag will spawn only missing containers
-    sandbox.restart_sandbox('default_neutron+kilo+compat',
+    sandbox.restart_sandbox('default_neutron+mitaka+compat',
                             conf.sandbox_name(),
                             'sandbox/override_compat')
     # Reset cached containers and reload them (await for the new agent to be up)
