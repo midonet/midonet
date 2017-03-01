@@ -29,7 +29,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.flows.ManagedFlow
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, GeneratedPhysicalPacket}
-import org.midonet.midolman.state.{ArpRequestBroker, FlowStateAgentPackets => FlowStatePackets}
+import org.midonet.midolman.state.ArpRequestBroker
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
@@ -437,7 +437,6 @@ class PacketContext extends Clearable
 
     def isGenerated = (egressPort ne null) || (egressPortNo ne null)
     def ingressed = !isGenerated
-    def isStateMessage = origMatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
 
     def cookieStr = s"[cookie:$cookie]"
 
