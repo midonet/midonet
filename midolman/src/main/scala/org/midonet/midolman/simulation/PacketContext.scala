@@ -437,7 +437,6 @@ class PacketContext extends Clearable
 
     def isGenerated = (egressPort ne null) || (egressPortNo ne null)
     def ingressed = !isGenerated
-    def isStateMessage = origMatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
 
     def cookieStr = s"[cookie:$cookie]"
 
