@@ -374,7 +374,6 @@ class FlowStateReplicator(
      * EXPECTED CALLING THREADS: only the packet processing thread that owns
      * this replicator.
      */
-    @throws(classOf[NotYetException])
     def accept(p: Ethernet) = {
         val data = parseDatagram(p)
         if (data == null) {
