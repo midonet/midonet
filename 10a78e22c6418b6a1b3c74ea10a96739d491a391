@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "fabf19d9_56b3d00a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2017-03-01T00:19:07Z",
+      "side": 1,
+      "message": "Alex, I agree.  Shall we do that in an immediate subsequent patch, or should I abandon this one to fix?  Also, this patch will fix the update problem (which is the one case where the logic you mentioned has a slight issue, because pulling from ZK will set the portAddress so that when pushing back to ZK, that portAddress will override the portSubnet setting), so that\u0027s still an outstanding bug, should we abandon this patch.\n\nI suggest we push this patch in, then change the createFilter to loop portSubnet and fix the multiple port route bug (there should be a port route for each valid IPv4 CIDR, but now only one gets created) at the same time.",
+      "parentUuid": "fabf19d9_45d43b46",
+      "range": {
+        "startLine": 13,
+        "startChar": 17,
+        "endLine": 14,
+        "endChar": 46
+      },
+      "revId": "10a78e22c6418b6a1b3c74ea10a96739d491a391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fabf19d9_ef1fb007",
         "filename": "/COMMIT_MSG",
         "patchSetId": 3
