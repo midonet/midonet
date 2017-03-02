@@ -85,11 +85,15 @@ object PacketExecutor {
         case t: TCP if t.getFlag(TCP.Flag.Syn) && (t.getOptions ne null) =>
             var i = 0
             val opts = t.getOptions
-            while (i < opts.length) {
+            var j = opts.length
+            while (i < opts.length && j > 0) {
+                j -= 1 // defense against going infinite due to logic bomb
                 val code = opts(i)
                 i += 1
-                if (code <= TCP.OptionKind.NOP.code) {
-                    // END_OPTS and NOP have no arguments.
+                if (code == TCP.OptionKind.END_OPTS.code) {
+                    return
+                } else if (code <= TCP.OptionKind.NOP.code) {
+                    // NOP has no arguments.
                 } else if (code == TCP.OptionKind.MSS.code) {
                     // Reduce MSS by total size of all wrappers other than the
                     // inner IP and Ethernet packets, which the MSS already
@@ -113,6 +117,14 @@ object PacketExecutor {
                 } else {
                     // Don't care about other options, so just skip arguments.
                     val len = opts(i)
+                    if (len < 2) {
+                        // length is an optional field, but should exist for all
+                        // option kinds other than END_OPTS and NOP. Minimum
+                        // length is 2 (1 octet for kind + 1 octet for length)
+                        log.debug(s"Invalid tcp option len($len)."
+                                      + " Is the packet corrupt? Bailing")
+                        return
+                    }
                     i += len - 1
                 }
             }
