@@ -18,6 +18,7 @@ from hamcrest import assert_that
 from hamcrest.core.base_matcher import BaseMatcher
 import logging
 from mdts.tests.utils.utils import ipv4_int
+from mdts.tests.utils.utils import wait_on_futures
 
 LOG = logging.getLogger(__name__)
 NUM_WORKERS = 10
@@ -129,3 +130,36 @@ def within_sec(sec):
 
 def on_host_interface(bool_flag):
     return bool_flag
+
+
+def check_forward_flow(src_vm, dst_vm, fip, src_port, dst_port):
+    # Expect: Both vms (with fip) receive the packet
+    recv_filter = 'udp and port %d and ip dst %s' % (dst_port,
+                                                     dst_vm.get_ip())
+    f = async_assert_that(dst_vm,
+                          receives(recv_filter, within_sec(10)))
+    # When: Sending udp packet
+    #  src_vm (internal) -> dst_vm (fip)
+    src_vm.execute('hping3 -c 1 -q -2 -s %s -p %s %s' %
+                   (src_port, dst_port, fip))
+    wait_on_futures([f])
+
+    # tcpdump format:
+    # date net_proto src_ip.src_port > dst_ip.dst_port: transp_proto [...]
+    output = dst_vm.get_last_tcpdump_output()
+    snat_ip = output.split(' ')[2].rsplit('.', 1)[0]
+    snat_port = output.split(' ')[2].rsplit('.', 1)[1]
+
+    return {'ip': snat_ip, 'port': snat_port}
+
+
+def check_return_flow(src_vm, dst_vm, snat_ip, snat_port, dst_port, src_port):
+    # And expect: Both vms receive return traffic
+    recv_filter = 'udp and port %d and ip dst %s' % (dst_port,
+                                                     dst_vm.get_ip())
+    f = async_assert_that(dst_vm,
+                          receives(recv_filter, within_sec(10)))
+    # When: sending return flows
+    src_vm.execute('hping3 -c 1 -q -2 -s %s -p %s %s' %
+                   (src_port, snat_port, snat_ip))
+    wait_on_futures([f])

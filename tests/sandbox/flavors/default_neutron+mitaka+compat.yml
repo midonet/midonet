@@ -76,6 +76,10 @@ midolman1:
   hostname: midolman1
   volumes:
   - /lib/modules:/lib/modules
+  environment:
+    # Edge bgp interface peering with quagga bgpeth0 interface, 10.1.0.1/24
+    - BGP0_IFACE=bgp0
+    - BGP0_IP_AS=10.1.0.1:64513
   labels:
       interface: mdts.services.midonet_agent.MidonetAgentHost
       type: midolman
@@ -93,6 +97,10 @@ midolman2:
   hostname: midolman2
   volumes:
   - /lib/modules:/lib/modules
+  environment:
+  # Edge bgp interface peering with quagga bgpeth1 interface, 10.2.0.1/24
+  - BGP0_IFACE=bgp0
+  - BGP0_IP_AS=10.2.0.1:64513
   labels:
       interface: mdts.services.midonet_agent.MidonetAgentHost
       type: midolman
@@ -102,6 +110,83 @@ midolman2:
   - "zookeeper3:zk3"
   - "cassandra1:cs1"
 
+quagga0:
+  extends:
+    file: $BASE/quagga.yml
+    service: quagga
+  image: sandbox/quagga:0.99.22
+  hostname: quagga0
+  labels:
+    interface: mdts.services.quagga.QuaggaHost
+    type: quagga
+  environment:
+  - BGP_ROUTER_ID=1.1.1.1
+  # Interface to the other quagga peers
+  - BGP0_IFACE=bgp0
+  # Neighbors
+  - BGPPEER1_IP_AS=10.10.0.2:64511
+  - BGPPEER2_IP_AS=10.10.0.3:64512
+  # AS numbers
+  - BGP_AS=64510
+  # Advertise "inet" network
+  - ADVERTISED_NETWORK=1.1.1.1/32
+  # Disable retransmit (advertise learned routes)
+  - BGP_ONLY_ADVERTISE_LOCAL=yes
+
+quagga1:
+  extends:
+    file: $BASE/quagga.yml
+    service: quagga
+  image: sandbox/quagga:0.99.22
+  hostname: quagga1
+  labels:
+    interface: mdts.services.quagga.QuaggaHost
+    type: quagga
+  environment:
+  - BGP_ROUTER_ID=2.2.2.2
+  # Interface to bgpmaster
+  - BGP0_IFACE=bgp0
+  # Neighbors
+  - BGPPEER1_IP_AS=10.10.0.1:64510
+  # Edge1 interface peering midolman1 at 10.1.0.240/24
+  - BGP1_IFACE=bgp1
+  # Edge2 interface peering midolman2 at 10.2.0.241/24
+  - BGP2_IFACE=bgp2
+  # AS number
+  - BGP_AS=64511
+  # Set as passive speaker
+  - BGP_PASSIVE_SPEAKER=yes
+  links:
+  - "midolman1:bgppeer1"
+  - "midolman2:bgppeer2"
+
+quagga2:
+  extends:
+    file: $BASE/quagga.yml
+    service: quagga
+  image: sandbox/quagga:0.99.22
+  hostname: quagga2
+  labels:
+    interface: mdts.services.quagga.QuaggaHost
+    type: quagga
+  environment:
+  - BGP_ROUTER_ID=3.3.3.3
+  # Interface to bgpmaster
+  - BGP0_IFACE=bgp0
+  # Neighbors
+  - BGPPEER1_IP_AS=10.10.0.1:64510
+  # Edge1 interface peering midolman1 at 10.2.0.240/24
+  - BGP1_IFACE=bgp1
+  # Edge2 interface peering midolman2 at 10.1.0.241/24
+  - BGP2_IFACE=bgp2
+  # AS number
+  - BGP_AS=64512
+  # Set as passive speaker
+  - BGP_PASSIVE_SPEAKER=yes
+  links:
+  - "midolman1:bgppeer1"
+  - "midolman2:bgppeer2"
+
 #########################################
 ## OpenStack Components                ##
 #########################################
@@ -109,7 +194,7 @@ keystone:
   extends:
     file: $BASE/keystone.yml
     service: keystone
-  image: sandbox/keystone:kilo
+  image: sandbox/keystone:mitaka
   hostname: keystone
   labels:
     interface: mdts.services.keystone.KeystoneHost
@@ -119,7 +204,7 @@ neutron:
   extends:
     file: $BASE/neutron.yml
     service: neutron
-  image: sandbox/neutron:kilo
+  image: sandbox/neutron:mitaka
   hostname: neutron
   labels:
     interface: mdts.services.neutron.NeutronHost
