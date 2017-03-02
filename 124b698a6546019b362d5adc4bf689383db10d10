@@ -16,6 +16,24 @@
       "revId": "124b698a6546019b362d5adc4bf689383db10d10",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fabf19d9_703a54e9",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2017-03-02T06:43:19Z",
+      "side": 1,
+      "message": "Now that you mention it, there probably is not a downside after the development is done. We will probably have it enabled by default at that point.\n\nHowever, until development and testing is done, we want a way to use it without requiring it, hence making it optional.",
+      "parentUuid": "fabf19d9_10ad5831",
+      "revId": "124b698a6546019b362d5adc4bf689383db10d10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
