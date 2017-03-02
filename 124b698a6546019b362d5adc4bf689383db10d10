@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fabf19d9_10ad5831",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-03-02T05:35:08Z",
+      "side": 1,
+      "message": "what\u0027s the downside?",
+      "revId": "124b698a6546019b362d5adc4bf689383db10d10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
