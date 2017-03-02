@@ -17,6 +17,9 @@
 package org.midonet.midolman.datapath
 
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
+
+import scala.concurrent.duration._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
@@ -152,6 +155,36 @@ class MSSClampTest extends FlatSpec with Matchers {
                   { tcp src srcPort1 dst dstPort1 flags synFlags }
         val ctx = makeCtx(pkt)
         clampAndCheck(ctx, -1, checksumCleared = false)
+    }
+
+    it should "not go into an infinite loop with zero length options" in {
+        val success = new AtomicBoolean(false)
+        val t = new Thread() {
+            override def run() {
+                val pkt = { eth src srcMac2 dst dstMac2 } <<
+                    { ip4 src srcIp2 dst dstIp2 } <<
+                    { udp src srcPort2 dst dstPort2 } <<
+                    { vxlan vni 5 } <<
+                    { eth src srcMac1 dst dstMac1 } <<
+                    { ip4 src srcIp1 dst dstIp2 } <<
+                    { tcp src srcPort1 dst dstPort1 flags synFlags opt
+                        Array[Byte](-21, 0, 127, 0, 0, 0) }
+
+                val ctx = makeCtx(pkt)
+                ctx.packet.getEthernet.serialize() // Initialize checksums.
+                    PacketExecutor.clampMss(ctx, log)
+                checkChecksumCleared(ctx.packet.getEthernet, cleared = false)
+                success.set(true)
+            }
+        }
+        t.start()
+        var i = 5
+        while (t.isAlive && i > 0) {
+            t.join(5.seconds.toMillis)
+            t.interrupt()
+            i -= 1
+        }
+        success.get shouldBe true
     }
 
     private def clampAndCheck(ctx: PacketContext, mss: Short,
