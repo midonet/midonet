@@ -19,6 +19,7 @@ package org.midonet.midolman.state
 import java.lang.{Integer => JInt, Long => JLong}
 import java.util.UUID
 import java.util.concurrent.{ThreadLocalRandom, ConcurrentHashMap}
+import java.util.concurrent.TimeUnit.{NANOSECONDS => NANOS, MILLISECONDS => MILLIS}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
@@ -166,7 +167,8 @@ trait NatLeaser {
         if (leasedBlocks eq null)
             return
 
-        val leasedBlock = leasedBlocks.unref(blockOf(binding.transportPort), clock.tick)
+        val leasedBlock = leasedBlocks.unref(blockOf(binding.transportPort),
+                                             MILLIS.convert(clock.tick, NANOS))
         if (leasedBlock ne null) {
             val portOffset = binding.transportPort - leasedBlock.block.tpPortStart
             val uniquefier = blend(destinationIp, destinationPort)
@@ -195,8 +197,9 @@ trait NatLeaser {
             while (itDevs.hasNext) {
                 val itIps = itDevs.next().values().iterator()
                 while (itIps.hasNext) {
-                    itIps.next().obliterateIdleEntries(clock.tick, allocator,
-                                                       blockObliterator)
+                    itIps.next().obliterateIdleEntries(
+                        MILLIS.convert(clock.tick, NANOS), allocator,
+                        blockObliterator)
                 }
             }
 
@@ -220,7 +223,7 @@ trait NatLeaser {
                     return binding
                 }
 
-                leasedBlocks.unref(block, clock.tick)
+                leasedBlocks.unref(block, MILLIS.convert(clock.tick, NANOS))
             }
             port = firstPortInNextBlock
         }
@@ -294,7 +297,7 @@ trait NatLeaser {
         val leasedBlocks = getLeasedBlocks(block.deviceId, block.ip)
         val leasedBlock = new LeasedBlock(block)
         leasedBlocks.putAndRef(block.blockIndex, leasedBlock)
-        leasedBlocks.unref(block.blockIndex, clock.tick)
+        leasedBlocks.unref(block.blockIndex, MILLIS.convert(clock.tick, NANOS))
     }
 
     private def getLeasedBlocks(deviceId: UUID, targetIp: IPAddr): LeasedBlocks = {
