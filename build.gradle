@@ -340,6 +340,7 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     }
 
     idea.module {
+        scopes.PROVIDED.plus += [configurations.integrationCompile]
         scopes.PROVIDED.plus += [configurations.perfCompile]
         scopes.PROVIDED.plus += [configurations.provided]
     }
