@@ -1,3 +1,4 @@
+# NOTICE: Midokura will no longer develop the midonet master branch as open source software, instead concentrating on our closed source product. staging/v5.4 will continue to be maintained as open source.
 
 ## Virtualized networking for public and private clouds
 
