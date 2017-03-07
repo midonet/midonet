@@ -32,7 +32,7 @@ class VT_Router_with_FIPs(NeutronTopologyManager):
     def build(self, binding_data=None):
         public = self.create_network('public', external=True)
         public_subnet = self.create_subnet(
-            'public_subnet', public, '1.0.0.0/8', gateway_ip='1.0.0.1')
+            'public_subnet', public, '2.0.0.0/8', gateway_ip='2.0.0.1')
         net1 = self.create_network('net_1')
         subnet1 = self.create_subnet(
             'net_1_subnet', net1, '10.0.0.0/24', gateway_ip='10.0.0.1')
@@ -41,9 +41,11 @@ class VT_Router_with_FIPs(NeutronTopologyManager):
             'net_2_subnet', net2, '10.0.1.0/24', gateway_ip='10.0.1.1')
 
         router1 = self.create_router('router1',
-                                     external_net_id=public['id'])
+                                     external_net_id=public['id'],
+                                     enable_snat=True)
         router2 = self.create_router('router2',
-                                     external_net_id=public['id'])
+                                     external_net_id=public['id'],
+                                     enable_snat=True)
         sub1_rif = self.add_router_interface(router1, subnet=subnet1)
         sub2_rif = self.add_router_interface(router2, subnet=subnet2)
 
@@ -72,7 +74,7 @@ class VT_Router_with_FIPs(NeutronTopologyManager):
         mn_router.add_bgp_peer().asn(64511) \
             .address('10.1.0.240').create()
         mn_router.add_bgp_network().subnet_address(
-            '1.0.0.0').subnet_length(8).create()
+            '2.0.0.0').subnet_length(8).create()
 
 
     def create_port_and_fip(self, port_name, tenant_nw, ext_nw):
@@ -116,18 +118,31 @@ def check_uplink(vm, vm_host, fip, dst_port):
     quagga_cont = service.get_container_by_hostname('quagga0')
     vm_cont = service.get_container_by_hostname(vm_host)
 
-    listen_cmd =\
+    # First check Quagga to VM.
+    vm_listen_cmd =\
         'ip netns exec %s nc -l %d' % (vm.get_vm_ns(), dst_port)
-    send_cmd =\
+    quagga_send_cmd =\
         "/bin/sh -c 'echo test | nc -w 5 %s %d'" % (fip, dst_port)
 
-    result, exec_id = vm_cont.exec_command(listen_cmd, stream=True)
-    quagga_cont.exec_command(send_cmd)
+    result, exec_id = vm_cont.exec_command(vm_listen_cmd, stream=True)
+    quagga_cont.exec_command(quagga_send_cmd)
 
     # nc -l has no timeout mechanism, so make sure the process completed
     # before we try to read the result stream.
     vm_cont.check_exit_status(exec_id, timeout=5)
 
+    assert_that(result.next(), equal_to('test\n'))
+
+    # Now check VM to quagga.
+    quagga_listen_cmd = 'nc -l %d' % dst_port
+    vm_send_cmd =\
+        "ip netns exec %s /bin/sh -c 'echo test | nc -w 5 1.1.1.1 %d'" \
+        % (vm.get_vm_ns(), dst_port)
+
+    result, exec_id = quagga_cont.exec_command(quagga_listen_cmd,
+                                               stream=True)
+    vm_cont.exec_command(vm_send_cmd)
+    quagga_cont.check_exit_status(exec_id, timeout=5)
     assert_that(result.next(), equal_to('test\n'))
 
 
@@ -154,3 +169,4 @@ def test_topology_setup():
 
     # Check uplink
     check_uplink(n1p1, 'midolman1', fip1, 40000)
+

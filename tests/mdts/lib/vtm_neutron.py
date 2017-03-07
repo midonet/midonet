@@ -104,12 +104,13 @@ class NeutronTopologyManager(TopologyManager):
         return subnet['subnet']
 
     def create_router(self, name, tenant_id='admin',
-                      external_net_id=None):
+                      external_net_id=None, enable_snat=False):
         router_params = {'name': name,
                          'tenant_id': tenant_id}
         if external_net_id is not None:
             router_params['external_gateway_info'] = \
-                {'network_id': external_net_id}
+                {'network_id': external_net_id,
+                 'enable_snat': enable_snat}
         router = self.create_resource(
             self.api.create_router({'router': router_params}))
         return router['router']
