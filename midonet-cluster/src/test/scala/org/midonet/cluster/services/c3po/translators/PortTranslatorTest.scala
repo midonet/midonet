@@ -1131,21 +1131,6 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             UpdateOp(ipAddrGrp2))
     }
 
-    "DELETE VIF port with floating IPs attached" should "delete the ARP " +
-    "table entries" in {
-        bind(portId, vifPortWithFloatingIpIds)
-        bind(fipId1, floatingIp1)
-        bind(fipId2, floatingIp2)
-        bind(tntRouterId, nTntRouter)
-        bind(gwPortId, nGwPort)
-        when(storage.getAll(classOf[IPAddrGroup], Seq()))
-            .thenReturn(Future.successful(Seq()))
-
-        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
-        midoOps should contain (DeleteNode(fip1ArpEntryPath))
-        midoOps should contain (DeleteNode(fip2ArpEntryPath))
-    }
-
     "UPDATE MAC address of a VIF port with floating IPs attached" should
     "delete the old ARP table entries related to old MAC and " +
     "create the new ARP table entries related to new MAC" in {
@@ -1492,21 +1477,6 @@ class VipV2PortTranslationTest extends VifPortTranslationTest {
         bind(portId, vipPortUp)
         translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain(DeleteOp(classOf[Port], portId))
-    }
-
-    "DELETE VIP port with floating IPs attached" should "delete the ARP " +
-    "table entries" in {
-        bind(portId, vipPortWithFloatingIpIds)
-        bind(fipId1, floatingIp1)
-        bind(fipId2, floatingIp2)
-        bind(tntRouterId, nTntRouter)
-        bind(gwPortId, nGwPort)
-        when(storage.getAll(classOf[IPAddrGroup], Seq()))
-            .thenReturn(Future.successful(Seq()))
-
-        translator.translate(transaction, DeleteOp(classOf[NeutronPort], portId))
-        midoOps should contain (DeleteNode(fip1ArpEntryPath))
-        midoOps should contain (DeleteNode(fip2ArpEntryPath))
     }
 }
 

@@ -916,12 +916,14 @@ class PortTranslator(stateTableStorage: StateTableStorage,
             // Neutron Router and Port. But ZOOM internally caches objects,
             // therefore in practice it's OK?
             val fip = tx.get(classOf[FloatingIp], fipId)
-            val router = tx.get(classOf[NeutronRouter], fip.getRouterId)
-            val gwPort = tx.get(classOf[NeutronPort], router.getGwPortId)
+            val mRouter = tx.get(classOf[Router], fip.getRouterId)
+            val mPorts = tx.getAll(classOf[Port], mRouter.getPortIdsList.asScala)
+            val nPorts = tx.getAll(classOf[NeutronPort], mPorts.filter(_.hasPeerId).map(_.getPeerId))
+            val nPort = nPorts.filter(p => p.getNetworkId == fip.getFloatingNetworkId).head
             val arpPath = stateTableStorage.bridgeArpEntryPath(
-                gwPort.getNetworkId,
+                nPort.getNetworkId,
                 IPv4Addr(fip.getFloatingIpAddress.getAddress),
-                MAC.fromString(gwPort.getMacAddress))
+                MAC.fromString(nPort.getMacAddress))
             tx.deleteNode(arpPath)
         }
     }

@@ -83,6 +83,149 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         id
     }
 
+    "C3PO" should "add NAT rules and ARP entry for the floating IP." +
+    " when the floating ip network is not on the gateway" in {
+        // Create a private Network
+        val privateNwId = createTenantNetwork(10)
+
+        // Attach a subnet to the Network
+        val privateSubnetCidr = "10.0.0.0/24"
+        val gatewayIp = "10.0.0.1"
+        val privateSnId = createSubnet(
+            20, privateNwId, privateSubnetCidr, gatewayIp = gatewayIp)
+
+        // Set up a host. Needs to do this directly via Zoom as the Host info
+        // is to be created by the Agent.
+        val hostId = createHost().getId.asJava
+
+        // Creates a VIF port.
+        val fixedIp = "10.0.0.9"
+        val vifPortMac = "fa:16:3e:bf:d4:56"
+        val vifPortId = createVifPort(
+            30, privateNwId, mac = vifPortMac,
+            fixedIps = Seq(IPAlloc(fixedIp, privateSnId)))
+
+        // Creates a Port Binding
+        val bindingId = UUID.randomUUID()
+        val interfaceName = "if1"
+        val bindingJson = portBindingJson(bindingId, hostId,
+                                          interfaceName, vifPortId)
+        insertCreateTask(40, PortBindingType, bindingJson, bindingId)
+        eventually(checkPortBinding(hostId, vifPortId, interfaceName))
+
+        // Create an external Network
+        val extNetworkId = createTenantNetwork(50, external = true)
+
+        // Create a tenant Router.
+        val tRouterId = createRouter(80)
+
+        // Create a Router Interface Port.
+        val rifExtMac = "fa:16:3e:7d:c3:3e"
+        val rifExtIp = "172.24.4.1"
+        val extSubnetCidr = "172.24.4.0/24"
+
+        val extSubnetId = createSubnet(85, extNetworkId, extSubnetCidr,
+            gatewayIp = rifExtIp)
+        val rifExtPortId = createRouterInterfacePort(
+            90, extNetworkId, List(IPAlloc(rifExtIp, extSubnetId)),
+            tRouterId, rifExtMac)
+        createRouterInterface(95, tRouterId, rifExtPortId, extSubnetId)
+
+        // Tests that the tenant Router has been hooked up with Provider Router
+        // via the above-created Router Gateway port.
+        storage.exists(classOf[Router], tRouterId).await() shouldBe true
+
+        // Create a Router Interface Port.
+        val rifMac = "fa:16:3e:7d:c3:0e"
+        val rifIp = "10.0.0.1"
+        val extPrivPortId = createRouterInterfacePort(
+            90, privateNwId, List(IPAlloc(rifIp, privateSnId)),
+            tRouterId, rifMac)
+        createRouterInterface(105, tRouterId, extPrivPortId, privateSnId)
+
+        // Create a legacy ReplicatedMap for the external Network ARP table.
+        val arpTable = stateTableStorage.bridgeArpTable(extNetworkId)
+        arpTable.start()
+
+        // Create a Floating IP Port and a FloatingIP.
+        val fipMac = "fa:16:3e:0e:27:1c"
+        val fipIp = "172.24.4.3"
+        val fipId = createFip(100, extNetworkId, fipIp)
+        createFipPort(110, extNetworkId, extSubnetId, fipId, fipIp, fipMac)
+
+        val fip = eventually(storage.get(classOf[FloatingIp], fipId).await())
+        fip.getFloatingIpAddress shouldBe IPAddressUtil.toProto(fipIp)
+        // The ARP table should NOT YET contain the ARP entry.
+        arpTable.containsLocal(fipIp) shouldBe false
+
+        // Update the Floating IP with a port to assign to.
+        val assignedFipJson = floatingIpJson(id = fipId,
+                                             floatingNetworkId = extNetworkId,
+                                             floatingIpAddress = fipIp,
+                                             routerId = tRouterId,
+                                             portId = vifPortId,
+                                             fixedIpAddress = fixedIp)
+        insertUpdateTask(120, FloatingIpType, assignedFipJson, fipId)
+        checkFipAssociated(arpTable, fipIp, fipId, fixedIp, vifPortId,
+                           tRouterId, rifExtMac,
+                           routerInterfacePortPeerId(toProto(rifExtPortId)))
+
+        // Update the VIF. Test that the back reference to Floating IP
+        // survives.
+        val vifPortUpdatedJson = portJson(
+                name = "port1Updated", id = vifPortId,
+                networkId = privateNwId, macAddr = vifPortMac,
+                fixedIps = List(IPAlloc(fixedIp, privateSnId)),
+                deviceOwner = DeviceOwner.COMPUTE)
+        insertUpdateTask(130, PortType, vifPortUpdatedJson, vifPortId)
+
+        val nVifPort = storage.get(classOf[NeutronPort], vifPortId).await()
+        nVifPort.getName shouldBe "port1Updated"
+        nVifPort.getFloatingIpIdsList should contain only toProto(fipId)
+
+        // Create a second VIF port.
+        val vifPort2FixedIp = "10.0.0.19"
+        val vifPort2Mac = "e0:05:2d:fd:16:0b"
+        val vifPort2Id = createVifPort(
+            140, privateNwId, mac = vifPort2Mac,
+            fixedIps = Seq(IPAlloc(vifPort2FixedIp, extSubnetId)))
+
+        // Reassign the FIP to the new VIP port.
+        val reassignedFipJson = floatingIpJson(
+            id = fipId, floatingNetworkId = extNetworkId,
+            floatingIpAddress = fipIp, routerId = tRouterId,
+            portId = vifPort2Id, fixedIpAddress = vifPort2FixedIp)
+        insertUpdateTask(150, FloatingIpType, reassignedFipJson, fipId)
+
+        checkFipAssociated(arpTable, fipIp, fipId, vifPort2FixedIp,
+                           vifPort2Id, tRouterId, rifExtMac,
+                           routerInterfacePortPeerId(toProto(rifExtPortId)))
+        checkNeutronPortFipBackref(vifPortId, null)
+
+        // Deleting a Floating IP should clear the NAT rules and ARP entry.
+        insertDeleteTask(160, FloatingIpType, fipId)
+
+        checkFipDisassociated(arpTable, fipIp, fipId, tRouterId,
+                              deleted = true)
+        checkNeutronPortFipBackref(vifPort2Id, null)
+
+        // Create a second Floating IP with the first VIF port specified.
+        val fip2Ip = "172.24.4.10"
+        val fip2Id = createFip(170, extNetworkId, fip2Ip, fixedIp = fixedIp,
+                               rtrId = tRouterId, portId = vifPortId)
+
+        checkFipAssociated(arpTable, fip2Ip, fip2Id, fixedIp,
+                           vifPortId, tRouterId, rifExtMac,
+                           routerInterfacePortPeerId(toProto(rifExtPortId)))
+
+        // Delete the first VIF port, which should disassociate the second FIP.
+        insertDeleteTask(180, PortType, vifPortId)
+        checkFipDisassociated(arpTable, fip2Ip, fip2Id, tRouterId,
+                              deleted = false)
+
+        arpTable.stop()
+    }
+
     "C3PO" should "add NAT rules and ARP entry for the floating IP." in {
         // Create a private Network
         val privateNwId = createTenantNetwork(10)
