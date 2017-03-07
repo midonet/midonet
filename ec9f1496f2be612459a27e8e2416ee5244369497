@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "154b2400_9e1cab70",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-03-07T02:43:58Z",
+      "side": 1,
+      "message": "i guess a more appropriate description would be \"midokura will not develop opensource midonet master, concentrating into a private version.\"\nafter all, the change is more about midokura than midonet.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 148
+      },
+      "revId": "ec9f1496f2be612459a27e8e2416ee5244369497",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4517b0a_ec12eced",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-03-07T02:43:58Z",
+      "side": 0,
+      "message": "do you need to remove the rest of contents?  i guess adding a big heads up on the top of the page is enough.",
+      "revId": "791386cff43e664f7fd80397ef16d3096ca362a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
