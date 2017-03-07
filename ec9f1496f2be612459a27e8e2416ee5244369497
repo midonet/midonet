@@ -22,6 +22,30 @@
       "revId": "ec9f1496f2be612459a27e8e2416ee5244369497",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a1f0f43a_980e2b5e",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2017-03-07T16:36:02Z",
+      "side": 1,
+      "message": "good point. changed.",
+      "parentUuid": "154b2400_9e1cab70",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 148
+      },
+      "revId": "ec9f1496f2be612459a27e8e2416ee5244369497",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
