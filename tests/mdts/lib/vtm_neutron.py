@@ -254,7 +254,7 @@ class NeutronTopologyManager(TopologyManager):
         if port_security_enabled:
             port_params['port_security_enabled'] = True
         if mac:
-            port_params['mac'] = mac
+            port_params['mac_address'] = mac
         if device_owner:
             port_params['device_owner'] = device_owner
 
