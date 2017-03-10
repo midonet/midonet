@@ -83,7 +83,7 @@ object PacketExecutor {
         case t: TCP if t.getFlag(TCP.Flag.Syn) =>
             var i = 0
             val opts = t.getOptions
-            var j = opts.length
+            var j = if (opts != null) opts.length else 0
             while (i < opts.length && j > 0) {
                 j -= 1 // defense against going infinite due to logic bomb
                 val code = opts(i)
