@@ -290,6 +290,10 @@ class StateProxyClient(conf: StateProxyClientConfig,
         def incrementRetryCounter(): Unit = {
             state.get match {
                 case s: Waiting =>
+                    if (s.retryCount == 0) {
+                        log.warn(s"$this No state proxy server available, " +
+                                 s"retrying ${conf.maxSoftReconnectAttempts} times")
+                    }
                     if (s.retryCount < conf.maxSoftReconnectAttempts) {
                         val count = s.retryCount + 1
                         if (state.compareAndSet(s, Waiting(count,

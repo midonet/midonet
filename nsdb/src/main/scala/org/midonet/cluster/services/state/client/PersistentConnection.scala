@@ -238,7 +238,6 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                     }
 
                 case None =>
-                    log.warn(s"$this No state proxy server available")
                     onFailedConnection(new ServerNotFoundException())
                     delayedStart(Connecting)
             }
