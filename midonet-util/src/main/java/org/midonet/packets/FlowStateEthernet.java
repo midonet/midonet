@@ -123,9 +123,9 @@ public final class FlowStateEthernet extends Ethernet {
 
     @Override
     public byte[] serialize() {
-        ((IPv4)payload).setChecksum((short)0);
-        ((IPv4)payload).setTotalLength(0);
-        return super.serialize();
+        ByteBuffer bb = ByteBuffer.allocate(length());
+        serialize(bb);
+        return bb.array();
     }
 
     public void limit(int limit) {
@@ -172,7 +172,7 @@ public final class FlowStateEthernet extends Ethernet {
         udp.setParent(ipv4);
         ipv4.setPayload(udp);
 
-        byte[] serialized = serialize();
+        byte[] serialized = super.serialize();
         // We don't specify the UDP checksum
         ByteBuffer.wrap(serialized).putShort(FLOW_STATE_UDP_CHECKSUM_OFFSET,
                                              (short) 0);
