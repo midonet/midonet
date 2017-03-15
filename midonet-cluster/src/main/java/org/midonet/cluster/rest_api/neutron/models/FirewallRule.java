@@ -152,7 +152,7 @@ public class FirewallRule extends ZoomObject
             .compare(name, other.name)
             .compare(description, other.description)
             .compare(firewallPolicyId, other.firewallPolicyId)
-            .compare(shared, other.shared)
+            .compareFalseFirst(shared, other.shared)
             .compare(protocol, other.protocol)
             .compare(ipVersion, other.ipVersion)
             .compare(sourceIpAddress, other.sourceIpAddress)
@@ -161,7 +161,7 @@ public class FirewallRule extends ZoomObject
             .compare(destinationPort, other.destinationPort)
             .compare(action, other.action)
             .compare(position, other.position)
-            .compare(enabled, other.enabled).result();
+            .compareFalseFirst(enabled, other.enabled).result();
     }
 
     @Override
