@@ -22,7 +22,7 @@ import com.typesafe.scalalogging.{Logger => Wrapper}
 
 import org.apache.commons.lang.StringUtils
 import org.slf4j.helpers.LogstashBasicMarker
-import org.slf4j.{Marker, Logger => Underlying}
+import org.slf4j.{LoggerFactory, Marker, Logger => Underlying}
 
 /**
   * Companion for [[Logger]], providing a factory for [[Logger]]s.
@@ -30,11 +30,21 @@ import org.slf4j.{Marker, Logger => Underlying}
 object Logger {
 
     /**
+     * Create a [[Logger]] wrapping a [[org.slf4j.Logger]] with the given name.
+     */
+    def apply(logger: String): Logger = apply(LoggerFactory.getLogger(logger))
+
+    /**
+     * Create a [[Logger]] wrapping a [[org.slf4j.Logger]], named after the
+     * given class.
+     */
+    def apply(clazz: Class[_]): Logger = apply(clazz.getName)
+
+    /**
       * Create a [[Logger]] wrapping the given underlying
       * [[com.typesafe.scalalogging.Logger]].
       */
-    def apply(underlying: Underlying): Logger =
-        new Logger(underlying, null)
+    def apply(underlying: Underlying): Logger = apply(underlying, null)
 
     /**
       * Create a [[Logger]] wrapping the given underlying
