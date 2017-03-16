@@ -3,8 +3,14 @@
 # Install the latest packages from the local repository
 LOCAL_REPO_FILE=/etc/apt/sources.list.d/midonet-local.list
 echo "deb file:/packages /" > $LOCAL_REPO_FILE
-
+echo "deb http://artifactory.bcn.midokura.com/artifactory/mem-5.6-deb unstable main" >> $LOCAL_REPO_FILE
 apt-get update
+
+# We need to create the vpp init script because the vpp package
+# will fail otherwise if the upstart process is not running.
+# This is a test specific configuration as the package would
+# install under normal circumstances (upstart running).
+touch /etc/init.d/vpp
 
 # Make sure we can access the remote management interface from outside the container
 HOST_NAME=`hostname`
