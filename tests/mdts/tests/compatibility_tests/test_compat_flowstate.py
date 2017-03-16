@@ -123,6 +123,7 @@ def install_packages(container_name, *packages):
 def install():
     # Install new package so the new version is updated immediately after reboot
     install_packages("midolman1", "midolman/local", "midonet-tools/local")
+    install_packages("cluster1", "midonet-cluster/local")
 
 def reset_sandbox():
     # Wipe out the sandbox and rebuild
@@ -161,6 +162,11 @@ def test_compat_flowstate():
 
     fip1 = VTM.get_resource('public_1_fip')['floatingip']['floating_ip_address']
     fip2 = VTM.get_resource('public_2_fip')['floatingip']['floating_ip_address']
+
+    # Restart the cluster. Cluster should always be upgraded before agents.
+    cluster = service.get_container_by_hostname('cluster1')
+    cluster.stop(wait=False)
+    cluster.start(wait=True)
 
     agent = service.get_container_by_hostname('midolman1')
 
