@@ -37,12 +37,23 @@ def remove_container(container):
     LOG.debug(stdout)
 
 
-def restart_sandbox(flavour, sandbox_name, override, no_recreate=True):
+def restart_sandbox(flavour, sandbox_name, override,
+                    provisioning=None,
+                    no_recreate=True):
+    prov_arg = ("--provision=%s" % provisioning) if provisioning else ""
     cmd = "sandbox-manage -c sandbox.conf run %s " \
-          "--name=%s --override=%s " \
-          "--force" % (flavour, sandbox_name, override)
+          "--name=%s --override=%s %s " \
+          "--force" % (flavour, sandbox_name, override, prov_arg)
     if no_recreate:
         cmd += " --no-recreate"
+    p = subprocess.Popen(
+            shlex.split(cmd), cwd='../../../',
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout, _ = p.communicate()
+    LOG.debug(stdout)
+
+def kill_sandbox(sandbox_name):
+    cmd = "sandbox-manage -c sandbox.conf kill %s --remove" % (sandbox_name)
     p = subprocess.Popen(
             shlex.split(cmd), cwd='../../../',
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
