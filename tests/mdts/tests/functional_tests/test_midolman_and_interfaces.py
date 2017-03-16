@@ -24,7 +24,7 @@ from nose.plugins.attrib import attr
 
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.services import service
-from mdts.tests.utils.utils import get_midonet_api
+from mdts.utils.utils import get_midonet_api
 
 import time
 

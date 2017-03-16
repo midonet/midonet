@@ -22,8 +22,8 @@ from mdts.lib.failure.pkt_failure import PktFailure
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.services import service
-from mdts.tests.utils.utils import bindings
-from mdts.tests.utils.utils import wait_on_futures
+from mdts.utils.utils import bindings
+from mdts.utils.utils import wait_on_futures
 from nose.plugins.attrib import attr
 from nose.tools import nottest
 from nose.tools import with_setup

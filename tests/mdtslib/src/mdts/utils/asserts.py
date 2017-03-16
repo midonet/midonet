@@ -17,8 +17,8 @@ from concurrent.futures import ThreadPoolExecutor
 from hamcrest import assert_that
 from hamcrest.core.base_matcher import BaseMatcher
 import logging
-from mdts.tests.utils.utils import ipv4_int
-from mdts.tests.utils.utils import wait_on_futures
+from mdts.utils.utils import ipv4_int
+from mdts.utils.utils import wait_on_futures
 
 LOG = logging.getLogger(__name__)
 NUM_WORKERS = 10

@@ -15,8 +15,8 @@
 import logging
 from mdts.lib.topology_manager import TopologyManager
 from mdts.services import service
-from mdts.tests.utils.utils import await_port_active
-from mdts.tests.utils.utils import get_midonet_api
+from mdts.utils.utils import await_port_active
+from mdts.utils.utils import get_midonet_api
 import sys
 
 LOG = logging.getLogger(__name__)

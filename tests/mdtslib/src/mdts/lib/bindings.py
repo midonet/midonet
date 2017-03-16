@@ -16,7 +16,7 @@ import fixtures
 from fixtures import callmany
 from mdts.lib.topology_manager import TopologyManager
 from mdts.services import service
-from mdts.tests.utils.utils import await_port_active
+from mdts.utils.utils import await_port_active
 import uuid  # noqa
 
 import logging

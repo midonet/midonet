@@ -13,8 +13,8 @@
 # limitations under the License.
 import logging
 from mdts.services import service
-from mdts.tests.utils import conf
-from mdts.tests.utils.utils import await_port_active
+from mdts.utils import conf
+from mdts.utils.utils import await_port_active
 
 logging.basicConfig(filename='nosetests.log',
                     level=logging.DEBUG,

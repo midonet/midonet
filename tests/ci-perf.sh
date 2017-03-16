@@ -31,7 +31,7 @@ export MIDOLMAN1=$(docker ps -q -a -f=name=midolman1)
 echo "agent.loggers.root=INFO" | docker exec -i $MIDOLMAN1 mn-conf set -t default
 
 cd tests/mdts/tests/performance_tests/
-./run_tests.sh -r $WORKSPACE/tests -l logs
+./run_tests.sh -l logs
 if [ $? = 0 ]; then
     export JMXTRANS=$(docker ps -q -a -f=name=jmxtrans)
     docker exec $JMXTRANS /usr/bin/upload_stats -b $BUILD -c $COMMITISH -I $INFLUX_ENDPOINT

@@ -16,7 +16,7 @@
 
 from mdts.services import service
 from mdts.services.service import Service
-from mdts.tests.utils import conf
+from mdts.utils import conf
 
 import neutronclient.neutron.client as neutron
 

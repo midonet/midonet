@@ -20,7 +20,7 @@ import uuid
 import yaml
 
 from mdts.services import service
-from mdts.tests.utils import utils
+from mdts.utils import utils
 
 
 class TopologyManager(fixtures.Fixture):

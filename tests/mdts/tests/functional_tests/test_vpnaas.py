@@ -21,10 +21,10 @@ import logging
 from mdts.lib.bindings import BindingManager
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
-from mdts.tests.utils.asserts import assert_that
-from mdts.tests.utils.utils import await_port_active
-from mdts.tests.utils.utils import bindings
-from mdts.tests.utils.utils import wait_on_futures
+from mdts.utils.asserts import assert_that
+from mdts.utils.utils import await_port_active
+from mdts.utils.utils import bindings
+from mdts.utils.utils import wait_on_futures
 from nose.tools import nottest
 import time
 

@@ -15,7 +15,7 @@
 #
 
 import logging
-from mdts.tests.utils import conf
+from mdts.utils import conf
 import paramiko
 from paramiko.client import AutoAddPolicy
 from paramiko.config import SSHConfig

@@ -14,7 +14,7 @@
 
 from mdts.lib.bindings import BindingManager
 from mdts.lib.vtm_neutron import NeutronTopologyManager
-from mdts.tests.utils.utils import bindings
+from mdts.utils.utils import bindings
 
 PLEFT = 'port_left'
 PRIGHT = 'port_right'

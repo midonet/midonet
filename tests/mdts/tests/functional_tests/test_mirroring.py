@@ -16,12 +16,12 @@ from mdts.lib.binding_manager import BindingManager
 from mdts.lib.failure.no_failure import NoFailure
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
-from mdts.tests.utils.asserts import async_assert_that
-from mdts.tests.utils.asserts import receives
-from mdts.tests.utils.asserts import within_sec
-from mdts.tests.utils.utils import bindings
-from mdts.tests.utils.utils import failures
-from mdts.tests.utils.utils import wait_on_futures
+from mdts.utils.asserts import async_assert_that
+from mdts.utils.asserts import receives
+from mdts.utils.asserts import within_sec
+from mdts.utils.utils import bindings
+from mdts.utils.utils import failures
+from mdts.utils.utils import wait_on_futures
 from nose.plugins.attrib import attr
 import random
 

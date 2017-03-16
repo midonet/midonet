@@ -19,12 +19,12 @@ from mdts.lib.bindings import BindingManager
 from mdts.lib.bindings import BindingType
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
-from mdts.tests.utils.asserts import async_assert_that
-from mdts.tests.utils.asserts import receives
-from mdts.tests.utils.asserts import within_sec
-from mdts.tests.utils.utils import await_port_active
-from mdts.tests.utils.utils import bindings
-from mdts.tests.utils.utils import wait_on_futures
+from mdts.utils.asserts import async_assert_that
+from mdts.utils.asserts import receives
+from mdts.utils.asserts import within_sec
+from mdts.utils.utils import await_port_active
+from mdts.utils.utils import bindings
+from mdts.utils.utils import wait_on_futures
 
 
 LOG = logging.getLogger(__name__)

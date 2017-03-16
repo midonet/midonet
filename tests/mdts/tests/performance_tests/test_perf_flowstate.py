@@ -16,10 +16,10 @@ import logging
 from mdts.lib.bindings import BindingManager
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
-from mdts.tests.utils.asserts import assert_that
-from mdts.tests.utils.asserts import receives
-from mdts.tests.utils.asserts import within_sec
-from mdts.tests.utils.utils import bindings
+from mdts.utils.asserts import assert_that
+from mdts.utils.asserts import receives
+from mdts.utils.asserts import within_sec
+from mdts.utils.utils import bindings
 from nose.plugins.attrib import attr
 from nose.tools import with_setup
 import os

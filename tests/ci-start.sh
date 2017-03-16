@@ -78,7 +78,10 @@ cd -
 pip install Cython==0.24.1
 
 # Install mdts deps, on top of sandbox deps
-pip install -r tests/mdts.dependencies
+cd tests/mdtslib
+pip install -r requirements.txt
+python setup.py install
+cd -
 
 # Start sandbox
 cd tests/

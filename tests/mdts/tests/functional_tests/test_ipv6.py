@@ -16,7 +16,7 @@ import logging
 from mdts.lib.bindings import BindingManager
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
-from mdts.tests.utils.utils import bindings
+from mdts.utils.utils import bindings
 from nose.plugins.attrib import attr
 from nose.tools import nottest
 import re

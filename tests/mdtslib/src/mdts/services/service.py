@@ -20,7 +20,7 @@ import logging
 from mdts.lib.mdtsdocker import DockerClient
 from mdts.lib.ssh import SshClient
 from mdts.services.interface import Interface
-from mdts.tests.utils import conf
+from mdts.utils import conf
 import time
 
 LOG = logging.getLogger(__name__)

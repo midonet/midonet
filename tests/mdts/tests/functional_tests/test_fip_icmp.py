@@ -18,7 +18,7 @@ from hamcrest import is_not
 import logging
 from mdts.lib.bindings import BindingManager
 from mdts.lib.vtm_neutron import NeutronTopologyManager
-from mdts.tests.utils.utils import bindings
+from mdts.utils.utils import bindings
 from nose.plugins.attrib import attr
 import re
 

@@ -16,10 +16,10 @@
 import json
 import logging
 from mdts.lib.topology_manager import TopologyManager
-from mdts.tests.utils.utils import get_keystone_api
-from mdts.tests.utils.utils import get_neutron_api
-from mdts.tests.utils.utils import http_delete
-from mdts.tests.utils.utils import http_post
+from mdts.utils.utils import get_keystone_api
+from mdts.utils.utils import get_neutron_api
+from mdts.utils.utils import http_delete
+from mdts.utils.utils import http_post
 from neutronclient.common.exceptions import NotFound
 
 LOG = logging.getLogger(__name__)

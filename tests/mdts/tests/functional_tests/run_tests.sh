@@ -29,7 +29,6 @@ OPTIONS:
  -e TEST     Exclude this test (can be specified multiple times)
  -t TEST     Runs this test(s)
  -l LOG_DIR  Directory where to store results (defaults to ./logs)
- -r DIR      Use DIR as the Python root (to determine imported modules)
  -n SANDBOX  Use this sandbox name to run the tests on (defaults to mdts)
  -g          Do not run gate tests
  -G          Run only gate tests
@@ -63,7 +62,6 @@ import ipdb; ipdb.set_trace()
 EOF
 }
 
-PDIR=../../../
 ATTR=""
 ARGS=""  # passed directly to nosetests runner
 LOG_DIR="logs-$(date +"%y%m%d%H%M%S")"
@@ -91,9 +89,6 @@ do
                 TEST=$TEST:$TESTCASE
             fi
             TESTS="$TESTS $TEST"
-            ;;
-        r)
-            PDIR=$OPTARG
             ;;
         l)
             LOG_DIR=$OPTARG/
@@ -163,6 +158,6 @@ shift $(( OPTIND - 1 ))
 
 # Avoid masking the exit status of nose with the exit 0 of tee
 set -o pipefail
+set -x
 
-echo "PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+\"-A $ATTR\"} $TESTS $ARGS "
-PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+"-A $ATTR"} $TESTS $ARGS
+./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+"-A $ATTR"} $TESTS $ARGS

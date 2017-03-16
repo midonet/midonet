@@ -1,7 +1,7 @@
 . venv/bin/activate
 cd tests/mdts/tests/functional_tests
 
-./run_tests.sh -r $WORKSPACE/tests -l logs -X
+./run_tests.sh -l logs -X
 
 cd -
 
