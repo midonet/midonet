@@ -95,8 +95,8 @@ everything on it:
 sudo pip install --upgrade pip setuptools virtualenv
 virtualenv venv
 source venv/bin/activate
-pushd tests && pip install -r mdts.dependencies && popd
 pushd midonet-sandbox && python setup.py install && popd
+pushd tests && pip install -r mdts.dependencies && popd
 pushd python-midonetclient && python setup.py install && popd
 ```
 
