@@ -55,7 +55,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
 
         # All ports share the same default SG, only need to set it once.
         self.create_sg_rule(public_1['security_groups'][0],
-                            protocol='udp', port_range=[0, 65535])
+                            protocol='udp', port_range=[1, 65535])
 
         self.create_floating_ip('public_1_fip', public['id'],
                                 public_1['id'])
@@ -64,7 +64,7 @@ class VT_Networks_with_SG(NeutronTopologyManager):
 
     def add_router(self, name, external_net_id, internal_subnets):
         router = self.create_router(
-            name, external_net_id=external_net_id)
+            name, external_net_id=external_net_id, enable_snat=True)
 
         for internal_subnet in internal_subnets:
             self.add_router_interface(router, subnet=internal_subnet)
