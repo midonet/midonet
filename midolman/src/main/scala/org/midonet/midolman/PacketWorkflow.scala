@@ -555,7 +555,7 @@ class PacketWorkflow(
 
     protected def handlePacket(packet: Packet): Unit =
         if (FlowState.isStateMessage(packet.getMatch)) {
-            handleStateMessage(packetContext(packet))
+            handleStateMessage(packet)
             packetOut(1)
         } else {
             processPacket(packet)
@@ -712,9 +712,9 @@ class PacketWorkflow(
             Simulator.simulate(context)
         }
 
-    protected def handleStateMessage(context: PacketContext): Unit = {
-        context.log.debug("Accepting a state push message")
-        replicator.accept(context.ethernet)
+    protected def handleStateMessage(packet: Packet): Unit = {
+        log.debug("Accepting a state push message")
+        replicator.accept(packet.getEthernet)
         metrics.statePacketsProcessed.mark()
     }
 

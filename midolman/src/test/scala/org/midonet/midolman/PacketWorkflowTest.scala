@@ -762,7 +762,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             process()
         }
 
-        protected override def handleStateMessage(context: PacketContext): Unit =
+        protected override def handleStateMessage(packet: Packet): Unit =
             stateMessagesSeen += 1
 
         override def start(pktCtx: PacketContext): SimulationResult = {
