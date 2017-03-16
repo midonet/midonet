@@ -110,38 +110,35 @@ binding_multihost = {
     ]
 }
 
+def install_packages(container_name, *packages):
+    container = service.get_container_by_hostname(container_name)
+    output, exec_id = container.exec_command(
+        "sh -c 'env DEBIAN_FRONTEND=noninteractive apt-get install " + \
+        "-qy --force-yes -o Dpkg::Options::=\"--force-confnew\" " + \
+        "%s'" % (" ".join(packages)), stream=True)
+    exit_code = container.check_exit_status(exec_id, output, timeout=60)
+    if exit_code != 0:
+        raise RuntimeError("Failed to update packages (%s)." % (packages))
 
 def install():
     # Install new package so the new version is updated immediately after reboot
-    agent = service.get_container_by_hostname('midolman1')
-    output, exec_id = agent.exec_command(
-            "apt-get install -qy --force-yes "
-            "-o Dpkg::Options::=\"--force-confnew\" "
-            "midolman/local midonet-tools/local", stream=True)
-    exit_code = agent.check_exit_status(exec_id, output, timeout=60)
-    if exit_code != 0:
-        raise RuntimeError("Failed to update package.")
+    install_packages("midolman1", "midolman/local", "midonet-tools/local")
 
-
-def cleanup():
-    agent = service.get_container_by_hostname('midolman1')
-    # We wait just to make sure that it's been unregistered
-    agent.stop(wait=True)
-    # Wipe out the container
-    sandbox.remove_container(agent)
-    # Restart sandbox, the --no-recreate flag will spawn only missing containers
+def reset_sandbox():
+    # Wipe out the sandbox and rebuild
+    sandbox.kill_sandbox(conf.sandbox_name())
     sandbox.restart_sandbox('default_neutron+mitaka+compat',
                             conf.sandbox_name(),
-                            'sandbox/override_compat')
+                            'sandbox/override_compat',
+                            'sandbox/provisioning/compat-provisioning.sh')
     # Reset cached containers and reload them (await for the new agent to be up)
     service.loaded_containers = None
     agent = service.get_container_by_hostname('midolman1')
     agent.wait_for_status('up')
 
-
+@with_setup(install, reset_sandbox)
 @bindings(binding_multihost,
           binding_manager=BM)
-@with_setup(install, cleanup)
 def test_compat_flowstate():
     """
     Title: Tests that flow state changes are backwards compatible
