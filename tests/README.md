@@ -112,12 +112,13 @@ initial set of images, you need to:
 
 ```
 pushd tests
-sandbox-manage -c sandbox.conf build-all default_v2 && popd
+sandbox-manage -c sandbox.conf build-all default_v2_neutron+newton && popd
 ```
 
-Wait until all images have been generated. The default_v2 is a basic MDTS
-flavour for sandbox. Look into the sandbox/flavours directory for a list of the
-supported flavours. For more information about how to use sandbox, components,
+Wait until all images have been generated. The default_v2_neutron+newton
+is a basic MDTS flavour with neutron for sandbox.
+Look into the sandbox/flavours directory for a list of the supported
+flavours. For more information about how to use sandbox, components,
 flavors and overrides, check its [source repo](https://github.com/midonet/midonet-sandbox)
 or execute `sandbox-manage --help`.
 
@@ -130,7 +131,7 @@ tests/copy_to_override.sh override_v2
 And start sandbox with a specific flavor, override and provisioning scripts:
 ```
 pushd tests
-sandbox-manage -c sandbox.conf run default_v2 --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/all-provisioning.sh
+sandbox-manage -c sandbox.conf run default_v2_neutron+newton --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/all-provisioning.sh
 ```
 
 To completely remove all containers to restart sandbox:
