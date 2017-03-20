@@ -91,3 +91,22 @@ sandbox-manage -c sandbox.conf \
                     --override=$OVERRIDE \
                     --provision=$PROVISIONING
 cd -
+
+# wait for agents to come up
+agents_up () {
+    echo dump | nc $1 2181 | grep '/Host/.*/alive' | wc -l
+}
+
+TIMEOUT=600
+NUM_AGENTS=$(docker ps | grep mnsandbox${SANDBOX_NAME}_midolman | wc -l)
+ZK=$(docker exec mnsandbox${SANDBOX_NAME}_zookeeper1_1 ip a show dev eth0 \
+    | awk -F'[ /]+' '/inet / {{ print $3 }}')
+I=0
+while [ $(agents_up $ZK) -ne $NUM_AGENTS -a $I -lt $TIMEOUT ]; do
+    sleep 1
+    I=$((I+1))
+done
+if [ $I -eq $TIMEOUT ]; then
+    echo "Agents never came up"
+    exit 1
+fi
