@@ -113,7 +113,7 @@ class BindingApiServiceTest extends FeatureSpec with Matchers {
 
     private def readString(channel: ByteChannel) = {
         val bb = ByteBuffer.allocate(1000)
-        channel.read(bb)
+        while (-1 != channel.read(bb)) {}
         bb.flip
         val bytes = new Array[Byte](bb.remaining)
         bb.get(bytes)
@@ -132,6 +132,7 @@ class BindingApiServiceTest extends FeatureSpec with Matchers {
                     |Host: dummy
                     |Content-Type: text/plain
                     |Content-Length: 6
+                    |Connection: close
                     |
                     |hello
                     |""".stripMargin)
