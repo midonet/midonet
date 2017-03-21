@@ -406,7 +406,7 @@ class PacketWorkflow(
     private def returnContext(context: PacketContext): Unit = {
         context.resetContext()
         if (contextPool.size() < maxPooledContexts &&
-                contextPool.offerLast(context)) {
+                contextPool.offerFirst(context)) {
             log.debug("Returned context to pool")
             metrics.contextsPooled.inc()
         } else {
