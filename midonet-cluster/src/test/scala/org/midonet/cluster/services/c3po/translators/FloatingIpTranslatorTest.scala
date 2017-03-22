@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.concurrent.Future
+
 import org.junit.runner.RunWith
 import org.mockito.Mockito._
 import org.scalatest.junit.JUnitRunner
@@ -23,7 +25,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPort, NeutronSubnet, NeutronVIP}
 import org.midonet.cluster.models.Topology.{Dhcp, Network, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
@@ -41,6 +43,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val fipIdThatDoesNotExist = randomUuidProto
     protected val tntRouterId = randomUuidProto
     protected val fipPortId = randomUuidProto
+    protected val vipPortId = randomUuidProto
     protected val fipIpAddr = IPAddressUtil.toProto("10.10.10.1")
     protected val fipIpSubnet = IPSubnetUtil.fromAddress(fipIpAddr)
     protected val fipFixedIpAddr = IPAddressUtil.toProto("192.168.1.1")
@@ -83,6 +86,20 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         """)
 
     protected val boundFip = fip()
+
+    protected def vipPort(portId: UUID) = nPortFromTxt(s"""
+        id { $portId }
+        device_owner: LOADBALANCER
+        """)
+
+    protected def vip(portId: UUID) = nVIPFromTxt(s"""
+        port_id { $portId }
+        """)
+
+    protected def computePort(portId: UUID) = nPortFromTxt(s"""
+        id { $portId }
+        device_owner: COMPUTE
+        """)
 
     // Main tenant router setup
     protected val extSubId = randomUuidProto
@@ -356,6 +373,8 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
         bind(tntRouterSkipSnatChainId, tntRouterSkipSnatChain)
         bind(nTntRouterGatewayPortId, nTntRouterGatewayPort)
         bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
+        bind(fipPortId, computePort(fipPortId))
+        bind(vipPortId, vipPort(vipPortId))
         bindAll(Seq(), Seq(), classOf[NeutronPort])
         bindAll(Seq(), Seq(), classOf[NeutronNetwork])
         bindAll(Seq(extSubId), Seq(mDhcp))
@@ -367,6 +386,8 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
         bindAll(Seq(externalNetworkId), Seq(mExtNetwork))
         bindAll(Seq(externalNetworkId), Seq(nExtNetwork))
         bindAll(Seq(tntRouterInternalPortId), Seq(mTntRouterInternalPort))
+        when(transaction.getAll(classOf[NeutronVIP]))
+            .thenReturn(Seq(vip(vipPortId)))
     }
 
     "Unassociated floating IP" should "not create anything" in {
@@ -414,6 +435,20 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
                 ise.getMessage should startWith (
                     s"Router ${UUIDUtil.fromProto(tntRouterId)} has no port")
             case e => fail("Expected an IllegalStateException.", e)
+        }
+    }
+
+    "Floating IPv4 association to VIP" should "fail" in {
+        val fipBoundToVip = fip(portId = vipPortId)
+        val te = intercept[TranslationException] {
+            translator.translate(transaction, Create(fipBoundToVip))
+        }
+        te.getCause should not be null
+        te.getCause match {
+            case uoe: UnsupportedOperationException if uoe.getMessage != null =>
+                uoe.getMessage should be (
+                    "MidoNet native LBaaS v1 doesn't support floating-ip association")
+            case e => fail(s"Expected an UnsupportedOperationException. ${e}", e)
         }
     }
 }
@@ -555,6 +590,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bind(tntRouter2SkipSnatChainId, tntRouter2SkipSnatChain)
         bind(nTntRouter2GwPortId, nTntRouter2GwPort)
         bind(mTntRouter2GwPortId, mTntRouter2GwPort)
+        bind(fipPortId, computePort(fipPortId))
         bindAll(Seq(nTntRouter2GwPortId), Seq(nTntRouter2GwPort))
         bindAll(Seq(mTntRouter2GwPortId), Seq(mTntRouter2GwPort))
         bindAll(Seq(nTntRouterGatewayPortId), Seq(nTntRouterGatewayPort))
@@ -571,6 +607,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bindAll(Seq(), Seq(), classOf[NeutronNetwork])
         bindAll(Seq(), Seq(), classOf[NeutronPort])
         bindAll(Seq(extSubId), Seq(mDhcp))
+        bindAll(Seq(), Seq(), classOf[NeutronVIP])
 
         translator = new FloatingIpTranslator(stateTableStorage)
     }
@@ -710,9 +747,11 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 
     "Re-associating a floating IPv6" should "remove the old entry and create " +
                                             "a new one" in {
+        val portId = randomUuidProto
         val oldFip = fip6()
-        val newFip = fip6(portId = randomUuidProto)
+        val newFip = fip6(portId = portId)
         bind(fipId, oldFip)
+        bind(portId, computePort(portId))
         translator.translate(transaction, Update(newFip))
 
         verify(transaction).deleteNode(fip64Path(oldFip, mTntRouterGatewayPortId),

@@ -22,7 +22,7 @@ import scala.collection.breakOut
 import org.midonet.cluster.data.storage.model.Fip64Entry
 import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter, NeutronVIP}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouteManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
@@ -296,7 +296,20 @@ class FloatingIpTranslator(stateTableStorage: StateTableStorage)
                   ignoresNeo = true)
     }
 
+    private def rejectVipPortForMidoNetLoadBalancer(tx: Transaction,
+                                                    fip: FloatingIp): Unit = {
+        val portId = fip.getPortId
+        val port = tx.get(classOf[NeutronPort], portId)
+        if (!PortManager.isVipPort(port))
+            return
+        val vips = tx.getAll(classOf[NeutronVIP])
+        if (vips.exists(_.getPortId == portId))
+            throw new UnsupportedOperationException(
+                "MidoNet native LBaaS v1 doesn't support floating-ip association")
+    }
+
     private def associateFip(tx: Transaction, fip: FloatingIp): Unit = {
+        rejectVipPortForMidoNetLoadBalancer(tx, fip)
         if (isIPv6(fip)) {
             associateFip6(tx, fip)
         } else {
