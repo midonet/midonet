@@ -18,7 +18,7 @@ end-to-end transmission.
 Minumum recommended environment
 -------------------------------
 
-* 8GB RAM
+* 12GB RAM
 * 20GB storage space
 * 2 CPUs (or VCPUs)
 
