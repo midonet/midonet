@@ -304,7 +304,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
     override def keyObservable(namespace: String, clazz: Class[_], id: ObjId,
                                key: String): Observable[StateKey] = {
         assertBuilt()
-        val index = KeyIndex(namespace, clazz, id.toString, key)
+        val index = KeyIndex(namespace, clazz, getIdString(id), key)
         Observable.create(new OnSubscribe[StateKey] {
             override def call(child: Subscriber[_ >: StateKey]): Unit = {
                 if (getKeyType(clazz, key).isSingle) {
