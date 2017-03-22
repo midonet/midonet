@@ -21,4 +21,9 @@ RESOLVED_HOST_NAME=`getent hosts $HOST_NAME`
 IPADDRESS=${RESOLVED_HOST_NAME%% *}
 sed -i "\$a JVM_OPTS=\"\$JVM_OPTS -Djava.rmi.server.hostname=$IPADDRESS\"" /etc/midolman/midolman-env.sh
 
+MIDOLMAN_ENV_FILE='/etc/midolman/midolman-env.sh'
+sudo sed -i 's/\(MAX_HEAP_SIZE=\).*$/\1256M/' $MIDOLMAN_ENV_FILE
+MINIONS_ENV_FILE='/etc/midolman/minions-env.sh'
+sudo sed -i 's/\(MAX_HEAP_SIZE=\).*$/\1128M/' $MINIONS_ENV_FILE
+
 exec /run-midolman.sh
