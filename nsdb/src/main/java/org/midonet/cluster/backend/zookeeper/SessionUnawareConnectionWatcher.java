@@ -19,6 +19,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -53,6 +54,13 @@ public class SessionUnawareConnectionWatcher
         }
 
         log.debug("ZookeeperConnWatcher.process: Exiting");
+    }
+
+    @Override
+    public boolean isConnected() {
+        if (conn == null) return false;
+
+        return conn.getZooKeeper().getState() == ZooKeeper.States.CONNECTED;
     }
 
     @Override

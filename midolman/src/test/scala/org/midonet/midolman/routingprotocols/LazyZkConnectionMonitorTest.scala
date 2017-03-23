@@ -133,6 +133,7 @@ class Scheduler() {
 class MockZkConnWatcher extends ZkConnectionAwareWatcher {
     var onReconnect: List[Runnable] = List.empty
     var onDisconnect: List[Runnable] = List.empty
+    var connected = true
 
     override def scheduleOnReconnect(r: Runnable): Unit = {
         onReconnect ::= r
@@ -143,6 +144,7 @@ class MockZkConnWatcher extends ZkConnectionAwareWatcher {
     }
 
     def disconnected(): Unit = {
+        connected = false
         val cbs = onDisconnect
         onDisconnect = List.empty
         for (cb <- cbs) {
@@ -151,6 +153,7 @@ class MockZkConnWatcher extends ZkConnectionAwareWatcher {
     }
 
     def reconnected(): Unit = {
+        connected = true
         val cbs = onReconnect
         onReconnect = List.empty
         for (cb <- cbs) {
@@ -158,6 +161,7 @@ class MockZkConnWatcher extends ZkConnectionAwareWatcher {
         }
     }
 
+    override def isConnected = connected
     override def setZkConnection(conn: ZkConnection) {}
     override def handleDisconnect(r: Runnable) {}
     override def handleTimeout(r: Runnable) {}

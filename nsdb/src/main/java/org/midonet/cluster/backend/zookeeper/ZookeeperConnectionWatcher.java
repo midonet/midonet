@@ -25,6 +25,7 @@ import com.google.inject.name.Named;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +56,13 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
         watcher.reactorLoop = reactor;
         watcher.setZkConnection(connection);
         return watcher;
+    }
+
+    @Override
+    public boolean isConnected() {
+        if (conn == null) return false;
+
+        return conn.getZooKeeper().getState() == ZooKeeper.States.CONNECTED;
     }
 
     @Override
