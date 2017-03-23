@@ -21,6 +21,8 @@ import org.apache.zookeeper.Watcher;
 
 public interface ZkConnectionAwareWatcher extends Watcher {
 
+    boolean isConnected();
+
     void setZkConnection(ZkConnection conn);
 
     void scheduleOnReconnect(Runnable runnable);

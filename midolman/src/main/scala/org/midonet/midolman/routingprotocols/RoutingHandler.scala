@@ -69,7 +69,6 @@ class LazyZkConnectionMonitor(down: () => Unit,
     private val lock = new Object
 
     private var lastDisconnection: Long = 0L
-    private var connected = true
 
     private val Now = 0 seconds
 
@@ -80,7 +79,8 @@ class LazyZkConnectionMonitor(down: () => Unit,
 
     private def onDelayedDisconnect() = {
         lock.synchronized {
-            if (!connected && (disconnectedFor >= downEventDelay.toMillis))
+            if (!connWatcher.isConnected &&
+                (disconnectedFor >= downEventDelay.toMillis))
                 down()
         }
     }
@@ -88,7 +88,6 @@ class LazyZkConnectionMonitor(down: () => Unit,
     private def onDisconnect() {
         schedule(Now, () => lock.synchronized {
             lastDisconnection = clock.time
-            connected = false
         })
         schedule(downEventDelay, onDelayedDisconnect _)
         connWatcher.scheduleOnDisconnect(onDisconnect _)
@@ -96,7 +95,6 @@ class LazyZkConnectionMonitor(down: () => Unit,
 
     private def onReconnect() {
         schedule(Now, () => lock.synchronized {
-            connected = true
             up()
         })
         connWatcher.scheduleOnReconnect(onReconnect _)
