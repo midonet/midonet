@@ -118,7 +118,7 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
      * @param cidr CIDR to validate
      * @return True if CIDR is valid
      */
-    static boolean isValidIpv4Cidr(String cidr) {
+    public static boolean isValidIpv4Cidr(String cidr) {
         return cidr != null && ipv4CidrPattern.matcher(cidr.trim()).matches();
     }
 

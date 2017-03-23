@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{UUID, List => JList}
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -29,10 +28,8 @@ import scala.concurrent.Await
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.control.NonFatal
-
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-
 import org.midonet.cluster.data.storage.SingleValueKey
 import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api._
@@ -45,7 +42,7 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 
 class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                                               (implicit tag: ClassTag[P])
@@ -240,11 +237,15 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
         port.setBaseUri(resContext.uriInfo.getBaseUri)
         tx.create(port)
 
-        val route = new Route("0.0.0.0", 0, port.portAddress, 32,
-                              NextHop.Local, port.id, null, 0,
-                              null, false)
-        route.setBaseUri(resContext.uriInfo.getBaseUri)
-        tx.create(route)
+        for (cidr <- port.portSubnet.asScala) {
+            if (IPv4Subnet.isValidIpv4Cidr(cidr)) {
+                val sub = IPv4Subnet.fromCidr(cidr)
+                val route = new Route("0.0.0.0", 0, sub.getAddress.toString,
+                    32, NextHop.Local, port.id, null, 0, null, false)
+                route.setBaseUri(resContext.uriInfo.getBaseUri)
+                tx.create(route)
+            }
+        }
     }
 
     protected override def updateFilter(to: RouterPort, from: RouterPort,
