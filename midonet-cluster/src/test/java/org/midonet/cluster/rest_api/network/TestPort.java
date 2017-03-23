@@ -289,7 +289,6 @@ public class TestPort {
         }
     }
 
-
     public static class TestAllPortCrudSuccess extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
@@ -970,6 +969,19 @@ public class TestPort {
             assertEquals(0, ports.length);
         }
 
+        private void verifyRoute(DtoRoute[] routes, String dest, UUID portId,
+                                 boolean hasRoute) {
+            boolean portRouteWasFound = false;
+            for (DtoRoute route: routes) {
+                if (route.getSrcNetworkAddr().equals("0.0.0.0") &&
+                    route.getNextHopPort().equals(portId) &&
+                    route.getDstNetworkAddr().equals(dest)) {
+
+                    portRouteWasFound = true;
+                }
+            }
+            assertEquals(portRouteWasFound, hasRoute);
+        }
 
         @Test
         public void testRouterPortCompatibility() {
@@ -1006,16 +1018,9 @@ public class TestPort {
                 APPLICATION_ROUTE_COLLECTION_JSON(),
                 DtoRoute[].class);
 
-            boolean portRouteWasFound = false;
-            for (DtoRoute route: portRoutes) {
-                if (route.getSrcNetworkAddr().equals("0.0.0.0") &&
-                    route.getNextHopPort().equals(port.getId())) {
-                    assertEquals(port.getPortAddress(),
-                                 route.getDstNetworkAddr());
-                    portRouteWasFound = true;
-                }
-            }
-            assertTrue(portRouteWasFound);
+            verifyRoute(portRoutes, "10.0.0.1", port.getId(), true);
+            verifyRoute(portRoutes, "22.22.22.22", port.getId(), true);
+            verifyRoute(portRoutes, "2017:0:0:0:0:0:0:32", port.getId(), false);
 
             // Test: v5.4 router port (ipv6 first)
             ips = Arrays.asList("2017:0:0:0:0:0:0:32/64",
