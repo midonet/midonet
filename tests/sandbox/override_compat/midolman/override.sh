@@ -3,6 +3,8 @@
 # Install the latest packages from the local repository
 LOCAL_REPO_FILE=/etc/apt/sources.list.d/midonet-local.list
 echo "deb file:/packages /" > $LOCAL_REPO_FILE
+# Use artifactory rather than builds.m.o, as the latter isn't
+# directly available to build VMs running in midocloud.
 echo "deb http://artifactory.bcn.midokura.com/artifactory/mem-5.6-deb unstable main" >> $LOCAL_REPO_FILE
 apt-get update
 
