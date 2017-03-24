@@ -404,13 +404,14 @@ class PacketWorkflow(
     }
 
     private def returnContext(context: PacketContext): Unit = {
+        val cookie = context.cookie
         context.resetContext()
         if (contextPool.size() < maxPooledContexts &&
                 contextPool.offerFirst(context)) {
-            log.debug("Returned context to pool")
+            log.debug(s"Returned context for cookie:$cookie to pool")
             metrics.contextsPooled.inc()
         } else {
-            log.debug("Pool full, allowing context to be garbage collected")
+            log.debug(s"Pool full, allowing context for cookie:$cookie to be garbage collected")
         }
     }
 
