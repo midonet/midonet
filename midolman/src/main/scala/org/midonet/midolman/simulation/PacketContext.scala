@@ -370,8 +370,12 @@ trait Fip64TranslationContext extends Clearable {
 
     def needsFip64 = needsTranslation
 
-    override def clear(): Unit = {
+    def resetFip64TranslationContext(): Unit = {
         needsTranslation = false
+    }
+
+    override def clear(): Unit = {
+        resetFip64TranslationContext()
         super.clear()
     }
 }
@@ -471,6 +475,7 @@ class PacketContext extends Clearable
         resetRedirectContext()
         resetRecordedContext()
         resetStateContext()
+        resetFip64TranslationContext()
 
         this.log = PacketContext.defaultLog
         this.idle = true
