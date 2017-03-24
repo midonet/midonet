@@ -33,7 +33,6 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.services.c3po.OpType
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPv4Addr, MAC}
 
 /**
@@ -52,7 +51,6 @@ abstract class TranslatorTestBase  extends FlatSpec
 
     // For testing CRUD on the old ZK data structure (e.g. ARP table)
     private val zkRoot = "/test"
-    protected val pathBldr: PathBuilder = new PathBuilder(zkRoot)
 
     protected def initMockStorage() {
         midoOps = List.empty

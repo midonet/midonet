@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
 
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigException}
 
 class StateProxyClientConfig(val conf: Config) {
 
@@ -34,4 +34,10 @@ class StateProxyClientConfig(val conf: Config) {
     def hardReconnectDelay = conf
         .getDuration("state_proxy.hard_reconnect_delay",
                      TimeUnit.MILLISECONDS) millis
+    def connectTimeout = try {
+        conf.getDuration("state_proxy.connect_timeout",
+                         TimeUnit.MILLISECONDS) millis
+    } catch {
+        case _: ConfigException => Connection.DefaultConnectTimeout
+    }
 }

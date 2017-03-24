@@ -34,7 +34,7 @@ import org.junit.runner.RunWith
 import org.mockito.Matchers.any
 import org.mockito.Mockito
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
+import org.scalatest.{FeatureSpec, GivenWhenThen, Informer, Matchers}
 import org.slf4j.LoggerFactory
 
 import rx.Observer
@@ -43,9 +43,13 @@ import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.rpc.State
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
+import org.midonet.cluster.services.discovery._
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState, Disconnected}
 import org.midonet.util.MidonetEventually
 
-abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
+class TestServerHandler(server: TestServer,
+                        goodUUID: UUID) extends Observer[Message] {
+    val subscriptionId = new AtomicInteger(0)
 
     private val log = Logger(LoggerFactory.getLogger(classOf[TestServerHandler]))
 
@@ -90,8 +94,32 @@ abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
         server.write(response)
     }
 
-    protected def onSubscribe(requestId: Long, msg: ProxyRequest.Subscribe): Unit
-    protected def onUnsubscribe(requestId: Long, msg: ProxyRequest.Unsubscribe): Unit
+    private def onSubscribe(requestId: Long,
+                            msg: ProxyRequest.Subscribe): Unit = {
+
+        val b = ProxyResponse.newBuilder().setRequestId(requestId)
+        val uuid = new UUID(msg.getObjectId.getMsb,
+                            msg.getObjectId.getLsb)
+
+        if (uuid.compareTo(goodUUID) == 0) {
+            val ack = ProxyResponse.Acknowledge.newBuilder()
+                .setSubscriptionId(subscriptionId.incrementAndGet)
+            server.write(b.setAcknowledge(ack).build())
+        } else {
+            val err = ProxyResponse.Error.newBuilder()
+                        .setCode(ProxyResponse.Error.Code.INVALID_ARGUMENT)
+                        .setDescription("Table doesn't exists")
+            server.write(b.setError(err).build())
+        }
+    }
+
+    protected def onUnsubscribe(requestId: Long,
+                                msg: ProxyRequest.Unsubscribe): Unit = {
+        val ack = ProxyResponse.Acknowledge.newBuilder()
+            .setSubscriptionId(msg.getSubscriptionId)
+        server.write(ProxyResponse.newBuilder().setRequestId(requestId)
+                         .setAcknowledge(ack).build())
+    }
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -99,6 +127,14 @@ class StateProxyClientTest extends FeatureSpec
                                    with Matchers
                                    with GivenWhenThen
                                    with MidonetEventually {
+    val log = LoggerFactory.getLogger(getClass)
+
+    override val info = new Informer() {
+        override def apply(message: String,
+                           payload: Option[Any] = None): Unit = {
+            log.info(message)
+        }
+    }
 
     val goodUUID = UUID.randomUUID()
     val existingTable = new StateSubscriptionKey(
@@ -126,7 +162,8 @@ class StateProxyClientTest extends FeatureSpec
 
     class TestObjects(val softReconnectDelay: Duration = 200 milliseconds,
                       val maxAttempts: Int = 30,
-                      val hardReconnectDelay: Duration = 1 second) {
+                      val hardReconnectDelay: Duration = 1 second,
+                      val connectTimeout: Duration = 2 seconds) {
 
         val executor = new ScheduledThreadPoolExecutor(1)
         executor.setMaximumPoolSize(1)
@@ -137,40 +174,8 @@ class StateProxyClientTest extends FeatureSpec
         val eventLoopGroup = new NioEventLoopGroup(numPoolThreads)
 
         val server = new TestServer(ProxyRequest.getDefaultInstance)
-        server.attachedObserver = new TestServerHandler(server) {
-
-            val subscriptionId = new AtomicInteger(0)
-
-            override protected def onSubscribe(requestId: Long,
-                                               msg: ProxyRequest.Subscribe): Unit = {
-
-                val b = ProxyResponse.newBuilder().setRequestId(requestId)
-
-                val uuid = new UUID(msg.getObjectId.getMsb,
-                                    msg.getObjectId.getLsb)
-
-                if (uuid.compareTo(goodUUID) == 0) {
-                    server.write(
-                        b.setAcknowledge(ProxyResponse.Acknowledge.newBuilder()
-                                             .setSubscriptionId(subscriptionId
-                                                                    .incrementAndGet))
-                            .build())
-                } else {
-                    server.write(
-                        b.setError(ProxyResponse.Error.newBuilder()
-                            .setCode(ProxyResponse.Error.Code.INVALID_ARGUMENT)
-                            .setDescription("Table doesn't exists"))
-                            .build())
-                }
-            }
-
-            protected def onUnsubscribe(requestId: Long,
-                                        msg: ProxyRequest.Unsubscribe): Unit = {
-                server.write(ProxyResponse.newBuilder().setRequestId(requestId)
-                    .setAcknowledge(ProxyResponse.Acknowledge.newBuilder()
-                        .setSubscriptionId(msg.getSubscriptionId).build()).build())
-            }
-        }
+        val serverHandler = new TestServerHandler(server, goodUUID)
+        server.attachedObserver = serverHandler
 
         val STATE_PROXY_CFG_OBJECT = ConfigFactory.parseString(
             s"""
@@ -179,14 +184,15 @@ class StateProxyClientTest extends FeatureSpec
               |state_proxy.soft_reconnect_delay=${softReconnectDelay.toMillis}ms
               |state_proxy.max_soft_reconnect_attempts=$maxAttempts
               |state_proxy.hard_reconnect_delay=${hardReconnectDelay.toMillis}ms
+              |state_proxy.connect_timeout=${connectTimeout.toMillis}ms
             """.stripMargin
         )
 
         val conf = new StateProxyClientConfig(STATE_PROXY_CFG_OBJECT)
 
-        val discoveryService = new DiscoveryMock("localhost",server.port)
+        val discovery = new MockDiscoverySelector(List.fill(10)(server.address))
         val client = new StateProxyClient(conf,
-                                          discoveryService,
+                                          discovery,
                                           executor,
                                           eventLoopGroup)
 
@@ -966,6 +972,70 @@ class StateProxyClientTest extends FeatureSpec
 
             And("The client is not handling the subscription anymore")
             t.client.numActiveSubscriptions shouldBe 0
+
+            t.close()
+        }
+    }
+
+    feature("connection timeout") {
+        scenario("connection timeout works") {
+
+            val badServer = MidonetServiceHostAndPort("192.0.2.0", 19)
+            val softDelay = 200 milliseconds
+            val hardDelay = 500 milliseconds
+            val connectTimeout = 2 seconds
+
+            Given("a client")
+            val t = new TestObjects(softDelay, 0, hardDelay,
+                                    connectTimeout)
+            t.discovery.clear()
+            t.discovery.prependInstance(badServer)
+
+            val startTime = System.nanoTime()
+            t.client.start()
+
+            And("an observer")
+            val obs = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(obs).isUnsubscribed shouldBe false
+
+            eventually {
+                Mockito.verify(obs).onNext(Disconnected)
+            }
+
+            val took = System.nanoTime() - startTime
+            val expected = connectTimeout.toNanos
+            val diff = Math.abs(took - expected)
+            diff should be <= connectTimeout.toNanos
+            t.close()
+        }
+
+        scenario("Uses the next server if failed") {
+
+            val badServer = MidonetServiceHostAndPort("192.0.2.0", 19)
+            val softDelay = 200 milliseconds
+            val hardDelay = 500 milliseconds
+            val connectTimeout = 2 seconds
+
+            Given("a client")
+            val t = new TestObjects(softDelay, 0, hardDelay,
+                                    connectTimeout)
+            t.discovery.prependInstance(badServer)
+
+            val startTime = System.nanoTime()
+            t.client.start()
+
+            And("an observer")
+            val obs = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(obs).isUnsubscribed shouldBe false
+
+            eventually {
+                t.server.hasClient shouldBe true
+            }
+
+            val took = System.nanoTime() - startTime
+            val expected = connectTimeout.toNanos + hardDelay.toNanos
+            val diff = Math.abs(took - expected)
+            diff should be <= connectTimeout.toNanos
 
             t.close()
         }

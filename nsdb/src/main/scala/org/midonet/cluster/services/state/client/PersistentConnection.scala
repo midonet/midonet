@@ -63,7 +63,8 @@ import org.midonet.cluster.services.discovery.MidonetServiceHostAndPort
   */
 abstract class PersistentConnection[S <: Message, R <: Message]
                                    (name: String,
-                                    executor: ScheduledExecutorService)
+                                    executor: ScheduledExecutorService,
+                                    connectTimeout: Duration)
                                    (implicit context: ExecutionContext,
                                     eventLoopGroup: NioEventLoopGroup)
         extends Observer[R] {
@@ -210,7 +211,8 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                     val connection = new ConnectionType(address.address,
                                                         address.port,
                                                         this,
-                                                        getMessagePrototype)
+                                                        getMessagePrototype,
+                                                        connectTimeout)
                     connection.connect() onComplete {
                         case Success(_) =>
                             val newState = Connected(connection)

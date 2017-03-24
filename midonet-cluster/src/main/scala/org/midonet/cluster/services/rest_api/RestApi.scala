@@ -55,7 +55,6 @@ import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.{ClusterConfig, RestApiConfig, RestApiLog}
 import org.midonet.conf.MidoNodeConfigurator
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 
@@ -87,12 +86,9 @@ object RestApi {
 
             install(new AuthModule(config.auth, log))
 
-            val paths = new PathBuilder(config.backend.rootKey)
-
             bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
             bind(classOf[CorsFilter])
             bind(classOf[RestApiConfig]).toInstance(config.restApi)
-            bind(classOf[PathBuilder]).toInstance(paths)
             bind(classOf[ExecutionContext]).toInstance(ec)
             bind(classOf[CuratorFramework]).toInstance(curator)
             bind(classOf[MidonetBackend]).toInstance(backend)

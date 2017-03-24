@@ -35,28 +35,33 @@ trait MidonetDiscoverySelector[T] {
   */
 object MidonetDiscoverySelector {
 
+    type Factory[T] = MidonetDiscoveryClient[T] => MidonetDiscoverySelector[T]
+
     /**
       * a [[MidonetDiscoverySelector]] that returns instances in a
       * round-robin fashion.
       */
-    def roundRobin[T]: MidonetDiscoveryClient[T] => MidonetDiscoverySelector[T]
-        = new SelectorImpl(new RoundRobinPolicy[T])(_)
+    def roundRobin[T]: Factory[T] = withPolicy(new RoundRobinPolicy[T])
 
     /**
       * a [[MidonetDiscoverySelector]] that always returns the first instance
       * returned by the [[MidonetDiscoveryClient]]
       */
-    def first[T]: MidonetDiscoveryClient[T] => MidonetDiscoverySelector[T]
-        = new SelectorImpl(new FirstPolicy[T])(_)
+    def first[T]: Factory[T] = withPolicy(new FirstPolicy[T])
 
     /**
       * a [[MidonetDiscoverySelector]] that returns random instances
       */
-    def random[T]: MidonetDiscoveryClient[T] => MidonetDiscoverySelector[T]
-       = new SelectorImpl(new RandomPolicy[T])(_)
+    def random[T]: Factory[T] = withPolicy(new RandomPolicy[T])
+
+    /**
+      * a [[MidonetDiscoverySelector]] using the given policy object
+      */
+    def withPolicy[T](policy: MidonetDiscoveryPolicy[T]): Factory[T] =
+        new SelectorImpl(policy)(_)
 }
 
-private sealed trait MidonetDiscoveryPolicy[T] {
+sealed trait MidonetDiscoveryPolicy[T] {
 
     def select(instances: Seq[T]): T
 }
@@ -75,7 +80,7 @@ private final class SelectorImpl[T](policy: MidonetDiscoveryPolicy[T])
     }
 }
 
-private final class RoundRobinPolicy[T] extends MidonetDiscoveryPolicy[T] {
+final class RoundRobinPolicy[T] extends MidonetDiscoveryPolicy[T] {
 
     private var counter = 0
 
@@ -86,12 +91,12 @@ private final class RoundRobinPolicy[T] extends MidonetDiscoveryPolicy[T] {
     }
 }
 
-private final class FirstPolicy[T] extends MidonetDiscoveryPolicy[T] {
+final class FirstPolicy[T] extends MidonetDiscoveryPolicy[T] {
 
     override def select(instances: Seq[T]): T = instances.head
 }
 
-private final class RandomPolicy[T] extends MidonetDiscoveryPolicy[T] {
+final class RandomPolicy[T] extends MidonetDiscoveryPolicy[T] {
 
     override def select(instances: Seq[T]): T = {
         instances(Random.nextInt(instances.size))
