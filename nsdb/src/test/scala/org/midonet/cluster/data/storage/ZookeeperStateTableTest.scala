@@ -175,9 +175,9 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             val storage = setupStorage()
 
             Then("The paths are correct")
-            val version = storage.version.get
+            val version = 0
             val id = UUID.randomUUID()
-            storage.tablesPath() shouldBe s"$zkRoot/zoom/$version/tables"
+            storage.tablesPath shouldBe s"$zkRoot/zoom/$version/tables"
             storage.tablesClassPath(classOf[PojoBridge]) shouldBe
                 s"$zkRoot/zoom/$version/tables/PojoBridge"
             storage.tablesObjectPath(classOf[PojoBridge], id) shouldBe
@@ -186,9 +186,9 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name"
             storage.tablePath(classOf[PojoBridge], id, "name") shouldBe
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name"
-            storage.tablePath(classOf[PojoBridge], id, "name", version, 0) shouldBe
+            storage.tablePath(classOf[PojoBridge], id, "name", 0) shouldBe
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0"
-            storage.tablePath(classOf[PojoBridge], id, "name", version, 0, 1) shouldBe
+            storage.tablePath(classOf[PojoBridge], id, "name", 0, 1) shouldBe
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0/1"
 
             And("The legacy paths are correct for a network")

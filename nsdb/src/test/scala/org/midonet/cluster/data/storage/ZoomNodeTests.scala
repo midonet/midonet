@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.data.storage
 
+import scala.collection.JavaConverters._
+
 import com.codahale.metrics.MetricRegistry
 
 import org.junit.Test
@@ -41,10 +43,19 @@ class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
         zom.build()
     }
 
+    private def getNodeValue(path: String): String = {
+        val data = curator.getData.forPath(path)
+        if (data == null) null else new String(data)
+    }
+
+    private def getNodeChildren(path: String): Seq[String] = {
+        curator.getChildren.forPath(path).asScala
+    }
+
     @Test
     def testCreateNode(): Unit = {
         zom.multi(List(CreateNodeOp(Bridge1Path, null)))
-        zom.getNodeValue(Bridge1Path) should be(null)
+        getNodeValue(Bridge1Path) should be(null)
     }
 
     @Test
@@ -52,10 +63,10 @@ class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
         createNodes(Map(Bridge1Path -> null,
                         Bridge1Path + "/key1" -> "val1",
                         Bridge1Path + "/key2" -> null))
-        val keys = zom.getNodeChildren(Bridge1Path)
+        val keys = getNodeChildren(Bridge1Path)
         keys should contain only("key1", "key2")
-        zom.getNodeValue(Bridge1Path + "/key1") shouldBe "val1"
-        zom.getNodeValue(Bridge1Path + "/key2") shouldBe null
+        getNodeValue(Bridge1Path + "/key1") shouldBe "val1"
+        getNodeValue(Bridge1Path + "/key2") shouldBe null
     }
 
     @Test
@@ -65,8 +76,8 @@ class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
                         Bridge1Path + "/key2" -> null))
         zom.multi(List(UpdateNodeOp(Bridge1Path + "/key1", null),
                        UpdateNodeOp(Bridge1Path + "/key2", "val2")))
-        zom.getNodeValue(Bridge1Path + "/key1") shouldBe null
-        zom.getNodeValue(Bridge1Path + "/key2") shouldBe "val2"
+        getNodeValue(Bridge1Path + "/key1") shouldBe null
+        getNodeValue(Bridge1Path + "/key2") shouldBe "val2"
     }
 
     @Test
@@ -75,7 +86,7 @@ class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
                         Bridge1Path + "/key1" -> "val1",
                         Bridge1Path + "/key2" -> null))
         zom.multi(List(DeleteNodeOp(Bridge1Path + "/key1")))
-        zom.getNodeChildren(Bridge1Path) should contain only "key2"
+        getNodeChildren(Bridge1Path) should contain only "key2"
     }
 
     @Test
@@ -113,21 +124,21 @@ class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
                         Bridge1Path + "/mac_ports/vlans/1/mac2,port4" -> null))
         zom.multi(List(DeleteNodeOp(Bridge1Path + "/ARP/1.2.3.5,mac2"),
                        CreateNodeOp(Bridge1Path + "/ARP/1.2.3.5,mac3", null)))
-        zom.getNodeChildren(Bridge1Path + "/ARP") should contain only
+        getNodeChildren(Bridge1Path + "/ARP") should contain only
             ("1.2.3.4,mac1", "1.2.3.5,mac3")
 
         zom.multi(List(DeleteNodeOp(Bridge1Path + "/mac_ports/vlans/1")))
-        zom.getNodeChildren(Bridge1Path + "/mac_ports/vlans") shouldBe empty
+        getNodeChildren(Bridge1Path + "/mac_ports/vlans") shouldBe empty
 
         createNodes(Map(Bridge1Path + "/mac_ports/vlans/2/mac5,port5" -> null,
                         Bridge1Path + "/mac_ports/vlans/2/mac6,port6" -> null))
-        zom.getNodeChildren(Bridge1Path + "/mac_ports/vlans") should
+        getNodeChildren(Bridge1Path + "/mac_ports/vlans") should
             contain only "2"
-        zom.getNodeChildren(Bridge1Path + "/mac_ports/vlans/2") should
+        getNodeChildren(Bridge1Path + "/mac_ports/vlans/2") should
             contain only("mac5,port5", "mac6,port6")
 
         zom.multi(List(DeleteNodeOp(Bridge1Path)))
-        zom.getNodeChildren("/maps/bridge") shouldBe empty
+        getNodeChildren("/maps/bridge") shouldBe empty
     }
 
     private def createNodes(nodes: Map[String, String]): Unit = {

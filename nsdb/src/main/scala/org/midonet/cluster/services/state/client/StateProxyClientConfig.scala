@@ -40,4 +40,11 @@ class StateProxyClientConfig(val conf: Config) {
     } catch {
         case _: ConfigException => Connection.DefaultConnectTimeout
     }
+
+    def readTimeout = try {
+        conf.getDuration("state_proxy.read_timeout",
+                         TimeUnit.MILLISECONDS) millis
+    } catch {
+        case _: ConfigException => Connection.DefaultReadTimeout
+    }
 }

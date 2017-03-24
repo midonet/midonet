@@ -49,6 +49,7 @@ class PersistentConnectionTest extends FeatureSpec
 
     val numThreads = 4
     val connectTimeout = 5 seconds
+    val readTimeout = 10 seconds
     val reconnectTimeout = 300 milliseconds
     implicit val loopGroup = new NioEventLoopGroup(numThreads)
     val message = msgPing(1)
@@ -62,7 +63,8 @@ class PersistentConnectionTest extends FeatureSpec
         extends PersistentConnection[ProxyRequest, ProxyResponse](
             "Test Connection",
             executor,
-            connectTimeout) {
+            connectTimeout,
+            readTimeout) {
 
         var numMessages = 0
         var numConnects = 0

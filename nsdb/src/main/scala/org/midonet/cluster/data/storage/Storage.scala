@@ -16,14 +16,16 @@
 package org.midonet.cluster.data.storage
 
 import scala.collection.JavaConverters._
-import scala.collection.concurrent.TrieMap
+import scala.collection.mutable
+import scala.util.control.NonFatal
 
-import com.google.common.collect.{ArrayListMultimap, Multimaps}
+import com.google.common.collect.{ArrayListMultimap, ImmutableListMultimap, Multimap, Multimaps}
 import com.google.protobuf.Message
 
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import org.midonet.cluster.data.storage.Storage.{BindingsMap, ClassInfo, ClassesMap}
 import org.midonet.cluster.data.{Obj, ObjId}
 
 /* Op classes for ZookeeperObjectMapper.multi */
@@ -65,10 +67,6 @@ case class UpdateNodeOp(path: String, value: String) extends PersistenceOp
  * Only required to support writes into the old Replicated maps.
  */
 case class DeleteNodeOp(path: String) extends PersistenceOp
-
-abstract class ClassInfo(val clazz: Class[_]) {
-    def idOf(obj: Obj): ObjId
-}
 
 
 /**
@@ -127,18 +125,68 @@ class StorageException(val msg: String, val cause: Throwable)
     }
 }
 
+object Storage {
+
+    type ClassesMap = Map[Class[_], ClassInfo]
+    type BindingsMap = Multimap[Class[_], FieldBinding]
+
+    abstract class ClassInfo(val clazz: Class[_]) {
+        def idOf(obj: Obj): ObjId
+    }
+
+    private[storage] final class MessageClassInfo(clazz: Class[_])
+        extends ClassInfo(clazz) {
+
+        private val idFieldDesc =
+            ProtoFieldBinding.getMessageField(clazz, FieldBinding.ID_FIELD)
+
+        def idOf(obj: Obj) = obj.asInstanceOf[Message].getField(idFieldDesc)
+    }
+
+    private[storage] final class JavaClassInfo(clazz: Class[_])
+        extends ClassInfo(clazz) {
+
+        private val idField = clazz.getDeclaredField(FieldBinding.ID_FIELD)
+
+        idField.setAccessible(true)
+
+        def idOf(obj: Obj) = idField.get(obj)
+    }
+
+    @throws[IllegalArgumentException]
+    private def makeInfo(clazz: Class[_]): ClassInfo = {
+        try {
+            if (classOf[Message].isAssignableFrom(clazz)) {
+                new MessageClassInfo(clazz)
+            } else {
+                new JavaClassInfo(clazz)
+            }
+        } catch {
+            case NonFatal(e) =>
+                throw new IllegalArgumentException(
+                    s"Class $clazz does not have a field named 'id', or the " +
+                    "field could not be made accessible.", e)
+        }
+    }
+
+}
+
 /**
  * A trait that extends the read-only storage service API and provides storage
  * write service API.
  */
 trait Storage extends ReadOnlyStorage {
 
-    @volatile private var built = false
-    private val bindings = ArrayListMultimap.create[Class[_], FieldBinding]()
-    private val syncBindings = Multimaps.synchronizedListMultimap(bindings)
+    private final val mutex = new Object
 
-    protected[this] val allBindings = Multimaps.unmodifiableListMultimap(bindings)
-    protected[this] val classInfo = new TrieMap[Class[_], ClassInfo]()
+    @volatile private var built = false
+    private val fieldBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
+
+    private val classNames = new mutable.HashSet[String]()
+    private val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
+
+    @volatile private var currentClasses: ClassesMap = Map.empty
+    @volatile private var currentBindings: BindingsMap = ImmutableListMultimap.of()
 
     /**
      * Synchronous method that persists the specified object to the storage. The
@@ -252,29 +300,48 @@ trait Storage extends ReadOnlyStorage {
     @throws[StorageException]
     def tryTransaction[R](f: (Transaction) => R): R
 
-    /* We should remove the methods below, but first we must make ZOOM support
-     * offline class registration so that we can register classes from the
-     * guice modules without causing exceptions */
-    def registerClass(clazz: Class[_]): Unit
+    /**
+      * Registers a new object class in storage.
+      */
+    @throws[IllegalArgumentException]
+    final def registerClass(clazz: Class[_]): Unit = mutex.synchronized {
+        assertNotBuilt()
 
-    def isRegistered(clazz: Class[_]): Boolean
+        val name = clazz.getSimpleName
+        if (classNames.contains(name)) {
+            throw new IllegalArgumentException(
+                s"A class with the simple name $name is already " +
+                s"registered; registering multiple classes with the same " +
+                s"simple name is not supported")
+        }
 
-    def declareBinding(leftClass: Class[_], leftFieldName: String,
-                       onDeleteLeft: DeleteAction,
-                       rightClass: Class[_], rightFieldName: String,
-                       onDeleteRight: DeleteAction): Unit = {
-        assert(!isBuilt)
-        assert(isRegistered(leftClass))
-        assert(isRegistered(rightClass))
+        classNames.add(name)
+        classInfo.put(clazz, Storage.makeInfo(clazz))
+
+        onRegisterClass(clazz)
+    }
+
+    /**
+      * Declares a field binding between the specified fields of the given
+      * classes.
+      */
+    final def declareBinding(leftClass: Class[_], leftFieldName: String,
+                             onDeleteLeft: DeleteAction,
+                             rightClass: Class[_], rightFieldName: String,
+                             onDeleteRight: DeleteAction)
+    : Unit = mutex.synchronized {
+        assertNotBuilt()
+        assertRegistered(leftClass)
+        assertRegistered(rightClass)
 
         val leftIsMessage = classOf[Message].isAssignableFrom(leftClass)
         val rightIsMessage = classOf[Message].isAssignableFrom(rightClass)
         if (leftIsMessage != rightIsMessage) {
             throw new IllegalArgumentException(
-                "Cannot bind a protobuf Message class to a POJO class.")
+                "Cannot bind a Protocol Buffers class to a plain Java class")
         }
 
-        val bdgs = if (leftIsMessage) {
+        val bindings = if (leftIsMessage) {
             ProtoFieldBinding.createBindings(
                 leftClass, leftFieldName, onDeleteLeft,
                 rightClass, rightFieldName, onDeleteRight)
@@ -284,8 +351,8 @@ trait Storage extends ReadOnlyStorage {
                 rightClass, rightFieldName, onDeleteRight)
         }
 
-        for (entry <- bdgs.entries.asScala) {
-            syncBindings.put(entry.getKey, entry.getValue)
+        for (entry <- bindings.entries.asScala) {
+            fieldBindings.put(entry.getKey, entry.getValue)
         }
     }
 
@@ -294,17 +361,76 @@ trait Storage extends ReadOnlyStorage {
       * declareBinding() have been made, but before any calls to data-related
       * methods such as CRUD operations and subscribe().
       */
-    def build(): Unit = {
-        assert(!built)
+    @throws[IllegalStateException]
+    final def build(): Unit = mutex.synchronized {
+        assertNotBuilt()
+
+        currentClasses = classInfo.toMap
+        currentBindings = Multimaps.unmodifiableListMultimap(fieldBindings)
+
+        onBuild()
         built = true
     }
 
+    /**
+      * Verifies that storage is built and throws a
+      * [[ServiceUnavailableException]] otherwise.
+      */
     @throws[ServiceUnavailableException]
-    protected[this] def assertBuilt(): Unit = {
-        if (!isBuilt) throw new ServiceUnavailableException
+    @inline protected final def assertBuilt(): Unit = {
+        if (!built) {
+            throw new ServiceUnavailableException()
+        }
+    }
+
+    @inline protected final def assertNotBuilt(): Unit = {
+        if (built) {
+            throw new IllegalStateException("Storage already built")
+        }
+    }
+
+    /**
+      * Verifies the specified class is registered and throws an
+      * [[IllegalArgumentException]] otherwise.
+      */
+    @throws[IllegalArgumentException]
+    @inline protected final def assertRegistered(clazz: Class[_]): Unit = {
+        if (!isRegistered(clazz)) {
+            throw new IllegalArgumentException(
+                s"Class ${clazz.getSimpleName} is not registered")
+        }
     }
 
     /** Whether the instance is ready to service requests */
-    def isBuilt: Boolean = built
+    @inline final def isBuilt: Boolean = built
+
+    /**
+      * @return Whether the specified class is registered.
+      */
+    @inline final def isRegistered(clazz: Class[_]): Boolean = {
+        classInfo.contains(clazz)
+    }
+
+    /**
+      * @return An immutable copy of the current classes.
+      */
+    def objectClasses: ClassesMap = currentClasses
+
+    /**
+      * @return An immutable copy of the current field bindings.
+      */
+    def bindings: BindingsMap = currentBindings
+
+    /**
+      * Called when a class is registered. This allows derived classes to
+      * perform further initialization for this class.
+      */
+    protected def onRegisterClass(clazz: Class[_]): Unit = { }
+
+    /**
+      * Called when the storage is built. This allows derived classes to perform
+      * further storage initialization.
+      */
+    protected def onBuild(): Unit = { }
 
 }

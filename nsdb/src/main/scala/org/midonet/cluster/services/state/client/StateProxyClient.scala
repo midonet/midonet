@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.state.client
 
-import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 import scala.PartialFunction._
@@ -92,7 +92,8 @@ class StateProxyClient(conf: StateProxyClientConfig,
         extends PersistentConnection[ProxyRequest, ProxyResponse] (
                                      StateProxyService.Name,
                                      executor,
-                                     conf.connectTimeout)(ec, eventLoopGroup)
+                                     conf.connectTimeout,
+                                     conf.readTimeout)(ec, eventLoopGroup)
         with StateTableClient {
 
     import StateProxyClient._
@@ -226,9 +227,23 @@ class StateProxyClient(conf: StateProxyClientConfig,
 
         def setConnected(current: State,
                          subscribers: SubscriberMap): Boolean = {
-            state.compareAndSet(current, Connected(subscribers,
-                                                   emptySubscriptionMap,
-                                                   emptyTransactionMap))
+            val pingDelay = conf.readTimeout/3
+            val future = executor.scheduleWithFixedDelay(
+                new Runnable() {
+                    override def run(): Unit = {
+                        ping()
+                    }
+                }, pingDelay.toMillis, pingDelay.toMillis, TimeUnit.MILLISECONDS)
+
+            val changed = state.compareAndSet(current,
+                                              Connected(subscribers,
+                                                        emptySubscriptionMap,
+                                                        emptyTransactionMap,
+                                                        future))
+            if (!changed) {
+                future.cancel(false)
+            }
+            changed
         }
 
         state.get match {
@@ -504,7 +519,10 @@ class StateProxyClient(conf: StateProxyClientConfig,
       */
     private def transitionToWaiting(): Boolean = {
         state.get match {
-            case s: Connected => state.compareAndSet(s, Waiting(0, s.subscribers))
+            case s: Connected => {
+                state.compareAndSet(s, Waiting(0, s.subscribers))
+                s.pingPongFuture.cancel(false)
+            }
             case Init => state.compareAndSet(Init, Waiting(0, emptySubscriberMap))
             case _ => false
         }

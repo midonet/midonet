@@ -168,7 +168,7 @@ packaging {
     vendor = project.vendor
     url = project.url
     description = "MidoNet's control cluster"
-    dependencies = ['midonet-tools']
+    dependencies = [ ]
     confFiles = ['/etc/midonet-cluster/logback.xml',
                  '/etc/midonet/midonet.conf',
                  '/etc/midonet-cluster/midonet-cluster-env.sh']
@@ -192,6 +192,7 @@ debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
+            '-d', "midonet-tools (>= ${project.debVersion})",
             '-d', 'openjdk-8-jdk-headless | java8-runtime-headless | java8-runtime',
             '--deb-recommends', 'java8-runtime-headless | java8-runtime',
             '--after-install', "${project.projectDir}/src/deb/control/postinst",
@@ -205,6 +206,7 @@ rpm.doFirst {
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
+            '-d', "midonet-tools >= ${project.rpmVersion}",
             '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
