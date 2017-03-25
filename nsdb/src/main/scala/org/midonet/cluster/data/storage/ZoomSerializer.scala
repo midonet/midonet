@@ -32,6 +32,8 @@ import rx.Notification
 import rx.functions.Func1
 
 import org.midonet.cluster.data.Obj
+import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
+import org.midonet.cluster.models.Zoom.{ZoomObject, ZoomProvenance}
 import org.midonet.util.functors.makeFunc1
 
 private[storage] object ZoomSerializer {
@@ -80,6 +82,59 @@ private[storage] object ZoomSerializer {
                 }
             }
         }).asInstanceOf[Func1[ChildData, Notification[T]]]
+    }
+
+    /**
+      * Serializes the provenance data for the a new object with the
+      * specified owner and change identifier and data version.
+      */
+    def createObject(owner: ZoomOwner, change: Int, version: Int)
+    : Array[Byte] = {
+        ZoomObject.newBuilder()
+            .addProvenance(ZoomProvenance.newBuilder()
+                               .setProductVersion(Storage.ProductVersion)
+                               .setProductCommit(Storage.ProductCommit)
+                               .setChangeOwner(owner.id)
+                               .setChangeType(change)
+                               .setChangeVersion(version))
+            .build()
+            .toByteArray
+    }
+
+    /**
+      * Serializes the provenance data for an existing object with the
+      * specified current object, owner and change identifier and data version.
+      */
+    @throws[InternalObjectMapperException]
+    def updateObject(current: Array[Byte], owner: ZoomOwner, change: Int,
+                     version: Int)
+    : Array[Byte] = {
+        val objectBuilder =
+            try ZoomObject.parseFrom(current).toBuilder
+            catch {
+                case NonFatal(e) => throw new InternalObjectMapperException(e)
+            }
+        var index = 0
+        while (index < objectBuilder.getProvenanceCount) {
+            val provenanceBuilder = objectBuilder.getProvenanceBuilder(index)
+            // Consolidate provenance in a previous entry from the same owner.
+            if (provenanceBuilder.getChangeOwner == owner.id) {
+                provenanceBuilder
+                    .setProductVersion(Storage.ProductVersion)
+                    .setProductCommit(Storage.ProductCommit)
+                    .setChangeType(change)
+                    .setChangeVersion(version)
+                return objectBuilder.build().toByteArray
+            }
+            index += 1
+        }
+        objectBuilder.addProvenance(ZoomProvenance.newBuilder()
+                                        .setProductVersion(Storage.ProductVersion)
+                                        .setProductCommit(Storage.ProductCommit)
+                                        .setChangeOwner(owner.id)
+                                        .setChangeType(change)
+                                        .setChangeVersion(version))
+        objectBuilder.build().toByteArray
     }
 
     @throws[InternalObjectMapperException]

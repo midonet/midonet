@@ -83,7 +83,7 @@ class ArpRequestBroker(config: MidolmanConfig,
                        clock: UnixClock = UnixClock())
     extends MidolmanLogging {
 
-    override def logSource = "org.midonet.devices.router.arptable"
+    override def logSource = "org.midonet.devices.router.arp-table"
 
     private val brokers = new util.HashMap[UUID, SingleRouterArpRequestBroker]()
 
@@ -160,7 +160,7 @@ class SingleRouterArpRequestBroker(id: UUID,
 
     import ArpRequestBroker._
 
-    override def logSource = "org.midonet.devices.router.arptable"
+    override def logSource = "org.midonet.devices.router.arp-table"
     override def logMark = s"router:$id"
 
     private val random = new Random()

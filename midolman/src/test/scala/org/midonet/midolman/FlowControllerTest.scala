@@ -51,6 +51,7 @@ class FlowControllerTest extends MidolmanSpec {
              val datapathId = 0
              implicit val system = FlowControllerTest.this.actorSystem
              val actor = TestProbe()(system).ref
+             val preallocation = new MockFlowTablePreallocation(config)
         } with FlowController with Actor { def receive: Receive = { case _ => } }).underlyingActor
 
     feature("The flow controller processes flows") {
