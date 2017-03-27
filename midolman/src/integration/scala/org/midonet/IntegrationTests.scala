@@ -27,6 +27,7 @@ object IntegrationTests {
              classOf[org.midonet.midolman.tc.TcIntegrationTest],
              classOf[org.midonet.midolman.logging.FlowTracingAppenderTest],
              classOf[org.midonet.midolman.logging.FlowTracingSchemaTest],
+             classOf[org.midonet.midolman.logging.rule.RuleLoggerLogRotationTest],
              classOf[org.midonet.midolman.state.FlowStateStorageTest],
              classOf[org.midonet.midolman.management.MeteringTest]
         ) map { _.getCanonicalName }
