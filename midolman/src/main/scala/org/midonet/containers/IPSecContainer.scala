@@ -717,6 +717,8 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
                 promise.trySuccess(None)
                 cleanup(config)
                 config = null
+                statusSubject onNext ContainerHealth(
+                    Code.RUNNING, "", "VPN router has no external IP")
                 return
             }
 
@@ -724,12 +726,14 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
                 .find(_.getPortAddress.asIPv4Address == externalIp)
                 .map(_.getPortMac)
                 .getOrElse {
-                    promise.tryFailure(IPSecException(
-                        s"VPN service on router ${port.getRouterId.asJava} " +
-                        s"does not have a port that matches the VPN external " +
-                        s"address $externalIp", null))
+                    promise.trySuccess(None)
                     cleanup(config)
                     config = null
+                    statusSubject onNext ContainerHealth(
+                        Code.RUNNING, "",
+                        s"VPN service on router ${port.getRouterId.asJava} " +
+                        s"does not have a port that matches the VPN external " +
+                        s"address $externalIp")
                     return
                 }
             val portAddress = port.getPortAddress.asIPv4Address
@@ -752,13 +756,16 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
                 // So we don't clean up on a non-setup container
                 config = null
                 promise.trySuccess(None)
+                statusSubject onNext ContainerHealth(
+                    Code.RUNNING, "",
+                    "All IPSec connections have administrative state down")
             } else {
                 // Create the new config and setup the new connections
                 config = IPSecConfig(VpnHelperScriptPath, serviceDef, conns)
                 setup(config)
                 promise.trySuccess(Some(config.ipsecService.name))
+                statusSubject onNext checkStatus()
             }
-            statusSubject onNext checkStatus()
         } catch {
             case NonFatal(e) =>
                 log.warn("Error handling vpn service update", e)

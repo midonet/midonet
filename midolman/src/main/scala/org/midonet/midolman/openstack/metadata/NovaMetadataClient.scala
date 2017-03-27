@@ -120,9 +120,11 @@ object NovaMetadataClient {
             if (response.getStatus >= 300) {
                 throw new UniformInterfaceException(response)
             }
-
-            val encoding =
-                response.getType.getParameters.getOrDefault("charset", "UTF-8")
+            val encoding = {
+                val respType = response.getType
+                if (respType == null) "UTF-8"
+                else respType.getParameters.getOrDefault("charset", "UTF-8")
+            }
             val data = IOUtils.toString(response.getEntityInputStream,
                                         encoding)
             Log debug s"Response for instance:${info.instanceId} " +
