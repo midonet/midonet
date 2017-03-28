@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1dc81964_bfad88bc",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-03-28T05:17:12Z",
+      "side": 1,
+      "message": "python concats adjacent strings.  no need to add +.",
+      "range": {
+        "startLine": 178,
+        "startChar": 69,
+        "endLine": 178,
+        "endChar": 72
+      },
+      "revId": "677a3e755dd5fec4eed7e721dc6325dadd9bc369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "07e56477_e1bc3e54",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-03-28T05:17:12Z",
+      "side": 1,
+      "message": "why \"sh -c\" indirection is necessary?",
+      "range": {
+        "startLine": 178,
+        "startChar": 9,
+        "endLine": 178,
+        "endChar": 14
+      },
+      "revId": "677a3e755dd5fec4eed7e721dc6325dadd9bc369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
