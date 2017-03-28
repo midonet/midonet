@@ -17,7 +17,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 project.ext {
-    midonetVersion = "5.2.1-rc6"
+    midonetVersion = "5.2.2-SNAPSHOT"
     vendor = 'MidoNet'
     maintainer = "MidoNet user list <midonet-user@midonet.org>"
     url = "http://midonet.org"
