@@ -172,18 +172,19 @@ binding_multihost = {
     ]
 }
 
+def install_packages(container_name, *packages):
+    container = service.get_container_by_hostname(container_name)
+    output, exec_id = container.exec_command(
+        "sh -c 'env DEBIAN_FRONTEND=noninteractive apt-get install " + \
+        "-qy --force-yes -o Dpkg::Options::=\"--force-confnew\" " + \
+        "%s'" % (" ".join(packages)), stream=True)
+    exit_code = container.check_exit_status(exec_id, output, timeout=60)
+    if exit_code != 0:
+        raise RuntimeError("Failed to update packages (%s)." % (packages))
 
 def install():
     # Install new package so the new version is updated immediately after reboot
-    agent = service.get_container_by_hostname('midolman1')
-    output, exec_id = agent.exec_command(
-            "apt-get install -qy --force-yes "
-            "-o Dpkg::Options::=\"--force-confnew\" "
-            "midolman/local midonet-tools/local", stream=True)
-    exit_code = agent.check_exit_status(exec_id, output, timeout=60)
-    if exit_code != 0:
-        raise RuntimeError("Failed to update package.")
-
+    install_packages("midolman1", "midolman/local", "midonet-tools/local")
 
 def cleanup():
     agent = service.get_container_by_hostname('midolman1')
