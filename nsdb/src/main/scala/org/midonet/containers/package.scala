@@ -96,7 +96,7 @@ package object containers {
       * subnet.
       */
     def routerPortAddress(subnet: IPv4Subnet): IPv4Addr = {
-        IPv4Addr(subnet.getIntAddress + RouterAddressOffset)
+        IPv4Addr(subnet.toNetworkAddress.toInt + RouterAddressOffset)
     }
 
     /**
@@ -104,7 +104,7 @@ package object containers {
       * container subnet. This is the ip inside the container namespace.
       */
     def containerPortAddress(subnet: IPv4Subnet): IPv4Addr = {
-        IPv4Addr(subnet.getIntAddress + ContainerAddressOffset)
+        IPv4Addr(subnet.toNetworkAddress.toInt + ContainerAddressOffset)
     }
 
 }

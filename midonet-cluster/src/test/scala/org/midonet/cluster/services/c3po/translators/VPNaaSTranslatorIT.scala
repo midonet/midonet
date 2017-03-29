@@ -242,7 +242,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
             }.get
             route.getIpsecSiteConnectionId.asJava shouldBe cnxnId
             route.getNextHop shouldBe NextHop.PORT
-            route.getNextHopGateway shouldBe IPAddressUtil.toProto("169.254.0.3")
+            route.getNextHopGateway shouldBe IPAddressUtil.toProto("169.254.0.2")
             route.getNextHopPortId shouldBe vpnRtrPort.getId
             route.hasRouterId shouldBe false
         }
