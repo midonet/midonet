@@ -136,13 +136,12 @@ bgpd_down() {
 }
 
 add_address() {
-    IFACE=n$IFACE
     SUBIFACE=`echo $ROUTER_IP | cut -d'/' -f1`
-    ip netns exec $NAMESPACE ip link add link $IFACE dev $SUBIFACE type macvlan
+    ip netns exec $NAMESPACE ip link add link $NETDEV_PORT_MIRROR_NAME dev $SUBIFACE type macvlan
     ip netns exec $NAMESPACE ip address add $ROUTER_IP dev $SUBIFACE
     ip netns exec $NAMESPACE ip link set dev $SUBIFACE address $MAC_ADDR
     ip netns exec $NAMESPACE ip link set dev $SUBIFACE up
-    ip netns exec $NAMESPACE ip link set $IFACE promisc on
+    ip netns exec $NAMESPACE ip link set $NETDEV_PORT_MIRROR_NAME promisc on
 }
 
 remove_address() {
