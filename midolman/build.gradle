@@ -243,7 +243,7 @@ packaging {
     vendor = project.vendor
     url = project.url
     description = 'Midolman is a virtual network controller'
-    dependencies = ['haproxy', 'vpp']
+    dependencies = ['haproxy']
     confFiles = ['/etc/midolman/midolman-env.sh',
                  '/etc/midolman/midolman-env.sh.compute.large',
                  '/etc/midolman/midolman-env.sh.gateway.large',
@@ -279,6 +279,7 @@ debian.doFirst {
         '-d', 'openjdk-8-jdk-headless | java8-runtime-headless | java8-runtime',
         '-d', 'iproute (>= 20111117-1ubuntu2.1)',
         '-d', 'linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0) | linux-image-generic-lts-trusty (>= 3.13.0) | linux-image-virtual-lts-trusty (>= 3.13.0) | openvswitch-datapath-dkms (>= 1.10)',
+        '-d', 'vpp',
         '--deb-recommends', 'java8-runtime-headless | java8-runtime',
         '--after-install', "${project.projectDir}/src/deb/control/postinst",
         '--before-install', "${project.projectDir}/src/deb/control/preinst",
@@ -293,8 +294,6 @@ rpm.doFirst {
     project.packaging.fpmOpts.addAll([
         '-d', "midonet-tools >= ${project.rpmVersion}",
         '-d', 'python',
-        '-d', 'quagga >= 0.99.23',
-        '-d', 'libreswan >= 1.15.0',
         '-d', 'iproute',
         '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
         '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
@@ -305,13 +304,17 @@ rpm.doFirst {
       case "el7":
         project.packaging.fpmOpts.addAll([
             '--depends', 'python-setproctitle',
-            '--depends', 'java-openjdk-headless >= 1.8.0'
+            '--depends', 'java-openjdk-headless >= 1.8.0',
+            '--depends', 'libreswan >= 1.15.0',
+            '--depends', 'quagga >= 0.99.23',
+            '--depends', 'vpp'
         ])
         break
       case "sles12":
         project.packaging.fpmOpts.addAll([
             '--depends', 'iproute2',
-            '--depends', 'java-1_8_0-openjdk-headless'
+            '--depends', 'java-1_8_0-openjdk-headless',
+            '--depends', 'quagga >= 0.99.22',
         ])
         break
       default:
