@@ -31,3 +31,10 @@ sudo pipework/pipework brbgp1_${SANDBOX_NAME} -i bgp0 mnsandbox${SANDBOX_NAME}_m
 
 # MM peer2
 sudo pipework/pipework brbgp2_${SANDBOX_NAME} -i bgp0 mnsandbox${SANDBOX_NAME}_midolman2_1 10.2.0.1/24
+
+sudo docker exec mnsandbox${SANDBOX_NAME}_quagga0_1 sysctl net.ipv6.conf.all.disable_ipv6=0
+sudo docker exec mnsandbox${SANDBOX_NAME}_quagga1_1 sysctl net.ipv6.conf.all.disable_ipv6=0
+sudo docker exec mnsandbox${SANDBOX_NAME}_quagga2_1 sysctl net.ipv6.conf.all.disable_ipv6=0
+sudo docker exec mnsandbox${SANDBOX_NAME}_midolman1_1 sysctl net.ipv6.conf.all.disable_ipv6=0
+sudo docker exec mnsandbox${SANDBOX_NAME}_midolman2_1 sysctl net.ipv6.conf.all.disable_ipv6=0
+sudo docker exec mnsandbox${SANDBOX_NAME}_midolman3_1 sysctl net.ipv6.conf.all.disable_ipv6=0
