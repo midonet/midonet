@@ -216,7 +216,6 @@ class BridgeSimulationTest extends MidolmanSpec {
         ethPkt.setVlanIDs(networkVlans)
 
         When("Requesting the updated bridge")
-        VirtualTopology.clear()
         bridgeDevice = fetchDevice[Bridge](bridge)
 
         And("Simulating the packet")
@@ -224,8 +223,11 @@ class BridgeSimulationTest extends MidolmanSpec {
                                               ethPkt, port1OnHost1)
 
         Then("The bridge should generate an ARP response")
-        verifyGeneratedArp(action, pktCtx, port1OnHost1, dstMac, srcMac,
-                           dstIp.getAddress, srcIp)
+        if (networkVlans.isEmpty)
+            verifyGeneratedArp(action, pktCtx, port1OnHost1, dstMac, srcMac,
+                               dstIp.getAddress, srcIp)
+        else
+            verifyFloodAction(action, pktCtx)
     }
 
     scenario("ARP for pre-seeded MAC") {
@@ -246,7 +248,6 @@ class BridgeSimulationTest extends MidolmanSpec {
         ethPkt.setVlanIDs(networkVlans)
 
         When("Requesting the updated bridge")
-        VirtualTopology.clear()
         bridgeDevice = fetchDevice[Bridge](bridge)
 
         And("Simulating the packet")
@@ -254,8 +255,11 @@ class BridgeSimulationTest extends MidolmanSpec {
                                               ethPkt, port1OnHost1)
 
         Then("The bridge should generate an ARP response")
-        verifyGeneratedArp(action, pktCtx, port1OnHost1, dstMac, srcMac,
-                           dstIp, srcIp)
+        if (networkVlans.isEmpty)
+            verifyGeneratedArp(action, pktCtx, port1OnHost1, dstMac, srcMac,
+                               dstIp, srcIp)
+        else
+            verifyFloodAction(action, pktCtx)
     }
 
     scenario("broadcast arp on bridge") {
