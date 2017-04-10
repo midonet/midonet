@@ -406,9 +406,15 @@ class Bridge(val id: UUID,
 
         context.log.debug(s"Handling ARP request from $nwSrc for $nwDst")
 
-        val mac = ipToMac.getOrElse(nwDst,
-                                    if (ip4MacMap ne null) ip4MacMap get nwDst
-                                    else null)
+        val mac =
+            if (pMatch.isVlanTagged) {
+                context.log.debug("Ignoring cached IP->MAC information for " +
+                                  "VLAN-tagged packet")
+                null
+            } else ipToMac.getOrElse(nwDst,
+                                     if (ip4MacMap ne null) ip4MacMap get nwDst
+                                     else null)
+
         if (mac ne null) {
             context.log.debug("Known MAC {} reply to the ARP request", mac)
             processArpRequest(context.ethernet.getPayload.asInstanceOf[ARP],
@@ -431,7 +437,8 @@ class Bridge(val id: UUID,
         val nwDst = pMatch.getNetworkDstIP
 
         ipToMac get nwDst match {
-            case Some(mac) if macToLogicalPortId.contains(mac) =>
+            case Some(mac) if !pMatch.isVlanTagged &&
+                              macToLogicalPortId.contains(mac) =>
                 val portId = macToLogicalPortId.get(mac).get
                 context.log.debug(s"ARP unicast to peer router port $portId " +
                                   s"(IP: $nwDst MAC: $mac)")
