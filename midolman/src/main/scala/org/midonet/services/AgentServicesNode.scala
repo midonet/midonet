@@ -172,9 +172,9 @@ object AgentServicesNode extends App {
 
     log debug "Registering shutdown hook"
     sys addShutdownHook {
+        log info "Shutdown hook triggered, shutting down.."
+        jmxReporter.stop()
         if (daemon.isRunning) {
-            log info "Shutdown hook triggered, shutting down.."
-            jmxReporter.stop()
             daemon.stopAsync().awaitTerminated()
         }
         if (injector.getInstance(classOf[MidonetBackend]).isRunning) {
@@ -198,6 +198,7 @@ object AgentServicesNode extends App {
                 .startAsync().awaitRunning()
         daemon.startAsync().awaitRunning()
         log info "MidoNet Agent services are up!"
+        daemon.awaitTerminated()
     } catch {
         case e: Throwable =>
             e.getCause match {
