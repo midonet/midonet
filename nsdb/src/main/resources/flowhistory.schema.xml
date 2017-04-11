@@ -53,6 +53,7 @@
     </enum>
     <type name="UUID" primitiveType="uint64" length="2" />
     <enum name="InetAddrType" encodingType="uint8">
+      <validValue name="Null">0</validValue>
       <validValue name="IPv4">1</validValue>
       <validValue name="IPv6">2</validValue>
     </enum>
