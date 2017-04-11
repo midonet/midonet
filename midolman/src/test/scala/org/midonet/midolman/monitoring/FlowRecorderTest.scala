@@ -37,7 +37,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows._
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
@@ -193,17 +193,42 @@ class FlowRecorderTest extends MidolmanSpec {
             Mockito.verify(sender, Mockito.never).submit(
                 Matchers.any[ByteBuffer])
         }
+
+        scenario("Packets without IPs are handled correctly") {
+            val sender = Mockito.mock(classOf[FlowSenderWorker])
+            val recorder = new BinaryFlowRecorder(UUID.randomUUID, sender)
+
+            val ctx1 = noipContext()
+            recorder.record(ctx1, PacketWorkflow.NoOp)
+
+            val captor = ArgumentCaptor.forClass(classOf[ByteBuffer])
+            Mockito.verify(sender).submit(captor.capture)
+
+            val data1 = byteBufferToArray(captor.getValue.duplicate())
+            val binSerializer = new BinarySerialization
+            binSerializer.bufferToFlowRecord(data1)
+        }
+    }
+
+    private def noipContext(numPorts: Int = 5): PacketContext = {
+        val ethernet = { eth addr MAC.random -> MAC.random }
+        newContextBase(numPorts, ethernet)
     }
 
     private def newContext(numPorts: Int = 5): PacketContext = {
         val ethernet = { eth addr MAC.random -> MAC.random } <<
             { ip4 addr IPv4Addr.random --> IPv4Addr.random } <<
             { icmp.unreach.host }
+        newContextBase(numPorts, ethernet)
+    }
+
+    private def newContextBase(numPorts: Int = 5,
+                               ethernet: Ethernet): PacketContext = {
         val wcmatch = new FlowMatch(FlowKeys.fromEthernetPacket(ethernet))
         val packet = new Packet(ethernet, wcmatch)
+
         val ctx = PacketContext.generated(0, packet, wcmatch)
         ctx.inPortId = UUID.randomUUID
-
         for (i <- 1.until(numPorts)) {
             ctx.addFlowTag(FlowTagger.tagForPort(UUID.randomUUID))
         }
