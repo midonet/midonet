@@ -160,6 +160,8 @@ class BinaryFlowRecorder(val hostId: UUID, flowSenderWorker: FlowSenderWorker)
                     setter(0, ip6.upperWord)
                     setter(1, ip6.lowerWord)
             }
+        } else {
+            typeSetter(InetAddrType.Null)
         }
     }
 
