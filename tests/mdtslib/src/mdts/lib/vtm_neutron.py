@@ -20,6 +20,7 @@ from mdts.utils.utils import get_keystone_api
 from mdts.utils.utils import get_neutron_api
 from mdts.utils.utils import http_delete
 from mdts.utils.utils import http_post
+from mdts.utils.utils import http_put
 from neutronclient.common.exceptions import NotFound
 
 LOG = logging.getLogger(__name__)
@@ -82,6 +83,60 @@ class NeutronTopologyManager(TopologyManager):
         self.addCleanup(delete_ignoring_not_found, resource[rtype]['id'])
 
         return resource
+
+    def delete_bgp_speaker(self, bgp_speaker_id):
+        http_delete(self.endpoint_url + "bgp-speakers/" + bgp_speaker_id,
+                    token=self.api.httpclient.auth_token)
+
+    def create_bgp_speaker(self, name, local_as, router_id,
+                           tenant_id='admin', ip_version=4):
+        speaker_dict = {'name': name,
+                        'logical_router': router_id,
+                        'tenant_id': tenant_id,
+                        'local_as': local_as,
+                        'ip_version': ip_version}
+        url = self.endpoint_url + 'bgp-speakers.json'
+        speaker_data = {'bgp_speaker': speaker_dict}
+        post_ret = http_post(
+            url, speaker_data, token=self.api.httpclient.auth_token)
+        speaker = json.loads(post_ret)
+        self.addCleanup(self.delete_bgp_speaker, speaker['bgp_speaker']['id'])
+        return speaker['bgp_speaker']
+
+    def delete_bgp_peer(self, bgp_peer_id):
+        http_delete(self.endpoint_url + "bgp-peers/" + bgp_peer_id,
+                    token=self.api.httpclient.auth_token)
+
+    def create_bgp_peer(self, name, peer_ip, remote_as, auth_type='none',
+                        tenant_id='admin'):
+        peer_dict = {'name': name,
+                     'tenant_id': tenant_id,
+                     'peer_ip': peer_ip,
+                     'auth_type': auth_type,
+                     'remote_as': remote_as}
+        url = self.endpoint_url + 'bgp-peers.json'
+        peer_data = {'bgp_peer': peer_dict}
+        post_ret = http_post(
+            url, peer_data, token=self.api.httpclient.auth_token)
+
+        peer = json.loads(post_ret)
+        self.addCleanup(self.delete_bgp_peer, peer['bgp_peer']['id'])
+
+        return peer['bgp_peer']
+
+    def remove_bgp_speaker_peer(self, bgp_speaker_id, bgp_peer_id):
+        url = "%sbgp-speakers/%s/remove_bgp_peer.json" % (
+            self.endpoint_url, bgp_speaker_id)
+        http_put(url, {'bgp_peer_id': bgp_peer_id},
+                 token=self.api.httpclient.auth_token)
+
+    def add_bgp_speaker_peer(self, bgp_speaker_id, bgp_peer_id):
+        url = "%sbgp-speakers/%s/add_bgp_peer.json" % (
+            self.endpoint_url, bgp_speaker_id)
+        http_put(url, {'bgp_peer_id': bgp_peer_id},
+                 token=self.api.httpclient.auth_token)
+        self.addCleanup(
+            self.add_bgp_speaker_peer, bgp_speaker_id, bgp_peer_id)
 
     def delete_gateway_device(self, gw_dev_id):
         url = self.endpoint_url + 'gw/gateway_devices/'
