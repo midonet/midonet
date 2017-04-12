@@ -17,6 +17,7 @@ package org.midonet.midolman.util
 
 import java.util.{UUID, LinkedList => JLinkedList, List => JList, Queue => JQueue}
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
@@ -59,13 +60,16 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
 
     private implicit val timeout: Timeout = 3 seconds
 
-    def force[T](block: => T)(implicit tag: ClassTag[T]): T =
+    @tailrec
+    final def force[T](block: => T)(implicit tag: ClassTag[T]): T = {
         try {
-            block
-        } catch { case NotYetException(f, _) =>
-            Await.result(f, 3 seconds)
-            force(block)
+            return block
+        } catch {
+            case NotYetException(f, _) =>
+                val t = Await.result(f, 3 seconds)
         }
+        force(block)
+    }
 
     def fetchDevice[T <: Device](id: UUID)(implicit tag: ClassTag[T]): T = {
         Await.result(VirtualTopology.get[T](tag.runtimeClass.asInstanceOf[Class[T]],
