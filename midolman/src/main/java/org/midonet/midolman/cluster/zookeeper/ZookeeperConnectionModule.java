@@ -24,6 +24,7 @@ import org.midonet.cluster.backend.Directory;
 import org.midonet.cluster.backend.zookeeper.ZkConnection;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider.BGP_ZK_INFRA;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.TryCatchReactor;
@@ -50,6 +51,8 @@ public class ZookeeperConnectionModule extends PrivateModule {
 
         expose(Key.get(Reactor.class,
                        Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)));
+        expose(Key.get(Reactor.class, BGP_ZK_INFRA.class));
+
         expose(Directory.class);
 
         bindZkConnectionWatcher();
@@ -60,6 +63,14 @@ public class ZookeeperConnectionModule extends PrivateModule {
             .to(connWatcherImpl)
             .asEagerSingleton();
         expose(ZkConnectionAwareWatcher.class);
+
+        bind(ZkConnectionAwareWatcher.class)
+            .annotatedWith(BGP_ZK_INFRA.class)
+            .to(connWatcherImpl)
+            .asEagerSingleton();
+
+        expose(ZkConnectionAwareWatcher.class)
+            .annotatedWith(BGP_ZK_INFRA.class);
     }
 
     protected void bindDirectory() {
@@ -78,6 +89,10 @@ public class ZookeeperConnectionModule extends PrivateModule {
     protected void bindReactor() {
         bind(Reactor.class).annotatedWith(
             Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
+            .toProvider(ZookeeperReactorProvider.class)
+            .asEagerSingleton();
+        bind(Reactor.class)
+            .annotatedWith(BGP_ZK_INFRA.class)
             .toProvider(ZookeeperReactorProvider.class)
             .asEagerSingleton();
     }

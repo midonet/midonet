@@ -22,6 +22,7 @@ import org.midonet.cluster.backend.Directory;
 import org.midonet.cluster.backend.zookeeper.SessionUnawareConnectionWatcher;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider.BGP_ZK_INFRA;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.cluster.backend.MockDirectory;
 import org.midonet.util.eventloop.Reactor;
@@ -43,6 +44,10 @@ public class MockZookeeperConnectionModule extends ZookeeperConnectionModule {
         bind(ZkConnectionAwareWatcher.class)
             .to(SessionUnawareConnectionWatcher.class)
             .asEagerSingleton();
+        bind(ZkConnectionAwareWatcher.class)
+            .annotatedWith(BGP_ZK_INFRA.class)
+            .to(SessionUnawareConnectionWatcher.class)
+            .asEagerSingleton();
     }
 
     @Override
@@ -56,6 +61,10 @@ public class MockZookeeperConnectionModule extends ZookeeperConnectionModule {
     protected void bindReactor() {
         bind(Reactor.class).annotatedWith(
                 Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
+                .to(CallingThreadReactor.class)
+                .asEagerSingleton();
+        bind(Reactor.class)
+                .annotatedWith(BGP_ZK_INFRA.class)
                 .to(CallingThreadReactor.class)
                 .asEagerSingleton();
     }

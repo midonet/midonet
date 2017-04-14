@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.backend.zookeeper;
 
+import com.google.inject.BindingAnnotation;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
@@ -22,6 +23,9 @@ import org.slf4j.Logger;
 
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.util.eventloop.Reactor;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -36,6 +40,10 @@ public class ZkConnectionProvider implements Provider<ZkConnection> {
     // WARN: should this string change, also replace it in HostService
     public static final String DIRECTORY_REACTOR_TAG = "directoryReactor";
 
+    @BindingAnnotation
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface BGP_ZK_INFRA { }
+
     @Inject
     MidonetBackendConfig config;
 
@@ -48,14 +56,17 @@ public class ZkConnectionProvider implements Provider<ZkConnection> {
 
     @Override
     public ZkConnection get() {
-        try {
-            if (watcher == null) {
-                log.info("ZK connection provider will not use a conn. watcher");
-            }
-            ZkConnection zkConnection = new ZkConnection(
-                config.hosts(), config.sessionTimeout(),
-                watcher, reactorLoop);
+        if (watcher == null) {
+            log.info("ZK connection provider will not use a conn. watcher");
+        }
+        return get(watcher, reactorLoop);
+    }
 
+    public ZkConnection get(ZkConnectionAwareWatcher watcher,
+                            Reactor reactor) {
+        try {
+            ZkConnection zkConnection = new ZkConnection(
+                    config.hosts(), config.sessionTimeout(), watcher, reactor);
             if (watcher != null) {
                 watcher.setZkConnection(zkConnection);
             }
