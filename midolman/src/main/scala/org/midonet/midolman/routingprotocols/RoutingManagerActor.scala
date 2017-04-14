@@ -19,15 +19,12 @@ import java.util.UUID
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
-
 import akka.actor._
-
 import com.google.inject.Inject
-
 import rx.Subscription
 import rx.subscriptions.CompositeSubscription
-
-import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkConnectionProvider}
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider.BGP_ZK_INFRA
 import org.midonet.cluster.data.storage.StateStorage
 import org.midonet.cluster.models.Topology.{Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
@@ -47,7 +44,7 @@ import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ReactiveActor, toFutureOps}
-import org.midonet.util.eventloop.SelectLoop
+import org.midonet.util.eventloop.{Reactor, SelectLoop}
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
 
@@ -113,22 +110,40 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
+    var zkConnectionProvider: ZkConnectionProvider = null
+
+    @Inject
     var vt: VirtualTopology = null
 
     @Inject
     var config: MidolmanConfig = null
+
     @Inject
     var backend: MidonetBackend = null
+
     @Inject
+    @BGP_ZK_INFRA
     var zkConnWatcher: ZkConnectionAwareWatcher = null
+
     @Inject
     @ZEBRA_SERVER_LOOP
     var zebraLoop: SelectLoop = null
+
     @Inject
     var flowInvalidator: SimulationBackChannel = null
+
     @Inject
     var dpState: DatapathState = null
+
+    @Inject
+    @BGP_ZK_INFRA
+    var reactorBgp: Reactor = null
+
     var routingStorage: RoutingStorage = null
+
+    var zkConnection: ZkConnection = null
+
+    var bgpActorCount = 0
 
     private var bgpPortIdx = 0
 
@@ -170,6 +185,22 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
         (port.isExterior || isQuaggaContainerPort(port))
     }
 
+    def ensureZkConnection() = {
+        if (bgpActorCount == 0) {
+            zkConnection = zkConnectionProvider.get(zkConnWatcher, reactorBgp)
+            log.info("Opening BGP ZK Connection")
+        }
+        bgpActorCount = bgpActorCount + 1
+    }
+
+    def checkZkConnection() = {
+        if (bgpActorCount == 1) {
+            zkConnection.close()
+            log.info("Closing BGP ZK Connection")
+        }
+        bgpActorCount = bgpActorCount - 1
+    }
+
     override def receive = {
         case BgpContainerReady(portId) => sendPortActive(portId)
         case LocalPortActive(portId, _, true) => sendPortActive(portId)
@@ -190,10 +221,13 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
             if (isPossibleBgpPort(port) &&
                 activePorts.contains(port.id) &&
                 !portHandlers.contains(port.id)) {
+
                 bgpPortIdx += 1
                 val portIndexForHandler = bgpPortIdx
 
                 log.debug(s"Starting BGP routing for port {}", port.id)
+
+                ensureZkConnection()
 
                 val portHandler = context.actorOf(
                     Props(RoutingHandler(port, portIndexForHandler,
@@ -246,6 +280,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
         portHandlers remove portId match {
             case Some(routingHandler) =>
                 log.debug("Stopping BGP routing for port {}", portId)
+                checkZkConnection()
                 context stop routingHandler
             case None => // ignore
         }
