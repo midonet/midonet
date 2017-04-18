@@ -199,7 +199,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
             updateDhcpEntries(tx, nPort, portContext.midoDhcps, delDhcpHost,
                               ignoreNonExistingDhcp = false)
             // Delete the ARP entries for associated Floating IP.
-            deleteFloatingIpArpEntries(tx, nPort)
+            disassociateFloatingIps(tx, nPort)
         } else if (isDhcpPort(nPort)) {
             updateDhcpEntries(tx, nPort, portContext.midoDhcps, delDhcpServer,
                               // DHCP may have already been deleted.
@@ -207,7 +207,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
             deleteMetaDataServiceRoute(tx, nPort)
         } else if (isVipV2Port(nPort)) {
             // Delete the ARP entries for associated Floating IP.
-            deleteFloatingIpArpEntries(tx, nPort)
+            disassociateFloatingIps(tx, nPort)
         }
         addContextOps(tx, portContext)
     }
@@ -347,7 +347,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
             updateDhcpEntries(tx, oldNPort, portContext.midoDhcps, delDhcpHost,
                               ignoreNonExistingDhcp = false)
             // Delete the ARP entries for associated Floating IP.
-            deleteFloatingIpArpEntries(tx, oldNPort)
+            disassociateFloatingIps(tx, oldNPort)
         }
         if (hasMacAndArpTableEntries(nPort) ||
             hasMacAndArpTableEntries(oldNPort)) {
@@ -906,11 +906,8 @@ class PortTranslator(stateTableStorage: StateTableStorage,
             MAC.fromString(nPort.getMacAddress))
     }
 
-    /**
-      * Returns a Buffer of DeleteNode ops
-      */
-    private def deleteFloatingIpArpEntries(tx: Transaction,
-                                           nPort: NeutronPort): Unit = {
+    private def disassociateFloatingIps(tx: Transaction,
+                                        nPort: NeutronPort): Unit = {
         for (fipId <- nPort.getFloatingIpIdsList.asScala) {
             // The following could be improved by possibly caching
             // Neutron Router and Port. But ZOOM internally caches objects,
@@ -925,6 +922,10 @@ class PortTranslator(stateTableStorage: StateTableStorage,
                 IPv4Addr(fip.getFloatingIpAddress.getAddress),
                 MAC.fromString(nPort.getMacAddress))
             tx.deleteNode(arpPath)
+            tx.update(fip.toBuilder
+                          .clearFixedIpAddress()
+                          .clearRouterId()
+                          .build())
         }
     }
 
