@@ -544,6 +544,54 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         extNw1ArpTable.stop()
     }
 
+    it should "fully disassociate a FIP when its port is deleted" in {
+        // Create external network.
+        val extNwId = createTenantNetwork(10, external = true)
+        val extSnId = createSubnet(20, extNwId, "100.0.0.0/24",
+                                   gatewayIp = "100.0.0.1")
+
+        // Create tenant network with VIF port.
+        val prvNw1Id = createTenantNetwork(30)
+        val prvSn1Id = createSubnet(40, prvNw1Id, "10.0.1.0/24",
+                                    gatewayIp = "10.0.1.1")
+        val prvNw1VifPortIp = "10.0.1.10"
+        val prvNw1VifPortId = createVifPort(
+            50, prvNw1Id, Seq(IPAlloc(prvNw1VifPortIp, prvSn1Id)))
+
+        // Create router.
+        val r1GwMac = "10:10:10:10:10:10"
+        val r1GwPortId = createRouterGatewayPort(
+            60, extNwId, "100.0.0.2", r1GwMac, extSnId)
+        val r1Id = createRouter(70, gwPortId = r1GwPortId)
+
+        // Connect router to private network.
+        val prvNw1RifPortId = createRouterInterfacePort(
+            80, prvNw1Id, List(IPAlloc("10.0.1.2", prvSn1Id)), r1Id)
+        createRouterInterface(90, r1Id, prvNw1RifPortId, prvSn1Id)
+
+        // Create FIP and associate with VIF port.
+        val fipIp = "100.0.0.10"
+        val fipId = createFip(100, extNwId, fipIp, fixedIp = prvNw1VifPortIp,
+                              rtrId = r1Id, portId = prvNw1VifPortId)
+
+        val arpTable = stateTableStorage.bridgeArpTable(extNwId)
+        arpTable.start()
+
+        checkFipAssociated(arpTable, fipIp, fipId, prvNw1VifPortIp,
+                           prvNw1VifPortId, r1Id, r1GwMac,
+                           tenantGwPortId(toProto(r1GwPortId)))
+
+        // Delete the VIF port.
+        insertDeleteTask(110, PortType, prvNw1VifPortId)
+
+        // Make sure FIP is fully dissociated.
+        val dissocFip = storage.get(classOf[FloatingIp], fipId).await()
+        dissocFip.hasFixedIpAddress shouldBe false
+        dissocFip.hasPortId shouldBe false
+        dissocFip.hasRouterId shouldBe false
+        arpTable.getLocal(fipIp) shouldBe null
+    }
+
     private def checkFipAssociated(arpTable: StateTable[IPv4Addr, MAC],
                                    fipAddr: String, fipId: UUID,
                                    fixedIp: String, vifPortId: UUID,
