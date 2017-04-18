@@ -27,9 +27,10 @@ import com.sun.jna.ptr.IntByReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import sun.nio.ch.IOUtil;
+
 import org.midonet.jna.CLibrary;
 import org.midonet.jna.Socket;
-import org.midonet.netlink.hacks.IOUtil;
 
 /**
  * Channel wrapping a Netlink socket connection on the local machine.

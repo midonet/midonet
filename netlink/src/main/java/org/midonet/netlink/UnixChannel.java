@@ -312,7 +312,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
 
     @Override
     protected void implConfigureBlocking(boolean block) throws IOException {
-        IOUtil.configureBlocking(fd, block);
+        sun.nio.ch.IOUtil.configureBlocking(fd, block);
     }
 
     public void translateAndSetInterestOps(int ops, SelectionKeyImpl sk) {

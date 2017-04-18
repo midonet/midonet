@@ -23,8 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is a hack to allow using a custom socket implementation until jdk8
- * rolls over across the project.
+ * This class is a hack to allow using a custom socket implementation.
  *
  * @see sun.nio.ch.IOUtil
  */
@@ -34,13 +33,10 @@ public class IOUtil {
         .getLogger(IOUtil.class);
 
     private static Class<?> ioUtilClassRef;
-    private static Method fdValRef;
-    private static Method newFdRef;
     private static Method writeRef;
     private static Method writeMultipleRef;
     private static Method readRef;
     private static Method readMultipleRef;
-    private static Method configureBlockingRef;
 
     static {
         try {
@@ -57,41 +53,14 @@ public class IOUtil {
             readRef = ioUtilClassRef.getDeclaredMethod("read", FileDescriptor.class, ByteBuffer.class, long.class, NativeDispatcher.nativeDispatcherClass);
             readRef.setAccessible(true);
 
-            fdValRef = ioUtilClassRef.getDeclaredMethod("fdVal", FileDescriptor.class);
-            fdValRef.setAccessible(true);
-
-            newFdRef = ioUtilClassRef.getDeclaredMethod("newFD", int.class);
-            newFdRef.setAccessible(true);
-
             writeMultipleRef = ioUtilClassRef.getDeclaredMethod("write", FileDescriptor.class, ByteBuffer[].class, NativeDispatcher.nativeDispatcherClass);
             writeMultipleRef.setAccessible(true);
 
             readMultipleRef = ioUtilClassRef.getDeclaredMethod("read", FileDescriptor.class, ByteBuffer[].class, NativeDispatcher.nativeDispatcherClass);
             readMultipleRef.setAccessible(true);
-
-            configureBlockingRef = ioUtilClassRef.getDeclaredMethod("configureBlocking", FileDescriptor.class, boolean.class);
-            configureBlockingRef.setAccessible(true);
         } catch (Exception e) {
             log.error("Exception initializing sun.nio.ch.IOUtil method ref: {}", e);
         }
-    }
-
-    public static FileDescriptor newFD(int fd) {
-        try {
-            return (FileDescriptor)newFdRef.invoke(null, fd);
-        } catch (Exception e) {
-            log.error("Error invoking method {}", newFdRef.toString());
-        }
-        return null;
-    }
-
-    public static int fdVal(FileDescriptor fileDescriptor) {
-        try {
-            return (Integer)fdValRef.invoke(null, fileDescriptor);
-        } catch (Exception e) {
-            log.error("Error invoking method {}", fdValRef, e);
-        }
-        return 0;
     }
 
     public static int write(FileDescriptor fd, ByteBuffer src, long position,
@@ -130,13 +99,5 @@ public class IOUtil {
             log.error("Error invoking method \"{}\"", readMultipleRef, e);
         }
         return -1;
-    }
-
-    public static void configureBlocking(FileDescriptor fd, boolean block) {
-        try {
-            configureBlockingRef.invoke(null, fd, block);
-        } catch (Exception e) {
-            log.error("Error invoking method \"{}\"", configureBlockingRef, e);
-        }
     }
 }
