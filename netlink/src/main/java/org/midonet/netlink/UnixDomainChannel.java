@@ -31,11 +31,11 @@ import com.sun.jna.ptr.IntByReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import sun.nio.ch.IOUtil;
 import sun.nio.ch.NativeThread;
 
 import org.midonet.jna.CLibrary;
 import org.midonet.jna.Socket;
-import org.midonet.netlink.hacks.IOUtil;
 import org.midonet.util.AfUnix;
 
 /**
