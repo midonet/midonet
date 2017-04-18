@@ -184,7 +184,7 @@ class PortTranslator(protected val pathBldr: PathBuilder,
             updateDhcpEntries(tx, nPort, portContext.midoDhcps, delDhcpHost,
                               ignoreNonExistingDhcp = false)
             // Delete the ARP entries for associated Floating IP.
-            deleteFloatingIpArpEntries(tx, nPort)
+            disassociateFloatingIps(tx, nPort)
         } else if (isDhcpPort(nPort)) {
             updateDhcpEntries(tx, nPort, portContext.midoDhcps, delDhcpServer,
                               // DHCP may have already been deleted.
@@ -286,7 +286,7 @@ class PortTranslator(protected val pathBldr: PathBuilder,
             updateDhcpEntries(tx, oldNPort, portContext.midoDhcps, delDhcpHost,
                               ignoreNonExistingDhcp = false)
             // Delete the ARP entries for associated Floating IP.
-            deleteFloatingIpArpEntries(tx, oldNPort)
+            disassociateFloatingIps(tx, oldNPort)
         }
         if (hasMacAndArpTableEntries(nPort) ||
             hasMacAndArpTableEntries(oldNPort)) {
@@ -729,11 +729,8 @@ class PortTranslator(protected val pathBldr: PathBuilder,
                      nPort.getMacAddress)
     }
 
-    /**
-      * Returns a Buffer of DeleteNode ops
-      */
-    private def deleteFloatingIpArpEntries(tx: Transaction,
-                                           nPort: NeutronPort): Unit = {
+    private def disassociateFloatingIps(tx: Transaction,
+                                        nPort: NeutronPort): Unit = {
         for (fipId <- nPort.getFloatingIpIdsList.asScala) {
             // The following could be improved by possibly caching
             // Neutron Router and Port. But ZOOM internally caches objects,
@@ -747,6 +744,10 @@ class PortTranslator(protected val pathBldr: PathBuilder,
                                        fip.getFloatingIpAddress.getAddress,
                                        gwPort.getMacAddress)
             tx.deleteNode(arpPath)
+            tx.update(fip.toBuilder
+                          .clearFixedIpAddress()
+                          .clearRouterId()
+                          .build())
         }
     }
 
