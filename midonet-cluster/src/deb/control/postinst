@@ -11,7 +11,7 @@ test -e /lib/init/upstart-job \
     && ln -sf /lib/init/upstart-job /etc/init.d/midonet-cluster \
     || echo "upstart not installed"
 
-systemctl preset midonet-cluster.service 2>1 > /dev/null \
+systemctl preset midonet-cluster.service > /dev/null 2>&1 \
     || echo "systemd not installed"
-systemctl enable midonet-cluster.service 2>1 > /dev/null \
+systemctl enable midonet-cluster.service > /dev/null 2>&1 \
     || echo "systemd not installed"

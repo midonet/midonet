@@ -14,7 +14,7 @@ test -e /lib/init/upstart-job \
     && ln -sf /lib/init/upstart-job /etc/init.d/midolman \
     || echo "upstart not installed"
 
-systemctl preset midolman.service 2>1 > /dev/null \
+systemctl preset midolman.service > /dev/null 2>&1 \
     || echo "systemd not installed"
-systemctl enable midolman.service 2>1 > /dev/null \
+systemctl enable midolman.service > /dev/null 2>&1 \
     || echo "systemd not installed"
