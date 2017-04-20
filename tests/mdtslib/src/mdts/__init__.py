@@ -70,11 +70,7 @@ def destroy_simple_topology(topology):
     tz.delete()
 
 
-def setup_package():
-    """
-    Setup method at the tests module level (init)
-    :return:
-    """
+def setup_mdts(max_attempts):
     # Check all services (including midolman) are online
     api_host = service.get_container_by_hostname('cluster1')
     api_host.wait_for_status('up')
@@ -84,7 +80,6 @@ def setup_package():
             host.wait_for_status('up', timeout=conf.service_status_timeout())
 
     # Wait until bindings do not fail, at that point, mdts is ready for test
-    max_attempts = 10
     for current_attempts in xrange(max_attempts):
         topology = build_simple_topology()
         try:
@@ -98,3 +93,12 @@ def setup_package():
                       current_attempts)
 
     raise RuntimeError("MDTS was unable to bind a single port... Exiting.")
+
+
+def setup_package():
+    """
+    Setup method at the tests module level (init)
+    :return:
+    """
+    max_attempts = 10
+    setup_mdts(max_attempts)
