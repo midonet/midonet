@@ -131,7 +131,7 @@ tests/copy_to_override.sh override_v2
 And start sandbox with a specific flavor, override and provisioning scripts:
 ```
 pushd tests
-sandbox-manage -c sandbox.conf run default_v2_neutron+newton --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/all-provisioning.sh
+sandbox-manage -c sandbox.conf run default_v2_neutron+newton --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/all-newton-provisioning.sh
 ```
 
 To completely remove all containers to restart sandbox:
