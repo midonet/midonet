@@ -19,7 +19,9 @@ try:
 except ImportError:
     import http.client as httplib
 import json
+import os.path
 import socket
+import subprocess
 import sys
 
 
@@ -91,10 +93,13 @@ def main():
             unbind_port(sys.argv[2])
         else:
             usage()
-    except HTTPError as e:
-        sys.stderr.write(str(e))
-        sys.exit(1)
-
+    except Exception, e:
+        sys.stderr.write(str(e) + "\n")
+        sys.stderr.write("Falling back to legacy method\n")
+        fallback_script = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "mm-ctl-fallback")
+        sys.exit(subprocess.call([fallback_script] + sys.argv[1:]))
 
 if __name__ == '__main__':
     main()

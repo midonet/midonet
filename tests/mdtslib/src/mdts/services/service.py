@@ -203,9 +203,11 @@ class Service(object):
         outputstream = cli.exec_start(exec_id, detach=False, stream=True)
 
         # Result is a data blocking stream, exec_id for future checks
-        LOG.debug('[%s] executing command: %s -> stream',
-                  self.get_name(), cmd)
-        return self.check_exit_status(exec_id, outputstream)
+        LOG.debug('[%s] executing command: %s', self.get_name(), cmd)
+        ret = self.check_exit_status(exec_id, outputstream)
+        LOG.debug("[%s] %s exited with code %d" % (self.get_name(), cmd, ret))
+        return ret
+
 
     def exec_command_and_get_output(self, cmd, timeout=2):
         exec_id = cli.exec_create(self.get_name(), cmd,
