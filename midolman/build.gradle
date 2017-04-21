@@ -186,6 +186,9 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/deb/bin/mm-ctl") {
         into "usr/bin"
     }
+    from("src/deb/bin/mm-ctl-fallback") {
+        into "usr/bin"
+    }
     from("src/deb/bin/mm-tests") {
         into "usr/bin"
     }
