@@ -47,7 +47,21 @@ class VMGuest(Interface):
         self.compute_host.create_vmguest(self)
 
     def destroy(self):
+        self.exec_command_blocking("dhclient -r")
         self.compute_host.destroy_vmguest(self)
+
+    def dhclient(self):
+        self.exec_command_blocking("dhclient -r")
+        cmd = "dhclient %s" % (self.get_ifname())
+        self.try_command_blocking(cmd)
+
+    def try_command_blocking(self, cmd):
+        cmd = "ip netns exec %s %s" % (self.get_vm_ns(), cmd)
+        self.compute_host.try_command_blocking(cmd)
+
+    def exec_command_blocking(self, cmd):
+        cmd = "ip netns exec %s %s" % (self.get_vm_ns(), cmd)
+        return self.compute_host.exec_command_blocking(cmd)
 
     # Inherited methods
     # FIXME: remove sync or look where it is used

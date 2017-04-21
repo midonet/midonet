@@ -240,7 +240,8 @@ class MidonetAgentHost(Service):
     def destroy_provided(self, iface):
         pass
 
-    def bind_iface_port(self, iface, mn_port_id, type=BindingType.API):
+    def bind_iface_port(self, iface, mn_port_id,
+                        type=BindingType.API):
         if type == BindingType.API:
             host_id = self.get_midonet_host_id()
             self.get_api().get_host(host_id) \
@@ -248,11 +249,14 @@ class MidonetAgentHost(Service):
                 .port_id(mn_port_id) \
                 .interface_name(iface).create()
         elif type == BindingType.MMCTL:
-            self.exec_command("mm-ctl --bind-port {} {}"
-                              .format(mn_port_id, iface))
+            self.try_command_blocking(
+                "mm-ctl --bind-port %s %s" % (
+                    mn_port_id, iface))
 
-    def bind_port(self, interface, mn_port_id, type=BindingType.API):
-        self.bind_iface_port(interface.get_binding_ifname(), mn_port_id, type)
+    def bind_port(self, interface, mn_port_id,
+                  type=BindingType.API):
+        self.bind_iface_port(interface.get_binding_ifname(), mn_port_id,
+                             type)
 
     def unbind_port(self, interface, type=BindingType.API):
         port = None
@@ -267,5 +271,5 @@ class MidonetAgentHost(Service):
             if type == BindingType.API:
                 port.delete()
             elif type == BindingType.MMCTL:
-                self.exec_command("mm-ctl --unbind-port {}"
-                                  .format(port.get_port_id()))
+                self.try_command_blocking(
+                    "mm-ctl --unbind-port %s" % (port.get_port_id()))
