@@ -217,8 +217,8 @@ sealed class OvsProtocol(pid: Int,
             FlowKeys.writer)
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions,
             FlowActions.writer)
-        NetlinkMessage.writeRawAttribute(buf, Attr.Packet,
-            packet.getEthernet.serialize())
+        NetlinkMessage.writeEthernetAttribute(buf, Attr.Packet,
+            packet.getEthernet)
 
         message.finalize(pid)
     }
