@@ -176,12 +176,6 @@ port data, perform the binding.  The binding information are as follows:
       * 'binding:host' => Neutron host ID (find the MidoNet host ID from this ID)
       * 'binding:profile[interface_name]' => interface name
 
- * If there is a change in the MAC address and there are FIP NAT rules in the
-   port (so this port is the GW port of at least one FIP):
-
-      * Update with the new MAC address the ARP tables of the network each
-        impacted FIP belongs.
-
 ### UPDATE
 
 Update the MidoNet network MAC table entry:
