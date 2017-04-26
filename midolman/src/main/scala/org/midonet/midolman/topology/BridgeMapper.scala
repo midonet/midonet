@@ -42,7 +42,7 @@ import org.midonet.midolman.state.ReplicatedMap
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.collection.Reducer
-import org.midonet.util.concurrent.TimedExpirationMap
+import org.midonet.util.concurrent.OnHeapTimedExpirationMap
 import org.midonet.util.functors._
 import org.midonet.util.logging.Logger
 
@@ -175,8 +175,8 @@ object BridgeMapper {
      */
     private class MacLearning(tables: CMap[Short, BridgeMacLearningTable],
                               log: Logger, ttl: Duration) {
-        private val map =
-            new TimedExpirationMap[MacPortMapping, AnyRef](log, _ => ttl)
+        private val map = new OnHeapTimedExpirationMap[MacPortMapping, AnyRef](
+            log, _ => ttl)
         private val reducer = new Reducer[MacPortMapping, Any, Unit] {
             override def apply(acc: Unit, mapping: MacPortMapping, value: Any)
             : Unit = {

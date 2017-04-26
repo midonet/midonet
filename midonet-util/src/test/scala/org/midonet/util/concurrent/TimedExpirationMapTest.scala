@@ -29,16 +29,15 @@ import org.midonet.util.collection.Reducer
 import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
-class TimedExpirationMapTest extends FeatureSpec
-                             with Matchers
-                             with OneInstancePerTest {
+abstract class TimedExpirationMapTest extends FeatureSpec
+        with Matchers
+        with OneInstancePerTest {
 
-    val map = new TimedExpirationMap[String, String](
-        Logger(NOPLogger.NOP_LOGGER),
-        {
-            case "high" => 5 days
-            case _ => 0 millis
-        })
+    def expirationFor = (x: String) => x match {
+        case "high" => 5 days
+        case _ => 0 millis
+    }
+    def map: TimedExpirationMap[String, String]
 
     feature("Normal operations") {
         scenario("putAndRef") {
@@ -215,3 +214,9 @@ class TimedExpirationMapTest extends FeatureSpec
         }
     }
 }
+
+class OnHeapTimedExpirationMapTest extends TimedExpirationMapTest {
+    override val map = new OnHeapTimedExpirationMap[String, String](
+        Logger(NOPLogger.NOP_LOGGER), expirationFor)
+}
+
