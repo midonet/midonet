@@ -31,7 +31,7 @@ import org.midonet.midolman.state.NatBlockAllocator.NoFreeNatBlocksException
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.collection.Reducer
-import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
+import org.midonet.util.concurrent.{NanoClock, OnHeapTimedExpirationMap, TimedExpirationMap}
 import org.midonet.util.concurrent.ExecutionContextOps
 import org.midonet.util.logging.Logger
 
@@ -78,7 +78,7 @@ object NatLeaser {
      */
     object LeasedBlocks {
         def apply(log: Logger): LeasedBlocks =
-            new TimedExpirationMap[JInt, LeasedBlock](log, _ => BLOCK_EXPIRATION)
+            new OnHeapTimedExpirationMap[JInt, LeasedBlock](log, _ => BLOCK_EXPIRATION)
     }
     type LeasedBlocks = TimedExpirationMap[JInt, LeasedBlock]
 

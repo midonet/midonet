@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.packets.FlowStateStore.IdleExpiration
 import org.midonet.util.collection.Reducer
-import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
+import org.midonet.util.concurrent.{NanoClock, OnHeapTimedExpirationMap}
 import org.midonet.util.logging.Logger
 
 object ShardedFlowStateTable {
@@ -167,7 +167,7 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
      * aggregation. Reference counting is also delegated on the parent.
      */
     class FlowStateShard(workerId: Int, log: Logger) extends FlowStateTable[K, V] {
-        private val map = new TimedExpirationMap[K, V](log, _.expiresAfter)
+        private val map = new OnHeapTimedExpirationMap[K, V](log, _.expiresAfter)
 
         override def putAndRef(key: K, value: V): V =
             map.putAndRef(key, value)

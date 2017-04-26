@@ -80,8 +80,23 @@ import org.midonet.util.logging.Logger
  *            removing the key from the map. Only afterwards can a ref() succeed,
  *            guaranteeing the happens-before relationship described above.
  */
-final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
-                                                       expirationFor: K => Duration) {
+trait TimedExpirationMap[K <: AnyRef, V >: Null] {
+    def putAndRef(key: K, value: V): V
+    def putIfAbsentAndRef(key: K, value: V): Int
+    def get(key: K): V
+    def getRefCount(key: K): Int
+    def fold[U](seed: U, func: Reducer[K, V, U]): U
+    def ref(key: K): V
+    def refAndGetCount(key: K): Int
+    def refCount(key: K): Int
+    def unref(key: K, currentTimeMillis: Long): V
+    def obliterateIdleEntries[U](currentTimeMillis: Long): Unit
+    def obliterateIdleEntries[U](currentTimeMillis: Long, seed: U,
+                                 reducer: Reducer[K, V, U]): U
+}
+
+final class OnHeapTimedExpirationMap[K <: AnyRef, V >: Null]
+    (log: Logger, expirationFor: K => Duration) extends TimedExpirationMap[K, V] {
 
     case class Metadata(var value: V, refCount: AtomicInteger, var expiration: Long)
 
@@ -126,7 +141,7 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
     }
 
     @tailrec
-    def putAndRef(key: K, value: V): V =
+    override def putAndRef(key: K, value: V): V =
         refCountMap.get(key) match {
             case m@Metadata(oldValue, count, _) =>
                 if (ref(key) != null) {
@@ -141,7 +156,7 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
         }
 
     @tailrec
-    def putIfAbsentAndRef(key: K, value: V): Int =
+    override def putIfAbsentAndRef(key: K, value: V): Int =
         refCountMap.get(key) match {
             case m: Metadata =>
                 val count = refAndGetCount(key)
@@ -155,18 +170,18 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
             case _ => putIfAbsentAndRef(key, value)
         }
 
-    def get(key: K): V = {
+    override def get(key: K): V = {
         val metadata = refCountMap.get(key)
         if ((metadata eq null) || metadata.refCount.get == -1) null
         else metadata.value
     }
 
-    def getRefCount(key: K): Int = refCountMap.get(key) match {
+    override def getRefCount(key: K): Int = refCountMap.get(key) match {
         case null => 0
         case Metadata(_, refCount, _) => refCount.get
     }
 
-    def fold[U](seed: U, func: Reducer[K, V, U]): U = {
+    override def fold[U](seed: U, func: Reducer[K, V, U]): U = {
         var acc = seed
         val it = refCountMap.entrySet().iterator()
         while (it.hasNext) {
@@ -176,7 +191,7 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
         acc
     }
 
-    def ref(key: K): V =
+    override def ref(key: K): V =
         refCountMap.get(key) match {
             case m@Metadata(oldValue, count, _) =>
                 val newCount = tryIncIfGreaterThan(count, -1)
@@ -193,7 +208,7 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
             case _ => null
         }
 
-    def refAndGetCount(key: K): Int =
+    override def refAndGetCount(key: K): Int =
         refCountMap.get(key) match {
             case m@Metadata(oldValue, count, _) =>
                 val newCount = tryIncIfGreaterThan(count, -1)
@@ -209,14 +224,14 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
             case _ => 0
         }
 
-    def refCount(key: K) = {
+    override def refCount(key: K) = {
         refCountMap.get(key) match {
             case null => 0
             case metadata => metadata.refCount.get()
         }
     }
 
-    def unref(key: K, currentTimeMillis: Long): V =
+    override def unref(key: K, currentTimeMillis: Long): V =
         refCountMap.get(key) match {
             case null =>
                 null
@@ -267,11 +282,11 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
         override def apply(acc: Unit, key: K, value: V): Unit = ()
     }
 
-    def obliterateIdleEntries[U](currentTimeMillis: Long): Unit =
+    override def obliterateIdleEntries[U](currentTimeMillis: Long): Unit =
         obliterateIdleEntries(currentTimeMillis, (), identityReducer)
 
-    def obliterateIdleEntries[U](currentTimeMillis: Long, seed: U,
-                                 reducer: Reducer[K, V, U]): U = {
+    override def obliterateIdleEntries[U](currentTimeMillis: Long, seed: U,
+                                          reducer: Reducer[K, V, U]): U = {
         var acc = seed
         val it = expiring.elements()
         while (it.hasMoreElements) {
