@@ -299,8 +299,6 @@ class PortTranslator(protected val pathBldr: PathBuilder,
             mPortOp.get.apply(tx)
         }
 
-        fipArpTableUpdateOps(tx, oldMPort, oldNPort, nPort)
-
         // TODO if a DHCP port, assert that the fixed IPs haven't changed.
     }
 
@@ -719,50 +717,6 @@ class PortTranslator(protected val pathBldr: PathBuilder,
         }
     }
 
-    /*
-     * Return a list of operations to update the entries in ARP tables that are
-     * related of FIPs, and that are impacted by a change of MAC in the FIP's
-     * gateway port that invalidates them.
-     */
-    private def fipArpTableUpdateOps(tx: Transaction, mPort: PortOrBuilder,
-                                     oldPort: NeutronPort,
-                                     newPort: NeutronPort): OperationList = {
-        if (mPort.getFipNatRuleIdsCount == 0 ||
-            newPort.getMacAddress == oldPort.getMacAddress) {
-            List()
-        }
-
-        /*
-         * In order to get all the impacted entries the list of NAT rules of the
-         * port is checked and from them we obtain the FIP, since the gateway
-         * port has no direct back reference to the FIPs it is serving,
-         *
-         * The FIP ID can be obtained from the both SNAT/DNAT rules in a
-         * deterministic from each one. Both are checked in case only one of
-         * them is present, so duplicates in FIP ID list must be ignored
-         */
-        val natRuleIds = mPort.getFipNatRuleIdsList.asScala
-        val natRules = tx.getAll(classOf[Rule], natRuleIds)
-        val fipIds = for (natRule <- natRules) yield {
-            val natRuleData = natRule.getNatRuleData
-            if (natRuleData.getDnat) {
-                if (natRule.getCondition.hasIcmpDataDstIp) {
-                    RouteManager.fipReverseDnatRuleId(natRule.getId)
-                } else {
-                    RouteManager.fipDnatRuleId(natRule.getId)
-                }
-            } else {
-                RouteManager.fipSnatRuleId(natRule.getId)
-            }
-        }
-
-        for (fip <- tx.getAll(classOf[FloatingIp], fipIds.distinct)) {
-            tx.deleteNode(fipArpEntryPath(oldPort, fip))
-            tx.createNode(fipArpEntryPath(newPort, fip), null)
-        }
-        List()
-    }
-
     private def arpEntryPath(nPort: NeutronPort): String = {
         arpEntryPath(nPort.getNetworkId,
                      nPort.getFixedIps(0).getIpAddress.getAddress,
@@ -775,11 +729,8 @@ class PortTranslator(protected val pathBldr: PathBuilder,
                      nPort.getMacAddress)
     }
 
-    /**
-      * Returns a Buffer of DeleteNode ops
-      */
-    private def deleteFloatingIpArpEntries(tx: Transaction,
-                                           nPort: NeutronPort): Unit = {
+    private def disassociateFloatingIps(tx: Transaction,
+                                        nPort: NeutronPort): Unit = {
         for (fipId <- nPort.getFloatingIpIdsList.asScala) {
             // The following could be improved by possibly caching
             // Neutron Router and Port. But ZOOM internally caches objects,
