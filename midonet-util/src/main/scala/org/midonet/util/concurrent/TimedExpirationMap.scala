@@ -324,3 +324,48 @@ final class OnHeapTimedExpirationMap[K <: AnyRef, V >: Null]
         acc
     }
 }
+
+final class OffHeapTimedExpirationMap[K <: AnyRef, V >: Null]
+    (log: Logger,
+     expirationFor: K => Duration,
+     serializeKey: K => Array[Byte],
+     serializeValue: V => Array[Byte],
+     deserializeValue: Array[Byte] => V
+     ) extends TimedExpirationMap[K, V] {
+    val native = new NativeTimedExpirationMap()
+    val pointer = native.create()
+
+    override def putAndRef(key: K, value: V): V = {
+        deserializeValue(native.putAndRef(
+            pointer, serializeKey(key), serializeValue(value)))
+    }
+
+    override def putIfAbsentAndRef(key: K, value: V): Int =
+        native.putIfAbsentAndRef(
+            pointer, serializeKey(key), serializeValue(value))
+
+    override def get(key: K): V =
+        deserializeValue(native.get(pointer, serializeKey(key)))
+    override def getRefCount(key: K): Int =
+        native.getRefCount(pointer, serializeKey(key))
+
+    override def fold[U](seed: U, func: Reducer[K, V, U]): U = seed
+    override def ref(key: K): V =
+        deserializeValue(native.ref(pointer, serializeKey(key)))
+
+    override def refAndGetCount(key: K): Int =
+        native.refAndGetCount(pointer, serializeKey(key))
+    override def refCount(key: K): Int =
+        native.refCount(pointer, serializeKey(key))
+
+    override def unref(key: K, currentTimeMillis: Long): V = {
+        val value = native.unref(pointer, serializeKey(key),
+                                 currentTimeMillis)
+        deserializeValue(value)
+    }
+
+    def obliterateIdleEntries[U](currentTimeMillis: Long): Unit = {}
+    def obliterateIdleEntries[U](currentTimeMillis: Long, seed: U,
+                                 reducer: Reducer[K, V, U]): U = seed
+
+}

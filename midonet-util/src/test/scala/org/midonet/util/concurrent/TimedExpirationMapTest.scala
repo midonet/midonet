@@ -16,6 +16,7 @@
 
 package org.midonet.util.concurrent
 
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.{CountDownLatch, ThreadLocalRandom}
 
 import scala.concurrent.duration._
@@ -220,3 +221,10 @@ class OnHeapTimedExpirationMapTest extends TimedExpirationMapTest {
         Logger(NOPLogger.NOP_LOGGER), expirationFor)
 }
 
+/*
+class OffHeapTimedExpirationMapTest extends TimedExpirationMapTest {
+    override val map = new OffHeapTimedExpirationMap[String, String](
+        Logger(NOPLogger.NOP_LOGGER), expirationFor,
+        _.getBytes(UTF_8), _.getBytes(UTF_8), new String(_, UTF_8))
+
+}*/
