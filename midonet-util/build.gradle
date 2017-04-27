@@ -15,6 +15,80 @@
  */
 
 apply plugin: 'scala'
+apply plugin: 'cpp'
+apply plugin: 'google-test-test-suite'
+
+import org.gradle.internal.jvm.Jvm
+
+def JNI_INCLUDE_DIR = "${Jvm.current().getJavacExecutable().getParentFile().getParent()}/include"
+
+// native C++ library (must  be at start of file)
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            googleTest {
+                headers.srcDir "$rootDir/tools/google-test-1.8.0/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile =
+                        file("$rootDir/tools/google-test-1.8.0/lib/linux-x86_64/libgtest.a")
+                }
+            }
+        }
+    }
+    components {
+        nativeTimedExpirationMap(NativeLibrarySpec) {
+            baseName "nativeTimedExpirationMap"
+        }
+    }
+    testSuites {
+        nativeTimedExpirationMapTest(GoogleTestTestSuiteSpec) {
+            testing $.components.nativeTimedExpirationMap
+        }
+    }
+    tasks.test {
+        dependsOn runNativeTimedExpirationMapTestGoogleTestExe
+        dependsOn nativeTimedExpirationMapSharedLibrary
+        systemProperty "java.library.path",
+                       "${project.buildDir}/libs/nativeTimedExpirationMap/shared"
+    }
+    tasks.jar {
+        dependsOn nativeTimedExpirationMapSharedLibrary
+    }
+    binaries {
+        all {
+            if (toolChain in Gcc) {
+                cppCompiler.args << "--std=c++11" \
+                                 << "-I" << JNI_INCLUDE_DIR \
+                                 << "-I" << "${JNI_INCLUDE_DIR}/linux"
+            }
+        }
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "googleTest", linkage: "static"
+
+            if (targetPlatform.operatingSystem.linux) {
+                cppCompiler.args '-pthread'
+                linker.args '-pthread'
+            }
+        }
+    }
+}
+
+task generateJniHeaders(type:Exec) {
+    def classpath = sourceSets.main.output.classesDir
+    def nativeIncludes = "src/nativeTimedExpirationMap/headers"
+    commandLine "javah", "-d", nativeIncludes, \
+                         "-classpath", classpath, \
+                         "org.midonet.util.concurrent.NativeTimedExpirationMap"
+    dependsOn classes
+}
+
+tasks.withType(RunTestExecutable) {
+    args "--gtest_output=xml:test_detail.xml"
+}
+
+tasks.withType(CppCompile) {
+    dependsOn generateJniHeaders
+}
 
 dependencies {
     compile libraries.akka, libraries.commons_cli, libraries.commons_conf,
