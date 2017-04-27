@@ -325,6 +325,15 @@ final class OnHeapTimedExpirationMap[K <: AnyRef, V >: Null]
     }
 }
 
+object OffHeapTimedExpirationMap {
+    var loaded = false
+    def loadNativeLibrary() = synchronized {
+        if (!loaded) {
+            System.loadLibrary("nativeTimedExpirationMap")
+            loaded = true
+        }
+    }
+}
 final class OffHeapTimedExpirationMap[K <: AnyRef, V >: Null]
     (log: Logger,
      expirationFor: K => Duration,
@@ -332,6 +341,9 @@ final class OffHeapTimedExpirationMap[K <: AnyRef, V >: Null]
      serializeValue: V => Array[Byte],
      deserializeValue: Array[Byte] => V
      ) extends TimedExpirationMap[K, V] {
+
+    OffHeapTimedExpirationMap.loadNativeLibrary()
+
     val native = new NativeTimedExpirationMap()
     val pointer = native.create()
 

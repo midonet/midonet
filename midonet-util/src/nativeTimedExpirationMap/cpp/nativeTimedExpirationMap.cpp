@@ -13,6 +13,165 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <iostream>
 #include <nativeTimedExpirationMap.h>
 #include "org_midonet_util_concurrent_NativeTimedExpirationMap.h"
 
+
+jlong Java_org_midonet_util_concurrent_NativeTimedExpirationMap_create(JNIEnv *, jobject) {
+  std::cout << "Creating new NativeTimedExpirationMap" << std::endl;
+  return reinterpret_cast<jlong>(new NativeTimedExpirationMap());
+}
+
+const std::string jba2str(JNIEnv *env, jbyteArray ba) {
+  auto len = env->GetArrayLength(ba);
+  auto bytes = reinterpret_cast<const char*>(env->GetByteArrayElements(ba, 0));
+  return std::string(bytes, len);
+}
+
+jbyteArray str2jba(JNIEnv *env, std::string str) {
+  jbyteArray retBytes = env->NewByteArray(str.size());
+  env->SetByteArrayRegion(retBytes, 0, str.size(),
+                          reinterpret_cast<const jbyte*>(str.c_str()));
+  return retBytes;
+}
+
+jbyteArray
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_putAndRef
+(JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes, jbyteArray valBytes) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  auto ret = map->put_and_ref(jba2str(env, keyBytes), jba2str(env, valBytes));
+  if (ret) {
+    return str2jba(env, ret.value());
+  } else {
+    return NULL;
+  }
+}
+
+jint
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_putIfAbsentAndRef
+(JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes, jbyteArray valBytes) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  return map->put_if_absent_and_ref(jba2str(env, keyBytes),
+                                    jba2str(env, valBytes));
+}
+
+jbyteArray
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_get
+(JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  auto ret = map->get(jba2str(env, keyBytes));
+  if (ret) {
+    return str2jba(env, ret.value());
+  } else {
+    return NULL;
+  }
+}
+
+jint
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_getRefCount
+(JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  return map->get_ref_count(jba2str(env, keyBytes));
+}
+
+jbyteArray
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_ref
+(JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  auto ret = map->ref(jba2str(env, keyBytes));
+  if (ret) {
+    return str2jba(env, ret.value());
+  } else {
+    return NULL;
+  }
+}
+
+jint
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_refAndGetCount
+(JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  return map->ref_and_get_count(jba2str(env, keyBytes));
+}
+
+jint
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_refCount
+(JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  return map->ref_count(jba2str(env, keyBytes));
+}
+
+jbyteArray
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_unref
+(JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes, jlong expiry) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  auto ret = map->unref(jba2str(env, keyBytes), expiry);
+  if (ret) {
+    return str2jba(env, ret.value());
+  } else {
+    return NULL;
+  }
+}
+
+void Java_org_midonet_util_concurrent_NativeTimedExpirationMap_destroy
+(JNIEnv *, jobject, jlong ptr) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  delete map;
+}
+
+const option<std::string>
+NativeTimedExpirationMap::put_and_ref(const std::string key,
+                                      const std::string value) {
+  std::cout << "NativeTimedExpirationMap::put_and_ref(" << key
+            << ", " << value << ")" << std::endl;
+  return option<std::string>::null_opt;
+}
+
+int
+NativeTimedExpirationMap::put_if_absent_and_ref(const std::string key,
+                                                const std::string value) {
+  std::cout << "NativeTimedExpirationMap::put_if_absent_and_ref(" << key
+            << ", " << value << ")" << std::endl;
+  return 0;
+}
+
+const option<std::string>
+NativeTimedExpirationMap::get(const std::string key) const {
+  std::cout << "NativeTimedExpirationMap::get(" << key << ")" << std::endl;
+  return option<std::string>::null_opt;
+}
+
+int
+NativeTimedExpirationMap::get_ref_count(const std::string key) const {
+  std::cout << "NativeTimedExpirationMap::get_ref_count("
+            << key << ")" << std::endl;
+  return 0;
+}
+
+const option<std::string>
+NativeTimedExpirationMap::ref(const std::string key) {
+  std::cout << "NativeTimedExpirationMap::ref("
+            << key << ")" << std::endl;
+  return option<std::string>::null_opt;
+}
+
+int
+NativeTimedExpirationMap::ref_and_get_count(const std::string key) {
+  std::cout << "NativeTimedExpirationMap::ref_and_get_count("
+            << key << ")" << std::endl;
+  return 0;
+}
+
+int
+NativeTimedExpirationMap::ref_count(const std::string key) const {
+  std::cout << "NativeTimedExpirationMap::ref_count("
+            << key << ")" << std::endl;
+  return 0;
+}
+
+const option<std::string>
+NativeTimedExpirationMap::unref(const std::string key, long expiry) {
+  std::cout << "NativeTimedExpirationMap::unref("
+            << key << ", " << expiry << ")" << std::endl;
+  return option<std::string>::null_opt;
+}

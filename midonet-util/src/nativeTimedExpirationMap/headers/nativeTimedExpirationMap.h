@@ -16,4 +16,34 @@
 #ifndef _NATIVE_TIMED_EXPIRY_MAP_H_
 #define _NATIVE_TIMED_EXPIRY_MAP_H_
 
+template<class T>
+class option {
+public:
+  option(T value): m_value(value), m_set(true) {}
+
+  T value() const { return m_value; }
+  operator bool () const { return m_set; }
+
+  static option<T> null_opt;
+private:
+  T m_value;
+  bool m_set;
+
+  option(): m_set(false) {}
+};
+
+template<class T> option<T> option<T>::null_opt = option();
+
+class NativeTimedExpirationMap {
+public:
+  const option<std::string> put_and_ref(const std::string key, const std::string value);
+  int put_if_absent_and_ref(const std::string key, const std::string value);
+  const option<std::string> get(const std::string key) const;
+  int get_ref_count(const std::string key) const;
+  const option<std::string> ref(const std::string key);
+  int ref_and_get_count(const std::string key);
+  int ref_count(const std::string key) const;
+  const option<std::string> unref(const std::string key, long expiry);
+};
+
 #endif // _NATIVE_TIMED_EXPIRY_MAP_H_

@@ -223,8 +223,18 @@ class OnHeapTimedExpirationMapTest extends TimedExpirationMapTest {
 
 /*
 class OffHeapTimedExpirationMapTest extends TimedExpirationMapTest {
+    def str2bytes(str: String): Array[Byte] = str match {
+        case null => null
+        case str => str.getBytes(UTF_8)
+    }
+
+    def bytes2str(bytes: Array[Byte]): String = bytes match {
+        case null => null
+        case bytes => new String(bytes, UTF_8)
+    }
+
     override val map = new OffHeapTimedExpirationMap[String, String](
         Logger(NOPLogger.NOP_LOGGER), expirationFor,
-        _.getBytes(UTF_8), _.getBytes(UTF_8), new String(_, UTF_8))
+        str2bytes, str2bytes, bytes2str)
 
 }*/
