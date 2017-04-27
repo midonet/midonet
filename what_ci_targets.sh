@@ -59,8 +59,8 @@ FAST_MDTS=":mdts -t test_bridge:test_icmp"
 FULL_TEMPEST=":tempest"
 
 # Various regexes matching files that don't require unit/integration tests
-REGEX_FOR_UNIT='^(python-midonetclient|docs|misc|tools/devmido|specs|LICENSE|DEVELOPMENT.md|README.md|what_ci_targets)'
-REGEX_FOR_MDTS='^(.*/src/test/.*|docs|misc|tools/devmido|specs|LICENSE|DEVELOPMENT.md|README.md|what_ci_targets)'
+REGEX_FOR_UNIT='^(python-midonetclient|docs|misc|specs|LICENSE|DEVELOPMENT.md|README.md|what_ci_targets)'
+REGEX_FOR_MDTS='^(.*/src/test/.*|docs|misc|specs|LICENSE|DEVELOPMENT.md|README.md|what_ci_targets)'
 
 # How many unit-test relevant files are changed in this patch
 FOR_UNIT=`git diff-tree --no-commit-id --name-only -r HEAD | grep -Ev "$REGEX_FOR_UNIT" | wc -l | xargs`
