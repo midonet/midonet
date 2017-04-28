@@ -187,7 +187,7 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
             map.ref(key)
 
         override def getRefCount(key: K): Int =
-            map.getRefCount(key)
+            map.refCount(key)
 
         override def touch(key: K, value: V): Unit = {
             putAndRef(key, value)

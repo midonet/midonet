@@ -192,7 +192,7 @@ abstract class TimedExpirationMapTest extends FeatureSpec
                         val key = keys(index)
 
                         if (rand.nextInt(10) < 7) {
-                            if (map.getRefCount(key) > 0) {
+                            if (map.refCount(key) > 0) {
                                 map.unref(key, 0)
                                 unrefs(index) += 1
                             }
@@ -210,7 +210,7 @@ abstract class TimedExpirationMapTest extends FeatureSpec
 
             val results = (refs, unrefs).zipped map (_ - _)
             keys.indices foreach { i =>
-                map.getRefCount(i.toString) should be (results(i))
+                map.refCount(i.toString) should be (results(i))
             }
         }
     }

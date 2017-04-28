@@ -64,7 +64,6 @@ public:
   const option<std::string> put_and_ref(const std::string key, const std::string value);
   int put_if_absent_and_ref(const std::string key, const std::string value);
   const option<std::string> get(const std::string key) const;
-  int get_ref_count(const std::string key) const;
   const option<std::string> ref(const std::string key);
   int ref_and_get_count(const std::string key);
   int ref_count(const std::string key) const;

@@ -68,13 +68,6 @@ Java_org_midonet_util_concurrent_NativeTimedExpirationMap_get
   }
 }
 
-jint
-Java_org_midonet_util_concurrent_NativeTimedExpirationMap_getRefCount
-(JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes) {
-  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
-  return map->get_ref_count(jba2str(env, keyBytes));
-}
-
 jbyteArray
 Java_org_midonet_util_concurrent_NativeTimedExpirationMap_ref
 (JNIEnv *env, jobject, jlong ptr, jbyteArray keyBytes) {
@@ -157,13 +150,6 @@ NativeTimedExpirationMap::get(const std::string key) const {
   } else {
     return option<std::string>::null_opt;
   }
-}
-
-int
-NativeTimedExpirationMap::get_ref_count(const std::string key) const {
-  std::cout << "NativeTimedExpirationMap::get_ref_count("
-            << key << ")" << std::endl;
-  return 0;
 }
 
 const option<std::string>

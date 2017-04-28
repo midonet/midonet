@@ -84,7 +84,6 @@ trait TimedExpirationMap[K <: AnyRef, V >: Null] {
     def putAndRef(key: K, value: V): V
     def putIfAbsentAndRef(key: K, value: V): Int
     def get(key: K): V
-    def getRefCount(key: K): Int
     def fold[U](seed: U, func: Reducer[K, V, U]): U
     def ref(key: K): V
     def refAndGetCount(key: K): Int
@@ -174,11 +173,6 @@ final class OnHeapTimedExpirationMap[K <: AnyRef, V >: Null]
         val metadata = refCountMap.get(key)
         if ((metadata eq null) || metadata.refCount.get == -1) null
         else metadata.value
-    }
-
-    override def getRefCount(key: K): Int = refCountMap.get(key) match {
-        case null => 0
-        case Metadata(_, refCount, _) => refCount.get
     }
 
     override def fold[U](seed: U, func: Reducer[K, V, U]): U = {
@@ -358,8 +352,6 @@ final class OffHeapTimedExpirationMap[K <: AnyRef, V >: Null]
 
     override def get(key: K): V =
         deserializeValue(native.get(pointer, serializeKey(key)))
-    override def getRefCount(key: K): Int =
-        native.getRefCount(pointer, serializeKey(key))
 
     override def fold[U](seed: U, func: Reducer[K, V, U]): U = seed
     override def ref(key: K): V =
