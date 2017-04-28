@@ -27,4 +27,11 @@ public class NativeTimedExpirationMap {
     public native byte[] unref(long mapPointer, byte[] key,
                                long currentTimeMillis);
     public native void destroy(long mapPointer);
+
+    public native long iterator(long mapPointer);
+    public native boolean iteratorAtEnd(long iteratorPointer);
+    public native void iteratorNext(long iteratorPointer);
+    public native byte[] iteratorCurKey(long iteratorPointer);
+    public native byte[] iteratorCurValue(long iteratorPointer);
+    public native void iteratorClose(long iteratorPointer);
 }

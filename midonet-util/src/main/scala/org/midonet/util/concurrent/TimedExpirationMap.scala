@@ -328,16 +328,17 @@ object OffHeapTimedExpirationMap {
         }
     }
 }
+
 final class OffHeapTimedExpirationMap[K <: AnyRef, V >: Null]
     (log: Logger,
      expirationFor: K => Duration,
      serializeKey: K => Array[Byte],
+     deserializeKey: Array[Byte] => K,
      serializeValue: V => Array[Byte],
      deserializeValue: Array[Byte] => V
      ) extends TimedExpirationMap[K, V] {
 
     OffHeapTimedExpirationMap.loadNativeLibrary()
-
     val native = new NativeTimedExpirationMap()
     val pointer = native.create()
 
@@ -353,7 +354,22 @@ final class OffHeapTimedExpirationMap[K <: AnyRef, V >: Null]
     override def get(key: K): V =
         deserializeValue(native.get(pointer, serializeKey(key)))
 
-    override def fold[U](seed: U, func: Reducer[K, V, U]): U = seed
+    override def fold[U](seed: U, func: Reducer[K, V, U]): U = {
+        val iterator = native.iterator(pointer)
+        var ret = seed
+        try {
+            while (!native.iteratorAtEnd(iterator)) {
+                val key = deserializeKey(native.iteratorCurKey(iterator));
+                val value = deserializeValue(
+                    native.iteratorCurValue(iterator))
+                ret = func(ret, key, value)
+                native.iteratorNext(iterator)
+            }
+        } finally {
+            native.iteratorClose(pointer)
+        }
+        ret
+    }
     override def ref(key: K): V =
         deserializeValue(native.ref(pointer, serializeKey(key)))
 

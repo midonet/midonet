@@ -235,6 +235,5 @@ class OffHeapTimedExpirationMapTest extends TimedExpirationMapTest {
 
     override val map = new OffHeapTimedExpirationMap[String, String](
         Logger(NOPLogger.NOP_LOGGER), expirationFor,
-        str2bytes, str2bytes, bytes2str)
-
+        str2bytes, bytes2str, str2bytes, bytes2str)
 }*/

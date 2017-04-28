@@ -68,6 +68,23 @@ public:
   int ref_and_get_count(const std::string key);
   int ref_count(const std::string key) const;
   const option<std::string> unref(const std::string key, long expiry);
+
+  class Iterator {
+  public:
+    Iterator(const std::unordered_map<std::string, Metadata> &map);
+
+    bool at_end() const;
+    void next();
+    std::string cur_key() const;
+    std::string cur_value() const;
+
+  private:
+    std::unordered_map<std::string, Metadata>::const_iterator iterator;
+    const std::unordered_map<std::string, Metadata>::const_iterator end;
+  };
+
+  NativeTimedExpirationMap::Iterator* iterator() const;
+
 private:
   std::unordered_map<std::string, Metadata> ref_count_map;
 };

@@ -106,11 +106,57 @@ Java_org_midonet_util_concurrent_NativeTimedExpirationMap_unref
   }
 }
 
-void Java_org_midonet_util_concurrent_NativeTimedExpirationMap_destroy
+void
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_destroy
 (JNIEnv *, jobject, jlong ptr) {
   auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
   delete map;
 }
+
+jlong
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_iterator
+(JNIEnv *, jobject, jlong ptr) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  return reinterpret_cast<jlong>(map->iterator());
+}
+
+jboolean
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_iteratorAtEnd
+(JNIEnv *, jobject, jlong iteratorPtr) {
+  auto iter = reinterpret_cast<NativeTimedExpirationMap::Iterator*>(iteratorPtr);
+  return iter->at_end();
+}
+
+void
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_iteratorNext
+(JNIEnv *, jobject, jlong iteratorPtr) {
+  auto iter = reinterpret_cast<NativeTimedExpirationMap::Iterator*>(iteratorPtr);
+  iter->next();
+}
+
+jbyteArray
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_iteratorCurKey
+(JNIEnv *env, jobject, jlong iteratorPtr) {
+  auto iter = reinterpret_cast<NativeTimedExpirationMap::Iterator*>(iteratorPtr);
+  return str2jba(env, iter->cur_key());
+}
+
+jbyteArray
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_iteratorCurValue
+(JNIEnv *env, jobject, jlong iteratorPtr) {
+  auto iter = reinterpret_cast<NativeTimedExpirationMap::Iterator*>(iteratorPtr);
+  return str2jba(env, iter->cur_value());
+}
+
+void
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_iteratorClose
+(JNIEnv *, jobject, jlong iteratorPtr) {
+  auto iter = reinterpret_cast<NativeTimedExpirationMap::Iterator*>(iteratorPtr);
+  delete iter;
+}
+
+
+
 
 const option<std::string>
 NativeTimedExpirationMap::put_and_ref(const std::string key,
@@ -213,3 +259,27 @@ NativeTimedExpirationMap::unref(const std::string key, long expiry) {
     return option<std::string>::null_opt;
   }
 }
+
+NativeTimedExpirationMap::Iterator* NativeTimedExpirationMap::iterator() const {
+  return new NativeTimedExpirationMap::Iterator(ref_count_map);
+}
+
+NativeTimedExpirationMap::Iterator::Iterator(const std::unordered_map<std::string, Metadata>& map)
+  : iterator(map.cbegin()), end(map.cend()) {}
+
+bool NativeTimedExpirationMap::Iterator::at_end() const {
+  return iterator == end;
+}
+
+void NativeTimedExpirationMap::Iterator::next() {
+  iterator++;
+}
+
+std::string NativeTimedExpirationMap::Iterator::cur_key() const {
+  return iterator->first;
+}
+
+std::string NativeTimedExpirationMap::Iterator::cur_value() const {
+  return iterator->second.value();
+}
+

@@ -15,6 +15,8 @@
  */
 #include "gtest/gtest.h"
 
+#include <algorithm>
+#include <memory>
 #include "nativeTimedExpirationMap.h"
 
 using namespace testing;
@@ -45,7 +47,20 @@ TEST(NativeTimedExpirationMapTests, test_put_if_absent_and_ref) {
   ASSERT_EQ(map->ref_count("A"), 2);
 }
 
-TEST(NativeTimedExpirationMapTests, test_fold) {
+TEST(NativeTimedExpirationMapTests, test_iteration) {
+  auto map = new NativeTimedExpirationMap();
+  map->put_if_absent_and_ref("A", "X");
+  map->put_if_absent_and_ref("B", "Y");
+  map->put_if_absent_and_ref("C", "Z");
+
+  auto iter = std::unique_ptr<NativeTimedExpirationMap::Iterator>(map->iterator());
+  std::string acc;
+  while (!iter->at_end()) {
+    acc = acc + iter->cur_key() + iter->cur_value();
+    iter->next();
+  }
+  std::sort(acc.begin(), acc.end());
+  ASSERT_EQ(acc, "ABCXYZ");
 }
 
 TEST(NativeTimedExpirationMapTests, test_ref) {
