@@ -19,9 +19,17 @@
 
 using namespace testing;
 
-TEST(FoobarTests, test_foobar) {
-  auto a = 1 + 2; // make sure we're using c++11
-  ASSERT_TRUE(0 == 0);
+TEST(NativeTimedExpirationMapTests, test_put_and_ref) {
+  auto map = new NativeTimedExpirationMap();
+  auto prev = map->put_and_ref("A", "X");
+  ASSERT_FALSE(prev);
+  ASSERT_EQ(map->get("A").value(), "X");
+  ASSERT_EQ(map->ref_count("A"), 1);
+
+  prev = map->put_and_ref("A", "Y");
+  ASSERT_EQ(prev.value(), "X");
+  ASSERT_EQ(map->get("A").value(), "Y");
+  ASSERT_EQ(map->ref_count("A"), 2);
 }
 
 int main(int argc, char **argv) {

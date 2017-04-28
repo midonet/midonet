@@ -16,6 +16,9 @@
 #ifndef _NATIVE_TIMED_EXPIRY_MAP_H_
 #define _NATIVE_TIMED_EXPIRY_MAP_H_
 
+#include <limits.h>
+#include <unordered_map>
+
 template<class T>
 class option {
 public:
@@ -34,6 +37,27 @@ private:
 
 template<class T> option<T> option<T>::null_opt = option();
 
+class Metadata {
+public:
+  Metadata()
+    : m_value(), m_ref_count(-1), m_expiration(LONG_MAX) {}
+  Metadata(std::string value, int ref_count, long expiration)
+    : m_value(value), m_ref_count(ref_count), m_expiration(expiration) {}
+
+  std::string value() const { return m_value; }
+  void set_value(std::string value) { m_value = value; }
+
+  int ref_count() const { return m_ref_count; }
+  int inc_if_greater_than(int than) {
+    if (m_ref_count > than) { m_ref_count++; }
+    return m_ref_count;
+  }
+private:
+  std::string m_value;
+  int m_ref_count;
+  long m_expiration;
+};
+
 class NativeTimedExpirationMap {
 public:
   const option<std::string> put_and_ref(const std::string key, const std::string value);
@@ -44,6 +68,8 @@ public:
   int ref_and_get_count(const std::string key);
   int ref_count(const std::string key) const;
   const option<std::string> unref(const std::string key, long expiry);
+private:
+  std::unordered_map<std::string, Metadata> ref_count_map;
 };
 
 #endif // _NATIVE_TIMED_EXPIRY_MAP_H_

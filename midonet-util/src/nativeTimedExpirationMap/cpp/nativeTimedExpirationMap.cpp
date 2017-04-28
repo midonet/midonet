@@ -124,7 +124,15 @@ NativeTimedExpirationMap::put_and_ref(const std::string key,
                                       const std::string value) {
   std::cout << "NativeTimedExpirationMap::put_and_ref(" << key
             << ", " << value << ")" << std::endl;
-  return option<std::string>::null_opt;
+  auto ret = option<std::string>::null_opt;
+  auto it = ref_count_map.find(key);
+  if (it != ref_count_map.end()) {
+    ret = ref(key);
+    ref_count_map[key].set_value(value);
+  } else {
+    ref_count_map[key] = Metadata(value, 1, LONG_MAX);
+  }
+  return ret;
 }
 
 int
@@ -137,8 +145,12 @@ NativeTimedExpirationMap::put_if_absent_and_ref(const std::string key,
 
 const option<std::string>
 NativeTimedExpirationMap::get(const std::string key) const {
-  std::cout << "NativeTimedExpirationMap::get(" << key << ")" << std::endl;
-  return option<std::string>::null_opt;
+  auto it = ref_count_map.find(key);
+  if (it != ref_count_map.end() && it->second.ref_count() != -1) {
+    return option<std::string>(it->second.value());
+  } else {
+    return option<std::string>::null_opt;
+  }
 }
 
 int
@@ -152,7 +164,17 @@ const option<std::string>
 NativeTimedExpirationMap::ref(const std::string key) {
   std::cout << "NativeTimedExpirationMap::ref("
             << key << ")" << std::endl;
-  return option<std::string>::null_opt;
+  auto it = ref_count_map.find(key);
+  if (it != ref_count_map.end()) {
+    auto count = it->second.inc_if_greater_than(-1);
+    if (count == -1) {
+      return option<std::string>::null_opt;
+    } else {
+      return option<std::string>(it->second.value());
+    }
+  } else {
+    return option<std::string>::null_opt;
+  }
 }
 
 int
@@ -166,7 +188,12 @@ int
 NativeTimedExpirationMap::ref_count(const std::string key) const {
   std::cout << "NativeTimedExpirationMap::ref_count("
             << key << ")" << std::endl;
-  return 0;
+  auto it = ref_count_map.find(key);
+  if (it != ref_count_map.end()) {
+    it->second.ref_count();
+  } else {
+    return 0;
+  }
 }
 
 const option<std::string>
