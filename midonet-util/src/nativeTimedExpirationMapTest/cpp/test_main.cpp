@@ -32,6 +32,19 @@ TEST(NativeTimedExpirationMapTests, test_put_and_ref) {
   ASSERT_EQ(map->ref_count("A"), 2);
 }
 
+TEST(NativeTimedExpirationMapTests, test_put_if_absent_and_ref) {
+  auto map = new NativeTimedExpirationMap();
+  auto count = map->put_if_absent_and_ref("A", "X");
+  ASSERT_EQ(count, 1);
+  ASSERT_EQ(map->get("A").value(), "X");
+  ASSERT_EQ(map->ref_count("A"), 1);
+
+  count = map->put_if_absent_and_ref("A", "Y");
+  ASSERT_EQ(count, 2);
+  ASSERT_EQ(map->get("A").value(), "X");
+  ASSERT_EQ(map->ref_count("A"), 2);
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

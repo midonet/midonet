@@ -124,15 +124,15 @@ NativeTimedExpirationMap::put_and_ref(const std::string key,
                                       const std::string value) {
   std::cout << "NativeTimedExpirationMap::put_and_ref(" << key
             << ", " << value << ")" << std::endl;
-  auto ret = option<std::string>::null_opt;
   auto it = ref_count_map.find(key);
   if (it != ref_count_map.end()) {
-    ret = ref(key);
+    auto ret = ref(key);
     ref_count_map[key].set_value(value);
+    return ret;
   } else {
     ref_count_map[key] = Metadata(value, 1, LONG_MAX);
+    return option<std::string>::null_opt;
   }
-  return ret;
 }
 
 int
@@ -140,7 +140,13 @@ NativeTimedExpirationMap::put_if_absent_and_ref(const std::string key,
                                                 const std::string value) {
   std::cout << "NativeTimedExpirationMap::put_if_absent_and_ref(" << key
             << ", " << value << ")" << std::endl;
-  return 0;
+  auto it = ref_count_map.find(key);
+  if (it != ref_count_map.end()) {
+    return ref_and_get_count(key);
+  } else {
+    put_and_ref(key, value);
+    return 1;
+  }
 }
 
 const option<std::string>
@@ -181,7 +187,17 @@ int
 NativeTimedExpirationMap::ref_and_get_count(const std::string key) {
   std::cout << "NativeTimedExpirationMap::ref_and_get_count("
             << key << ")" << std::endl;
-  return 0;
+  auto it = ref_count_map.find(key);
+  if (it != ref_count_map.end()) {
+    auto new_count = it->second.inc_if_greater_than(-1);
+    if (new_count == -1) {
+      return 0;
+    } else {
+      return new_count;
+    }
+  } else {
+    return 0;
+  }
 }
 
 int
