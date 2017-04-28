@@ -52,6 +52,7 @@ public:
     if (m_ref_count > than) { m_ref_count++; }
     return m_ref_count;
   }
+  int dec_and_get() { return --m_ref_count; }
 private:
   std::string m_value;
   int m_ref_count;

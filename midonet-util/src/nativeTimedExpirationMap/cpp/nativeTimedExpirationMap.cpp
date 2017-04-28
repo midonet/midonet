@@ -216,5 +216,14 @@ const option<std::string>
 NativeTimedExpirationMap::unref(const std::string key, long expiry) {
   std::cout << "NativeTimedExpirationMap::unref("
             << key << ", " << expiry << ")" << std::endl;
-  return option<std::string>::null_opt;
+  auto it = ref_count_map.find(key);
+  if (it != ref_count_map.end()) {
+    if (it->second.ref_count() > 0 &&
+        it->second.dec_and_get() == 0) {
+        // TODO add to expiration queue
+    }
+    return option<std::string>(it->second.value());
+  } else {
+    return option<std::string>::null_opt;
+  }
 }
