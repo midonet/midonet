@@ -25,6 +25,7 @@ public class NativeTimedExpirationMap {
     public native int refAndGetCount(long mapPointer, byte[] key);
     public native int refCount(long mapPointer, byte[] key);
     public native byte[] unref(long mapPointer, byte[] key,
+                               long expireIn,
                                long currentTimeMillis);
     public native void destroy(long mapPointer);
 

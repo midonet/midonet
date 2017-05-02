@@ -18,6 +18,7 @@
 
 #include <limits.h>
 #include <unordered_map>
+#include <queue>
 
 template<class T>
 class option {
@@ -53,6 +54,9 @@ public:
     return m_ref_count;
   }
   int dec_and_get() { return --m_ref_count; }
+
+  long expiration() const { return m_expiration; }
+  void set_expiration(long expiration) { m_expiration = expiration; }
 private:
   std::string m_value;
   int m_ref_count;
@@ -67,26 +71,62 @@ public:
   const option<std::string> ref(const std::string key);
   int ref_and_get_count(const std::string key);
   int ref_count(const std::string key) const;
-  const option<std::string> unref(const std::string key, long expiry);
+  const option<std::string> unref(const std::string key, long expire_in,
+                                  long current_time_millis);
 
   class Iterator {
   public:
-    Iterator(const std::unordered_map<std::string, Metadata> &map);
+    virtual bool at_end() const = 0;
+    virtual void next() = 0;
+    virtual std::string cur_key() const = 0;
+    virtual std::string cur_value() const = 0;
+  };
 
+  NativeTimedExpirationMap::Iterator* iterator() const;
+  NativeTimedExpirationMap::Iterator* obliterate(long current_time_millis);
+
+  typedef std::queue<std::pair<std::string,long>> ExpirationQueue;
+private:
+  std::unordered_map<std::string, Metadata> ref_count_map;
+  std::unordered_map<long, ExpirationQueue> expiring;
+
+  class AllEntriesIterator : public Iterator {
+  public:
+    AllEntriesIterator(const std::unordered_map<std::string, Metadata>& map);
     bool at_end() const;
     void next();
     std::string cur_key() const;
     std::string cur_value() const;
 
   private:
+
     std::unordered_map<std::string, Metadata>::const_iterator iterator;
     const std::unordered_map<std::string, Metadata>::const_iterator end;
+
+    friend class NativeTimedExpirationMap;
   };
 
-  NativeTimedExpirationMap::Iterator* iterator() const;
 
-private:
-  std::unordered_map<std::string, Metadata> ref_count_map;
+  class ObliterationIterator : public Iterator {
+  public:
+    ObliterationIterator(std::unordered_map<long, ExpirationQueue>& expiring,
+                         std::unordered_map<std::string, Metadata>& ref_count_map,
+                         long current_time_millis);
+    bool at_end() const;
+    void next();
+    std::string cur_key() const;
+    std::string cur_value() const;
+
+  private:
+    void progress_iterator();
+
+    std::unordered_map<long, ExpirationQueue>& expiring;
+    std::unordered_map<std::string, Metadata>& ref_count_map;
+    long current_time_millis;
+    std::unordered_map<long, ExpirationQueue>::iterator queue_iterator;
+
+    friend class NativeTimedExpirationMap;
+  };
 };
 
 #endif // _NATIVE_TIMED_EXPIRY_MAP_H_

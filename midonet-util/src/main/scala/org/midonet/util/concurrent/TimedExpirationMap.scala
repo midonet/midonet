@@ -380,6 +380,7 @@ final class OffHeapTimedExpirationMap[K <: AnyRef, V >: Null]
 
     override def unref(key: K, currentTimeMillis: Long): V = {
         val value = native.unref(pointer, serializeKey(key),
+                                 expirationFor(key).toMillis,
                                  currentTimeMillis)
         deserializeValue(value)
     }
