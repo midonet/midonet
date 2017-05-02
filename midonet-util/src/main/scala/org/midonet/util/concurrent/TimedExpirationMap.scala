@@ -92,6 +92,10 @@ trait TimedExpirationMap[K <: AnyRef, V >: Null] {
     def obliterateIdleEntries[U](currentTimeMillis: Long): Unit
     def obliterateIdleEntries[U](currentTimeMillis: Long, seed: U,
                                  reducer: Reducer[K, V, U]): U
+
+    val identityReducer = new Reducer[K, V, Unit] {
+        override def apply(acc: Unit, key: K, value: V): Unit = ()
+    }
 }
 
 final class OnHeapTimedExpirationMap[K <: AnyRef, V >: Null]
@@ -271,11 +275,6 @@ final class OnHeapTimedExpirationMap[K <: AnyRef, V >: Null]
      *
      * WARNING: This method is not thread-safe for multiple callers.
      */
-
-    val identityReducer = new Reducer[K, V, Unit] {
-        override def apply(acc: Unit, key: K, value: V): Unit = ()
-    }
-
     override def obliterateIdleEntries[U](currentTimeMillis: Long): Unit =
         obliterateIdleEntries(currentTimeMillis, (), identityReducer)
 
@@ -356,19 +355,7 @@ final class OffHeapTimedExpirationMap[K <: AnyRef, V >: Null]
 
     override def fold[U](seed: U, func: Reducer[K, V, U]): U = {
         val iterator = native.iterator(pointer)
-        var ret = seed
-        try {
-            while (!native.iteratorAtEnd(iterator)) {
-                val key = deserializeKey(native.iteratorCurKey(iterator));
-                val value = deserializeValue(
-                    native.iteratorCurValue(iterator))
-                ret = func(ret, key, value)
-                native.iteratorNext(iterator)
-            }
-        } finally {
-            native.iteratorClose(pointer)
-        }
-        ret
+        foldOverIterator(iterator, seed, func)
     }
     override def ref(key: K): V =
         deserializeValue(native.ref(pointer, serializeKey(key)))
@@ -385,8 +372,31 @@ final class OffHeapTimedExpirationMap[K <: AnyRef, V >: Null]
         deserializeValue(value)
     }
 
-    def obliterateIdleEntries[U](currentTimeMillis: Long): Unit = {}
-    def obliterateIdleEntries[U](currentTimeMillis: Long, seed: U,
-                                 reducer: Reducer[K, V, U]): U = seed
+    override def obliterateIdleEntries[U](currentTimeMillis: Long): Unit = {
+        obliterateIdleEntries(currentTimeMillis, (), identityReducer)
+    }
+
+    override def obliterateIdleEntries[U](currentTimeMillis: Long, seed: U,
+                                          func: Reducer[K, V, U]): U = {
+        val iterator = native.obliterate(pointer, currentTimeMillis)
+        foldOverIterator(iterator, seed, func)
+    }
+
+    private def foldOverIterator[U](iterator: Long, seed: U,
+                                    func: Reducer[K, V, U]): U = {
+        var ret = seed
+        try {
+            while (!native.iteratorAtEnd(iterator)) {
+                val key = deserializeKey(native.iteratorCurKey(iterator));
+                val value = deserializeValue(
+                    native.iteratorCurValue(iterator))
+                ret = func(ret, key, value)
+                native.iteratorNext(iterator)
+            }
+        } finally {
+            native.iteratorClose(iterator)
+        }
+        ret
+    }
 
 }

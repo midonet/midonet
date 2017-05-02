@@ -97,6 +97,30 @@ abstract class TimedExpirationMapTest extends FeatureSpec
             map refCount "A" should be (0)
         }
 
+        scenario("a key with higher expiration count doesn't prevent lower "
+                 + "keys from being obliterated") {
+            map.putAndRef("high", "Y")
+            map.putAndRef("A", "X")
+            map.unref("high", 0) should be ("Y")
+            map.unref("A", 0) should be ("X")
+
+            map.obliterateIdleEntries(1, "", new Reducer[String, String, String]() {
+                override def apply(acc: String, key: String,
+                                   value: String): String =
+                    key + value
+            }) should be ("AX")
+
+            map.get("A") should be (null)
+            map.get("high") should be ("Y")
+        }
+    }
+}
+
+class OnHeapTimedExpirationMapTest extends TimedExpirationMapTest {
+    override val map = new OnHeapTimedExpirationMap[String, String](
+        Logger(NOPLogger.NOP_LOGGER), expirationFor)
+
+    feature("Correctness test") {
         scenario("obliterateIdleEntries blocks operations on the same key") {
             map.putAndRef("A", "X")
             map.unref("A", 0) should be ("X")
@@ -137,25 +161,6 @@ abstract class TimedExpirationMapTest extends FeatureSpec
             map.get("A") should be ("Y")
         }
 
-        scenario("a key with higher expiration count doesn't prevent lower "
-                 + "keys from being obliterated") {
-            map.putAndRef("high", "Y")
-            map.putAndRef("A", "X")
-            map.unref("high", 0) should be ("Y")
-            map.unref("A", 0) should be ("X")
-
-            map.obliterateIdleEntries(1, "", new Reducer[String, String, String]() {
-                override def apply(acc: String, key: String,
-                                   value: String): String =
-                    key + value
-            }) should be ("AX")
-
-            map.get("A") should be (null)
-            map.get("high") should be ("Y")
-        }
-    }
-
-    feature("Correctness test") {
         scenario("control for reference count") {
             val keys = (0 to 5000) map { _.toString } toArray
             val operations = 5000000
@@ -216,12 +221,6 @@ abstract class TimedExpirationMapTest extends FeatureSpec
     }
 }
 
-class OnHeapTimedExpirationMapTest extends TimedExpirationMapTest {
-    override val map = new OnHeapTimedExpirationMap[String, String](
-        Logger(NOPLogger.NOP_LOGGER), expirationFor)
-}
-
-/*
 class OffHeapTimedExpirationMapTest extends TimedExpirationMapTest {
     def str2bytes(str: String): Array[Byte] = str match {
         case null => null
@@ -236,4 +235,4 @@ class OffHeapTimedExpirationMapTest extends TimedExpirationMapTest {
     override val map = new OffHeapTimedExpirationMap[String, String](
         Logger(NOPLogger.NOP_LOGGER), expirationFor,
         str2bytes, bytes2str, str2bytes, bytes2str)
-}*/
+}

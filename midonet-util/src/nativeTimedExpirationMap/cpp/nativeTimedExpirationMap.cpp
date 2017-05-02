@@ -121,6 +121,13 @@ Java_org_midonet_util_concurrent_NativeTimedExpirationMap_iterator
   return reinterpret_cast<jlong>(map->iterator());
 }
 
+jlong
+Java_org_midonet_util_concurrent_NativeTimedExpirationMap_obliterate
+(JNIEnv *, jobject, jlong ptr, jlong currentTimeMillis) {
+  auto map = reinterpret_cast<NativeTimedExpirationMap*>(ptr);
+  return reinterpret_cast<jlong>(map->obliterate(currentTimeMillis));
+}
+
 jboolean
 Java_org_midonet_util_concurrent_NativeTimedExpirationMap_iteratorAtEnd
 (JNIEnv *, jobject, jlong iteratorPtr) {
