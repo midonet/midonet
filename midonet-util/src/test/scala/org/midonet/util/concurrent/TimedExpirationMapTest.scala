@@ -113,14 +113,7 @@ abstract class TimedExpirationMapTest extends FeatureSpec
             map.get("A") should be (null)
             map.get("high") should be ("Y")
         }
-    }
-}
 
-class OnHeapTimedExpirationMapTest extends TimedExpirationMapTest {
-    override val map = new OnHeapTimedExpirationMap[String, String](
-        Logger(NOPLogger.NOP_LOGGER), expirationFor)
-
-    feature("Correctness test") {
         scenario("obliterateIdleEntries blocks operations on the same key") {
             map.putAndRef("A", "X")
             map.unref("A", 0) should be ("X")
@@ -160,7 +153,9 @@ class OnHeapTimedExpirationMapTest extends TimedExpirationMapTest {
             outerLatch.await()
             map.get("A") should be ("Y")
         }
+    }
 
+    feature("Correctness test") {
         scenario("control for reference count") {
             val keys = (0 to 5000) map { _.toString } toArray
             val operations = 5000000
@@ -219,6 +214,12 @@ class OnHeapTimedExpirationMapTest extends TimedExpirationMapTest {
             }
         }
     }
+}
+
+class OnHeapTimedExpirationMapTest extends TimedExpirationMapTest {
+    override val map = new OnHeapTimedExpirationMap[String, String](
+        Logger(NOPLogger.NOP_LOGGER), expirationFor)
+
 }
 
 class OffHeapTimedExpirationMapTest extends TimedExpirationMapTest {

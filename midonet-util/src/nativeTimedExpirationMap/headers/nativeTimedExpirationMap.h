@@ -17,6 +17,7 @@
 #define _NATIVE_TIMED_EXPIRY_MAP_H_
 
 #include <limits.h>
+#include <mutex>
 #include <unordered_map>
 #include <queue>
 
@@ -54,6 +55,14 @@ public:
     return m_ref_count;
   }
   int dec_and_get() { return --m_ref_count; }
+  bool dec_if_zero() {
+    if (m_ref_count == 0) {
+      --m_ref_count;
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   long expiration() const { return m_expiration; }
   void set_expiration(long expiration) { m_expiration = expiration; }
@@ -74,32 +83,48 @@ public:
   const option<std::string> unref(const std::string key, long expire_in,
                                   long current_time_millis);
 
+  class Iterator;
+  NativeTimedExpirationMap::Iterator* iterator() const;
+  NativeTimedExpirationMap::Iterator* obliterate(long current_time_millis);
+
   class Iterator {
   public:
     virtual bool at_end() const = 0;
     virtual void next() = 0;
     virtual std::string cur_key() const = 0;
     virtual std::string cur_value() const = 0;
+    virtual ~Iterator() {}
   };
 
-  NativeTimedExpirationMap::Iterator* iterator() const;
-  NativeTimedExpirationMap::Iterator* obliterate(long current_time_millis);
-
-  typedef std::queue<std::pair<std::string,long>> ExpirationQueue;
 private:
+  const option<std::string> put_and_ref_no_lock(const std::string key,
+                                                const std::string value);
+  int put_if_absent_and_ref_no_lock(const std::string key, const std::string value);
+  const option<std::string> get_no_lock(const std::string key) const;
+  const option<std::string> ref_no_lock(const std::string key);
+  int ref_and_get_count_no_lock(const std::string key);
+  int ref_count_no_lock(const std::string key) const;
+  const option<std::string> unref_no_lock(const std::string key, long expire_in,
+                                  long current_time_millis);
+
+private:
+  using ExpirationQueue = std::queue<std::pair<std::string,long>>;
+
   std::unordered_map<std::string, Metadata> ref_count_map;
   std::unordered_map<long, ExpirationQueue> expiring;
+  mutable std::recursive_mutex mutex;
 
   class AllEntriesIterator : public Iterator {
   public:
-    AllEntriesIterator(const std::unordered_map<std::string, Metadata>& map);
+    AllEntriesIterator(std::recursive_mutex& mutex,
+                       const std::unordered_map<std::string, Metadata>& map);
     bool at_end() const;
     void next();
     std::string cur_key() const;
     std::string cur_value() const;
 
   private:
-
+    std::lock_guard<std::recursive_mutex> lock;
     std::unordered_map<std::string, Metadata>::const_iterator iterator;
     const std::unordered_map<std::string, Metadata>::const_iterator end;
 
@@ -109,7 +134,8 @@ private:
 
   class ObliterationIterator : public Iterator {
   public:
-    ObliterationIterator(std::unordered_map<long, ExpirationQueue>& expiring,
+    ObliterationIterator(std::recursive_mutex& mutex,
+                         std::unordered_map<long, ExpirationQueue>& expiring,
                          std::unordered_map<std::string, Metadata>& ref_count_map,
                          long current_time_millis);
     bool at_end() const;
@@ -118,12 +144,16 @@ private:
     std::string cur_value() const;
 
   private:
+    using KeyVal = std::pair<std::string, std::string>;
     void progress_iterator();
 
+    std::lock_guard<std::recursive_mutex> lock;
     std::unordered_map<long, ExpirationQueue>& expiring;
     std::unordered_map<std::string, Metadata>& ref_count_map;
     long current_time_millis;
     std::unordered_map<long, ExpirationQueue>::iterator queue_iterator;
+
+    option<KeyVal> current;
 
     friend class NativeTimedExpirationMap;
   };

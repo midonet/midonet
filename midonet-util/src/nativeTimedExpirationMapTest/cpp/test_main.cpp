@@ -92,14 +92,16 @@ TEST(NativeTimedExpirationMapTests, test_higher_doesnt_prevent_lower) {
   ASSERT_EQ(map->unref("high", 5*60*60*1000, 0).value(), "Y");
   ASSERT_EQ(map->unref("A", 0, 0).value(), "X");
 
-  auto iter = std::unique_ptr<NativeTimedExpirationMap::Iterator>(map->obliterate(1));
-  std::string acc;
-  while (!iter->at_end()) {
-    acc = acc + iter->cur_key() + iter->cur_value();
-    iter->next();
+  {
+    auto iter = std::unique_ptr<NativeTimedExpirationMap::Iterator>(map->obliterate(1));
+    std::string acc;
+    while (!iter->at_end()) {
+      acc = acc + iter->cur_key() + iter->cur_value();
+      iter->next();
+    }
+    std::sort(acc.begin(), acc.end());
+    ASSERT_EQ(acc, "AX");
   }
-  std::sort(acc.begin(), acc.end());
-  ASSERT_EQ(acc, "AX");
 
   ASSERT_FALSE(map->get("A"));
   ASSERT_EQ(map->get("high").value(), "Y");
