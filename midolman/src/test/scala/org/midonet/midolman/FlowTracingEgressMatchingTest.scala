@@ -42,7 +42,7 @@ import org.midonet.packets._
 import org.midonet.packets.TunnelKeys.TraceBit
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.sdn.state.OnHeapShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingEgressMatchingTest extends MidolmanSpec {
@@ -78,7 +78,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     val vm2Mac = MAC.fromString("22:ff:bb:cc:cc:cd")
 
     private val traceTable =
-        new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard()
+        new OnHeapShardedFlowStateTable[TraceKey, TraceContext](clock).addShard()
 
     // infra for ingress dda
     private val portMapIngress: BiMap[Int,UUID] = HashBiMap.create()

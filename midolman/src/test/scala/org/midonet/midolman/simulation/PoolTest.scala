@@ -34,7 +34,7 @@ import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.sdn.state.{FlowStateTransaction, OnHeapShardedFlowStateTable}
 
 object DisableAction extends Enumeration {
     type DisableAction = Value
@@ -185,7 +185,7 @@ class PoolTest extends MidolmanSpec {
             n => feedArpTable(r, ipsBackendSide(n).getAddress, macsBackendSide(n))
         }
 
-        val natTable = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+        val natTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding]().addShard()
         natTx = new FlowStateTransaction(natTable)
     }
 

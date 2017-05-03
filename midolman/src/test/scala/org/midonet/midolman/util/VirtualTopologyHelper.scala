@@ -48,7 +48,7 @@ import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.{GreTunnelPort, InternalPort, NetDevPort, VxLanTunnelPort}
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
-import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, OnHeapShardedFlowStateTable}
 import org.midonet.util.UnixClock
 import org.midonet.util.concurrent._
 
@@ -127,9 +127,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def throwAwayArpBroker(): ArpRequestBroker =
         new ArpRequestBroker(config, simBackChannel, clock)
 
-    val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard())
-    val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard())
-    val NO_TRACE = new FlowStateTransaction[TraceKey, TraceContext](new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
+    val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard())
+    val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](new OnHeapShardedFlowStateTable[NatKey, NatBinding](clock).addShard())
+    val NO_TRACE = new FlowStateTransaction[TraceKey, TraceContext](new OnHeapShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
 
     def packetContextFor(frame: Ethernet, inPort: UUID = null,
                          inPortNumber: Int = 0)
@@ -238,9 +238,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        dpChannel: DatapathChannel = mockDpChannel,
                        packetCtxTrap: JQueue[PacketContext] = new JLinkedList[PacketContext](),
                        workflowTrap: PacketContext => SimulationResult = null,
-                       conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue] = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
-                       natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
-                       traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard(),
+                       conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue] = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
+                       natTable: FlowStateTable[NatKey, NatBinding] = new OnHeapShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
+                       traceTable: FlowStateTable[TraceKey, TraceContext] = new OnHeapShardedFlowStateTable[TraceKey, TraceContext](clock).addShard(),
                        natLeaser: NatLeaser = HappyGoLuckyLeaser,
                        flowRecorder: FlowRecorder = NullFlowRecorder())
                       (implicit hostId: UUID) = {

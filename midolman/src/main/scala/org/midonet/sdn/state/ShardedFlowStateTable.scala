@@ -23,16 +23,8 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.packets.FlowStateStore.IdleExpiration
 import org.midonet.util.collection.Reducer
-import org.midonet.util.concurrent.{NanoClock, OnHeapTimedExpirationMap}
+import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap, OnHeapTimedExpirationMap}
 import org.midonet.util.logging.Logger
-
-object ShardedFlowStateTable {
-    def create[K <: IdleExpiration, V >: Null](): ShardedFlowStateTable[K, V] =
-            new ShardedFlowStateTable[K, V]()
-
-    def create[K <: IdleExpiration, V >: Null](clock: NanoClock):
-            ShardedFlowStateTable[K, V] = new ShardedFlowStateTable[K, V](clock)
-}
 
 /**
  * A sharded per-flow state table.
@@ -54,8 +46,8 @@ object ShardedFlowStateTable {
  * unref() calls may require coordination, but they are meant to happen in an
  * external thread or pool, not a shard-owning thread.
  */
-class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
-        (val clock: NanoClock = NanoClock.DEFAULT) extends FlowStateTable[K, V] {
+abstract class BaseShardedFlowStateTable[K <: IdleExpiration, V >: Null]
+    (val clock: NanoClock = NanoClock.DEFAULT) extends FlowStateTable[K, V] {
 
     private val shards = new ArrayList[FlowStateShard]()
     private val SHARD_NONE: Int = -1
@@ -63,8 +55,10 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
     private val defaultLogger =
         Logger(LoggerFactory.getLogger("org.midonet.state.table"))
 
+    protected def newShard(workerId: Int, log: Logger): FlowStateShard
+
     def addShard(log: Logger = defaultLogger) = {
-        val s: FlowStateShard = new FlowStateShard(shards.size, log)
+        val s: FlowStateShard = newShard(shards.size, log)
         shards.add(s)
         s
     }
@@ -166,8 +160,9 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
      * It stores entries locally but forwards queries to the parent table for
      * aggregation. Reference counting is also delegated on the parent.
      */
-    class FlowStateShard(workerId: Int, log: Logger) extends FlowStateTable[K, V] {
-        private val map = new OnHeapTimedExpirationMap[K, V](log, _.expiresAfter)
+    abstract class FlowStateShard(workerId: Int, log: Logger)
+            extends FlowStateTable[K, V] {
+        def map: TimedExpirationMap[K, V]
 
         override def putAndRef(key: K, value: V): V =
             map.putAndRef(key, value)
@@ -177,7 +172,7 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
             if (v != null)
                 v
             else
-                ShardedFlowStateTable.this.get(key, workerId)
+                BaseShardedFlowStateTable.this.get(key, workerId)
         }
 
         def shallowGet(key: K): V =
@@ -207,5 +202,17 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
 
         override def expireIdleEntries[U](seed: U, func: Reducer[K, V, U]): U =
             map.obliterateIdleEntries(tickMillis, seed, func)
+    }
+}
+
+class OnHeapShardedFlowStateTable[K <: IdleExpiration, V >: Null]
+    (clock: NanoClock = NanoClock.DEFAULT)
+        extends BaseShardedFlowStateTable[K, V](clock) {
+
+    override protected def newShard(workerId: Int,
+                                    log: Logger): FlowStateShard = {
+        new FlowStateShard(workerId, log) {
+            override val map = new OnHeapTimedExpirationMap[K, V](log, _.expiresAfter)
+        }
     }
 }

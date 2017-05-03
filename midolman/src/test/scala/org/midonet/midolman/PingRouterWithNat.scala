@@ -35,7 +35,7 @@ import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
 import org.midonet.packets._
-import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.sdn.state.OnHeapShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class PingRouterWithNat extends MidolmanSpec {
@@ -132,7 +132,7 @@ class PingRouterWithNat extends MidolmanSpec {
         { icmp.echo id pingId }
 
     scenario("Generated packets are reverse NATed") {
-        val table = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+        val table = new OnHeapShardedFlowStateTable[NatKey, NatBinding]().addShard()
 
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(pingReq))
         fmatch.setInputPortNumber(1)

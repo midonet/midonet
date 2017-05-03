@@ -45,7 +45,7 @@ import org.midonet.packets.{FlowStateStore => FlowState, NatState}
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.sdn.state.OnHeapShardedFlowStateTable
 import org.midonet.util.collection.Reducer
 
 @RunWith(classOf[JUnitRunner])
@@ -91,7 +91,7 @@ class NatTest extends MidolmanSpec {
     private val snatAddressStart = IPv4Addr("180.0.1.200")
     private val snatAddressEnd = IPv4Addr("180.0.1.205")
 
-    private val natTable = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard()
+    private val natTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding](clock).addShard()
     private var mappings = Set[NatKey]()
 
     private var rtrOutChain: UUID = null
