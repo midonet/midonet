@@ -35,7 +35,7 @@ import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
 import org.midonet.packets.NatState._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
+import org.midonet.sdn.state.{OnHeapShardedFlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.Reducer
 
 @RunWith(classOf[JUnitRunner])
@@ -51,7 +51,7 @@ class NatStateTest extends MidolmanSpec {
         { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
         { tcp src 10 dst 88 }
 
-    val natStateTable = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+    val natStateTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding]().addShard()
     val natTx = new FlowStateTransaction(natStateTable)
 
     def context(eth: Ethernet = tcpPacket) = {
@@ -450,7 +450,7 @@ class NatStateTest extends MidolmanSpec {
         }
     }
 
-    feature("Other types of packets are not NATed") {
+    scenario("Other types of packets are not NATed") {
         val ctx = context({ eth src MAC.random() dst MAC.random() })
         ctx.applyDnat(targets) should be (false)
         ctx should be (taggedWith ())

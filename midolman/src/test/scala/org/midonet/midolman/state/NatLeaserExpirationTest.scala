@@ -51,7 +51,7 @@ import org.midonet.packets.util.PacketBuilder._
 import org.midonet.util.collection.Reducer
 import org.midonet.util.logging.Logger
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.sdn.state.OnHeapShardedFlowStateTable
 
 
 @RunWith(classOf[JUnitRunner])
@@ -91,7 +91,7 @@ class NatLeaserExpirationTest extends MidolmanSpec {
     private val snatAddressStart = IPv4Addr("180.0.1.200")
     private val snatAddressEnd = IPv4Addr("180.0.1.205")
 
-    private val natTable = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard()
+    private val natTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding](clock).addShard()
     private var mappings = Set[NatKey]()
 
     private var pktWkfl: MockPacketWorkflow = null

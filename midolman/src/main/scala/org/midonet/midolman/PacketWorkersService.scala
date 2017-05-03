@@ -40,7 +40,7 @@ import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{NatBlockAllocator, NatLeaser, PeerResolver}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.NatState.NatBinding
-import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.sdn.state.OnHeapShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.logging.Logger
@@ -82,14 +82,14 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
 
     val numWorkers = PacketWorkersService.numWorkers(config)
 
-    val connTrackStateTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock)
-    val natStateTable = new ShardedFlowStateTable[NatKey, NatBinding](clock)
+    val connTrackStateTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock)
+    val natStateTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding](clock)
     val natLeaser: NatLeaser = new NatLeaser {
         val log: Logger = Logger(LoggerFactory.getLogger(classOf[NatLeaser]))
         val allocator = natBlockAllocator
         val clock = PacketWorkersServiceImpl.this.clock
     }
-    val traceStateTable = new ShardedFlowStateTable[TraceKey, TraceContext](clock)
+    val traceStateTable = new OnHeapShardedFlowStateTable[TraceKey, TraceContext](clock)
 
     val supervisorThread = new Thread(this, "packet-worker-supervisor")
     supervisorThread.setDaemon(true)

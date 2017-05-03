@@ -27,7 +27,7 @@ import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
-import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.sdn.state.{FlowStateTransaction, OnHeapShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
 class IcmpThroughNatTest extends MidolmanSpec {
@@ -112,7 +112,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
 
     override def beforeTest() {
         buildTopology()
-        val natTable = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+        val natTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding]().addShard()
         natTx = new FlowStateTransaction(natTable)
     }
 

@@ -32,7 +32,7 @@ import org.midonet.odp.flows._
 import org.midonet.packets.NatState.{FWD_DNAT, FWD_SNAT, NatBinding}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.sdn.state.{FlowStateTransaction, OnHeapShardedFlowStateTable}
 import org.midonet.util.Range
 
 @RunWith(classOf[JUnitRunner])
@@ -120,7 +120,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
         feedArpTable(simRouter, server1, server1Mac)
         feedArpTable(simRouter, server2, server2Mac)
 
-        val stateTable = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+        val stateTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding]().addShard()
         implicit val natTx = new FlowStateTransaction(stateTable)
 
         // Send a forward packet that will be both DNATed and SNATed

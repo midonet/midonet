@@ -26,7 +26,7 @@ import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{MAC, IPacket}
-import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.sdn.state.{FlowStateTransaction, OnHeapShardedFlowStateTable}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 
@@ -105,7 +105,7 @@ class ConntrackTest extends MidolmanSpec {
     feature("TCP, UDP and ICMP flows are conntracked") {
         scenario("return packets are detected as such") {
             val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
-            val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
+            val conntrackTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
                                             .addShard()
             implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
 
@@ -127,7 +127,7 @@ class ConntrackTest extends MidolmanSpec {
 
         scenario("return packets are not detected if a conntrack key is not installed") {
             val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
-            val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
+            val conntrackTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
                     .addShard()
             implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
 

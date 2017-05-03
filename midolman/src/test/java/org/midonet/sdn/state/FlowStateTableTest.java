@@ -73,7 +73,7 @@ public class FlowStateTableTest {
         return new TestKey(k);
     }
 
-    private ShardedFlowStateTable<TestKey, Integer> global;
+    private OnHeapShardedFlowStateTable<TestKey, Integer> global;
     private List<FlowStateTable<TestKey, Integer>> shards = new ArrayList<>();
 
     private final int SHARDS = 4;
@@ -87,7 +87,7 @@ public class FlowStateTableTest {
     @Before
     @SuppressWarnings("unchecked")
     public void before() {
-        global = new ShardedFlowStateTable<>(clock);
+        global = new OnHeapShardedFlowStateTable<>(clock);
         for (int i = 0; i < SHARDS; i++) {
             shards.add((FlowStateTable)
                     global.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER)));

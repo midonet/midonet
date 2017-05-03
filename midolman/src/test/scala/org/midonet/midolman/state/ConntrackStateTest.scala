@@ -34,7 +34,7 @@ import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
+import org.midonet.sdn.state.{OnHeapShardedFlowStateTable, FlowStateTransaction}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.collection.Reducer
 
@@ -50,7 +50,7 @@ class ConntrackStateTest extends MidolmanSpec {
     val ingressDevice = UUID.randomUUID()
     val egressDevice = UUID.randomUUID()
 
-    val connTrackStateTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]().addShard()
+    val connTrackStateTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue]().addShard()
     val connTrackTx = new FlowStateTransaction(connTrackStateTable)
 
     override def beforeTest(): Unit = {

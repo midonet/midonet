@@ -35,7 +35,7 @@ import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC, _}
-import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.sdn.state.OnHeapShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class IcmpErrorNatTest extends MidolmanSpec {
@@ -251,7 +251,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
         { icmp.echo id pingId }
 
     def testTCP(): Unit = {
-        val table = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+        val table = new OnHeapShardedFlowStateTable[NatKey, NatBinding]().addShard()
 
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(tcpReq))
         fmatch.setInputPortNumber(1)
@@ -300,7 +300,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
     }
 
     def testICMP(): Unit = {
-        val table = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+        val table = new OnHeapShardedFlowStateTable[NatKey, NatBinding]().addShard()
 
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(pingReq))
         fmatch.setInputPortNumber(1)

@@ -46,7 +46,7 @@ import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.sdn.state.OnHeapShardedFlowStateTable
 import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
@@ -716,7 +716,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    simBackChannel,
                                    flowProcessor,
                                    conntrackTable, natTable,
-                                   new ShardedFlowStateTable[TraceKey, TraceContext](),
+                                   new OnHeapShardedFlowStateTable[TraceKey, TraceContext](),
                                    peerResolver,
                                    HappyGoLuckyLeaser,
                                    metrics,

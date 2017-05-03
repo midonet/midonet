@@ -47,8 +47,10 @@ import org.midonet.packets.TraceState.TraceKeyStore;
 import org.midonet.packets.TCP;
 import org.midonet.sdn.state.FlowStateTable;
 import org.midonet.sdn.state.FlowStateTransaction;
-import org.midonet.sdn.state.ShardedFlowStateTable;
+import org.midonet.sdn.state.OnHeapShardedFlowStateTable;
 import org.midonet.util.Range;
+import org.midonet.util.concurrent.MockClock;
+import org.midonet.util.concurrent.NanoClock;
 import org.midonet.util.logging.Logger$;
 
 public class TestRules {
@@ -111,20 +113,22 @@ public class TestRules {
         nats.add(new NatTarget(0x0a090807, 0x0a090810, 21333,
                 32999));
 
+        NanoClock clock = new MockClock();
         pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
         @SuppressWarnings("unchecked")
-        ShardedFlowStateTable<ConnTrackKeyStore, Boolean> shardedConntrack =
-                ShardedFlowStateTable.create();
+        OnHeapShardedFlowStateTable<ConnTrackKeyStore, Boolean> shardedConntrack =
+            new OnHeapShardedFlowStateTable<ConnTrackKeyStore, Boolean>(clock);
         pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
         FlowStateTable<ConnTrackKeyStore, Boolean> conntrackTable =
                 shardedConntrack.addShard(
                     Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
-        ShardedFlowStateTable<NatKeyStore, NatBinding> shardedNat =
-                ShardedFlowStateTable.create();
+        OnHeapShardedFlowStateTable<NatKeyStore, NatBinding> shardedNat =
+            new OnHeapShardedFlowStateTable<NatKeyStore, NatBinding>(clock);
         FlowStateTable<NatKeyStore, NatBinding> natTable =
                 shardedNat.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         FlowStateTable<TraceKeyStore, TraceState.TraceContext> traceTable =
-            ShardedFlowStateTable.<TraceKeyStore, TraceState.TraceContext>create().addShard(
+            new OnHeapShardedFlowStateTable<TraceKeyStore,TraceState.TraceContext>(clock)
+            .addShard(
                     Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);

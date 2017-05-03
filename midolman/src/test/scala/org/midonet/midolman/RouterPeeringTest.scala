@@ -36,7 +36,7 @@ import org.midonet.odp.flows.{FlowActionPopVLAN, FlowActionPushVLAN, FlowActionS
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.VirtualAction.{Decap, Encap}
-import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.sdn.state.{FlowStateTransaction, OnHeapShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
 class RouterPeeringTest extends MidolmanSpec {
@@ -243,7 +243,7 @@ class RouterPeeringTest extends MidolmanSpec {
     feature("conntrack with router peering") {
         scenario("connection tracking should apply to inner packet") {
             val router = newRouter("vtep-router")
-            val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
+            val conntrackTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
                     .addShard()
             implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
 
@@ -288,7 +288,7 @@ class RouterPeeringTest extends MidolmanSpec {
         }
 
         scenario("Inner packets is conntracked if decapsulated") {
-            val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
+            val conntrackTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
                 .addShard()
             implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
 

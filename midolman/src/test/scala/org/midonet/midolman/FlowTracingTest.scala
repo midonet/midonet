@@ -35,7 +35,7 @@ import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, IPv4Addr, SbeEncoder}
 import org.midonet.packets.TunnelKeys.TraceBit
-import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.sdn.state.{FlowStateTransaction, OnHeapShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingTest extends MidolmanSpec {
@@ -51,7 +51,7 @@ class FlowTracingTest extends MidolmanSpec {
     val host2addr = IPv4Addr("10.0.0.2").toInt
 
     val dstAddr = IPv4Addr("192.168.0.2")
-    val table = new ShardedFlowStateTable[TraceKey,TraceContext](clock)
+    val table = new OnHeapShardedFlowStateTable[TraceKey,TraceContext](clock)
         .addShard()
     implicit val traceTx = new FlowStateTransaction(table)
 
