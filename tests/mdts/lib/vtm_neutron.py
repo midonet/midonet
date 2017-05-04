@@ -271,13 +271,14 @@ class NeutronTopologyManager(TopologyManager):
         self.addCleanup(self.api.update_router, router_id,
                         {'router': {'routes': []}})
 
-    def set_router_gateway(self, router, network):
-        router = self.api.update_router(router['id'],
-                                        {'router': {
-                                            'external_gateway_info': {
-                                                'network_id': network['id']
-                                            }
-                                        }})
+    def set_router_gateway(self, router, network, enable_snat=True):
+        self.api.update_router(router['id'],
+                               {'router': {
+                                   'external_gateway_info': {
+                                       'network_id': network['id'],
+                                       'enable_snat': enable_snat
+                                    }
+                                }})
 
     def add_router_interface(self, router, subnet=None, port=None):
         if subnet is not None:
@@ -353,3 +354,7 @@ class NeutronTopologyManager(TopologyManager):
             self.api.create_floatingip({'floatingip': fip_params}),
             name=name)
         return fip['floatingip']
+
+    def update_floating_ip(self, fip):
+        body = {'floatingip': {'port_id': fip['port_id']}}
+        self.api.update_floatingip(fip['id'],  body)
