@@ -15,11 +15,11 @@
 from hamcrest import assert_that
 from hamcrest import equal_to
 import logging
+from setup_utils import install
+from setup_utils import reset_sandbox
 from mdts.lib.bindings import BindingManager
-from mdts.lib import sandbox
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.services import service
-from mdts.utils import conf
 from mdts.utils.asserts import check_forward_flow
 from mdts.utils.asserts import check_return_flow
 from mdts.utils.utils import await_port_active
@@ -110,34 +110,7 @@ binding_multihost = {
     ]
 }
 
-def install_packages(container_name, *packages):
-    container = service.get_container_by_hostname(container_name)
-    output, exec_id = container.exec_command(
-        "sh -c 'env DEBIAN_FRONTEND=noninteractive apt-get install " + \
-        "-qy --force-yes -o Dpkg::Options::=\"--force-confnew\" " + \
-        "%s'" % (" ".join(packages)), stream=True)
-    exit_code = container.check_exit_status(exec_id, output, timeout=60)
-    if exit_code != 0:
-        raise RuntimeError("Failed to update packages (%s)." % (packages))
-
-def install():
-    # Install new package so the new version is updated immediately after reboot
-    install_packages("midolman1", "midolman/local", "midonet-tools/local")
-    install_packages("cluster1", "midonet-cluster/local")
-
-def reset_sandbox():
-    # Wipe out the sandbox and rebuild
-    sandbox.kill_sandbox(conf.sandbox_name())
-    sandbox.restart_sandbox('default_neutron+mitaka+compat',
-                            conf.sandbox_name(),
-                            'sandbox/override_compat',
-                            'sandbox/provisioning/compat-provisioning.sh')
-    # Reset cached containers and reload them (await for the new agent to be up)
-    service.loaded_containers = None
-    agent = service.get_container_by_hostname('midolman1')
-    agent.wait_for_status('up')
-
-@with_setup(install, reset_sandbox)
+@with_setup(install(), reset_sandbox)
 @bindings(binding_multihost,
           binding_manager=BM)
 def test_compat_flowstate():
