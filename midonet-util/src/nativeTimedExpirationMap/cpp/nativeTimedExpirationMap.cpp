@@ -19,7 +19,6 @@
 
 
 jlong Java_org_midonet_util_concurrent_NativeTimedExpirationMap_create(JNIEnv *, jobject) {
-  std::cout << "Creating new NativeTimedExpirationMap" << std::endl;
   return reinterpret_cast<jlong>(new NativeTimedExpirationMap());
 }
 
