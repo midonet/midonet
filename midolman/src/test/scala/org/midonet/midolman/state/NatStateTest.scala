@@ -35,11 +35,13 @@ import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
 import org.midonet.packets.NatState._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.state.{OnHeapShardedFlowStateTable, FlowStateTransaction}
+import org.midonet.sdn.state.{OnHeapShardedFlowStateTable, OffHeapShardedFlowStateTable, FlowStateTransaction}
+import org.midonet.sdn.state.BaseShardedFlowStateTable
 import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent.MockClock
 
 @RunWith(classOf[JUnitRunner])
-class NatStateTest extends MidolmanSpec {
+abstract class NatStateTest extends MidolmanSpec {
 
     val deviceId = UUID.randomUUID()
     val ipTarget = IPv4Addr.random
@@ -51,8 +53,8 @@ class NatStateTest extends MidolmanSpec {
         { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
         { tcp src 10 dst 88 }
 
-    val natStateTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding]().addShard()
-    val natTx = new FlowStateTransaction(natStateTable)
+    def natStateTable: BaseShardedFlowStateTable[NatKey, NatBinding]#FlowStateShard
+    def natTx: FlowStateTransaction[NatKey, NatBinding]
 
     def context(eth: Ethernet = tcpPacket) = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
@@ -463,4 +465,15 @@ class NatStateTest extends MidolmanSpec {
                     override def apply(acc: HashMap[K, V], key: K, value: V) =
                         acc + (key -> value)
                     })
+}
+
+class OnHeapNatStateTest extends NatStateTest {
+    override val natStateTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding]().addShard()
+    override val natTx = new FlowStateTransaction(natStateTable)
+}
+
+class OffHeapNatStateTest extends NatStateTest {
+    override val natStateTable = new OffHeapShardedFlowStateTable[NatKey, NatBinding](
+        new MockClock(), new NatKeySerializer, new NatBindingSerializer).addShard()
+    override val natTx = new FlowStateTransaction(natStateTable)
 }

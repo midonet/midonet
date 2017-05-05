@@ -152,6 +152,76 @@ object NatState {
                                          key.transportDst, binding)
         }
 
+    val NO_BYTES = new Array[Byte](0)
+    class NatKeySerializer
+            extends FlowStateStore.StateSerializer[NatKey] {
+        override def toBytes(value: NatKey): Array[Byte] =
+            if (value == null) {
+                NO_BYTES
+            } else {
+                val bb = ByteBuffer.allocate(34)
+                val keyType: Byte = value.keyType match {
+                    case FWD_SNAT => 1
+                    case FWD_DNAT => 2
+                    case FWD_STICKY_DNAT => 3
+                    case REV_SNAT => 4
+                    case REV_DNAT => 5
+                    case REV_STICKY_DNAT => 6
+                }
+                bb.put(keyType)
+                bb.putInt(value.networkSrc.toInt)
+                bb.putInt(value.transportSrc)
+                bb.putInt(value.networkDst.toInt)
+                bb.putInt(value.transportDst)
+                bb.put(value.networkProtocol)
+                bb.putLong(value.deviceId.getLeastSignificantBits)
+                bb.putLong(value.deviceId.getMostSignificantBits)
+                bb.array
+            }
+
+        override def fromBytes(bytes: Array[Byte]): NatKey =
+            if (bytes == null || bytes.length != 34) {
+                null
+            } else {
+                val bb = ByteBuffer.wrap(bytes)
+                val keyType = bb.get match {
+                    case 1 => FWD_SNAT
+                    case 2 => FWD_DNAT
+                    case 3 => FWD_STICKY_DNAT
+                    case 4 => REV_SNAT
+                    case 5 => REV_DNAT
+                    case 6 => REV_STICKY_DNAT
+                }
+                NatKey(keyType,
+                       IPv4Addr(bb.getInt),
+                       bb.getInt,
+                       IPv4Addr(bb.getInt),
+                       bb.getInt,
+                       bb.get(),
+                       new UUID(bb.getLong(), bb.getLong()))
+            }
+    }
+
+    class NatBindingSerializer
+            extends FlowStateStore.StateSerializer[NatBinding] {
+        override def toBytes(value: NatBinding): Array[Byte] =
+            if (value == null) {
+                NO_BYTES
+            } else {
+                val bb = ByteBuffer.allocate(8)
+                bb.putInt(value.networkAddress.toInt)
+                bb.putInt(value.transportPort)
+                bb.array
+            }
+
+        override def fromBytes(bytes: Array[Byte]): NatBinding =
+            if (bytes == null || bytes.length != 8) {
+                null
+            } else {
+                val bb = ByteBuffer.wrap(bytes)
+                NatBinding(IPv4Addr(bb.getInt), bb.getInt)
+            }
+    }
 }
 
 trait NatState extends FlowState { this: PacketContext =>

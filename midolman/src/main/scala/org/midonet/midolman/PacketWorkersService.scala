@@ -35,12 +35,12 @@ import org.midonet.midolman.monitoring.{FlowRecorder, FlowSenderWorker}
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.NatState.NatKey
+import org.midonet.midolman.state.NatState.{NatBindingSerializer, NatKey, NatKeySerializer}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{NatBlockAllocator, NatLeaser, PeerResolver}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.NatState.NatBinding
-import org.midonet.sdn.state.OnHeapShardedFlowStateTable
+import org.midonet.sdn.state.{OnHeapShardedFlowStateTable, OffHeapShardedFlowStateTable}
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.logging.Logger
@@ -83,7 +83,12 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
     val numWorkers = PacketWorkersService.numWorkers(config)
 
     val connTrackStateTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock)
-    val natStateTable = new OnHeapShardedFlowStateTable[NatKey, NatBinding](clock)
+    val natStateTable = if (config.offHeapTables) {
+        new OffHeapShardedFlowStateTable[NatKey, NatBinding](
+            clock, new NatKeySerializer, new NatBindingSerializer)
+    } else {
+        new OnHeapShardedFlowStateTable[NatKey, NatBinding](clock)
+    }
     val natLeaser: NatLeaser = new NatLeaser {
         val log: Logger = Logger(LoggerFactory.getLogger(classOf[NatLeaser]))
         val allocator = natBlockAllocator

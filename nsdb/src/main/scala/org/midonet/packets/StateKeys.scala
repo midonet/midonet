@@ -29,6 +29,11 @@ object FlowStateStore {
     trait IdleExpiration {
         var expiresAfter: Duration = DEFAULT_EXPIRATION
     }
+
+    trait StateSerializer[T] {
+        def toBytes(value: T): Array[Byte]
+        def fromBytes(bytes: Array[Byte]): T
+    }
 }
 
 object NatState {

@@ -21,9 +21,10 @@ import java.util.concurrent.TimeUnit
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.packets.FlowStateStore.IdleExpiration
+import org.midonet.packets.FlowStateStore.{IdleExpiration, StateSerializer}
 import org.midonet.util.collection.Reducer
-import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap, OnHeapTimedExpirationMap}
+import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
+import org.midonet.util.concurrent.{OffHeapTimedExpirationMap, OnHeapTimedExpirationMap}
 import org.midonet.util.logging.Logger
 
 /**
@@ -213,6 +214,25 @@ class OnHeapShardedFlowStateTable[K <: IdleExpiration, V >: Null]
                                     log: Logger): FlowStateShard = {
         new FlowStateShard(workerId, log) {
             override val map = new OnHeapTimedExpirationMap[K, V](log, _.expiresAfter)
+        }
+    }
+}
+
+class OffHeapShardedFlowStateTable[K <: IdleExpiration, V >: Null]
+    (clock: NanoClock = NanoClock.DEFAULT,
+     keySerializer: StateSerializer[K],
+     valueSerializer: StateSerializer[V])
+        extends BaseShardedFlowStateTable[K, V](clock) {
+
+    override protected def newShard(workerId: Int,
+                                    log: Logger): FlowStateShard = {
+        new FlowStateShard(workerId, log) {
+            override val map = new OffHeapTimedExpirationMap[K, V](
+                log, _.expiresAfter,
+                keySerializer.toBytes(_),
+                keySerializer.fromBytes(_),
+                valueSerializer.toBytes(_),
+                valueSerializer.fromBytes(_))
         }
     }
 }
