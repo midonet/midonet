@@ -82,7 +82,7 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
 
     def dhcpMtu = Math.min(getInt(s"$PREFIX.midolman.dhcp_mtu"), 0xffff)
     def simulationThreads = getInt(s"$PREFIX.midolman.simulation_threads")
-    def enableOffHeapMemory = getInt(s"$PREFIX.midolman.enable_off_heap_memory")
+    def offHeapTables = getBoolean(s"$PREFIX.midolman.off_heap_tables")
     def maxPooledContexts = getInt(s"$PREFIX.midolman.max_pooled_contexts")
     def outputChannels = getInt(s"$PREFIX.midolman.output_channels")
     def inputChannelThreading = getString(s"$PREFIX.midolman.input_channel_threading")
