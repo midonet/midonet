@@ -35,6 +35,7 @@ import org.midonet.midolman.monitoring.{FlowRecorder, FlowSenderWorker}
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKeySerializer, ConnTrackValueSerializer}
 import org.midonet.midolman.state.NatState.{NatBindingSerializer, NatKey, NatKeySerializer}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{NatBlockAllocator, NatLeaser, PeerResolver}
@@ -82,7 +83,12 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
 
     val numWorkers = PacketWorkersService.numWorkers(config)
 
-    val connTrackStateTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock)
+    val connTrackStateTable = if (config.offHeapTables) {
+        new OffHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue](
+            clock, new ConnTrackKeySerializer, new ConnTrackValueSerializer)
+    } else {
+        new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock)
+    }
     val natStateTable = if (config.offHeapTables) {
         new OffHeapShardedFlowStateTable[NatKey, NatBinding](
             clock, new NatKeySerializer, new NatBindingSerializer)

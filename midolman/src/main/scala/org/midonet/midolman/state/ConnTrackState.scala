@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.state
 
+import java.nio.ByteBuffer
 import java.util.UUID
 
 import akka.actor.ActorSystem
@@ -26,7 +27,8 @@ import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.ConnTrackState.{ConnTrackKeyAllocator, ConnTrackKeyStore}
-import org.midonet.packets.{ICMP, IPAddr, IPv4, TCP, UDP}
+import org.midonet.packets.FlowStateStore
+import org.midonet.packets.{ICMP, IPAddr, IPv4, IPv4Addr, TCP, UDP}
 import org.midonet.sdn.state.FlowStateTransaction
 
 object ConnTrackState {
@@ -77,6 +79,62 @@ object ConnTrackState {
             return wcMatch.getIcmpIdentifier
         }
         or.intValue()
+    }
+
+    val NO_BYTES = Array[Byte]()
+    val TRUE_BYTES = Array[Byte](1)
+    val FALSE_BYTES = Array[Byte](0)
+
+    class ConnTrackKeySerializer
+            extends FlowStateStore.StateSerializer[ConnTrackKey] {
+        override def toBytes(value: ConnTrackKey): Array[Byte] =
+            if (value == null) {
+                NO_BYTES
+            } else {
+                val bb = ByteBuffer.allocate(33)
+                bb.putInt(value.networkSrc.asInstanceOf[IPv4Addr].toInt)
+                bb.putInt(value.icmpIdOrTransportSrc)
+                bb.putInt(value.networkDst.asInstanceOf[IPv4Addr].toInt)
+                bb.putInt(value.icmpIdOrTransportDst)
+                bb.put(value.networkProtocol)
+                bb.putLong(value.deviceId.getMostSignificantBits)
+                bb.putLong(value.deviceId.getLeastSignificantBits)
+                bb.array
+            }
+
+        override def fromBytes(bytes: Array[Byte]): ConnTrackKey =
+            if (bytes == null || bytes.length != 33) {
+                null
+            } else {
+                val bb = ByteBuffer.wrap(bytes)
+                ConnTrackKey(IPv4Addr(bb.getInt),
+                             bb.getInt,
+                             IPv4Addr(bb.getInt),
+                             bb.getInt,
+                             bb.get,
+                             new UUID(bb.getLong(), bb.getLong()))
+            }
+    }
+
+    class ConnTrackValueSerializer
+            extends FlowStateStore.StateSerializer[ConnTrackValue] {
+        override def toBytes(value: ConnTrackValue): Array[Byte] =
+            if (value == null) {
+                NO_BYTES
+            } else if (value) {
+                TRUE_BYTES
+            } else {
+                FALSE_BYTES
+            }
+
+        override def fromBytes(bytes: Array[Byte]): ConnTrackValue =
+            if (bytes == null || bytes.length != 1) {
+                null
+            } else if (bytes(0) == 0) {
+                false
+            } else {
+                true
+            }
     }
 }
 

@@ -25,7 +25,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.simulation.BridgePort
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
+import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopology
@@ -34,12 +34,14 @@ import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.state.{OnHeapShardedFlowStateTable, FlowStateTransaction}
+import org.midonet.sdn.state.{BaseShardedFlowStateTable, FlowStateTransaction}
+import org.midonet.sdn.state.{OnHeapShardedFlowStateTable, OffHeapShardedFlowStateTable}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent.MockClock
 
 @RunWith(classOf[JUnitRunner])
-class ConntrackStateTest extends MidolmanSpec {
+abstract class ConntrackStateTest extends MidolmanSpec {
 
     val ping: Ethernet =
         { eth src MAC.random() dst MAC.random() } <<
@@ -50,8 +52,8 @@ class ConntrackStateTest extends MidolmanSpec {
     val ingressDevice = UUID.randomUUID()
     val egressDevice = UUID.randomUUID()
 
-    val connTrackStateTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue]().addShard()
-    val connTrackTx = new FlowStateTransaction(connTrackStateTable)
+    def connTrackStateTable: BaseShardedFlowStateTable[ConnTrackKey, ConnTrackValue]#FlowStateShard
+    def connTrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue]
 
     override def beforeTest(): Unit = {
         val port = new BridgePort(id = portId, networkId = ingressDevice)
@@ -160,4 +162,15 @@ class ConntrackStateTest extends MidolmanSpec {
                     override def apply(acc: HashMap[K, V], key: K, value: V) =
                         acc + (key -> value)
                 })
+}
+
+class OnHeapConntrackStateTest extends ConntrackStateTest {
+    override val connTrackStateTable = new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue]().addShard()
+    override val connTrackTx = new FlowStateTransaction(connTrackStateTable)
+}
+
+class OffHeapConntrackStateTest extends ConntrackStateTest {
+    override val connTrackStateTable = new OffHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue](
+        new MockClock, new ConnTrackKeySerializer, new ConnTrackValueSerializer).addShard()
+    override val connTrackTx = new FlowStateTransaction(connTrackStateTable)
 }
