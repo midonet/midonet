@@ -48,12 +48,12 @@ model {
     tasks.test {
         dependsOn runNativeTimedExpirationMapTestGoogleTestExe
         dependsOn nativeTimedExpirationMapSharedLibrary
-        systemProperty "java.library.path",
-                       "${project.buildDir}/libs/nativeTimedExpirationMap/shared"
+        systemProperty "java.library.path", "${nativeLibraryDir}"
     }
     tasks.jar {
         dependsOn nativeTimedExpirationMapSharedLibrary
     }
+
     binaries {
         all {
             if (toolChain in Gcc) {
@@ -61,6 +61,9 @@ model {
                                  << "-I" << JNI_INCLUDE_DIR \
                                  << "-I" << "${JNI_INCLUDE_DIR}/linux"
             }
+        }
+        nativeTimedExpirationMapSharedLibrary {
+            sharedLibraryFile = "${nativeLibraryDir}/libnativeTimedExpirationMap.so"
         }
         withType(GoogleTestTestSuiteBinarySpec) {
             lib library: "googleTest", linkage: "static"

@@ -354,6 +354,10 @@ task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine += mainClassName
 }
 
+test {
+    systemProperty "java.library.path", "${project(':midonet-util').nativeLibraryDir}"
+}
+
 task testShell(type: Exec) {
     commandLine 'src/test/shell/service_containers/vpn/vpn_basic_test'
 }

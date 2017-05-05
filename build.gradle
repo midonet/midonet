@@ -239,6 +239,11 @@ allprojects {
         outputDir = file("${rootDir}/idea/out/${project.name}")
         testOutputDir = file("${rootDir}/idea/test/${project.name}")
     }
+
+    ext {
+        nativeLibraryDir = "$buildDir/nativelibs"
+        println nativeLibraryDir
+    }
 }
 
 idea.project {
