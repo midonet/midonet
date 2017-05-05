@@ -31,6 +31,9 @@ MAX_HEAP_SIZE="4096M"
 # Here we create the arguments that will get passed to the jvm when
 # starting midolman.
 
+# allow JVM to find native extensions
+JVM_OPTS="$JVM_OPTS -Djava.library.path=/usr/lib/midolman"
+
 # enable assertions.  disabling this in production will give a modest
 # performance benefit (around 5%).
 # JVM_OPTS="$JVM_OPTS -ea"

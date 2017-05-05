@@ -12,6 +12,7 @@ apt-get  update
 touch /etc/init.d/vpp
 
 # Failfast if we cannot update the packages locally
+DEBIAN_FRONTEND=noninteractive \
 apt-get install -qy --force-yes midolman/local \
                                 midonet-tools/local vpp vpp-lib || exit 1
 

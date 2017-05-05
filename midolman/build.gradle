@@ -204,6 +204,10 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/lib/midolman/service_containers/haproxy/haproxy-helper") {
         into "usr/lib/midolman"
     }
+    from("${project(':midonet-util').nativeLibraryDir}") {
+        include "*.so"
+        into "usr/lib/midolman"
+    }
     from("src/deb/init/midolman-prepare") {
         into "usr/share/midolman"
     }
