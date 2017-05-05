@@ -27,4 +27,11 @@ sudo sed -i 's/\(MAX_HEAP_SIZE=\).*$/\1256M/' $MIDOLMAN_ENV_FILE
 MINIONS_ENV_FILE='/etc/midolman/minions-env.sh'
 sudo sed -i 's/\(MAX_HEAP_SIZE=\).*$/\1128M/' $MINIONS_ENV_FILE
 
+# Enable offheap tables for midolman1
+if [ $(hostname) = "midolman1" ]; then
+    mn-conf set -h local <<EOF
+agent.midolman.off_heap_tables=true
+EOF
+fi
+
 exec /run-midolman.sh
