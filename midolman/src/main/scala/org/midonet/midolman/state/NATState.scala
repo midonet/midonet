@@ -155,11 +155,12 @@ object NatState {
     val NO_BYTES = new Array[Byte](0)
     class NatKeySerializer
             extends FlowStateStore.StateSerializer[NatKey] {
+        val Size = 34
         override def toBytes(value: NatKey): Array[Byte] =
             if (value == null) {
                 NO_BYTES
             } else {
-                val bb = ByteBuffer.allocate(34)
+                val bb = ByteBuffer.allocate(Size)
                 val keyType: Byte = value.keyType match {
                     case FWD_SNAT => 1
                     case FWD_DNAT => 2
@@ -180,7 +181,7 @@ object NatState {
             }
 
         override def fromBytes(bytes: Array[Byte]): NatKey =
-            if (bytes == null || bytes.length != 34) {
+            if (bytes == null || bytes.length != Size) {
                 null
             } else {
                 val bb = ByteBuffer.wrap(bytes)
@@ -204,18 +205,19 @@ object NatState {
 
     class NatBindingSerializer
             extends FlowStateStore.StateSerializer[NatBinding] {
+        val Size = 8
         override def toBytes(value: NatBinding): Array[Byte] =
             if (value == null) {
                 NO_BYTES
             } else {
-                val bb = ByteBuffer.allocate(8)
+                val bb = ByteBuffer.allocate(Size)
                 bb.putInt(value.networkAddress.toInt)
                 bb.putInt(value.transportPort)
                 bb.array
             }
 
         override def fromBytes(bytes: Array[Byte]): NatBinding =
-            if (bytes == null || bytes.length != 8) {
+            if (bytes == null || bytes.length != Size) {
                 null
             } else {
                 val bb = ByteBuffer.wrap(bytes)

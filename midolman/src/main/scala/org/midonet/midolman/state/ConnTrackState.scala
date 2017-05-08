@@ -87,11 +87,12 @@ object ConnTrackState {
 
     class ConnTrackKeySerializer
             extends FlowStateStore.StateSerializer[ConnTrackKey] {
+        val Size = 33
         override def toBytes(value: ConnTrackKey): Array[Byte] =
             if (value == null) {
                 NO_BYTES
             } else {
-                val bb = ByteBuffer.allocate(33)
+                val bb = ByteBuffer.allocate(Size)
                 bb.putInt(value.networkSrc.asInstanceOf[IPv4Addr].toInt)
                 bb.putInt(value.icmpIdOrTransportSrc)
                 bb.putInt(value.networkDst.asInstanceOf[IPv4Addr].toInt)
@@ -103,7 +104,7 @@ object ConnTrackState {
             }
 
         override def fromBytes(bytes: Array[Byte]): ConnTrackKey =
-            if (bytes == null || bytes.length != 33) {
+            if (bytes == null || bytes.length != Size) {
                 null
             } else {
                 val bb = ByteBuffer.wrap(bytes)
