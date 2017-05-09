@@ -61,7 +61,7 @@ trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
 
     protected val preallocation: FlowTablePreallocation
 
-    private val expirationQueues = new Array[ArrayDeque[ManagedFlow]](maxType)
+    private val expirationQueues = new Array[ArrayDeque[ManagedFlowImpl]](maxType)
 
     {
         expirationQueues(ERROR_CONDITION_EXPIRATION.typeId) =
@@ -74,7 +74,7 @@ trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
             preallocation.takeTunnelFlowExpirationQueue()
     }
 
-    abstract override def registerFlow(flow: ManagedFlow): Unit = {
+    abstract override def registerFlow(flow: ManagedFlowImpl): Unit = {
         super.registerFlow(flow)
         expirationQueues(flow.expirationType).addLast(flow)
         flow.ref()
@@ -88,7 +88,7 @@ trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
     private def checkHardTimeOutExpiration(now: Long): Unit = {
         var i = 0
         while (i < maxType) {
-            var flow: ManagedFlow = null
+            var flow: ManagedFlowImpl = null
             val queue = expirationQueues(i)
             while (({ flow = queue.peekFirst(); flow } ne null) &&
                    now >= flow.absoluteExpirationNanos) {
@@ -120,7 +120,7 @@ trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
         var evicted = 0
         while (i < maxType) {
             val queue = expirationQueues(i)
-            var flow: ManagedFlow = null
+            var flow: ManagedFlowImpl = null
             while (evicted < numFlowsToEvict &&
                    ({ flow = queue.pollFirst(); flow } ne null)) {
                 flow.unref()

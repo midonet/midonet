@@ -23,9 +23,9 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 trait FlowTagIndexer extends FlowIndexer with MidolmanLogging {
-    private val tagToFlows = new HashMap[FlowTag, Set[ManagedFlow]]()
+    private val tagToFlows = new HashMap[FlowTag, Set[ManagedFlowImpl]]()
 
-    abstract override def registerFlow(flow: ManagedFlow): Unit = {
+    abstract override def registerFlow(flow: ManagedFlowImpl): Unit = {
         super.registerFlow(flow)
         val numTags = flow.tags.size()
         var i = 0
@@ -35,7 +35,7 @@ trait FlowTagIndexer extends FlowIndexer with MidolmanLogging {
         }
     }
 
-    abstract override def removeFlow(flow: ManagedFlow): Unit = {
+    abstract override def removeFlow(flow: ManagedFlowImpl): Unit = {
         super.removeFlow(flow)
         val numTags = flow.tags.size()
         var i = 0
@@ -62,10 +62,10 @@ trait FlowTagIndexer extends FlowIndexer with MidolmanLogging {
         }
     }
 
-    def flowsFor(tag: FlowTag): Set[ManagedFlow] =
+    def flowsFor(tag: FlowTag): Set[ManagedFlowImpl] =
         tagToFlows.get(tag)
 
-    private def getOrAdd(tag: FlowTag): Set[ManagedFlow] = {
+    private def getOrAdd(tag: FlowTag): Set[ManagedFlowImpl] = {
         var set = tagToFlows.get(tag)
         if (set eq null) {
             set = Collections.newSetFromMap(new IdentityHashMap())

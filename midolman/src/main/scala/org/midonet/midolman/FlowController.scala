@@ -53,19 +53,19 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
 
     private val numWorkers = PacketWorkersService.numWorkers(config)
 
-    private val indexToFlows = new ArrayList[Array[ManagedFlow]](numWorkers)
-    private val managedFlowPools = new ArrayList[ArrayObjectPool[ManagedFlow]](
+    private val indexToFlows = new ArrayList[Array[ManagedFlowImpl]](numWorkers)
+    private val managedFlowPools = new ArrayList[ArrayObjectPool[ManagedFlowImpl]](
         numWorkers)
     private val meterRegistries = new ArrayList[MeterRegistry](numWorkers)
 
-    private val errorExpirationQueues = new ArrayList[ArrayDeque[ManagedFlow]](
+    private val errorExpirationQueues = new ArrayList[ArrayDeque[ManagedFlowImpl]](
         numWorkers)
-    private val flowExpirationQueues = new ArrayList[ArrayDeque[ManagedFlow]](
+    private val flowExpirationQueues = new ArrayList[ArrayDeque[ManagedFlowImpl]](
         numWorkers)
     private val statefulFlowExpirationQueues =
-        new ArrayList[ArrayDeque[ManagedFlow]](numWorkers)
+        new ArrayList[ArrayDeque[ManagedFlowImpl]](numWorkers)
     private val tunnelFlowExpirationQueues =
-        new ArrayList[ArrayDeque[ManagedFlow]](numWorkers)
+        new ArrayList[ArrayDeque[ManagedFlowImpl]](numWorkers)
 
 
     val maxFlows = Math.min(
@@ -79,9 +79,9 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
                      + s"${config.datapath.maxFlowCount}, worker threads = "
                      + s"${numWorkers}")
         while (i < numWorkers) {
-            indexToFlows.add(new Array[ManagedFlow](indexToFlowsSize))
-            managedFlowPools.add(new ArrayObjectPool[ManagedFlow](
-                                     maxFlows, new ManagedFlow(_)))
+            indexToFlows.add(new Array[ManagedFlowImpl](indexToFlowsSize))
+            managedFlowPools.add(new ArrayObjectPool[ManagedFlowImpl](
+                                     maxFlows, new ManagedFlowImpl(_)))
             meterRegistries.add(new MeterRegistry(maxFlows))
 
             errorExpirationQueues.add(new ArrayDeque(maxFlows/3))
@@ -95,17 +95,17 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
         System.gc()
     }
 
-    def takeIndexToFlow(): Array[ManagedFlow] = indexToFlows.remove(0)
-    def takeManagedFlowPool(): ArrayObjectPool[ManagedFlow] =
+    def takeIndexToFlow(): Array[ManagedFlowImpl] = indexToFlows.remove(0)
+    def takeManagedFlowPool(): ArrayObjectPool[ManagedFlowImpl] =
         managedFlowPools.remove(0)
     def takeMeterRegistry(): MeterRegistry = meterRegistries.remove(0)
-    def takeErrorExpirationQueue(): ArrayDeque[ManagedFlow] =
+    def takeErrorExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
         errorExpirationQueues.remove(0)
-    def takeFlowExpirationQueue(): ArrayDeque[ManagedFlow] =
+    def takeFlowExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
         flowExpirationQueues.remove(0)
-    def takeStatefulFlowExpirationQueue(): ArrayDeque[ManagedFlow] =
+    def takeStatefulFlowExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
         statefulFlowExpirationQueues.remove(0)
-    def takeTunnelFlowExpirationQueue(): ArrayDeque[ManagedFlow] =
+    def takeTunnelFlowExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
         tunnelFlowExpirationQueues.remove(0)
 }
 
@@ -119,7 +119,7 @@ trait FlowController extends DisruptorBackChannel {
                       flowTags: ArrayList[FlowTag],
                       removeCallbacks: ArrayList[Callback0],
                       expiration: Expiration): ManagedFlow
-    def removeFlow(flow: ManagedFlow): Unit
+    def deleteFlow(flow: ManagedFlow): Unit
     def duplicateFlow(mark: Int): Unit
 
     def invalidateFlowsFor(tag: FlowTag): Unit
@@ -149,8 +149,8 @@ class FlowControllerImpl(config: MidolmanConfig,
 
     private val managedFlowPool = preallocation.takeManagedFlowPool()
 
-    private val oversubscriptionFlowPool = new NoOpPool[ManagedFlow](
-        new ManagedFlow(_))
+    private val oversubscriptionFlowPool = new NoOpPool[ManagedFlowImpl](
+        new ManagedFlowImpl(_))
 
     private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
         flowProcessor.capacity)
@@ -186,6 +186,9 @@ class FlowControllerImpl(config: MidolmanConfig,
         flow
     }
 
+    override def deleteFlow(flow: ManagedFlow): Unit =
+        removeFlow(flow.asInstanceOf[ManagedFlowImpl])
+
     private def takeFlow() = {
         val flow = managedFlowPool.take
         if (flow ne null)
@@ -216,7 +219,7 @@ class FlowControllerImpl(config: MidolmanConfig,
         checkFlowsExpiration(clock.tick)
     }
 
-    override def registerFlow(flow: ManagedFlow): Unit = {
+    override def registerFlow(flow: ManagedFlowImpl): Unit = {
         super.registerFlow(flow)
         indexFlow(flow)
         meters.trackFlow(flow.flowMatch, flow.tags)
@@ -230,7 +233,7 @@ class FlowControllerImpl(config: MidolmanConfig,
         flow.ref()
     }
 
-    override def removeFlow(flow: ManagedFlow): Unit =
+    override def removeFlow(flow: ManagedFlowImpl): Unit = {
         if (!flow.removed) {
             removeFlowFromDatapath(flow)
             forgetFlow(flow)
@@ -242,8 +245,9 @@ class FlowControllerImpl(config: MidolmanConfig,
             }
             metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
         }
+    }
 
-    private def forgetFlow(flow: ManagedFlow): Unit = {
+    private def forgetFlow(flow: ManagedFlowImpl): Unit = {
         super.removeFlow(flow)
         clearFlowIndex(flow)
         flow.callbacks.runAndClear()
@@ -311,7 +315,7 @@ class FlowControllerImpl(config: MidolmanConfig,
         override def shouldWakeUp() = completedFlowOperations.size > 0
     }
 
-    private def takeFlowOperation(flow: ManagedFlow): FlowOperation = {
+    private def takeFlowOperation(flow: ManagedFlowImpl): FlowOperation = {
         var flowOp: FlowOperation = null
         while ({ flowOp = pooledFlowOperations.take; flowOp } eq null) {
             processCompletedFlowOperations()
@@ -324,7 +328,7 @@ class FlowControllerImpl(config: MidolmanConfig,
         flowOp
     }
 
-    private def removeFlowFromDatapath(flow: ManagedFlow): Unit = {
+    private def removeFlowFromDatapath(flow: ManagedFlowImpl): Unit = {
         log.debug(s"Removing flow $flow from datapath")
         val flowOp = takeFlowOperation(flow)
         // Spin while we try to eject the flow. This can happen if we invalidated
@@ -336,7 +340,7 @@ class FlowControllerImpl(config: MidolmanConfig,
         }
     }
 
-    private def indexFlow(flow: ManagedFlow): Unit = {
+    private def indexFlow(flow: ManagedFlowImpl): Unit = {
         numFlows += 1
         ensureCapacity()
         var index = 0
@@ -345,17 +349,17 @@ class FlowControllerImpl(config: MidolmanConfig,
             index = curIndex & mask
         } while (indexToFlow(index) ne null)
         indexToFlow(index) = flow
-        flow.mark = (curIndex & IndexMask) | (workerId << IndexShift)
+        flow.setMark((curIndex & IndexMask) | (workerId << IndexShift))
     }
 
-    private def clearFlowIndex(flow: ManagedFlow): Unit = {
+    private def clearFlowIndex(flow: ManagedFlowImpl): Unit = {
         indexToFlow(flow.mark & mask) = null
         numFlows -= 1
     }
 
     private def ensureCapacity(): Unit = {
         if (numFlows > indexToFlow.length) {
-            val newIndexToFlow = new Array[ManagedFlow](indexToFlow.length * 2)
+            val newIndexToFlow = new Array[ManagedFlowImpl](indexToFlow.length * 2)
             Array.copy(indexToFlow, 0, newIndexToFlow, 0, indexToFlow.length)
             indexToFlow = newIndexToFlow
             mask = indexToFlow.length - 1

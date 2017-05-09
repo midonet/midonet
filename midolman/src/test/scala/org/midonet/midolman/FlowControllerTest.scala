@@ -29,7 +29,7 @@ import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.flows.{ManagedFlow, FlowExpirationIndexer}
+import org.midonet.midolman.flows.{ManagedFlowImpl, FlowExpirationIndexer}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
@@ -165,8 +165,8 @@ class FlowControllerTest extends MidolmanSpec {
         var callbackCalled = false
         var linkedCallbackCalled = false
 
-        def add(tags: FlowTag*): ManagedFlow = {
-            val flow = linked match {
+        def add(tags: FlowTag*): ManagedFlowImpl = {
+            val flow = (linked match {
                 case null =>
                     flowController.addFlow(
                         fmatch,
@@ -185,7 +185,7 @@ class FlowControllerTest extends MidolmanSpec {
                                 def call() = callbackCalled = true
                             }),
                         FlowExpirationIndexer.FLOW_EXPIRATION)
-            }
+            }).asInstanceOf[ManagedFlowImpl]
             if (flow.linkedFlow ne null) {
                 flow.linkedFlow.callbacks.add(new Callback0 {
                     def call() = linkedCallbackCalled = true
@@ -194,7 +194,7 @@ class FlowControllerTest extends MidolmanSpec {
             flow
         }
 
-        def remove(flow: ManagedFlow): Unit =
-            flowController.removeFlow(flow)
+        def remove(flow: ManagedFlowImpl): Unit =
+            flowController.deleteFlow(flow)
     }
 }

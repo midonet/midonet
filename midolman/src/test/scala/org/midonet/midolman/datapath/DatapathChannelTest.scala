@@ -30,7 +30,7 @@ import org.scalatest.concurrent.Eventually._
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.DatapathStateDriver
-import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
+import org.midonet.midolman.flows.{FlowOperation, ManagedFlowImpl}
 import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.midolman.monitoring.metrics.PacketExecutorMetrics
 import org.midonet.midolman.util.{MockSelector, MockNetlinkChannelFactory, MidolmanSpec}
@@ -126,7 +126,7 @@ class DatapathChannelTest extends MidolmanSpec {
         scenario ("Can create flows") {
             val context = packetContextFor(ethernet, UUID.randomUUID())
             context.flowActions.addAll(actions)
-            context.flow = new ManagedFlow(null)
+            context.flow = new ManagedFlowImpl(null)
             dpChannel.handoff(context)
 
             barrier.waitFor(0)
@@ -158,7 +158,7 @@ class DatapathChannelTest extends MidolmanSpec {
         scenario ("Can delete flows only after they have been created") {
             val context = packetContextFor(ethernet, UUID.randomUUID())
             context.flowActions.addAll(actions)
-            context.flow = new ManagedFlow(null)
+            context.flow = new ManagedFlowImpl(null)
             dpChannel.handoff(context)
 
             barrier.waitFor(0)
@@ -168,7 +168,7 @@ class DatapathChannelTest extends MidolmanSpec {
 
             val flowDelete = new FlowOperation(new ArrayObjectPool(0, _ => null),
                                                new SpscArrayQueue(16))
-            val managedFlow = new ManagedFlow(null)
+            val managedFlow = new ManagedFlowImpl(null)
             managedFlow.flowMatch.reset(context.origMatch)
             flowDelete.reset(FlowOperation.DELETE, managedFlow, retries = 0)
             fp.tryEject(sequence = 1, datapathId, managedFlow.flowMatch,
@@ -176,7 +176,7 @@ class DatapathChannelTest extends MidolmanSpec {
 
             nlChannel.packetsWritten.get() should be (1)
 
-            context.flow.sequence = 1
+            context.flow.assignSequence(1)
             dpChannel.handoff(context)
 
             barrier.waitFor(1)
@@ -193,7 +193,7 @@ class DatapathChannelTest extends MidolmanSpec {
         scenario ("Create flow errors don't interfere with pending delete requests") {
             val context = packetContextFor(ethernet, UUID.randomUUID())
             context.flowActions.addAll(actions)
-            context.flow = new ManagedFlow(null)
+            context.flow = new ManagedFlowImpl(null)
             dpChannel.handoff(context)
 
             barrier.waitFor(0)
@@ -204,7 +204,7 @@ class DatapathChannelTest extends MidolmanSpec {
             val queue = new LinkedBlockingQueue[FlowOperation]()
             val flowDelete = new FlowOperation(new ArrayObjectPool(0, _ => null),
                                                queue)
-            val managedFlow = new ManagedFlow(null)
+            val managedFlow = new ManagedFlowImpl(null)
             managedFlow.flowMatch.reset(context.origMatch)
             flowDelete.reset(FlowOperation.DELETE, managedFlow, retries = 0)
             fp.tryEject(seq, datapathId, managedFlow.flowMatch,
