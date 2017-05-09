@@ -18,11 +18,10 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import com.google.protobuf.Message
-
 import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
-import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
+import org.midonet.cluster.models.Neutron.{NeutronPort, SecurityGroup, SecurityGroupRule}
+import org.midonet.cluster.models.Topology.Rule.Type.JUMP_RULE
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.SecurityGroupTranslator._
@@ -115,6 +114,11 @@ class SecurityGroupTranslator
     protected override def translateDelete(tx: Transaction,
                                            securityGroup: SecurityGroup)
     : Unit = {
+        // MI-1210: On at least one occasion, Neutron has attempted to delete a
+        // SecurityGroup that still had at least one port associated with it, so
+        // make sure to clean up any Port references to this SecurityGroup.
+        cleanUpPortBackrefs(tx, securityGroup.getId)
+
         // Delete associated SecurityGroupRules.
         securityGroup.getSecurityGroupRulesList.asScala.foreach { rule =>
             tx.delete(classOf[SecurityGroupRule], rule.getId, ignoresNeo = true)
@@ -123,8 +127,38 @@ class SecurityGroupTranslator
         tx.delete(classOf[Chain], outChainId(securityGroup.getId), ignoresNeo = true)
         tx.delete(classOf[IPAddrGroup], securityGroup.getId, ignoresNeo = true)
         tx.delete(classOf[SecurityGroup], securityGroup.getId, ignoresNeo = true)
+
     }
 
+    private def cleanUpPortBackrefs(tx: Transaction, sgId: UUID): Unit = {
+        val sgInChainId = inChainId(sgId)
+        val sgOutChainId = outChainId(sgId)
+        val ipAddrGrp = tx.get(classOf[IPAddrGroup], sgId)
+        for (ipAddrPorts <- ipAddrGrp.getIpAddrPortsList.asScala;
+             portId <- ipAddrPorts.getPortIdsList.asScala) {
+            log.warn("SecurityGroup {} deleted while still associated with " +
+                     "Port {}. This should not happen, but will be handled " +
+                     "correctly.", Array[AnyRef](sgId, portId))
+
+            // Get the NeutronPort and remove the reference to this SG.
+            val nPort = tx.get(classOf[NeutronPort], portId)
+            val idx = nPort.getSecurityGroupsList.indexOf(sgId)
+            val bldr = nPort.toBuilder.removeSecurityGroups(idx)
+            tx.update(bldr.build())
+
+            // Remove the jump rules from the port's chains.
+            val Seq(inChain, outChain) = tx.getAll(
+                classOf[Chain], Seq(inChainId(portId), outChainId(portId)))
+            val ruleIds = inChain.getRuleIdsList ++ outChain.getRuleIdsList
+            val rules = tx.getAll(classOf[Rule], ruleIds)
+            for (rule <- rules if rule.getType == JUMP_RULE) {
+                val jumpChainId = rule.getJumpRuleData.getJumpChainId
+                if (jumpChainId == sgInChainId || jumpChainId == sgOutChainId) {
+                    tx.delete(classOf[Rule], rule.getId)
+                }
+            }
+        }
+    }
 }
 
 object SecurityGroupTranslator {
