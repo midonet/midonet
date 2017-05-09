@@ -26,10 +26,10 @@ import scala.reflect.ClassTag
 import org.scalactic.Prettifier
 import org.scalatest.matchers._
 
+import org.midonet.midolman.FlowController
 import org.midonet.midolman.SimulationBackChannel
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult, AddVirtualWildcardFlow}
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.odp.flows.{FlowActionPopVLAN, FlowActionPushVLAN}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
@@ -200,8 +200,8 @@ trait CustomMatchers {
         override def toString(): String = "invalidates (" + Prettifier.default(ips) + ")"
     }
 
-    def haveInvalidated (tags: FlowTag*) = new Matcher[FlowTagIndexer{var tags: List[FlowTag]}] {
-        def apply(invalidation: FlowTagIndexer{var tags: List[FlowTag]}): MatchResult = {
+    def haveInvalidated (tags: FlowTag*) = new Matcher[FlowController{var tags: List[FlowTag]}] {
+        def apply(invalidation: FlowController{var tags: List[FlowTag]}): MatchResult = {
             MatchResult(
                 tags forall invalidation.tags.contains,
                 s"${invalidation.tags} does not contain all of $tags",

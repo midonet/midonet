@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.util
 
-import java.util.UUID
+import java.util.{ArrayList, UUID}
 
 import scala.concurrent.ExecutionContext
 
@@ -27,19 +27,24 @@ import com.google.inject.Injector
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
+import org.midonet.midolman.FlowController
 import org.midonet.midolman.ShardedSimulationBackChannel
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
-import org.midonet.midolman.flows.FlowTagIndexer
+import org.midonet.midolman.flows.ManagedFlow
+import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.state.PeerResolver
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockUpcallDatapathConnectionManager}
 import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory}
+import org.midonet.odp.FlowMatch
 import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.MockClock
+import org.midonet.util.functors.Callback0
 
 trait MidolmanServices {
     var injector: Injector
@@ -98,7 +103,7 @@ trait MidolmanServices {
     lazy val simBackChannel = injector.getInstance(
         classOf[ShardedSimulationBackChannel]).registerProcessor
 
-    val mockFlowInvalidation = new FlowTagIndexer() {
+    val mockFlowInvalidation = new FlowController() {
         var tags = List[FlowTag]()
 
         def getAndClear() = {
@@ -107,7 +112,21 @@ trait MidolmanServices {
             ret
         }
 
+        override def addFlow(fmatch: FlowMatch, flowTags: ArrayList[FlowTag],
+                             removeCallbacks: ArrayList[Callback0],
+                             expiration: Expiration): ManagedFlow = null
+        override def addRecircFlow(fmatch: FlowMatch,
+                                   recircMatch: FlowMatch,
+                                   flowTags: ArrayList[FlowTag],
+                                   removeCallbacks: ArrayList[Callback0],
+                                   expiration: Expiration): ManagedFlow = null
+        override def removeFlow(flow: ManagedFlow): Unit = {}
+        override def duplicateFlow(mark: Int): Unit = {}
+        override def shouldProcess = false
+        override def process(): Unit = {}
         override def invalidateFlowsFor(tag: FlowTag) = tags = tags :+ tag
+        override def recordPacket(packetLen: Int,
+                                  tags: ArrayList[FlowTag]): Unit = {}
     }
 
     def dpConn()(implicit ec: ExecutionContext, as: ActorSystem):

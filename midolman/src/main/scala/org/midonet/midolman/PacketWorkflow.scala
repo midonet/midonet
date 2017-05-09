@@ -238,12 +238,12 @@ class PacketWorkflow(
             val flowRecorder: FlowRecorder,
             val vt: VirtualTopology,
             val packetOut: Int => Unit,
-            override val preallocation: FlowTablePreallocation)
+            val preallocation: FlowTablePreallocation)
         extends EventHandler[PacketWorkflow.PacketRef]
         with TimeoutHandler
         with DisruptorBackChannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
-        with MetadataServiceWorkflow with FlowController with MidolmanLogging {
+        with MetadataServiceWorkflow with MidolmanLogging {
 
     import PacketWorkflow._
 
@@ -262,6 +262,11 @@ class PacketWorkflow(
     private var lastExpiration = System.nanoTime()
     private val maxWithoutExpiration = (5 seconds) toNanos
 
+    protected val datapathId = dpState.datapath.getIndex
+    protected val flowController: FlowController =
+        new FlowControllerImpl(config, clock, flowProcessor,
+                               datapathId, workerId, metrics, preallocation)
+
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
     protected val traceStateTx = new FlowStateTransaction(traceStateTable)
@@ -272,24 +277,22 @@ class PacketWorkflow(
             hostId,
             peerResolver,
             dpState,
-            this,
+            flowController,
             config)
-
-    protected val datapathId = dpState.datapath.getIndex
 
     protected val arpBroker = new ArpRequestBroker(config, backChannel, clock)
 
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
             override def apply(u: Unit, k: ConnTrackKey, v: ConnTrackValue) {
-                invalidateFlowsFor(k)
+                flowController.invalidateFlowsFor(k)
             }
         }
 
     private val invalidateExpiredNatKeys =
         new Reducer[NatKey, NatBinding, Unit]() {
             override def apply(u: Unit, k: NatKey, v: NatBinding): Unit = {
-                invalidateFlowsFor(k)
+                flowController.invalidateFlowsFor(k)
                 releaseBinding(k, v, natLeaser)
             }
         }
@@ -308,7 +311,7 @@ class PacketWorkflow(
         }
 
     override def shouldProcess: Boolean =
-        super.shouldProcess ||
+        flowController.shouldProcess ||
         backChannel.hasMessages ||
         arpBroker.shouldProcess() ||
         shouldExpire
@@ -327,7 +330,7 @@ class PacketWorkflow(
         val InvalidateFlows(id, added, deleted) = msg
 
         for (route <- deleted) {
-            invalidateFlowsFor(FlowTagger.tagForRoute(route))
+            flowController.invalidateFlowsFor(FlowTagger.tagForRoute(route))
         }
 
         for (route <- added) {
@@ -339,23 +342,24 @@ class PacketWorkflow(
             while (deletions.hasNext) {
                 val ip = IPv4Addr.fromInt(deletions.next)
                 log.debug(s"Got the following destination to invalidate $ip")
-                invalidateFlowsFor(FlowTagger.tagForDestinationIp(id, ip))
+                flowController.invalidateFlowsFor(
+                    FlowTagger.tagForDestinationIp(id, ip))
             }
         }
     }
 
     private def handle(msg: BackChannelMessage): Unit = msg match {
         case m: InvalidateFlows => invalidateRoutedFlows(m)
-        case tag: FlowTag => invalidateFlowsFor(tag)
+        case tag: FlowTag => flowController.invalidateFlowsFor(tag)
         case RestartWorkflow(cookie, pktCtx, error) => restart(cookie, pktCtx, error)
         case m: GeneratedPacket => startWorkflow(generatedPacketContext(m))
         case m: FlowStateBatch => replicator.importFromStorage(m)
-        case DuplicateFlow(index) => duplicateFlow(index)
+        case DuplicateFlow(index) => flowController.duplicateFlow(index)
         case FlowError(index) => // Do nothing.
     }
 
     override def process(): Unit = {
-        super.process()
+        flowController.process()
         while (backChannel.hasMessages)
             handle(backChannel.poll())
         connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
@@ -491,7 +495,7 @@ class PacketWorkflow(
                                             TimeUnit.NANOSECONDS)
         }
 
-        meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
+        flowController.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
         flowRecorder.record(pktCtx, simRes)
     }
 
@@ -595,7 +599,20 @@ class PacketWorkflow(
                 context.flowRemovedCallbacks.runAndClear()
                 UserspaceFlow
             } else {
-                addFlow(context, expiration)
+                val flow = if (context.isRecirc) {
+                    flowController.addRecircFlow(context.origMatch,
+                                                 context.recircMatch,
+                                                 context.flowTags,
+                                                 context.flowRemovedCallbacks,
+                                                 expiration)
+                } else {
+                    flowController.addFlow(context.origMatch,
+                                           context.flowTags,
+                                           context.flowRemovedCallbacks,
+                                           expiration)
+                }
+                context.flow = flow
+                context.log.debug(s"Added flow $flow")
                 FlowCreated
             }
         }

@@ -22,6 +22,7 @@ import org.jctools.queues.SpscArrayQueue
 
 import org.midonet.ErrorCode._
 import org.midonet.Util
+import org.midonet.odp.FlowMatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
@@ -38,8 +39,8 @@ import org.midonet.util.concurrent.{DisruptorBackChannel, NanoClock}
 import org.midonet.util.functors.Callback0
 
 object FlowController {
-    private val NoCallbacks = new ArrayList[Callback0]()
-    private val NoTags = new ArrayList[FlowTag]()
+    val NoCallbacks = new ArrayList[Callback0]()
+    val NoTags = new ArrayList[FlowTag]()
     private[midolman] val IndexShift = 28 // Leave 4 bits for the work ID
     private[midolman] val IndexMask = (1 << IndexShift) - 1
 }
@@ -108,18 +109,34 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
         tunnelFlowExpirationQueues.remove(0)
 }
 
-trait FlowController extends FlowIndexer with FlowTagIndexer
-                     with FlowExpirationIndexer with DisruptorBackChannel {
+
+trait FlowController extends DisruptorBackChannel {
+    def addFlow(fmatch: FlowMatch, flowTags: ArrayList[FlowTag],
+                removeCallbacks: ArrayList[Callback0],
+                expiration: Expiration): ManagedFlow
+    def addRecircFlow(fmatch: FlowMatch,
+                      recircMatch: FlowMatch,
+                      flowTags: ArrayList[FlowTag],
+                      removeCallbacks: ArrayList[Callback0],
+                      expiration: Expiration): ManagedFlow
+    def removeFlow(flow: ManagedFlow): Unit
+    def duplicateFlow(mark: Int): Unit
+
+    def invalidateFlowsFor(tag: FlowTag): Unit
+    def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit
+}
+
+class FlowControllerImpl(config: MidolmanConfig,
+                         clock: NanoClock,
+                         flowProcessor: FlowProcessor,
+                         datapathId: Int,
+                         workerId: Int,
+                         metrics: PacketPipelineMetrics,
+                         override val preallocation: FlowTablePreallocation)
+        extends FlowController
+        with FlowIndexer with FlowTagIndexer
+        with FlowExpirationIndexer with DisruptorBackChannel {
     import FlowController._
-
-    protected val config: MidolmanConfig
-    protected val clock: NanoClock
-    protected val flowProcessor: FlowProcessor
-    protected val datapathId: Int
-    protected val workerId: Int
-    val metrics: PacketPipelineMetrics
-
-    protected val preallocation: FlowTablePreallocation
 
     private var curIndex = -1
     private var numFlows = 0
@@ -142,26 +159,31 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
         flowProcessor.capacity)
 
-    def addFlow(context: PacketContext, expiration: Expiration): Unit = {
+    override def addFlow(fmatch: FlowMatch, flowTags: ArrayList[FlowTag],
+                         removeCallbacks: ArrayList[Callback0],
+                         expiration: Expiration): ManagedFlow = {
         val flow = takeFlow()
-        if (context.isRecirc) {
-            // Since linked flows are deleted later, and we have to delete
-            // the inner packets flow first, make that the main ManagedFlow
-            val outerFlow = takeFlow()
-            outerFlow.reset(
-                context.origMatch, NoTags, NoCallbacks,
-                0L, expiration, clock.tick, flow)
-            flow.reset(
-                context.recircMatch, context.flowTags, context.flowRemovedCallbacks,
-                0L, expiration, clock.tick, outerFlow)
-        } else {
-            flow.reset(
-                context.origMatch, context.flowTags, context.flowRemovedCallbacks,
-                0L, expiration, clock.tick)
-        }
+        flow.reset(fmatch, flowTags, removeCallbacks,
+                   0L, expiration, clock.tick)
         registerFlow(flow)
-        context.flow = flow
-        context.log.debug(s"Added flow $flow")
+        flow
+    }
+
+    override def addRecircFlow(fmatch: FlowMatch,
+                               recircMatch: FlowMatch,
+                               flowTags: ArrayList[FlowTag],
+                               removeCallbacks: ArrayList[Callback0],
+                               expiration: Expiration): ManagedFlow = {
+        val flow = takeFlow()
+        // Since linked flows are deleted later, and we have to delete
+        // the inner packets flow first, make that the main ManagedFlow
+        val outerFlow = takeFlow()
+        outerFlow.reset(fmatch, NoTags, NoCallbacks,
+                        0L, expiration, clock.tick, flow)
+        flow.reset(recircMatch, flowTags, removeCallbacks,
+                   0L, expiration, clock.tick, outerFlow)
+        registerFlow(flow)
+        flow
     }
 
     private def takeFlow() = {
@@ -339,4 +361,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
             mask = indexToFlow.length - 1
         }
     }
+
+    override def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit =
+        meters.recordPacket(packetLen, tags)
 }
