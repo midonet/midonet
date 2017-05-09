@@ -23,7 +23,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{SecurityGroup => SecurityGroupType, SecurityGroupRule => SecurityGroupRuleType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, SecurityGroup => SecurityGroupType, SecurityGroupRule => SecurityGroupRuleType}
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron._
@@ -272,5 +273,64 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
             sg.getSecurityGroupRulesCount shouldBe (1)
             sg.getSecurityGroupRules(0).getId shouldBe toProto(r2Id)
         }
+    }
+
+    it should "clear backreferences from associated ports when deleted" in {
+        // Create two ports, each belonging to two different security groups.
+        val nwId = createTenantNetwork(10)
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+        val sg1Id = createSecurityGroup(30)
+        val sg2Id = createSecurityGroup(40)
+        val p1Id = createVifPort(50, nwId, Seq(IPAlloc("10.0.0.10", snId)),
+                                 sgs = Seq(sg1Id, sg2Id))
+        val p2Id = createVifPort(60, nwId, Seq(IPAlloc("10.0.0.20", snId)),
+                                 sgs = Seq(sg1Id, sg2Id))
+
+        val Seq(np1, np2) =
+            storage.getAll(classOf[NeutronPort], Seq(p1Id, p2Id)).await()
+        np1.getSecurityGroupsList.asScala.map(_.asJava) should
+            contain only(sg1Id, sg2Id)
+        np2.getSecurityGroupsList.asScala.map(_.asJava) should
+            contain only(sg1Id, sg2Id)
+
+        // Make sure both ports are associated with both security groups.
+        checkPortAssociations(p1Id, Seq(sg1Id, sg2Id))
+        checkPortAssociations(p2Id, Seq(sg1Id, sg2Id))
+
+        // Delete a security group and make sure the ports don't keep stale
+        // references to it (MI-1210).
+        insertDeleteTask(70, SecurityGroupType, sg1Id)
+        checkPortAssociations(p1Id, Seq(sg2Id))
+        checkPortAssociations(p2Id, Seq(sg2Id))
+
+        // Should be able to delete a port safely (MI-1210).
+        insertDeleteTask(80, PortType, p1Id)
+        val ipg2 = storage.get(classOf[IPAddrGroup], sg2Id).await()
+        val ipg2PortIds = for {
+            iap <- ipg2.getIpAddrPortsList.asScala
+            pid <- iap.getPortIdsList.asScala
+        } yield pid.asJava
+        ipg2PortIds should contain only p2Id
+
+        // Delete the other security group.
+        insertDeleteTask(90, SecurityGroupType, sg2Id)
+        checkPortAssociations(p2Id, Seq())
+    }
+
+    private def checkPortAssociations(portId: UUID, sgIds: Seq[UUID]): Unit = {
+        val np = storage.get(classOf[NeutronPort], portId).await()
+        np.getSecurityGroupsList.asScala.map(_.asJava) should
+            contain theSameElementsAs sgIds
+        getSgJumpRuleTargets(inChainId(portId)) should contain theSameElementsAs
+            sgIds.map(id => inChainId(id.asProto)) :+ antiSpoofChainId(portId)
+        getSgJumpRuleTargets(outChainId(portId)) should
+            contain theSameElementsAs sgIds.map(id => outChainId(id.asProto))
+    }
+
+    private def getSgJumpRuleTargets(chainId: UUID): Seq[Commons.UUID] = {
+        val chain = storage.get(classOf[Chain], chainId).await()
+        val rules = storage.getAll(classOf[Rule], chain.getRuleIdsList).await()
+        for (r <- rules if r.getType == Rule.Type.JUMP_RULE)
+            yield r.getJumpRuleData.getJumpChainId
     }
 }
