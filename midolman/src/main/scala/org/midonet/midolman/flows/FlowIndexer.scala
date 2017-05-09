@@ -17,6 +17,6 @@
 package org.midonet.midolman.flows
 
 trait FlowIndexer {
-    def registerFlow(flow: ManagedFlow): Unit = { }
-    def removeFlow(flow: ManagedFlow): Unit = { }
+    def registerFlow(flow: ManagedFlowImpl): Unit = { }
+    def removeFlow(flow: ManagedFlowImpl): Unit = { }
 }

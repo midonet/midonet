@@ -24,19 +24,20 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.midolman.flows.{ManagedFlow, FlowTagIndexer, FlowIndexer}
+import org.midonet.midolman.flows.{ManagedFlowImpl, FlowTagIndexer, FlowIndexer}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class FlowTagIndexerTest extends MidolmanSpec {
 
-    class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowIndexer {
-        override def removeFlow(flow: ManagedFlow): Unit =
+    class FlowAddRemover(flowsRemoved: Queue[ManagedFlowImpl])
+            extends FlowIndexer {
+        override def removeFlow(flow: ManagedFlowImpl): Unit =
             flowsRemoved += flow
     }
 
-    val removedFlows = Queue[ManagedFlow]()
+    val removedFlows = Queue[ManagedFlowImpl]()
     val flowInvalidation = new FlowAddRemover(removedFlows) with FlowTagIndexer
 
     val tag1 = FlowTagger.tagForDpPort(1)
@@ -44,7 +45,7 @@ class FlowTagIndexerTest extends MidolmanSpec {
 
     feature ("Flows are invalidated by tags") {
         scenario ("A flow is removed when a tag is invalidated") {
-            val flow = new ManagedFlow(null)
+            val flow = new ManagedFlowImpl(null)
             flow.tags.add(tag1)
             flowInvalidation.registerFlow(flow)
             flowInvalidation.invalidateFlowsFor(tag1)
@@ -53,7 +54,7 @@ class FlowTagIndexerTest extends MidolmanSpec {
         }
 
         scenario ("A flow can have multiple tags") {
-            val flow = new ManagedFlow(null)
+            val flow = new ManagedFlowImpl(null)
             flow.tags.add(tag1)
             flow.tags.add(tag2)
             flowInvalidation.registerFlow(flow)
@@ -70,9 +71,9 @@ class FlowTagIndexerTest extends MidolmanSpec {
         }
 
         scenario ("Multiple flows can be invalidated") {
-            val flow1 = new ManagedFlow(null)
+            val flow1 = new ManagedFlowImpl(null)
             flow1.tags.add(tag1)
-            val flow2 = new ManagedFlow(null)
+            val flow2 = new ManagedFlowImpl(null)
             flow2.tags.add(tag1)
             flow2.tags.add(tag2)
 
@@ -94,11 +95,11 @@ class FlowTagIndexerTest extends MidolmanSpec {
 
     feature ("Flows can be removed") {
         scenario ("A flow is removed from the tag lists") {
-            val flow1 = new ManagedFlow(null)
+            val flow1 = new ManagedFlowImpl(null)
             flow1.tags.add(tag1)
             flow1.tags.add(tag2)
             flowInvalidation.registerFlow(flow1)
-            val flow2 = new ManagedFlow(null)
+            val flow2 = new ManagedFlowImpl(null)
             flow2.tags.add(tag1)
             flow2.tags.add(tag2)
 
@@ -117,7 +118,7 @@ class FlowTagIndexerTest extends MidolmanSpec {
         }
 
         scenario ("A tag is removed when it contains no more flows") {
-            val flow = new ManagedFlow(null)
+            val flow = new ManagedFlowImpl(null)
             flow.tags.add(tag1)
             flowInvalidation.registerFlow(flow)
 

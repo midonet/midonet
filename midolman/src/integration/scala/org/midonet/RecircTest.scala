@@ -33,7 +33,7 @@ import org.midonet.midolman.{ShardedSimulationBackChannel, FlowTranslator, Datap
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath.{PacketExecutor, FlowProcessor}
-import org.midonet.midolman.flows.ManagedFlow
+import org.midonet.midolman.flows.ManagedFlowImpl
 import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.midolman.monitoring.metrics.PacketExecutorMetrics
 import org.midonet.midolman.topology.VirtualTopology
@@ -284,7 +284,7 @@ class RecircTest extends FeatureSpec
 
         translator.translateActions(context)
 
-        context.flow = new ManagedFlow(null)
+        context.flow = new ManagedFlowImpl(null)
         val holder = new PacketContextHolder(context, context)
 
         flowProcessor.onEvent(holder, 0, endOfBatch = true)
@@ -360,7 +360,7 @@ class RecircTest extends FeatureSpec
 
         translator.translateActions(context)
 
-        context.flow = new ManagedFlow(null)
+        context.flow = new ManagedFlowImpl(null)
         val holder = new PacketContextHolder(context, context)
 
         flowProcessor.onEvent(holder, 0, endOfBatch = true)

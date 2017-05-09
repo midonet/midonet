@@ -24,13 +24,14 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.{ManagedFlow, FlowExpirationIndexer, FlowIndexer}
+import org.midonet.midolman.flows.{ManagedFlowImpl, FlowExpirationIndexer, FlowIndexer}
 import org.midonet.midolman.util.MidolmanSpec
 
 @RunWith(classOf[JUnitRunner])
 class FlowExpirationIndexerTest extends MidolmanSpec {
 
-    class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowIndexer {
+    class FlowAddRemover(flowsRemoved: Queue[ManagedFlowImpl])
+            extends FlowIndexer {
         val workerId = 0
         val maxFlows = 4
 
@@ -39,11 +40,11 @@ class FlowExpirationIndexerTest extends MidolmanSpec {
             override val maxFlows = FlowAddRemover.this.maxFlows
         }
 
-        override def removeFlow(flow: ManagedFlow): Unit =
+        override def removeFlow(flow: ManagedFlowImpl): Unit =
             flowsRemoved += flow
     }
 
-    val removedFlows = Queue[ManagedFlow]()
+    val removedFlows = Queue[ManagedFlowImpl]()
     val flowExpiration = new FlowAddRemover(removedFlows) with FlowExpirationIndexer
 
     feature ("Flows are expired with a hard timeout") {
@@ -107,7 +108,7 @@ class FlowExpirationIndexerTest extends MidolmanSpec {
     }
 
     private def createFlow(exp: FlowExpirationIndexer.Expiration) = {
-        val flow = new ManagedFlow(null)
+        val flow = new ManagedFlowImpl(null)
         flow.ref()
         flow.absoluteExpirationNanos = exp.value
         flow.expirationType = exp.typeId

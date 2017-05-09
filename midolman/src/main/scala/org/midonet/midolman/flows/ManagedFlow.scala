@@ -23,46 +23,66 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.{ArrayListUtil, ObjectPool, PooledObject}
 import org.midonet.util.functors.Callback0
 
+trait ManagedFlow {
+    def flowMatch: FlowMatch
+
+    def mark: Int
+    def setMark(m: Int): Unit
+
+    def sequence: Long
+    def assignSequence(seq: Long): Unit
+
+    def ref(): Unit
+    def unref(): Unit
+}
+
 /**
  * A ManagedFlow that is stored in a pool.
  * Once the instance is no longer used, the pool entry can be reused.
  *
  * Users should refrain from changing attributes after resetting.
  */
-final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
-        extends PooledObject {
+final class ManagedFlowImpl(override val pool: ObjectPool[ManagedFlowImpl])
+        extends ManagedFlow with PooledObject {
 
     val callbacks = new ArrayList[Callback0]()
     val tags = new ArrayList[FlowTag]
-    val flowMatch = new FlowMatch()
+    override val flowMatch = new FlowMatch()
     var expirationType = 0
     var absoluteExpirationNanos = 0L
     // To synchronize create operation with delete operations
-    var sequence = 0L
+    var _sequence = 0L
     // To access this object from a netlink sequence number, used for duplicate detection
-    var mark = 0
+    var _mark = 0
     var removed = true
-    var linkedFlow: ManagedFlow = null
+    var linkedFlow: ManagedFlowImpl = null
 
     def reset(flowMatch: FlowMatch, flowTags: ArrayList[FlowTag],
               flowRemovedCallbacks: ArrayList[Callback0], sequence: Long,
-              expiration: Expiration, now: Long, linkedFlow: ManagedFlow = null): Unit = {
+              expiration: Expiration, now: Long,
+              linkedFlow: ManagedFlowImpl = null): Unit = {
         this.flowMatch.resetWithoutIcmpData(flowMatch)
         expirationType = expiration.typeId
         absoluteExpirationNanos = now + expiration.value
         ArrayListUtil.addAll(flowTags, tags)
         ArrayListUtil.addAll(flowRemovedCallbacks, callbacks)
-        this.sequence = sequence
+        this._sequence = sequence
         this.linkedFlow = linkedFlow
         removed = false
     }
 
-    def assignSequence(seq: Long): Unit = {
-        sequence = seq
+    override def setMark(m: Int): Unit = {
+        _mark = m
+    }
+    override def mark: Int = _mark
+
+    override def assignSequence(seq: Long): Unit = {
+        _sequence = seq
         if (linkedFlow ne null) {
-            linkedFlow.sequence = seq
+            linkedFlow._sequence = seq
         }
     }
+    override def sequence: Long = _sequence
 
     override def clear(): Unit = {
         flowMatch.clear()

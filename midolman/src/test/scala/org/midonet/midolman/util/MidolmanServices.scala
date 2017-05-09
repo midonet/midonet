@@ -120,7 +120,7 @@ trait MidolmanServices {
                                    flowTags: ArrayList[FlowTag],
                                    removeCallbacks: ArrayList[Callback0],
                                    expiration: Expiration): ManagedFlow = null
-        override def removeFlow(flow: ManagedFlow): Unit = {}
+        override def deleteFlow(flow: ManagedFlow): Unit = {}
         override def duplicateFlow(mark: Int): Unit = {}
         override def shouldProcess = false
         override def process(): Unit = {}
