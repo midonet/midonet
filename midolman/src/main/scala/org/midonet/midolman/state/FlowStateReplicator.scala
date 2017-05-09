@@ -28,9 +28,9 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
+import org.midonet.midolman.FlowController
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
@@ -100,7 +100,7 @@ class FlowStateReplicator(
         hostId: UUID,
         peerResolver: PeerResolver,
         underlay: UnderlayResolver,
-        flowInvalidation: FlowTagIndexer,
+        flowInvalidation: FlowController,
         midolmanConfig: MidolmanConfig) {
     import FlowStateAgentPackets._
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))

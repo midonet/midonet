@@ -16,8 +16,10 @@
 
 package org.midonet.midolman
 
-import akka.actor.Actor
-import akka.testkit.{TestActorRef, TestProbe}
+import scala.collection.JavaConversions._
+
+import com.google.common.collect.Lists
+
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
@@ -40,19 +42,12 @@ class FlowControllerTest extends MidolmanSpec {
 
     var flowController: FlowController = _
 
-    override def beforeTest(): Unit =
-        flowController = TestActorRef(new {
-             val workerId = 0
-             val flowProcessor = FlowControllerTest.this.flowProcessor
-             val flowInvalidator = FlowControllerTest.this.simBackChannel
-             val config = FlowControllerTest.this.config
-             val metrics = FlowControllerTest.this.metrics
-             val clock = FlowControllerTest.this.clock
-             val datapathId = 0
-             implicit val system = FlowControllerTest.this.actorSystem
-             val actor = TestProbe()(system).ref
-             val preallocation = new MockFlowTablePreallocation(config)
-        } with FlowController with Actor { def receive: Receive = { case _ => } }).underlyingActor
+    override def beforeTest(): Unit = {
+        flowController = new FlowControllerImpl(
+            config, clock, flowProcessor,
+            0, 0, metrics,
+            new MockFlowTablePreallocation(config))
+    }
 
     feature("The flow controller processes flows") {
         scenario("A flow is added") {
@@ -64,7 +59,7 @@ class FlowControllerTest extends MidolmanSpec {
 
             Then("The flow is registered and the metrics updated")
             managedFlow should not be null
-            flowController.metrics.dpFlowsMetric.getCount should be (1)
+            metrics.dpFlowsMetric.getCount should be (1)
         }
 
         scenario("A flow is removed") {
@@ -72,13 +67,13 @@ class FlowControllerTest extends MidolmanSpec {
             val flow = new TestableFlow()
             val managedFlow = flow.add()
             managedFlow should not be null
-            flowController.metrics.dpFlowsMetric.getCount should be (1)
+            metrics.dpFlowsMetric.getCount should be (1)
 
             When("The flow is removed from the flow controller")
             flow.remove(managedFlow)
 
             Then("The datapath flow metric should be set at the original value")
-            flowController.metrics.currentDpFlowsMetric.getValue should be (0)
+            metrics.currentDpFlowsMetric.getValue should be (0)
 
             And("The flow removal callback method was called")
             flow.callbackCalled should be (true)
@@ -132,7 +127,7 @@ class FlowControllerTest extends MidolmanSpec {
             val flow = new TestableFlow()
             val managedFlow = flow.add()
             managedFlow should not be null
-            flowController.metrics.dpFlowsMetric.getCount should be (1)
+            metrics.dpFlowsMetric.getCount should be (1)
 
             // The flow is referenced by the FC and the expiration indexer
             managedFlow.currentRefCount should be (2)
@@ -141,7 +136,7 @@ class FlowControllerTest extends MidolmanSpec {
             flow.remove(managedFlow)
 
             Then("The datapath flow metric should be set at the original value")
-            flowController.metrics.currentDpFlowsMetric.getValue should be (0)
+            metrics.currentDpFlowsMetric.getValue should be (0)
 
             And("The flow removal callback method was called")
             flow.callbackCalled should be (true)
@@ -155,10 +150,10 @@ class FlowControllerTest extends MidolmanSpec {
 
             When("We expire the flow")
             clock.time = FlowExpirationIndexer.FLOW_EXPIRATION.value + 1
-            flowController.checkFlowsExpiration(clock.tick)
+            flowController.process()
 
             Then("Nothing should happen")
-            flowController.metrics.currentDpFlowsMetric.getValue should be (0)
+            metrics.currentDpFlowsMetric.getValue should be (0)
             flow.callbackCalled should be (false)
             managedFlow.removed should be (true)
             managedFlow.currentRefCount should be (1)
@@ -171,17 +166,26 @@ class FlowControllerTest extends MidolmanSpec {
         var linkedCallbackCalled = false
 
         def add(tags: FlowTag*): ManagedFlow = {
-            val context = PacketContext.generated(0, null, fmatch)
-            tags foreach context.addFlowTag
-            context addFlowRemovedCallback new Callback0 {
-                def call() = callbackCalled = true
+            val flow = linked match {
+                case null =>
+                    flowController.addFlow(
+                        fmatch,
+                        Lists.newArrayList(tags :_*),
+                        Lists.newArrayList(
+                            new Callback0 {
+                                def call() = callbackCalled = true
+                            }),
+                        FlowExpirationIndexer.FLOW_EXPIRATION)
+                case _ =>
+                    flowController.addRecircFlow(
+                        fmatch, linked,
+                        Lists.newArrayList(tags :_*),
+                        Lists.newArrayList(
+                            new Callback0 {
+                                def call() = callbackCalled = true
+                            }),
+                        FlowExpirationIndexer.FLOW_EXPIRATION)
             }
-            if (linked ne null) {
-                context.recircPayload = new Ethernet()
-                context.recircMatch = linked
-            }
-            flowController.addFlow(context, FlowExpirationIndexer.FLOW_EXPIRATION)
-            val flow = context.flow
             if (flow.linkedFlow ne null) {
                 flow.linkedFlow.callbacks.add(new Callback0 {
                     def call() = linkedCallbackCalled = true
