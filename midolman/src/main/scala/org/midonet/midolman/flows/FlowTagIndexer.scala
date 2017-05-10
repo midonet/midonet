@@ -22,11 +22,10 @@ import org.midonet.midolman.logging.MidolmanLogging
 
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
-trait FlowTagIndexer extends FlowIndexer with MidolmanLogging {
+class FlowTagIndexer extends MidolmanLogging {
     private val tagToFlows = new HashMap[FlowTag, Set[ManagedFlowImpl]]()
 
-    abstract override def registerFlow(flow: ManagedFlowImpl): Unit = {
-        super.registerFlow(flow)
+    def indexFlowTags(flow: ManagedFlowImpl): Unit = {
         val numTags = flow.tags.size()
         var i = 0
         while (i < numTags) {
@@ -35,8 +34,7 @@ trait FlowTagIndexer extends FlowIndexer with MidolmanLogging {
         }
     }
 
-    abstract override def removeFlow(flow: ManagedFlowImpl): Unit = {
-        super.removeFlow(flow)
+    def removeFlowTags(flow: ManagedFlowImpl): Unit = {
         val numTags = flow.tags.size()
         var i = 0
         while (i < numTags) {
@@ -51,14 +49,17 @@ trait FlowTagIndexer extends FlowIndexer with MidolmanLogging {
         }
     }
 
-    def invalidateFlowsFor(tag: FlowTag): Unit = {
+    def invalidateFlowsFor(tag: FlowTag): Iterator[ManagedFlowImpl] = {
         val flows = tagToFlows.remove(tag)
         log.debug(s"Invalidating ${if (flows ne null) flows.size() else 0} flows for tag $tag")
         if (flows ne null) {
-            val it = flows.iterator()
-            while (it.hasNext) {
-                removeFlow(it.next())
+            val iter = flows.iterator()
+            while (iter.hasNext()) {
+                removeFlowTags(iter.next())
             }
+            flows.iterator()
+        } else {
+            Collections.emptyIterator()
         }
     }
 

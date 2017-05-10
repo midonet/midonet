@@ -26,7 +26,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
-import org.midonet.midolman.flows.{FlowIndexer, FlowTagIndexer, _}
+import org.midonet.midolman.flows._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.MeterRegistry
@@ -132,10 +132,8 @@ class FlowControllerImpl(config: MidolmanConfig,
                          datapathId: Int,
                          workerId: Int,
                          metrics: PacketPipelineMetrics,
-                         override val preallocation: FlowTablePreallocation)
-        extends FlowController
-        with FlowIndexer with FlowTagIndexer
-        with FlowExpirationIndexer with DisruptorBackChannel {
+                         preallocation: FlowTablePreallocation)
+        extends FlowController with DisruptorBackChannel with MidolmanLogging {
     import FlowController._
 
     private var curIndex = -1
@@ -148,6 +146,8 @@ class FlowControllerImpl(config: MidolmanConfig,
     Metering.registerAsMXBean(meters)
 
     private val managedFlowPool = preallocation.takeManagedFlowPool()
+    private val tagIndexer = new FlowTagIndexer
+    private val expirationIndexer = new FlowExpirationIndexer(preallocation)
 
     private val oversubscriptionFlowPool = new NoOpPool[ManagedFlowImpl](
         new ManagedFlowImpl(_))
@@ -216,11 +216,24 @@ class FlowControllerImpl(config: MidolmanConfig,
 
     override def process(): Unit = {
         processCompletedFlowOperations()
-        checkFlowsExpiration(clock.tick)
+        val tick = clock.tick
+        var flow = expirationIndexer.pollForExpired(tick)
+        while (flow ne null) {
+            removeFlow(flow)
+            flow = expirationIndexer.pollForExpired(tick)
+        }
     }
 
-    override def registerFlow(flow: ManagedFlowImpl): Unit = {
-        super.registerFlow(flow)
+    override def invalidateFlowsFor(tag: FlowTag): Unit = {
+        val iter = tagIndexer.invalidateFlowsFor(tag)
+        while (iter.hasNext()) {
+            removeFlow(iter.next())
+        }
+    }
+
+    private def registerFlow(flow: ManagedFlowImpl): Unit = {
+        expirationIndexer.enqueueFlowExpiration(flow)
+        tagIndexer.indexFlowTags(flow)
         indexFlow(flow)
         meters.trackFlow(flow.flowMatch, flow.tags)
         var flowsAdded = 1
@@ -233,7 +246,7 @@ class FlowControllerImpl(config: MidolmanConfig,
         flow.ref()
     }
 
-    override def removeFlow(flow: ManagedFlowImpl): Unit = {
+    private def removeFlow(flow: ManagedFlowImpl): Unit = {
         if (!flow.removed) {
             removeFlowFromDatapath(flow)
             forgetFlow(flow)
@@ -248,7 +261,7 @@ class FlowControllerImpl(config: MidolmanConfig,
     }
 
     private def forgetFlow(flow: ManagedFlowImpl): Unit = {
-        super.removeFlow(flow)
+        tagIndexer.removeFlowTags(flow)
         clearFlowIndex(flow)
         flow.callbacks.runAndClear()
         flow.removed = true

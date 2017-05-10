@@ -56,10 +56,9 @@ object FlowExpirationIndexer {
  * but it is still kept in these data structures until it expires. This is to
  * avoid linear remove operations or smarter, more expensive data structures.
  */
-trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
+class FlowExpirationIndexer(preallocation: FlowTablePreallocation)
+        extends MidolmanLogging {
     import FlowExpirationIndexer._
-
-    protected val preallocation: FlowTablePreallocation
 
     private val expirationQueues = new Array[ArrayDeque[ManagedFlowImpl]](maxType)
 
@@ -74,33 +73,29 @@ trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
             preallocation.takeTunnelFlowExpirationQueue()
     }
 
-    abstract override def registerFlow(flow: ManagedFlowImpl): Unit = {
-        super.registerFlow(flow)
+    def enqueueFlowExpiration(flow: ManagedFlowImpl): Unit = {
         expirationQueues(flow.expirationType).addLast(flow)
         flow.ref()
     }
 
-    def checkFlowsExpiration(now: Long): Unit = {
-        checkHardTimeOutExpiration(now)
-        manageFlowTableSize()
-    }
-
-    private def checkHardTimeOutExpiration(now: Long): Unit = {
+    def pollForExpired(now: Long): ManagedFlowImpl = {
         var i = 0
-        while (i < maxType) {
-            var flow: ManagedFlowImpl = null
-            val queue = expirationQueues(i)
-            while (({ flow = queue.peekFirst(); flow } ne null) &&
-                   now >= flow.absoluteExpirationNanos) {
-                log.debug(s"Removing flow $flow for hard expiration")
-                flow.unref()
-                removeFlow(queue.pollFirst())
-            }
+        while (i < maxType &&
+                   (expirationQueues(i).peekFirst == null ||
+                        now < expirationQueues(i).peekFirst.absoluteExpirationNanos)) {
             i += 1
+        }
+        if (i < maxType) {
+            val flow = expirationQueues(i).pollFirst()
+            log.debug(s"Removing flow $flow for hard expiration")
+            flow.unref()
+            flow
+        } else {
+            maybeEvictExcessFlow()
         }
     }
 
-    private def manageFlowTableSize(): Unit = {
+    private def maybeEvictExcessFlow(): ManagedFlowImpl = {
         var excessFlows = 0
         var i = 0
         while (i < maxType) {
@@ -108,26 +103,26 @@ trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
             i += 1
         }
         excessFlows -= preallocation.maxFlows
-
         if (excessFlows > 0) {
-            log.debug(s"Evicting $excessFlows excess flows")
-            removeOldestDpFlows(excessFlows)
+            log.debug(s"$excessFlows excess flows, evicting one")
+            removeOldestDpFlow()
+        } else {
+            null
         }
     }
 
-    private def removeOldestDpFlows(numFlowsToEvict: Int): Unit = {
+    private def removeOldestDpFlow(): ManagedFlowImpl = {
         var i = 0
-        var evicted = 0
-        while (i < maxType) {
-            val queue = expirationQueues(i)
-            var flow: ManagedFlowImpl = null
-            while (evicted < numFlowsToEvict &&
-                   ({ flow = queue.pollFirst(); flow } ne null)) {
-                flow.unref()
-                removeFlow(flow)
-                evicted += 1
-            }
+        while (i < maxType &&
+                   expirationQueues(i).peekFirst == null) {
             i += 1
+        }
+        if (i < maxType) {
+            val flow = expirationQueues(i).pollFirst()
+            flow.unref()
+            flow
+        } else {
+            null
         }
     }
 }
