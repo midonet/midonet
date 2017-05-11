@@ -86,7 +86,7 @@ class FlowControllerTest extends MidolmanSpec {
             managedFlow should not be null
 
             When("Marking one of the flows as duplicate")
-            flowController.duplicateFlow(managedFlow.mark)
+            flowController.removeDuplicateFlow(managedFlow.mark)
 
             Then("Both flows should be marked as removed")
             flow.callbackCalled should be (true)
@@ -96,7 +96,7 @@ class FlowControllerTest extends MidolmanSpec {
             flow = new TestableFlow(linked = new FlowMatch)
             managedFlow = flow.add()
             managedFlow should not be null
-            flowController.duplicateFlow(managedFlow.linkedFlow.mark)
+            flowController.removeDuplicateFlow(managedFlow.linkedFlow.mark)
 
             Then("Both flows should be marked as removed")
             flow.callbackCalled should be (true)
@@ -113,13 +113,15 @@ class FlowControllerTest extends MidolmanSpec {
             val managedFlow2 = flow2.add()
             managedFlow2 should not be null
             managedFlow.linkedFlow = managedFlow2
+            flowController.flowExists(managedFlow.mark) shouldBe true
+            flowController.flowExists(managedFlow2.mark) shouldBe true
 
             When("one of the flows is removed from the flow controller")
             flow.remove(managedFlow)
 
             Then("both flows should be removed")
-            managedFlow.removed should be (true)
-            managedFlow2.removed should be (true)
+            flowController.flowExists(managedFlow.mark) shouldBe false
+            flowController.flowExists(managedFlow2.mark) shouldBe false
         }
 
         scenario("Expiration removes a flow") {
@@ -129,6 +131,7 @@ class FlowControllerTest extends MidolmanSpec {
             managedFlow should not be null
             metrics.dpFlowsMetric.getCount should be (1)
             managedFlow.currentRefCount should be (1)
+            flowController.flowExists(managedFlow.mark) shouldBe true
 
             When("We expire the flow")
             clock.time = FlowExpirationIndexer.FLOW_EXPIRATION.value + 1
@@ -142,7 +145,7 @@ class FlowControllerTest extends MidolmanSpec {
             flow.callbackCalled = false
 
             And("The flow was removed")
-            managedFlow.removed should be (true)
+            flowController.flowExists(managedFlow.mark) shouldBe false
 
             And("The flow is should no longer be referenced")
             managedFlow.currentRefCount should be (0)
@@ -157,6 +160,7 @@ class FlowControllerTest extends MidolmanSpec {
 
             // The flow is referenced by the FC
             managedFlow.currentRefCount should be (1)
+            flowController.flowExists(managedFlow.mark) shouldBe true
 
             When("The flow is removed from the flow controller")
             flow.remove(managedFlow)
@@ -169,7 +173,7 @@ class FlowControllerTest extends MidolmanSpec {
             flow.callbackCalled = false
 
             And("The flow was removed")
-            managedFlow.removed should be (true)
+            flowController.flowExists(managedFlow.mark) shouldBe false
 
             And("The flow is no longer referenced")
             managedFlow.currentRefCount should be (0)
@@ -181,7 +185,7 @@ class FlowControllerTest extends MidolmanSpec {
             Then("Nothing should happen, expiration doesn't keep refs")
             metrics.currentDpFlowsMetric.getValue should be (0)
             flow.callbackCalled should be (false)
-            managedFlow.removed should be (true)
+            flowController.flowExists(managedFlow.mark) shouldBe false
             managedFlow.currentRefCount should be (0)
         }
     }
@@ -221,6 +225,6 @@ class FlowControllerTest extends MidolmanSpec {
         }
 
         def remove(flow: ManagedFlowImpl): Unit =
-            flowController.deleteFlow(flow)
+            flowController.removeDuplicateFlow(flow.mark)
     }
 }

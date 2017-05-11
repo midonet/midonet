@@ -36,9 +36,6 @@ trait ManagedFlow {
 
     def sequence: Long
     def assignSequence(seq: Long): Unit
-
-    def ref(): Unit
-    def unref(): Unit
 }
 
 /**
@@ -62,7 +59,6 @@ final class ManagedFlowImpl(override val pool: ObjectPool[ManagedFlowImpl])
 
     var _id = -1L
 
-    var removed = true
     var linkedFlow: ManagedFlowImpl = null
 
     def reset(flowMatch: FlowMatch, flowTags: ArrayList[FlowTag],
@@ -77,7 +73,6 @@ final class ManagedFlowImpl(override val pool: ObjectPool[ManagedFlowImpl])
         this._sequence = sequence
         this.linkedFlow = linkedFlow
         this._id = -1L
-        removed = false
     }
 
     def setId(id: Long): Unit = {
