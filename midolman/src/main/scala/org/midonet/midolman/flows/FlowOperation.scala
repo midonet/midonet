@@ -20,7 +20,7 @@ import java.nio.ByteBuffer
 import java.util.Queue
 
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.odp.FlowMetadata
+import org.midonet.odp.{FlowMatch, FlowMetadata}
 import org.midonet.util.collection.ObjectPool
 import rx.Observer
 
@@ -36,21 +36,23 @@ final class FlowOperation(pool: ObjectPool[FlowOperation],
     val flowMetadata = new FlowMetadata()
 
     var opId: Byte = _
-    var managedFlow: ManagedFlow = _
+    var flowMatch: FlowMatch = new FlowMatch
+    var sequence: Long = -1
     var retries: Byte = _
     var failure: Throwable = _
 
     def isFailed = failure ne null
 
-    def reset(opId: Byte, managedFlow: ManagedFlow, retries: Byte): Unit = {
+    def reset(opId: Byte, flowMatch: FlowMatch,
+              sequence: Long, retries: Byte): Unit = {
         this.opId = opId
-        reset(managedFlow, retries)
+        reset(flowMatch, sequence, retries)
     }
 
-    def reset(managedFlow: ManagedFlow, retries: Byte): Unit = {
-        this.managedFlow = managedFlow
+    def reset(flowMatch: FlowMatch, sequence: Long, retries: Byte): Unit = {
+        this.flowMatch.reset(flowMatch)
+        this.sequence = sequence
         this.retries = retries
-        managedFlow.ref()
     }
 
     def netlinkErrorCode =
@@ -61,8 +63,8 @@ final class FlowOperation(pool: ObjectPool[FlowOperation],
 
     def clear(): Unit = {
         failure = null
-        managedFlow.unref()
-        managedFlow = null
+        sequence = -1
+        flowMatch.clear()
         flowMetadata.clear()
         pool.offer(this)
     }

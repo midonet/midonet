@@ -291,8 +291,8 @@ class FlowControllerImpl(config: MidolmanConfig,
         var i = 0
         while (i < flowRemoveCommandsToRetry.size()) {
             val cmd = flowRemoveCommandsToRetry.get(i)
-            val fmatch = cmd.managedFlow.flowMatch
-            val seq = cmd.managedFlow.sequence
+            val fmatch = cmd.flowMatch
+            val seq = cmd.sequence
             flowProcessor.tryEject(seq, datapathId, fmatch, cmd)
             i += 1
         }
@@ -301,31 +301,31 @@ class FlowControllerImpl(config: MidolmanConfig,
 
     private def flowDeleteFailed(req: FlowOperation): Unit = {
         log.debug("Got an exception when trying to remove " +
-                  s"${req.managedFlow}", req.failure)
+                  s"${req.flowMatch}", req.failure)
         req.netlinkErrorCode match {
             case EBUSY | EAGAIN | EIO | EINTR | ETIMEOUT if req.retries > 0 =>
                 scheduleRetry(req)
                 return
             case ENODEV | ENOENT | ENXIO =>
-                log.debug(s"${req.managedFlow} was already deleted")
+                log.debug(s"${req.flowMatch} was already deleted")
             case _ =>
-                log.error(s"Failed to delete ${req.managedFlow}", req.failure)
+                log.error(s"Failed to delete ${req.flowMatch}", req.failure)
         }
-        meters.forgetFlow(req.managedFlow.flowMatch)
+        meters.forgetFlow(req.flowMatch)
         req.clear()
     }
 
     private def scheduleRetry(req: FlowOperation): Unit = {
         req.retries = (req.retries - 1).toByte
         req.failure = null
-        log.debug(s"Scheduling retry of flow ${req.managedFlow}")
+        log.debug(s"Scheduling retry of flow ${req.flowMatch}")
         flowRemoveCommandsToRetry.add(req)
     }
 
     private def flowDeleteSucceeded(req: FlowOperation): Unit = {
         val flowMetadata = req.flowMetadata
-        val flowMatch = req.managedFlow.flowMatch
-        log.debug(s"DP confirmed removal of ${req.managedFlow}")
+        val flowMatch = req.flowMatch
+        log.debug(s"DP confirmed removal of ${req.flowMatch}")
         meters.updateFlow(flowMatch, flowMetadata.getStats)
         meters.forgetFlow(flowMatch)
         req.clear()
@@ -344,7 +344,7 @@ class FlowControllerImpl(config: MidolmanConfig,
                 flowOperationParkable.park()
             }
         }
-        flowOp.reset(flow, retries = 10)
+        flowOp.reset(flow.flowMatch, flow.sequence, retries = 10)
         flowOp
     }
 
