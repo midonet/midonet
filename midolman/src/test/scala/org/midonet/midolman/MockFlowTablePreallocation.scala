@@ -20,6 +20,7 @@ import java.util.ArrayDeque
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.ManagedFlowImpl
+import org.midonet.midolman.flows.FlowExpirationIndexer.ExpirationQueue
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.util.collection.ArrayObjectPool
 
@@ -34,12 +35,12 @@ class MockFlowTablePreallocation(config: MidolmanConfig)
             maxFlows, new ManagedFlowImpl(_))
     override def takeMeterRegistry(): MeterRegistry =
         new MeterRegistry(maxFlows)
-    override def takeErrorExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
-        new ArrayDeque(maxFlows/3)
-    override def takeFlowExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
-        new ArrayDeque(maxFlows)
-    override def takeStatefulFlowExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
-        new ArrayDeque(maxFlows)
-    override def takeTunnelFlowExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
-        new ArrayDeque(maxFlows/3)
+    override def takeErrorExpirationQueue(): ExpirationQueue =
+        new ExpirationQueue(maxFlows/3)
+    override def takeFlowExpirationQueue(): ExpirationQueue =
+        new ExpirationQueue(maxFlows)
+    override def takeStatefulFlowExpirationQueue(): ExpirationQueue =
+        new ExpirationQueue(maxFlows)
+    override def takeTunnelFlowExpirationQueue(): ExpirationQueue =
+        new ExpirationQueue(maxFlows/3)
 }

@@ -47,6 +47,25 @@ object FlowExpirationIndexer {
     }
 
     private final val maxType = 4
+
+    class ExpirationQueue(size: Int) {
+        private val expiries = new ArrayDeque[Long](size)
+        private val ids = new ArrayDeque[Long](size)
+
+        def size(): Int = expiries.size()
+        def empty(): Boolean = expiries.size() == 0
+        def peekExpiry(): Long = expiries.peek()
+
+        def removeId(): ManagedFlow.FlowId = {
+            expiries.removeFirst()
+            ids.removeFirst()
+        }
+        def add(id: ManagedFlow.FlowId,
+                expiry: Long): Unit = {
+            expiries.add(expiry)
+            ids.add(id)
+        }
+    }
 }
 
 /**
@@ -60,7 +79,7 @@ class FlowExpirationIndexer(preallocation: FlowTablePreallocation)
         extends MidolmanLogging {
     import FlowExpirationIndexer._
 
-    private val expirationQueues = new Array[ArrayDeque[ManagedFlowImpl]](maxType)
+    private val expirationQueues = new Array[ExpirationQueue](maxType)
 
     {
         expirationQueues(ERROR_CONDITION_EXPIRATION.typeId) =
@@ -73,29 +92,29 @@ class FlowExpirationIndexer(preallocation: FlowTablePreallocation)
             preallocation.takeTunnelFlowExpirationQueue()
     }
 
-    def enqueueFlowExpiration(flow: ManagedFlowImpl): Unit = {
-        expirationQueues(flow.expirationType).addLast(flow)
-        flow.ref()
+    def enqueueFlowExpiration(flowId: ManagedFlow.FlowId,
+                            expiration: Long,
+                            expirationType: Int): Unit = {
+        expirationQueues(expirationType).add(flowId, expiration)
     }
 
-    def pollForExpired(now: Long): ManagedFlowImpl = {
+    def pollForExpired(now: Long): ManagedFlow.FlowId = {
         var i = 0
         while (i < maxType &&
-                   (expirationQueues(i).peekFirst == null ||
-                        now < expirationQueues(i).peekFirst.absoluteExpirationNanos)) {
+                   (expirationQueues(i).empty() ||
+                        now < expirationQueues(i).peekExpiry)) {
             i += 1
         }
         if (i < maxType) {
-            val flow = expirationQueues(i).pollFirst()
+            val flow = expirationQueues(i).removeId()
             log.debug(s"Removing flow $flow for hard expiration")
-            flow.unref()
             flow
         } else {
             maybeEvictExcessFlow()
         }
     }
 
-    private def maybeEvictExcessFlow(): ManagedFlowImpl = {
+    private def maybeEvictExcessFlow(): ManagedFlow.FlowId = {
         var excessFlows = 0
         var i = 0
         while (i < maxType) {
@@ -107,22 +126,20 @@ class FlowExpirationIndexer(preallocation: FlowTablePreallocation)
             log.debug(s"$excessFlows excess flows, evicting one")
             removeOldestDpFlow()
         } else {
-            null
+            ManagedFlow.NoFlow
         }
     }
 
-    private def removeOldestDpFlow(): ManagedFlowImpl = {
+    private def removeOldestDpFlow(): ManagedFlow.FlowId = {
         var i = 0
         while (i < maxType &&
-                   expirationQueues(i).peekFirst == null) {
+                   expirationQueues(i).empty) {
             i += 1
         }
         if (i < maxType) {
-            val flow = expirationQueues(i).pollFirst()
-            flow.unref()
-            flow
+            expirationQueues(i).removeId()
         } else {
-            null
+            ManagedFlow.NoFlow
         }
     }
 }

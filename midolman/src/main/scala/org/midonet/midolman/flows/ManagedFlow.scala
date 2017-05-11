@@ -23,6 +23,11 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.{ArrayListUtil, ObjectPool, PooledObject}
 import org.midonet.util.functors.Callback0
 
+object ManagedFlow {
+    type FlowId = Long
+    val NoFlow: Long = -839193346820535158L
+}
+
 trait ManagedFlow {
     def flowMatch: FlowMatch
 
@@ -54,6 +59,9 @@ final class ManagedFlowImpl(override val pool: ObjectPool[ManagedFlowImpl])
     var _sequence = 0L
     // To access this object from a netlink sequence number, used for duplicate detection
     var _mark = 0
+
+    var _id = -1L
+
     var removed = true
     var linkedFlow: ManagedFlowImpl = null
 
@@ -68,8 +76,14 @@ final class ManagedFlowImpl(override val pool: ObjectPool[ManagedFlowImpl])
         ArrayListUtil.addAll(flowRemovedCallbacks, callbacks)
         this._sequence = sequence
         this.linkedFlow = linkedFlow
+        this._id = -1L
         removed = false
     }
+
+    def setId(id: Long): Unit = {
+        _id = id
+    }
+    def id: Long = _id
 
     override def setMark(m: Int): Unit = {
         _mark = m
