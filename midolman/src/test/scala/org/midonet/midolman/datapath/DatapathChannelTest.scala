@@ -168,10 +168,9 @@ class DatapathChannelTest extends MidolmanSpec {
 
             val flowDelete = new FlowOperation(new ArrayObjectPool(0, _ => null),
                                                new SpscArrayQueue(16))
-            val managedFlow = new ManagedFlowImpl(null)
-            managedFlow.flowMatch.reset(context.origMatch)
-            flowDelete.reset(FlowOperation.DELETE, managedFlow, retries = 0)
-            fp.tryEject(sequence = 1, datapathId, managedFlow.flowMatch,
+            flowDelete.reset(FlowOperation.DELETE, context.origMatch, 1,
+                             retries = 0)
+            fp.tryEject(sequence = 1, datapathId, context.origMatch,
                         flowDelete) should be (false)
 
             nlChannel.packetsWritten.get() should be (1)
@@ -182,7 +181,7 @@ class DatapathChannelTest extends MidolmanSpec {
             barrier.waitFor(1)
             nlChannel.packetsWritten.get() should be (2)
 
-            fp.tryEject(1, datapathId, managedFlow.flowMatch,
+            fp.tryEject(1, datapathId, context.origMatch,
                         flowDelete) should be (true)
 
             eventually {
@@ -204,10 +203,9 @@ class DatapathChannelTest extends MidolmanSpec {
             val queue = new LinkedBlockingQueue[FlowOperation]()
             val flowDelete = new FlowOperation(new ArrayObjectPool(0, _ => null),
                                                queue)
-            val managedFlow = new ManagedFlowImpl(null)
-            managedFlow.flowMatch.reset(context.origMatch)
-            flowDelete.reset(FlowOperation.DELETE, managedFlow, retries = 0)
-            fp.tryEject(seq, datapathId, managedFlow.flowMatch,
+            flowDelete.reset(FlowOperation.DELETE, context.origMatch,
+                             seq, retries = 0)
+            fp.tryEject(seq, datapathId, context.origMatch,
                         flowDelete) should be (true)
 
             // Lets fail the create and complete the delete

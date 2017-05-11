@@ -144,8 +144,8 @@ class FlowControllerTest extends MidolmanSpec {
             And("The flow was removed")
             managedFlow.removed should be (true)
 
-            And("The flow is should be referenced by in-progress deletion")
-            managedFlow.currentRefCount should be (1)
+            And("The flow is should no longer be referenced")
+            managedFlow.currentRefCount should be (0)
         }
 
         scenario("A removed flow is not removed again") {
@@ -171,8 +171,8 @@ class FlowControllerTest extends MidolmanSpec {
             And("The flow was removed")
             managedFlow.removed should be (true)
 
-            And("The flow is referenced by the in-progress deletion")
-            managedFlow.currentRefCount should be (1)
+            And("The flow is no longer referenced")
+            managedFlow.currentRefCount should be (0)
 
             When("We expire the flow")
             clock.time = FlowExpirationIndexer.FLOW_EXPIRATION.value + 1
@@ -182,7 +182,7 @@ class FlowControllerTest extends MidolmanSpec {
             metrics.currentDpFlowsMetric.getValue should be (0)
             flow.callbackCalled should be (false)
             managedFlow.removed should be (true)
-            managedFlow.currentRefCount should be (1)
+            managedFlow.currentRefCount should be (0)
         }
     }
 
