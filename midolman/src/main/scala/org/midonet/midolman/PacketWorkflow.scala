@@ -354,7 +354,7 @@ class PacketWorkflow(
         case RestartWorkflow(cookie, pktCtx, error) => restart(cookie, pktCtx, error)
         case m: GeneratedPacket => startWorkflow(generatedPacketContext(m))
         case m: FlowStateBatch => replicator.importFromStorage(m)
-        case DuplicateFlow(index) => flowController.duplicateFlow(index)
+        case DuplicateFlow(index) => flowController.removeDuplicateFlow(index)
         case FlowError(index) => // Do nothing.
     }
 
