@@ -26,6 +26,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
+import org.midonet.midolman.flows.FlowExpirationIndexer.ExpirationQueue
 import org.midonet.midolman.flows._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.management.Metering
@@ -58,14 +59,14 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
         numWorkers)
     private val meterRegistries = new ArrayList[MeterRegistry](numWorkers)
 
-    private val errorExpirationQueues = new ArrayList[ArrayDeque[ManagedFlowImpl]](
+    private val errorExpirationQueues = new ArrayList[ExpirationQueue](
         numWorkers)
-    private val flowExpirationQueues = new ArrayList[ArrayDeque[ManagedFlowImpl]](
+    private val flowExpirationQueues = new ArrayList[ExpirationQueue](
         numWorkers)
     private val statefulFlowExpirationQueues =
-        new ArrayList[ArrayDeque[ManagedFlowImpl]](numWorkers)
+        new ArrayList[ExpirationQueue](numWorkers)
     private val tunnelFlowExpirationQueues =
-        new ArrayList[ArrayDeque[ManagedFlowImpl]](numWorkers)
+        new ArrayList[ExpirationQueue](numWorkers)
 
 
     val maxFlows = Math.min(
@@ -84,10 +85,10 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
                                      maxFlows, new ManagedFlowImpl(_)))
             meterRegistries.add(new MeterRegistry(maxFlows))
 
-            errorExpirationQueues.add(new ArrayDeque(maxFlows/3))
-            flowExpirationQueues.add(new ArrayDeque(maxFlows))
-            statefulFlowExpirationQueues.add(new ArrayDeque(maxFlows))
-            tunnelFlowExpirationQueues.add(new ArrayDeque(maxFlows/3))
+            errorExpirationQueues.add(new ExpirationQueue(maxFlows/3))
+            flowExpirationQueues.add(new ExpirationQueue(maxFlows))
+            statefulFlowExpirationQueues.add(new ExpirationQueue(maxFlows))
+            tunnelFlowExpirationQueues.add(new ExpirationQueue(maxFlows/3))
 
             i += 1
         }
@@ -99,13 +100,13 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
     def takeManagedFlowPool(): ArrayObjectPool[ManagedFlowImpl] =
         managedFlowPools.remove(0)
     def takeMeterRegistry(): MeterRegistry = meterRegistries.remove(0)
-    def takeErrorExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
+    def takeErrorExpirationQueue(): ExpirationQueue =
         errorExpirationQueues.remove(0)
-    def takeFlowExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
+    def takeFlowExpirationQueue(): ExpirationQueue =
         flowExpirationQueues.remove(0)
-    def takeStatefulFlowExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
+    def takeStatefulFlowExpirationQueue(): ExpirationQueue =
         statefulFlowExpirationQueues.remove(0)
-    def takeTunnelFlowExpirationQueue(): ArrayDeque[ManagedFlowImpl] =
+    def takeTunnelFlowExpirationQueue(): ExpirationQueue =
         tunnelFlowExpirationQueues.remove(0)
 }
 
@@ -217,10 +218,13 @@ class FlowControllerImpl(config: MidolmanConfig,
     override def process(): Unit = {
         processCompletedFlowOperations()
         val tick = clock.tick
-        var flow = expirationIndexer.pollForExpired(tick)
-        while (flow ne null) {
-            removeFlow(flow)
-            flow = expirationIndexer.pollForExpired(tick)
+        var flowId = expirationIndexer.pollForExpired(tick)
+        while (flowId != ManagedFlow.NoFlow) {
+            val flow = indexToFlow((flowId & mask).toInt)
+            if (flow != null && flow.id == flowId) {
+                removeFlow(flow)
+            }
+            flowId = expirationIndexer.pollForExpired(tick)
         }
     }
 
@@ -232,9 +236,12 @@ class FlowControllerImpl(config: MidolmanConfig,
     }
 
     private def registerFlow(flow: ManagedFlowImpl): Unit = {
-        expirationIndexer.enqueueFlowExpiration(flow)
-        tagIndexer.indexFlowTags(flow)
         indexFlow(flow)
+        expirationIndexer.enqueueFlowExpiration(flow.id,
+                                                flow.absoluteExpirationNanos,
+                                                flow.expirationType)
+        tagIndexer.indexFlowTags(flow)
+
         meters.trackFlow(flow.flowMatch, flow.tags)
         var flowsAdded = 1
         if (flow.linkedFlow ne null) {
@@ -362,6 +369,7 @@ class FlowControllerImpl(config: MidolmanConfig,
             index = curIndex & mask
         } while (indexToFlow(index) ne null)
         indexToFlow(index) = flow
+        flow.setId(curIndex)
         flow.setMark((curIndex & IndexMask) | (workerId << IndexShift))
     }
 
