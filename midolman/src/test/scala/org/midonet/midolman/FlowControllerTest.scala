@@ -43,10 +43,12 @@ class FlowControllerTest extends MidolmanSpec {
     var flowController: FlowController = _
 
     override def beforeTest(): Unit = {
+        val preallocation = new MockFlowTablePreallocation(config)
         flowController = new FlowControllerImpl(
             config, clock, flowProcessor,
             0, 0, metrics,
-            new MockFlowTablePreallocation(config))
+            preallocation.takeMeterRegistry(),
+            preallocation)
     }
 
     feature("The flow controller processes flows") {

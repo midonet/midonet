@@ -29,7 +29,6 @@ import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.midolman.flows.FlowExpirationIndexer.ExpirationQueue
 import org.midonet.midolman.flows._
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
@@ -124,7 +123,6 @@ trait FlowController extends DisruptorBackChannel {
     def flowExists(mark: Int): Boolean
 
     def invalidateFlowsFor(tag: FlowTag): Unit
-    def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit
 }
 
 trait FlowControllerDeleter {
@@ -139,6 +137,7 @@ class FlowControllerImpl(config: MidolmanConfig,
                          datapathId: Int,
                          workerId: Int,
                          metrics: PacketPipelineMetrics,
+                         meters: MeterRegistry,
                          preallocation: FlowTablePreallocation)
         extends FlowController with DisruptorBackChannel with MidolmanLogging {
     import FlowController._
@@ -148,9 +147,6 @@ class FlowControllerImpl(config: MidolmanConfig,
 
     private var indexToFlow = preallocation.takeIndexToFlow()
     private var mask = indexToFlow.length - 1
-
-    val meters = preallocation.takeMeterRegistry()
-    Metering.registerAsMXBean(meters)
 
     private val managedFlowPool = preallocation.takeManagedFlowPool()
     private val tagIndexer = new FlowTagIndexer
@@ -304,9 +300,6 @@ class FlowControllerImpl(config: MidolmanConfig,
             mask = indexToFlow.length - 1
         }
     }
-
-    override def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit =
-        meters.recordPacket(packetLen, tags)
 }
 
 class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,

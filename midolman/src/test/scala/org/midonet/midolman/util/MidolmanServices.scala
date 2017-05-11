@@ -125,8 +125,6 @@ trait MidolmanServices {
         override def shouldProcess = false
         override def process(): Unit = {}
         override def invalidateFlowsFor(tag: FlowTag) = tags = tags :+ tag
-        override def recordPacket(packetLen: Int,
-                                  tags: ArrayList[FlowTag]): Unit = {}
     }
 
     def dpConn()(implicit ec: ExecutionContext, as: ActorSystem):
