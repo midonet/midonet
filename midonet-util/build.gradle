@@ -27,10 +27,10 @@ model {
     repositories {
         libs(PrebuiltLibraries) {
             googleTest {
-                headers.srcDir "$rootDir/tools/google-test-1.8.0/include"
+                headers.srcDir "$rootDir/tools/google-test-${versions.google_test}/include"
                 binaries.withType(StaticLibraryBinary) {
                     staticLibraryFile =
-                        file("$rootDir/tools/google-test-1.8.0/lib/linux-x86_64/libgtest.a")
+                        file("$rootDir/tools/google-test-${versions.google_test}/lib/linux-x86_64/libgtest.a")
                 }
             }
         }

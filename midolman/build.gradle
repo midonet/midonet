@@ -16,8 +16,87 @@
 
 apply plugin: 'scala'
 apply plugin: 'application'
+apply plugin: 'cpp'
+apply plugin: 'google-test-test-suite'
 apply from: "${rootProject.projectDir}/fpm.gradle"
 apply from: "${rootProject.projectDir}/git.gradle"
+
+import org.gradle.internal.jvm.Jvm
+
+def JNI_INCLUDE_DIR = "${Jvm.current().getJavacExecutable().getParentFile().getParent()}/include"
+
+// native C++ library (must  be at start of file)
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            googleTest {
+                headers.srcDir "$rootDir/tools/google-test-${versions.google_test}/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile =
+                            file("$rootDir/tools/google-test-${versions.google_test}/lib/linux-x86_64/libgtest.a")
+                }
+            }
+        }
+    }
+    components {
+        nativeFlowController(NativeLibrarySpec) {
+            baseName "nativeFlowController"
+        }
+    }
+    testSuites {
+        nativeFlowControllerTest(GoogleTestTestSuiteSpec) {
+            testing $.components.nativeFlowController
+        }
+    }
+    tasks.test {
+        dependsOn runNativeFlowControllerTestGoogleTestExe
+        dependsOn nativeFlowControllerSharedLibrary
+
+        def libPaths = "${nativeLibraryDir}:${project(':midonet-util').nativeLibraryDir}"
+        systemProperty "java.library.path", libPaths
+    }
+    tasks.jar {
+        dependsOn nativeFlowControllerSharedLibrary
+    }
+
+    binaries {
+        all {
+            if (toolChain in Gcc) {
+                cppCompiler.args << "--std=c++11" \
+                                 << "-I" << JNI_INCLUDE_DIR \
+                                 << "-I" << "${JNI_INCLUDE_DIR}/linux"
+            }
+        }
+        nativeFlowControllerSharedLibrary {
+            sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowController.so"
+        }
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "googleTest", linkage: "static"
+
+            if (targetPlatform.operatingSystem.linux) {
+                cppCompiler.args '-pthread'
+                linker.args '-pthread'
+            }
+        }
+    }
+}
+
+task generateJniHeaders(type:Exec) {
+    def classpath = sourceSets.main.output.classesDir
+    def nativeIncludes = "src/nativeFlowController/headers"
+    commandLine "javah", "-d", nativeIncludes, \
+                         "-classpath", classpath, \
+                         "org.midonet.midolman.flows.NativeFlowController"
+    dependsOn classes
+}
+
+tasks.withType(RunTestExecutable) {
+    args "--gtest_output=xml:test_detail.xml"
+}
+
+tasks.withType(CppCompile) {
+    dependsOn generateJniHeaders
+}
 
 jar {
     manifest {
@@ -204,6 +283,10 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/lib/midolman/service_containers/haproxy/haproxy-helper") {
         into "usr/lib/midolman"
     }
+    from("${nativeLibraryDir}") {
+        include "*.so"
+        into "usr/lib/midolman"
+    }
     from("${project(':midonet-util').nativeLibraryDir}") {
         include "*.so"
         into "usr/lib/midolman"
@@ -356,10 +439,6 @@ task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine += '-cp'
     commandLine += sourceSets.main.runtimeClasspath.collect{ it.toString() }.join(':')
     commandLine += mainClassName
-}
-
-test {
-    systemProperty "java.library.path", "${project(':midonet-util').nativeLibraryDir}"
 }
 
 task testShell(type: Exec) {
