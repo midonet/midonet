@@ -31,9 +31,35 @@ object ManagedFlow {
 trait ManagedFlow {
     def flowMatch: FlowMatch
 
+    /* The mark is an identifier shared by the flow and netlink.
+     * The first 4 bits represent the worker id.
+     * The next 28 bits represent the index of the flow in the flow table.
+     * This means that a single worker can have a maximum of 2^28 flows at
+     * any one time. Ideally the mark would be 64bit, but as we need to
+     * use it in the netlink sequence id to match netlink requests to responses,
+     * and netlink ids are 32bit, we are limited to 32bits.
+     */
     def mark: Int
-    def setMark(m: Int): Unit
 
+    /* The sequence is used to ensure that a delete request for a flow is not
+     * issued before the create operation for that flow has been sent to the
+     * kernel. This can occur because deletes and creates take a different path
+     * to the kernel. While both deletes and creates are executed by the same
+     * disruptor thread, they sent to the thread via different queues. Creates
+     * go through the actual ringbuffer, while deletes are added directly to
+     * another Array[ByteBuffer] using tryEject.
+     * To ensure that the create has been processed, we keep a record of the
+     * sequence in the ringbuffer that the create request was added to. Then
+     * when adding the delete request for a flow we ensure that the sequence
+     * that flow has been processed. Sequence is monotonically increasing
+     * even though the ringbuffer itself loops around.
+     * This design is a hangover from the time when the flow controller was
+     * an akka actor, and thus ran in a separate thread to the packet workflow.
+     * We should now be able to send deletes and create through the same
+     * ringbuffer and remove the need for this sequencing. However this would
+     * need to be heavily benchmarked if implemented to ensure it doesn't
+     * introduce a perfomance regression.
+     */
     def sequence: Long
     def assignSequence(seq: Long): Unit
 }
@@ -80,7 +106,7 @@ final class ManagedFlowImpl(override val pool: ObjectPool[ManagedFlowImpl])
     }
     def id: Long = _id
 
-    override def setMark(m: Int): Unit = {
+    def setMark(m: Int): Unit = {
         _mark = m
     }
     override def mark: Int = _mark
