@@ -17,7 +17,7 @@
 package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
-import java.util.UUID
+import java.util.{Random, UUID}
 
 import scala.collection.immutable.HashMap
 
@@ -457,6 +457,42 @@ abstract class NatStateTest extends MidolmanSpec {
         ctx.applyDnat(targets) should be (false)
         ctx should be (taggedWith ())
         natTx.size() should be (0)
+    }
+
+    feature("nat key and binding serialization") {
+        scenario("nat key is serialized and deserialized") {
+            1.to(1000) foreach { i =>
+                val r = new Random(i)
+                val types = Array(FWD_SNAT, FWD_DNAT, FWD_STICKY_DNAT,
+                                  REV_SNAT, REV_DNAT, REV_STICKY_DNAT)
+                val key = NatKey(types(r.nextInt(types.length)),
+                                 IPv4Addr.random, r.nextInt.toShort,
+                                 IPv4Addr.random, r.nextInt.toShort,
+                                 r.nextInt.toByte, UUID.randomUUID)
+                val serializer = new NatKeySerializer
+                serializer.fromBytes(serializer.toBytes(key)) shouldBe key
+            }
+        }
+
+        scenario("null key serializes and serializes") {
+            val serializer = new NatKeySerializer
+            serializer.fromBytes(serializer.toBytes(null)) shouldBe null
+        }
+
+        scenario("nat binding is serialized and deserialized correctly") {
+            1.to(1000) foreach { i =>
+                val r = new Random(i)
+                val binding = NatBinding(IPv4Addr.random, r.nextInt.toShort)
+                val serializer = new NatBindingSerializer
+                serializer.fromBytes(
+                    serializer.toBytes(binding)) shouldBe binding
+            }
+        }
+
+        scenario("null binding serializes and serializes") {
+            val serializer = new NatBindingSerializer
+            serializer.fromBytes(serializer.toBytes(null)) shouldBe null
+        }
     }
 
     def transactionValues[K, V](tx: FlowStateTransaction[K, V]): HashMap[K, V] =

@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.state
 
-import java.util.UUID
+import java.util.{Random, UUID}
 
 import scala.collection.immutable.HashMap
 
@@ -153,6 +153,31 @@ abstract class ConntrackStateTest extends MidolmanSpec {
             val ctx = context()
             ctx.resetContext()
             ctx.clear()
+        }
+    }
+
+    feature("Conntrack keys and values are serialized and deserialized") {
+        scenario("conntrack keys are serialized and deserialized") {
+            1.to(1000) foreach { i =>
+                val r = new Random(i)
+                val key = ConnTrackKey(IPv4Addr.random, r.nextInt.toShort,
+                                       IPv4Addr.random, r.nextInt.toShort,
+                                       r.nextInt.toByte, UUID.randomUUID)
+                val serializer = new ConnTrackKeySerializer
+                serializer.fromBytes(serializer.toBytes(key)) shouldBe key
+            }
+        }
+
+        scenario("null keys are serialized and deserialized correctly") {
+            val serializer = new ConnTrackKeySerializer
+            serializer.fromBytes(serializer.toBytes(null)) shouldBe null
+        }
+
+        scenario("conntrack values are serialized and deserialized") {
+            val serializer = new ConnTrackValueSerializer
+            serializer.fromBytes(serializer.toBytes(true)) shouldBe true
+            serializer.fromBytes(serializer.toBytes(false)) shouldBe false
+            serializer.fromBytes(serializer.toBytes(null)) shouldBe null
         }
     }
 

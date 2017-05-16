@@ -175,8 +175,8 @@ object NatState {
                 bb.putInt(value.networkDst.toInt)
                 bb.putInt(value.transportDst)
                 bb.put(value.networkProtocol)
-                bb.putLong(value.deviceId.getLeastSignificantBits)
                 bb.putLong(value.deviceId.getMostSignificantBits)
+                bb.putLong(value.deviceId.getLeastSignificantBits)
                 bb.array
             }
 
