@@ -28,6 +28,8 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
+import org.midonet.midolman.CallbackRegistry
+import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback}
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
@@ -101,7 +103,8 @@ class FlowStateReplicator(
         peerResolver: PeerResolver,
         underlay: UnderlayResolver,
         flowInvalidation: FlowController,
-        midolmanConfig: MidolmanConfig) {
+        midolmanConfig: MidolmanConfig,
+        cbRegistry: CallbackRegistry) {
     import FlowStateAgentPackets._
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
@@ -124,14 +127,20 @@ class FlowStateReplicator(
     private[this] val txPorts: JSet[UUID] = new JHashSet[UUID]()
     private[this] val tos = config.datapath.controlPacketTos
 
-    private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
-        override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
-                           v: ConnTrackValue): ArrayList[Callback0] = {
+    val conntrackKeySerializer = new ConnTrackKeySerializer
+    val conntrackCbId = cbRegistry.registerCallback(
+        new SerializableCallback() {
+            override def call(args: Array[Byte]): Unit = {
+                conntrackTable.unref(conntrackKeySerializer.fromBytes(args))
+            }
+        })
+    private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[CallbackSpec]] {
+        override def apply(callbacks: ArrayList[CallbackSpec], k: ConnTrackKey,
+                           v: ConnTrackValue): ArrayList[CallbackSpec] = {
             log.debug("touch conntrack key callback for unref: {}", k)
 
-            callbacks.add(new Callback0 {
-                override def call(): Unit = conntrackTable.unref(k)
-            })
+            callbacks.add(new CallbackSpec(conntrackCbId,
+                                           conntrackKeySerializer.toBytes(k)))
             callbacks
         }
     }
@@ -146,14 +155,21 @@ class FlowStateReplicator(
         }
     }
 
-    private val _natAdder = new Reducer[NatKey, NatBinding, ArrayList[Callback0]] {
-        override def apply(callbacks: ArrayList[Callback0], k: NatKey,
-                           v: NatBinding): ArrayList[Callback0] = {
+    val natKeySerializer = new NatKeySerializer
+    val natCbId = cbRegistry.registerCallback(
+        new SerializableCallback() {
+            override def call(args: Array[Byte]): Unit = {
+                val k = natKeySerializer.fromBytes(args)
+                natTable.unref(k)
+            }
+        })
+    private val _natAdder = new Reducer[NatKey, NatBinding, ArrayList[CallbackSpec]] {
+        override def apply(callbacks: ArrayList[CallbackSpec], k: NatKey,
+                           v: NatBinding): ArrayList[CallbackSpec] = {
             log.debug("touch nat key callback for unref: {}", k)
 
-            callbacks.add(new Callback0 {
-                override def call(): Unit = natTable.unref(k)
-            })
+            callbacks.add(new CallbackSpec(natCbId,
+                                           natKeySerializer.toBytes(k)))
             callbacks
         }
     }

@@ -23,6 +23,7 @@ import org.jctools.queues.SpscArrayQueue
 import org.midonet.ErrorCode._
 import org.midonet.Util
 import org.midonet.odp.FlowMatch
+import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
@@ -36,10 +37,9 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.{ArrayObjectPool, NoOpPool}
 import org.midonet.util.concurrent.WakerUpper.Parkable
 import org.midonet.util.concurrent.{DisruptorBackChannel, NanoClock}
-import org.midonet.util.functors.Callback0
 
 object FlowController {
-    val NoCallbacks = new ArrayList[Callback0]()
+    val NoCallbacks = new ArrayList[CallbackSpec]()
     val NoTags = new ArrayList[FlowTag]()
     private[midolman] val IndexShift = 28 // Leave 4 bits for the work ID
     private[midolman] val IndexMask = (1 << IndexShift) - 1
@@ -112,12 +112,12 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
 
 trait FlowController extends DisruptorBackChannel {
     def addFlow(fmatch: FlowMatch, flowTags: ArrayList[FlowTag],
-                removeCallbacks: ArrayList[Callback0],
+                removeCallbacks: ArrayList[CallbackSpec],
                 expiration: Expiration): ManagedFlow
     def addRecircFlow(fmatch: FlowMatch,
                       recircMatch: FlowMatch,
                       flowTags: ArrayList[FlowTag],
-                      removeCallbacks: ArrayList[Callback0],
+                      removeCallbacks: ArrayList[CallbackSpec],
                       expiration: Expiration): ManagedFlow
     def removeDuplicateFlow(mark: Int): Unit
     def flowExists(mark: Int): Boolean
@@ -138,7 +138,8 @@ class FlowControllerImpl(config: MidolmanConfig,
                          workerId: Int,
                          metrics: PacketPipelineMetrics,
                          meters: MeterRegistry,
-                         preallocation: FlowTablePreallocation)
+                         preallocation: FlowTablePreallocation,
+                         cbRegistry: CallbackRegistry)
         extends FlowController with DisruptorBackChannel with MidolmanLogging {
     import FlowController._
 
@@ -159,7 +160,7 @@ class FlowControllerImpl(config: MidolmanConfig,
         new ManagedFlowImpl(_))
 
     override def addFlow(fmatch: FlowMatch, flowTags: ArrayList[FlowTag],
-                         removeCallbacks: ArrayList[Callback0],
+                         removeCallbacks: ArrayList[CallbackSpec],
                          expiration: Expiration): ManagedFlow = {
         val flow = takeFlow()
         flow.reset(fmatch, flowTags, removeCallbacks,
@@ -171,7 +172,7 @@ class FlowControllerImpl(config: MidolmanConfig,
     override def addRecircFlow(fmatch: FlowMatch,
                                recircMatch: FlowMatch,
                                flowTags: ArrayList[FlowTag],
-                               removeCallbacks: ArrayList[Callback0],
+                               removeCallbacks: ArrayList[CallbackSpec],
                                expiration: Expiration): ManagedFlow = {
         val flow = takeFlow()
         // Since linked flows are deleted later, and we have to delete
@@ -270,7 +271,7 @@ class FlowControllerImpl(config: MidolmanConfig,
     private def forgetFlow(flow: ManagedFlowImpl): Unit = {
         tagIndexer.removeFlowTags(flow)
         clearFlowIndex(flow)
-        flow.callbacks.runAndClear()
+        cbRegistry.runAndClear(flow.callbacks)
         flow.unref()
     }
 

@@ -29,17 +29,6 @@ import org.midonet.util.functors.Callback0
 package object midolman extends ReferenceableSupport {
     object CheckBackchannels
 
-    implicit class CallbackExecutor(val callbacks: ArrayList[Callback0]) extends AnyVal {
-        def runAndClear(): Unit = {
-            var i = 0
-            while (i < callbacks.size()) {
-                callbacks.get(i).call()
-                i += 1
-            }
-            callbacks.clear()
-        }
-    }
-
     implicit class ActorEx(val actor: ActorRef) extends AnyVal {
         def awaitStart(duration: FiniteDuration)
                       (implicit actorSystem: ActorSystem,

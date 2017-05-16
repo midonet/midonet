@@ -16,6 +16,7 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean, Long => JLong}
+import java.nio.ByteBuffer
 import java.util.{UUID, ArrayList => JArrayList}
 
 import javax.annotation.Nullable
@@ -36,6 +37,8 @@ import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.CallbackRegistry
+import org.midonet.midolman.CallbackRegistry.{CallbackId, CallbackSpec, SerializableCallback}
 import org.midonet.midolman.simulation.Bridge.{MacFlowCount, RemoveFlowCallbackGenerator, UntaggedVlanId}
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, _}
 import org.midonet.midolman.state.ReplicatedMap
@@ -256,12 +259,29 @@ object BridgeMapper {
      * allows the [[SimulationBridge]] to get a callback function that
      * decrements the reference counter for a MAC-port mapping.
      */
-    private class BridgeRemoveFlowCallbackGenerator(macLearning: MacLearning)
-        extends RemoveFlowCallbackGenerator {
-        override def getCallback(mac: MAC, vlanId: Short, portId: UUID)
-        : Callback0 = makeCallback0 {
+    private class BridgeRemoveFlowCallback(macLearning: MacLearning)
+            extends SerializableCallback {
+        override def call(args: Array[Byte]): Unit = {
+            val bb = ByteBuffer.wrap(args)
+            val vlanId = bb.getShort
+            val mac = new MAC(bb.getLong)
+            val portId = new UUID(bb.getLong, bb.getLong)
             macLearning.decrementRefCount(MacPortMapping(vlanId, mac, portId),
                                           Platform.currentTime)
+        }
+    }
+
+    private class BridgeRemoveFlowCallbackSpecGenerator(cbId: CallbackId)
+            extends RemoveFlowCallbackGenerator {
+        val argsSize = 26
+        def getCallback(mac: MAC,vlanId: Short, port: UUID): CallbackSpec = {
+            val bytes = new Array[Byte](argsSize)
+            val bb = ByteBuffer.wrap(bytes)
+            bb.putShort(vlanId)
+            bb.putLong(mac.asLong)
+            bb.putLong(port.getMostSignificantBits)
+            bb.putLong(port.getLeastSignificantBits)
+            new CallbackSpec(cbId, bytes)
         }
     }
 
@@ -273,6 +293,7 @@ object BridgeMapper {
  * A class that implements the [[DeviceMapper]] for a [[SimulationBridge]].
  */
 final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
+                         cbRegistry: CallbackRegistry,
                          val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
         extends VirtualDeviceMapper(classOf[SimulationBridge], bridgeId, vt)
         with TraceRequestChainMapper[SimulationBridge] {
@@ -302,8 +323,11 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
         new MacLearning(macLearningTables, log,
                         vt.config.bridge.macPortMappingExpiry millis)
     private val flowCount = new BridgeMacFlowCount(macLearning)
+
+    private val removeMacLearningCbId = cbRegistry.registerCallback(
+        new BridgeRemoveFlowCallback(macLearning))
     private val flowCallbackGenerator =
-        new BridgeRemoveFlowCallbackGenerator(macLearning)
+        new BridgeRemoveFlowCallbackSpecGenerator(removeMacLearningCbId)
     private var ipv4MacMap: BridgeIpv4MacMap = null
 
     private var deviceReady = false
@@ -447,6 +471,8 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
         stateTableSubject.onCompleted()
         macUpdatesSubscription.unsubscribe()
         timerSubscription.unsubscribe()
+
+        cbRegistry.unregisterCallback(removeMacLearningCbId)
     }
 
     /**
@@ -457,6 +483,7 @@ final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
     private def bridgeError(e: Throwable): Unit = {
         macUpdatesSubscription.unsubscribe()
         timerSubscription.unsubscribe()
+        cbRegistry.unregisterCallback(removeMacLearningCbId)
     }
 
     /**

@@ -209,7 +209,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build()
             vt.store.create(tr)
             val bridgeSubscriber = new TestSubscriber[SimBridge]
-            val mapper = new BridgeMapper(bridgeId, vt, chainMap)
+            val mapper = new BridgeMapper(bridgeId, vt,
+                                          cbRegistry, chainMap)
             mapper.call(bridgeSubscriber)
 
             bridgeSubscriber.getOnNextEvents.size shouldBe 1
@@ -271,7 +272,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build()
             vt.store.create(tr)
             val routerSubscriber = new TestSubscriber[SimRouter]
-            val mapper = new RouterMapper(routerId, vt, chainMap)
+            val mapper = new RouterMapper(routerId, vt,
+                                          cbRegistry, chainMap)
             mapper.call(routerSubscriber)
 
             routerSubscriber.getOnNextEvents.size shouldBe 1

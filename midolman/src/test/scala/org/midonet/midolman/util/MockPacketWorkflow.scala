@@ -21,6 +21,7 @@ import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 
+import org.midonet.midolman.CallbackRegistry
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.{SimulationBackChannel, _}
 import org.midonet.midolman.config.MidolmanConfig
@@ -54,7 +55,8 @@ class MockPacketWorkflow(config: MidolmanConfig,
                          metrics: PacketPipelineMetrics,
                          flowRecorder: FlowRecorder,
                          packetCtxTrap: JQueue[PacketContext],
-                         workflowTrap: PacketContext => SimulationResult)
+                         workflowTrap: PacketContext => SimulationResult,
+                         cbRegistry: CallbackRegistry)
                         (implicit as: ActorSystem, ex: ExecutionContext)
         extends PacketWorkflow(1, 0, config,
                                hostId, dpState,
@@ -65,7 +67,8 @@ class MockPacketWorkflow(config: MidolmanConfig,
                                traceStateTable, peerResolver,
                                leaser, metrics,
                                flowRecorder, vt,
-                               _ => { }, new MockFlowTablePreallocation(config)) {
+                               _ => { }, new MockFlowTablePreallocation(config),
+                               cbRegistry) {
     override def runWorkflow(pktCtx: PacketContext) = {
         packetCtxTrap.offer(pktCtx)
         super.runWorkflow(pktCtx)

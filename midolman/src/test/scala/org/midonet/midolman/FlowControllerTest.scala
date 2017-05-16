@@ -29,6 +29,7 @@ import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback}
 import org.midonet.midolman.flows.{ManagedFlowImpl, FlowExpirationIndexer}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
@@ -48,7 +49,7 @@ class FlowControllerTest extends MidolmanSpec {
             config, clock, flowProcessor,
             0, 0, metrics,
             preallocation.takeMeterRegistry(),
-            preallocation)
+            preallocation, cbRegistry)
     }
 
     feature("The flow controller processes flows") {
@@ -197,6 +198,19 @@ class FlowControllerTest extends MidolmanSpec {
         var callbackCalled = false
         var linkedCallbackCalled = false
 
+        val callbackCalledCbId = cbRegistry.registerCallback(
+            new SerializableCallback() {
+                override def call(args: Array[Byte]): Unit = {
+                    callbackCalled = true
+                }
+            })
+
+        val linkedCallbackCalledCbId = cbRegistry.registerCallback(
+            new SerializableCallback() {
+                override def call(args: Array[Byte]): Unit = {
+                    linkedCallbackCalled = true
+                }
+            })
         def add(tags: FlowTag*): ManagedFlowImpl = {
             val flow = (linked match {
                 case null =>
@@ -204,24 +218,19 @@ class FlowControllerTest extends MidolmanSpec {
                         fmatch,
                         Lists.newArrayList(tags :_*),
                         Lists.newArrayList(
-                            new Callback0 {
-                                def call() = callbackCalled = true
-                            }),
+                            new CallbackSpec(callbackCalledCbId, new Array[Byte](0))),
                         FlowExpirationIndexer.FLOW_EXPIRATION)
                 case _ =>
                     flowController.addRecircFlow(
                         fmatch, linked,
                         Lists.newArrayList(tags :_*),
                         Lists.newArrayList(
-                            new Callback0 {
-                                def call() = callbackCalled = true
-                            }),
+                            new CallbackSpec(callbackCalledCbId, new Array[Byte](0))),
                         FlowExpirationIndexer.FLOW_EXPIRATION)
             }).asInstanceOf[ManagedFlowImpl]
             if (flow.linkedFlow ne null) {
-                flow.linkedFlow.callbacks.add(new Callback0 {
-                    def call() = linkedCallbackCalled = true
-                })
+                flow.linkedFlow.callbacks.add(
+                    new CallbackSpec(linkedCallbackCalledCbId, new Array[Byte](0)))
             }
             flow
         }

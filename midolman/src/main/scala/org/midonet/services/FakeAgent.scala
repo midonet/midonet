@@ -27,6 +27,7 @@ import rx.{Observer, Scheduler, Subscription}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.state.PortStateStorage.asPort
+import org.midonet.midolman.CallbackRegistryImpl
 import org.midonet.midolman.ShardedSimulationBackChannel
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -91,7 +92,8 @@ object FakeAgent extends App {
                                  metrics,
                                  executor,
                                  executor,
-                                 () => true)
+                                 () => true,
+                                 new CallbackRegistryImpl)
 
 
     hostService.startAsync()

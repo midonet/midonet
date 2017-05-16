@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman._
 import org.midonet.midolman.flows.ManagedFlow
 import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.CallbackRegistry
+import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, GeneratedPhysicalPacket}
 import org.midonet.midolman.state.{ArpRequestBroker, FlowStateAgentPackets => FlowStatePackets}
 import org.midonet.midolman.rules.RuleResult
@@ -65,10 +67,11 @@ object PacketContext {
                   egressPort: UUID = null,
                   egressPortNo: JInteger = null,
                   backChannel: SimulationBackChannel = null,
-                  arpBroker: ArpRequestBroker = null): PacketContext = {
+                  arpBroker: ArpRequestBroker = null,
+                  cbRegistry: CallbackRegistry = null): PacketContext = {
         val context = new PacketContext()
         context.prepare(cookie, packet, origMatch, egressPort, egressPortNo,
-                        backChannel, arpBroker)
+                        backChannel, arpBroker, cbRegistry)
         context
     }
 }
@@ -421,6 +424,7 @@ class PacketContext extends Clearable
 
     var backChannel: SimulationBackChannel = _
     var arpBroker: ArpRequestBroker = _
+    var cbRegistry: CallbackRegistry = _
 
     var cookie: Long = -1
     var packet: Packet = null
@@ -432,8 +436,8 @@ class PacketContext extends Clearable
     val packetProcessed: AtomicBoolean = new AtomicBoolean(false)
 
     // Stores the callback to call when this flow is removed.
-    val flowRemovedCallbacks = new ArrayList[Callback0]()
-    def addFlowRemovedCallback(cb: Callback0): Unit = {
+    val flowRemovedCallbacks = new ArrayList[CallbackSpec]()
+    def addFlowRemovedCallback(cb: CallbackSpec): Unit = {
         flowRemovedCallbacks.add(cb)
     }
 
@@ -450,7 +454,8 @@ class PacketContext extends Clearable
                 origMatch: FlowMatch,
                 egressPort: UUID, egressPortNo: JInteger,
                 backChannel: SimulationBackChannel,
-                arpBroker: ArpRequestBroker): Unit = {
+                arpBroker: ArpRequestBroker,
+                cbRegistry: CallbackRegistry): Unit = {
         resetContext()
         this.cookie = cookie
         this.packet = packet
@@ -465,6 +470,7 @@ class PacketContext extends Clearable
 
         this.backChannel = backChannel
         this.arpBroker = arpBroker
+        this.cbRegistry = cbRegistry
     }
 
     def resetContext(): Unit = {
@@ -500,7 +506,7 @@ class PacketContext extends Clearable
 
     override def clear(): Unit = {
         super.clear()
-        flowRemovedCallbacks.runAndClear()
+        cbRegistry.runAndClear(flowRemovedCallbacks)
     }
 
     def prepareForSimulation() {

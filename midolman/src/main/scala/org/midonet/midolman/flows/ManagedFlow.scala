@@ -17,6 +17,7 @@ package org.midonet.midolman.flows
 
 import java.util.ArrayList
 
+import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -73,7 +74,7 @@ trait ManagedFlow {
 final class ManagedFlowImpl(override val pool: ObjectPool[ManagedFlowImpl])
         extends ManagedFlow with PooledObject {
 
-    val callbacks = new ArrayList[Callback0]()
+    val callbacks = new ArrayList[CallbackSpec]()
     val tags = new ArrayList[FlowTag]
     override val flowMatch = new FlowMatch()
     var expirationType = 0
@@ -88,7 +89,7 @@ final class ManagedFlowImpl(override val pool: ObjectPool[ManagedFlowImpl])
     var linkedFlow: ManagedFlowImpl = null
 
     def reset(flowMatch: FlowMatch, flowTags: ArrayList[FlowTag],
-              flowRemovedCallbacks: ArrayList[Callback0], sequence: Long,
+              flowRemovedCallbacks: ArrayList[CallbackSpec], sequence: Long,
               expiration: Expiration, now: Long,
               linkedFlow: ManagedFlowImpl = null): Unit = {
         this.flowMatch.resetWithoutIcmpData(flowMatch)

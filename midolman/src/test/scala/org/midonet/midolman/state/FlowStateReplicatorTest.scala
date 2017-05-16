@@ -39,6 +39,7 @@ import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
+import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.{HostRequestProxy, UnderlayResolver}
@@ -58,7 +59,6 @@ import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
-import org.midonet.util.functors.Callback0
 import org.midonet.util.reactivex._
 import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, Matchers => mockito}
@@ -241,7 +241,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
     }
 
     private def sendState(ingressPort: UUID, egressPort: UUID,
-                          callbacks: ArrayList[Callback0] = new ArrayList[Callback0])
+                          callbacks: ArrayList[CallbackSpec] = new ArrayList[CallbackSpec])
     : (Packet, PacketContext) = {
         val context = packetContextFor(ethernet, ingressPort)
         context.flowActions.add(FlowActions.output(1))
@@ -421,7 +421,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
             connTrackTx.ref(connTrackKeys.drop(1).head)
 
-            val callbacks = new ArrayList[Callback0]
+            val callbacks = new ArrayList[CallbackSpec]
 
             When("The transaction is commited and added to the replicator")
             sendState(ingressPort.getId, egressPort1.getId, callbacks)
@@ -433,7 +433,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
                 sender.conntrackTable.unrefedKeys should not contain key
             }
 
-            (0 to 1) foreach { callbacks.get(_).call() }
+            cbRegistry.runAndClear(callbacks)
             (0 to 1) map { connTrackKeys.drop(_).head } foreach { key =>
                 sender.conntrackTable.unrefedKeys should contain (key)
             }
@@ -446,7 +446,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             sender.natTable.putAndRef(secondNat._1, secondNat._2)
             natTx.ref(secondNat._1)
 
-            val callbacks = new ArrayList[Callback0]
+            val callbacks = new ArrayList[CallbackSpec]
 
             When("The transaction is commited and added to the replicator")
             natTx.commit()
@@ -459,7 +459,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
                 sender.natTable.unrefedKeys should not contain key
             }
 
-            (0 to 1) foreach { callbacks.get(_).call() }
+            cbRegistry.runAndClear(callbacks)
             (0 to 1) map { natMappings.drop(_).head._1 } foreach { key =>
                 sender.natTable.unrefedKeys should contain (key)
             }
@@ -642,7 +642,8 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         var localConfig = midolmanConfig
     } with FlowStateReplicator(conntrackTable, natTable, traceTable,
                                hostId, peerResolver, underlay,
-                               mockFlowInvalidation, midolmanConfig) {
+                               mockFlowInvalidation, midolmanConfig,
+                               cbRegistry) {
 
         var numIncomingFlowStateMessagesReceived = 0
 

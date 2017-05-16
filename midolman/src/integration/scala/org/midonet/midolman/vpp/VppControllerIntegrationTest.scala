@@ -38,6 +38,7 @@ import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.conf.HostIdGenerator
+import org.midonet.midolman.CallbackRegistryImpl
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.util.TestDatapathState
@@ -131,7 +132,8 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
         val executor = new SameThreadButAfterExecutorService
         val backChannel = Mockito.mock(classOf[SimulationBackChannel])
         new VirtualTopology(backend, config, backChannel, null, metricRegistry,
-                            executor, executor, () => true)
+                            executor, executor, () => true,
+                            new CallbackRegistryImpl)
     }
 
     private def createVirtualToPhysicalMapper(): VirtualToPhysicalMapper = {

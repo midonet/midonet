@@ -22,6 +22,8 @@ import scala.concurrent.ExecutionContext
 
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow._
+import org.midonet.midolman.CallbackRegistry
+import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback}
 import org.midonet.midolman.config.Fip64Config
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
@@ -38,7 +40,6 @@ import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.state.{FlowStateTransaction, NoOpFlowStateTable}
 import org.midonet.util.concurrent._
-import org.midonet.util.functors.Callback0
 import org.midonet.util.logging.Logger
 
 object Router {
@@ -64,7 +65,7 @@ object Router {
      */
     trait TagManager {
         def addIPv4Tag(dstIp: IPv4Addr, matchLength: Int)
-        def getFlowRemovalCallback(dstIp: IPv4Addr): Callback0
+        def getFlowRemovalCallback(dstIp: IPv4Addr): CallbackSpec
     }
 
     trait RoutingTable {

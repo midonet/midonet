@@ -21,6 +21,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.state.ConnTrackState
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
@@ -43,9 +44,7 @@ class PacketContextTest extends MidolmanSpec {
                            { udp ports 5003 ---> 53 } << payload("payload") }
 
             val context = packetContextFor(packet)
-            context.addFlowRemovedCallback(new Callback0 {
-                override def call(): Unit = { }
-            })
+            context.addFlowRemovedCallback(new CallbackSpec(0, new Array[Byte](0)))
             context.addVirtualAction(FlowActions.output(1))
             context.flowActions.add(FlowActions.output(1))
             context.packetActions.add(FlowActions.output(1))

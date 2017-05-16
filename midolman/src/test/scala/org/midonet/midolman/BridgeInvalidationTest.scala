@@ -242,7 +242,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             simBackChannel.clear()
 
             And("The corresponding flow expires")
-            pktContext.flowRemovedCallbacks.runAndClear()
+            cbRegistry.runAndClear(pktContext.flowRemovedCallbacks)
 
             Then("The MAC port mapping expires too")
             Thread.sleep(macPortExpiration)

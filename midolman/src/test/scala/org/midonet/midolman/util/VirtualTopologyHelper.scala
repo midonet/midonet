@@ -142,7 +142,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         fmatch.setInputPortNumber(inPortNumber)
         val context = PacketContext.generated(-1, new Packet(frame, fmatch),
                                               fmatch, null, null,
-                                              simBackChannel, arpBroker)
+                                              simBackChannel, arpBroker,
+                                              cbRegistry)
         context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
         context.prepareForSimulation()
         context.inputPort = inPort
@@ -292,6 +293,6 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                                conntrackTable, natTable,
                                traceTable, peerResolver, natLeaser,
                                metrics, flowRecorder,
-                               packetCtxTrap, workflowTrap)
+                               packetCtxTrap, workflowTrap, cbRegistry)
     }
 }

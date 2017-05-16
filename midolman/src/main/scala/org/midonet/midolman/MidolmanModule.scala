@@ -71,6 +71,8 @@ class MidolmanModule(injector: Injector,
                      flowTablePreallocation: FlowTablePreallocation) extends AbstractModule {
     private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanModule])
 
+    val cbRegistry = new CallbackRegistryImpl
+
     override def configure(): Unit = {
         bind(classOf[MidolmanConfig]).toInstance(config)
         val host = hostId()
@@ -83,6 +85,7 @@ class MidolmanModule(injector: Injector,
         bind(classOf[UnixClock]).toInstance(UnixClock.DEFAULT)
 
         bind(classOf[MetricRegistry]).toInstance(metricRegistry)
+        bind(classOf[CallbackRegistry]).toInstance(cbRegistry)
 
         // We add an extra slot so that channels can return tokens
         // they obtained due to the multiplier effect but didn't use.
@@ -350,7 +353,7 @@ class MidolmanModule(injector: Injector,
                                      flowProcessor, natBlockAllocator, peerResolver,
                                      backChannel, vt, clock, backend,
                                      metricsRegistry, counter, actorSystem,
-                                     flowTablePreallocation)
+                                     flowTablePreallocation, cbRegistry)
 
     protected def connectionPool(): DatapathConnectionPool =
         new OneToOneConnectionPool(
@@ -453,8 +456,8 @@ class MidolmanModule(injector: Injector,
             metricRegistry,
             vtExecutor,
             ioExecutor,
-            vtExecutorCheck
-            )
+            vtExecutorCheck,
+            cbRegistry)
     }
 
     protected def virtualToPhysicalMapper(hostId: UUID, vt: VirtualTopology) =

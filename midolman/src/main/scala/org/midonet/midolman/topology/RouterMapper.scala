@@ -32,6 +32,8 @@ import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.CallbackRegistry
+import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback}
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.simulation.{Chain, LoadBalancer, Mirror, RouterPort, Router => SimulationRouter}
@@ -417,6 +419,7 @@ object RouterMapper {
  * [[SimulationRouter]].
  */
 final class RouterMapper(routerId: UUID, vt: VirtualTopology,
+                         cbRegistry: CallbackRegistry,
                          val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
         extends VirtualDeviceMapper(classOf[SimulationRouter], routerId, vt)
         with TraceRequestChainMapper[SimulationRouter] {
@@ -424,12 +427,14 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
     override def logSource = "org.midonet.devices.router"
     override def logMark = s"router:$routerId"
 
-    private class RemoveTagCallback(dst: IPv4Addr) extends Callback0 {
-        override def call(): Unit = {
-            log.debug(s"Remove tag for destination address prefix $dst")
-            IPv4InvalidationArray.current.unref(dst.toInt)
-        }
-    }
+    private val removeTagCbId = cbRegistry.registerCallback(
+        new SerializableCallback() {
+            override def call(args: Array[Byte]): Unit = {
+                val ip = IPv4Addr.bytesToInt(args)
+                log.debug(s"Remove tag for destination address prefix ${new IPv4Addr(ip)}")
+                IPv4InvalidationArray.current.unref(ip)
+            }
+        })
 
     private var config: Config = null
     private var ready: Boolean = false
@@ -450,8 +455,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             val refs = IPv4InvalidationArray.current.ref(dst.toInt, matchLength)
             log.debug(s"Increased ref count ip prefix $dst/$matchLength to $refs")
         }
-        override def getFlowRemovalCallback(dst: IPv4Addr): Callback0 = {
-            new RemoveTagCallback(dst)
+        override def getFlowRemovalCallback(dst: IPv4Addr): CallbackSpec = {
+            new CallbackSpec(removeTagCbId, dst.toBytes)
         }
     }
 
@@ -471,6 +476,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         vt.store.observable(classOf[TopologyRouter], routerId)
             .observeOn(vt.vtScheduler)
             .doOnCompleted(makeAction0(routerDeleted()))
+            .doOnError(makeAction1(routerError))
             .map[Config](makeFunc1(routerUpdated))
     private lazy val portRoutesObservable = Observable
         .merge(portRoutesSubject)
@@ -565,6 +571,13 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         if (arpCache ne null) {
             arpCache.close()
         }
+        cbRegistry.unregisterCallback(removeTagCbId)
+    }
+
+    private def routerError(e: Throwable): Unit = {
+        log.error("Router error", e)
+        assertThread()
+        cbRegistry.unregisterCallback(removeTagCbId)
     }
 
     /**

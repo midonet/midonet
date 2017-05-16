@@ -27,8 +27,10 @@ import com.google.inject.Injector
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
+import org.midonet.midolman.CallbackRegistry
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.ShardedSimulationBackChannel
+import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.ManagedFlow
@@ -44,7 +46,6 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.MockClock
-import org.midonet.util.functors.Callback0
 
 trait MidolmanServices {
     var injector: Injector
@@ -70,6 +71,7 @@ trait MidolmanServices {
     }
 
     def metricRegistry = injector.getInstance(classOf[MetricRegistry])
+    def cbRegistry = injector.getInstance(classOf[CallbackRegistry])
 
     lazy val metrics = {
         val metricsReg = metricRegistry
@@ -113,12 +115,12 @@ trait MidolmanServices {
         }
 
         override def addFlow(fmatch: FlowMatch, flowTags: ArrayList[FlowTag],
-                             removeCallbacks: ArrayList[Callback0],
+                             removeCallbacks: ArrayList[CallbackSpec],
                              expiration: Expiration): ManagedFlow = null
         override def addRecircFlow(fmatch: FlowMatch,
                                    recircMatch: FlowMatch,
                                    flowTags: ArrayList[FlowTag],
-                                   removeCallbacks: ArrayList[Callback0],
+                                   removeCallbacks: ArrayList[CallbackSpec],
                                    expiration: Expiration): ManagedFlow = null
         override def removeDuplicateFlow(mark: Int): Unit = {}
         override def flowExists(mark: Int): Boolean = false

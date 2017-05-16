@@ -23,6 +23,7 @@ import scala.collection.{Map => ROMap}
 
 import org.midonet.cluster.client._
 import org.midonet.midolman.NotYetException
+import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimStep,
                                             SimulationResult => Result}
 import org.midonet.midolman.simulation.Bridge.{RemoveFlowCallbackGenerator, MacFlowCount, UntaggedVlanId}
@@ -45,7 +46,7 @@ object Bridge {
     }
 
     trait RemoveFlowCallbackGenerator {
-        def getCallback(mac: MAC,vlanId: Short, port: UUID): Callback0
+        def getCallback(mac: MAC,vlanId: Short, port: UUID): CallbackSpec
     }
 }
 

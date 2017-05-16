@@ -24,6 +24,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow._
+import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.flows.ManagedFlow
@@ -723,7 +724,8 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    NullFlowRecorder(),
                                    injector.getInstance(classOf[VirtualTopology]),
                                    packetOut,
-                                   new MockFlowTablePreallocation(injector.getInstance(classOf[MidolmanConfig]))) {
+                                   new MockFlowTablePreallocation(injector.getInstance(classOf[MidolmanConfig])),
+                                   cbRegistry) {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
         var generatedException: Exception = _
@@ -776,9 +778,7 @@ class PacketWorkflowTest extends MidolmanSpec {
 
             pktCtx.runs += 1
             pktCtx.addFlowTag(FlowTagger.tagForDpPort(1))
-            pktCtx.addFlowRemovedCallback(new Callback0 {
-                override def call(): Unit = { }
-            })
+            pktCtx.addFlowRemovedCallback(new CallbackSpec(0, new Array[Byte](0)))
             pktCtx.wcmatch.setSrcPort(pktCtx.wcmatch.getSrcPort + 1)
             if (flowActions ne null) {
                 flowActions foreach pktCtx.flowActions.add

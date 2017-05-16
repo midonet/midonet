@@ -239,7 +239,8 @@ class PacketWorkflow(
             val flowRecorder: FlowRecorder,
             val vt: VirtualTopology,
             val packetOut: Int => Unit,
-            val preallocation: FlowTablePreallocation)
+            val preallocation: FlowTablePreallocation,
+            val cbRegistry: CallbackRegistry)
         extends EventHandler[PacketWorkflow.PacketRef]
         with TimeoutHandler
         with DisruptorBackChannel
@@ -270,7 +271,8 @@ class PacketWorkflow(
         new FlowControllerImpl(config, clock, flowProcessor,
                                datapathId, workerId,
                                metrics, meters,
-                               preallocation)
+                               preallocation,
+                               cbRegistry)
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
@@ -283,7 +285,7 @@ class PacketWorkflow(
             peerResolver,
             dpState,
             flowController,
-            config)
+            config, cbRegistry)
 
     protected val arpBroker = new ArpRequestBroker(config, backChannel, clock)
 
@@ -406,7 +408,8 @@ class PacketWorkflow(
         }
         context.prepare(cookie, packet, fmatch,
                         egressPortId, egressPortNo,
-                        backChannel, arpBroker)
+                        backChannel, arpBroker,
+                        cbRegistry)
         context.initialize(connTrackTx, natTx, natLeaser, traceStateTx)
         context.log = PacketTracing.loggerFor(fmatch)
         context
@@ -595,13 +598,13 @@ class PacketWorkflow(
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
             resultLogger.debug("packet came up due to userspace dp action, " +
                                s"match ${context.origMatch}")
-            context.flowRemovedCallbacks.runAndClear()
+            cbRegistry.runAndClear(context.flowRemovedCallbacks)
             UserspaceFlow
         } else {
             context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
             if (context.origMatch.userspaceFieldsSeen) {
                 context.log.debug("Userspace fields seen; skipping flow creation")
-                context.flowRemovedCallbacks.runAndClear()
+                cbRegistry.runAndClear(context.flowRemovedCallbacks)
                 UserspaceFlow
             } else {
                 val flow = if (context.isRecirc) {
@@ -682,15 +685,15 @@ class PacketWorkflow(
             case AddVirtualWildcardFlow =>
                 concludeSimulation(context)
             case _ if context.isGenerated =>
-                context.flowRemovedCallbacks.runAndClear()
+                cbRegistry.runAndClear(context.flowRemovedCallbacks)
                 NoOp
             case NoOp =>
                 if (context.containsFlowState)
                     applyState(context)
-                context.flowRemovedCallbacks.runAndClear()
+                cbRegistry.runAndClear(context.flowRemovedCallbacks)
                 NoOp
             case ErrorDrop =>
-                context.flowRemovedCallbacks.runAndClear()
+                cbRegistry.runAndClear(context.flowRemovedCallbacks)
                 context.clearFlowTags()
                 context.prepareForDrop()
                 addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
@@ -723,7 +726,7 @@ class PacketWorkflow(
             addTranslatedFlow(context, expiration)
         } else {
             // Generated packets are return packets, so we don't apply flow state
-            context.flowRemovedCallbacks.runAndClear()
+            cbRegistry.runAndClear(context.flowRemovedCallbacks)
             PacketWorkflow.GeneratedPacket
         }
     }

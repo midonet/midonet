@@ -80,7 +80,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val dst = IPv4Addr.fromString(ipToReach).toInt
         IPv4InvalidationArray.current.countRefs(dst) should be (1)
 
-        pktCtx.flowRemovedCallbacks.runAndClear()
+        cbRegistry.runAndClear(pktCtx.flowRemovedCallbacks)
         IPv4InvalidationArray.current.countRefs(dst) should be (0)
     }
 
@@ -166,7 +166,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         IPv4InvalidationArray.current.countRefs(
             IPv4Addr.fromString(ipVm2).toInt) should be (1)
 
-        pktCtx1.flowRemovedCallbacks.runAndClear()
+        cbRegistry.runAndClear(pktCtx1.flowRemovedCallbacks)
         IPv4InvalidationArray.current.countRefs(
             IPv4Addr.fromString(ipVm1).toInt) should be (0)
 
@@ -186,11 +186,11 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         IPv4InvalidationArray.current.countRefs(
             IPv4Addr.fromString(ipVm2).toInt) should be (2)
 
-        pktCtx2.flowRemovedCallbacks.runAndClear()
+        cbRegistry.runAndClear(pktCtx2.flowRemovedCallbacks)
         IPv4InvalidationArray.current.countRefs(
             IPv4Addr.fromString(ipVm2).toInt) should be (1)
 
-        pktCtx4.flowRemovedCallbacks.runAndClear()
+        cbRegistry.runAndClear(pktCtx4.flowRemovedCallbacks)
         IPv4InvalidationArray.current.countRefs(
             IPv4Addr.fromString(ipVm2).toInt) should be (0)
     }

@@ -32,6 +32,7 @@ import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.midolman.CallbackRegistry
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
@@ -163,7 +164,8 @@ class VirtualTopology(val backend: MidonetBackend,
                       val metricRegistry: MetricRegistry,
                       val vtExecutor: ExecutorService,
                       val ioExecutor: ExecutorService,
-                      vtExecutorCheck: () => Boolean)
+                      vtExecutorCheck: () => Boolean,
+                      cbRegistry: CallbackRegistry)
     extends MidolmanLogging {
 
     import VirtualTopology._
@@ -192,7 +194,7 @@ class VirtualTopology(val backend: MidonetBackend,
         classOf[BgpRouter] -> DeviceFactory(
             classOf[BgpRouter], new BgpRouterMapper(_, this)),
         classOf[Bridge] -> DeviceFactory(
-            classOf[Bridge], new BridgeMapper(_, this, traceChains)),
+            classOf[Bridge], new BridgeMapper(_, this, cbRegistry, traceChains)),
         classOf[BridgePort] -> DeviceFactory(
             classOf[Port], new PortMapper(_, this, traceChains)),
         classOf[Chain] -> DeviceFactory(
@@ -214,7 +216,7 @@ class VirtualTopology(val backend: MidonetBackend,
         classOf[QosPolicy] -> DeviceFactory(
             classOf[QosPolicy], new QosPolicyMapper(_, this)),
         classOf[Router] -> DeviceFactory(
-            classOf[Router], new RouterMapper(_, this, traceChains)),
+            classOf[Router], new RouterMapper(_, this, cbRegistry, traceChains)),
         classOf[RouterPort] -> DeviceFactory(
             classOf[Port], new PortMapper(_, this, traceChains)),
         classOf[RuleLogger] -> DeviceFactory(

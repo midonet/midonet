@@ -85,7 +85,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     private def testBridgeCreated(bridgeId: UUID, obs: BridgeObserver)
     : TopologyBridge = {
         Given("A bridge mapper")
-        val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+        val mapper = new BridgeMapper(bridgeId, vt, cbRegistry, mutable.Map())
 
         And("A bridge")
         val bridge = createBridge(id = bridgeId)
@@ -133,7 +133,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
 
             And("A bridge mapper")
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridgeId, vt,
+                                          cbRegistry, mutable.Map())
 
             And("An observer to the bridge mapper")
             val obs = createObserver()
@@ -1313,7 +1314,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val obs = createObserver()
 
             And("A bridge mapper")
-            val mapper = new BridgeMapper(bridge.getId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridge.getId, vt,
+                                          cbRegistry, mutable.Map())
 
             When("Requesting the ports to have them cached")
             VirtualTopology.get(classOf[BridgePort], port1.getId)
@@ -1682,7 +1684,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A chain mapper")
             val bridgeId = UUID.randomUUID
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridgeId, vt,
+                                          cbRegistry, mutable.Map())
 
             And("A chain")
             val chain = createChain()
@@ -1712,7 +1715,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A bridge mapper")
             val bridgeId = UUID.randomUUID
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridgeId, vt,
+                                          cbRegistry, mutable.Map())
 
             And("A chain")
             val chain1 = createChain()
@@ -1749,7 +1753,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A bridge mapper")
             val bridgeId = UUID.randomUUID
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridgeId, vt,
+                                          cbRegistry, mutable.Map())
 
             And("A chain")
             val chain = createChain()
@@ -1788,7 +1793,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A bridge mapper")
             val bridgeId = UUID.randomUUID
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridgeId, vt,
+                                          cbRegistry, mutable.Map())
 
             And("Two mirrors")
             val router = createRouter()

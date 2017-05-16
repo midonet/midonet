@@ -76,7 +76,8 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
                                metricsRegistry: MetricRegistry,
                                counter: StatisticalCounter,
                                actorSystem: ActorSystem,
-                               flowTablePreallocation: FlowTablePreallocation)
+                               flowTablePreallocation: FlowTablePreallocation,
+                               cbRegistry: CallbackRegistry)
         extends PacketWorkersService with Runnable with MidolmanLogging {
 
     override def logSource = "org.midonet.packet-worker.packet-worker-supervisor"
@@ -173,7 +174,8 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
             peerResolver, natLeaser,
             metrics, flowRecorder,
             vt, counter.addAndGet(index, _: Int),
-            flowTablePreallocation)
+            flowTablePreallocation,
+            cbRegistry)
 
         new DisruptorPacketWorker(workflow, metrics, index)
     }
