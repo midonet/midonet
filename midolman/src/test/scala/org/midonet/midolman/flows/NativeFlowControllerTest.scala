@@ -15,6 +15,8 @@
  */
 package org.midonet.midolman.flows
 
+import java.util.Random
+
 import scala.collection.JavaConversions._
 
 import com.google.common.collect.Lists
@@ -33,7 +35,7 @@ import org.midonet.midolman.FlowController
 import org.midonet.midolman.MockFlowTablePreallocation
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.FlowMatch
+import org.midonet.odp.{FlowMatch, FlowMatches}
 import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
@@ -43,21 +45,35 @@ class NativeFlowControllerTest extends MidolmanSpec {
 
     var flowController: FlowController = _
 
+    var callbackCalled = false
+    var linkedCallbackCalled = false
+    var callbackCalledSpec: CallbackSpec = _
+    val random = new Random
+
     override def beforeTest(): Unit = {
         val preallocation = new MockFlowTablePreallocation(config)
         flowController = new NativeFlowController(
             config, clock, flowProcessor,
             0, 0, metrics,
             preallocation.takeMeterRegistry())
+        val callbackCalledCbId = cbRegistry.registerCallback(
+            new SerializableCallback() {
+                override def call(args: Array[Byte]): Unit = {
+                    callbackCalled = true
+                }
+            })
+        callbackCalledSpec = new CallbackSpec(callbackCalledCbId,
+                                              new Array[Byte](0))
     }
 
     feature("The flow controller processes flows") {
         scenario("A flow is added") {
-            Given("A new flow")
-            val flow = new TestableFlow()
-
             When("The flow is added to the flow controller")
-            val managedFlow = flow.add()
+            val managedFlow = flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
 
             Then("The flow is registered and the metrics updated")
             managedFlow should not be null
@@ -66,19 +82,22 @@ class NativeFlowControllerTest extends MidolmanSpec {
 
         ignore("A flow is removed") {
             Given("A flow in the flow controller")
-            val flow = new TestableFlow()
-            val managedFlow = flow.add()
+            val managedFlow = flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
             managedFlow should not be null
             metrics.dpFlowsMetric.getCount should be (1)
 
             When("The flow is removed from the flow controller")
-            flow.remove(managedFlow)
+            flowController.removeDuplicateFlow(managedFlow.mark)
 
             Then("The datapath flow metric should be set at the original value")
             metrics.currentDpFlowsMetric.getValue should be (0)
 
             And("The flow removal callback method was called")
-            flow.callbackCalled should be (true)
+            callbackCalled should be (true)
         }
 
         ignore("The linked flow of a duplicate flow is removed") {
@@ -128,8 +147,11 @@ class NativeFlowControllerTest extends MidolmanSpec {
 
         ignore("Expiration removes a flow") {
             Given("A flow in the flow controller")
-            val flow = new TestableFlow()
-            val managedFlow = flow.add()
+            val managedFlow = flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
             managedFlow should not be null
             metrics.dpFlowsMetric.getCount should be (1)
             flowController.flowExists(managedFlow.mark) shouldBe true
@@ -142,8 +164,8 @@ class NativeFlowControllerTest extends MidolmanSpec {
             metrics.currentDpFlowsMetric.getValue should be (0)
 
             And("The flow removal callback method was called")
-            flow.callbackCalled should be (true)
-            flow.callbackCalled = false
+            callbackCalled should be (true)
+            callbackCalled = false
 
             And("The flow was removed")
             flowController.flowExists(managedFlow.mark) shouldBe false
@@ -151,8 +173,11 @@ class NativeFlowControllerTest extends MidolmanSpec {
 
         ignore("A removed flow is not removed again") {
             Given("A flow in the flow controller")
-            val flow = new TestableFlow()
-            val managedFlow = flow.add()
+            val managedFlow =  flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
             managedFlow should not be null
             metrics.dpFlowsMetric.getCount should be (1)
 
@@ -160,14 +185,14 @@ class NativeFlowControllerTest extends MidolmanSpec {
             flowController.flowExists(managedFlow.mark) shouldBe true
 
             When("The flow is removed from the flow controller")
-            flow.remove(managedFlow)
+            flowController.removeDuplicateFlow(managedFlow.mark)
 
             Then("The datapath flow metric should be set at the original value")
             metrics.currentDpFlowsMetric.getValue should be (0)
 
             And("The flow removal callback method was called")
-            flow.callbackCalled should be (true)
-            flow.callbackCalled = false
+            callbackCalled should be (true)
+            callbackCalled = false
 
             And("The flow was removed")
             flowController.flowExists(managedFlow.mark) shouldBe false
@@ -178,56 +203,9 @@ class NativeFlowControllerTest extends MidolmanSpec {
 
             Then("Nothing should happen, expiration doesn't keep refs")
             metrics.currentDpFlowsMetric.getValue should be (0)
-            flow.callbackCalled should be (false)
+            callbackCalled should be (false)
             flowController.flowExists(managedFlow.mark) shouldBe false
         }
-    }
-
-    final class TestableFlow(val fmatch: FlowMatch = new FlowMatch(),
-                             val linked: FlowMatch = null) {
-        var callbackCalled = false
-        var linkedCallbackCalled = false
-
-        val callbackCalledCbId = cbRegistry.registerCallback(
-            new SerializableCallback() {
-                override def call(args: Array[Byte]): Unit = {
-                    callbackCalled = true
-                }
-            })
-
-        val linkedCallbackCalledCbId = cbRegistry.registerCallback(
-            new SerializableCallback() {
-                override def call(args: Array[Byte]): Unit = {
-                    linkedCallbackCalled = true
-                }
-            })
-
-        def add(tags: FlowTag*): ManagedFlow = {
-            val flow = (linked match {
-                case null =>
-                    flowController.addFlow(
-                        fmatch,
-                        Lists.newArrayList(tags :_*),
-                        Lists.newArrayList(
-                            new CallbackSpec(callbackCalledCbId, new Array[Byte](0))),
-                        FlowExpirationIndexer.FLOW_EXPIRATION)
-                case _ =>
-                    flowController.addRecircFlow(
-                        fmatch, linked,
-                        Lists.newArrayList(tags :_*),
-                        Lists.newArrayList(
-                            new CallbackSpec(callbackCalledCbId, new Array[Byte](0))),
-                        FlowExpirationIndexer.FLOW_EXPIRATION)
-            })
-            /*if (flow.linkedFlow ne null) {
-                flow.linkedFlow.callbacks.add(
-                    new CallbackSpec(linkedCallbackCalledCbId, new Array[Byte](0)))
-            }*/
-            flow
-        }
-
-        def remove(flow: ManagedFlow): Unit =
-            flowController.removeDuplicateFlow(flow.mark)
     }
 }
 
