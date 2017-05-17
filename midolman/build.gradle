@@ -86,7 +86,7 @@ task generateJniHeaders(type:Exec) {
     def nativeIncludes = "src/nativeFlowController/headers"
     commandLine "javah", "-d", nativeIncludes, \
                          "-classpath", classpath, \
-                         "org.midonet.midolman.flows.NativeFlowController"
+                         "org.midonet.midolman.flows.NativeFlowControllerJNI"
     dependsOn classes
 }
 

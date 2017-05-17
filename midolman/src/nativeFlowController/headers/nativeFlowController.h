@@ -19,11 +19,6 @@
 #include <string>
 #include <vector>
 
-class NativeFlowController {
-public:
-  int test();
-};
-
 using FlowId = long long;
 const FlowId NULL_ID = -839193346820535158;
 
@@ -59,7 +54,7 @@ public:
   int occupied() const;
   FlowId id_at_index(int index) const;
 
-  FlowId put(std::string& fmatch);
+  FlowId put(std::string fmatch);
   Flow& get(FlowId id);
   bool exists(FlowId id);
   void clear(FlowId id);

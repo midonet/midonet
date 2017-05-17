@@ -17,14 +17,95 @@
 #include <cassert>
 #include <iostream>
 #include <nativeFlowController.h>
-#include "org_midonet_midolman_flows_NativeFlowController.h"
+#include "org_midonet_midolman_flows_NativeFlowControllerJNI.h"
 
-int NativeFlowController::test() {
-  return 0;
+const std::string jba2str(JNIEnv *env, jbyteArray ba) {
+  auto len = env->GetArrayLength(ba);
+  auto bytes = reinterpret_cast<const char*>(env->GetByteArrayElements(ba, 0));
+  return std::string(bytes, len);
 }
 
-jint Java_org_midonet_midolman_flows_NativeFlowController_test(JNIEnv *, jobject) {
-  return 0;
+jbyteArray str2jba(JNIEnv *env, std::string str) {
+  jbyteArray retBytes = env->NewByteArray(str.size());
+  env->SetByteArrayRegion(retBytes, 0, str.size(),
+                          reinterpret_cast<const jbyte*>(str.c_str()));
+  return retBytes;
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_createFlowTable
+(JNIEnv *env, jclass, jint maxFlows) {
+  return reinterpret_cast<jlong>(new FlowTable(maxFlows));
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTablePutFlow
+(JNIEnv *env, jclass, jlong pointer, jbyteArray flowMatch) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return table->put(jba2str(env, flowMatch));
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableClearFlow
+(JNIEnv *env, jclass, jlong pointer, jlong flowId) {
+    auto table = reinterpret_cast<FlowTable*>(pointer);
+    table->clear(flowId);
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableIdAtIndex
+(JNIEnv *env, jclass, jlong pointer, jint index) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return table->id_at_index(index);
+}
+
+jint
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableOccupied
+(JNIEnv *env, jclass, jlong pointer) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return table->occupied();
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableEvictionCandidate
+(JNIEnv *env, jclass, jlong pointer) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return table->candidate_for_eviction();
+}
+
+jbyteArray
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowMatch
+(JNIEnv *env, jclass, jlong pointer, jlong flowId) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return str2jba(env, table->get(flowId).flow_match());
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowSequence
+(JNIEnv *env, jclass, jlong pointer, jlong flowId) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return table->get(flowId).sequence();
+}
+
+void
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowSetSequence
+(JNIEnv *env, jclass, jlong pointer, jlong flowId, jlong sequence) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  table->get(flowId).set_sequence(sequence);
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowLinkedId
+(JNIEnv *env, jclass, jlong pointer, jlong flowId) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return table->get(flowId).linked_id();
+}
+
+void
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowSetLinkedId
+(JNIEnv *env, jclass, jlong pointer, jlong flowId, jlong linkedFlowId) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  table->get(flowId).set_linked_id(linkedFlowId);
 }
 
 Flow::Flow()
@@ -81,7 +162,7 @@ FlowId FlowTable::id_at_index(int index) const {
   return m_table[index & m_mask].id();
 }
 
-FlowId FlowTable::put(std::string& fmatch) {
+FlowId FlowTable::put(std::string fmatch) {
   int index = ++m_id_counter & m_mask;
   int start = index;
   FlowId id = NULL_ID;
