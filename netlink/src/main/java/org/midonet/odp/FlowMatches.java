@@ -15,16 +15,21 @@
  */
 package org.midonet.odp;
 
+import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeyEtherType;
 import org.midonet.odp.flows.FlowKeys;
 import org.midonet.odp.flows.IpProtocol;
+import org.midonet.odp.OpenVSwitch.Flow.Attr;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.packets.VLAN;
 
 import static org.midonet.odp.flows.FlowKeys.*;
 
@@ -68,7 +73,7 @@ public class FlowMatches {
                                    MAC.random().getAddress()));
 
         if (rand.nextInt(2) == 0) {
-            keys.add(vlan((short) rand.nextInt()));
+            keys.add(vlan(VLAN.unsetDEI((short)rand.nextInt())));
         }
 
         if (rand.nextInt(3) == 0) {
@@ -100,5 +105,55 @@ public class FlowMatches {
         }
 
         return new FlowMatch(keys);
+    }
+
+    public static FlowMatch fromBytes(byte[] bytes) {
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        ArrayList<FlowKey> keys = new ArrayList<>();
+        int size = bb.getInt();
+        for (int i = 0; i < size; i++) {
+            int keySize = bb.getInt();
+            short id = bb.getShort();
+            FlowKey key = FlowKeys.newBlankInstance(id);
+            if (key == null) {
+                break;
+            }
+            int limit = bb.limit();
+            int endOfKey = bb.position() + keySize;
+            bb.limit(endOfKey);
+            key.deserializeFrom(bb);
+            bb.position(endOfKey);
+            bb.limit(limit);
+            keys.add(key);
+        }
+        return new FlowMatch(keys);
+    }
+
+    public static byte[] toBytes(FlowMatch match) {
+        int MAX_BUFFER_SIZE = 32768;
+        int size = 128;
+        while (true) {
+            byte[] bytes = new byte[size];
+            ByteBuffer bb = ByteBuffer.wrap(bytes);
+            try {
+                ArrayList<FlowKey> keys = match.getKeys();
+                bb.putInt(keys.size());
+                for (int i = 0; i < keys.size(); i++) {
+                    FlowKey key = keys.get(i);
+                    int sizePos = bb.position();
+                    bb.putInt(0); // placeholder for size
+                    bb.putShort(key.attrId());
+                    int start = bb.position();
+                    key.serializeInto(bb);
+                    bb.putInt(sizePos, bb.position() - start);
+                }
+                return bytes;
+            } catch (BufferOverflowException e) {
+                size = size * 2;
+                if (size > MAX_BUFFER_SIZE) {
+                    throw e;
+                }
+            }
+        }
     }
 }
