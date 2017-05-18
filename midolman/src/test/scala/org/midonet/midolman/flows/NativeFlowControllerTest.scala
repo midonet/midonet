@@ -36,7 +36,7 @@ import org.midonet.midolman.MockFlowTablePreallocation
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{FlowMatch, FlowMatches}
-import org.midonet.util.functors.Callback0
+import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class NativeFlowControllerTest extends MidolmanSpec {
@@ -190,6 +190,125 @@ class NativeFlowControllerTest extends MidolmanSpec {
 
             When("The flow is removed from the flow controller")
             flowController.removeDuplicateFlow(managedFlow.mark)
+
+            Then("The datapath flow metric should be set at the original value")
+            metrics.currentDpFlowsMetric.getValue should be (0)
+
+            And("The flow removal callback method was called")
+            callbackCalled should be (true)
+            callbackCalled = false
+
+            And("The flow was removed")
+            flowController.flowExists(managedFlow.mark) shouldBe false
+
+            When("We expire the flow")
+            clock.time = FlowExpirationIndexer.FLOW_EXPIRATION.value + 1
+            flowController.process()
+
+            Then("Nothing should happen, expiration doesn't keep refs")
+            metrics.currentDpFlowsMetric.getValue should be (0)
+            callbackCalled should be (false)
+            flowController.flowExists(managedFlow.mark) shouldBe false
+        }
+
+        val tag1 = FlowTagger.tagForDpPort(1)
+        val tag2 = FlowTagger.tagForDpPort(2)
+
+        scenario("invalidation removes a flow") {
+            Given("A flow in the flow controller")
+            val managedFlow1 =  flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(tag1, tag2),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
+            managedFlow1 should not be null
+
+            val managedFlow2 =  flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(tag1),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
+            managedFlow2 should not be null
+
+            val managedFlow3 =  flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(tag2),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
+            managedFlow3 should not be null
+
+            metrics.dpFlowsMetric.getCount should be (3)
+            flowController.flowExists(managedFlow1.mark) shouldBe true
+            flowController.flowExists(managedFlow2.mark) shouldBe true
+            flowController.flowExists(managedFlow3.mark) shouldBe true
+
+            When("a tag is invalidated")
+            flowController.invalidateFlowsFor(tag1)
+
+            Then("Two of the flows should be removed")
+            metrics.currentDpFlowsMetric.getValue should be (1)
+            flowController.flowExists(managedFlow1.mark) shouldBe false
+            flowController.flowExists(managedFlow2.mark) shouldBe false
+            flowController.flowExists(managedFlow3.mark) shouldBe true
+
+            And("The flow removal callback method was called")
+            callbackCalled should be (true)
+            callbackCalled = false
+
+            When("the other tag is invalidated")
+            flowController.invalidateFlowsFor(tag2)
+
+            Then("the last flow should be removed")
+            metrics.currentDpFlowsMetric.getValue should be (0)
+            flowController.flowExists(managedFlow1.mark) shouldBe false
+            flowController.flowExists(managedFlow2.mark) shouldBe false
+            flowController.flowExists(managedFlow3.mark) shouldBe false
+
+            And("The flow removal callback method was called again")
+            callbackCalled should be (true)
+            callbackCalled = false
+        }
+
+        scenario("invalidation removes a linked flow") {
+            Given("A flow in the flow controller")
+            val managedFlow = flowController.addRecircFlow(
+                FlowMatches.generateFlowMatch(random),
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(tag1),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION).
+                asInstanceOf[NativeFlowController#NativeManagedFlow]
+            managedFlow should not be null
+
+            val linkedFlowId = managedFlow.linkedId.toInt
+            val flowId = managedFlow.id.toInt
+            flowController.flowExists(linkedFlowId) shouldBe true
+            flowController.flowExists(flowId) shouldBe true
+
+            When("invalidate the flow")
+            flowController.invalidateFlowsFor(tag1)
+
+            Then("Both flows should be marked as removed")
+            callbackCalled shouldBe (true)
+            flowController.flowExists(linkedFlowId) shouldBe false
+            flowController.flowExists(flowId) shouldBe false
+        }
+
+        ignore("invalidated flow isn't removed again on expiration") {
+            Given("A flow in the flow controller")
+            val managedFlow =  flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(tag1),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
+            managedFlow should not be null
+            metrics.dpFlowsMetric.getCount should be (1)
+
+            // The flow is referenced by the FC
+            flowController.flowExists(managedFlow.mark) shouldBe true
+
+            When("The flow is invalidated")
+            flowController.invalidateFlowsFor(tag1)
 
             Then("The datapath flow metric should be set at the original value")
             metrics.currentDpFlowsMetric.getValue should be (0)

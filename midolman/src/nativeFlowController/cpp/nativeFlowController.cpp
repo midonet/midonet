@@ -135,6 +135,54 @@ Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowCallbackArg
   return str2jba(env, table->get(flowId).callbacks().at(index).args());
 }
 
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_createFlowTagIndexer
+(JNIEnv *env, jclass) {
+  return reinterpret_cast<jlong>(new FlowTagIndexer());
+}
+
+void
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerIndexFlowTag
+(JNIEnv *env, jclass, jlong pointer, jlong flow, jlong tag) {
+  auto indexer = reinterpret_cast<FlowTagIndexer*>(pointer);
+  indexer->index_flow_tag(flow, tag);
+}
+
+void
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerRemoveFlow
+(JNIEnv *env, jclass, jlong pointer, jlong flow) {
+  auto indexer = reinterpret_cast<FlowTagIndexer*>(pointer);
+  indexer->remove_flow(flow);
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerInvalidate
+(JNIEnv *env, jclass, jlong pointer, jlong tag) {
+  auto indexer = reinterpret_cast<FlowTagIndexer*>(pointer);
+  auto invalids = new std::vector<FlowId>(indexer->invalidate(tag));
+  return reinterpret_cast<jlong>(invalids);
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerInvalidFlowsCount
+(JNIEnv *env, jclass, jlong invalidPointer) {
+  auto invalids = reinterpret_cast<std::vector<FlowId>*>(invalidPointer);
+  return invalids->size();
+}
+
+jlong Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerInvalidFlowsGet
+(JNIEnv *env, jclass, jlong invalidPointer, jint index) {
+  auto invalids = reinterpret_cast<std::vector<FlowId>*>(invalidPointer);
+  return invalids->at(index);
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerInvalidFlowsFree
+(JNIEnv *env, jclass, jlong invalidPointer) {
+  auto invalids = reinterpret_cast<std::vector<FlowId>*>(invalidPointer);
+  delete invalids;
+}
+
 CallbackSpec::CallbackSpec(): m_cb_id(-1), m_args() {}
 CallbackSpec::CallbackSpec(long long cb_id, std::string args)
   : m_cb_id(cb_id), m_args(args) {}

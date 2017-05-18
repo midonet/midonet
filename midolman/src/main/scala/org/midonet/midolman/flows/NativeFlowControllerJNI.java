@@ -39,4 +39,14 @@ public class NativeFlowControllerJNI {
             long flowTable, long id, int index);
     public static native byte[] flowTableFlowCallbackArgs(
             long flowTable, long id, int index);
+
+    public static native long createFlowTagIndexer();
+    public static native void flowTagIndexerIndexFlowTag(
+            long indexer, long id, long tag);
+    public static native void flowTagIndexerRemoveFlow(long indexer, long id);
+    public static native long flowTagIndexerInvalidate(long indexer, long tag);
+    public static native long flowTagIndexerInvalidFlowsCount(long invalids);
+    public static native long flowTagIndexerInvalidFlowsGet(long invalids,
+                                                            int index);
+    public static native long flowTagIndexerInvalidFlowsFree(long invalids);
 }

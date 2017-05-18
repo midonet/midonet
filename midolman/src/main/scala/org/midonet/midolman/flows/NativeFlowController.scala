@@ -59,6 +59,7 @@ class NativeFlowController(config: MidolmanConfig,
                                         config.datapath.maxFlowCount / numWorkers),
                                     FlowController.IndexMask)
     private val flowTable = JNI.createFlowTable(maxFlows)
+    private val indexer = JNI.createFlowTagIndexer()
     private val deleter = new FlowControllerDeleterImpl(flowProcessor,
                                                         datapathId,
                                                         meters)
@@ -70,7 +71,7 @@ class NativeFlowController(config: MidolmanConfig,
         val id = JNI.flowTablePutFlow(flowTable, FlowMatches.toBytes(fmatch))
         val flow = new NativeManagedFlow(id)
         flow.addCallbacks(removeCallbacks)
-        // Add tags
+        flow.addTags(flowTags)
         // Add expiration
         metrics.dpFlowsMetric.mark(1)
         flow
@@ -90,6 +91,7 @@ class NativeFlowController(config: MidolmanConfig,
         val outerFlow = new NativeManagedFlow(outerFlowId)
         flow.setLinkedId(outerFlowId)
         flow.addCallbacks(removeCallbacks)
+        flow.addTags(flowTags)
         outerFlow.setLinkedId(flowId)
 
         metrics.dpFlowsMetric.mark(2)
@@ -103,6 +105,7 @@ class NativeFlowController(config: MidolmanConfig,
             val flow = new NativeManagedFlow(id)
             if (flow.mark == mark) {
                 val linkedId = flow.linkedId
+                JNI.flowTagIndexerRemoveFlow(indexer, id)
                 cbRegistry.runAndClear(flow.callbacks())
                 JNI.flowTableClearFlow(flowTable, id)
                 metrics.dpFlowsRemovedMetric.mark(1)
@@ -125,6 +128,18 @@ class NativeFlowController(config: MidolmanConfig,
     }
 
     override def invalidateFlowsFor(tag: FlowTag): Unit = {
+        val invalid = JNI.flowTagIndexerInvalidate(indexer, tag.toLongHash)
+        try {
+            val count = JNI.flowTagIndexerInvalidFlowsCount(invalid)
+            var i = 0
+            while (i < count) {
+                val id = JNI.flowTagIndexerInvalidFlowsGet(invalid, i)
+                removeFlow(id)
+                i += 1
+            }
+        } finally {
+            JNI.flowTagIndexerInvalidFlowsFree(invalid);
+        }
     }
 
     override def shouldProcess: Boolean = false
@@ -136,6 +151,8 @@ class NativeFlowController(config: MidolmanConfig,
         if (idInTable >= 0 && id == idInTable) {
             val flow = new NativeManagedFlow(id)
             deleter.removeFlowFromDatapath(flow.flowMatch, flow.sequence)
+            JNI.flowTagIndexerRemoveFlow(indexer, id)
+
             val linkedId = flow.linkedId
             cbRegistry.runAndClear(flow.callbacks())
             JNI.flowTableClearFlow(flowTable, id)
@@ -187,6 +204,15 @@ class NativeFlowController(config: MidolmanConfig,
                 val spec = callbacks.get(i)
                 JNI.flowTableFlowAddCallback(flowTable, id,
                                              spec.id, spec.args)
+                i += 1
+            }
+        }
+
+        def addTags(tags: ArrayList[FlowTag]): Unit = {
+            var i = 0
+            while (i < tags.size) {
+                JNI.flowTagIndexerIndexFlowTag(indexer, id,
+                                               tags.get(i).toLongHash)
                 i += 1
             }
         }
