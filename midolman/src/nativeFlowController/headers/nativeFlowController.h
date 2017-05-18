@@ -27,6 +27,19 @@ const int INDEX_SHIFT = 28;
 const int INDEX_MASK = (1 << INDEX_SHIFT) - 1;
 const int MAX_TABLE_SIZE = INDEX_MASK;
 
+class CallbackSpec {
+public:
+  CallbackSpec();
+  CallbackSpec(long long cb_id, std::string args);
+
+  long long cb_id() const;
+  std::string args() const;
+
+private:
+  long long m_cb_id;
+  std::string m_args;
+};
+
 class Flow {
 public:
   Flow();
@@ -40,11 +53,15 @@ public:
   FlowId linked_id() const;
   void set_linked_id(FlowId linked_id);
 
+  std::vector<CallbackSpec> callbacks() const;
+  void add_callback(CallbackSpec spec);
+
 private:
   FlowId m_id;
   long long m_sequence;
   FlowId m_linked_id;
   std::string m_flow_match;
+  std::vector<CallbackSpec> m_callbacks;
 };
 
 class FlowTable {

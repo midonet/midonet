@@ -55,7 +55,8 @@ class NativeFlowControllerTest extends MidolmanSpec {
         flowController = new NativeFlowController(
             config, clock, flowProcessor,
             0, 0, metrics,
-            preallocation.takeMeterRegistry())
+            preallocation.takeMeterRegistry(),
+            cbRegistry)
         val callbackCalledCbId = cbRegistry.registerCallback(
             new SerializableCallback() {
                 override def call(args: Array[Byte]): Unit = {
@@ -80,7 +81,7 @@ class NativeFlowControllerTest extends MidolmanSpec {
             metrics.dpFlowsMetric.getCount should be (1)
         }
 
-        ignore("A flow is removed") {
+        scenario("A flow is removed") {
             Given("A flow in the flow controller")
             val managedFlow = flowController.addFlow(
                 FlowMatches.generateFlowMatch(random),

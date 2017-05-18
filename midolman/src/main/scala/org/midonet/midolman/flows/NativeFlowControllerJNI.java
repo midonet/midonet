@@ -31,4 +31,12 @@ public class NativeFlowControllerJNI {
     public static native long flowTableFlowLinkedId(long flowTable, long id);
     public static native void flowTableFlowSetLinkedId(
             long flowTable, long id, long linkedId);
+
+    public static native void flowTableFlowAddCallback(
+            long flowTable, long id, long cbId, byte[] args);
+    public static native int flowTableFlowCallbackCount(long flowTable, long id);
+    public static native long flowTableFlowCallbackId(
+            long flowTable, long id, int index);
+    public static native byte[] flowTableFlowCallbackArgs(
+            long flowTable, long id, int index);
 }

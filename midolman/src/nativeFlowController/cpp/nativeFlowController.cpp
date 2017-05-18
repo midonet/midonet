@@ -108,13 +108,54 @@ Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowSetLinkedId
   table->get(flowId).set_linked_id(linkedFlowId);
 }
 
+void
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowAddCallback
+(JNIEnv *env, jclass, jlong pointer, jlong flowId, jlong cbId, jbyteArray args) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  table->get(flowId).add_callback(CallbackSpec(cbId, jba2str(env, args)));
+}
+
+jint
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowCallbackCount
+(JNIEnv *env, jclass, jlong pointer, jlong flowId) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return table->get(flowId).callbacks().size();
+}
+
+jlong Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowCallbackId
+(JNIEnv *env, jclass, jlong pointer, jlong flowId, jint index) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return table->get(flowId).callbacks().at(index).cb_id();
+}
+
+jbyteArray
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowCallbackArgs
+(JNIEnv *env, jclass, jlong pointer, jlong flowId, jint index) {
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  return str2jba(env, table->get(flowId).callbacks().at(index).args());
+}
+
+CallbackSpec::CallbackSpec(): m_cb_id(-1), m_args() {}
+CallbackSpec::CallbackSpec(long long cb_id, std::string args)
+  : m_cb_id(cb_id), m_args(args) {}
+
+long long CallbackSpec::cb_id() const {
+  return m_cb_id;
+}
+
+std::string CallbackSpec::args() const {
+  return m_args;
+}
+
 Flow::Flow()
   : m_id(NULL_ID), m_flow_match(),
-    m_sequence(-1), m_linked_id(NULL_ID) {}
+    m_sequence(-1), m_linked_id(NULL_ID),
+    m_callbacks() {}
 
 Flow::Flow(FlowId id, std::string& flow_match)
   : m_id(id), m_flow_match(flow_match),
-    m_sequence(-1), m_linked_id(NULL_ID) {}
+    m_sequence(-1), m_linked_id(NULL_ID),
+    m_callbacks() {}
 
 FlowId Flow::id() const { return m_id; }
 std::string Flow::flow_match() const { return m_flow_match; }
@@ -124,6 +165,14 @@ void Flow::set_sequence(long long sequence) { m_sequence = sequence; }
 
 FlowId Flow::linked_id() const { return m_linked_id; }
 void Flow::set_linked_id(FlowId linked_id) { m_linked_id = linked_id; }
+
+std::vector<CallbackSpec> Flow::callbacks() const {
+  return m_callbacks;
+}
+
+void Flow::add_callback(CallbackSpec spec) {
+  m_callbacks.push_back(spec);
+}
 
 int leading_zeros(int input) {
   int leading_zeros = 0;

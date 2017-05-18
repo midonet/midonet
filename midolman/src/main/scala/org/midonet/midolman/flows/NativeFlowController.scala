@@ -21,6 +21,7 @@ import java.util.ArrayList
 import org.midonet.Util
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatches
+import org.midonet.midolman.CallbackRegistry
 import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
@@ -49,7 +50,8 @@ class NativeFlowController(config: MidolmanConfig,
                            datapathId: Int,
                            workerId: Int,
                            metrics: PacketPipelineMetrics,
-                           meters: MeterRegistry) extends FlowController {
+                           meters: MeterRegistry,
+                           cbRegistry: CallbackRegistry) extends FlowController {
     NativeFlowController.loadNativeLibrary()
 
     private val numWorkers = PacketWorkersService.numWorkers(config)
@@ -66,11 +68,12 @@ class NativeFlowController(config: MidolmanConfig,
                          expiration: Expiration): ManagedFlow = {
         ensureSpace(1)
         val id = JNI.flowTablePutFlow(flowTable, FlowMatches.toBytes(fmatch))
+        val flow = new NativeManagedFlow(id)
+        flow.addCallbacks(removeCallbacks)
         // Add tags
         // Add expiration
-        // add callbacks
         metrics.dpFlowsMetric.mark(1)
-        new NativeManagedFlow(id)
+        flow
     }
 
     override def addRecircFlow(fmatch: FlowMatch,
@@ -79,19 +82,33 @@ class NativeFlowController(config: MidolmanConfig,
                                removeCallbacks: ArrayList[CallbackSpec],
                                expiration: Expiration): ManagedFlow = {
         ensureSpace(2)
-        val id = JNI.flowTablePutFlow(flowTable, FlowMatches.toBytes(fmatch))
-        val flow = new NativeManagedFlow(id)
-
-        val linkedId = JNI.flowTablePutFlow(flowTable,
-                                            FlowMatches.toBytes(recircMatch))
-        flow.setLinkedId(linkedId)
+        val flowId = JNI.flowTablePutFlow(
+            flowTable, FlowMatches.toBytes(recircMatch))
+        val flow = new NativeManagedFlow(flowId)
+        val outerFlowId = JNI.flowTablePutFlow(
+            flowTable, FlowMatches.toBytes(fmatch))
+        flow.setLinkedId(outerFlowId)
+        flow.addCallbacks(removeCallbacks)
 
         metrics.dpFlowsMetric.mark(2)
         flow
     }
 
-
     override def removeDuplicateFlow(mark: Int): Unit = {
+        val index = mark & FlowController.IndexMask
+        val id = JNI.flowTableIdAtIndex(flowTable, index)
+        if (id >= 0) {
+            val flow = new NativeManagedFlow(id)
+            if (flow.mark == mark) {
+                val linkedId = flow.linkedId
+                cbRegistry.runAndClear(flow.callbacks())
+                JNI.flowTableClearFlow(flowTable, id)
+                metrics.dpFlowsRemovedMetric.mark(1)
+                if (linkedId >= 0) {
+                    removeFlow(linkedId)
+                }
+            }
+        }
     }
 
     override def flowExists(mark: Int): Boolean = {
@@ -115,7 +132,9 @@ class NativeFlowController(config: MidolmanConfig,
         val flow = new NativeManagedFlow(id)
         deleter.removeFlowFromDatapath(flow.flowMatch, flow.sequence)
         val linkedId = flow.linkedId
+        cbRegistry.runAndClear(flow.callbacks())
         JNI.flowTableClearFlow(flowTable, id)
+
         if (linkedId >= 0) {
             removeFlow(linkedId)
         }
@@ -142,6 +161,29 @@ class NativeFlowController(config: MidolmanConfig,
         def linkedId: Long = JNI.flowTableFlowLinkedId(flowTable, id)
         def setLinkedId(linkedId: Long): Unit =
             JNI.flowTableFlowSetLinkedId(flowTable, id, linkedId)
+
+        def callbacks(): ArrayList[CallbackSpec] = {
+            val count = JNI.flowTableFlowCallbackCount(flowTable, id)
+            val callbacks = new ArrayList[CallbackSpec](count)
+            var i = 0
+            while (i < count) {
+                val cbid = JNI.flowTableFlowCallbackId(flowTable, id, i)
+                val args = JNI.flowTableFlowCallbackArgs(flowTable, id, i)
+                callbacks.add(i, new CallbackSpec(cbid, args))
+                i += 1
+            }
+            callbacks
+        }
+
+        def addCallbacks(callbacks: ArrayList[CallbackSpec]): Unit = {
+            var i = 0
+            while (i < callbacks.size) {
+                val spec = callbacks.get(i)
+                JNI.flowTableFlowAddCallback(flowTable, id,
+                                             spec.id, spec.args)
+                i += 1
+            }
+        }
     }
 }
 
