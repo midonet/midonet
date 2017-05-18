@@ -87,8 +87,10 @@ class NativeFlowController(config: MidolmanConfig,
         val flow = new NativeManagedFlow(flowId)
         val outerFlowId = JNI.flowTablePutFlow(
             flowTable, FlowMatches.toBytes(fmatch))
+        val outerFlow = new NativeManagedFlow(outerFlowId)
         flow.setLinkedId(outerFlowId)
         flow.addCallbacks(removeCallbacks)
+        outerFlow.setLinkedId(flowId)
 
         metrics.dpFlowsMetric.mark(2)
         flow
@@ -129,16 +131,20 @@ class NativeFlowController(config: MidolmanConfig,
     override def process(): Unit = {}
 
     private def removeFlow(id: Long): Unit = {
-        val flow = new NativeManagedFlow(id)
-        deleter.removeFlowFromDatapath(flow.flowMatch, flow.sequence)
-        val linkedId = flow.linkedId
-        cbRegistry.runAndClear(flow.callbacks())
-        JNI.flowTableClearFlow(flowTable, id)
+        val index = (id & FlowController.IndexMask).toInt
+        val idInTable = JNI.flowTableIdAtIndex(flowTable, index)
+        if (idInTable >= 0 && id == idInTable) {
+            val flow = new NativeManagedFlow(id)
+            deleter.removeFlowFromDatapath(flow.flowMatch, flow.sequence)
+            val linkedId = flow.linkedId
+            cbRegistry.runAndClear(flow.callbacks())
+            JNI.flowTableClearFlow(flowTable, id)
 
-        if (linkedId >= 0) {
-            removeFlow(linkedId)
+            if (linkedId >= 0) {
+                removeFlow(linkedId)
+            }
+            metrics.dpFlowsRemovedMetric.mark(1)
         }
-        metrics.dpFlowsRemovedMetric.mark(1)
     }
 
     private def ensureSpace(count: Int): Unit = {

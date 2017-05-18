@@ -101,49 +101,52 @@ class NativeFlowControllerTest extends MidolmanSpec {
             callbackCalled should be (true)
         }
 
-        ignore("The linked flow of a duplicate flow is removed") {
-            /*Given("A flow in the flow controller")
-            var flow = new TestableFlow(linked = new FlowMatch)
-            var managedFlow = flow.add()
+        scenario("The linked flow of a duplicate flow is removed") {
+            Given("A flow in the flow controller")
+            val managedFlow = flowController.addRecircFlow(
+                FlowMatches.generateFlowMatch(random),
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION).
+                asInstanceOf[NativeFlowController#NativeManagedFlow]
             managedFlow should not be null
+
+            val linkedFlowId = managedFlow.linkedId.toInt
+            val flowId = managedFlow.id.toInt
+            flowController.flowExists(linkedFlowId) shouldBe true
+            flowController.flowExists(flowId) shouldBe true
 
             When("Marking one of the flows as duplicate")
             flowController.removeDuplicateFlow(managedFlow.mark)
 
             Then("Both flows should be marked as removed")
-            flow.callbackCalled should be (true)
-            flow.linkedCallbackCalled should be (true)
+            callbackCalled shouldBe (true)
+            flowController.flowExists(linkedFlowId) shouldBe false
+            flowController.flowExists(flowId) shouldBe false
 
             When("Marking the other flow as duplicate")
-            flow = new TestableFlow(linked = new FlowMatch)
-            managedFlow = flow.add()
-            managedFlow should not be null
-            flowController.removeDuplicateFlow(managedFlow.linkedFlow.mark)
+            val managedFlow2 = flowController.addRecircFlow(
+                FlowMatches.generateFlowMatch(random),
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION).
+                asInstanceOf[NativeFlowController#NativeManagedFlow]
+            managedFlow2 should not be null
+            callbackCalled = false
+
+            val linkedFlowId2 = managedFlow2.linkedId.toInt
+            val flowId2 = managedFlow2.id.toInt
+            flowController.flowExists(linkedFlowId2) shouldBe true
+            flowController.flowExists(flowId2) shouldBe true
+
+            flowController.removeDuplicateFlow(linkedFlowId2)
 
             Then("Both flows should be marked as removed")
-            flow.callbackCalled should be (true)
-            flow.linkedCallbackCalled should be (true)*/
-        }
-
-        ignore("both flows are removed if marked as duplicate") {
-            /*Given("2 linked flows in the flow controller")
-            val flow = new TestableFlow(linked = new FlowMatch)
-            val managedFlow = flow.add()
-            managedFlow should not be null
-
-            val flow2 = new TestableFlow(linked = new FlowMatch)
-            val managedFlow2 = flow2.add()
-            managedFlow2 should not be null
-            managedFlow.linkedFlow = managedFlow2
-            flowController.flowExists(managedFlow.mark) shouldBe true
-            flowController.flowExists(managedFlow2.mark) shouldBe true
-
-            When("one of the flows is removed from the flow controller")
-            flow.remove(managedFlow)
-
-            Then("both flows should be removed")
-            flowController.flowExists(managedFlow.mark) shouldBe false
-            flowController.flowExists(managedFlow2.mark) shouldBe false*/
+            callbackCalled shouldBe (true)
+            flowController.flowExists(linkedFlowId2) shouldBe false
+            flowController.flowExists(flowId2) shouldBe false
         }
 
         ignore("Expiration removes a flow") {
