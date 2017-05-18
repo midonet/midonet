@@ -18,8 +18,11 @@
 
 #include <string>
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
 using FlowId = long long;
+using FlowTag = long long;
 const FlowId NULL_ID = -839193346820535158;
 
 // See FlowController.scala
@@ -86,6 +89,18 @@ private:
   int m_occupied;
 };
 
+class FlowTagIndexer {
+public:
+  void index_flow_tag(FlowId id, FlowTag tag);
+  std::vector<FlowId> invalidate(FlowTag tag);
+  std::vector<FlowId> flows_for_tag(FlowTag tag) const;
+  void remove_flow(FlowId id);
+  int tag_count() const;
+
+private:
+  std::unordered_map<FlowTag, std::unordered_set<FlowId>> m_tags_to_flows;
+  std::unordered_map<FlowId, std::vector<FlowTag>> m_flows_to_tags;
+};
 
 int leading_zeros(int input);
 int next_pos_power_of_two(int input);

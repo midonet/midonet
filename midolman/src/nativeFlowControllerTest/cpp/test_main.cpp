@@ -116,6 +116,118 @@ TEST(FlowTable, test_eviction_candidate) {
   ASSERT_EQ(table.occupied(), 0);
 }
 
+TEST(FlowTagIndexer, test_flow_removed) {
+  FlowTagIndexer indexer;
+  FlowId id = 0xdeadbeef;
+  FlowTag tag = 0xcafebeef;
+  indexer.index_flow_tag(id, tag);
+  auto flows_to_remove = indexer.invalidate(tag);
+  ASSERT_EQ(flows_to_remove.size(), 1);
+  ASSERT_EQ(flows_to_remove.at(0), id);
+}
+
+TEST(FlowTagIndexer, test_multiple_tags) {
+  FlowId id = 0xdeadbeef;
+  FlowTag tag1 = 0xd00dbeef;
+  FlowTag tag2 = 0xbabebeef;
+  FlowTagIndexer indexer;
+  indexer.index_flow_tag(id, tag1);
+  indexer.index_flow_tag(id, tag2);
+  auto flows_to_remove = indexer.invalidate(tag1);
+  ASSERT_EQ(flows_to_remove.size(), 1);
+  ASSERT_EQ(flows_to_remove.at(0), id);
+
+  flows_to_remove = indexer.invalidate(tag2);
+  ASSERT_EQ(flows_to_remove.size(), 0);
+
+  ASSERT_EQ(indexer.flows_for_tag(tag1).size(), 0);
+  ASSERT_EQ(indexer.flows_for_tag(tag2).size(), 0);
+}
+
+bool find_flow(std::vector<FlowId> haystack, FlowId needle) {
+  auto iter = haystack.begin();
+  while (iter != haystack.end()) {
+    if (*iter == needle) {
+      return true;
+    }
+    iter++;
+  }
+  return false;
+}
+
+TEST(FlowTagIndexer, test_multiple_flows_invalidated) {
+  FlowId id1 = 0xdeadbeef;
+  FlowId id2 = 0xfeedbeef;
+  FlowTag tag1 = 0xd00dbeef;
+  FlowTag tag2 = 0xbabebeef;
+  FlowTagIndexer indexer;
+
+  indexer.index_flow_tag(id1, tag1);
+  indexer.index_flow_tag(id2, tag1);
+  indexer.index_flow_tag(id2, tag2);
+
+  auto flows_to_remove = indexer.invalidate(tag1);
+  ASSERT_EQ(flows_to_remove.size(), 2);
+  ASSERT_EQ(find_flow(flows_to_remove, id1), true);
+  ASSERT_EQ(find_flow(flows_to_remove, id2), true);
+
+  flows_to_remove = indexer.invalidate(tag2);
+  ASSERT_EQ(flows_to_remove.size(), 0);
+
+  ASSERT_EQ(indexer.flows_for_tag(tag1).size(), 0);
+  ASSERT_EQ(indexer.flows_for_tag(tag2).size(), 0);
+}
+
+TEST(FlowTagIndexer, test_flow_removed_from_tag_list) {
+  FlowId id1 = 0xdeadbeef;
+  FlowId id2 = 0xfeedbeef;
+  FlowTag tag1 = 0xd00dbeef;
+  FlowTag tag2 = 0xbabebeef;
+  FlowTagIndexer indexer;
+
+  indexer.index_flow_tag(id1, tag1);
+  indexer.index_flow_tag(id1, tag2);
+  indexer.index_flow_tag(id2, tag1);
+  indexer.index_flow_tag(id2, tag2);
+
+  auto flows_for_tag1 = indexer.flows_for_tag(tag1);
+  ASSERT_EQ(flows_for_tag1.size(), 2);
+  ASSERT_EQ(find_flow(flows_for_tag1, id1), true);
+  ASSERT_EQ(find_flow(flows_for_tag1, id2), true);
+
+  auto flows_for_tag2 = indexer.flows_for_tag(tag2);
+  ASSERT_EQ(flows_for_tag2.size(), 2);
+  ASSERT_EQ(find_flow(flows_for_tag2, id1), true);
+  ASSERT_EQ(find_flow(flows_for_tag2, id2), true);
+
+  indexer.remove_flow(id1);
+
+  flows_for_tag1 = indexer.flows_for_tag(tag1);
+  ASSERT_EQ(flows_for_tag1.size(), 1);
+  ASSERT_EQ(find_flow(flows_for_tag1, id2), true);
+
+  flows_for_tag2 = indexer.flows_for_tag(tag2);
+  ASSERT_EQ(flows_for_tag2.size(), 1);
+  ASSERT_EQ(find_flow(flows_for_tag2, id2), true);
+}
+
+TEST(FlowTagIndexer, test_tag_removed_when_no_more_flows) {
+  FlowId id1 = 0xdeadbeef;
+  FlowId id2 = 0xfeedbeef;
+  FlowTag tag = 0xd00dbeef;
+  FlowTagIndexer indexer;
+
+  indexer.index_flow_tag(id1, tag);
+  indexer.index_flow_tag(id2, tag);
+  ASSERT_EQ(indexer.tag_count(), 1);
+
+  indexer.remove_flow(id1);
+  ASSERT_EQ(indexer.tag_count(), 1);
+
+  indexer.remove_flow(id2);
+  ASSERT_EQ(indexer.tag_count(), 0);
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -294,3 +294,71 @@ FlowId FlowTable::candidate_for_eviction() {
   } while (index != start && to_evict == NULL_ID);
   return to_evict;
 }
+
+
+void FlowTagIndexer::index_flow_tag(FlowId id, FlowTag tag) {
+  auto iter = m_tags_to_flows.find(tag);
+  if (iter == m_tags_to_flows.end()) {
+    m_tags_to_flows.insert({tag, std::unordered_set<FlowId>{ id }});
+  } else {
+    iter->second.insert(id);
+  }
+  auto iter2 = m_flows_to_tags.find(id);
+  if (iter2 == m_flows_to_tags.end()) {
+    m_flows_to_tags.insert(std::make_pair(id, std::vector<FlowTag>{ tag }));
+  } else {
+    iter2->second.push_back(tag);
+  }
+}
+
+std::vector<FlowId> FlowTagIndexer::invalidate(FlowTag tag) {
+  auto iter = m_tags_to_flows.find(tag);
+  if (iter != m_tags_to_flows.end()) {
+    std::vector<FlowId> invalidated(iter->second.begin(), iter->second.end());
+    m_tags_to_flows.erase(iter);
+
+    auto invalidated_iter = invalidated.begin();
+    while (invalidated_iter != invalidated.end()) {
+      remove_flow(*invalidated_iter);
+      invalidated_iter++;
+    }
+    return invalidated;
+  } else {
+    return std::vector<FlowId>();
+  }
+}
+
+std::vector<FlowId> FlowTagIndexer::flows_for_tag(FlowTag tag) const {
+  auto iter = m_tags_to_flows.find(tag);
+  if (iter != m_tags_to_flows.end()) {
+    return std::vector<FlowId>(iter->second.begin(), iter->second.end());
+  } else {
+    return std::vector<FlowId>();
+  }
+}
+
+void FlowTagIndexer::remove_flow(FlowId id) {
+  // find list of tags for flow
+  auto tags_for_flow_iter = m_flows_to_tags.find(id);
+  if (tags_for_flow_iter != m_flows_to_tags.end()) {
+    // iterate over list of tags for flow
+    auto tags_vector_iter = tags_for_flow_iter->second.begin();
+    while (tags_vector_iter != tags_for_flow_iter->second.end()) {
+      // lookup tag in tags -> flows map
+      auto tag_to_flow_iter = m_tags_to_flows.find(*tags_vector_iter);
+      if (tag_to_flow_iter != m_tags_to_flows.end()) {
+        tag_to_flow_iter->second.erase(id);
+        // if there's now no flows for the tag, delete tag from map
+        if (tag_to_flow_iter->second.size() == 0) {
+          m_tags_to_flows.erase(tag_to_flow_iter);
+        }
+      }
+      tags_vector_iter++;
+    }
+    m_flows_to_tags.erase(tags_for_flow_iter);
+  }
+}
+
+int FlowTagIndexer::tag_count() const {
+  return m_tags_to_flows.size();
+}
