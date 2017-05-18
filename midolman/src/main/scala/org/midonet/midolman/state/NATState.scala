@@ -20,6 +20,8 @@ import java.nio.ByteBuffer
 import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
 
+import com.google.common.hash.Hashing
+
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
@@ -28,6 +30,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets.NatState._
 import org.midonet.packets._
+import org.midonet.sdn.flows.FlowTagger.TagTypes
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.collection.Reducer
 
@@ -56,6 +59,18 @@ object NatState {
             key
         }
 
+        private def natKeyLongHash(key: NatKey): Long = {
+            Hashing.murmur3_128(TagTypes.NatFlowState).newHasher().
+                putByte(keyTypeToByte(key.keyType)).
+                putInt(key.networkSrc.hashCode).
+                putInt(key.networkDst.hashCode).
+                putInt(key.transportSrc).
+                putInt(key.transportDst).
+                putByte(key.networkProtocol).
+                putLong(key.deviceId.getMostSignificantBits).
+                putLong(key.deviceId.getLeastSignificantBits).hash().asLong
+        }
+
         // Used when accepting new messages from other agents
         def apply(keyType: KeyType, networkSrc: IPv4Addr, transportSrc: Int,
                   networkDst: IPv4Addr, transportDst: Int, networkProtocol: Byte,
@@ -63,13 +78,17 @@ object NatState {
             new NatKeyStore(keyType,
                             networkSrc, transportSrc,
                             networkDst, transportDst,
-                            networkProtocol, deviceId) with FlowStateKey
+                            networkProtocol, deviceId) with FlowStateKey {
+                override lazy val toLongHash = natKeyLongHash(this)
+            }
 
         def apply(nks: NatKeyStore): NatKey = {
             new NatKeyStore(nks.keyType,
                             nks.networkSrc, nks.transportSrc,
                             nks.networkDst, nks.transportDst,
-                            nks.networkProtocol, nks.deviceId) with FlowStateKey
+                            nks.networkProtocol, nks.deviceId) with FlowStateKey {
+                override lazy val toLongHash = natKeyLongHash(this)
+            }
         }
 
         private def processIcmp(natKey: NatKey, wcMatch: FlowMatch): Unit =
@@ -152,6 +171,26 @@ object NatState {
                                          key.transportDst, binding)
         }
 
+    private def keyTypeToByte(keyType: KeyType): Byte =
+        keyType match {
+            case FWD_SNAT => 1
+            case FWD_DNAT => 2
+            case FWD_STICKY_DNAT => 3
+            case REV_SNAT => 4
+            case REV_DNAT => 5
+            case REV_STICKY_DNAT => 6
+        }
+
+    private def byteToKeyType(byte: Byte): KeyType =
+        byte match {
+            case 1 => FWD_SNAT
+            case 2 => FWD_DNAT
+            case 3 => FWD_STICKY_DNAT
+            case 4 => REV_SNAT
+            case 5 => REV_DNAT
+            case 6 => REV_STICKY_DNAT
+        }
+
     val NO_BYTES = new Array[Byte](0)
     class NatKeySerializer
             extends FlowStateStore.StateSerializer[NatKey] {
@@ -161,15 +200,7 @@ object NatState {
                 NO_BYTES
             } else {
                 val bb = ByteBuffer.allocate(Size)
-                val keyType: Byte = value.keyType match {
-                    case FWD_SNAT => 1
-                    case FWD_DNAT => 2
-                    case FWD_STICKY_DNAT => 3
-                    case REV_SNAT => 4
-                    case REV_DNAT => 5
-                    case REV_STICKY_DNAT => 6
-                }
-                bb.put(keyType)
+                bb.put(keyTypeToByte(value.keyType))
                 bb.putInt(value.networkSrc.toInt)
                 bb.putInt(value.transportSrc)
                 bb.putInt(value.networkDst.toInt)
@@ -185,15 +216,7 @@ object NatState {
                 null
             } else {
                 val bb = ByteBuffer.wrap(bytes)
-                val keyType = bb.get match {
-                    case 1 => FWD_SNAT
-                    case 2 => FWD_DNAT
-                    case 3 => FWD_STICKY_DNAT
-                    case 4 => REV_SNAT
-                    case 5 => REV_DNAT
-                    case 6 => REV_STICKY_DNAT
-                }
-                NatKey(keyType,
+                NatKey(byteToKeyType(bb.get),
                        IPv4Addr(bb.getInt),
                        bb.getInt,
                        IPv4Addr(bb.getInt),

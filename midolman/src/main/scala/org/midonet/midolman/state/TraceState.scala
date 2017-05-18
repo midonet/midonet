@@ -22,6 +22,8 @@ import com.datastax.driver.core.utils.UUIDs
 
 import org.slf4j.LoggerFactory
 
+import com.google.common.hash.Hashing
+
 import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
@@ -29,6 +31,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.packets.TraceState.{TraceKeyAllocator, TraceKeyStore}
 import org.midonet.packets.{MAC, IPAddr, ICMP}
 import org.midonet.packets.TunnelKeys.TraceBit
+import org.midonet.sdn.flows.FlowTagger.TagTypes
 import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
@@ -64,7 +67,14 @@ object TraceState {
             new TraceKeyStore(
                 ethSrc, ethDst, etherType,
                 networkSrc, networkDst,
-                networkProto, srcPort, dstPort) with FlowStateKey
+                networkProto, srcPort, dstPort) with FlowStateKey {
+                override lazy val toLongHash =
+                    Hashing.murmur3_128(TagTypes.TraceFlowState).newHasher().
+                        putLong(ethSrc.asLong).putLong(ethDst.asLong).
+                        putShort(etherType).putInt(networkSrc.hashCode).
+                        putInt(networkDst.hashCode).putByte(networkProto).
+                        putInt(srcPort).putInt(dstPort).hash().asLong
+            }
 
     }
 

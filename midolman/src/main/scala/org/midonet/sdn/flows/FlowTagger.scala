@@ -16,9 +16,11 @@
 
 package org.midonet.sdn.flows
 
+import java.nio.ByteBuffer
 import java.util.{UUID, WeakHashMap}
 import java.lang.ref.WeakReference
 
+import com.google.common.hash.Hashing
 import scala.reflect.{ClassTag, classTag}
 
 import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
@@ -26,7 +28,31 @@ import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
 import org.midonet.midolman.layer3.Route
 
 object FlowTagger {
-    trait FlowTag extends BackChannelMessage with Broadcast
+    object TagTypes {
+        val Device: Byte = 1
+        val PortTx: Byte = 2
+        val PortRx: Byte = 3
+        val VlanFlood: Byte = 4
+        val ArpRequest: Byte = 5
+        val VlanPort: Byte = 6
+        val Broadcast: Byte = 7
+        val BridgePort: Byte = 8
+        val DpPort: Byte = 9
+        val TunnelRoute: Byte = 10
+        val TunnelKey: Byte = 11
+        val Route: Byte = 12
+        val DestinationIp: Byte = 13
+        val ArpEntry: Byte = 14
+        val User: Byte = 15
+        val FlowStateDevice: Byte = 16
+        val ConnTrackFlowState: Byte = 17
+        val NatFlowState: Byte = 18
+        val TraceFlowState: Byte = 19
+    }
+
+    trait FlowTag extends BackChannelMessage with Broadcast {
+        def toLongHash(): Long
+    }
 
     /**
      * Marker interface used to distinguish flow state tags from normal
@@ -72,6 +98,10 @@ object FlowTagger {
     case class DeviceTag(device: UUID) extends FlowTag with MeterTag {
         def deviceId(): UUID = device
         override def toString = "device:" + device
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.Device).newHasher().
+                putLong(device.getMostSignificantBits).
+                putLong(device.getLeastSignificantBits).hash().asLong
     }
 
     class LoadBalancerDeviceTag(device: UUID) extends DeviceTag(device)
@@ -124,6 +154,10 @@ object FlowTagger {
 
     case class PortTxTag(port: UUID) extends FlowTag with MeterTag {
         override def toString = "port:tx:" + port
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.PortTx).newHasher().
+                putLong(port.getMostSignificantBits).
+                putLong(port.getLeastSignificantBits).hash().asLong
     }
 
     val cachedPortTxTags = new ThreadLocal[TagsTrie] {
@@ -142,6 +176,10 @@ object FlowTagger {
 
     case class PortRxTag(port: UUID) extends FlowTag with MeterTag {
         override def toString = "port:rx:" + port
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.PortRx).newHasher().
+                putLong(port.getMostSignificantBits).
+                putLong(port.getLeastSignificantBits).hash().asLong
     }
 
     val cachedPortRxTags = new ThreadLocal[TagsTrie] {
@@ -166,6 +204,12 @@ object FlowTagger {
                             dstMac: MAC) extends FlowTag {
         override def toString = "br_flood_mac:" + bridgeId + ":" + dstMac +
                                 ":" + vlanId
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.VlanFlood).newHasher().
+                putLong(bridgeId.getMostSignificantBits).
+                putLong(bridgeId.getLeastSignificantBits).
+                putShort(vlanId).putLong(dstMac.asLong).
+                hash().asLong
     }
 
     val cachedVlanFloodTags = new ThreadLocal[TagsTrie] {
@@ -191,6 +235,10 @@ object FlowTagger {
      */
     case class ArpRequestTag(bridgeId: UUID) extends FlowTag {
         override def toString = "br_arp_req:" + bridgeId
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.ArpRequest).newHasher().
+                putLong(bridgeId.getMostSignificantBits).
+                putLong(bridgeId.getLeastSignificantBits).hash().asLong
     }
 
     val cachedArpRequestTags = new ThreadLocal[TagsTrie] {
@@ -215,6 +263,14 @@ object FlowTagger {
                            port: UUID) extends FlowTag {
         override def toString = "br_fwd_mac:" + bridgeId+ ":" + mac + ":" +
                                 vlanId + ":" + port
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.VlanPort).newHasher().
+                putLong(bridgeId.getMostSignificantBits).
+                putLong(bridgeId.getLeastSignificantBits).
+                putLong(mac.asLong).putShort(vlanId).
+                putLong(port.getMostSignificantBits).
+                putLong(port.getLeastSignificantBits).
+                hash().asLong
     }
 
     val cachedVlanPortTags = new ThreadLocal[TagsTrie] {
@@ -241,6 +297,10 @@ object FlowTagger {
      */
     case class BroadcastTag(bridgeId: UUID) extends FlowTag {
         override def toString = "br_flood:" + bridgeId
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.Broadcast).newHasher().
+                putLong(bridgeId.getMostSignificantBits).
+                putLong(bridgeId.getLeastSignificantBits).hash().asLong
     }
 
     val cachedBroadcastTags = new ThreadLocal[TagsTrie] {
@@ -262,6 +322,12 @@ object FlowTagger {
      */
     case class BridgePortTag(bridgeId: UUID, logicalPortId: UUID) extends FlowTag {
         override def toString = "br_fwd_lport:" + bridgeId + ":" + logicalPortId
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.BridgePort).newHasher().
+                putLong(bridgeId.getMostSignificantBits).
+                putLong(bridgeId.getLeastSignificantBits).
+                putLong(logicalPortId.getMostSignificantBits).
+                putLong(logicalPortId.getLeastSignificantBits).hash().asLong
     }
 
     val cachedBridgePortTags = new ThreadLocal[TagsTrie] {
@@ -284,6 +350,9 @@ object FlowTagger {
      */
     case class DpPortTag(port: Integer) extends FlowTag {
         override def toString = "dp_port:" + port
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.DpPort).newHasher().
+                putInt(port).hash().asLong
     }
 
     val cachedDpPortTags = new ThreadLocal[TagsTrie] {
@@ -305,6 +374,9 @@ object FlowTagger {
      */
     case class TunnelRouteTag(srcIp: Integer, dstIp: Integer) extends FlowTag with MeterTag {
         override def toString = s"tunnel:$srcIp:$dstIp"
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.TunnelRoute).newHasher().
+                putInt(srcIp).putInt(dstIp).hash().asLong
     }
 
     val cachedTunnelRouteTags = new ThreadLocal[TagsTrie] {
@@ -327,6 +399,9 @@ object FlowTagger {
      */
     case class TunnelKeyTag(key: java.lang.Long) extends FlowTag {
         override def toString = "tun_key:" + key
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.TunnelKey).newHasher().
+                putLong(key).hash().asLong
     }
 
     val cachedTunnelKeyTags = new ThreadLocal[TagsTrie] {
@@ -348,6 +423,11 @@ object FlowTagger {
      */
     case class RouteTag(routerId: UUID, routeHashCode: Integer) extends FlowTag {
         override def toString = "rtr_route:" + routerId + ":" + routeHashCode
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.Route).newHasher().
+                putLong(routerId.getMostSignificantBits).
+                putLong(routerId.getLeastSignificantBits).
+                putInt(routeHashCode).hash().asLong
     }
 
     val cachedRouteTags = new ThreadLocal[TagsTrie] {
@@ -371,6 +451,12 @@ object FlowTagger {
      */
     case class DestinationIpTag(routerId: UUID, ipDestination: IPAddr) extends FlowTag {
         override def toString = "rtr_ip:" + routerId + ":" + ipDestination
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.DestinationIp).newHasher().
+                putLong(routerId.getMostSignificantBits).
+                putLong(routerId.getLeastSignificantBits).
+                putInt(ipDestination.hashCode).
+                hash().asLong
     }
 
     val cachedDestinationIpTags = new ThreadLocal[TagsTrie] {
@@ -406,6 +492,11 @@ object FlowTagger {
      */
     case class ArpEntryTag(routerId: UUID, ipDestination: IPAddr) extends FlowTag {
         override def toString = "rtr_arp_entry:" + routerId + ":" + ipDestination
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.ArpEntry).newHasher().
+                putLong(routerId.getMostSignificantBits).
+                putLong(routerId.getLeastSignificantBits).
+                putInt(ipDestination.hashCode).hash().asLong
     }
 
     val cachedArpEntryTags = new ThreadLocal[TagsTrie] {
@@ -428,6 +519,10 @@ object FlowTagger {
      */
     case class UserTag(name: String) extends FlowTag with MeterTag {
         override def toString = s"user:$name"
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.User).newHasher().
+                putUnencodedChars(name).hash().asLong
+
     }
 
     val cachedUserTags = new ThreadLocal[TagsTrie] {
@@ -453,6 +548,10 @@ object FlowTagger {
      */
     case class FlowStateDeviceTag(device: UUID) extends FlowTag {
         override def toString = s"flowStateDevice:$device"
+        override lazy val toLongHash =
+            Hashing.murmur3_128(TagTypes.FlowStateDevice).newHasher().
+                putLong(device.getMostSignificantBits).
+                putLong(device.getLeastSignificantBits).hash().asLong
     }
 
     val cachedFlowStateDeviceTags = new ThreadLocal[TagsTrie] {

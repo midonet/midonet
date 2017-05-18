@@ -21,6 +21,8 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 
+import com.google.common.hash.Hashing
+
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.FlowState.FlowStateKey
@@ -29,6 +31,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.packets.ConnTrackState.{ConnTrackKeyAllocator, ConnTrackKeyStore}
 import org.midonet.packets.FlowStateStore
 import org.midonet.packets.{ICMP, IPAddr, IPv4, IPv4Addr, TCP, UDP}
+import org.midonet.sdn.flows.FlowTagger.TagTypes
 import org.midonet.sdn.state.FlowStateTransaction
 
 object ConnTrackState {
@@ -53,7 +56,16 @@ object ConnTrackState {
                   deviceId: UUID): ConnTrackKey =
             new ConnTrackKeyStore(networkSrc, icmpIdOrTransportSrc,
                                   networkDst, icmpIdOrTransportDst,
-                                  networkProtocol, deviceId) with FlowStateKey
+                                  networkProtocol, deviceId) with FlowStateKey {
+                override lazy val toLongHash =
+                    Hashing.murmur3_128(TagTypes.ConnTrackFlowState).
+                        newHasher().putInt(networkSrc.hashCode).
+                        putInt(icmpIdOrTransportSrc).
+                        putInt(networkDst.hashCode).
+                        putByte(networkProtocol).
+                        putLong(deviceId.getMostSignificantBits).
+                        putLong(deviceId.getLeastSignificantBits).hash().asLong
+            }
     }
 
     type ConnTrackKey = ConnTrackKeyStore with FlowStateKey
