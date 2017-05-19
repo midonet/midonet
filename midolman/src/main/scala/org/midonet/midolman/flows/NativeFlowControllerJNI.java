@@ -22,7 +22,6 @@ public class NativeFlowControllerJNI {
 
     public static native long flowTableIdAtIndex(long flowTable, int index);
     public static native int flowTableOccupied(long flowTable);
-    public static native long flowTableEvictionCandidate(long flowTable);
 
     public static native byte[] flowTableFlowMatch(long flowTable, long id);
     public static native long flowTableFlowSequence(long flowTable, long id);
@@ -49,4 +48,13 @@ public class NativeFlowControllerJNI {
     public static native long flowTagIndexerInvalidFlowsGet(long invalids,
                                                             int index);
     public static native long flowTagIndexerInvalidFlowsFree(long invalids);
+
+    public static native long createFlowExpirationIndexer();
+    public static native void flowExpirationIndexerEnqueueFlowExpiration(
+            long expirer, long id, long expiration, int expirationType);
+    public static native long flowExpirationIndexerPollForExpired(
+            long expirer, long expiration);
+    public static native long flowExpirationIndexerEvictFlow(
+            long expirer);
+
 }

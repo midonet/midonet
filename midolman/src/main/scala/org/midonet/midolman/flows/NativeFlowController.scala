@@ -60,6 +60,7 @@ class NativeFlowController(config: MidolmanConfig,
                                     FlowController.IndexMask)
     private val flowTable = JNI.createFlowTable(maxFlows)
     private val indexer = JNI.createFlowTagIndexer()
+    private val expirer = JNI.createFlowExpirationIndexer()
     private val deleter = new FlowControllerDeleterImpl(flowProcessor,
                                                         datapathId,
                                                         meters)
@@ -69,10 +70,9 @@ class NativeFlowController(config: MidolmanConfig,
                          expiration: Expiration): ManagedFlow = {
         ensureSpace(1)
 
-        val flow = addFlow(fmatch)
+        val flow = addFlow(fmatch, expiration)
         flow.addCallbacks(removeCallbacks)
         flow.addTags(flowTags)
-        // Add expiration
         metrics.dpFlowsMetric.mark(1)
         flow
     }
@@ -83,8 +83,8 @@ class NativeFlowController(config: MidolmanConfig,
                                removeCallbacks: ArrayList[CallbackSpec],
                                expiration: Expiration): ManagedFlow = {
         ensureSpace(2)
-        val flow = addFlow(recircMatch)
-        val outerFlow = addFlow(fmatch)
+        val flow = addFlow(recircMatch, expiration)
+        val outerFlow = addFlow(fmatch, expiration)
         flow.setLinkedId(outerFlow.id)
         flow.addCallbacks(removeCallbacks)
         flow.addTags(flowTags)
@@ -122,15 +122,27 @@ class NativeFlowController(config: MidolmanConfig,
                 i += 1
             }
         } finally {
-            JNI.flowTagIndexerInvalidFlowsFree(invalid);
+            JNI.flowTagIndexerInvalidFlowsFree(invalid)
         }
     }
 
-    override def shouldProcess: Boolean = false
-    override def process(): Unit = {}
+    override def shouldProcess: Boolean = deleter.shouldProcess()
 
-    private def addFlow(flowMatch: FlowMatch): NativeManagedFlow = {
+    override def process(): Unit = {
+        deleter.processCompletedFlowOperations()
+        val now = clock.tick
+        var flowId = JNI.flowExpirationIndexerPollForExpired(expirer, now)
+        while (flowId != ManagedFlow.NoFlow) {
+            removeFlow(flowId)
+            flowId = JNI.flowExpirationIndexerPollForExpired(expirer, now)
+        }
+    }
+
+    private def addFlow(flowMatch: FlowMatch, expiration: Expiration)
+    : NativeManagedFlow = {
         val id = JNI.flowTablePutFlow(flowTable, FlowMatches.toBytes(flowMatch))
+        JNI.flowExpirationIndexerEnqueueFlowExpiration(
+            expirer, id, clock.tick + expiration.value, expiration.typeId)
         new NativeManagedFlow(id)
     }
 
@@ -170,7 +182,7 @@ class NativeFlowController(config: MidolmanConfig,
 
     private def ensureSpace(count: Int): Unit = {
         while (JNI.flowTableOccupied(flowTable) + count > maxFlows) {
-            val toEvict = JNI.flowTableEvictionCandidate(flowTable)
+            val toEvict = JNI.flowExpirationIndexerEvictFlow(expirer)
             removeFlow(toEvict)
         }
     }

@@ -17,6 +17,7 @@
 #include <cassert>
 #include <iostream>
 #include <nativeFlowController.h>
+#include <nativeFlowExpirationIndexer.h>
 #include "org_midonet_midolman_flows_NativeFlowControllerJNI.h"
 
 const std::string jba2str(JNIEnv *env, jbyteArray ba) {
@@ -64,13 +65,6 @@ Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableOccupied
 (JNIEnv *env, jclass, jlong pointer) {
   auto table = reinterpret_cast<FlowTable*>(pointer);
   return table->occupied();
-}
-
-jlong
-Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableEvictionCandidate
-(JNIEnv *env, jclass, jlong pointer) {
-  auto table = reinterpret_cast<FlowTable*>(pointer);
-  return table->candidate_for_eviction();
 }
 
 jbyteArray
@@ -183,6 +177,33 @@ Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerInvalidFlo
   delete invalids;
 }
 
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_createFlowExpirationIndexer
+(JNIEnv *env, jclass) {
+  return reinterpret_cast<jlong>(new FlowExpirationIndexer());
+}
+
+void
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowExpirationIndexerEnqueueFlowExpiration
+(JNIEnv *env, jclass, jlong pointer, jlong id, jlong expiration, jint expirationType) {
+  auto expirer = reinterpret_cast<FlowExpirationIndexer*>(pointer);
+  expirer->enqueue_flow_expiration(id, expiration, expirationType);
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowExpirationIndexerPollForExpired
+(JNIEnv *env, jclass, jlong pointer, jlong now) {
+  auto expirer = reinterpret_cast<FlowExpirationIndexer*>(pointer);
+  return expirer->poll_for_expired(now);
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowExpirationIndexerEvictFlow
+(JNIEnv *env, jclass, jlong pointer) {
+  auto expirer = reinterpret_cast<FlowExpirationIndexer*>(pointer);
+  return expirer->evict_flow();
+}
+
 CallbackSpec::CallbackSpec(): m_cb_id(-1), m_args() {}
 CallbackSpec::CallbackSpec(long long cb_id, std::string args)
   : m_cb_id(cb_id), m_args(args) {}
@@ -282,19 +303,6 @@ void FlowTable::clear(FlowId id) {
   m_table[id & m_mask] = Flow();
   m_occupied--;
 }
-
-FlowId FlowTable::candidate_for_eviction() {
-  auto counter = m_id_counter;
-  auto index = counter & m_mask;
-  auto start = index;
-  auto to_evict = NULL_ID;
-  do {
-    to_evict = m_table[index].id();
-    index = ++counter & m_mask;
-  } while (index != start && to_evict == NULL_ID);
-  return to_evict;
-}
-
 
 void FlowTagIndexer::index_flow_tag(FlowId id, FlowTag tag) {
   auto iter = m_tags_to_flows.find(tag);

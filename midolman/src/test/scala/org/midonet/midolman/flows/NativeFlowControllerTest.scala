@@ -50,6 +50,9 @@ class NativeFlowControllerTest extends MidolmanSpec {
     var callbackCalledSpec: CallbackSpec = _
     val random = new Random
 
+    val tag1 = FlowTagger.tagForDpPort(1)
+    val tag2 = FlowTagger.tagForDpPort(2)
+
     override def beforeTest(): Unit = {
         val preallocation = new MockFlowTablePreallocation(config)
         flowController = new NativeFlowController(
@@ -149,7 +152,7 @@ class NativeFlowControllerTest extends MidolmanSpec {
             flowController.flowExists(flowId2) shouldBe false
         }
 
-        ignore("Expiration removes a flow") {
+        scenario("Expiration removes a flow") {
             Given("A flow in the flow controller")
             val managedFlow = flowController.addFlow(
                 FlowMatches.generateFlowMatch(random),
@@ -175,7 +178,7 @@ class NativeFlowControllerTest extends MidolmanSpec {
             flowController.flowExists(managedFlow.mark) shouldBe false
         }
 
-        ignore("A removed flow is not removed again") {
+        scenario("A removed flow is not removed again") {
             Given("A flow in the flow controller")
             val managedFlow =  flowController.addFlow(
                 FlowMatches.generateFlowMatch(random),
@@ -210,9 +213,6 @@ class NativeFlowControllerTest extends MidolmanSpec {
             callbackCalled should be (false)
             flowController.flowExists(managedFlow.mark) shouldBe false
         }
-
-        val tag1 = FlowTagger.tagForDpPort(1)
-        val tag2 = FlowTagger.tagForDpPort(2)
 
         scenario("invalidation removes a flow") {
             Given("A flow in the flow controller")
@@ -294,7 +294,7 @@ class NativeFlowControllerTest extends MidolmanSpec {
             flowController.flowExists(flowId) shouldBe false
         }
 
-        ignore("invalidated flow isn't removed again on expiration") {
+        scenario("invalidated flow isn't removed again on expiration") {
             Given("A flow in the flow controller")
             val managedFlow =  flowController.addFlow(
                 FlowMatches.generateFlowMatch(random),

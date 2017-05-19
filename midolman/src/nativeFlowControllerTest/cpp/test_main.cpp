@@ -80,42 +80,6 @@ TEST(FlowTable, test_clear_flow) {
   ASSERT_EQ(table.get(id2).id(), NULL_ID);
 }
 
-TEST(FlowTable, test_eviction_candidate) {
-  FlowTable table(4);
-  std::string match1("match1");
-  std::string match2("match2");
-  std::string match3("match3");
-  std::string match4("match4");
-
-  auto id1 = table.put(match1);
-  auto id2 = table.put(match2);
-  auto id3 = table.put(match3);
-  auto id4 = table.put(match4);
-
-  ASSERT_EQ(table.occupied(), 4);
-  auto evict1 = table.candidate_for_eviction();
-  ASSERT_NE(evict1, NULL_ID);
-  ASSERT_EQ(evict1, table.candidate_for_eviction());
-  table.clear(evict1);
-
-  auto evict2 = table.candidate_for_eviction();
-  ASSERT_NE(evict2, NULL_ID);
-  ASSERT_EQ(evict2, table.candidate_for_eviction());
-  table.clear(evict2);
-
-  auto evict3 = table.candidate_for_eviction();
-  ASSERT_NE(evict3, NULL_ID);
-  ASSERT_EQ(evict3, table.candidate_for_eviction());
-  table.clear(evict3);
-
-  auto evict4 = table.candidate_for_eviction();
-  ASSERT_NE(evict4, NULL_ID);
-  ASSERT_EQ(evict4, table.candidate_for_eviction());
-  table.clear(evict4);
-
-  ASSERT_EQ(table.occupied(), 0);
-}
-
 TEST(FlowTagIndexer, test_flow_removed) {
   FlowTagIndexer indexer;
   FlowId id = 0xdeadbeef;
