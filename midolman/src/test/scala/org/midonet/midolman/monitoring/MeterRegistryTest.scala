@@ -61,28 +61,29 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
 
     feature("Meter registry") {
         scenario("registers new meters") {
-            val registry = new MeterRegistry(10)
+            val registry = MeterRegistry.newOnHeap(10)
 
             registry.trackFlow(matchA, tagsA)
-            registry.meters should have size 2
+            registry.getMeterKeys should have size 2
             for (meter <- metersA) {
-                registry.meters.keySet should contain (meter.meterName)
+                registry.getMeterKeys should contain (meter.meterName)
             }
 
             registry.trackFlow(matchB, tagsB)
-            registry.meters should have size 3
+            registry.getMeterKeys should have size 3
             for (meter <- metersB) {
-                registry.meters.keySet should contain (meter.meterName)
+                registry.getMeterKeys should contain (meter.meterName)
             }
 
-            for (stats <- registry.meters.values.asScala) {
+            for (key <- registry.getMeterKeys.asScala) {
+                val stats = registry.getMeter(key)
                 stats.packets should === (0)
                 stats.bytes should === (0)
             }
         }
 
         scenario("tracks stats for a single flow, N meters") {
-            val registry = new MeterRegistry(10)
+            val registry = MeterRegistry.newOnHeap(10)
             registry.trackFlow(matchA, tagsA)
             registry.recordPacket(FIRST_PKT_SIZE, tagsA)
 
@@ -92,7 +93,8 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
                 stats.bytes = i * 100
                 registry.updateFlow(matchA, stats)
 
-                for (meter <- registry.meters.values.asScala) {
+                for (key <- registry.getMeterKeys.asScala) {
+                    val meter = registry.getMeter(key)
                     meter.packets should === (i + 1)
                     meter.bytes should === (i * 100 + FIRST_PKT_SIZE)
                 }
@@ -100,7 +102,7 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
         }
 
         scenario("forgets flows") {
-            val registry = new MeterRegistry(10)
+            val registry = MeterRegistry.newOnHeap(10)
             registry.trackFlow(matchA, tagsA)
 
             val fixedPackets = 5
@@ -113,14 +115,15 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
             stats.packets = 245
             stats.bytes = 1235
             registry.updateFlow(matchA, stats)
-            for (meter <- registry.meters.values.asScala) {
+            for (key <- registry.getMeterKeys.asScala) {
+                val meter = registry.getMeter(key)
                 meter.packets should === (fixedPackets)
                 meter.bytes should === (fixedBytes)
             }
         }
 
         scenario("tracks stats for two flows, overlapping meters") {
-            val registry = new MeterRegistry(10)
+            val registry = MeterRegistry.newOnHeap(10)
             registry.trackFlow(matchA, tagsA)
             registry.trackFlow(matchB, tagsB)
 
@@ -131,12 +134,12 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
                 registry.updateFlow(matchA, stats)
                 registry.updateFlow(matchB, stats)
 
-                registry.meters.get(commonDevice.meterName).packets should === (i * 2)
-                registry.meters.get(commonDevice.meterName).bytes should === (i * 200)
-                registry.meters.get(deviceA.meterName).packets should === (i)
-                registry.meters.get(deviceA.meterName).bytes should === (i * 100)
-                registry.meters.get(deviceB.meterName).packets should === (i)
-                registry.meters.get(deviceB.meterName).bytes should === (i * 100)
+                registry.getMeter(commonDevice.meterName).packets should === (i * 2)
+                registry.getMeter(commonDevice.meterName).bytes should === (i * 200)
+                registry.getMeter(deviceA.meterName).packets should === (i)
+                registry.getMeter(deviceA.meterName).bytes should === (i * 100)
+                registry.getMeter(deviceB.meterName).packets should === (i)
+                registry.getMeter(deviceB.meterName).bytes should === (i * 100)
 
             }
         }
