@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1bdcde1e_a7778f8b",
+        "filename": "tests/mdts/tests/functional_tests/test_mmctl.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-05-22T15:41:33Z",
+      "side": 1,
+      "message": "This always succeeds. Will need fixing (assert the return code of ping is \u003c0) I guess in master and backport.",
+      "range": {
+        "startLine": 123,
+        "startChar": 4,
+        "endLine": 127,
+        "endChar": 12
+      },
+      "revId": "7499446f3773e5644393575a9f2c6b30c4900a4d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
