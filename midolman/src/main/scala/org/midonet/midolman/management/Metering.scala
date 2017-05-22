@@ -38,13 +38,13 @@ object Metering extends MeteringMXBean {
 
     override def listMeters = {
         val keys = new util.HashSet[String]
-        registries foreach { keys addAll _.meters.keySet() }
+        registries foreach { keys addAll _.getMeterKeys() }
         keys.toArray(new Array[String](keys.size()))
     }
 
     override def getMeter(name: String) = {
         registries.foldLeft(new FlowStats()) { (acc, r) =>
-            val meter = r.meters.get(name)
+            val meter = r.getMeter(name)
             if (meter ne null)
                 acc.add(meter)
             acc
@@ -58,7 +58,16 @@ object Metering extends MeteringMXBean {
             meters = new Array[FlowMeters](r.length)
             var index = 0
             while (index < meters.length) {
-                meters(index) = new FlowMeters(index, r(index).meters)
+                val regMeters = new util.HashMap[String, FlowStats]
+                val keys = r(index).getMeterKeys.iterator
+                while (keys.hasNext) {
+                    val key = keys.next()
+                    val value = r(index).getMeter(key)
+                    if (value != null) {
+                        regMeters.put(key, value)
+                    }
+                }
+                meters(index) = new FlowMeters(index, regMeters)
                 index += 1
             }
             flowMeters = meters
@@ -70,16 +79,17 @@ object Metering extends MeteringMXBean {
         val iterator = registries.iterator
         val meters = new util.HashMap[String, FlowStats]()
         while (iterator.hasNext) {
-            val i = iterator.next().meters.entrySet().iterator()
-            while (i.hasNext) {
-                val entry = i.next()
-                val stats = meters.get(entry.getKey)
+            val registry = iterator.next()
+            val keys = registry.getMeterKeys.iterator
+            while (keys.hasNext) {
+                val key = keys.next
+                val value = registry.getMeter(key)
+                val stats = meters.get(key)
                 if (stats eq null) {
-                    meters.put(entry.getKey, new FlowStats(
-                        entry.getValue.getPackets,
-                        entry.getValue.getBytes))
+                    meters.put(key, new FlowStats(value.getPackets,
+                                                  value.getBytes))
                 } else {
-                    stats.add(entry.getValue)
+                    stats.add(value)
                 }
             }
         }
@@ -107,11 +117,10 @@ object Metering extends MeteringMXBean {
         var i = 0
 
         while (i < registries.length) {
-            val meters = registries(i).meters
-            val keysEnum = meters.keys()
-            while (keysEnum.hasMoreElements) {
-                val key = keysEnum.nextElement()
-                val meter = meters.get(key)
+            val keys = registries(i).getMeterKeys.iterator
+            while (keys.hasNext) {
+                val key = keys.next()
+                val meter = registries(i).getMeter(key)
                 serializeMeter(key, meter.getPackets, meter.getBytes, writer, delim)
             }
             i += 1
