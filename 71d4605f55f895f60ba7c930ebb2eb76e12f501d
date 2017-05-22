@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7dac8ee6_d3ba5e3a",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-05-22T15:46:36Z",
+      "side": 1,
+      "message": "This should be install (without parenthesis) to be correct I guess.",
+      "range": {
+        "startLine": 114,
+        "startChar": 12,
+        "endLine": 114,
+        "endChar": 21
+      },
+      "revId": "71d4605f55f895f60ba7c930ebb2eb76e12f501d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
