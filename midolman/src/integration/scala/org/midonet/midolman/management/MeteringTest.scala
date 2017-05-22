@@ -19,9 +19,15 @@ package org.midonet.midolman.management
 import java.io.{BufferedWriter, ByteArrayOutputStream, OutputStreamWriter}
 import java.lang.management.ManagementFactory
 import java.rmi.registry.LocateRegistry
+import java.util.{HashMap, Map}
 
 import javax.management.remote.{JMXConnectorFactory, JMXConnectorServerFactory, JMXServiceURL}
 import javax.management.{JMX, ObjectName}
+
+import scala.collection.JavaConverters._
+
+import com.google.common.collect.Lists
+import com.google.common.hash.Hashing
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -29,23 +35,50 @@ import org.scalatest.{Entry, FlatSpec, GivenWhenThen, Matchers}
 
 import org.midonet.management.{FlowStats, MeteringMXBean}
 import org.midonet.midolman.monitoring.MeterRegistry
+import org.midonet.sdn.flows.FlowTagger.{FlowTag, MeterTag}
 
 @RunWith(classOf[JUnitRunner])
 class MeteringTest extends FlatSpec with GivenWhenThen with Matchers {
 
     private var jmxPortBase = 49997
 
+    class StringTag(str: String) extends MeterTag {
+        override def meterName: String = str
+        override def toString = str
+        override def toLongHash = Hashing.murmur3_128().
+            newHasher().putUnencodedChars(str).
+            hash().asLong
+    }
+
+    def putStats(registry: MeterRegistry, tag: String,
+                 packets: Int, packetSize: Int): Unit = {
+        var i = 0
+        var tags = Lists.newArrayList[FlowTag](new StringTag(tag))
+        while (i < packets) {
+            registry.recordPacket(packetSize, tags)
+            i += 1
+        }
+    }
+
+    def toMap(registry: MeterRegistry): Map[String, FlowStats] = {
+        val map = new HashMap[String, FlowStats]
+        for (k <- registry.getMeterKeys.asScala) {
+            map.put(k, registry.getMeter(k))
+        }
+        map
+    }
+
     it should "register and return flow stats meters" in {
         val jmxPort = jmxPortBase
         jmxPortBase += 1
         Given("A meter registry for maximum 10 flows")
-        val registry0 = new MeterRegistry(10)
-        registry0.meters.put("meter0", new FlowStats(10, 100))
-        registry0.meters.put("meter1", new FlowStats(20, 200))
+        val registry0 = MeterRegistry.newOnHeap(10)
+        putStats(registry0, "meter0", 10, 10)
+        putStats(registry0, "meter1", 20, 10)
 
-        val registry1 = new MeterRegistry(10)
-        registry1.meters.put("meter1", new FlowStats(30, 300))
-        registry1.meters.put("meter2", new FlowStats(40, 400))
+        val registry1 = MeterRegistry.newOnHeap(10)
+        putStats(registry1, "meter1", 30, 10)
+        putStats(registry1, "meter2", 40, 10)
 
         And("A local registry and JMX server")
         LocateRegistry.createRegistry(jmxPort)
@@ -77,9 +110,9 @@ class MeteringTest extends FlatSpec with GivenWhenThen with Matchers {
         val meters = bean.getMeters
         meters.length shouldBe 2
         meters(0).getIndex shouldBe 0
-        meters(0).getMeters shouldBe registry0.meters
+        meters(0).getMeters shouldBe toMap(registry0)
         meters(1).getIndex shouldBe 1
-        meters(1).getMeters shouldBe registry1.meters
+        meters(1).getMeters shouldBe toMap(registry1)
 
         And("The instance should return the consolidated meters")
         val consolidated = bean.getConsolidatedMeters.getMeters
@@ -103,13 +136,13 @@ class MeteringTest extends FlatSpec with GivenWhenThen with Matchers {
         jmxPortBase += 1
 
         Given("A meter registry for maximum 10 flows")
-        val registry0 = new MeterRegistry(10)
-        registry0.meters.put("meter0", new FlowStats(10, 100))
-        registry0.meters.put("meter1", new FlowStats(20, 200))
+        val registry0 = MeterRegistry.newOnHeap(10)
+        putStats(registry0, "meter0", 10, 10)
+        putStats(registry0, "meter1", 20, 10)
 
-        val registry1 = new MeterRegistry(10)
-        registry1.meters.put("meter1", new FlowStats(30, 300))
-        registry1.meters.put("meter2", new FlowStats(40, 400))
+        val registry1 = MeterRegistry.newOnHeap(10)
+        putStats(registry1, "meter1", 30, 10)
+        putStats(registry1, "meter2", 40, 10)
 
         And("A local registry and JMX server")
         LocateRegistry.createRegistry(jmxPort)

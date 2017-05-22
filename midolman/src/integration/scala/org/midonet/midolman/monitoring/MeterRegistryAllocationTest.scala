@@ -117,7 +117,7 @@ class MeterRegistryAllocationTest extends FeatureSpec with Matchers {
         }
 
         scenario("append a table of the meters with minimal allocation") {
-            val registry = new MeterRegistry(10)
+            val registry = MeterRegistry.newOnHeap(10)
             for (i <- 1 to 100) {
                 val device: MeterTag = FlowTagger.tagForBridge(UUID.randomUUID()).asInstanceOf[MeterTag]
                 val packet: Ethernet = { eth addr MAC.random() -> MAC.random() } <<

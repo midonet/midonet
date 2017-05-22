@@ -16,7 +16,7 @@
 package org.midonet.midolman.monitoring
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{ArrayList, HashMap => JHashMap}
+import java.util.{ArrayList, Collection, Collections, List, HashMap => JHashMap}
 
 import com.typesafe.scalalogging.Logger
 
@@ -28,7 +28,22 @@ import org.midonet.sdn.flows.FlowTagger.{FlowTag, MeterTag}
 import org.midonet.util.collection.ArrayObjectPool
 import org.midonet.management.{FlowStats => JmxFlowStats}
 
-class MeterRegistry(val maxFlows: Int) {
+object MeterRegistry {
+    def newOnHeap(maxFlows: Int): MeterRegistry =
+        new OnHeapMeterRegistry(maxFlows)
+    def newOffHeap(): MeterRegistry = new DummyMeterRegistry
+}
+
+trait MeterRegistry {
+    def getMeterKeys(): Collection[String]
+    def getMeter(key: String): JmxFlowStats
+    def trackFlow(flowMatch: FlowMatch, tags: List[FlowTag]): Unit
+    def recordPacket(packetLen: Int, tags: List[FlowTag]): Unit
+    def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit
+    def forgetFlow(flowMatch: FlowMatch): Unit
+}
+
+class OnHeapMeterRegistry(val maxFlows: Int) extends MeterRegistry {
     val log = Logger(LoggerFactory.getLogger("org.midonet.metering"))
 
     class FlowData {
@@ -45,11 +60,15 @@ class MeterRegistry(val maxFlows: Int) {
     private val metadataPool = new ArrayObjectPool[FlowData]((maxFlows * 1.1).toInt,
                                                               pool => new FlowData())
 
-    val meters = new ConcurrentHashMap[String, JmxFlowStats]()
+    private val meters = new ConcurrentHashMap[String, JmxFlowStats]()
     private val trackedFlows = new JHashMap[FlowMatch, FlowData]()
     private val DELTA = new FlowStats()
 
-    def trackFlow(flowMatch: FlowMatch, tags: ArrayList[FlowTag]): Unit = {
+    def getMeterKeys(): Collection[String] = meters.keySet
+
+    override def getMeter(key: String): JmxFlowStats = meters.get(key)
+
+    override def trackFlow(flowMatch: FlowMatch, tags: List[FlowTag]): Unit = {
         if (trackedFlows.containsKey(flowMatch))
             return
 
@@ -82,7 +101,7 @@ class MeterRegistry(val maxFlows: Int) {
             metadataPool.offer(metadata)
     }
 
-    def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit = {
+    override def recordPacket(packetLen: Int, tags: List[FlowTag]): Unit = {
         DELTA.packets = 1
         DELTA.bytes = packetLen
 
@@ -103,7 +122,7 @@ class MeterRegistry(val maxFlows: Int) {
         }
     }
 
-    def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit = {
+    override def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit = {
         val metadata = trackedFlows.get(flowMatch)
         if (metadata ne null) {
             metadata.stats.updateAndGetDelta(stats, DELTA)
@@ -122,9 +141,18 @@ class MeterRegistry(val maxFlows: Int) {
         }
     }
 
-    def forgetFlow(flowMatch: FlowMatch) {
+    override def forgetFlow(flowMatch: FlowMatch) {
         val metadata = trackedFlows.remove(flowMatch)
         if (metadata ne null)
             metadataPool.offer(metadata)
     }
+}
+
+class DummyMeterRegistry extends MeterRegistry {
+    override def getMeterKeys(): Collection[String] = Collections.emptySet[String]()
+    override def getMeter(key: String): JmxFlowStats = null
+    override def trackFlow(flowMatch: FlowMatch, tags: List[FlowTag]): Unit = {}
+    override def recordPacket(packetLen: Int, tags: List[FlowTag]): Unit = {}
+    override def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit = {}
+    override def forgetFlow(flowMatch: FlowMatch): Unit = {}
 }
