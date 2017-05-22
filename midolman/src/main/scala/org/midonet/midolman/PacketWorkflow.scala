@@ -39,7 +39,7 @@ import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.management.Metering
 import org.midonet.midolman.management.PacketTracing
-import org.midonet.midolman.monitoring.FlowRecorder
+import org.midonet.midolman.monitoring.{FlowRecorder, MeterRegistry}
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
@@ -265,7 +265,11 @@ class PacketWorkflow(
     private val maxWithoutExpiration = (5 seconds) toNanos
 
     protected val datapathId = dpState.datapath.getIndex
-    private val meters = preallocation.takeMeterRegistry()
+    private val meters = if (config.offHeapTables) {
+        MeterRegistry.newOffHeap()
+    } else {
+        preallocation.takeMeterRegistry()
+    }
     Metering.registerAsMXBean(meters)
     protected val flowController: FlowController =
         new FlowControllerImpl(config, clock, flowProcessor,
