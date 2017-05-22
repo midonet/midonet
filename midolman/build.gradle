@@ -32,8 +32,14 @@ model {
             googleTest {
                 headers.srcDir "$rootDir/tools/google-test-${versions.google_test}/include"
                 binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile =
-                            file("$rootDir/tools/google-test-${versions.google_test}/lib/linux-x86_64/libgtest.a")
+                    if (targetPlatform.operatingSystem.linux) {
+                        staticLibraryFile =
+                                file("$rootDir/tools/google-test-${versions.google_test}/lib/linux-x86_64/libgtest.a")
+                    }
+                    if (targetPlatform.operatingSystem.macOsX) {
+                        staticLibraryFile =
+                                file("$rootDir/tools/google-test-${versions.google_test}/lib/osx-x86_64/libgtest.a")
+                    }
                 }
             }
         }
@@ -63,12 +69,22 @@ model {
         all {
             if (toolChain in Gcc) {
                 cppCompiler.args << "--std=c++11" \
-                                 << "-I" << JNI_INCLUDE_DIR \
-                                 << "-I" << "${JNI_INCLUDE_DIR}/linux"
+                                 << "-I" << "${JNI_INCLUDE_DIR}"
+                if (targetPlatform.operatingSystem.linux) {
+                    cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/linux"
+                }
+                if (targetPlatform.operatingSystem.macOsX) {
+                    cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/darwin"
+                }
             }
         }
         nativeFlowControllerSharedLibrary {
-            sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowController.so"
+            if (targetPlatform.operatingSystem.linux) {
+                sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowController.so"
+            }
+            if (targetPlatform.operatingSystem.macOsX) {
+                sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowController.dylib"
+            }
         }
         withType(GoogleTestTestSuiteBinarySpec) {
             lib library: "googleTest", linkage: "static"
