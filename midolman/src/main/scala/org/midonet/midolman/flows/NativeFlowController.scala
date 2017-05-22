@@ -180,7 +180,7 @@ class NativeFlowController(config: MidolmanConfig,
         }
     }
 
-    private def ensureSpace(count: Int): Unit = {
+    private[flows] def ensureSpace(count: Int): Unit = {
         while (JNI.flowTableOccupied(flowTable) + count > maxFlows) {
             val toEvict = JNI.flowExpirationIndexerEvictFlow(expirer)
             removeFlow(toEvict)

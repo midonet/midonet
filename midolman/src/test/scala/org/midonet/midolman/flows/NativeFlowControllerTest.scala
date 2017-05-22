@@ -17,25 +17,16 @@ package org.midonet.midolman.flows
 
 import java.util.Random
 
-import scala.collection.JavaConversions._
-
 import com.google.common.collect.Lists
-
-import org.midonet.packets.Ethernet
-import org.midonet.sdn.flows.FlowTagger.FlowTag
-
-import org.slf4j.helpers.NOPLogger
-import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.Util
 import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback}
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.MockFlowTablePreallocation
-import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{FlowMatch, FlowMatches}
+import org.midonet.midolman.{FlowController, MockFlowTablePreallocation, PacketWorkersService}
+import org.midonet.odp.FlowMatches
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
@@ -328,6 +319,41 @@ class NativeFlowControllerTest extends MidolmanSpec {
             metrics.currentDpFlowsMetric.getValue should be (0)
             callbackCalled should be (false)
             flowController.flowExists(managedFlow.mark) shouldBe false
+        }
+        scenario("Ensure space evicts a flow if table full") {
+            Given("Two flows added to the flow controller")
+            val nativeFlowController = flowController
+                .asInstanceOf[NativeFlowController]
+            val numWorkers = PacketWorkersService.numWorkers(config)
+            val maxFlows = Math.min(
+                Util.findNextPositivePowerOfTwo(
+                    config.datapath.maxFlowCount / numWorkers),
+                FlowController.IndexMask)
+            val managedFlow1 =  flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(tag1),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
+            val managedFlow2 =  flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(tag1),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
+
+            flowController.flowExists(managedFlow1.mark) shouldBe true
+            flowController.flowExists(managedFlow2.mark) shouldBe true
+
+            When("Ensuring there's space for maxFlows-1")
+            nativeFlowController.ensureSpace(maxFlows-1)
+
+            Then("The first flow should be evicted")
+            flowController.flowExists(managedFlow1.mark) shouldBe false
+            flowController.flowExists(managedFlow2.mark) shouldBe true
+
+            When("Ensuring there's space for maxFlows")
+            nativeFlowController.ensureSpace(maxFlows)
+            Then("The other flow should be evicted and the table empty")
+            flowController.flowExists(managedFlow2.mark) shouldBe false
         }
     }
 }
