@@ -368,7 +368,7 @@ void NativeTimedExpirationMap::ObliterationIterator::next() {
     auto current_key = queue_iterator->second.front().first;
 
     auto it = ref_count_map.find(current_key);
-    if (it->second.dec_if_zero()) {
+    if (it != ref_count_map.end() && it->second.dec_if_zero()) {
       auto current_value = it->second.value();
       current = option<KeyVal>(std::make_pair(current_key, current_value));
       ref_count_map.erase(it);
