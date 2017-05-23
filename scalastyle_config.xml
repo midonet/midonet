@@ -111,7 +111,11 @@
    <parameter name="maxMethods"><![CDATA[30]]></parameter>
   </parameters>
  </check>
- <check level="warning" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true"></check>
+ <check level="warning" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true">
+  <parameters>
+   <parameter name="ignoreOverride">true</parameter>
+  </parameters>
+ </check>
  <check level="warning" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true"></check>
  <check level="warning" class="org.scalastyle.file.NoNewLineAtEofChecker" enabled="false"></check>
  <check level="warning" class="org.scalastyle.scalariform.WhileChecker" enabled="false"></check>
