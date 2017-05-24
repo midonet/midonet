@@ -33,7 +33,7 @@ import org.slf4j.{LoggerFactory, MDC}
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
-import org.midonet.midolman.flows.FlowExpirationIndexer
+import org.midonet.midolman.flows.{FlowExpirationIndexer, NativeFlowController}
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.logging.MidolmanLogging
@@ -271,12 +271,17 @@ class PacketWorkflow(
         preallocation.takeMeterRegistry()
     }
     Metering.registerAsMXBean(meters)
-    protected val flowController: FlowController =
+    protected val flowController: FlowController = if (config.offHeapTables) {
+        new NativeFlowController(config, clock, flowProcessor,
+                                 datapathId, workerId, metrics,
+                                 meters, cbRegistry)
+    } else {
         new FlowControllerImpl(config, clock, flowProcessor,
                                datapathId, workerId,
                                metrics, meters,
                                preallocation,
                                cbRegistry)
+    }
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
