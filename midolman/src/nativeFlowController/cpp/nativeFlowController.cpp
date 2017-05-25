@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <functional>
 #include <nativeFlowController.h>
 #include <nativeFlowExpirationIndexer.h>
 #include "org_midonet_midolman_flows_NativeFlowControllerJNI.h"

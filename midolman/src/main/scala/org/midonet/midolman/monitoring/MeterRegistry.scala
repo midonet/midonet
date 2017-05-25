@@ -64,7 +64,7 @@ class OnHeapMeterRegistry(val maxFlows: Int) extends MeterRegistry {
     private val trackedFlows = new JHashMap[FlowMatch, FlowData]()
     private val DELTA = new FlowStats()
 
-    def getMeterKeys(): Collection[String] = meters.keySet
+    override def getMeterKeys(): Collection[String] = meters.keySet
 
     override def getMeter(key: String): JmxFlowStats = meters.get(key)
 

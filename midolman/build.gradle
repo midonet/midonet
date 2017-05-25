@@ -42,34 +42,88 @@ model {
                     }
                 }
             }
+            tbb {
+                headers.srcDir "${tbbHeaderDir}"
+                binaries.withType(SharedLibraryBinary) {
+                    if (targetPlatform.operatingSystem.linux) {
+                        sharedLibraryFile = file("${tbbDir}/linux-x86_64/libtbb.so.2")
+                    }
+                    if (targetPlatform.operatingSystem.macOsX) {
+                        sharedLibraryFile = file("${tbbDir}/osx-x86_64/libtbb.dylib")
+                    }
+                }
+            }
         }
     }
     components {
         nativeFlowController(NativeLibrarySpec) {
             baseName "nativeFlowController"
+            sources {
+                cpp {
+                    source {
+                        include "**/*.cpp"
+                        include "**/*.h"
+                    }
+                }
+            }
+        }
+        nativeMetering(NativeLibrarySpec) {
+            baseName "nativeMetering"
+            sources {
+                cpp {
+                    source {
+                        include "**/*.cpp"
+                        include "**/*.h"
+                    }
+                }
+            }
         }
     }
     testSuites {
         nativeFlowControllerTest(GoogleTestTestSuiteSpec) {
             testing $.components.nativeFlowController
+            sources {
+                cpp {
+                    source {
+                        include "**/*.cpp"
+                        include "**/*.h"
+                    }
+                }
+            }
+        }
+        nativeMeteringTest(GoogleTestTestSuiteSpec) {
+            testing $.components.nativeMetering
+            sources {
+                cpp {
+                    source {
+                        include "**/*.cpp"
+                        include "**/*.h"
+                    }
+                }
+            }
         }
     }
     tasks.test {
-        dependsOn runNativeFlowControllerTestGoogleTestExe
         dependsOn nativeFlowControllerSharedLibrary
+        dependsOn nativeMeteringSharedLibrary
+        dependsOn runNativeFlowControllerTestGoogleTestExe
+        dependsOn runNativeMeteringTestGoogleTestExe
 
         def libPaths = "${nativeLibraryDir}:${project(':midonet-util').nativeLibraryDir}:${tbbLibraryDir}"
-        systemProperty "java.library.path", libPaths
+        systemProperty "java.library.path", "${libPaths}:${nativeLibraryDir}:${tbbLibraryDir}"
     }
     tasks.jar {
         dependsOn nativeFlowControllerSharedLibrary
+        dependsOn nativeMeteringSharedLibrary
     }
 
     binaries {
         all {
             if (toolChain in Gcc) {
                 cppCompiler.args << "--std=c++11" \
-                                 << "-I" << "${JNI_INCLUDE_DIR}"
+                                 << "-I" << "${JNI_INCLUDE_DIR}" \
+                                 << "-I" << "$tbbHeaderDir"
+
                 if (targetPlatform.operatingSystem.linux) {
                     cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/linux"
                 }
@@ -88,7 +142,20 @@ model {
                 ext.tbbLibraryDir = "${tbbDir}/osx-x86_64"
             }
         }
+        nativeMeteringSharedLibrary {
+            lib library: "tbb", linkage: "shared"
+
+            if (targetPlatform.operatingSystem.linux) {
+                sharedLibraryFile = "${nativeLibraryDir}/libnativeMetering.so"
+                ext.tbbLibraryDir = "${tbbDir}/linux-x86_64"
+            }
+            if (targetPlatform.operatingSystem.macOsX) {
+                sharedLibraryFile = "${nativeLibraryDir}/libnativeMetering.dylib"
+                ext.tbbLibraryDir = "${tbbDir}/osx-x86_64"
+            }
+        }
         withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "tbb", linkage: "shared"
             lib library: "googleTest", linkage: "static"
 
             if (targetPlatform.operatingSystem.linux) {
@@ -99,7 +166,7 @@ model {
     }
 }
 
-task generateJniHeaders(type:Exec) {
+task generateJniHeadersFlowController(type:Exec) {
     def classpath = sourceSets.main.output.classesDir
     def nativeIncludes = "src/nativeFlowController/headers"
     commandLine "javah", "-d", nativeIncludes, \
@@ -113,7 +180,7 @@ tasks.withType(RunTestExecutable) {
 }
 
 tasks.withType(CppCompile) {
-    dependsOn generateJniHeaders
+    dependsOn generateJniHeadersFlowController
 }
 
 jar {
