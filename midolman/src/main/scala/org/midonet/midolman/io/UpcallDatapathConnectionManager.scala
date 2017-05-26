@@ -161,30 +161,15 @@ abstract class UpcallDatapathConnectionManagerBase(
                 // noop
             }
 
+            var flowStateIndex = 0
             override def submit(data: Packet): Boolean = {
                 log.trace("accumulating packet: {}", data.getMatch)
 
                 data.startTimeNanos = NanoClock.DEFAULT.tick
 
                 if (FlowState.isStateMessage(data.getMatch)) {
-                    var i = 0
-
-                    /* This code is problematic for the HTB. The HTB will take
-                     * one token for a flow state message, but each worker will
-                     * return one token for the flow state message.
-                     * This can potentially cause the number of HTB messages
-                     * available to explode.
-                     * MI-1273 should fix this by only sending flow state to
-                     * the correct thread.
-                     */
-                    var submitted = false
-                    while (i < workers.length) {
-                        // order is important here, we want submit to run, even
-                        // if submitted is already true
-                        submitted = workers(i).submit(data) || submitted
-                        i += 1
-                    }
-                    submitted
+                    flowStateIndex = (flowStateIndex + 1) % NUM_WORKERS
+                    workers(flowStateIndex).submit(data)
                 } else {
                     val worker = Math.abs(data.getMatch.connectionHash) % NUM_WORKERS
                     workers(worker).submit(data)

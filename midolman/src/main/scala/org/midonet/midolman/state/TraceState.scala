@@ -17,6 +17,7 @@
 package org.midonet.midolman.state
 
 import java.util.{ArrayList, List, Objects, UUID}
+import scala.concurrent.Future
 
 import com.datastax.driver.core.utils.UUIDs
 
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory
 
 import com.google.common.hash.Hashing
 
+import org.midonet.midolman.NotYetException
 import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
@@ -209,8 +211,20 @@ trait TraceState extends FlowState { this: PacketContext =>
         val storedContext = traceTxReadOnly.get(key)
         log = PacketContext.traceLog
         if (storedContext == null) {
-            log.warn("Couldn't find trace state for {}", key)
-            traceContext.enable()
+            if (runs < 5) {
+                // egress tracing expects flow state for the trace to
+                // have been processed before the egress packet is processed.
+                // However, if the flow state is processed on a different thread
+                // it may not yet be available. To mitigate this issue, try to
+                // find the flow state up to 5 times. This should give the other
+                // threads time to process.
+                throw new NotYetException(
+                    Future.successful(Unit),
+                    "Trace state may not have reached table yet")
+            } else {
+                log.warn("Couldn't find trace state for {}", key)
+                traceContext.enable()
+            }
         } else {
             traceContext.reset(storedContext)
         }
