@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from hamcrest import assert_that, equal_to, is_not
 import logging
 
 from mdts.lib.bindings import BindingManager, BindingType
@@ -120,8 +121,8 @@ def test_mmctl_unbinding_without_mm_running():
 
     mm1.start()
 
-    try:
-        iface.exec_command_blocking("ping -c 5 %s" % (iface_port2.get_ip()))
-        raise Exception("ping should fail")
-    except:
-        pass
+    ret = iface.exec_command_blocking("ping -c 5 %s" % (iface_port2.get_ip()))
+    # Ping returns 0 if the ping succeeds, 1 or 2 on error conditions.
+    assert_that(ret,
+                is_not(equal_to(0)),
+                "Ping should have failed, but did not.")

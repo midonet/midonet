@@ -92,6 +92,7 @@ test_mirroring.test_mirroring_port.gate = 1
 test_mirroring.test_mirroring_router_in.gate = 1
 test_mmctl.test_mmctl_binding.gate = 1
 test_mmctl.test_mmctl_binding_without_mm_running.gate = 1
+test_mmctl.test_mmctl_unbinding_without_mm_running.gate = 1
 test_nat_router.test_dnat.gate = 1
 test_nat_router.test_dnat_for_udp.gate = 1
 test_nat_router.test_floating_ip.gate = 1
