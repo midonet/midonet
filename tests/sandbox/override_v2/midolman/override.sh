@@ -12,9 +12,12 @@ apt-get  update
 touch /etc/init.d/vpp
 
 # Failfast if we cannot update the packages locally
+# --force-confnew is a necessary because the new midolman package
+# being installed may contain changes in the configuration file.
 DEBIAN_FRONTEND=noninteractive \
-apt-get install -qy --force-yes midolman/local \
-                                midonet-tools/local vpp vpp-lib || exit 1
+apt-get install -qy --force-yes \
+        -o Dpkg::Options::="--force-confnew" \
+        midolman/local midonet-tools/local vpp vpp-lib || exit 1
 
 # Make sure we can access the remote management interface from outside the container
 HOST_NAME=`hostname`
