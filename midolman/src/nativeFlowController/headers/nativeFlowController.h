@@ -18,7 +18,8 @@
 
 #include <string>
 #include <vector>
-#include <unordered_set>
+#include <list>
+#include <tuple>
 #include <unordered_map>
 
 using FlowId = long long;
@@ -91,15 +92,20 @@ private:
 
 class FlowTagIndexer {
 public:
-  void index_flow_tag(FlowId id, FlowTag tag);
+  void index_flow_tags(FlowId id, std::vector<FlowTag> tag);
   std::vector<FlowId> invalidate(FlowTag tag);
   std::vector<FlowId> flows_for_tag(FlowTag tag) const;
-  void remove_flow(FlowId id);
+  void remove_flow(FlowId id,
+                   bool invalidating = false,
+                   FlowTag invalidTag = -1);
   int tag_count() const;
 
 private:
-  std::unordered_map<FlowTag, std::unordered_set<FlowId>> m_tags_to_flows;
-  std::unordered_map<FlowId, std::vector<FlowTag>> m_flows_to_tags;
+  using FlowIdList = std::list<FlowId>;
+  using FlowIdReference = std::tuple<FlowTag,FlowIdList&,FlowIdList::iterator>;
+
+  std::unordered_map<FlowTag, FlowIdList> m_tags_to_flows;
+  std::unordered_map<FlowId, std::vector<FlowIdReference>> m_flows_to_tags;
 };
 
 int leading_zeros(int input);

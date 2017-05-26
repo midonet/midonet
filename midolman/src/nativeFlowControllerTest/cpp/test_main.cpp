@@ -84,7 +84,7 @@ TEST(FlowTagIndexer, test_flow_removed) {
   FlowTagIndexer indexer;
   FlowId id = 0xdeadbeef;
   FlowTag tag = 0xcafebeef;
-  indexer.index_flow_tag(id, tag);
+  indexer.index_flow_tags(id, {tag});
   auto flows_to_remove = indexer.invalidate(tag);
   ASSERT_EQ(flows_to_remove.size(), 1);
   ASSERT_EQ(flows_to_remove.at(0), id);
@@ -95,8 +95,7 @@ TEST(FlowTagIndexer, test_multiple_tags) {
   FlowTag tag1 = 0xd00dbeef;
   FlowTag tag2 = 0xbabebeef;
   FlowTagIndexer indexer;
-  indexer.index_flow_tag(id, tag1);
-  indexer.index_flow_tag(id, tag2);
+  indexer.index_flow_tags(id, {tag1, tag2});
   auto flows_to_remove = indexer.invalidate(tag1);
   ASSERT_EQ(flows_to_remove.size(), 1);
   ASSERT_EQ(flows_to_remove.at(0), id);
@@ -126,9 +125,8 @@ TEST(FlowTagIndexer, test_multiple_flows_invalidated) {
   FlowTag tag2 = 0xbabebeef;
   FlowTagIndexer indexer;
 
-  indexer.index_flow_tag(id1, tag1);
-  indexer.index_flow_tag(id2, tag1);
-  indexer.index_flow_tag(id2, tag2);
+  indexer.index_flow_tags(id1, {tag1});
+  indexer.index_flow_tags(id2, {tag1, tag2});
 
   auto flows_to_remove = indexer.invalidate(tag1);
   ASSERT_EQ(flows_to_remove.size(), 2);
@@ -149,10 +147,8 @@ TEST(FlowTagIndexer, test_flow_removed_from_tag_list) {
   FlowTag tag2 = 0xbabebeef;
   FlowTagIndexer indexer;
 
-  indexer.index_flow_tag(id1, tag1);
-  indexer.index_flow_tag(id1, tag2);
-  indexer.index_flow_tag(id2, tag1);
-  indexer.index_flow_tag(id2, tag2);
+  indexer.index_flow_tags(id1, {tag1, tag2});
+  indexer.index_flow_tags(id2, {tag1, tag2});
 
   auto flows_for_tag1 = indexer.flows_for_tag(tag1);
   ASSERT_EQ(flows_for_tag1.size(), 2);
@@ -181,8 +177,8 @@ TEST(FlowTagIndexer, test_tag_removed_when_no_more_flows) {
   FlowTag tag = 0xd00dbeef;
   FlowTagIndexer indexer;
 
-  indexer.index_flow_tag(id1, tag);
-  indexer.index_flow_tag(id2, tag);
+  indexer.index_flow_tags(id1, {tag});
+  indexer.index_flow_tags(id2, {tag});
   ASSERT_EQ(indexer.tag_count(), 1);
 
   indexer.remove_flow(id1);

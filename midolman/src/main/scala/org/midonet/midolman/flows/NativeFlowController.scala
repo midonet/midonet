@@ -225,12 +225,13 @@ class NativeFlowController(config: MidolmanConfig,
         }
 
         def addTags(tags: ArrayList[FlowTag]): Unit = {
+            val tagsArray = new Array[Long](tags.size)
             var i = 0
-            while (i < tags.size) {
-                JNI.flowTagIndexerIndexFlowTag(indexer, id,
-                                               tags.get(i).toLongHash)
+            while (i < tagsArray.length) {
+                tagsArray(i) = tags.get(i).toLongHash
                 i += 1
             }
+            JNI.flowTagIndexerIndexFlowTags(indexer, id, tagsArray)
         }
 
         def forget(): Unit = {
