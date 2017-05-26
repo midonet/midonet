@@ -33,6 +33,7 @@ import scala.concurrent.Promise$;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -48,11 +49,16 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.Observable;
+import rx.Scheduler;
+import rx.schedulers.Schedulers;
+
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.LoggerLevelWatcher;
+import org.midonet.conf.LoggerMetricsWatcher;
 import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.jna.CLibrary;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
@@ -60,6 +66,7 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
+import org.midonet.midolman.topology.VirtualTopology;
 import org.midonet.util.process.MonitoredDaemonProcess;
 
 public class Midolman {
@@ -230,11 +237,9 @@ public class Midolman {
         if (configurator.deployBundledConfig())
             log.info("Deployed new configuration schema into NSDB");
 
-        configurator.observableRuntimeConfig(HostIdGenerator.getHostId()).
-            subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
+        MetricRegistry metricRegistry = new MetricRegistry();
 
         MidolmanConfig config = createConfig(configurator);
-        MetricRegistry metricRegistry = new MetricRegistry();
 
         Reflections reflections = new Reflections("org.midonet");
         injector = Guice.createInjector(
@@ -250,6 +255,17 @@ public class Midolman {
         injector = injector.createChildInjector(
                 new MidolmanModule(injector, config, metricRegistry,
                                    reflections, preallocation));
+
+        Scheduler scheduler = injector.getInstance(VirtualTopology.class).vtScheduler();
+        Observable<Config> configObservable = configurator
+            .observableRuntimeConfig(HostIdGenerator.getHostId())
+            .observeOn(scheduler);
+
+        configObservable
+            .subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
+
+        configObservable.
+            subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
 
         ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
             .setJson(true)

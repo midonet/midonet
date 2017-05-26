@@ -18,13 +18,16 @@ package org.midonet.conf
 
 import java.util.UUID
 
-import com.typesafe.config.{ConfigException, Config, ConfigFactory}
+import com.codahale.metrics.MetricRegistry
+import com.typesafe.config.{Config, ConfigException, ConfigFactory}
+
 import org.apache.curator.framework.CuratorFramework
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{GivenWhenThen, FeatureSpecLike, Matchers}
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
+
 import rx.Observer
 
 import org.midonet.cluster.util.CuratorTestFramework
@@ -90,6 +93,44 @@ class MidoConfTest extends FeatureSpecLike
 
         conf.set("loggers.root", "DEBUG")
         eventually { classC.isTraceEnabled should be (false) }
+    }
+
+    scenario("log metrics are adjusted") {
+        val registry = new MetricRegistry()
+        val metric1 = UUID.randomUUID().toString
+        val metric2 = UUID.randomUUID().toString
+        registry.counter(metric1)
+        registry.counter(metric2)
+
+        var metricsConf = ConfigFactory.parseString(
+            s"""
+              |prefix.log_metrics.enabled: true
+              |prefix.log_metrics.period: 1m
+            """.stripMargin)
+
+        val watcher = new LoggerMetricsWatcher("prefix", registry)
+        val conf = configurator.centralPerNodeConfig(NODE)
+        conf.observable.subscribe(watcher)
+        conf.mergeAndSet(metricsConf)
+
+        eventually {
+            watcher.config.isDefined shouldBe true
+            watcher.config.get.enabled shouldBe true
+            watcher.config.get.period shouldBe 60
+        }
+
+        metricsConf = ConfigFactory.parseString(
+            s"""
+              |prefix.log_metrics.enabled: false
+              |prefix.log_metrics.period: 10m
+            """.stripMargin)
+        conf.mergeAndSet(metricsConf)
+
+        eventually {
+            watcher.config.isDefined shouldBe true
+            watcher.config.get.enabled shouldBe false
+            watcher.config.get.period shouldBe 600
+        }
     }
 
     scenario("zookeeper: begins as an empty source") {
