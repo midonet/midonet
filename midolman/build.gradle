@@ -464,3 +464,4 @@ task testShell(type: Exec) {
 integration.dependsOn testShell
 
 preparePkg.dependsOn manpages
+preparePkg.dependsOn jar
