@@ -39,6 +39,12 @@ model {
                     }
                 }
             }
+            tbb {
+               headers.srcDir "$rootDir/tools/tbb-2017_U6/include"
+               binaries.withType(StaticLibraryBinary) {
+                   staticLibraryFile = file("$rootDir/tools/tbb-2017_U6/linux-x86_64/libtbb.a")
+               }
+            }
         }
     }
     components {
@@ -74,8 +80,11 @@ model {
             }
         }
         nativeTimedExpirationMapSharedLibrary {
+            lib library: "tbb", linkage: "static"
+
             if (targetPlatform.operatingSystem.linux) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeTimedExpirationMap.so"
+
             }
             if (targetPlatform.operatingSystem.macOsX) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeTimedExpirationMap.dylib"
@@ -83,6 +92,7 @@ model {
         }
         withType(GoogleTestTestSuiteBinarySpec) {
             lib library: "googleTest", linkage: "static"
+            lib library: "tbb", linkage: "static"
 
             if (targetPlatform.operatingSystem.linux) {
                 cppCompiler.args '-pthread'

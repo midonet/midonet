@@ -162,162 +162,136 @@ Java_org_midonet_util_concurrent_NativeTimedExpirationMap_iteratorClose
   delete iter;
 }
 
+option<std::string>
+ref_accessor(NativeTimedExpirationMap::RefCountMap::accessor& accessor) {
+  auto count = accessor->second.inc_if_greater_than(-1);
+  if (count == -1) {
+    return option<std::string>::null_opt;
+  } else {
+    return option<std::string>(accessor->second.value());
+  }
+}
+
+int
+ref_and_get_count_accessor(NativeTimedExpirationMap::RefCountMap::accessor& accessor) {
+  auto new_count = accessor->second.inc_if_greater_than(-1);
+  if (new_count == -1) {
+    return 0;
+  } else {
+    return new_count;
+  }
+}
+
 const option<std::string>
 NativeTimedExpirationMap::put_and_ref(const std::string key,
                                       const std::string value) {
-  std::lock_guard<std::recursive_mutex> lock(mutex);
-  return put_and_ref_no_lock(key, value);
+  while (true) {
+    RefCountMap::accessor accessor;
+    if (ref_count_map.insert(accessor, key)) {
+      accessor->second = Metadata(value, 1, LONG_MAX);
+      return option<std::string>::null_opt;
+    } else {
+      auto ret = ref_accessor(accessor);
+      if (ret) {
+        accessor->second.set_value(value);
+      } else {
+        continue;
+      }
+      return ret;
+    }
+  }
 }
 
 int
 NativeTimedExpirationMap::put_if_absent_and_ref(const std::string key,
                                                 const std::string value) {
-  std::lock_guard<std::recursive_mutex> lock(mutex);
-  return put_if_absent_and_ref_no_lock(key, value);
+  while (true) {
+    RefCountMap::accessor accessor;
+    if (ref_count_map.insert(accessor, key)) {
+      accessor->second = Metadata(value, 1, LONG_MAX);
+      return 1;
+    } else {
+      auto ret = ref_and_get_count_accessor(accessor);
+      if (ret != 0) {
+        return ret;
+      } else {
+        put_if_absent_and_ref(key, value);
+      }
+    }
+  }
 }
 
 const option<std::string>
 NativeTimedExpirationMap::get(const std::string key) const {
-  std::lock_guard<std::recursive_mutex> lock(mutex);
-  return get_no_lock(key);
+  RefCountMap::const_accessor accessor;
+  if (ref_count_map.find(accessor, key)
+      && accessor->second.ref_count() != -1) {
+    return option<std::string>(accessor->second.value());
+  } else {
+    return option<std::string>::null_opt;
+  }
 }
 
 const option<std::string>
 NativeTimedExpirationMap::ref(const std::string key) {
-  std::lock_guard<std::recursive_mutex> lock(mutex);
-  return ref_no_lock(key);
+  RefCountMap::accessor accessor;
+  if (ref_count_map.find(accessor, key)) {
+    return ref_accessor(accessor);
+  } else {
+    return option<std::string>::null_opt;
+  }
 }
 
 int
 NativeTimedExpirationMap::ref_and_get_count(const std::string key) {
-  std::lock_guard<std::recursive_mutex> lock(mutex);
-  return ref_and_get_count_no_lock(key);
+  RefCountMap::accessor accessor;
+  if (ref_count_map.find(accessor, key)) {
+    return ref_and_get_count_accessor(accessor);
+  } else {
+    return 0;
+  }
 }
 
 int
 NativeTimedExpirationMap::ref_count(const std::string key) const {
-  std::lock_guard<std::recursive_mutex> lock(mutex);
-  return ref_count_no_lock(key);
+  RefCountMap::const_accessor accessor;
+  if (ref_count_map.find(accessor, key)) {
+    return accessor->second.ref_count();
+  } else {
+    return 0;
+  }
 }
 
 const option<std::string>
 NativeTimedExpirationMap::unref(const std::string key,
                                 long expire_in,
                                 long current_time_millis) {
-  std::lock_guard<std::recursive_mutex> lock(mutex);
-  return unref_no_lock(key, expire_in, current_time_millis);
-}
-
-
-const option<std::string>
-NativeTimedExpirationMap::put_and_ref_no_lock(const std::string key,
-                                              const std::string value) {
-  auto it = ref_count_map.find(key);
-  if (it != ref_count_map.end()) {
-    auto ret = ref_no_lock(key);
-    ref_count_map[key].set_value(value);
-    return ret;
-  } else {
-    ref_count_map[key] = Metadata(value, 1, LONG_MAX);
-    return option<std::string>::null_opt;
-  }
-}
-
-int
-NativeTimedExpirationMap::put_if_absent_and_ref_no_lock(const std::string key,
-                                                        const std::string value) {
-  auto it = ref_count_map.find(key);
-  if (it != ref_count_map.end()) {
-    return ref_and_get_count_no_lock(key);
-  } else {
-    put_and_ref_no_lock(key, value);
-    return 1;
-  }
-}
-
-const option<std::string>
-NativeTimedExpirationMap::get_no_lock(const std::string key) const {
-  auto it = ref_count_map.find(key);
-  if (it != ref_count_map.end() && it->second.ref_count() != -1) {
-    return option<std::string>(it->second.value());
-  } else {
-    return option<std::string>::null_opt;
-  }
-}
-
-const option<std::string>
-NativeTimedExpirationMap::ref_no_lock(const std::string key) {
-  auto it = ref_count_map.find(key);
-  if (it != ref_count_map.end()) {
-    auto count = it->second.inc_if_greater_than(-1);
-    if (count == -1) {
-      return option<std::string>::null_opt;
-    } else {
-      return option<std::string>(it->second.value());
-    }
-  } else {
-    return option<std::string>::null_opt;
-  }
-}
-
-int
-NativeTimedExpirationMap::ref_and_get_count_no_lock(const std::string key) {
-  auto it = ref_count_map.find(key);
-  if (it != ref_count_map.end()) {
-    auto new_count = it->second.inc_if_greater_than(-1);
-    if (new_count == -1) {
-      return 0;
-    } else {
-      return new_count;
-    }
-  } else {
-    return 0;
-  }
-}
-
-int
-NativeTimedExpirationMap::ref_count_no_lock(const std::string key) const {
-  auto it = ref_count_map.find(key);
-  if (it != ref_count_map.end()) {
-    it->second.ref_count();
-  } else {
-    return 0;
-  }
-}
-
-const option<std::string>
-NativeTimedExpirationMap::unref_no_lock(const std::string key,
-                                        long expire_in,
-                                        long current_time_millis) {
-  auto it = ref_count_map.find(key);
-  if (it != ref_count_map.end()) {
-    if (it->second.ref_count() > 0 &&
-        it->second.dec_and_get() == 0) {
+  RefCountMap::accessor accessor;
+  if (ref_count_map.find(accessor, key)) {
+    if (accessor->second.ref_count() > 0 &&
+        accessor->second.dec_and_get() == 0) {
       long expiration = current_time_millis + expire_in;
-      it->second.set_expiration(expiration);
+      accessor->second.set_expiration(expiration);
       expiring[expire_in].push(std::make_pair(key, expiration));
     }
-    return option<std::string>(it->second.value());
+    return option<std::string>(accessor->second.value());
   } else {
     return option<std::string>::null_opt;
   }
 }
 
 NativeTimedExpirationMap::Iterator* NativeTimedExpirationMap::iterator() const {
-  return new NativeTimedExpirationMap::AllEntriesIterator(mutex,
-                                                          ref_count_map);
+  return new NativeTimedExpirationMap::AllEntriesIterator(ref_count_map);
 }
 
 NativeTimedExpirationMap::Iterator* NativeTimedExpirationMap::obliterate(long current_time_millis) {
-  return new NativeTimedExpirationMap::ObliterationIterator(mutex,
-                                                            expiring,
+  return new NativeTimedExpirationMap::ObliterationIterator(expiring,
                                                             ref_count_map,
                                                             current_time_millis);
 }
 
-NativeTimedExpirationMap::AllEntriesIterator::AllEntriesIterator(std::recursive_mutex& mutex,
-                                                                 const std::unordered_map<std::string, Metadata>& map)
-  : lock(mutex), iterator(map.cbegin()), end(map.cend()) {}
+NativeTimedExpirationMap::AllEntriesIterator::AllEntriesIterator(const RefCountMap& map)
+  : iterator(map.begin()), end(map.end()) {}
 
 bool NativeTimedExpirationMap::AllEntriesIterator::at_end() const {
   return iterator == end;
@@ -335,13 +309,14 @@ std::string NativeTimedExpirationMap::AllEntriesIterator::cur_value() const {
   return iterator->second.value();
 }
 
-NativeTimedExpirationMap::ObliterationIterator::ObliterationIterator(std::recursive_mutex& mutex,
-                                                                     std::unordered_map<long, std::queue<std::pair<std::string,long>>>& expiring,
-                                                                     std::unordered_map<std::string, Metadata>& ref_count_map,
+NativeTimedExpirationMap::ObliterationIterator::ObliterationIterator(std::unordered_map<long, std::queue<std::pair<std::string,long>>>& expiring,
+                                                                     RefCountMap& ref_count_map,
                                                                      long current_time_millis)
-  : lock(mutex), expiring(expiring), ref_count_map(ref_count_map),
+  : expiring(expiring), ref_count_map(ref_count_map),
     current_time_millis(current_time_millis),
-    queue_iterator(expiring.begin()), current(option<KeyVal>::null_opt) {
+    queue_iterator(expiring.begin()),
+    current_key(option<std::string>::null_opt),
+    current_value(option<std::string>::null_opt) {
   next();
 }
 
@@ -354,24 +329,28 @@ void NativeTimedExpirationMap::ObliterationIterator::progress_iterator() {
 }
 
 bool NativeTimedExpirationMap::ObliterationIterator::at_end() const {
-  return !current
+  auto ret = !current_key
     && (queue_iterator == expiring.end()
         || queue_iterator->second.empty()
         || queue_iterator->second.front().second > current_time_millis);
+  return ret;
 }
 
 void NativeTimedExpirationMap::ObliterationIterator::next() {
-  current = option<KeyVal>::null_opt;
+  if (current_key) {
+    ref_count_map.erase(current_key.value());
+    current_key = option<std::string>::null_opt;
+  }
   progress_iterator();
 
-  while (!at_end() && !current) {
+  while (!at_end() && !current_key) {
     auto current_key = queue_iterator->second.front().first;
 
-    auto it = ref_count_map.find(current_key);
-    if (it != ref_count_map.end() && it->second.dec_if_zero()) {
-      auto current_value = it->second.value();
-      current = option<KeyVal>(std::make_pair(current_key, current_value));
-      ref_count_map.erase(it);
+    RefCountMap::accessor accessor;
+    if (ref_count_map.find(accessor, current_key)
+        && accessor->second.dec_if_zero()) {
+      this->current_key = option<std::string>(current_key);
+      this->current_value = option<std::string>(accessor->second.value());
       queue_iterator->second.pop();
     } else {
       queue_iterator->second.pop();
@@ -381,10 +360,11 @@ void NativeTimedExpirationMap::ObliterationIterator::next() {
 }
 
 std::string NativeTimedExpirationMap::ObliterationIterator::cur_key() const {
-  return current.value().first;
+
+  return current_key.value();
 }
 
 std::string NativeTimedExpirationMap::ObliterationIterator::cur_value() const {
-  return current.value().second;
+  return current_value.value();
 }
 
