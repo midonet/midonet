@@ -51,6 +51,18 @@
 
     </appender>
 
+    <appender name="METRICS-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${midolman.log.dir}midolman.metrics.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} ${HOSTNAME} - %m%n%rEx </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${midolman.log.dir}midolman.metrics.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
     <!--- This appender writes to SysLog.  Refer to the following URL
           for further info on settings:
               http://logback.qos.ch/manual/appenders.html#SyslogAppender
@@ -87,6 +99,9 @@
     </logger>
     <logger name="org.midonet.packets.trace.packet-processor" level="TRACE" >
         <appender-ref ref="TRACE-FILE" />
+    </logger>
+    <logger name="org.midonet.log_metrics" level="INFO" additivity="false">
+        <appender-ref ref="METRICS-FILE" />
     </logger>
 
     <!-- logs under "org.midonet.event" logger also goes to EVENT-FILE appender as well as those defined in <root> -->
