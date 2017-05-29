@@ -24,8 +24,10 @@ jlong Java_org_midonet_util_concurrent_NativeTimedExpirationMap_create(JNIEnv *,
 
 const std::string jba2str(JNIEnv *env, jbyteArray ba) {
   auto len = env->GetArrayLength(ba);
-  auto bytes = reinterpret_cast<const char*>(env->GetByteArrayElements(ba, 0));
-  return std::string(bytes, len);
+  auto bytes = env->GetByteArrayElements(ba, 0);
+  auto ret = std::string(reinterpret_cast<const char*>(bytes), len);
+  env->ReleaseByteArrayElements(ba, bytes, 0);
+  return ret;
 }
 
 jbyteArray str2jba(JNIEnv *env, std::string str) {
