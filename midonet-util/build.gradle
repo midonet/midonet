@@ -42,7 +42,12 @@ model {
             tbb {
                headers.srcDir "$rootDir/tools/tbb-2017_U6/include"
                binaries.withType(StaticLibraryBinary) {
-                   staticLibraryFile = file("$rootDir/tools/tbb-2017_U6/linux-x86_64/libtbb.a")
+                   if (targetPlatform.operatingSystem.linux) {
+                       staticLibraryFile = file("$rootDir/tools/tbb-2017_U6/linux-x86_64/libtbb.a")
+                   }
+                   if (targetPlatform.operatingSystem.macOsX) {
+                       staticLibraryFile = file("$rootDir/tools/tbb-2017_U6/osx-x86_64/libtbb.a")
+                   }
                }
             }
         }
@@ -75,7 +80,8 @@ model {
                     cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/linux"
                 }
                 if (targetPlatform.operatingSystem.macOsX) {
-                    cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/darwin"
+                    cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/darwin" \
+                                     << "-I" << "$rootDir/tools/tbb-2017_U6/include"
                 }
             }
         }
@@ -84,7 +90,6 @@ model {
 
             if (targetPlatform.operatingSystem.linux) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeTimedExpirationMap.so"
-
             }
             if (targetPlatform.operatingSystem.macOsX) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeTimedExpirationMap.dylib"
