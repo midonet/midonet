@@ -27,6 +27,17 @@ sudo sed -i 's/\(MAX_HEAP_SIZE=\).*$/\1256M/' $MIDOLMAN_ENV_FILE
 MINIONS_ENV_FILE='/etc/midolman/minions-env.sh'
 sudo sed -i 's/\(MAX_HEAP_SIZE=\).*$/\1128M/' $MINIONS_ENV_FILE
 
+# FIXME: changes to mn-conf should be passed to the run-midolman.sh script
+# e.g. via ENV VAR. But that needs some work on the sandbox image and
+# rebuilding it.
+# Update ZK hosts in case they were linked to this container
+if [[ `env | grep _PORT_2181_TCP_ADDR` ]]; then
+    MIDO_ZOOKEEPER_HOSTS="$(env | grep _PORT_2181_TCP_ADDR | sed -e 's/.*_PORT_2181_TCP_ADDR=//g' -e 's/^.*/&:2181/g' | sort -u)"
+    MIDO_ZOOKEEPER_HOSTS="$(echo $MIDO_ZOOKEEPER_HOSTS | sed 's/ /,/g')"
+fi
+
+sed -i -e 's/zookeeper_hosts = .*$/zookeeper_hosts = '"$MIDO_ZOOKEEPER_HOSTS"'/' /etc/midolman/midolman.conf
+
 # Enable offheap tables for midolman1
 if [ $(hostname) = "midolman1" ]; then
     mn-conf set -h local <<EOF
