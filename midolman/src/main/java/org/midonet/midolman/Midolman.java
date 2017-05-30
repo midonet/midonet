@@ -248,9 +248,13 @@ public class Midolman {
                                      metricRegistry),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class)
         );
-        FlowTablePreallocation preallocation
-            = new FlowTablePreallocation(config);
-        preallocation.allocateAndTenure();
+        FlowTablePreallocation preallocation;
+        if (config.offHeapTables()) {
+            preallocation = new FlowTableNoPreallocation();
+        } else {
+            preallocation = new FlowTablePreallocationImpl(config);
+            preallocation.allocateAndTenure();
+        }
 
         injector = injector.createChildInjector(
                 new MidolmanModule(injector, config, metricRegistry,

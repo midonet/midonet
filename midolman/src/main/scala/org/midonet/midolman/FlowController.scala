@@ -16,23 +16,21 @@
 
 package org.midonet.midolman
 
-import java.util.{ArrayDeque, ArrayList}
+import java.util.ArrayList
 
 import org.jctools.queues.SpscArrayQueue
 
 import org.midonet.ErrorCode._
 import org.midonet.Util
-import org.midonet.odp.FlowMatch
 import org.midonet.midolman.CallbackRegistry.CallbackSpec
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
-import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
-import org.midonet.midolman.flows.FlowExpirationIndexer.ExpirationQueue
+import org.midonet.midolman.flows.FlowExpirationIndexer.{Expiration, ExpirationQueue}
 import org.midonet.midolman.flows._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.simulation.PacketContext
+import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.{ArrayObjectPool, NoOpPool}
 import org.midonet.util.concurrent.WakerUpper.Parkable
@@ -45,8 +43,55 @@ object FlowController {
     private[midolman] val IndexMask = (1 << IndexShift) - 1
 }
 
+trait FlowTablePreallocation {
+    def maxFlows: Int
+    def allocateAndTenure(): Unit
+    def takeIndexToFlow(): Array[ManagedFlowImpl]
+    def takeManagedFlowPool(): ArrayObjectPool[ManagedFlowImpl]
+    def takeMeterRegistry(): MeterRegistry
+    def takeErrorExpirationQueue(): ExpirationQueue
+    def takeFlowExpirationQueue(): ExpirationQueue
+    def takeStatefulFlowExpirationQueue(): ExpirationQueue
+    def takeTunnelFlowExpirationQueue(): ExpirationQueue
+}
 
-class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
+class NoPreallocationException(method: String) extends Exception(
+    s"Programming error. FlowTablePreallocation.$method SHOULD NOT be called " +
+    s"with this implementation.")
+
+class FlowTableNoPreallocation extends FlowTablePreallocation {
+
+    override def maxFlows: Int =
+        throw new NoPreallocationException("maxFlows")
+
+    override def allocateAndTenure(): Unit =
+        throw new NoPreallocationException("allocateAndTenur")
+
+    override def takeIndexToFlow(): Array[ManagedFlowImpl] =
+        throw new NoPreallocationException("takeIndexToFlow")
+
+    override def takeManagedFlowPool(): ArrayObjectPool[ManagedFlowImpl] =
+        throw new NoPreallocationException("takeManagedFlowPool")
+
+    override def takeMeterRegistry(): MeterRegistry =
+        throw new NoPreallocationException("takeMeterRegistry")
+
+    override def takeErrorExpirationQueue(): ExpirationQueue =
+        throw new NoPreallocationException("takeErrorExpirationQueue")
+
+    override def takeFlowExpirationQueue(): ExpirationQueue =
+        throw new NoPreallocationException("takeFlowExpirationQueue")
+
+    override def takeStatefulFlowExpirationQueue(): ExpirationQueue =
+        throw new NoPreallocationException("takeStatefulFlowExpirationQueue")
+
+    override def takeTunnelFlowExpirationQueue(): ExpirationQueue =
+        throw new NoPreallocationException("takeTunnelFlowExpirationQueue")
+}
+
+class FlowTablePreallocationImpl(config: MidolmanConfig)
+    extends FlowTablePreallocation with MidolmanLogging {
+
     import FlowController._
 
     override def logSource: String = "org.midonet.midolman.prealloc"
@@ -72,7 +117,7 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
         ((config.datapath.maxFlowCount / numWorkers) * 1.2).toInt,
         (1 << IndexShift) - 1)
 
-    def allocateAndTenure() {
+    override def allocateAndTenure() {
         var i = 0
         val indexToFlowsSize = Util.findNextPositivePowerOfTwo(maxFlows)
         log.info("Preallocating flow table structures, max flows = "
@@ -95,17 +140,17 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
         System.gc()
     }
 
-    def takeIndexToFlow(): Array[ManagedFlowImpl] = indexToFlows.remove(0)
-    def takeManagedFlowPool(): ArrayObjectPool[ManagedFlowImpl] =
+    override def takeIndexToFlow(): Array[ManagedFlowImpl] = indexToFlows.remove(0)
+    override def takeManagedFlowPool(): ArrayObjectPool[ManagedFlowImpl] =
         managedFlowPools.remove(0)
-    def takeMeterRegistry(): MeterRegistry = meterRegistries.remove(0)
-    def takeErrorExpirationQueue(): ExpirationQueue =
+    override def takeMeterRegistry(): MeterRegistry = meterRegistries.remove(0)
+    override def takeErrorExpirationQueue(): ExpirationQueue =
         errorExpirationQueues.remove(0)
-    def takeFlowExpirationQueue(): ExpirationQueue =
+    override def takeFlowExpirationQueue(): ExpirationQueue =
         flowExpirationQueues.remove(0)
-    def takeStatefulFlowExpirationQueue(): ExpirationQueue =
+    override def takeStatefulFlowExpirationQueue(): ExpirationQueue =
         statefulFlowExpirationQueues.remove(0)
-    def takeTunnelFlowExpirationQueue(): ExpirationQueue =
+    override def takeTunnelFlowExpirationQueue(): ExpirationQueue =
         tunnelFlowExpirationQueues.remove(0)
 }
 

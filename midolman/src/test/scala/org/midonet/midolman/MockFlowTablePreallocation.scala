@@ -16,16 +16,14 @@
 
 package org.midonet.midolman
 
-import java.util.ArrayDeque
-
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.ManagedFlowImpl
 import org.midonet.midolman.flows.FlowExpirationIndexer.ExpirationQueue
+import org.midonet.midolman.flows.ManagedFlowImpl
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.util.collection.ArrayObjectPool
 
 class MockFlowTablePreallocation(config: MidolmanConfig)
-        extends FlowTablePreallocation(config) {
+        extends FlowTablePreallocationImpl(config) {
     override def allocateAndTenure() {}
 
     override def takeIndexToFlow(): Array[ManagedFlowImpl] =
