@@ -472,7 +472,6 @@ def test_multisession_icmp_add_session():
 
 @bindings(binding_multisession1, binding_multisession2)
 @with_setup(None, clear_bgp)
-@nottest  # MI-777
 def test_multisession_icmp_remove_session():
     """
     Title: BGP removing one session to existing port
