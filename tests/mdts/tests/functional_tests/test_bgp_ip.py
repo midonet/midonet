@@ -77,7 +77,7 @@ class BgpIpTopologyManager(NeutronTopologyManager):
         self.add_bgp_speaker_peer(a_speaker['id'], a_to_b_peer['id'])
         self.add_bgp_speaker_peer(b_speaker['id'], b_to_a_peer['id'])
 
-binding_onehost_intra_tenant = {
+binding_onehost_intra_tenant_mm1 = {
     'description': 'on single MM (intra tenant)',
     'bindings': [
         {'vport': PLEFT,
@@ -98,11 +98,32 @@ binding_onehost_intra_tenant = {
     }
 }
 
+binding_onehost_intra_tenant_mm2 = {
+    'description': 'on single MM (intra tenant)',
+    'bindings': [
+        {'vport': PLEFT,
+         'interface': {
+             'definition': {'ipv4_gw': A_PRIV_UP_IP},
+             'hostname': 'midolman2',
+             'type': 'vmguest'
+         }},
+        {'vport': PRIGHT,
+         'interface': {
+             'definition': {'ipv4_gw': B_PRIV_UP_IP},
+             'hostname': 'midolman2',
+             'type': 'vmguest'
+         }},
+    ],
+    'config': {
+        'tenants': ('tenant_left', 'tenant_left', 'tenant_left')
+    }
+}
+
 VTM = BgpIpTopologyManager()
 BM = BindingManager(None, VTM)
 
 
-@bindings(binding_onehost_intra_tenant, binding_manager=BM)
+@bindings(binding_onehost_intra_tenant_mm1, binding_onehost_intra_tenant_mm2, binding_manager=BM)
 def test_bgp_ip_basic():
 
     # We need time for the bgpd instances to peer up.
@@ -121,3 +142,4 @@ def test_bgp_ip_basic():
     retcode = vmport_right.compute_host.check_exit_status(
             exec_id, result, timeout=10)
     assert(retcode == 0)
+
