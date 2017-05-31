@@ -74,7 +74,7 @@ virtual_topology:
   chains:
     - chain:
         id: 1
-        name: pre_filter_snat_ip
+        name: pre_filter_snat_ip_1
         rules:
           - rule:
               id: 1
@@ -88,6 +88,20 @@ virtual_topology:
 
     - chain:
         id: 2
+        name: pre_filter_snat_ip_2
+        rules:
+          - rule:
+              id: 1
+              type: rev_snat
+              flow_action: accept
+              in_ports:
+                - device_name: router-000-001
+                  port_id: 3
+              nw_dst_address: 100.0.0.1
+              nw_dst_length: 32
+
+    - chain:
+        id: 3
         name: post_filter_snat_ip
         rules:
           - rule:
@@ -102,3 +116,4 @@ virtual_topology:
                   addressTo: 100.0.0.1
                   portFrom: 60000
                   portTo: 65535
+

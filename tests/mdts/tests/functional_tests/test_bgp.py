@@ -35,9 +35,25 @@ PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_bgp.yaml')
 VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_bgp.yaml')
 BM = BindingManager(PTM, VTM)
 
+# routes BGP advertises:
+route_direct = [{'nwPrefix': '172.16.0.0', 'prefixLength': 16}]
+route_snat = [{'nwPrefix': '100.0.0.0', 'prefixLength': 16}]
 
-binding_unisession = {
-    'description': 'vm not connected to uplink',
+# peers available:
+uplink1_session1 = {'port': 2, 'peerAddr': '10.1.0.240', 'peerAs': 64511}
+uplink1_session2 = {'port': 2, 'peerAddr': '10.1.0.241', 'peerAs': 64512}
+uplink2_session1 = {'port': 3, 'peerAddr': '10.2.0.240', 'peerAs': 64512}
+uplink2_session2 = {'port': 3, 'peerAddr': '10.2.0.241', 'peerAs': 64511}
+uplink1_multisession = [uplink1_session1, uplink1_session2]
+uplink2_multisession = [uplink2_session1, uplink2_session2]
+
+
+# NOTE midolman 1 and midolman 2 may honor different versions of quagga
+# protocol, so tests should be repeated for both. The setup uses the
+# host 3 for non-uplink agent.
+
+binding_unisession1 = {
+    'description': 'vm not connected to uplink (mm1 as first link)',
     'bindings': [
         {'binding':
             {'device_name': 'bridge-000-001', 'port_id': 2,
@@ -48,10 +64,33 @@ binding_unisession = {
         {'binding':
             {'device_name': 'router-000-001', 'port_id': 3,
              'host_id': 2, 'interface_id': 2}},
-    ]
+    ],
+    'config': {
+        'link1': uplink1_session1,
+        'link2': uplink2_session1,
+        'pre_filter': 'pre_filter_snat_ip_1'}
 }
 
-binding_snat = {
+binding_unisession2 = {
+    'description': 'vm not connected to uplink (mm2 as first link)',
+    'bindings': [
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 3, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'router-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 2}},
+        {'binding':
+            {'device_name': 'router-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 2}},
+    ],
+    'config': {
+        'link1': uplink2_session1,
+        'link2': uplink1_session1,
+        'pre_filter': 'pre_filter_snat_ip_2'}
+}
+
+binding_snat1 = {
     'description': 'one connected to uplink #1 and another not connected',
     'bindings': [
         {'binding':
@@ -63,21 +102,62 @@ binding_snat = {
         {'binding':
             {'device_name': 'router-000-001', 'port_id': 2,
              'host_id': 1, 'interface_id': 2}},
-    ]
+    ],
+    'config': {
+        'link': uplink1_session1,
+        'pre_filter': 'pre_filter_snat_ip_1'}
+
 }
 
-binding_multisession = {
+binding_snat2 = {
+    'description': 'one connected to uplink #2 and another not connected',
+    'bindings': [
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 1, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'router-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 2}},
+    ],
+    'config': {
+        'link': uplink2_session1,
+        'pre_filter': 'pre_filter_snat_ip_2'}
+}
+
+binding_multisession1 = {
     'description': 'two sessions in uplink #1 and one vm not in uplink',
     'bindings': [
         {'binding':
             {'device_name': 'bridge-000-001', 'port_id': 2,
-             'host_id': 2, 'interface_id': 1}},
+             'host_id': 3, 'interface_id': 1}},
         {'binding':
             {'device_name': 'router-000-001', 'port_id': 2,
              'host_id': 1, 'interface_id': 2}}
-    ]
+    ],
+    'config': {
+        'session1': uplink1_session1,
+        'session2': uplink1_session2,
+        'multisession' : uplink1_multisession}
 }
 
+binding_multisession2 = {
+    'description': 'two sessions in uplink #2 and one vm not in uplink',
+    'bindings': [
+        {'binding':
+            {'device_name': 'bridge-000-001', 'port_id': 2,
+             'host_id': 3, 'interface_id': 1}},
+        {'binding':
+            {'device_name': 'router-000-001', 'port_id': 3,
+             'host_id': 2, 'interface_id': 2}}
+    ],
+    'config': {
+        'session1': uplink2_session1,
+        'session2': uplink2_session2,
+        'multisession' : uplink2_multisession}
+}
 
 # Even though quickly copied from test_nat_router for now, utilities below
 # should probably be moved to somewhere shared among tests
@@ -173,18 +253,6 @@ def await_internal_route_exported(localAs, peerAs):
     raise Exception("Timed out while waiting for quagga0 to learn the internal "
                     "network through AS %s " % (peerAs))
 
-# routes BGP advertises:
-route_direct = [{'nwPrefix': '172.16.0.0', 'prefixLength': 16}]
-route_snat = [{'nwPrefix': '100.0.0.0', 'prefixLength': 16}]
-
-# peers available:
-uplink1_session1 = {'port': 2, 'peerAddr': '10.1.0.240', 'peerAs': 64511}
-uplink1_session2 = {'port': 2, 'peerAddr': '10.1.0.241', 'peerAs': 64512}
-uplink2_session1 = {'port': 3, 'peerAddr': '10.2.0.240', 'peerAs': 64512}
-uplink2_session2 = {'port': 3, 'peerAddr': '10.2.0.241', 'peerAs': 64511}
-uplink1_multisession = [uplink1_session1, uplink1_session2]
-uplink2_multisession = [uplink2_session1, uplink2_session2]
-
 
 # 1.1.1.1 is assigned to lo in ns000 emulating a public IP address
 def ping_to_inet(count=5, interval=1, port=2, retries=3):
@@ -208,9 +276,9 @@ def ping_to_inet(count=5, interval=1, port=2, retries=3):
 
 
 @attr(version="v1.2.0")
-@bindings(binding_unisession)
+@bindings(binding_unisession1, binding_unisession2)
 @with_setup(None, clear_bgp)
-def test_icmp_multi_add_uplink_1():
+def test_icmp_multi_add_uplink():
     """
     Title: configure BGP to establish multiple uplinks
 
@@ -225,28 +293,34 @@ def test_icmp_multi_add_uplink_1():
     Then: ICMP echo RR should work to a psudo public IP address
 
     """
-    add_bgp([uplink1_session1], route_direct)
+    upl1 = BM.get_binding_data()['config']['link1']
+    upl2 = BM.get_binding_data()['config']['link2']
+
+    add_bgp([upl1], route_direct)
     ping_to_inet()  # BGP #1 is working
 
-    add_bgp([uplink2_session1], route_direct)
+    add_bgp([upl2], route_direct)
     ping_to_inet()  # BGP #1 and #2 working
 
 
 @attr(version="v1.2.0")
-@bindings(binding_unisession)
+@bindings(binding_unisession1, binding_unisession2)
 @with_setup(None, clear_bgp)
-def test_icmp_remove_uplink_1():
+def test_icmp_remove_uplink():
     """
     Title: Remove one BGP from multiple BGP links
 
     Scenario 1:
     Given: multiple uplinks with BGP enabled
-    When: disable one of BGP uplinks
+    When: disable the BGP uplinks
     Then: ICMP echo RR should work to a pseudo public IP address
 
     """
-    p1 = add_bgp([uplink1_session1], route_direct)
-    add_bgp([uplink2_session1], route_direct)
+    upl1 = BM.get_binding_data()['config']['link1']
+    upl2 = BM.get_binding_data()['config']['link2']
+
+    p1 = add_bgp([upl1], route_direct)
+    add_bgp([upl2], route_direct)
     ping_to_inet()  # BGP #1 and #2 are working
 
     clear_bgp_peer(p1, 5)
@@ -255,7 +329,7 @@ def test_icmp_remove_uplink_1():
 
 # FIXME: see issue MI-593
 @attr(version="v1.2.0")
-@bindings(binding_unisession)
+@bindings(binding_unisession1)
 @with_setup(None, clear_bgp)
 def test_icmp_failback():
     """
@@ -315,7 +389,7 @@ def test_icmp_failback():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_unisession)
+@bindings(binding_unisession1, binding_unisession2)
 @with_setup(None, clear_bgp)
 def test_snat():
     """
@@ -327,9 +401,12 @@ def test_snat():
     Then: ICMP echo RR should work
 
     """
-    add_bgp([uplink1_session1], route_snat)
+    upl1 = BM.get_binding_data()['config']['link1']
+    pre_filter = BM.get_binding_data()['config']['pre_filter']
 
-    set_filters('router-000-001', 'pre_filter_snat_ip', 'post_filter_snat_ip')
+    add_bgp([upl1], route_snat)
+
+    set_filters('router-000-001', pre_filter, 'post_filter_snat_ip')
 
     try:
         # requires all 10 trials work and each of which has one pair of
@@ -343,7 +420,7 @@ def test_snat():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_snat)
+@bindings(binding_snat1, binding_snat2)
 @with_setup(None, clear_bgp)
 def test_mn_1172():
     """
@@ -355,9 +432,12 @@ def test_mn_1172():
     Then: ICMP echo RR should work from multiple VMs
 
     """
-    add_bgp([uplink1_session1], route_snat)
+    uplink = BM.get_binding_data()['config']['link']
+    pre_filter = BM.get_binding_data()['config']['pre_filter']
 
-    set_filters('router-000-001', 'pre_filter_snat_ip', 'post_filter_snat_ip')
+    add_bgp([uplink], route_snat)
+
+    set_filters('router-000-001', pre_filter, 'post_filter_snat_ip')
 
     try:
         ping_to_inet(port=2)
@@ -367,7 +447,7 @@ def test_mn_1172():
         unset_filters('router-000-001')
 
 
-@bindings(binding_multisession)
+@bindings(binding_multisession1, binding_multisession2)
 @with_setup(None, clear_bgp)
 def test_multisession_icmp_add_session():
     """
@@ -378,16 +458,19 @@ def test_multisession_icmp_add_session():
     When: assing a second session to the same port
     Then: ICMP echo should work to a pseudo public IP address
     """
-    add_bgp([uplink1_session1], route_direct)
+    session1 = BM.get_binding_data()['config']['session1']
+    session2 = BM.get_binding_data()['config']['session2']
+
+    add_bgp([session1], route_direct)
 
     ping_to_inet()  # BGP session #1 is working
 
-    add_bgp_peer(uplink1_session2)  # peerAS 2
+    add_bgp_peer(session2)  # peerAS 2
 
     ping_to_inet()  # BGP session #1 is still working and nothing breaks
 
 
-@bindings(binding_multisession)
+@bindings(binding_multisession1, binding_multisession2)
 @with_setup(None, clear_bgp)
 @nottest  # MI-777
 def test_multisession_icmp_remove_session():
@@ -395,12 +478,15 @@ def test_multisession_icmp_remove_session():
     Title: BGP removing one session to existing port
 
     Scenario 1:
-    Given: two sessions active on a given vport connected to two uplink quaggas
-    When: removing one of the session
+    Given: two sessions active on a vport connected to two uplink quaggas
+    When: removing one of the sessions
     Then: ICMP echo should work to a pseudo public IP address through the 2n
           session
     """
-    peers = add_bgp(uplink1_multisession, route_direct)
+    multisession = BM.get_binding_data()['config']['multisession']
+    session1 = BM.get_binding_data()['config']['session1']
+
+    peers = add_bgp(multisession, route_direct)
 
     ping_to_inet()  # BGP session #1 is working
 
@@ -408,7 +494,7 @@ def test_multisession_icmp_remove_session():
 
     ping_to_inet()  # BGP session #2 start forwarding packets
 
-    add_bgp_peer(uplink1_session1)
+    add_bgp_peer(session1)
     await_internal_route_exported(64513, 64511)
 
     clear_bgp_peer(peers[1], 5)
@@ -418,7 +504,7 @@ def test_multisession_icmp_remove_session():
 
 # FIXME: see issue MI-685
 @attr(version="v1.2.0")
-@bindings(binding_multisession)
+@bindings(binding_multisession1, binding_multisession2)
 @with_setup(None, clear_bgp)
 def test_multisession_icmp_failback():
     """
@@ -450,7 +536,9 @@ def test_multisession_icmp_failback():
     Then: ICMP echo RR should work to a pseudo public IP address
 
     """
-    add_bgp(uplink1_multisession, route_direct)
+    multisession = BM.get_binding_data()['config']['multisession']
+
+    add_bgp(multisession, route_direct)
     ping_to_inet()  # BGP #1 and #2 are working
 
     failure = PktFailure('quagga1', 'bgp1', 5)
@@ -474,7 +562,7 @@ def test_multisession_icmp_failback():
 
 # FIXME: see issue MI-186
 @attr(version="v1.2.0")
-@bindings(binding_unisession)
+@bindings(binding_unisession1)
 @with_setup(None, clear_bgp)
 def test_multisession_icmp_with_redundancy():
     """
