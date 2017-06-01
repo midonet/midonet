@@ -20,8 +20,9 @@ import java.net.InetAddress
 import java.nio.ByteBuffer
 
 import org.junit.runner.RunWith
+import org.midonet.netlink.rtnetlink.Link.Type.ARPHRD_ETHER
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
-import org.midonet.quagga.ZebraProtocol.{MacAddrLength, ZebraInterfaceAdd, ZebraIpv4RouteAdd, ZebraRouterIdUpdate, _}
+import org.midonet.quagga.ZebraProtocol._
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, Matchers}
 import org.scalatest.junit.JUnitRunner
 
@@ -40,23 +41,24 @@ sealed class TestZebraHandler extends ZebraProtocolHandler {
     }
 }
 
-@RunWith(classOf[JUnitRunner])
-class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matchers {
+abstract class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matchers {
 
-    private val interfaceAddress = IPv4Addr(InetAddress.getLocalHost.getAddress)
-    private val interfaceName = "zebra-test"
-    private val clientId = 1
+    def protocol: ZebraProtocol
 
-    private var handler: TestZebraHandler = _
-    private var in: ByteArrayInputStream = _
-    private var out: ByteArrayOutputStream = _
-    private var ctx: ZebraContext = _
+    protected val interfaceAddress = IPv4Addr(InetAddress.getLocalHost.getAddress)
+    protected val interfaceName = "zebra-test"
+    protected val clientId = 1
+
+    protected var handler: TestZebraHandler = _
+    protected var in: ByteArrayInputStream = _
+    protected var out: ByteArrayOutputStream = _
+    protected var ctx: ZebraContext = _
 
     before {
         handler = new TestZebraHandler
     }
 
-    private def handleMessage(data: ByteBuffer): ByteBuffer = {
+    protected def handleMessage(data: ByteBuffer): ByteBuffer = {
         in = new ByteArrayInputStream(data.array())
         out = new ByteArrayOutputStream(64)
         ctx = ZebraContext(interfaceAddress, interfaceName, clientId, handler,
@@ -65,12 +67,13 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
         ByteBuffer.wrap(out.toByteArray)
     }
 
-    private def v2Header(message: Short, length: Int = 0) = {
-        val totalLength = ZebraProtocolV2.headerSize + length
+    protected def header(message: Short, length: Int = 0) = {
+        val totalLength = protocol.headerSize + length
         val data = ByteBuffer.allocate(totalLength)
         data.putShort(totalLength.toShort)
         data.put(ZebraHeaderMarker.toByte)
-        data.put(ZebraProtocolV2.version.toByte)
+        data.put(protocol.version.toByte)
+        if (protocol.version == 3) data.putShort(ZebraDefaultVrf.toShort)
         data.putShort(message)
         data
     }
@@ -88,9 +91,9 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
         MAC.fromAddress(buf)
     }
 
-    feature("support Zebra V2 messages") {
+    feature(s"support Zebra V${protocol.version} messages") {
         scenario("respond to a ZEBRA_HELLO message") {
-            val data = v2Header(ZebraHello, 1)
+            val data = header(ZebraHello, 1)
             data.put(ZebraRouteBgp.toByte)
 
             val response = handleMessage(data)
@@ -104,7 +107,7 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
             val subnet = IPv4Subnet.fromCidr("192.168.0.0/30")
             val hops = Seq(IPv4Addr.random)
 
-            val data = v2Header(ZebraIpv4RouteAdd, 11 + 5 * hops.size)
+            val data = header(ZebraIpv4RouteAdd, 11 + 5 * hops.size)
             data.put(ZebraRouteBgp.toByte)
             data.put(0.toByte) // flags
             data.put(ZAPIMessageNextHop.toByte)
@@ -138,7 +141,7 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
             handler.routes(subnet) = Set()
             val hops = Seq(IPv4Addr.random)
 
-            val data = v2Header(ZebraIpv4RouteDelete, 11 + 5 * hops.size)
+            val data = header(ZebraIpv4RouteDelete, 11 + 5 * hops.size)
             data.put(ZebraRouteBgp.toByte)
             data.put(0.toByte) // flags
             data.put(ZAPIMessageNextHop.toByte)
@@ -164,20 +167,22 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
         }
 
         scenario("respond to a ZEBRA_ROUTER_ID_ADD message") {
-            val data = v2Header(ZebraRouterIdAdd)
+            val data = header(ZebraRouterIdAdd)
 
             val response = handleMessage(data)
             // Message was fully read
             in.available() shouldBe 0
             // We respond with an update back
-            val expectedLength = ZebraProtocolV2.headerSize +
-                ZebraProtocolV2.messageSizes(ZebraRouterIdUpdate)
+            val expectedLength = protocol.headerSize +
+                protocol.messageSizes(ZebraRouterIdUpdate)
             response.capacity() shouldBe expectedLength
 
             // Proper header
             response.getShort shouldBe expectedLength
             response.get shouldBe ZebraHeaderMarker.toByte
-            response.get shouldBe ZebraProtocolV2.version
+            response.get shouldBe protocol.version
+            if (protocol.version == 3)
+                response.getShort shouldBe ZebraDefaultVrf
             response.getShort shouldBe ZebraRouterIdUpdate
 
             // Proper update message
@@ -190,23 +195,25 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
         }
 
         scenario("respond to a ZEBRA_INTERFACE_ADD message") {
-            val data = v2Header(ZebraInterfaceAdd)
+            val data = header(ZebraInterfaceAdd)
 
             val response = handleMessage(data)
             // Message was fully read
             in.available() shouldBe 0
 
             // We respond with an interface add back and an interface address add
-            val interfaceAddLength = ZebraProtocolV2.headerSize +
-                ZebraProtocolV2.messageSizes(ZebraInterfaceAdd)
-            val interfaceAddressAddLength = ZebraProtocolV2.headerSize +
-                ZebraProtocolV2.messageSizes(ZebraInterfaceAddressAdd)
+            val interfaceAddLength = protocol.headerSize +
+                protocol.messageSizes(ZebraInterfaceAdd)
+            val interfaceAddressAddLength = protocol.headerSize +
+                protocol.messageSizes(ZebraInterfaceAddressAdd)
             response.capacity() shouldBe interfaceAddLength + interfaceAddressAddLength
 
             // Proper interface add header
             response.getShort shouldBe interfaceAddLength
             response.get shouldBe ZebraHeaderMarker.toByte
-            response.get shouldBe ZebraProtocolV2.version
+            response.get shouldBe protocol.version
+            if (protocol.version == 3)
+                response.getShort shouldBe ZebraDefaultVrf
             response.getShort shouldBe ZebraInterfaceAdd
 
             // Proper interface add message
@@ -218,13 +225,19 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
             response.getInt shouldBe ZebraConnection.MidolmanMTU // IPv4 MTU
             response.getInt shouldBe ZebraConnection.MidolmanMTU // IPv6 MTU
             response.getInt shouldBe 0 // bandwidth
+            if (protocol.version == 3)
+                response.getInt shouldBe ARPHRD_ETHER
             response.getInt shouldBe MacAddrLength
             getMacFromBuffer(response) shouldBe MAC.ALL_ZEROS
+            if (protocol.version == 3)
+                response.get shouldBe 0 // link params status
 
             // Proper interface address add header
             response.getShort shouldBe interfaceAddressAddLength
             response.get shouldBe ZebraHeaderMarker.toByte
-            response.get shouldBe ZebraProtocolV2.version
+            response.get shouldBe protocol.version
+            if (protocol.version == 3)
+                response.getShort shouldBe ZebraDefaultVrf
             response.getShort shouldBe ZebraInterfaceAddressAdd
 
             // Proper interface address add message
@@ -241,20 +254,23 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
 
         scenario("respond to a ZEBRA_NEXTHOP_LOOKUP message") {
             val address = IPv4Addr.random
-            val data = v2Header(ZebraIpv4NextHopLookup, 4)
+            val data = header(ZebraIpv4NextHopLookup, 4)
             data.putInt(address.addr)
 
             val response = handleMessage(data)
             // Message was fully read
             in.available() shouldBe 0
             // We respond with a nexthop lookup back
-            val expectedLength = ZebraProtocolV2.headerSize + ZebraProtocolV2.messageSizes(ZebraIpv4NextHopLookup)
+            val expectedLength = protocol.headerSize +
+                protocol.messageSizes(ZebraIpv4NextHopLookup)
             response.capacity() shouldBe expectedLength
 
             // Proper header
             response.getShort shouldBe expectedLength
             response.get shouldBe ZebraHeaderMarker.toByte
-            response.get shouldBe ZebraProtocolV2.version
+            response.get shouldBe protocol.version
+            if (protocol.version == 3)
+                response.getShort shouldBe ZebraDefaultVrf
             response.getShort shouldBe ZebraIpv4NextHopLookup
 
             // Proper update message
@@ -269,7 +285,7 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
         }
 
         scenario("fail to a ZEBRA_HELLO message with incorrect type") {
-            val data = v2Header(ZebraHello, 1)
+            val data = header(ZebraHello, 1)
             data.put(ZebraRouteRip.toByte)
 
             an [AssertionError] shouldBe thrownBy {
@@ -284,7 +300,7 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
             val unsupported = Seq(ZebraIpv6RouteAdd, ZebraIpv6RouteDelete,
                 ZebraIpv6ImportLookup, ZebraIpv6NextHopLookup)
 
-            for (msg <- unsupported) handleMessage(v2Header(msg))
+            for (msg <- unsupported) handleMessage(header(msg))
 
             // Messages were fully read
             in.available() shouldBe 0
@@ -295,12 +311,61 @@ class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter with Matcher
 
             for (msg <- unknown) {
                 a [NoSuchElementException] shouldBe thrownBy {
-                    handleMessage(v2Header(msg))
+                    handleMessage(header(msg))
                 }
             }
 
             // Messages were fully read
             in.available() shouldBe 0
+        }
+    }
+}
+
+@RunWith(classOf[JUnitRunner])
+class ZebraProtocolV2Test extends ZebraProtocolTest {
+    override def protocol: ZebraProtocol = ZebraProtocolV2
+}
+
+@RunWith(classOf[JUnitRunner])
+class ZebraProtocolV3Test extends ZebraProtocolTest {
+    override def protocol: ZebraProtocol = ZebraProtocolV3
+
+    feature("support Zebra V3-only messages") {
+        scenario("respond to a ZEBRA_NEXTHOP_REGISTER message") {
+            val address = IPv4Addr.random
+            val data = header(ZebraNextHopRegister, 8)
+            data.put(1.toByte) // nexthop connected
+            data.putShort(AF_INET.toShort) // prefix family
+            data.put(32.toByte) // prefix length
+            data.putInt(address.addr)
+
+            val response = handleMessage(data)
+            // Message was fully read
+            in.available() shouldBe 0
+            // We respond with a nexthop update
+            val expectedLength = ZebraProtocolV3.headerSize +
+                ZebraProtocolV3.messageSizes(ZebraNextHopUpdate)
+            response.capacity() shouldBe expectedLength
+
+            // Proper header
+            response.getShort shouldBe expectedLength
+            response.get shouldBe ZebraHeaderMarker.toByte
+            response.get shouldBe protocol.version
+            if (protocol.version == 3)
+                response.getShort shouldBe ZebraDefaultVrf
+            response.getShort shouldBe ZebraNextHopUpdate
+
+            // Proper update message
+            response.getShort shouldBe AF_INET
+            response.get shouldBe 32
+            response.getInt shouldBe address.addr
+            response.getInt shouldBe 1 // interface metric
+            response.get shouldBe 1 // # nexthops
+            response.get shouldBe ZebraNextHopIpv4
+            response.getInt shouldBe interfaceAddress.addr
+
+            // Nothing left to read
+            response.position() shouldBe response.capacity()
         }
     }
 }
