@@ -243,6 +243,8 @@ allprojects {
 
     ext {
         nativeLibraryDir = "$buildDir/nativelibs"
+        tbbDir = "${rootDir}/tools/tbb-2017_U6"
+        tbbHeaderDir = "${tbbDir}/include"
     }
 }
 

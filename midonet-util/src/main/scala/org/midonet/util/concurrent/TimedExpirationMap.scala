@@ -319,9 +319,10 @@ final class OnHeapTimedExpirationMap[K <: AnyRef, V >: Null]
 }
 
 object OffHeapTimedExpirationMap {
-    var loaded = false
+    private var loaded = false
     def loadNativeLibrary() = synchronized {
         if (!loaded) {
+            IntelTBB.loadNativeLibrary()
             System.loadLibrary("nativeTimedExpirationMap")
             loaded = true
         }

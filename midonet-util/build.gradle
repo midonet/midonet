@@ -40,13 +40,13 @@ model {
                 }
             }
             tbb {
-               headers.srcDir "$rootDir/tools/tbb-2017_U6/include"
-               binaries.withType(StaticLibraryBinary) {
+               headers.srcDir "${tbbHeaderDir}"
+               binaries.withType(SharedLibraryBinary) {
                    if (targetPlatform.operatingSystem.linux) {
-                       staticLibraryFile = file("$rootDir/tools/tbb-2017_U6/linux-x86_64/libtbb.a")
+                       sharedLibraryFile = file("${tbbDir}/linux-x86_64/libtbb.so.2")
                    }
                    if (targetPlatform.operatingSystem.macOsX) {
-                       staticLibraryFile = file("$rootDir/tools/tbb-2017_U6/osx-x86_64/libtbb.a")
+                       sharedLibraryFile = file("${tbbDir}/osx-x86_64/libtbb.dylib")
                    }
                }
             }
@@ -65,7 +65,7 @@ model {
     tasks.test {
         dependsOn runNativeTimedExpirationMapTestGoogleTestExe
         dependsOn nativeTimedExpirationMapSharedLibrary
-        systemProperty "java.library.path", "${nativeLibraryDir}"
+        systemProperty "java.library.path", "${nativeLibraryDir}:${tbbLibraryDir}"
     }
     tasks.jar {
         dependsOn nativeTimedExpirationMapSharedLibrary
@@ -86,18 +86,20 @@ model {
             }
         }
         nativeTimedExpirationMapSharedLibrary {
-            lib library: "tbb", linkage: "static"
+            lib library: "tbb", linkage: "shared"
 
             if (targetPlatform.operatingSystem.linux) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeTimedExpirationMap.so"
+                ext.tbbLibraryDir = "${tbbDir}/linux-x86_64"
             }
             if (targetPlatform.operatingSystem.macOsX) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeTimedExpirationMap.dylib"
+                ext.tbbLibraryDir = "${tbbDir}/osx-x86_64"
             }
         }
         withType(GoogleTestTestSuiteBinarySpec) {
             lib library: "googleTest", linkage: "static"
-            lib library: "tbb", linkage: "static"
+            lib library: "tbb", linkage: "shared"
 
             if (targetPlatform.operatingSystem.linux) {
                 cppCompiler.args '-pthread'

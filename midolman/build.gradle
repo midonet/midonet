@@ -58,7 +58,7 @@ model {
         dependsOn runNativeFlowControllerTestGoogleTestExe
         dependsOn nativeFlowControllerSharedLibrary
 
-        def libPaths = "${nativeLibraryDir}:${project(':midonet-util').nativeLibraryDir}"
+        def libPaths = "${nativeLibraryDir}:${project(':midonet-util').nativeLibraryDir}:${tbbLibraryDir}"
         systemProperty "java.library.path", libPaths
     }
     tasks.jar {
@@ -81,9 +81,11 @@ model {
         nativeFlowControllerSharedLibrary {
             if (targetPlatform.operatingSystem.linux) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowController.so"
+                ext.tbbLibraryDir = "${tbbDir}/linux-x86_64"
             }
             if (targetPlatform.operatingSystem.macOsX) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowController.dylib"
+                ext.tbbLibraryDir = "${tbbDir}/osx-x86_64"
             }
         }
         withType(GoogleTestTestSuiteBinarySpec) {
@@ -301,6 +303,10 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     }
     from("${nativeLibraryDir}") {
         include "*.so"
+        into "usr/lib/midolman"
+    }
+    from("${tbbDir}/linux-x86_64") {
+        include "*.so*"
         into "usr/lib/midolman"
     }
     from("${project(':midonet-util').nativeLibraryDir}") {
