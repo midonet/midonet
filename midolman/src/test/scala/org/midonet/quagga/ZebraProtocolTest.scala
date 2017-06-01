@@ -300,7 +300,14 @@ abstract class ZebraProtocolTest extends FeatureSpecLike with BeforeAndAfter wit
             val unsupported = Seq(ZebraIpv6RouteAdd, ZebraIpv6RouteDelete,
                 ZebraIpv6ImportLookup, ZebraIpv6NextHopLookup)
 
-            for (msg <- unsupported) handleMessage(header(msg))
+            val fakeMsgSize = 128
+            val fakeMsg = new Array[Byte](fakeMsgSize)
+
+            for (msg <- unsupported) {
+                val data = header(msg, fakeMsgSize)
+                data.put(fakeMsg)
+                handleMessage(data)
+            }
 
             // Messages were fully read
             in.available() shouldBe 0

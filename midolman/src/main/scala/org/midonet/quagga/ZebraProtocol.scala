@@ -18,6 +18,8 @@ package org.midonet.quagga
 
 import java.io.DataOutputStream
 
+import scala.util.control.NonFatal
+
 import org.midonet.quagga.ZebraProtocol._
 import org.midonet.quagga.ZebraProtocolMessages._
 import org.slf4j.LoggerFactory
@@ -33,11 +35,19 @@ trait ZebraProtocol {
      * look at zserv.c from quagga (zserv_create_header)
      */
     def sendHeader(out: DataOutputStream, message: Short): Unit
-    def handleMessage(message: Short, ctx: ZebraContext): Unit
+    def handleMessage(message: Short, length: Short, ctx: ZebraContext): Unit
 
-    protected def unsupported(message: Short) = {
+    private val trash = new Array[Byte](ZebraMaxPayloadSize)
+
+    protected def unsupported(message: Short, length: Short, ctx: ZebraContext) = {
         val msg = messageNames.getOrElse(message, "unrecognized-message")
         log.warn(s"$msg isn't implemented yet")
+        try{
+            ctx.in.readFully(trash, 0, length - headerSize)
+        } catch {
+            case NonFatal(e) =>
+                log.warn("Error reading unsupported message, ignoring.", e)
+        }
     }
 }
 
@@ -184,7 +194,7 @@ object ZebraProtocol {
 
     final def handleMessage(ctx: ZebraContext) = {
         // this is blocking
-        val length = ctx.in.readUnsignedShort
+        val length = ctx.in.readUnsignedShort.toShort
         log.trace("length: {}/{}", length, ZebraMaxPayloadSize)
 
         val headerMarker = ctx.in.readUnsignedByte
@@ -204,7 +214,7 @@ object ZebraProtocol {
         val message = ctx.in.readUnsignedShort.toShort
         log.trace("message: {}", protocol.messageNames(message))
 
-        protocol.handleMessage(message, ctx)
+        protocol.handleMessage(message, length, ctx)
     }
 
 }
@@ -259,7 +269,7 @@ object ZebraProtocolV2 extends ZebraProtocol {
         out.writeShort(message)
     }
 
-    override def handleMessage(message: Short, ctx: ZebraContext): Unit =
+    override def handleMessage(message: Short, length: Short, ctx: ZebraContext): Unit =
         message match {
             case ZebraInterfaceAdd => interfaceAdd(ctx, this)
             case ZebraIpv4RouteAdd => ipv4RouteAdd(ctx)
@@ -267,7 +277,7 @@ object ZebraProtocolV2 extends ZebraProtocol {
             case ZebraRouterIdAdd => routerIdUpdate(ctx, this)
             case ZebraIpv4NextHopLookup => nextHopLookup(ctx, this)
             case ZebraHello => hello(ctx)
-            case _ => unsupported(message)
+            case _ => unsupported(message, length, ctx)
         }
 }
 
@@ -307,7 +317,7 @@ object ZebraProtocolV3 extends ZebraProtocol {
         out.writeShort(message)
     }
 
-    override def handleMessage(message: Short, ctx: ZebraContext): Unit =
+    override def handleMessage(message: Short, length: Short, ctx: ZebraContext): Unit =
         message match {
             case ZebraInterfaceAdd => interfaceAdd(ctx, this)
             case ZebraIpv4RouteAdd => ipv4RouteAdd(ctx)
@@ -316,6 +326,6 @@ object ZebraProtocolV3 extends ZebraProtocol {
             case ZebraIpv4NextHopLookup => nextHopLookup(ctx, this)
             case ZebraHello => hello(ctx)
             case ZebraNextHopRegister => nextHopRegister(ctx, this)
-            case _ => unsupported(message)
+            case _ => unsupported(message, length, ctx)
         }
 }
