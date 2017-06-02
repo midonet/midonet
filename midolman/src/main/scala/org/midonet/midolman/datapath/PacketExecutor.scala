@@ -49,9 +49,10 @@ trait StatePacketExecutor {
     private val udpShell: FlowStateEthernet = new FlowStateEthernet(stateBuf)
     private val statePacket = new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell), udpShell.length)
 
-    def prepareStatePacket(message: Array[Byte], length: Int): Packet = {
+    def prepareStatePacket(connectionHash: Int, message: Array[Byte], length: Int): Packet = {
         try {
             System.arraycopy(message, 0, stateBuf, 0, length)
+            udpShell.setConnectionHash(connectionHash)
             udpShell.limit(length)
         } catch {
             case _: IndexOutOfBoundsException =>
@@ -204,7 +205,8 @@ sealed class PacketExecutor(dpState: DatapathState,
         val actions = context.stateActions
         if (actions.size > 0) {
             try {
-                val statePacket = prepareStatePacket(context.stateMessage,
+                val statePacket = prepareStatePacket(context.returnFlowHash,
+                                                     context.stateMessage,
                                                      context.stateMessageLength)
                 executePacket(datapathId, statePacket, actions)
                 context.log.debug(s"Executed flow state message")

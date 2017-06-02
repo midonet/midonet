@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.{JsonValue, JsonCreator}
  * As convention please prefer the static builder IPv4Addr.toInt to the
  * constructor IPv4Addr(int).
  */
-class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
+class IPv4Addr(private var address: Int) extends IPAddr with Ordered[IPv4Addr] {
     type T = IPv4Addr
 
     private var sAddr: String = null // not val to allow lazy init
@@ -53,6 +53,13 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
             case t: IPv4Addr => t.canEqual(this) && t.addr == this.addr
             case _ => false
         }
+    }
+
+    def addr: Int = address
+
+    def setAddr(addr: Int): Unit = {
+        address = addr
+        sAddr = null
     }
 
     // This works because integers are represented using two's complement

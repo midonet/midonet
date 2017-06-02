@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.io
 
+import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 
@@ -23,21 +24,24 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
-import org.slf4j.{Logger, LoggerFactory}
 
 import com.codahale.metrics.MetricRegistry
 
-import org.midonet.ErrorCode.{EBUSY, EEXIST, EADDRINUSE}
+import org.slf4j.{Logger, LoggerFactory}
+
+import org.midonet.ErrorCode.{EADDRINUSE, EBUSY, EEXIST}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.state.FlowState
-import org.midonet.midolman.{PacketWorker, NetlinkCallbackDispatcher}
+import org.midonet.midolman.state.{FlowState, FlowStateAgentPackets}
+import org.midonet.midolman.{NetlinkCallbackDispatcher, PacketWorker}
 import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.packets.TunnelKeys.TraceBit
+import org.midonet.packets._
 import org.midonet.util.concurrent.NanoClock
-import org.midonet.util.{BatchCollector, Bucket}
 import org.midonet.util.eventloop.SelectLoop
+import org.midonet.util.{BatchCollector, Bucket}
 
 /**
  * The UpcallDatapathConnectionManager will create a new netlink channel
@@ -154,6 +158,12 @@ abstract class UpcallDatapathConnectionManagerBase(
     protected def makeUpcallHandler(workers: IndexedSeq[PacketWorker]) =
         new BatchCollector[Packet] {
 
+            private val contextProvider: ThreadLocal[PerThreadICMPErrorContext] =
+                new ThreadLocal[PerThreadICMPErrorContext] {
+                    override def initialValue(): PerThreadICMPErrorContext =
+                        new PerThreadICMPErrorContext
+                }
+
             val NUM_WORKERS = workers.length
             val log = LoggerFactory.getLogger("PacketInHook")
 
@@ -161,21 +171,99 @@ abstract class UpcallDatapathConnectionManagerBase(
                 // noop
             }
 
-            var flowStateIndex = 0
             override def submit(data: Packet): Boolean = {
                 log.trace("accumulating packet: {}", data.getMatch)
-
                 data.startTimeNanos = NanoClock.DEFAULT.tick
 
-                if (FlowState.isStateMessage(data.getMatch)) {
-                    flowStateIndex = (flowStateIndex + 1) % NUM_WORKERS
-                    workers(flowStateIndex).submit(data)
+                if (FlowState.isStateMessage(data.getMatch) &&
+                    FlowStateEthernet.isLegacyFlowState(data.getEthernet)) {
+                    log.debug(s"Legacy Flow state received (hash = " +
+                              s"${FlowStateEthernet.getConnectionHash(data.getEthernet)}), " +
+                              s"submit to all workers.")
+                    var i = 0
+                    /* This code is problematic for the HTB. The HTB will take
+                     * one token for a flow state message, but each worker will
+                     * return one token for the flow state message.
+                     * This can potentially cause the number of HTB messages
+                     * available to explode.
+                     * This was fixed by MI-2367, but we need to reintroduce
+                     * this code for backwards compatibility as we don't know to
+                     * which worker this *legacy* flow state should go.
+                     * This will only be exercised during rolling upgrades.
+                     */
+                    var submitted = false
+                    while (i < workers.length) {
+                        // order is important here, we want submit to run, even
+                        // if submitted is already true
+                        submitted = workers(i).submit(data) || submitted
+                        i += 1
+                    }
+                    submitted
                 } else {
-                    val worker = Math.abs(data.getMatch.connectionHash) % NUM_WORKERS
+                    val hash = getConnectionHash(data)
+                    val worker = Math.abs(hash) % NUM_WORKERS
+                    log.debug(s"Connection hash: $hash -> going to worker $worker")
                     workers(worker).submit(data)
                 }
             }
+
+            private def getConnectionHash(data: Packet): Int = {
+                if (FlowState.isStateMessage(data.getMatch)) {
+                    log.debug("Message is flow state, get connection " +
+                              "hash from IP header")
+                    FlowStateEthernet.getConnectionHash(data.getEthernet)
+                } else if (isICMPError(data.getMatch)) {
+                    log.debug("Message is icmp error, get connection hash " +
+                              "from original IP header in ICMP payload")
+                    val origFlowMatch = contextProvider.get()
+                        .originalFlowMatch(data.getMatch.getIcmpData)
+                    origFlowMatch.inverseConnectionHash
+                } else if (isFlowTracedOnEgress(data.getMatch)) {
+                    log.debug("Message is flow traced, get the inverse " +
+                              "connection hash, where the flow state went.")
+                    data.getMatch.inverseTransportConnectionHash()
+                } else {
+                    data.getMatch.connectionHash
+                }
+            }
+
+            private def isICMPError(flowMatch: FlowMatch): Boolean = {
+                flowMatch.getNetworkProto == ICMP.PROTOCOL_NUMBER &&
+                ICMP.isError(flowMatch.getSrcPort.toByte) &&
+                flowMatch.getIcmpData != null
+            }
+
+            private def isFlowTracedOnEgress(flowMatch: FlowMatch): Boolean = {
+                TraceBit.isSet(flowMatch.getTunnelKey.toInt) &&
+                flowMatch.getTunnelKey != FlowStateAgentPackets.TUNNEL_KEY
+            }
         }
+}
+
+/**
+  * Private context for each upcall thread, so we allocate as little
+  * as possible.
+  */
+private final class PerThreadICMPErrorContext {
+    private val flowMatch = new FlowMatch
+    private val origIpHeader = new IPv4
+    private val srcIpAddr = new IPv4Addr(0)
+    private val dstIpAddr = new IPv4Addr(0)
+
+    def originalFlowMatch(icmpData: Array[Byte]): FlowMatch = {
+        flowMatch.clear()
+        val buffer = ByteBuffer.wrap(icmpData)
+        origIpHeader.deserialize(buffer)
+        val origTransportHeader =
+            origIpHeader.getPayload.asInstanceOf[Transport]
+        srcIpAddr.setAddr(origIpHeader.getSourceAddress)
+        dstIpAddr.setAddr(origIpHeader.getDestinationAddress)
+        flowMatch.setNetworkSrc(srcIpAddr)
+            .setNetworkDst(dstIpAddr)
+            .setNetworkProto(origIpHeader.getProtocol)
+            .setSrcPort(origTransportHeader.getSourcePort)
+            .setDstPort(origTransportHeader.getDestinationPort)
+    }
 }
 
 /**

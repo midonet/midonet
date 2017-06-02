@@ -552,5 +552,7 @@ class PacketContext extends Clearable
 
     def markNwDstRewritten(): Unit = nwDstRewritten = true
 
+    def returnFlowHash(): Int = wcmatch.inverseConnectionHash()
+
     override def toString = s"PacketContext($cookieStr tags$flowTags actions$virtualFlowActions $origMatch)"
 }

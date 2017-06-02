@@ -50,7 +50,8 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null)
         if (!context.packetActions.isEmpty) {
             packetsSent.add(context.packet)
             if (context.stateMessageLength > 0) {
-                val statePacket = prepareStatePacket(context.stateMessage,
+                val statePacket = prepareStatePacket(context.returnFlowHash,
+                                                     context.stateMessage,
                                                      context.stateMessageLength)
                 if (statePacketExecCb ne null) {
                     statePacketExecCb(statePacket, context.stateActions)

@@ -36,6 +36,7 @@ object FlowState {
     def isStateMessage(fmatch: FlowMatch): Boolean = {
         fmatch.getTunnelKey == FlowStateAgentPackets.TUNNEL_KEY
     }
+
 }
 
 /**

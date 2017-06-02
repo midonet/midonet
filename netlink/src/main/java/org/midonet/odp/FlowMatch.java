@@ -922,22 +922,65 @@ public class FlowMatch {
         if (connectionHash == 0) {
             int connHash;
             if (isFromTunnel()) {
-                connHash = Field.TunnelKey.hashCode(this);
-                connHash = 31 * connHash + Field.TunnelSrc.hashCode(this);
-                connHash = 31 * connHash + Field.TunnelDst.hashCode(this);
+                connHash = tunnelConnectionHash();
             } else if (highestLayer(usedFields) >= 4) {
-                connHash = Field.NetworkSrc.hashCode(this);
-                connHash = 31 * connHash + Field.NetworkDst.hashCode(this);
-                connHash = 31 * connHash + Field.NetworkProto.hashCode(this);
-                connHash = 31 * connHash + Field.SrcPort.hashCode(this);
-                connHash = 31 * connHash + Field.DstPort.hashCode(this);
-                connHash = 31 * connHash + Field.IcmpId.hashCode(this);
+                connHash = transportConnectionHash();
             } else {
                 connHash = hashCode();
             }
             connectionHash = connHash;
         }
         return connectionHash;
+    }
+
+    public int inverseConnectionHash() {
+        int connHash;
+        if (isFromTunnel()) {
+            connHash = inverseTunnelConnectionHash();
+        } else if (highestLayer(usedFields) >= 4) {
+            connHash = inverseTransportConnectionHash();
+        } else {
+            connHash = hashCode();
+        }
+        return connHash;
+    }
+
+    private int tunnelConnectionHash() {
+        int connHash;
+        connHash = Field.TunnelKey.hashCode(this);
+        connHash = 31 * connHash + Field.TunnelSrc.hashCode(this);
+        connHash = 31 * connHash + Field.TunnelDst.hashCode(this);
+        return connHash;
+    }
+
+    private int inverseTunnelConnectionHash() {
+        int connHash;
+        connHash = Field.TunnelKey.hashCode(this);
+        connHash = 31 * connHash + Field.TunnelDst.hashCode(this);
+        connHash = 31 * connHash + Field.TunnelSrc.hashCode(this);
+        return connHash;
+    }
+
+    private int transportConnectionHash() {
+        int connHash;
+        connHash = Field.NetworkSrc.hashCode(this);
+        connHash = 31 * connHash + Field.NetworkDst.hashCode(this);
+        connHash = 31 * connHash + Field.NetworkProto.hashCode(this);
+        connHash = 31 * connHash + Field.SrcPort.hashCode(this);
+        connHash = 31 * connHash + Field.DstPort.hashCode(this);
+        connHash = 31 * connHash + Field.IcmpId.hashCode(this);
+        return connHash;
+    }
+
+    public int inverseTransportConnectionHash() {
+        int connHash;
+        connHash = Field.NetworkDst.hashCode(this);
+        connHash = 31 * connHash + Field.NetworkSrc.hashCode(this);
+        connHash = 31 * connHash + Field.NetworkProto.hashCode(this);
+        connHash = 31 * connHash + Field.DstPort.hashCode(this);
+        connHash = 31 * connHash + Field.SrcPort.hashCode(this);
+        connHash = 31 * connHash + Field.IcmpId.hashCode(this);
+        return connHash;
     }
 
     private void invalidateHashCode() {

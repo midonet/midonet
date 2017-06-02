@@ -51,7 +51,7 @@ public class TestFlowStateEthernet {
             // |                     Destination IP address                    |
             // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
             (byte) (((0x04) << 4) | 0x05), (byte) 0x00, (byte) 0x00, (byte) 0x1c,
-            (byte) 0x00, (byte) 0x01, (byte) 0x40, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
             (byte) 0x40, (byte) 0x11, (byte) 0x00, (byte) 0x00,
             (byte) 0xa9, (byte) 0xfe, (byte) 0x0f, (byte) 0x01, // 169.254.15.1
             (byte) 0xa9, (byte) 0xfe, (byte) 0x0f, (byte) 0x02, // 169.254.15.2
@@ -97,7 +97,7 @@ public class TestFlowStateEthernet {
             // |                     Destination IP address                    |
             // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
             (byte) (((0x04) << 4) | 0x05), (byte) 0x00, (byte) 0x00, (byte) 0x34,
-            (byte) 0x00, (byte) 0x01, (byte) 0x40, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
             (byte) 0x40, (byte) 0x11, (byte) 0x00, (byte) 0x00,
             (byte) 0xa9, (byte) 0xfe, (byte) 0x0f, (byte) 0x01, // 169.254.15.1
             (byte) 0xa9, (byte) 0xfe, (byte) 0x0f, (byte) 0x02, // 169.254.15.2
@@ -182,10 +182,29 @@ public class TestFlowStateEthernet {
                 FlowStateEthernet.FLOW_STATE_IP_CHECKSUM_OFFSET,
                 sampleChecksum);
 
+            byte[] emptyWithHash = Arrays.copyOf(emptyPacket, emptyPacket.length);
+            ByteBuffer emptyWithHashPacketBuff = ByteBuffer.wrap(emptyWithHash);
+            emptyWithHashPacketBuff.putInt(
+                FlowStateEthernet.FLOW_STATE_IP_IDENTIFICATION_OFFSET,
+                1234);
+            short emptyWithHashChecksum = IPv4.computeChecksum(
+                emptyWithHash,
+                FlowStateEthernet.FLOW_STATE_IP_HEADER_OFFSET,
+                IPv4.MIN_HEADER_LEN,
+                FlowStateEthernet.FLOW_STATE_IP_CHECKSUM_OFFSET);
+            emptyWithHashPacketBuff.putShort(
+                    FlowStateEthernet.FLOW_STATE_IP_CHECKSUM_OFFSET,
+                    emptyWithHashChecksum);
+
+            FlowStateEthernet emptyWithHashFlowStateEthernet =
+                new FlowStateEthernet(new byte[0]);
+            emptyWithHashFlowStateEthernet.setConnectionHash(1234);
+
             return Arrays.asList(new Object[][]{
                     {empty, emptyFlowStateEthernet},
                     {sample, sampleFlowStateEthernet},
-                    {sample, paddedFlowStateEthernet}
+                    {sample, paddedFlowStateEthernet},
+                    {emptyWithHash, emptyWithHashFlowStateEthernet}
             });
         }
 

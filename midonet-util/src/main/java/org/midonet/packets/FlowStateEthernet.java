@@ -73,6 +73,18 @@ public final class FlowStateEthernet extends Ethernet {
             FLOW_STATE_IP_HEADER_OFFSET + 10;
     public final static int FLOW_STATE_IP_LENGTH_OFFSET =
             FLOW_STATE_IP_HEADER_OFFSET + 2;
+
+    // NOTE: Use the Identification + flags + fragment offset fields for
+    // storing the connection hash. They are not actually used, and allows
+    // backwards compatibility with existing midonet versions. Other fields
+    // are either dynamically computed or checked at some point for consistency
+    // (e.g. src/dst mac, src/dst ip, src/dst port).
+    // We serialize the connection hash directly on those fields, then
+    // deserialize by reading and placing them separately on its corresponding
+    // bit place.
+    public final static int FLOW_STATE_IP_IDENTIFICATION_OFFSET =
+            FLOW_STATE_IP_HEADER_OFFSET + 4;
+
     public final static int FLOW_STATE_UDP_LENGTH_OFFSET =
             FLOW_STATE_UDP_HEADER_OFFSET + 4;
     public final static int FLOW_STATE_UDP_CHECKSUM_OFFSET =
@@ -98,8 +110,14 @@ public final class FlowStateEthernet extends Ethernet {
             IPv4Addr.fromString("169.254.15.2");
     public final static int FLOW_STATE_UDP_PORT = 2925;
 
+    public final static int LEGACY_FLOW_STATE_HASHCODE =
+        FLOW_STATE_IP_IDENTIFICATION << 16 |
+        FLOW_STATE_IP_FLAGS << 13 |
+        FLOW_STATE_IP_FRAGMENT_OFFSET;
+
     private byte[] cachedFlowStateEthernetHeader;
     private final ElasticData data;
+    private int connectionHash = 0;
 
     public FlowStateEthernet(byte[] buffer) {
         super();
@@ -116,6 +134,7 @@ public final class FlowStateEthernet extends Ethernet {
     public int serialize(ByteBuffer bb) {
         int start = bb.position();
         bb.put(cachedFlowStateEthernetHeader);
+        bb.putInt(FLOW_STATE_IP_IDENTIFICATION_OFFSET, connectionHash);
         int elasticDataLength = getPayloadLength();
         putElasticData(bb, start, elasticDataLength);
         return FLOW_STATE_ETHERNET_OVERHEAD + elasticDataLength;
@@ -130,6 +149,21 @@ public final class FlowStateEthernet extends Ethernet {
 
     public void limit(int limit) {
         data.limit(limit);
+    }
+
+    public void setConnectionHash(int hash) {
+        this.connectionHash = hash;
+    }
+
+    public static int getConnectionHash(Ethernet eth) {
+        IPv4 ipv4 = (IPv4) eth.getPayload();
+        return ipv4.getIdentification()  << 16 |
+               ipv4.getFlags()           << 13 |
+               ipv4.getFragmentOffset();
+    }
+
+    public static boolean isLegacyFlowState(Ethernet eth) {
+        return getConnectionHash(eth) == LEGACY_FLOW_STATE_HASHCODE;
     }
 
     private void putElasticData(ByteBuffer bb, int start, int elasticDataLength) {

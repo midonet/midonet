@@ -255,7 +255,8 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         callbacks.addAll(context.flowRemovedCallbacks)
 
         val packet = if (context.stateMessageLength > 0) {
-            statePacketExecutor.prepareStatePacket(context.stateMessage,
+            statePacketExecutor.prepareStatePacket(context.returnFlowHash,
+                                                   context.stateMessage,
                                                    context.stateMessageLength)
         } else null
         (packet, context)

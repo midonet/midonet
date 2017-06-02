@@ -250,7 +250,7 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
 
         p.getPayload match {
             case ip: IPv4 if ip.getSourceIPAddress == SRC_IP &&
-                ip.getDestinationIPAddress == DST_IP =>
+                             ip.getDestinationIPAddress == DST_IP =>
                 ip.getPayload match {
                     case udp: UDP if udp.getDestinationPort == UDP_PORT &&
                         udp.getSourcePort == UDP_PORT =>
