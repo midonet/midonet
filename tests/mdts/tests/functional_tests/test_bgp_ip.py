@@ -17,6 +17,40 @@ from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.utils.utils import bindings
 import time
 
+
+#                            +------------------+
+#                            | network X        |
+#                            |                  |
+#                            |                  |
+#                            +-+--------------+-+
+#                              |              |
+#                              |router        |router
+#                              |interface     |interface
+#                              |  AX_UP_IP    |  BX_UP_IP
+#                              |              |
+# +---------------+  +---------+-+          +-+---------+  +---------------+
+# | BGP speaker A |  | router A  |          | router B  |  | BGP speaker B |
+# |   AS 64512    +--+           |          |           +--+   AS 64513    |
+# |               |  |           |          |           |  |               |
+# |               |  |           |          |           |  |               |
+# +------+--------+  +----+------+          +----+------+  +---------+-----+
+#        |                |                      |                   |
+#    +---+-------+        |router                |router          +--+--------+
+#    | BGP peer  |        |interface             |interface       | BGP peer  |
+#    |  BX_UP_IP |        |  A_PRIV_UP_IP        |  B_PRIV_UP_IP  |  AX_UP_IP |
+#    |  AS 64513 |        |                      |                |  AS 64512 |
+#    |           |   +----+------+          +----+------+         |           |
+#    +-----------+   | network A |          | network B |         +-----------+
+#                    |           |          |           |
+#                    |           |          |           |
+#                    |           |          |           |
+#                    +----+------+          +----+------+
+#                         |                      |
+#                         |                      |
+#                       PLEFT                  PRIGHT
+#                       A_VM_IP                B_VM_IP
+
+
 PLEFT = 'port_left'
 PRIGHT = 'port_right'
 
