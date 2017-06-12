@@ -18,6 +18,7 @@
 LIB_PATTERNS='{lib64,lib}'
 JVM_SEARCH_DIRS=$( eval echo \
                  /usr/$LIB_PATTERNS/jvm/java-1.8.0-openjdk-amd64 \
+                 /usr/$LIB_PATTERNS/jvm/java-1.8.0-openjdk-1.8.0 \
                  /usr/$LIB_PATTERNS/jvm/java-8-openjdk-amd64 \
                  /usr/$LIB_PATTERNS/jvm/java-8-oracle \
                  /usr/$LIB_PATTERNS/jvm/zulu-8-amd64 \

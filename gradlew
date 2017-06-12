@@ -51,7 +51,7 @@ fi
 
 JVM_SEARCH_DIRS="java-1.8.0-openjdk-amd64 java-8-openjdk-amd64 \
                  java-8-oracle zulu-8-amd64 zulu-8.jdk jdk1.8.0.jdk \
-                 jdk-8-oracle-x64"
+                 jdk-8-oracle-x64 java-1.8.0-openjdk-1.8.0"
 
 check_for_java8() {
     [ "x" = "x$1" ] && return 1
@@ -93,6 +93,8 @@ if [ -z "$JAVA_HOME" ]; then
     for jdir in $JVM_SEARCH_DIRS; do
         if $darwin ; then
             jdir="/Library/Java/JavaVirtualMachines/$jdir/Contents/Home"
+        elif [ ! -z $(cat /etc/os-release | grep 'NAME="SLES"') ]; then
+            jdir="/usr/lib64/jvm/$jdir"
         else
             jdir="/usr/lib/jvm/$jdir"
         fi
