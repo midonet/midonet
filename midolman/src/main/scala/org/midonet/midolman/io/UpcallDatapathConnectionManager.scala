@@ -31,13 +31,11 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.ErrorCode.{EADDRINUSE, EBUSY, EEXIST}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.state.{FlowState, FlowStateAgentPackets}
 import org.midonet.midolman.{NetlinkCallbackDispatcher, PacketWorker}
 import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets.TunnelKeys.TraceBit
 import org.midonet.packets._
 import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.eventloop.SelectLoop
@@ -67,6 +65,8 @@ abstract class UpcallDatapathConnectionManagerBase(
     val config: MidolmanConfig,
     val tbPolicy: TokenBucketPolicy) extends UpcallDatapathConnectionManager {
 
+    import org.midonet.odp.FlowMatchMessageType._
+
     protected val log: Logger
 
     protected def makeConnection(name: String, bucket: Bucket,
@@ -85,7 +85,7 @@ abstract class UpcallDatapathConnectionManagerBase(
     def getDispatcher()(implicit as: ActorSystem) =
         NetlinkCallbackDispatcher.makeBatchCollector()
 
-    def createAndHookDpPort(datapath: Datapath, port: DpPort, t: ChannelType)
+    override def createAndHookDpPort(datapath: Datapath, port: DpPort, t: ChannelType)
                            (implicit ec: ExecutionContext, as: ActorSystem)
     : Future[(DpPort, Int)] = {
 
@@ -117,7 +117,7 @@ abstract class UpcallDatapathConnectionManagerBase(
         }
     }
 
-    def ensurePortPid(port: DpPort, dp: Datapath, con: OvsDatapathConnection)(
+    private def ensurePortPid(port: DpPort, dp: Datapath, con: OvsDatapathConnection)(
                       implicit ec: ExecutionContext) = {
         val dpConnOps = new OvsConnectionOps(con)
         log.info("creating datapath port {}", port)
@@ -134,7 +134,7 @@ abstract class UpcallDatapathConnectionManagerBase(
         } map { (_, con.getChannel.getLocalAddress.getPid) }
     }
 
-    def deleteDpPort(datapath: Datapath, port: DpPort)
+    override def deleteDpPort(datapath: Datapath, port: DpPort)
                     (implicit ec: ExecutionContext, as: ActorSystem): Future[_] =
         portToChannel.remove((datapath, port.getPortNo)) match {
             case null => Future.successful(null)
@@ -175,7 +175,7 @@ abstract class UpcallDatapathConnectionManagerBase(
                 log.trace("accumulating packet: {}", data.getMatch)
                 data.startTimeNanos = NanoClock.DEFAULT.tick
 
-                if (FlowState.isStateMessage(data.getMatch) &&
+                if (isFlowStateMessage(data.getMatch) &&
                     FlowStateEthernet.isLegacyFlowState(data.getEthernet)) {
                     log.debug(s"Legacy Flow state received (hash = " +
                               s"${FlowStateEthernet.getConnectionHash(data.getEthernet)}), " +
@@ -208,7 +208,7 @@ abstract class UpcallDatapathConnectionManagerBase(
             }
 
             private def getConnectionHash(data: Packet): Int = {
-                if (FlowState.isStateMessage(data.getMatch)) {
+                if (isFlowStateMessage(data.getMatch)) {
                     log.debug("Message is flow state, get connection " +
                               "hash from IP header")
                     FlowStateEthernet.getConnectionHash(data.getEthernet)
@@ -225,17 +225,6 @@ abstract class UpcallDatapathConnectionManagerBase(
                 } else {
                     data.getMatch.connectionHash
                 }
-            }
-
-            private def isICMPError(flowMatch: FlowMatch): Boolean = {
-                flowMatch.getNetworkProto == ICMP.PROTOCOL_NUMBER &&
-                ICMP.isError(flowMatch.getSrcPort.toByte) &&
-                flowMatch.getIcmpData != null
-            }
-
-            private def isFlowTracedOnEgress(flowMatch: FlowMatch): Boolean = {
-                TraceBit.isSet(flowMatch.getTunnelKey.toInt) &&
-                flowMatch.getTunnelKey != FlowStateAgentPackets.TUNNEL_KEY
             }
         }
 }

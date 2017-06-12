@@ -54,6 +54,7 @@ import org.midonet.midolman.state.{FlowStateReplicator, NatLeaser, _}
 import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
 import org.midonet.midolman.topology.{VirtualTopology, VxLanPortMappingService}
 import org.midonet.odp.FlowMatch.Field
+import org.midonet.odp.FlowMatchMessageType._
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets.NatState.NatBinding
@@ -576,7 +577,7 @@ class PacketWorkflow(
         }
 
     protected def handlePacket(packet: Packet): Unit =
-        if (FlowState.isStateMessage(packet.getMatch)) {
+        if (isFlowStateMessage(packet.getMatch)) {
             handleStateMessage(packet)
             packetOut(1)
         } else {

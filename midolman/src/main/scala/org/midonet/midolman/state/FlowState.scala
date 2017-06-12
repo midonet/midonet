@@ -20,7 +20,6 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.TraceKey
-import org.midonet.odp.FlowMatch
 import org.midonet.packets.FlowStatePackets
 import org.midonet.sdn.flows.FlowTagger.FlowStateTag
 import org.midonet.util.Clearable
@@ -31,11 +30,6 @@ object FlowStateAgentPackets
 object FlowState {
 
     trait FlowStateKey extends FlowStateTag
-
-    @inline
-    def isStateMessage(fmatch: FlowMatch): Boolean = {
-        fmatch.getTunnelKey == FlowStateAgentPackets.TUNNEL_KEY
-    }
 
 }
 
