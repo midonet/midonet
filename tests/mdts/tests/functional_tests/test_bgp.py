@@ -328,6 +328,7 @@ def test_icmp_remove_uplink():
 
 
 # FIXME: see issue MI-593
+@nottest
 @attr(version="v1.2.0")
 @bindings(binding_unisession1)
 @with_setup(None, clear_bgp)
@@ -559,8 +560,7 @@ def test_multisession_icmp_failback():
     ping_to_inet()  # BGP #2 is back
 
 
-# FIXME: see issue MI-186
-@attr(version="v1.2.0")
+@nottest
 @bindings(binding_unisession1)
 @with_setup(None, clear_bgp)
 def test_multisession_icmp_with_redundancy():
