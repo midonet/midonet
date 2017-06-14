@@ -35,8 +35,8 @@ sealed class TestZebraHandler extends ZebraProtocolHandler {
         routes(destination) = paths
     }
 
-    override def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                             gateway: IPv4Addr): Unit = {
+    override def removeRoute(ribType: RIBType.Value,
+                             destination: IPv4Subnet): Unit = {
         routes.remove(destination)
     }
 }

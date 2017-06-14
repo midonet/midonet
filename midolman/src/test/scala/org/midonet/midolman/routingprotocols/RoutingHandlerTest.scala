@@ -18,7 +18,6 @@ package org.midonet.midolman.routingprotocols
 
 import java.util.UUID
 
-import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
 
@@ -36,7 +35,6 @@ import org.scalatest.mock.MockitoSugar
 import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.routingprotocols.RoutingHandler.PeerRoute
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortBgpInfos
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.simulation.RouterPort
@@ -303,8 +301,9 @@ class RoutingHandlerTest extends FeatureSpecLike
             addrs map (gw => ZebraPath(RIBType.BGP, gw, 100)))
     }
 
-    def pullRoute(dst: IPv4Subnet, gw: IPv4Addr): Unit = {
-        routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP, dst, gw)
+    def pullRoute(dst: String): Unit = {
+        routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
+                                                        IPv4Subnet.fromCidr(dst))
     }
 
     feature("learns routes") {
@@ -347,12 +346,29 @@ class RoutingHandlerTest extends FeatureSpecLike
             val gw = "192.168.80.254"
 
             pushRoute(dst, gw)
-            routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
-                IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw))
+            pullRoute(dst)
 
             verify(routingStorage).addRoute(argThat(matchRoute(dst, gw)),
                                             Eq(rport.id))
             verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw)),
+                                               Eq(rport.id))
+        }
+
+        scenario("peer stops announcing a route without next hop") {
+            val dst1 = "10.10.10.0/24"
+            val dst2 = "10.20.30.0/24"
+            val gw1 = "192.168.80.254"
+            val gw2 = "192.168.80.255"
+
+            pushRoute(dst1, gw1)
+            pushRoute(dst2, gw2)
+            pullRoute(dst1)
+
+            verify(routingStorage).addRoute(argThat(matchRoute(dst1, gw1)),
+                                            Eq(rport.id))
+            verify(routingStorage).addRoute(argThat(matchRoute(dst2, gw2)),
+                                            Eq(rport.id))
+            verify(routingStorage).removeRoute(argThat(matchRoute(dst1, gw1)),
                                                Eq(rport.id))
         }
 
@@ -367,8 +383,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             pushRoute(dst1, gw)
             pushRoute(dst2, gw)
             pushRoute(dst3, gw)
-            routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
-                IPv4Subnet.fromCidr(dst3), IPv4Addr.fromString(gw))
+            pullRoute(dst3)
 
             verify(routingStorage).addRoute(argThat(matchRoute(dst1, gw)),
                                             Eq(rport.id))

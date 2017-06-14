@@ -43,7 +43,7 @@ object ZebraProtocolMessages {
 
         log.debug(s"ZebraIpv4RouteAdd: ribType " +
             s"${ZebraRouteTypeTable(ribType)} flags $flags prefix $prefix")
-        val (nextHops, distance) = readRoutes(message, ctx.in)
+        val (nextHops, distance) = readRouteNextHops(message, ctx.in)
 
         val paths = nextHops map { hop =>
             ZebraPath(RIBType.fromInteger(ribType), hop, distance)
@@ -72,11 +72,12 @@ object ZebraProtocolMessages {
 
         log.debug(s"ZebraIpv4RouteDelete: ribType " +
             s"${ZebraRouteTypeTable(ribType)} flags $flags prefix $prefix")
-        val (nextHops, _) = readRoutes(message, ctx.in)
 
-        for (hop <- nextHops) {
-            ctx.handler.removeRoute(RIBType.fromInteger(ribType), prefix, hop)
-        }
+        readRouteNextHops(message, ctx.in)
+
+        // NOTE: we are not using the data read in this method, but we need
+        // to consume it anyway so the next message is read correctly.
+        ctx.handler.removeRoute(RIBType.fromInteger(ribType), prefix)
 
         if ((message & ZAPIMessageMetric) != 0) {
             val metric = ctx.in.readInt // dropping for now.
@@ -189,8 +190,8 @@ object ZebraProtocolMessages {
         new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen)
     }
 
-    private def readRoutes(message: Byte,
-                           in: DataInputStream): (Array[IPv4Addr], Byte) = {
+    private def readRouteNextHops(message: Byte, in: DataInputStream)
+    : (Array[IPv4Addr], Byte) = {
         val nextHops =
             if ((message & ZAPIMessageNextHop) != 0) {
                 val nextHopNum = in.readByte

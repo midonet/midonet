@@ -129,8 +129,7 @@ object RoutingHandler {
     case class AddPeerRoutes(destination: IPv4Subnet, paths: Set[ZebraPath])
 
     case class RemovePeerRoute(ribType: RIBType.Value,
-                               destination: IPv4Subnet,
-                               gateway: IPv4Addr)
+                               destination: IPv4Subnet)
 
     case class Update(config: BgpRouter, peerIds: Set[UUID])
 
@@ -181,9 +180,8 @@ object RoutingHandler {
                     self ! AddPeerRoutes(destination, paths)
                 }
 
-                def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                                gateway: IPv4Addr) {
-                    self ! RemovePeerRoute(ribType, destination, gateway)
+                def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet) {
+                    self ! RemovePeerRoute(ribType, destination)
                 }
             }
 
@@ -385,18 +383,64 @@ abstract class RoutingHandler(var routerPort: RouterPort,
             syncPeerRoutes()
             Future.successful(true)
 
+        /*
+         * Publishes routes to a prefix.
+         *
+         * Note that what we get from bgpd via ZebraConnection is the set
+         * of currently active routes to the particular prefix. This means
+         * that the actual event being handled is a path being deleted.
+         *
+         * In other words, here we get the set of currently active paths and
+         * that set could differ with the previously active set in any ways.
+         *
+         * An additional requirement here is to handle zookeeper disconnections
+         * gracefully. Thus, here's what this event needs to handle:
+         *
+         *   * Calculate which paths are new, by comparing the received set of
+         *     paths with the authoritative 'peerRoutes' variable.
+         *   * Likewise, calculate which routes were previously known hand have
+         *     to be forgotten.
+         *   * Save the new set of routes to this prefix in 'peerRoutes'. At this
+         *     point it's safe to try to commit the changes to storage. A failure
+         *     will be handled by resynchronizing storage with 'peerRoutes'.
+         *   * Commit the new paths to storage, delete the forgotten paths from
+         *     storage.
+         */
         case AddPeerRoutes(destination, paths) =>
             publishLearnedRoutes(destination, paths)
             Future.successful(true)
 
-        case RemovePeerRoute(ribType, destination, gateway) =>
-            log.debug(s"Forgetting route: $ribType, $destination, $gateway")
+        /*
+         * Forgetting routes to a prefix.
+         *
+         * BGPd sends us a IPV4_ROUTE_DELETE only when there's only one
+         * next hop for a given route. In that case, peerRoutes will only
+         * contain a single next hop for a given destination, so remove
+         * that one. This is valid for both zebra protocol V2 and V3. See
+         * comment on publishing routes to a prefix above for more info.
+         */
+        case RemovePeerRoute(ribType, destination) =>
+            log.debug(s"Forgetting route: $ribType, $destination")
 
-            val route = makeRoute(destination, gateway.toString, routerPort.id)
-            peerRoutes.remove(route) match {
-                case None => // route missing
-                case Some(null) => // route not published
-                case Some(r) => handleLearnedRouteError(forgetLearnedRoute(r))
+            val routesToDelete = peerRoutes.keys.filter { r =>
+                r.dstNetworkAddr == destination.getIntAddress &&
+                r.dstNetworkLength == destination.getPrefixLen
+            }
+
+            if (routesToDelete.size > 1)
+                log.warn(s"Routes to delete (MUST be only 1): $routesToDelete")
+
+            routesToDelete.headOption match {
+                case Some(route) => peerRoutes.remove(route) match {
+                    case None => // route missing
+                    case Some(null) => // route not published
+                    case Some(r) => handleLearnedRouteError(forgetLearnedRoute(r))
+                }
+                case None =>
+                    log.debug("No routes to delete. This is unexpected as " +
+                              "the bgpd process believes we have a route we " +
+                              "are not tracking. Ignore it.")
+
             }
             Future.successful(true)
     }
@@ -484,30 +528,6 @@ abstract class RoutingHandler(var routerPort: RouterPort,
         route
     }
 
-
-    /*
-     * Publishes routes to a prefix.
-     *
-     * Note that what we get from bgpd via ZebraConnection is the set
-     * of currently active routes to the particular prefix. This means
-     * that the actual event being handled is a path being deleted.
-     *
-     * In other words, here we get the set of currently active paths and
-     * that set could differ with the previously active set in any ways.
-     *
-     * An additional requirement here is to handle zookeeper disconnections
-     * gracefully. Thus, here's what this method needs to do:
-     *
-     *   * Calculate which paths are new, by comparing the received set of
-     *     paths with the authoritative 'peerRoutes' variable.
-     *   * Likewise, calculate which routes were previously known hand have
-     *     to be forgotten.
-     *   * Save the new set of routes to this prefix in 'peerRoutes'. At this
-     *     point it's safe to try to commit the changes to storage. A failure
-     *     will be handled by resynchronizing storage with 'peerRoutes'.
-     *   * Commit the new paths to storage, delete the forgotten paths from
-     *     storage.
-     */
     private def publishLearnedRoutes(destination: IPv4Subnet, paths: Set[ZebraPath]): Unit = {
         val newRoutes = paths map (makeRoute(destination, _))
 
