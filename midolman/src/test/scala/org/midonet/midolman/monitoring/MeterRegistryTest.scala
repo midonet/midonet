@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2017 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,9 @@ import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.MeterTag
 
-@RunWith(classOf[JUnitRunner])
-class MeterRegistryTest extends FeatureSpec with Matchers {
+abstract class MeterRegistryTest extends FeatureSpec with Matchers {
+
+    def createRegistry(): MeterRegistry
 
     val deviceA: MeterTag = FlowTagger.tagForBridge(UUID.randomUUID()).asInstanceOf[MeterTag]
     val deviceB: MeterTag = FlowTagger.tagForRouter(UUID.randomUUID()).asInstanceOf[MeterTag]
@@ -61,7 +62,7 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
 
     feature("Meter registry") {
         scenario("registers new meters") {
-            val registry = MeterRegistry.newOnHeap(10)
+            val registry = createRegistry()
 
             registry.trackFlow(matchA, tagsA)
             registry.getMeterKeys should have size 2
@@ -83,7 +84,7 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
         }
 
         scenario("tracks stats for a single flow, N meters") {
-            val registry = MeterRegistry.newOnHeap(10)
+            val registry = createRegistry()
             registry.trackFlow(matchA, tagsA)
             registry.recordPacket(FIRST_PKT_SIZE, tagsA)
 
@@ -102,7 +103,7 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
         }
 
         scenario("forgets flows") {
-            val registry = MeterRegistry.newOnHeap(10)
+            val registry = createRegistry()
             registry.trackFlow(matchA, tagsA)
 
             val fixedPackets = 5
@@ -123,7 +124,7 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
         }
 
         scenario("tracks stats for two flows, overlapping meters") {
-            val registry = MeterRegistry.newOnHeap(10)
+            val registry = createRegistry()
             registry.trackFlow(matchA, tagsA)
             registry.trackFlow(matchB, tagsB)
 
@@ -145,3 +146,15 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
         }
     }
 }
+
+@RunWith(classOf[JUnitRunner])
+class OnHeapMeterRegistryTest extends MeterRegistryTest {
+    override def createRegistry(): MeterRegistry = MeterRegistry.newOnHeap(10)
+}
+// TODO: Uncomment when off heap metering is ready
+/*
+@RunWith(classOf[JUnitRunner])
+class OffHeapMeterRegistryTest extends MeterRegistryTest {
+    override def createRegistry(): MeterRegistry = MeterRegistry.newOffHeap()
+}
+*/
