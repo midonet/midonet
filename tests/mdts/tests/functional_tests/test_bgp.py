@@ -40,10 +40,14 @@ route_direct = [{'nwPrefix': '172.16.0.0', 'prefixLength': 16}]
 route_snat = [{'nwPrefix': '100.0.0.0', 'prefixLength': 16}]
 
 # peers available:
-uplink1_session1 = {'port': 2, 'peerAddr': '10.1.0.240', 'peerAs': 64511}
-uplink1_session2 = {'port': 2, 'peerAddr': '10.1.0.241', 'peerAs': 64512}
-uplink2_session1 = {'port': 3, 'peerAddr': '10.2.0.240', 'peerAs': 64512}
-uplink2_session2 = {'port': 3, 'peerAddr': '10.2.0.241', 'peerAs': 64511}
+uplink1_session1 = {'port': 2, 'peerAddr': '10.1.0.240', 'peerAs': 64511,
+                    'peerHostname': 'quagga1', 'peerIface': 'bgp1'}
+uplink1_session2 = {'port': 2, 'peerAddr': '10.1.0.241', 'peerAs': 64512,
+                    'peerHostname': 'quagga2', 'peerIface': 'bgp2'}
+uplink2_session1 = {'port': 3, 'peerAddr': '10.2.0.240', 'peerAs': 64512,
+                    'peerHostname': 'quagga2', 'peerIface': 'bgp1'}
+uplink2_session2 = {'port': 3, 'peerAddr': '10.2.0.241', 'peerAs': 64511,
+                    'peerHostname': 'quagga1', 'peerIface': 'bgp2'}
 uplink1_multisession = [uplink1_session1, uplink1_session2]
 uplink2_multisession = [uplink2_session1, uplink2_session2]
 
@@ -140,7 +144,7 @@ binding_multisession1 = {
     'config': {
         'session1': uplink1_session1,
         'session2': uplink1_session2,
-        'multisession' : uplink1_multisession}
+        'multisession': uplink1_multisession}
 }
 
 binding_multisession2 = {
@@ -156,7 +160,7 @@ binding_multisession2 = {
     'config': {
         'session1': uplink2_session1,
         'session2': uplink2_session2,
-        'multisession' : uplink2_multisession}
+        'multisession': uplink2_multisession}
 }
 
 # Even though quickly copied from test_nat_router for now, utilities below
@@ -196,7 +200,7 @@ def add_bgp(bgp_peers, networks):
         router.add_bgp_network(network['nwPrefix'], network['prefixLength'])
 
     for bgp_peer in bgp_peers:
-        await_default_route(router, bgp_peer['port'], bgp_peer['peerAddr'])
+        await_router_route(bgp_peer, '0.0.0.0', 0, exists=True)
         await_internal_route_exported(localAs, bgp_peer['peerAs'])
 
     return peers[0] if len(peers) == 1 else peers
@@ -220,22 +224,33 @@ def clear_bgp_peer(peer, wait=0):
         time.sleep(wait)
 
 
-def await_default_route(router, port, peerAddr):
-    port_id = router.get_port(port)._mn_resource.get_id()
+def await_router_route(session, prefix, prefix_len, exists=True):
+    router = VTM.get_router('router-000-001')
+    port_id = router.get_port(session['port'])._mn_resource.get_id()
     router_id = router._mn_resource.get_id()
     timeout = 60
     while timeout > 0:
         routes = BM._api.get_router_routes(router_id)
+        existing = False
         for r in routes:
             if r.get_next_hop_port() == port_id and \
-                r.get_dst_network_length() == 0 and \
-                r.get_dst_network_addr() == '0.0.0.0' and \
-                r.get_next_hop_gateway() == peerAddr:
-                return
-        time.sleep(1)
-        timeout -= 1
-    raise Exception("Timed out while waiting for BGP to be set up on router "
-                    "{0} port {1} to peer {2}".format(router_id, port_id, peerAddr))
+                    r.get_dst_network_length() == prefix_len and \
+                    r.get_dst_network_addr() == prefix and \
+                    r.get_next_hop_gateway() == session['peerAddr']:
+                existing = True
+        if existing == exists:
+            return
+        else:
+            time.sleep(1)
+            timeout -= 1
+    raise Exception("Timed out while waiting for BGP route to {0} "
+                    "on router {1} port {2} to destination {3}/{4} "
+                    "through next hop {5}.".format(
+                        "appear" if exists else "dissapear",
+                        router_id,
+                        port_id,
+                        prefix, prefix_len,
+                        session['peerAddr']))
 
 
 def await_internal_route_exported(localAs, peerAs):
@@ -364,28 +379,54 @@ def test_icmp_failback():
     add_bgp([uplink1_session1], route_direct)
     add_bgp([uplink2_session1], route_direct)
 
+    await_router_route(uplink1_session1, '1.1.1.1', 32, exists=True)
+    await_router_route(uplink1_session1, '0.0.0.0', 0,  exists=True)
+    await_router_route(uplink2_session1, '1.1.1.1', 32, exists=True)
+    await_router_route(uplink2_session1, '0.0.0.0', 0,  exists=True)
+
     ping_to_inet()  # BGP #1 and #2 are working
 
-    failure = PktFailure('quagga1', 'bgp1', 5)
+    failure1 = PktFailure(uplink1_session1['peerHostname'],
+                          uplink1_session1['peerIface'], 5)
 
-    failure.inject()
+    failure1.inject()
     try:
+        await_router_route(uplink1_session1, '1.1.1.1', 32, exists=False)
+        await_router_route(uplink1_session1, '0.0.0.0', 0,  exists=False)
+        await_router_route(uplink2_session1, '1.1.1.1', 32, exists=True)
+        await_router_route(uplink2_session1, '0.0.0.0', 0,  exists=True)
         ping_to_inet()  # BGP #1 is lost but continues to work
     finally:
-        failure.eject()
+        failure1.eject()
 
     await_internal_route_exported(64513, 64511)
     ping_to_inet()  # BGP #1 is back
 
-    failure = PktFailure('quagga2', 'bgp1', 5)
-    failure.inject()
+    failure2 = PktFailure(uplink2_session1['peerHostname'],
+                          uplink2_session1['peerIface'], 5)
+    failure2.inject()
     try:
+        await_router_route(uplink1_session1, '1.1.1.1', 32, exists=True)
+        await_router_route(uplink1_session1, '0.0.0.0', 0,  exists=True)
+        await_router_route(uplink2_session1, '1.1.1.1', 32, exists=False)
+        await_router_route(uplink2_session1, '0.0.0.0', 0,  exists=False)
         ping_to_inet()  # BGP #2 is lost but continues to work
     finally:
-        failure.eject()
+        failure2.eject()
 
     await_internal_route_exported(64513, 64512)
     ping_to_inet()  # BGP #2 is back
+
+    failure1.inject()
+    failure2.inject()
+    try:
+        await_router_route(uplink1_session1, '1.1.1.1', 32, exists=False)
+        await_router_route(uplink1_session1, '0.0.0.0', 0,  exists=False)
+        await_router_route(uplink2_session1, '1.1.1.1', 32, exists=False)
+        await_router_route(uplink2_session1, '0.0.0.0', 0,  exists=False)
+    finally:
+        failure1.eject()
+        failure2.eject()
 
 
 @attr(version="v1.2.0")
@@ -535,31 +576,64 @@ def test_multisession_icmp_failback():
     Then: ICMP echo RR should work to a pseudo public IP address
 
     """
+    data = BM.get_binding_data()['config']
+    session1 = data['session1']
+    session2 = data['session2']
     multisession = BM.get_binding_data()['config']['multisession']
 
     add_bgp(multisession, route_direct)
+
     ping_to_inet()  # BGP #1 and #2 are working
 
-    failure = PktFailure('quagga1', 'bgp1', 5)
-    failure.inject()
+    failure1 = PktFailure(session1['peerHostname'], session1['peerIface'], 5)
+    failure1.inject()
     try:
         ping_to_inet()  # BGP session #1 is lost but continues to work
     finally:
-        failure.eject()
+        failure1.eject()
 
     ping_to_inet()  # BGP #1 is back
 
-    failure = PktFailure('quagga2', 'bgp2', 5)
-    failure.inject()
+    failure2 = PktFailure(session2['peerHostname'], session2['peerIface'], 5)
+    failure2.inject()
     try:
         ping_to_inet()  # BGP session #2 is lost but continues to work
     finally:
-        failure.eject()
+        failure2.eject()
 
     ping_to_inet()  # BGP #2 is back
 
+    # Check routes
+    await_router_route(session1, '1.1.1.1', 32, exists=True)
+    await_router_route(session1, '0.0.0.0', 0,  exists=True)
+    await_router_route(session2, '1.1.1.1', 32, exists=True)
+    await_router_route(session2, '0.0.0.0', 0,  exists=True)
 
-@nottest
+    # Inject failures again and check routes
+    failure1.inject()
+    try:
+        await_router_route(session1, '1.1.1.1', 32, exists=False)
+        await_router_route(session1, '0.0.0.0', 0,  exists=False)
+        await_router_route(session2, '1.1.1.1', 32, exists=True)
+        await_router_route(session2, '0.0.0.0', 0,  exists=True)
+    except Exception:
+        failure1.eject()
+        raise
+
+    failure2.inject()
+    try:
+        await_router_route(session1, '1.1.1.1', 32, exists=False)
+        await_router_route(session1, '0.0.0.0', 0,  exists=False)
+        await_router_route(session2, '1.1.1.1', 32, exists=False)
+        await_router_route(session2, '0.0.0.0', 0,  exists=False)
+    except Exception:
+        failure2.eject()
+        raise
+
+    failure1.eject()
+    failure2.eject()
+
+
 @bindings(binding_unisession1)
 @with_setup(None, clear_bgp)
 def test_multisession_icmp_with_redundancy():
@@ -571,50 +645,74 @@ def test_multisession_icmp_with_redundancy():
     When: disabling one by one
     Then: ICMP echo should work from different vms to a pseudo public IP address
     """
+
+    def await_routes(session, exists=True):
+        await_router_route(session, '1.1.1.1', 32, exists)
+        await_router_route(session, '0.0.0.0', 0,  exists)
+
     add_bgp(uplink1_multisession, route_direct)
+    await_routes(uplink1_session1, exists=True)
+    await_routes(uplink1_session2, exists=True)
 
     add_bgp(uplink2_multisession, route_direct)
+    await_routes(uplink2_session1, exists=True)
+    await_routes(uplink2_session2, exists=True)
 
     failures = []
 
     ping_to_inet()  # Midolman 2 with 2 sessions on uplink & uplink2
 
     # Start failing sessions one by one
-    failure1 = PktFailure('quagga1', 'bgp1', 5)
+    failure1 = PktFailure(uplink1_session1['peerHostname'],
+                          uplink1_session1['peerIface'], 5)
     failures.append(failure1)
     failure1.inject()
     try:
+        await_routes(uplink1_session1, exists=False)
         ping_to_inet()
     except Exception:
         for failure in failures:
             failure.eject()
         raise
 
-    failure2 = PktFailure('quagga2', 'bgp1', 5)
+    failure2 = PktFailure(uplink2_session1['peerHostname'],
+                          uplink2_session1['peerIface'], 5)
     failures.append(failure2)
     failure2.inject()
     try:
+        await_routes(uplink2_session1, exists=False)
         ping_to_inet()
     except Exception:
         for failure in failures:
             failure.eject()
         raise
 
-    failure3 = PktFailure('quagga1', 'bgp2', 5)
+    failure3 = PktFailure(uplink1_session2['peerHostname'],
+                          uplink1_session2['peerIface'], 5)
     failures.append(failure3)
     failure3.inject()
     try:
+        await_routes(uplink1_session2, exists=False)
         ping_to_inet()
     except Exception:
         for failure in failures:
             failure.eject()
         raise
 
-    failure4 = PktFailure('quagga2', 'bgp2', 5)
+    failure4 = PktFailure(uplink2_session2['peerHostname'],
+                          uplink2_session2['peerIface'], 5)
     failures.append(failure4)
     failure4.inject()
-    assert_that(calling(ping_to_inet),
-                raises(RuntimeError))
+    try:
+        await_routes(uplink2_session2, exists=False)
+    except Exception:
+        for failure in failures:
+            failure.eject()
+        raise
 
-    for failure in failures:
-        failure.eject()
+    try:
+        assert_that(calling(ping_to_inet),
+                    raises(RuntimeError))
+    finally:
+        for failure in failures:
+            failure.eject()

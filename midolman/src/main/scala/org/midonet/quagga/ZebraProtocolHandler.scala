@@ -24,6 +24,5 @@ case class ZebraPath(ribType: RIBType.Value, gateway: IPv4Addr, distance: Byte)
 trait ZebraProtocolHandler {
     def addRoutes(destination: IPv4Subnet, routes: Set[ZebraPath])
 
-    def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                    gateway: IPv4Addr)
+    def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet)
 }
