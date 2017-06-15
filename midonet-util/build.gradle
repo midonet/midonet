@@ -75,13 +75,13 @@ model {
         all {
             if (toolChain in Gcc) {
                 cppCompiler.args << "--std=c++11" \
-                                 << "-I" << "${JNI_INCLUDE_DIR}"
+                                 << "-I" << "${JNI_INCLUDE_DIR}" \
+                                 << "-I" << "$tbbHeaderDir"
                 if (targetPlatform.operatingSystem.linux) {
                     cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/linux"
                 }
                 if (targetPlatform.operatingSystem.macOsX) {
-                    cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/darwin" \
-                                     << "-I" << "$rootDir/tools/tbb-2017_U6/include"
+                    cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/darwin"
                 }
             }
         }
