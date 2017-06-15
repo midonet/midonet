@@ -50,6 +50,7 @@ sed -i -e 's/zookeeper_hosts = .*$/zookeeper_hosts = '"$MIDO_ZOOKEEPER_HOSTS"'/'
 if [ $(hostname) = "midolman1" ]; then
     mn-conf set -h local <<EOF
 agent.midolman.off_heap_tables=true
+agent.midolman.reclaim_datapath=true
 EOF
     apt-get install -qy --force-yes quagga=0.99.23.1-0midokura
 fi

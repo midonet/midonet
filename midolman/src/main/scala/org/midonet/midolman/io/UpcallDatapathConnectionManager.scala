@@ -29,7 +29,7 @@ import com.codahale.metrics.MetricRegistry
 
 import org.slf4j.{Logger, LoggerFactory}
 
-import org.midonet.ErrorCode.{EADDRINUSE, EBUSY, EEXIST}
+import org.midonet.ErrorCode
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.{NetlinkCallbackDispatcher, PacketWorker}
 import org.midonet.netlink.BufferPool
@@ -108,29 +108,47 @@ abstract class UpcallDatapathConnectionManagerBase(
         setUpcallHandler(dpConn)
         ensurePortPid(port, datapath, dpConn) andThen {
             case Success((createdPort, _)) =>
+                log.debug(s"Successfully created or reclaimed port $createdPort")
                 portToChannel.put((datapath, createdPort.getPortNo.intValue), conn)
             case Failure(e) =>
-                log.error("failed to create or retrieve datapath port "
-                              + port.getName, e)
+                log.error(s"Failed to create or reclaim datapath port ${port.getName}", e)
                 stopConnection(conn)
                 tbPolicy.unlink(port)
         }
     }
 
-    private def ensurePortPid(port: DpPort, dp: Datapath, con: OvsDatapathConnection)(
-                      implicit ec: ExecutionContext) = {
+    private def isExisting(ex: NetlinkException) = ex.getErrorCodeEnum match {
+        // Error code changed in OVS in May-2013 from EBUSY to EEXIST
+        // http://openvswitch.org/pipermail/dev/2013-May/027947.html
+        case ErrorCode.EEXIST | ErrorCode.EBUSY | ErrorCode.EADDRINUSE => true
+        case _ => false
+    }
+
+    private def ensurePortPid(port: DpPort, dp: Datapath, con: OvsDatapathConnection)
+                             (implicit ec: ExecutionContext) = {
         val dpConnOps = new OvsConnectionOps(con)
-        log.info("creating datapath port {}", port)
+        log.info(s"Creating datapath port $port on datapath ${dp.getName}.")
         dpConnOps.createPort(port, dp) recoverWith {
-            // Error code changed in OVS in May-2013 from EBUSY to EEXIST
-            // http://openvswitch.org/pipermail/dev/2013-May/027947.html
-            case ex: NetlinkException
-                if ex.getErrorCodeEnum == EEXIST ||
-                   ex.getErrorCodeEnum == EBUSY ||
-                   ex.getErrorCodeEnum == EADDRINUSE =>
-                dpConnOps.delPort(port, dp) flatMap { _ =>
-                    dpConnOps.createPort(port, dp)
+            case ex: NetlinkException if isExisting(ex) =>
+                if (config.reclaimDatapath) {
+                    // NOTE: set port operation not supported, need to get
+                    // the port and recreate it with the same port number
+                    dpConnOps.getPort(port.getName, dp) flatMap { existingPort =>
+                        log.info(s"Reclaiming datapath port $existingPort.")
+                        dpConnOps.delPort(existingPort, dp) flatMap { _ =>
+                            dpConnOps.createPort(existingPort, dp)
+                        }
+                    }
+                } else {
+                    log.debug(s"Existing port $port, recreate it.")
+                    dpConnOps.delPort(port, dp) flatMap { _ =>
+                        dpConnOps.createPort(port, dp)
+                    }
                 }
+            case t: Throwable =>
+                log.error(s"Error while creating datapath port $port on " +
+                          s"datapath ${dp.getName}.")
+                Future.failed(t)
         } map { (_, con.getChannel.getLocalAddress.getPid) }
     }
 
