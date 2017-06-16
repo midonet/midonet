@@ -23,6 +23,7 @@
 #       test_attr.py (since in ASCII '-' is placed before '_')
 
 import test_bgp
+import test_bgp_ip
 import test_chains
 import test_conn_tracking
 import test_fip_icmp
@@ -48,6 +49,7 @@ test_bgp.test_multisession_icmp_failback.gate = 1
 test_bgp.test_multisession_icmp_with_redundancy.gate = 1
 test_bgp.test_snat.gate = 1
 test_bgp.test_snat.slow = 1
+test_bgp_ip.test_bgp_ip_basic.gate = 1
 test_chains.test_dst_mac_masking.gate = 1
 test_chains.test_filter_ipv6.gate = 1
 test_chains.test_filter_ipv6.slow = 0
