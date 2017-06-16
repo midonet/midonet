@@ -19,6 +19,7 @@ package org.midonet.midolman.routingprotocols
 import java.util.UUID
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
 
 import akka.actor._
@@ -35,7 +36,7 @@ import org.scalatest.mock.MockitoSugar
 import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.routingprotocols.RoutingHandler.PortBgpInfos
+import org.midonet.midolman.routingprotocols.RoutingHandler.{PeerRoute, PortBgpInfos}
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.PortBgpInfo
@@ -61,6 +62,7 @@ class RoutingHandlerTest extends FeatureSpecLike
     var invalidations = List[FlowTag]()
     val config = MidolmanConfig.forTests
     implicit var as: ActorSystem = _
+    val peerRouteToPortAccount = mutable.Map[PeerRoute, UUID]()
 
     val asNumber = 7
 
@@ -96,7 +98,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                                                     routingStorage,
                                                     config,
                                                     bgpd,
-                                                    false))
+                                                    false,
+                                                    peerRouteToPortAccount))
         routingHandler ! rport
         bgpd.state should be (bgpd.NOT_STARTED)
         routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
@@ -122,7 +125,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                                            routingStorage,
                                            config,
                                            bgpd,
-                                           true))
+                                           true,
+                                           peerRouteToPortAccount))
 
             containerRoutingHandler ! containerRport
             containerRoutingHandler ! BgpPort(containerRport, baseConfig,
@@ -141,7 +145,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                                            routingStorage,
                                            config,
                                            bgpd,
-                                           true))
+                                           true,
+                                           peerRouteToPortAccount))
 
             containerRoutingHandler ! containerRport
             containerRoutingHandler ! BgpPort(containerRport, bgpRouter,
@@ -157,7 +162,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                     routingStorage,
                     config,
                     bgpd,
-                    true))
+                    true,
+                    peerRouteToPortAccount))
 
             containerRoutingHandler ! containerPort
             containerRoutingHandler ! BgpPort(containerPort, baseConfig.copy(neighbors = Map.empty), Set.empty)
@@ -314,6 +320,31 @@ class RoutingHandlerTest extends FeatureSpecLike
             pushRoute(dst, gw)
             verify(routingStorage).addRoute(argThat(matchRoute(dst, gw)),
                                             Eq(rport.id))
+        }
+
+        scenario("peer route map gets updated") {
+            val dst = "10.10.10.0/24"
+            val dstSub = IPv4Subnet.fromCidr(dst)
+            val gw1 = "192.168.80.254"
+            val gw1Addr = IPv4Addr.fromString(gw1)
+            val gw2 = "192.168.80.253"
+            val gw2Addr = IPv4Addr.fromString(gw2)
+
+            pushRoute(dst, gw1)
+            var expectedMap = Map(PeerRoute(dstSub, gw1Addr) -> rport.id)
+            peerRouteToPortAccount shouldBe expectedMap
+
+            pushRoute(dst, gw1, gw2)
+            expectedMap = Map(PeerRoute(dstSub, gw1Addr) -> rport.id,
+                              PeerRoute(dstSub, gw2Addr) -> rport.id)
+            peerRouteToPortAccount shouldBe expectedMap
+
+            pushRoute(dst, gw2)
+            expectedMap = Map(PeerRoute(dstSub, gw2Addr) -> rport.id)
+            peerRouteToPortAccount shouldBe expectedMap
+
+            pullRoute(dst)
+            peerRouteToPortAccount shouldBe empty
         }
 
         scenario("multipath routes") {
@@ -551,9 +582,12 @@ class TestableRoutingHandler(rport: RouterPort,
                              routingStorage: RoutingStorage,
                              config: MidolmanConfig,
                              override val bgpd: MockBgpdProcess,
-                             isQuagga: Boolean)
+                             isQuagga: Boolean,
+                             peerPortMap: mutable.Map[PeerRoute, UUID])
             extends RoutingHandler(rport, 1, flowInvalidator, routingStorage,
                                    config, new MockZkConnWatcher(), isQuagga) {
+
+    override val peerRouteToPort = peerPortMap
 
     override def createDpPort(port: String): Future[(DpPort, Int)]  = {
         val p = DpPort.fakeFrom(new NetDevPort("bgpd"), 27).asInstanceOf[NetDevPort]

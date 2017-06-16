@@ -56,7 +56,6 @@ import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.{AfUnix, UnixClock}
-import org.midonet.util.functors._
 
 class LazyZkConnectionMonitor(down: () => Unit,
                               up: () => Unit,
@@ -199,20 +198,12 @@ object RoutingHandler {
                 if (isContainer) {
                     val portBgpObs = new RouterBgpMapper(routerPort.routerId, vt)
                         .portBgpInfoObservable
-                    portBgpSub = portBgpObs
-                        .map[Seq[PortBgpInfo]](makeFunc1(getPortBgpInfo))
-                        .subscribe(new PortBgpObserver)
+                    portBgpSub = portBgpObs.subscribe(new PortBgpObserver)
                 }
 
                 system.scheduler.schedule(2 seconds, 5 seconds,
                                           self, FetchBgpdStatus)(context.dispatcher)
                 log.debug("Routing handler started")
-            }
-
-            private def getPortBgpInfo(portBgpInfos: Seq[PortBgpInfo])
-            : Seq[PortBgpInfo] = {
-                for (portInfo <- portBgpInfos if portInfo.portId == routerPort.id)
-                    yield portInfo
             }
 
             override def postStop(): Unit = {
@@ -306,6 +297,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
     /** IP addresses to update bgpd with on startup/restart. */
     protected var newPortBgps: Seq[PortBgpInfo] = Seq()
+    protected val peerRouteToPort = mutable.Map[PeerRoute, UUID]()
 
     /* IP address to use as the router-id.
      * Only used with BGP on Interior ports
@@ -434,13 +426,13 @@ abstract class RoutingHandler(var routerPort: RouterPort,
                 case Some(route) => peerRoutes.remove(route) match {
                     case None => // route missing
                     case Some(null) => // route not published
-                    case Some(r) => handleLearnedRouteError(forgetLearnedRoute(r))
+                    case Some(r) =>
+                        handleLearnedRouteError(forgetLearnedRoute(r))
                 }
                 case None =>
                     log.debug("No routes to delete. This is unexpected as " +
                               "the bgpd process believes we have a route we " +
                               "are not tracking. Ignore it.")
-
             }
             Future.successful(true)
     }
@@ -506,11 +498,20 @@ abstract class RoutingHandler(var routerPort: RouterPort,
         log.debug(s"Forgetting learned route: " +
                   s"${route.getDstNetworkAddr}/${route.dstNetworkLength} " +
                   s"via ${route.getNextHopGateway}")
+        val destination = IPv4Subnet.fromCidr(
+            s"${route.getDstNetworkAddr}/${route.dstNetworkLength}")
+        val nextHop = IPv4Addr.fromString(route.getNextHopGateway)
+        peerRouteToPort.remove(PeerRoute(destination, nextHop))
         routingStorage.removeRoute(route, routerPort.id)
     }
 
     private def makeRoute(destination: IPv4Subnet, path: ZebraPath): Route = {
-        val route = makeRoute(destination, path.gateway.toString, routerPort.id)
+        val portId = currentPortBgps.find(_.bgpPeerIp == path.gateway.toString)
+            .map(_.portId)
+            .getOrElse(routerPort.id)
+        peerRouteToPort.put(PeerRoute(destination, path.gateway), portId)
+
+        val route = makeRoute(destination, path.gateway.toString, portId)
         route.weight = path.distance
         route
     }
