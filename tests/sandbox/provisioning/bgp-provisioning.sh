@@ -32,9 +32,31 @@ sudo pipework/pipework brbgp1_${SANDBOX_NAME} -i bgp0 mnsandbox${SANDBOX_NAME}_m
 # MM peer2
 sudo pipework/pipework brbgp2_${SANDBOX_NAME} -i bgp0 mnsandbox${SANDBOX_NAME}_midolman2_1 10.2.0.1/24
 
-sudo docker exec mnsandbox${SANDBOX_NAME}_quagga0_1 sysctl net.ipv6.conf.all.disable_ipv6=0
-sudo docker exec mnsandbox${SANDBOX_NAME}_quagga1_1 sysctl net.ipv6.conf.all.disable_ipv6=0
-sudo docker exec mnsandbox${SANDBOX_NAME}_quagga2_1 sysctl net.ipv6.conf.all.disable_ipv6=0
-sudo docker exec mnsandbox${SANDBOX_NAME}_midolman1_1 sysctl net.ipv6.conf.all.disable_ipv6=0
-sudo docker exec mnsandbox${SANDBOX_NAME}_midolman2_1 sysctl net.ipv6.conf.all.disable_ipv6=0
-sudo docker exec mnsandbox${SANDBOX_NAME}_midolman3_1 sysctl net.ipv6.conf.all.disable_ipv6=0
+set -o pipefail
+
+function await_container_up {
+    # Get the status string
+    STATE=$(docker inspect $1 | grep Status | cut -d: -f2 | sed 's/["\ ,]//g')
+    EXIT_CODE=$?
+    while [[ $EXIT_CODE -eq 0 && "$STATE" != "running" ]]; do
+        sleep 1s
+        STATE=$(docker inspect $1 | grep Status | cut -d: -f2 | sed 's/["\ ,]//g')
+        EXIT_CODE=$?
+    done
+    return $EXIT_CODE
+}
+
+function enable_ipv6 {
+    # Wait until the container is up and running to enable ipv6
+    await_container_up $1
+    if [ $? -eq 0 ]; then
+        sudo docker exec $1 sysctl net.ipv6.conf.all.disable_ipv6=0
+    fi
+}
+
+enable_ipv6 mnsandbox${SANDBOX_NAME}_quagga0_1
+enable_ipv6 mnsandbox${SANDBOX_NAME}_quagga1_1
+enable_ipv6 mnsandbox${SANDBOX_NAME}_quagga2_1
+enable_ipv6 mnsandbox${SANDBOX_NAME}_midolman1_1
+enable_ipv6 mnsandbox${SANDBOX_NAME}_midolman2_1
+enable_ipv6 mnsandbox${SANDBOX_NAME}_midolman3_1
