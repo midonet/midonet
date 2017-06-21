@@ -175,12 +175,22 @@ task generateJniHeadersFlowController(type:Exec) {
     dependsOn classes
 }
 
+task generateJniHeadersMetering(type:Exec) {
+    def classpath = sourceSets.main.output.classesDir
+    def nativeIncludes = "src/nativeMetering/headers"
+    commandLine "javah", "-d", nativeIncludes, \
+                         "-classpath", classpath, \
+                         "org.midonet.midolman.monitoring.NativeMeterRegistryJNI"
+    dependsOn classes
+}
+
 tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
 }
 
 tasks.withType(CppCompile) {
     dependsOn generateJniHeadersFlowController
+    dependsOn generateJniHeadersMetering
 }
 
 jar {
