@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-#include <nativeFlowStats.h>
+#include "jniTools.h"
 
-/*
- * FlowStats implementation
- */
-
-NativeFlowStats& NativeFlowStats::operator=(const NativeFlowStats& fs) {
-    if (this != &fs) {
-        this->packets = fs.packets;
-        this->bytes = fs.bytes;
-    }
+const std::string jba2str(JNIEnv* env, jbyteArray array) {
+    auto len = env->GetArrayLength(array);
+    auto bytes = env->GetByteArrayElements(array, 0);
+    auto str = std::string(reinterpret_cast<const char*>(array), len);
+    env->ReleaseByteArrayElements(array, bytes, 0);
+    return str;
 }
 
-void NativeFlowStats::add(int64_t p, int64_t b) {
-    packets += p;
-    bytes += b;
-}
-
-void NativeFlowStats::subtract(int64_t p, int64_t b) {
-    packets -= p;
-    bytes -= b;
+jbyteArray str2jba(JNIEnv* env, const std::string& str) {
+    jbyteArray array = env->NewByteArray(str.size());
+    env->SetByteArrayRegion(array, 0, str.size(),
+            reinterpret_cast<const jbyte*>(str.c_str()));
+    return array;
 }
 

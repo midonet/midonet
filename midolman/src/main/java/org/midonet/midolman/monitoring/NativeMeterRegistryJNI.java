@@ -17,11 +17,15 @@
 package org.midonet.midolman.monitoring;
 
 public class NativeMeterRegistryJNI {
-
-    public native String[] getMeterKeys();
-    public native long[] getMeter(String key);
-    public native void trackFlow(byte[] flowMatch, long[] tags);
-    public native void recordPacket(int packetLength, long[] tags);
-    public native void updateFlow(byte[] flowMatch, long packets, long bytes);
-    public native void forgetFlow(byte[] flowMatch);
+    public static native void initialize();
+    public static native long create();
+    public static native String[] getMeterKeys(long registry);
+    public static native long[] getMeter(long registry, String key);
+    public static native void trackFlow(long registry, byte[] flowMatch,
+                                        String[] tags);
+    public static native void recordPacket(long registry, int packetLength,
+                                           String[] tags);
+    public static native void updateFlow(long registry, byte[] flowMatch,
+                                         long packets, long bytes);
+    public static native void forgetFlow(long registry, byte[] flowMatch);
 }

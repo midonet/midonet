@@ -28,12 +28,12 @@ class NativeFlowStatsTest: public Test {
         NativeFlowStatsTest() {
             if (first_time) {
                 srand(time(NULL));
-                first_time = true;
+                first_time = false;
             }
         }
 };
 
-bool NativeFlowStatsTest::first_time = false;
+bool NativeFlowStatsTest::first_time = true;
 
 TEST_F(NativeFlowStatsTest, test_value_size) {
   ASSERT_EQ(sizeof(uint64_t), 8) << "Wrong size for uint64_t";

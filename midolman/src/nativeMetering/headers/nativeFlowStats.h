@@ -23,27 +23,34 @@
  */
 class NativeFlowStats {
     private:
-        // Number of matched packets
-        uint64_t packets;
-        // Number of matched bytes
-        uint64_t bytes;
+        // Number of matched packets (signed, because of java)
+        int64_t packets;
+        // Number of matched bytes (signed, because of java)
+        int64_t bytes;
 
     public:
         // Constructors
         NativeFlowStats(): packets(0), bytes(0) {}
-        NativeFlowStats(uint64_t p, uint64_t b): packets(p), bytes(b) {}
+        NativeFlowStats(int64_t p, int64_t b): packets(p), bytes(b) {}
         NativeFlowStats(const NativeFlowStats& fs)
             : packets(fs.packets), bytes(fs.bytes) {}
 
         // Inline accessors
-        uint64_t get_packets() const {return packets;}
-        uint64_t get_bytes() const {return bytes;}
+        int64_t get_packets() const {return packets;}
+        int64_t get_bytes() const {return bytes;}
 
         // Update
-        void add(uint64_t p, uint64_t b);
+        void reset() {packets = bytes = 0;}
+        void add(int64_t p, int64_t b);
         void add(const NativeFlowStats& delta) {
             add(delta.packets, delta.bytes);
         }
+        void subtract(int64_t p, int64_t b);
+        void subtract(const NativeFlowStats& stats) {
+            subtract(stats.packets, stats.bytes);
+        }
+
+        bool underflow() const {return packets < 0 || bytes < 0;}
 
         // Copy operator
         NativeFlowStats& operator=(const NativeFlowStats& fs);

@@ -13,26 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.midolman.monitoring
 import java.util
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters.collectionAsScalaIterableConverter
+
 import com.google.common.collect.ImmutableList
+
 import org.midonet.management.{FlowStats => MgmtFlowStats}
 import org.midonet.odp.{FlowMatch, FlowMatches}
 import org.midonet.odp.flows.FlowStats
-import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.flows.FlowTagger.{FlowTag, MeterTag}
 import org.midonet.util.concurrent.IntelTBB
+import org.midonet.midolman.monitoring.{NativeMeterRegistryJNI => JNI}
 
 object NativeMeterRegistry {
 
     val libraryName = "nativeMeterRegistry"
     private var loaded = false
 
-    def loadNativeLibrary() = synchronized {
+    def loadNativeLibrary(): Unit = synchronized {
         if (!loaded) {
             IntelTBB.loadNativeLibrary()
             System.loadLibrary(libraryName)
+            JNI.initialize()
             loaded = true
         }
     }
@@ -42,38 +47,38 @@ class NativeMeterRegistry extends MeterRegistry {
 
     NativeMeterRegistry.loadNativeLibrary()
 
-    private val jniMeterRegistry = new NativeMeterRegistryJNI
+    private val ptr = JNI.create()
 
     override def getMeterKeys(): util.Collection[String] = {
-        ImmutableList.copyOf(jniMeterRegistry.getMeterKeys)
+        ImmutableList.copyOf(JNI.getMeterKeys(ptr))
     }
 
     override def getMeter(key: String): MgmtFlowStats = {
-        jniMeterRegistry.getMeter(key) match {
+        JNI.getMeter(ptr, key) match {
             case Array(packets, bytes) => new MgmtFlowStats(packets, bytes)
         }
     }
 
     override def trackFlow(flowMatch: FlowMatch,
                            tags: util.List[FlowTag]): Unit = {
-        jniMeterRegistry.trackFlow(FlowMatches.toBytes(flowMatch),
-            tagsToTagHashes(tags))
+        JNI.trackFlow(
+            ptr, FlowMatches.toBytes(flowMatch), tagsToTagStrings(tags))
     }
 
     override def recordPacket(packetLen: Int,
                               tags: util.List[FlowTag]): Unit = {
-        jniMeterRegistry.recordPacket(packetLen, tagsToTagHashes(tags))
+        JNI.recordPacket(ptr, packetLen, tagsToTagStrings(tags))
     }
 
     override def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit = {
-        jniMeterRegistry.updateFlow(FlowMatches.toBytes(flowMatch),
-            stats.packets, stats.bytes)
+        JNI.updateFlow(
+            ptr, FlowMatches.toBytes(flowMatch), stats.packets, stats.bytes)
     }
 
     override def forgetFlow(flowMatch: FlowMatch): Unit = {
-        jniMeterRegistry.forgetFlow(FlowMatches.toBytes(flowMatch))
+        JNI.forgetFlow(ptr, FlowMatches.toBytes(flowMatch))
     }
 
-    private def tagsToTagHashes(tags: util.List[FlowTag]): Array[Long] =
-        tags.map(_.toLongHash()).toArray
+    private def tagsToTagStrings(tags: util.List[FlowTag]): Array[String] =
+        tags.asScala.collect({case t: MeterTag => t.meterName}).toArray
 }

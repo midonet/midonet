@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-#include <nativeFlowStats.h>
+#ifndef _JNI_TOOLS_H_
+#define _JNI_TOOLS_H_
 
-/*
- * FlowStats implementation
+#include <string>
+#include "jni.h"
+
+/**
+ * Convert a bytearray generated from the bytes in a java string to
+ * a C++ string object (not necessarily a printable string).
+ * This is mostly used for strings used as hash keys, or to be stored
+ * off-heap.
  */
+const std::string jba2str(JNIEnv *, jbyteArray);
 
-NativeFlowStats& NativeFlowStats::operator=(const NativeFlowStats& fs) {
-    if (this != &fs) {
-        this->packets = fs.packets;
-        this->bytes = fs.bytes;
-    }
-}
+/**
+ * Convert back a string into the original java byte array obtained a
+ * java string.
+ */
+jbyteArray str2jba(JNIEnv*, const std::string&);
 
-void NativeFlowStats::add(int64_t p, int64_t b) {
-    packets += p;
-    bytes += b;
-}
-
-void NativeFlowStats::subtract(int64_t p, int64_t b) {
-    packets -= p;
-    bytes -= b;
-}
+#endif /* _JNI_TOOLS_H_ */
 
