@@ -78,6 +78,17 @@ model {
                 }
             }
         }
+        nativeFlowMatchList(NativeLibrarySpec) {
+            baseName "nativeFlowMatchList"
+            sources {
+                cpp {
+                    source {
+                        include "**/*.cpp"
+                        include "**/*.h"
+                    }
+                }
+            }
+        }
     }
     testSuites {
         nativeFlowControllerTest(GoogleTestTestSuiteSpec) {
@@ -102,12 +113,25 @@ model {
                 }
             }
         }
+        nativeFlowMatchListTest(GoogleTestTestSuiteSpec) {
+            testing $.components.nativeFlowMatchList
+            sources {
+                cpp {
+                    source {
+                        include "**/*.cpp"
+                        include "**/*.h"
+                    }
+                }
+            }
+        }
     }
     tasks.test {
         dependsOn nativeFlowControllerSharedLibrary
         dependsOn nativeMeteringSharedLibrary
+        dependsOn nativeFlowMatchListSharedLibrary
         dependsOn runNativeFlowControllerTestGoogleTestExe
         dependsOn runNativeMeteringTestGoogleTestExe
+        dependsOn runNativeFlowMatchListTestGoogleTestExe
 
         def libPaths = "${nativeLibraryDir}:${project(':midonet-util').nativeLibraryDir}:${tbbLibraryDir}"
         systemProperty "java.library.path", "${libPaths}:${nativeLibraryDir}:${tbbLibraryDir}"
@@ -115,6 +139,7 @@ model {
     tasks.jar {
         dependsOn nativeFlowControllerSharedLibrary
         dependsOn nativeMeteringSharedLibrary
+        dependsOn nativeFlowMatchListSharedLibrary
     }
 
     binaries {
@@ -152,6 +177,14 @@ model {
             if (targetPlatform.operatingSystem.macOsX) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeMetering.dylib"
                 ext.tbbLibraryDir = "${tbbDir}/osx-x86_64"
+            }
+        }
+        nativeFlowMatchListSharedLibrary {
+            if (targetPlatform.operatingSystem.linux) {
+                sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowMatchList.so"
+            }
+            if (targetPlatform.operatingSystem.macOsX) {
+                sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowMatchList.dylib"
             }
         }
         withType(GoogleTestTestSuiteBinarySpec) {
