@@ -17,6 +17,52 @@
 #include <string>
 #include <vector>
 #include <nativeFlowMatchList.h>
+#include "org_midonet_midolman_flows_NativeFlowMatchListJNI.h"
+
+const std::string bb2str(JNIEnv *env, jobject bb, int pos, int len) {
+  char* buf = (char *)env->GetDirectBufferAddress(bb);
+  return std::string(buf + pos, len);
+}
+
+jbyteArray str2jba(JNIEnv *env, std::string str) {
+  jbyteArray retBytes = env->NewByteArray(str.size());
+  env->SetByteArrayRegion(retBytes, 0, str.size(),
+                          reinterpret_cast<const jbyte*>(str.c_str()));
+  return retBytes;
+}
+
+jlong
+Java_org_midonet_midolman_flows_NativeFlowMatchListJNI_createFlowMatchList
+(JNIEnv *, jclass) {
+  return reinterpret_cast<jlong>(new FlowMatchList());
+}
+
+void
+Java_org_midonet_midolman_flows_NativeFlowMatchListJNI_pushFlowMatch
+(JNIEnv *env, jclass, jlong pointer, jobject flowMatch, jint pos, jint len) {
+  auto list = reinterpret_cast<FlowMatchList*>(pointer);
+  list->push_flow_match(bb2str(env, flowMatch, pos, len));
+}
+
+jbyteArray
+Java_org_midonet_midolman_flows_NativeFlowMatchListJNI_popFlowMatch
+(JNIEnv *env, jclass, jlong pointer) {
+  auto list = reinterpret_cast<FlowMatchList*>(pointer);
+  return str2jba(env, list->pop_flow_match());
+}
+
+jint
+Java_org_midonet_midolman_flows_NativeFlowMatchListJNI_size
+(JNIEnv *, jclass, jlong pointer) {
+  auto list = reinterpret_cast<FlowMatchList*>(pointer);
+  return list->size();
+}
+
+void
+Java_org_midonet_midolman_flows_NativeFlowMatchListJNI_deleteFlowMatchList
+(JNIEnv *, jclass, jlong pointer) {
+  delete reinterpret_cast<FlowMatchList*>(pointer);
+}
 
 FlowMatchList::FlowMatchList()
   : m_list() {}

@@ -217,6 +217,15 @@ task generateJniHeadersMetering(type:Exec) {
     dependsOn classes
 }
 
+task generateJniHeadersFlowMatchList(type:Exec) {
+    def classpath = sourceSets.main.output.classesDir
+    def nativeIncludes = "src/nativeFlowMatchList/headers"
+    commandLine "javah", "-d", nativeIncludes, \
+                         "-classpath", classpath,
+                         "org.midonet.midolman.flows.NativeFlowMatchListJNI"
+    dependsOn classes
+}
+
 tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
 }
@@ -224,6 +233,7 @@ tasks.withType(RunTestExecutable) {
 tasks.withType(CppCompile) {
     dependsOn generateJniHeadersFlowController
     dependsOn generateJniHeadersMetering
+    dependsOn generateJniHeadersFlowMatchList
 }
 
 jar {
