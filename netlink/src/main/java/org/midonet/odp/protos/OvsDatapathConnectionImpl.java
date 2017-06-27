@@ -33,6 +33,7 @@ import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.NetlinkMetrics;
+import org.midonet.netlink.Reader;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
@@ -338,6 +339,26 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         protocol.prepareFlowEnum(datapathId, buf);
         sendMultiAnswerNetlinkMessage(buf, callback, Flow.deserializer,
                                       timeoutMillis);
+    }
+
+    @Override
+    protected void _doFlowsIterate(@Nonnull Datapath datapath,
+                                   @Nonnull Reader<Object> reader,
+                                   @Nonnull final Callback<Long> callback,
+                                   long timeoutMillis) {
+        int datapathId = datapath.getIndex();
+
+        if (datapathId == 0) {
+            callback.onError(
+                new OvsDatapathInvalidParametersException(
+                    "The datapath to dump flows for needs a valid datapath id"));
+            return;
+        }
+
+        ByteBuffer buf = getBuffer();
+        protocol.prepareFlowEnum(datapathId, buf);
+        sendMultiAnswerIterateNetlinkMessage(buf, callback, reader,
+                                             timeoutMillis);
     }
 
     @Override

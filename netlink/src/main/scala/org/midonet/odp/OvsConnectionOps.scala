@@ -16,17 +16,16 @@
 package org.midonet.odp
 
 import java.util.{List => JList}
+
 import scala.collection.JavaConversions.asScalaSet
-import scala.collection.JavaConverters._
 import scala.concurrent._
 import scala.concurrent.duration._
 
-import org.midonet.netlink.Callback
+import org.midonet.netlink.{Callback, Reader}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows._
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets.{MAC, IPv4Addr}
 import org.midonet.util.BatchCollector
 
 class OvsConnectionOps(val ovsCon: OvsDatapathConnection) {
@@ -62,6 +61,9 @@ class OvsConnectionOps(val ovsCon: OvsDatapathConnection) {
 
     def enumFlows(dp: Datapath)(implicit ec: ExecutionContext) =
         toFuture[java.util.Set[Flow]] { ovsCon flowsEnumerate(dp, _) } map { _ toSet }
+
+    def iterFlows(dp: Datapath, reader: Reader[Object])(implicit ec: ExecutionContext) =
+        toFuture[java.lang.Long] { ovsCon flowsIterate(dp, reader, _) }
 
     def flushFlows(dp: Datapath) =
         toFuture[java.lang.Boolean] { ovsCon flowsFlush(dp, _) }

@@ -227,6 +227,14 @@ public abstract class AbstractNetlinkConnection {
                                                 payload, timeoutMillis));
     }
 
+    protected void sendMultiAnswerIterateNetlinkMessage(ByteBuffer payload,
+                                                        Callback<Long> callback,
+                                                        Reader<Object> reader,
+                                                        long timeoutMillis) {
+        enqueueRequest(NetlinkRequest.makeMultiIterate(callback, reader,
+                                                       payload, timeoutMillis));
+    }
+
     private void enqueueRequest(NetlinkRequest req) {
         if (bypassSendQueue) {
             // If this stops being used only for testing, beware

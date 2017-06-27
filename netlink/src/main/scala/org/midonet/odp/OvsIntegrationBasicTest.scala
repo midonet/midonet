@@ -15,37 +15,68 @@
  */
 package org.midonet.odp.test
 
+import java.nio.ByteBuffer
 import java.util.{ArrayList => JArrayList}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Promise, Future}
-import scala.util.Try
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Future, Promise}
+import scala.util.Random
+
+import org.midonet.netlink.{AttributeHandler, NetlinkMessage, Reader}
+import org.midonet.odp.OpenVSwitch.Flow.Attr
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.odp.ports._
-import org.midonet.util.concurrent._
+import org.midonet.packets.MAC
+import org.midonet.util.logging.Logging
 
-trait FlowTest {
+trait FlowTest extends Logging {
 
     def con: OvsConnectionOps
 
     def flowTests(dpF: Future[Datapath]) = {
 
-        val mac = Array[Byte](0, 1, 2, 3, 4, 5)
-        val ethK = FlowKeys.ethernet(mac, mac)
+        def ethK = FlowKeys.ethernet(MAC.random(), MAC.random())
+        def portK = FlowKeys.inPort(Random.nextInt(10000))
 
         def flow(fm: FlowMatch) = new Flow(fm, new JArrayList[FlowAction]())
-        def flowmatch(k: FlowKey) = new FlowMatch addKey k addKey ethK
+        def flowmatch(i: Int) = new FlowMatch addKey portK addKey ethK
 
         def createFlow(f: Flow) = dpF flatMap { con createFlow(f, _) }
         def delFlow(f: Flow) = dpF flatMap { con delFlow(f, _) }
 
-        val flows = (1 to 4) map FlowKeys.inPort map flowmatch map flow
+        val flows = (1 to 100) map flowmatch map flow
+
+        val flowMatches = flows.map(_.getMatch).toSet
 
         val makeF = createFlow(flows.head)
 
         val makesF = flows.tail.foldLeft(makeF) { case (flowFuture, flow) =>
             flowFuture flatMap { _ => createFlow(flow)}
+        }
+
+        val reader = new Reader[Object] with AttributeHandler {
+            val array = new Array[Byte](1*1024*1024)
+            override def deserializeFrom(buf: ByteBuffer): Object = {
+                buf.getInt() // read datapath index
+                NetlinkMessage.scanAttributes(buf, this)
+                null
+            }
+
+            override def use(buf: ByteBuffer,
+                             id: Short): Unit = {
+                NetlinkMessage.unnest(id) match {
+                    case Attr.Key =>
+                        val keys = new java.util.ArrayList[FlowKey]
+                        FlowKeys.buildFrom(buf, keys)
+                        val fmatch = new FlowMatch(keys)
+                        log.debug(s"Flow match read: $fmatch")
+                        if (!flowMatches.contains(fmatch))
+                            throw new Exception(s"Missing flow match $fmatch.")
+                    case _ =>
+                        // ignore
+                }
+            }
         }
 
         val enumF1 = for {
@@ -56,7 +87,18 @@ trait FlowTest {
             fs
         }
 
-        val delF = enumF1 flatMap { _ => makeF flatMap delFlow }
+        val iterF1 =  for {
+            dp <- dpF
+            f <- enumF1
+            fs <- con.iterFlows(dp, reader)
+        } yield {
+            fs
+        }
+
+        val delF = iterF1 flatMap { fs =>
+            log.debug(s"Iterated over $fs flows from datapath")
+            makeF flatMap delFlow
+        }
 
         val enumF2 = for {
             dp <- dpF
@@ -74,6 +116,7 @@ trait FlowTest {
             ("can create a flow", makeF),
             ("can create several flows", makesF),
             ("can list flows", enumF1),
+            ("can iterate flows", iterF1),
             ("can delete a flow", delF),
             ("can flush flows", enumF2)
         )

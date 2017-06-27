@@ -24,6 +24,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.SettableFuture;
+
+import org.midonet.netlink.Reader;
 import org.midonet.odp.ports.NetDevPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -487,6 +489,50 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
                                               long timeoutMillis);
 
     /**
+     * Callback based api for iterating flows with a custom deserialization
+     * function. For each flow read from the datapath, the `reader` will be
+     * executed. After having processed all flows, the callback will be
+     * finalized. To put it in other words, it's like an enumeration but
+     * executing a custom reader function on each element.
+     *
+     * @param datapath  the name of the datapath.
+     * @param callback  the callback that will signal the end of processing
+     *                  containing the number of elements processed.
+     * @param reader    a custom function that will be executed on each elem.
+     */
+    public void flowsIterate(@Nonnull final Datapath datapath,
+                             @Nonnull final Reader<Object> reader,
+                             @Nonnull final Callback<Long> callback) {
+        flowsIterate(datapath, reader, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for iterating flows with a custom deserialization
+     * function. For each flow read from the datapath, the `reader` will be
+     * executed. After having processed all flows, the callback will be
+     * finalized. To put it in other words, it's like an enumeration but
+     * executing a custom reader function on each element.
+     *
+     * @param datapath  the name of the datapath.
+     * @param callback  the callback that will signal the end of processing
+     *                  containing the number of elements processed.
+     * @param reader    a custom function that will be executed on each elem.
+     * @param timeoutMillis the timeout we are willing to wait for response.
+     */
+    public void flowsIterate(@Nonnull final Datapath datapath,
+                             @Nonnull final Reader<Object> reader,
+                             @Nonnull final Callback<Long> callback,
+                             long timeoutMillis) {
+        _doFlowsIterate(datapath, reader, callback, timeoutMillis);
+
+    }
+
+    protected abstract void _doFlowsIterate(Datapath datapath,
+                                            @Nonnull final Reader<Object> reader,
+                                            @Nonnull final Callback<Long> callback,
+                                            long timeoutMillis);
+
+    /**
      * Callback based api for for flushing all the flows belonging to a datapath.
      *
      * @param datapath the name of the datapath
@@ -947,6 +993,14 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
         public Future<Set<Flow>> flowsEnumerate(@Nonnull final Datapath datapath) {
             SettableFuture<Set<Flow>> flowsFuture = SettableFuture.create();
             OvsDatapathConnection.this.flowsEnumerate(datapath, wrapFuture(flowsFuture));
+            return flowsFuture;
+        }
+
+        public Future<Long> flowsIterate(@Nonnull final Datapath datapath,
+                                           @Nonnull final Reader<Object> reader) {
+            SettableFuture<Long> flowsFuture = SettableFuture.create();
+            OvsDatapathConnection.this.flowsIterate(
+                datapath, reader, wrapFuture(flowsFuture));
             return flowsFuture;
         }
 

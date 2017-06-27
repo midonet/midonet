@@ -170,6 +170,19 @@ public abstract class NetlinkRequest implements Runnable {
         return new MultiAnswerNetlinkRequest(cb, func, data, timeoutMillis);
     }
 
+    public static NetlinkRequest makeMultiIterate(Callback<Long> callback,
+                                                  Reader<Object> reader,
+                                                  ByteBuffer data,
+                                                  long timeoutMillis) {
+        @SuppressWarnings("unchecked")
+        Callback<?> cb1 = (Callback<?>) callback;
+        @SuppressWarnings("unchecked")
+        Callback<Object> cb = (Callback<Object>) cb1;
+        @SuppressWarnings("unchecked")
+        Reader<Object> func = (Reader<Object>) reader;
+        return new MultiAnswerIterateNetlinkRequest(cb, func, data, timeoutMillis);
+    }
+
     static class SingleAnswerNetlinkRequest extends NetlinkRequest {
         public SingleAnswerNetlinkRequest(Callback<Object> callback,
                                           Reader<Object> reader,
@@ -208,6 +221,29 @@ public abstract class NetlinkRequest implements Runnable {
             @SuppressWarnings("unchecked")
             HashSet<Object> results = (HashSet<Object>) cbData;
             results.add(reader.deserializeFrom(buf));
+        }
+    }
+
+    static class MultiAnswerIterateNetlinkRequest extends NetlinkRequest {
+
+        private long numElements;
+
+        public MultiAnswerIterateNetlinkRequest(Callback<Object> callback,
+                                                Reader<Object> reader,
+                                                ByteBuffer data,
+                                                long timeoutMillis) {
+            super(callback, reader, data, timeoutMillis);
+            numElements = 0L;
+        }
+        @Override
+        public void addAnswerFragment(ByteBuffer buf) {
+            numElements += 1;
+            reader.deserializeFrom(buf);
+        }
+        @Override
+        public Runnable successful() {
+            cbData = numElements;
+            return super.successful();
         }
     }
 

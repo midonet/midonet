@@ -31,6 +31,7 @@ import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NullNetlinkMetrics;
+import org.midonet.netlink.Reader;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.*;
 import org.midonet.odp.flows.*;
@@ -259,6 +260,11 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
             flows.add(flow);
         }
         callback.onSuccess(flows);
+    }
+
+    @Override
+    protected void _doFlowsIterate(Datapath datapath, @Nonnull Reader<Object> reader, @Nonnull Callback<Long> callback, long timeoutMillis) {
+        callback.onSuccess(new Long(flowsTable.values().size()));
     }
 
     @Override
