@@ -36,6 +36,7 @@ import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath.{FlowProcessor, _}
+import org.midonet.midolman.flows.NativeFlowMatchList
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.host.services.{QosService, TcRequestHandler}
 import org.midonet.midolman.io._
@@ -154,10 +155,19 @@ class MockMidolmanModule(override val hostId: UUID,
             tbPolicy: TokenBucketPolicy, workers: IndexedSeq[PacketWorker]) =
         new MockUpcallDatapathConnectionManager(config)
 
-    protected override def datapathStateDriver(
-            channelFactory: NetlinkChannelFactory,
-            families: OvsNetlinkFamilies) =
-        new DatapathStateDriver(new Datapath(0, "midonet"))
+    protected override def datapath(channelFactory: NetlinkChannelFactory,
+                                    families: OvsNetlinkFamilies,
+                                    metrics: MetricRegistry) =
+        new Datapath(0, "midonet")
+
+    protected override def reclaimFlows(dp: Datapath,
+                               config: MidolmanConfig,
+                               metric: MetricRegistry) = {
+        new NativeFlowMatchList()
+    }
+
+    protected override def datapathStateDriver(datapath: Datapath) =
+        new DatapathStateDriver(datapath)
 
     protected override def connectionPool(): DatapathConnectionPool =
         new MockDatapathConnectionPool()

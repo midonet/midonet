@@ -28,7 +28,6 @@ import akka.actor.{ActorSystem, OneForOneStrategy, SupervisorStrategy}
 import com.codahale.metrics.MetricRegistry
 import com.google.common.collect.Lists
 import com.google.inject.name.Names
-import com.google.inject.util.Providers
 import com.google.inject.{AbstractModule, Injector, Key}
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
@@ -44,12 +43,13 @@ import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath._
+import org.midonet.midolman.flows.NativeFlowMatchList
 import org.midonet.midolman.host.scanner.{DefaultInterfaceScanner, InterfaceScanner}
 import org.midonet.midolman.host.services.{HostService, QosService, TcRequestHandler}
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.rule.{DisruptorRuleLogEventChannel, RuleLogEventChannel}
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
-import org.midonet.midolman.management.{SimpleHTTPServer, SimpleHTTPServerService, MeteringHTTPHandler}
+import org.midonet.midolman.management.{MeteringHTTPHandler, SimpleHTTPServerService}
 import org.midonet.midolman.monitoring.metrics.{DatapathMetrics, PacketExecutorMetrics}
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
@@ -59,7 +59,7 @@ import org.midonet.midolman.state._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.vpp.{VppController, VppOvs}
 import org.midonet.netlink.{NetlinkChannelFactory, NetlinkProtocol, NetlinkUtil}
-import org.midonet.odp.OvsNetlinkFamilies
+import org.midonet.odp.{Datapath, OvsNetlinkFamilies}
 import org.midonet.util._
 import org.midonet.util.concurrent._
 import org.midonet.util.eventloop.{Reactor, SelectLoop, SimpleSelectLoop}
@@ -96,7 +96,12 @@ class MidolmanModule(injector: Injector,
 
         val channelFactory = netlinkChannelFactory()
         val families = ovsNetlinkFamilies(channelFactory)
-        val dpState = datapathStateDriver(channelFactory, families)
+        val dp = datapath(channelFactory, families, metricRegistry)
+        if (config.reclaimDatapath) {
+            val flowList = reclaimFlows(dp, config, metricRegistry)
+            bind(classOf[NativeFlowMatchList]).toInstance(flowList)
+        }
+        val dpState = datapathStateDriver(dp)
         bind(classOf[NetlinkChannelFactory]).toInstance(channelFactory)
         bind(classOf[OvsNetlinkFamilies]).toInstance(families)
         bind(classOf[DatapathStateDriver]).toInstance(dpState)
@@ -228,11 +233,18 @@ class MidolmanModule(injector: Injector,
         }
     }
 
-    protected def datapathStateDriver(
-            channelFactory: NetlinkChannelFactory,
-            families: OvsNetlinkFamilies) =
-        DatapathBootstrap.bootstrap(
-            config, channelFactory, families)
+    protected def datapath(channelFactory: NetlinkChannelFactory,
+                           families: OvsNetlinkFamilies,
+                           metrics: MetricRegistry) =
+        DatapathBootstrap.bootstrap(config, channelFactory, families)
+
+    protected def reclaimFlows(dp: Datapath,
+                               config: MidolmanConfig,
+                               metric: MetricRegistry) =
+        DatapathBootstrap.reclaimFlows(dp, config, metric)
+
+    protected def datapathStateDriver(dp: Datapath) =
+        new DatapathStateDriver(dp)
 
     protected def flowProcessor(
             dpState: DatapathState,

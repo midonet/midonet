@@ -18,36 +18,42 @@ package org.midonet.midolman.datapath
 
 import java.nio.ByteBuffer
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.control.NonFatal
 
+import com.codahale.metrics.MetricRegistry
+
 import org.midonet.ErrorCode
-import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.flows.NativeFlowMatchList
+import org.midonet.midolman.io.SelectorBasedDatapathConnection
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.rtnetlink.{LinkOps, NeighOps}
-import org.midonet.odp.{Datapath, OvsNetlinkFamilies, OvsProtocol}
+import org.midonet.odp.OpenVSwitch.Flow.Attr
+import org.midonet.odp._
 
 object DatapathBootstrap extends MidolmanLogging {
 
     override def logSource = "org.midonet.datapath-control.bootstrap"
 
-    class DatapathBootstrapError(msg: String, cause: Throwable = null)
+    class DatapathBootstrapError(msg: String, cause: Throwable)
         extends Exception(msg, cause)
 
     def bootstrap(
             config: MidolmanConfig,
             channelFactory: NetlinkChannelFactory,
-            families: OvsNetlinkFamilies): DatapathStateDriver = {
+            families: OvsNetlinkFamilies): Datapath = {
         val channel = channelFactory.create(blocking = false)
         val writer = new NetlinkBlockingWriter(channel)
         val reader = new NetlinkTimeoutReader(channel, 1 minute)
         val buf = BytesUtil.instance.allocate(2 * 1024)
         val protocol = new OvsProtocol(channel.getLocalAddress.getPid, families)
         try {
-            val datapath = if (config.reclaimDatapath) {
+            if (config.reclaimDatapath) {
                 log.debug(s"Reclaiming recirc veths.")
                 reclaimRecircVeth(config)
                 log.debug(s"Reclaiming datapath ${config.datapathName}")
@@ -58,9 +64,55 @@ object DatapathBootstrap extends MidolmanLogging {
                 log.debug(s"Recreating datapath ${config.datapathName}")
                 recreateDatapath(protocol, config.datapathName, buf, reader, writer)
             }
-            new DatapathStateDriver(datapath)
         } finally {
             channel.close()
+        }
+    }
+
+    def reclaimFlows(datapath: Datapath,
+                     config: MidolmanConfig,
+                     metrics: MetricRegistry): NativeFlowMatchList = {
+        log.debug(s"Reclaiming existing flows in the datapath ${datapath.getName}")
+        val conn = new SelectorBasedDatapathConnection(
+            datapath.getName, config, metrics)
+        conn.start()
+        val dpConn = conn.getConnection
+        val ops = new OvsConnectionOps(dpConn)
+        val flowList = new NativeFlowMatchList()
+        val flowMatchExtractor = new FlowMatchExtractor(flowList)
+        val flowListFuture = ops.iterFlows(datapath, flowMatchExtractor)
+        try {
+            val numFlows = Await.result(flowListFuture, 10 seconds)
+            log.debug(s"$numFlows flows retrieved and stored successfully.")
+        } catch {
+            case NonFatal(e) =>
+                log.warn(s"Failed to retrieve existing flows from datapath, " +
+                         s"flushing flows.", e)
+                val flushFlowsFuture = ops.flushFlows(datapath)
+                Await.result(flushFlowsFuture, 10 seconds)
+        } finally {
+            conn.stop()
+        }
+        flowList
+    }
+
+    private class FlowMatchExtractor(flowList: NativeFlowMatchList)
+        extends Reader[Object] with AttributeHandler {
+
+        override def deserializeFrom(buf: ByteBuffer): Object = {
+            buf.getInt() // read datapath index
+            NetlinkMessage.scanAttributes(buf, this)
+            null
+        }
+
+        override def use(buf: ByteBuffer,
+                         id: Short): Unit = {
+            NetlinkMessage.unnest(id) match {
+                case Attr.Key =>
+                    // The attribute is a flow match, push the buffer offheap
+                    flowList.pushFlowMatch(buf)
+                case _ => // ignore
+            }
         }
     }
 
