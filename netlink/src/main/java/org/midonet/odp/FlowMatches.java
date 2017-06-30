@@ -20,12 +20,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeyEtherType;
 import org.midonet.odp.flows.FlowKeys;
 import org.midonet.odp.flows.IpProtocol;
-import org.midonet.odp.OpenVSwitch.Flow.Attr;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
@@ -155,5 +153,11 @@ public class FlowMatches {
                 }
             }
         }
+    }
+
+    public static FlowMatch fromBufKeys(ByteBuffer bb) {
+        ArrayList<FlowKey> keys = new ArrayList<>();
+        FlowKeys.buildFrom(bb, keys);
+        return new FlowMatch(keys);
     }
 }

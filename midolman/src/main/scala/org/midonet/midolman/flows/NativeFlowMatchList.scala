@@ -20,6 +20,7 @@ import java.nio.ByteBuffer
 
 import org.midonet.midolman.flows.{NativeFlowMatchListJNI => JNI}
 import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.netlink.BytesUtil
 import org.midonet.odp.{FlowMatch, FlowMatches}
 
 object NativeFlowMatchList {
@@ -34,6 +35,8 @@ object NativeFlowMatchList {
 }
 
 class NativeFlowMatchList extends MidolmanLogging {
+
+    NativeFlowMatchList.loadNativeLibrary()
 
     private var flowMatchList = Option(JNI.createFlowMatchList())
 
@@ -63,7 +66,8 @@ class NativeFlowMatchList extends MidolmanLogging {
             throw new NoSuchElementException
         }
         val bytes = JNI.popFlowMatch(flowList)
-        FlowMatches.fromBytes(bytes)
+        val bb = BytesUtil.instance.wrap(bytes)
+        FlowMatches.fromBufKeys(bb)
     }
 
     /**
