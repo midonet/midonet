@@ -84,6 +84,7 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     def simulationThreads = getInt(s"$PREFIX.midolman.simulation_threads")
     def offHeapTables = getBoolean(s"$PREFIX.midolman.off_heap_tables")
     def reclaimDatapath = getBoolean(s"$PREFIX.midolman.reclaim_datapath")
+    def flowExpirationRate = getInt(s"$PREFIX.midolman.flow_expiration_rate_per_second")
     def maxPooledContexts = getInt(s"$PREFIX.midolman.max_pooled_contexts")
     def outputChannels = getInt(s"$PREFIX.midolman.output_channels")
     def inputChannelThreading = getString(s"$PREFIX.midolman.input_channel_threading")
