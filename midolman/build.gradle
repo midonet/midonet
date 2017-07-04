@@ -144,7 +144,7 @@ model {
 
     binaries {
         all {
-            if (toolChain in Gcc) {
+            if (toolChain in GccCompatibleToolChain) {
                 cppCompiler.args << "--std=c++11" \
                                  << "-I" << "${JNI_INCLUDE_DIR}" \
                                  << "-I" << "$tbbHeaderDir"
