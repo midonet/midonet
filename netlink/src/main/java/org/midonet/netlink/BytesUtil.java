@@ -51,8 +51,11 @@ public interface BytesUtil {
     /** Allocate a ByteBuffer backed by raw memory, with system order. */
     ByteBuffer allocateDirect(int nBytes);
 
-    /** Alocate a ByteBuffer backed by another ByteBuffer, with system order. */
+    /** Allocate a ByteBuffer backed by another ByteBuffer, with system order. */
     ByteBuffer sliceOf(ByteBuffer source);
+
+    /** Wrap an existing array in a ByteBuffer, with system order. */
+    ByteBuffer wrap(byte[] arr);
 
     BytesUtil instance = Implementations.systemReverser();
 
@@ -68,66 +71,90 @@ public interface BytesUtil {
         }
 
         public final static BytesUtil leReverser = new BytesUtil() {
+
             public short reverseBE(short value) {
                 return Short.reverseBytes(value);
             }
+
             public int reverseBE(int value) {
                 return Integer.reverseBytes(value);
             }
+
             public long reverseBE(long value) {
                 return Long.reverseBytes(value);
             }
+
             public void writeBEIntsInto(ByteBuffer receiver, int[] source) {
                 for (int i = 0; i < source.length; i++) {
                     receiver.putInt(Integer.reverseBytes(source[i]));
                 }
             }
+
             public void readBEIntsFrom(ByteBuffer source, int[] receiver) {
                 for (int i = 0; i < receiver.length; i++) {
                     receiver[i] = Integer.reverseBytes(source.getInt());
                 }
             }
+
             public ByteBuffer allocate(int nBytes) {
                 return ByteBuffer.allocate(nBytes)
                                  .order(ByteOrder.LITTLE_ENDIAN);
             }
+
             public ByteBuffer allocateDirect(int nBytes) {
                 return ByteBuffer.allocateDirect(nBytes)
                                  .order(ByteOrder.LITTLE_ENDIAN);
             }
+
             public ByteBuffer sliceOf(ByteBuffer source) {
                 return source.slice().order(ByteOrder.LITTLE_ENDIAN);
+            }
+
+            public ByteBuffer wrap(byte[] arr) {
+                return ByteBuffer.wrap(arr).order(ByteOrder.LITTLE_ENDIAN);
             }
         };
 
         public final static BytesUtil beReverser = new BytesUtil() {
+
             public short reverseBE(short value) {
                 return value;
             }
+
             public int reverseBE(int value) {
                 return value;
             }
+
             public long reverseBE(long value) {
                 return value;
             }
+
             public void writeBEIntsInto(ByteBuffer receiver, int[] source) {
                 for (int i = 0; i < source.length; i++) {
                     receiver.putInt(source[i]);
                 }
             }
+
             public void readBEIntsFrom(ByteBuffer source, int[] receiver) {
                 for (int i = 0; i < receiver.length; i++) {
                     receiver[i] = source.getInt();
                 }
             }
+
             public ByteBuffer allocate(int nBytes) {
                 return ByteBuffer.allocate(nBytes);
             }
+
             public ByteBuffer allocateDirect(int nBytes) {
                 return ByteBuffer.allocateDirect(nBytes);
             }
+
             public ByteBuffer sliceOf(ByteBuffer source) {
                 return source.slice();
+            }
+
+            public ByteBuffer wrap(byte[] arr) {
+                return ByteBuffer.wrap(arr);
             }
         };
     }
