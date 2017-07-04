@@ -49,7 +49,7 @@ class NativeMeterRegistry extends MeterRegistry {
     private val ptr = JNI.create()
 
     override def getMeterKeys(): util.Collection[String] = {
-        ImmutableList.copyOf(JNI.getMeterKeys(ptr))
+        util.Arrays.asList(JNI.getMeterKeys(ptr): _*)
     }
 
     override def getMeter(key: String): MgmtFlowStats = {
