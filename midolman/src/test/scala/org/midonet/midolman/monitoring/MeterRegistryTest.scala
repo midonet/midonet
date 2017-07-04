@@ -151,10 +151,8 @@ abstract class MeterRegistryTest extends FeatureSpec with Matchers {
 class OnHeapMeterRegistryTest extends MeterRegistryTest {
     override def createRegistry(): MeterRegistry = MeterRegistry.newOnHeap(10)
 }
-// TODO: Uncomment when off heap metering is ready
-/*
+
 @RunWith(classOf[JUnitRunner])
 class OffHeapMeterRegistryTest extends MeterRegistryTest {
     override def createRegistry(): MeterRegistry = MeterRegistry.newOffHeap()
 }
-*/

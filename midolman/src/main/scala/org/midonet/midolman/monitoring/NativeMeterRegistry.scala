@@ -30,14 +30,13 @@ import org.midonet.midolman.monitoring.{NativeMeterRegistryJNI => JNI}
 
 object NativeMeterRegistry {
 
-    val libraryName = "nativeMeterRegistry"
+    val libraryName = "nativeMetering"
     private var loaded = false
 
     def loadNativeLibrary(): Unit = synchronized {
         if (!loaded) {
             IntelTBB.loadNativeLibrary()
             System.loadLibrary(libraryName)
-            JNI.initialize()
             loaded = true
         }
     }
@@ -56,6 +55,7 @@ class NativeMeterRegistry extends MeterRegistry {
     override def getMeter(key: String): MgmtFlowStats = {
         JNI.getMeter(ptr, key) match {
             case Array(packets, bytes) => new MgmtFlowStats(packets, bytes)
+            case _ => null
         }
     }
 
@@ -71,8 +71,8 @@ class NativeMeterRegistry extends MeterRegistry {
     }
 
     override def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit = {
-        JNI.updateFlow(
-            ptr, FlowMatches.toBytes(flowMatch), stats.packets, stats.bytes)
+        JNI.updateFlow(ptr, FlowMatches.toBytes(flowMatch),
+                       stats.packets, stats.bytes)
     }
 
     override def forgetFlow(flowMatch: FlowMatch): Unit = {

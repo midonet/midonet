@@ -188,8 +188,8 @@ model {
             }
         }
         withType(GoogleTestTestSuiteBinarySpec) {
-            lib library: "tbb", linkage: "shared"
             lib library: "googleTest", linkage: "static"
+            lib library: "tbb", linkage: "shared"
 
             if (targetPlatform.operatingSystem.linux) {
                 cppCompiler.args '-pthread'

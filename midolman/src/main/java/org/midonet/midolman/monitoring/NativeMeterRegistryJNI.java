@@ -17,7 +17,6 @@
 package org.midonet.midolman.monitoring;
 
 public class NativeMeterRegistryJNI {
-    public static native void initialize();
     public static native long create();
     public static native String[] getMeterKeys(long registry);
     public static native long[] getMeter(long registry, String key);

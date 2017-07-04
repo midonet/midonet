@@ -15,32 +15,37 @@
  */
 
 #include <nativeMeterRegistry.h>
-#include "jniTools.h"
 #include "org_midonet_midolman_monitoring_NativeMeterRegistryJNI.h"
+
+static const std::string fm2str(JNIEnv* env, jbyteArray fm) {
+    auto len = env->GetArrayLength(fm);
+    auto bytes = env->GetByteArrayElements(fm, 0);
+    auto str = std::string(reinterpret_cast<const char*>(bytes), len);
+    env->ReleaseByteArrayElements(fm, bytes, JNI_ABORT);
+    return str;
+}
 
 //
 // JNI methods
 //
 
-static jclass jc_string;
-void
-Java_org_midonet_midolman_monitoring_NativeMeterRegistryJNI_initialize(
-        JNIEnv* env) {
-    jc_string = env->FindClass("java/lang/String");
-}
-
 jlong
 Java_org_midonet_midolman_monitoring_NativeMeterRegistryJNI_create(
-        JNIEnv*, jobject) {
+        JNIEnv*, jclass cl) {
     return reinterpret_cast<jlong>(new NativeMeterRegistry());
 }
 
 jobjectArray
 Java_org_midonet_midolman_monitoring_NativeMeterRegistryJNI_getMeterKeys(
-        JNIEnv* env, jobject, jlong ptr) {
+        JNIEnv* env, jclass cl, jlong ptr) {
     auto reg = reinterpret_cast<NativeMeterRegistry*>(ptr);
     auto keys = reg->get_meter_keys();
-    jobjectArray array = env->NewObjectArray(keys.size(), jc_string, 0);
+
+    // NOTE: cannot be extracted to static (jclass pointer expires...)
+    jclass str_class = env->FindClass("java/lang/String");
+
+    jobjectArray array =
+        env->NewObjectArray((jsize)(keys.size()), str_class, 0);
 
     int i = 0;
     for (auto item: keys) {
@@ -54,14 +59,15 @@ Java_org_midonet_midolman_monitoring_NativeMeterRegistryJNI_getMeterKeys(
 
 jlongArray
 Java_org_midonet_midolman_monitoring_NativeMeterRegistryJNI_getMeter(
-        JNIEnv* env, jobject, jlong ptr, jstring key) {
+        JNIEnv* env, jclass cl, jlong ptr, jstring key) {
     auto reg = reinterpret_cast<NativeMeterRegistry*>(ptr);
     auto str = env->GetStringUTFChars(key, 0);
     std::string meter(str);
     env->ReleaseStringUTFChars(key, str);
     auto item = reg->get_meter(meter);
     if (item.is_defined()) {
-        jlong buffer[] = {item.value().get_packets(), item.value().get_bytes()};
+        jlong buffer[2] = {item.value().get_packets(),
+                           item.value().get_bytes()};
         jlongArray fs = env->NewLongArray(2);
         env->SetLongArrayRegion(fs, 0, 2, buffer);
         return fs;
@@ -89,16 +95,16 @@ joa2strvect(JNIEnv* env, jobjectArray strings) {
 
 void
 Java_org_midonet_midolman_monitoring_NativeMeterRegistryJNI_trackFlow(
-JNIEnv* env, jobject, jlong ptr, jbyteArray fm, jobjectArray tag_list) {
+JNIEnv* env, jclass cl, jlong ptr, jbyteArray fm, jobjectArray tag_list) {
     auto reg = reinterpret_cast<NativeMeterRegistry*>(ptr);
-    FlowMatch flow(jba2str(env, fm));
+    FlowMatch flow(fm2str(env, fm));
     std::vector<MeterTag> tags = joa2strvect(env, tag_list);
     reg->track_flow(flow, tags);
 }
 
 void
 Java_org_midonet_midolman_monitoring_NativeMeterRegistryJNI_recordPacket(
-JNIEnv* env, jobject, jlong ptr, jint len, jobjectArray tag_list) {
+JNIEnv* env, jclass cl, jlong ptr, jint len, jobjectArray tag_list) {
     auto reg = reinterpret_cast<NativeMeterRegistry*>(ptr);
     std::vector<MeterTag> tags = joa2strvect(env, tag_list);
     reg->record_packet(len, tags);
@@ -106,18 +112,18 @@ JNIEnv* env, jobject, jlong ptr, jint len, jobjectArray tag_list) {
 
 void
 Java_org_midonet_midolman_monitoring_NativeMeterRegistryJNI_updateFlow(
-JNIEnv* env, jobject, jlong ptr, jbyteArray fm, jlong packets, jlong bytes) {
+JNIEnv* env, jclass cl, jlong ptr, jbyteArray fm, jlong packets, jlong bytes) {
     auto reg = reinterpret_cast<NativeMeterRegistry*>(ptr);
-    FlowMatch flow(jba2str(env, fm));
+    FlowMatch flow(fm2str(env, fm));
     NativeFlowStats stats(packets, bytes);
     reg->update_flow(flow, stats);
 }
 
 void
 Java_org_midonet_midolman_monitoring_NativeMeterRegistryJNI_forgetFlow(
-JNIEnv* env, jobject, jlong ptr, jbyteArray fm) {
+JNIEnv* env, jclass cl, jlong ptr, jbyteArray fm) {
     auto reg = reinterpret_cast<NativeMeterRegistry*>(ptr);
-    FlowMatch flow(jba2str(env, fm));
+    FlowMatch flow(fm2str(env, fm));
     reg->forget_flow(flow);
 }
 
@@ -206,6 +212,7 @@ NativeMeterRegistry::update_flow(const FlowMatch& fm,
             }
         }
     }
+
 }
 
 void

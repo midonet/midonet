@@ -31,7 +31,7 @@ import org.midonet.management.{FlowStats => JmxFlowStats}
 object MeterRegistry {
     def newOnHeap(maxFlows: Int): MeterRegistry =
         new OnHeapMeterRegistry(maxFlows)
-    def newOffHeap(): MeterRegistry = new DummyMeterRegistry
+    def newOffHeap(): MeterRegistry = new NativeMeterRegistry
 }
 
 trait MeterRegistry {
@@ -146,13 +146,4 @@ class OnHeapMeterRegistry(val maxFlows: Int) extends MeterRegistry {
         if (metadata ne null)
             metadataPool.offer(metadata)
     }
-}
-
-class DummyMeterRegistry extends MeterRegistry {
-    override def getMeterKeys(): Collection[String] = Collections.emptySet[String]()
-    override def getMeter(key: String): JmxFlowStats = null
-    override def trackFlow(flowMatch: FlowMatch, tags: List[FlowTag]): Unit = {}
-    override def recordPacket(packetLen: Int, tags: List[FlowTag]): Unit = {}
-    override def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit = {}
-    override def forgetFlow(flowMatch: FlowMatch): Unit = {}
 }

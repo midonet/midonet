@@ -305,3 +305,23 @@ TEST(NativeMeterRegistryForgetFlow, test_multi_update) {
     EXPECT_EQ(reg.get_meter(M2).value().get_bytes(), STATS1.get_bytes());
 }
 
+TEST(NativeMeterRegistryMisc, test_single_flow_n_meters) {
+    const FlowMatch FM("flow1");
+    const MeterTag M1("m1");
+    const MeterTag M2("m2");
+    const int FIRST_PACKET_SIZE = rand() % 65535 + 1;
+    std::vector<MeterTag> tags = {M1, M2};
+    NativeMeterRegistry reg;
+
+    reg.track_flow(FM, tags);
+    reg.record_packet(FIRST_PACKET_SIZE, tags);
+    for (int i = 0; i < 10; ++i) {
+        NativeFlowStats stats(i + 1, (i + 1) * 100);
+        reg.update_flow(FM, stats);
+        for (auto k: reg.get_meter_keys()) {
+            auto meter = reg.get_meter(k).value();
+            EXPECT_EQ(meter.get_packets(), i + 2);
+            EXPECT_EQ(meter.get_bytes(), (i + 1) * 100 + FIRST_PACKET_SIZE);
+        }
+    }
+}
