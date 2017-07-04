@@ -93,7 +93,7 @@ class VppOvs(dp: Datapath, config: Fip64Config) extends MidolmanLogging {
         writeRead(buf, Flow.deserializer.deserializeFrom)
     }
 
-    private[vpp] def deleteFlow(dp: Datapath, fmatch: FlowMatch): Unit = {
+    def deleteFlow(dp: Datapath, fmatch: FlowMatch): Unit = {
         buf.clear()
         proto.prepareFlowDelete(dp.getIndex, fmatch.getKeys, buf)
         writeRead(buf, Flow.buildFrom)

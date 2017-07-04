@@ -28,6 +28,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import org.midonet.midolman.datapath.FlowExpirator;
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
 
@@ -306,6 +307,11 @@ public class Midolman {
             System.exit(-1);
         }
         log.info("MidoNet Agent started");
+
+        if (config.reclaimDatapath()) {
+            FlowExpirator expirator = injector.getInstance(FlowExpirator.class);
+            new Thread(expirator::expireAllFlows, "flow-expirator").start();
+        }
 
         injector.getInstance(MidolmanService.class).awaitTerminated();
     }

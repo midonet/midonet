@@ -99,7 +99,9 @@ class MidolmanModule(injector: Injector,
         val dp = datapath(channelFactory, families, metricRegistry)
         if (config.reclaimDatapath) {
             val flowList = reclaimFlows(dp, config, metricRegistry)
-            bind(classOf[NativeFlowMatchList]).toInstance(flowList)
+            val flowExpirator = new FlowExpirator(flowList, config, dp,
+                families, channelFactory)
+            bind(classOf[FlowExpirator]).toInstance(flowExpirator)
         }
         val dpState = datapathStateDriver(dp)
         bind(classOf[NetlinkChannelFactory]).toInstance(channelFactory)
@@ -271,7 +273,7 @@ class MidolmanModule(injector: Injector,
             channelFactory: NetlinkChannelFactory) = {
         val threads = Math.max(config.outputChannels, 1)
         val processors = new Array[EventProcessor](threads)
-        if (threads  == 1) {
+        if (threads == 1) {
             val fpHandler = new AggregateEventPollerHandler(
                 flowProcessor,
                 new EventPollerHandlerAdapter(
