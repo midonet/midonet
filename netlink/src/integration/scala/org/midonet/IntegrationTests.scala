@@ -19,7 +19,9 @@ import org.junit.runner.JUnitCore
 
 object IntegrationTests {
     val defaultTests =
-        List(classOf[org.midonet.util.EthtoolOpsTest]) map { _.getCanonicalName }
+        List(classOf[org.midonet.util.EthtoolOpsTest],
+             classOf[org.midonet.odp.LinkOpsTest],
+             classOf[org.midonet.odp.OvsTest]) map { _.getCanonicalName }
 
     def main(args: Array[String]): Unit = {
         if (args.length == 0) {
