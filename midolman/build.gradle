@@ -30,15 +30,15 @@ model {
     repositories {
         libs(PrebuiltLibraries) {
             googleTest {
-                headers.srcDir "$rootDir/tools/google-test-${versions.google_test}/include"
+                headers.srcDir "${gtestHeaderDir}"
                 binaries.withType(StaticLibraryBinary) {
                     if (targetPlatform.operatingSystem.linux) {
                         staticLibraryFile =
-                                file("$rootDir/tools/google-test-${versions.google_test}/lib/linux-x86_64/libgtest.a")
+                                file("${gtestDir}/lib/linux-x86_64/libgtest.a")
                     }
                     if (targetPlatform.operatingSystem.macOsX) {
                         staticLibraryFile =
-                                file("$rootDir/tools/google-test-${versions.google_test}/lib/osx-x86_64/libgtest.a")
+                                file("${gtestDir}/lib/osx-x86_64/libgtest.a")
                     }
                 }
             }

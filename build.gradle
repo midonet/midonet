@@ -245,6 +245,8 @@ allprojects {
         nativeLibraryDir = "$buildDir/nativelibs"
         tbbDir = "${rootDir}/tools/tbb-2017_U6"
         tbbHeaderDir = "${tbbDir}/include"
+        gtestDir = "${rootDir}/tools/google-test-${versions.google_test}"
+        gtestHeaderDir = "${gtestDir}/include"
     }
 }
 
