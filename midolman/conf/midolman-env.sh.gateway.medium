@@ -26,7 +26,7 @@ QUAGGA_DIR=/var/run/quagga
 WATCHDOG_TIMEOUT=10
 
 # Amount of memory to allocate for the JVM heap.
-MAX_HEAP_SIZE="8192M"
+MAX_HEAP_SIZE="2048M"
 
 # Here we create the arguments that will get passed to the jvm when
 # starting midolman.
