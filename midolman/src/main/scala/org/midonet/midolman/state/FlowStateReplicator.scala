@@ -123,6 +123,7 @@ class FlowStateReplicator(
     private[this] val txPeers: JSet[UUID] = new JHashSet[UUID]()
     private[this] val txPorts: JSet[UUID] = new JHashSet[UUID]()
     private[this] val tos = config.datapath.controlPacketTos
+    private[state] var localPushState = midolmanConfig.flowState.localPushState
 
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
@@ -350,7 +351,7 @@ class FlowStateReplicator(
                 while (egressPorts.hasNext) egressPorts.next
             }
 
-            if (config.flowState.localPushState) {
+            if (localPushState) {
                 sendState(encoder.flowStateBuffer.array,
                           encoder.encodedLength())
             }
