@@ -405,6 +405,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         scenario("Incoming keys are NOT forwarded to the minion in legacy storage") {
             Given("A conntrack key in a transaction using the legacy store")
             recipient.localConfig = legacyStoreMidolmanConfig
+            recipient.localPushState = recipient.localConfig.flowState.localPushState
             connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
 
             When("Sending the state and accepting it on the recipient")

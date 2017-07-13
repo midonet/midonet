@@ -27,10 +27,9 @@ import akka.actor.ActorSystem
 
 import com.codahale.metrics.MetricRegistry
 
-import org.slf4j.{Logger, LoggerFactory}
-
 import org.midonet.ErrorCode
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.{NetlinkCallbackDispatcher, PacketWorker}
 import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
@@ -63,11 +62,12 @@ trait UpcallDatapathConnectionManager {
  */
 abstract class UpcallDatapathConnectionManagerBase(
     val config: MidolmanConfig,
-    val tbPolicy: TokenBucketPolicy) extends UpcallDatapathConnectionManager {
+    val tbPolicy: TokenBucketPolicy)
+    extends UpcallDatapathConnectionManager with MidolmanLogging {
 
     import org.midonet.odp.FlowMatchMessageType._
 
-    protected val log: Logger
+    override def logMark = "dp-upcall"
 
     protected def makeConnection(name: String, bucket: Bucket,
                                  channelType: ChannelType)
@@ -183,7 +183,6 @@ abstract class UpcallDatapathConnectionManagerBase(
                 }
 
             val NUM_WORKERS = workers.length
-            val log = LoggerFactory.getLogger("PacketInHook")
 
             override def endBatch() {
                 // noop
@@ -283,8 +282,6 @@ class OneToOneDpConnManager(c: MidolmanConfig,
                             metrics: MetricRegistry)
         extends UpcallDatapathConnectionManagerBase(c, tbPolicy) {
 
-    protected override val log = LoggerFactory.getLogger(this.getClass)
-
     override def makeConnection(name: String, bucket: Bucket,
                                 channelType: ChannelType) =
         new SelectorBasedDatapathConnection(name, config, true, bucket,
@@ -314,8 +311,6 @@ class OneToManyDpConnManager(c: MidolmanConfig,
     private val lock = new ReentrantLock()
 
     val sendPool = makeBufferPool()
-
-    protected override val log = LoggerFactory.getLogger(this.getClass)
 
     private var upcallHandler: BatchCollector[Packet] = null
 

@@ -47,7 +47,6 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType}
 import org.midonet.util.collection.Reducer
-import org.midonet.util.functors.Callback0
 
 /**
  * A class to replicate per-flow connection state between interested hosts.
@@ -126,6 +125,8 @@ class FlowStateReplicator(
     private[this] val txPeers: JSet[UUID] = new JHashSet[UUID]()
     private[this] val txPorts: JSet[UUID] = new JHashSet[UUID]()
     private[this] val tos = config.datapath.controlPacketTos
+
+    private[state] var localPushState = midolmanConfig.flowState.localPushState
 
     val conntrackKeySerializer = new ConnTrackKeySerializer
     val conntrackCbId = cbRegistry.registerCallback(
@@ -366,7 +367,7 @@ class FlowStateReplicator(
                 while (egressPorts.hasNext) egressPorts.next
             }
 
-            if (config.flowState.localPushState) {
+            if (localPushState) {
                 sendState(encoder.flowStateBuffer.array,
                           encoder.encodedLength())
             }

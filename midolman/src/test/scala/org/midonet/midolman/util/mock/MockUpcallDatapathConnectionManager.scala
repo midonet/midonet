@@ -18,7 +18,6 @@ package org.midonet.midolman.util.mock
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor.ActorSystem
-import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.PacketWorker
 import org.midonet.midolman.config.MidolmanConfig
@@ -31,7 +30,6 @@ class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         extends UpcallDatapathConnectionManagerBase(config,
             new TokenBucketPolicy(config, new TokenBucketTestRate, 1,
                                   _ => Bucket.BOTTOMLESS)) {
-    protected override val log = LoggerFactory.getLogger(this.getClass)
 
     val conn = new MockManagedDatapathConnection()
 
