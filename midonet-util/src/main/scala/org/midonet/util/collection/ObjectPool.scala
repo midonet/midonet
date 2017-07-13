@@ -125,3 +125,30 @@ final class OnDemandArrayObjectPool[T >: Null : Manifest]
     }
 
 }
+
+/**
+  * This class implements a reusable pool of objects that are initialized
+  * using the factory provided.
+  * The ReusablePool.next() method will loop through the object pool on demand.
+  * The user of this class should be responsible of doing the necessary
+  * clean/reset of the object and should be also responsible of preventing
+  * reusing an object that is still under use, i.e. the object should be copied
+  * if it's ment to be a persistent object (or rather not use this kind of
+  * pool).
+  */
+final class ReusablePool[T](size: Int, factory: () => T) {
+
+    private val buf = for (_ <- 0 until size) yield factory()
+
+    private var idx = 0
+
+    def next: T = {
+        if (buf.isEmpty) {
+            throw new Exception("Cannot iterate over an empty pool.")
+        }
+        val n = buf(idx % size)
+        idx += 1
+        n
+    }
+
+}

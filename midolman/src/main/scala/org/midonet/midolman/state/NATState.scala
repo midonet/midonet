@@ -32,7 +32,7 @@ import org.midonet.packets.NatState._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.TagTypes
 import org.midonet.sdn.state.FlowStateTransaction
-import org.midonet.util.collection.Reducer
+import org.midonet.util.collection.{Reducer, ReusablePool}
 
 
 object NatState {
@@ -195,11 +195,30 @@ object NatState {
     class NatKeySerializer
             extends FlowStateStore.StateSerializer[NatKey] {
         val Size = 34
+
+        // NOTE: here we use a ReusablePool of buffers that doesn't need to
+        // be explicitly pushed back to the pool when done with it, it will get
+        // reused as needed. This makes sense here because these buffers
+        // shouldn't live past a simulation lifetime.
+        // Using 32 buffers means we can only handle 16 NAT rules, as each
+        // NAT hop consumes two buffers (one for the forward nat rule, and one
+        // for the reverse nat rule). This is a defensive measure, as we
+        // shouldn't have more than 1 NAT on a normal topology.
+        private val NumBuffers = 32
+        private val bufferProvider: ThreadLocal[ReusablePool[ByteBuffer]] =
+            new ThreadLocal[ReusablePool[ByteBuffer]] {
+                override def initialValue(): ReusablePool[ByteBuffer] = {
+                    new ReusablePool[ByteBuffer](
+                        NumBuffers, () => ByteBuffer.allocate(Size))
+                }
+            }
+
         override def toBytes(value: NatKey): Array[Byte] =
             if (value == null) {
                 NO_BYTES
             } else {
-                val bb = ByteBuffer.allocate(Size)
+                val bb = bufferProvider.get.next
+                bb.clear()
                 bb.put(keyTypeToByte(value.keyType))
                 bb.putInt(value.networkSrc.toInt)
                 bb.putInt(value.transportSrc)
@@ -229,11 +248,30 @@ object NatState {
     class NatBindingSerializer
             extends FlowStateStore.StateSerializer[NatBinding] {
         val Size = 8
+
+        // NOTE: here we use a ReusablePool of buffers that doesn't need to
+        // be explicitly pushed back to the pool when done with it, it will get
+        // reused as needed. This makes sense here because these buffers
+        // shouldn't live past a simulation lifetime.
+        // Using 32 buffers means we can only handle 16 NAT rules, as each
+        // NAT hop consumes two buffers (one for the forward nat rule, and one
+        // for the reverse nat rule). This is a defensive measure, as we
+        // shouldn't have more than 1 NAT on a normal topology.
+        private val NumBuffers = 32
+        private val bufferProvider: ThreadLocal[ReusablePool[ByteBuffer]] =
+            new ThreadLocal[ReusablePool[ByteBuffer]] {
+                override def initialValue(): ReusablePool[ByteBuffer] = {
+                    new ReusablePool[ByteBuffer](
+                        NumBuffers, () => ByteBuffer.allocate(Size))
+                }
+            }
+
         override def toBytes(value: NatBinding): Array[Byte] =
             if (value == null) {
                 NO_BYTES
             } else {
-                val bb = ByteBuffer.allocate(Size)
+                val bb = bufferProvider.get.next
+                bb.clear()
                 bb.putInt(value.networkAddress.toInt)
                 bb.putInt(value.transportPort)
                 bb.array

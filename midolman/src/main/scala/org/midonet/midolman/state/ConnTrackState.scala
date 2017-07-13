@@ -17,6 +17,7 @@
 package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
+import java.util
 import java.util.UUID
 
 import akka.actor.ActorSystem
@@ -33,6 +34,7 @@ import org.midonet.packets.FlowStateStore
 import org.midonet.packets.{ICMP, IPAddr, IPv4, IPv4Addr, TCP, UDP}
 import org.midonet.sdn.flows.FlowTagger.TagTypes
 import org.midonet.sdn.state.FlowStateTransaction
+import org.midonet.util.collection.ReusablePool
 
 object ConnTrackState {
     type ConnTrackValue = java.lang.Boolean
@@ -100,11 +102,30 @@ object ConnTrackState {
     class ConnTrackKeySerializer
             extends FlowStateStore.StateSerializer[ConnTrackKey] {
         val Size = 33
+
+        // NOTE: here we use a ReusablePool of buffers that doesn't need to
+        // be explicitly pushed back to the pool when done with it, it will get
+        // reused as needed. This makes sense here because these buffers
+        // shouldn't live past a simulation lifetime.
+        // Using 32 buffers means we can only handle 32 conntrack keys per
+        // simulation which is a defensive measure, as we shouldn't have more
+        // than 1 on a normal topology.
+        private val NumBuffers = 32
+        private val bufferProvider: ThreadLocal[ReusablePool[ByteBuffer]] =
+            new ThreadLocal[ReusablePool[ByteBuffer]] {
+
+                override def initialValue(): ReusablePool[ByteBuffer] = {
+                    new ReusablePool[ByteBuffer](
+                        NumBuffers, () => ByteBuffer.allocate(Size))
+                }
+            }
+
         override def toBytes(value: ConnTrackKey): Array[Byte] =
             if (value == null) {
                 NO_BYTES
             } else {
-                val bb = ByteBuffer.allocate(Size)
+                val bb = bufferProvider.get.next
+                bb.clear()
                 bb.putInt(value.networkSrc.asInstanceOf[IPv4Addr].toInt)
                 bb.putInt(value.icmpIdOrTransportSrc)
                 bb.putInt(value.networkDst.asInstanceOf[IPv4Addr].toInt)

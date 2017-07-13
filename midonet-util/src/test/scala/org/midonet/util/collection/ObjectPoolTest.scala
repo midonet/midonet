@@ -131,4 +131,36 @@ class ObjectPoolTest extends FeatureSpec with Matchers with OneInstancePerTest {
 
         }
     }
+
+    feature ("Reusable object pools are reused") {
+
+        var elem = 0
+        def factory(): Int = {
+            val current = elem
+            elem += 1
+            current
+        }
+
+        scenario ("Empty list") {
+            val size = 0
+            elem = 0
+
+            val pool = new ReusablePool[Int](size, factory)
+            intercept[Exception] {
+                pool.next
+            }
+        }
+
+        scenario ("Non empty list - getting objects wrap around") {
+            val size = 10
+            elem = 0
+
+            val pool = new ReusablePool[Int](size, factory)
+
+            (0 until 25) foreach { x =>
+                pool.next shouldBe x % size
+            }
+        }
+
+    }
 }
