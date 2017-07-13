@@ -50,7 +50,9 @@ trait FlowTranslator {
 
     private var uniquifier = workerId
 
-    private def recircConfig = config.datapath.recircConfig
+    lazy private val recircConfig = config.datapath.recircConfig
+
+    lazy private val setTosOnTunnelHeader = config.datapath.setTosOnTunnelHeader
 
     /**
      * Translates FlowActions expressed in virtual references into
@@ -174,7 +176,7 @@ trait FlowTranslator {
             val src = routeInfo.get.srcIp
             val dst = routeInfo.get.dstIp
             context.addFlowTag(FlowTagger.tagForTunnelRoute(src, dst))
-            val tunnelTOS = if (config.datapath.setTosOnTunnelHeader) {
+            val tunnelTOS = if (setTosOnTunnelHeader) {
                 // Apply the inner packet TOS field to the tunnelled packet
                 // masking the ECN bits, to avoid falsely indicating ECN
                 // capability.
