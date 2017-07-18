@@ -46,6 +46,30 @@
       "revId": "6fa9f7623090f744087d27a6f133468d342cc6e3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25addd41_2452dc2d",
+        "filename": "midolman/src/main/java/org/midonet/insights/Insights.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-07-18T08:49:50Z",
+      "side": 1,
+      "message": "2017.07.17 18:02:31.406 WARN  [main] Insights -  Installing insights listener failed: insights will be disabled\njava.lang.NoSuchMethodException: org.midonet.insights.Insights$1.\u003cinit\u003e(com.codahale.metrics.MetricRegistry)\n        at java.lang.Class.getConstructor0(Class.java:3082) ~[na:1.8.0_101]\n        at java.lang.Class.getConstructor(Class.java:1825) ~[na:1.8.0_101]\n        at org.midonet.insights.Insights.\u003cinit\u003e(Insights.java:132) ~[midolman.jar:5.6-SNAPSHOT]\n        at org.midonet.midolman.MidolmanModule.configure(MidolmanModule.scala:90) [midolman.jar:5.6-SNAPSHOT]\n        at com.google.inject.AbstractModule.configure(AbstractModule.java:62) [midolman.jar:5.6-SNAPSHOT]\n        at com.google.inject.spi.Elements$RecordingBinder.install(Elements.java:340) [midolman.jar:5.6-SNAPSHOT]\n        at com.google.inject.spi.Elements.getElements(Elements.java:110) [midolman.jar:5.6-SNAPSHOT]\n        at com.google.inject.internal.InjectorShell$Builder.build(InjectorShell.java:138) [midolman.jar:5.6-SNAPSHOT]\n        at com.google.inject.internal.InternalInjectorCreator.build(InternalInjectorCreator.java:104) [midolman.jar:5.6-SNAPSHOT]\n        at com.google.inject.internal.InjectorImpl.createChildInjector(InjectorImpl.java:232) [midolman.jar:5.6-SNAPSHOT]\n        at com.google.inject.internal.InjectorImpl.createChildInjector(InjectorImpl.java:236) [midolman.jar:5.6-SNAPSHOT]\n        at org.midonet.midolman.Midolman.run(Midolman.java:260) [midolman.jar:5.6-SNAPSHOT]\n        at org.midonet.midolman.Midolman.main(Midolman.java:403) [midolman.jar:5.6-SNAPSHOT]\n\nThis is from master on the agent I was doing the performance tests (sa-lab-5). Does that node have an insights plugin? If not, it shouldn\u0027t try to load it. I didn\u0027t see it on the plugins directory.",
+      "parentUuid": "dd4b0eaa_0e143d69",
+      "range": {
+        "startLine": 121,
+        "startChar": 8,
+        "endLine": 121,
+        "endChar": 34
+      },
+      "revId": "6fa9f7623090f744087d27a6f133468d342cc6e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
