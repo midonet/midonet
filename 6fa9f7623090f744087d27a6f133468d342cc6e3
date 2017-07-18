@@ -70,6 +70,30 @@
       "revId": "6fa9f7623090f744087d27a6f133468d342cc6e3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "90841432_fbecd1c1",
+        "filename": "midolman/src/main/java/org/midonet/insights/Insights.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-07-18T08:55:20Z",
+      "side": 1,
+      "message": "Thanks, will investigate",
+      "parentUuid": "25addd41_2452dc2d",
+      "range": {
+        "startLine": 121,
+        "startChar": 8,
+        "endLine": 121,
+        "endChar": 34
+      },
+      "revId": "6fa9f7623090f744087d27a6f133468d342cc6e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
