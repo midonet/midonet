@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c38acf43_147167c1",
+        "filename": "midolman/src/main/java/org/midonet/insights/Insights.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-07-18T08:39:02Z",
+      "side": 1,
+      "message": "Could it be that this can never be zero? There will be always the EMPTY_LISTENER detected in the reflections. i probably missed this in master.",
+      "range": {
+        "startLine": 121,
+        "startChar": 8,
+        "endLine": 121,
+        "endChar": 34
+      },
+      "revId": "6fa9f7623090f744087d27a6f133468d342cc6e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
