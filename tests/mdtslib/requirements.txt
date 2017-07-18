@@ -7,7 +7,7 @@ fixtures==1.4.0
 python-neutronclient==3.1.0
 JPype1==0.6.1
 python-keystoneclient==2.1.1
-ipython<6
+ipython<6.0
 ipdb==0.8.1
 ipdbplugin==1.4.2
 setuptools==19.6.2
