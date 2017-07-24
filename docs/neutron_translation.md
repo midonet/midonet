@@ -90,8 +90,8 @@ and delete any routes which pass through the deleted subnet.
 
 ## PORT
 
-<div id="PORT_CREATE"/>
 ### CREATE
+<div id="PORT_CREATE"/>
 
 Port is assumed to be IPv6 if its first fixed ip address is IPv6. The
 translation is generic except that IPv6 port does not modify ARP tables.
@@ -278,8 +278,8 @@ For VIP ports:
 
 ## ROUTER
 
-<div id="ROUTER_OVERVIEW"/>
 ### OVERVIEW
+<div id="ROUTER_OVERVIEW"/>
 
 Here's how rules for a logical router would look like:
 
@@ -475,8 +475,8 @@ A few interesting cases:
   a return traffic by VM-Z's network stack.
 
 
-<div id="ROUTER_CREATE"/>
 ### CREATE
+<div id="ROUTER_CREATE"/>
 
 Create aforementioned new empty chains, then create a new MidoNet router
 with new chains set to its inbound and outbound filters.
@@ -700,8 +700,9 @@ No other action needed since the relevant ports should already been deleted by
 
 
 ## FLOATINGIP
-<div id="FLOATINGIP_CREATE"/>
+
 ### CREATE
+<div id="FLOATINGIP_CREATE"/>
 
 On the tenant router, which is specified in the 'router_id' of the Floating IP
 data, add the NAT translation rules between 'fixed_ip_address' and
@@ -765,8 +766,8 @@ If old or new FIP is FIP6:
  * Create new FIP as it describes section <a href="#FLOATINGIP_CREATE">
    FLOATINGIP CREATE</a>
 
-<div id="FLOATINGIP_DELETE"/>
 ### DELETE
+<div id="FLOATINGIP_DELETE"/>
 
 For IPv4 FIP remove:
  * All the DNAT and SNAT rules on the tenant router referencing the floating IP
@@ -1661,6 +1662,81 @@ then update the Enabled flag.
 
 Do nothing. Assume it is deleted if no Firewall Log uses it.
 
+
+## VPNSERVICE
+
+The VPNServices resource from Neutron corresponds to a VPNService in
+Midonet.
+
+### CREATE
+
+Creating a VPNService does not create a service container: the service
+container is created by the first VPN connection.
+
+If the router already has other VPN services inserted, the external IP
+and container (if any) are obtained directly from them. Otherwise, the
+external IP corresponds to the fixed IP associated to the gateway port
+of the Neutron router to which the VPN service is to be inserted.
+
+### UPDATE
+
+There are no midonet-specific changes when the VPN service is updated,
+but the translator guarantees that the fields that Neutron does not
+know about (Service Container id, external IP, IPSec site connections
+ids) are preserved.
+
+### DELETE
+
+Do nothing; the Service Container is removed when the last
+connection is deleted.
+
+## IPSEC-SITE-CONNECTION
+
+An IPSec-Site-Connection resource from Neutron corresponds to an
+IPSecSiteConnection in MidoNet
+
+### CREATE
+
+Upon IPSec-Site-Connection creation, if the associated VPN Services
+do not have a Service Container, a new container is created.
+Then, the translator creates routes for the Cartesian product of
+conection's local CIDRs and peer CIDRs.
+
+Creating the Service Container for VPN involves the following steps:
+* Create a new Router Port for the VPN
+* Create a VPN Route
+* Create a new Local Route
+* Create a chain for local redirects (if it does not exist yet) and
+  add it to the Router
+* Create the redirect rules:
+  * Redirect traffic addressed to local endpoint to VPN port
+  * Redirect UDP traffic addressed to local endpoint on port 500 to
+    VPN Port (IKE UDP port)
+  * Redirect UDP traffic addressed to local endpoint on port 4500 to
+    VPN Port (IKE Nat traversal)
+* Create the Service Container and the Service Container group and
+  update vpn services to be associated to them.
+
+### UPDATE
+
+The routes in the new connection information are compared with the
+previous list of routes in the existing connection.
+
+The Route objects corresponding to routes that no longer exist are
+deleted, and the new routers are created. After that, the current list
+of routes is updated in the new IPSecSiteConnection object.
+
+### DELETE
+
+The DELETE operation removes the IPSecSiteConnection object. If this
+was the last connection in the VPNService, then the translator attempts
+to remove its Service Container.
+
+Removing the Service Container involves the following steps:
+* If the router has a local redirect chain, remove the redirect rules
+  aiming to the external net (and the chain itself if it is empty).
+* Remove the VPN Service port associated to the service container
+* Remove the corresponding ServiceContainerGroup
 
 # References
 
