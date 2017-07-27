@@ -16,12 +16,12 @@
 package org.midonet.util.concurrent
 
 import scala.collection.JavaConversions._
+import java.util.{Collection, LinkedList, List => JList}
+import java.util.concurrent._
 
-import java.util.{Collection, List => JList, LinkedList}
-import java.util.concurrent.{Callable, ExecutionException, ExecutorService, Future, TimeUnit}
 import com.google.common.util.concurrent.SettableFuture
 
-class SameThreadButAfterExecutorService extends ExecutorService {
+class SameThreadButAfterExecutorService extends ScheduledExecutorService {
     var running = false
     @volatile var _shutdown = false
 
@@ -110,5 +110,53 @@ class SameThreadButAfterExecutorService extends ExecutorService {
     override def invokeAny[T](tasks: Collection[_ <: Callable[T]],
                               timeout: Long, unit: TimeUnit): T = {
         invokeAny(tasks)
+    }
+
+    override def schedule(command: Runnable, delay: Long,
+                          unit: TimeUnit): ScheduledFuture[_] = {
+        unit.sleep(delay)
+        val res: Future[_] = submit(command)
+        toScheduledFuture(res, delay, unit)
+    }
+
+    override def schedule[V](callable: Callable[V],
+                             delay: Long,
+                             unit: TimeUnit): ScheduledFuture[V] = {
+        unit.sleep(delay)
+        val res: Future[V] = submit(callable)
+        toScheduledFuture[V](res, delay, unit)
+    }
+
+    override def scheduleWithFixedDelay(command: Runnable,
+                                        initialDelay: Long, delay: Long,
+                                        unit: TimeUnit): ScheduledFuture[_] =
+        throw new NotImplementedError()
+
+    override def scheduleAtFixedRate(command: Runnable,
+                                     initialDelay: Long, period: Long,
+                                     unit: TimeUnit): ScheduledFuture[_] =
+        throw new NotImplementedError()
+
+    private def toScheduledFuture[T](future: Future[T], delay: Long,
+                                     unit: TimeUnit): ScheduledFuture[T] = {
+        new ScheduledFuture[T] {
+            override def isCancelled = future.isCancelled
+
+            override def get() = future.get()
+
+            override def get(timeout: Long,
+                             unit: TimeUnit) = future.get(timeout, unit)
+
+            override def cancel(mayInterruptIfRunning: Boolean) =
+                future.cancel(mayInterruptIfRunning)
+
+            override def isDone = future.isDone
+
+            override def getDelay(timeUnit: TimeUnit) =
+                timeUnit.convert(delay, unit)
+
+            override def compareTo(o: Delayed) =
+                delay.compareTo(o.getDelay(unit))
+        }
     }
 }
