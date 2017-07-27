@@ -17,7 +17,7 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
+import java.util.concurrent.{ConcurrentHashMap, ExecutorService, TimeUnit}
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -31,6 +31,8 @@ import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
+import org.midonet.cluster.data.storage.{StateStorage, Storage}
+import org.midonet.cluster.data.storage.cached.{StateStorageWrapper, StorageWrapper}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.CallbackRegistry
 import org.midonet.midolman.config.MidolmanConfig
@@ -42,7 +44,7 @@ import org.midonet.midolman.monitoring.metrics.VirtualTopologyMetrics
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.functors.{makeFunc1, makeRunnable}
+import org.midonet.util.functors._
 import org.midonet.util.reactivex._
 
 /**
@@ -173,6 +175,7 @@ class VirtualTopology(val backend: MidonetBackend,
     override def logSource = "org.midonet.devices.devices-service"
 
     private[midolman] val vtScheduler = Schedulers.from(vtExecutor)
+    private val worker = vtScheduler.createWorker()
 
     private[topology] val devices =
         new ConcurrentHashMap[UUID, Device]()
@@ -231,9 +234,30 @@ class VirtualTopology(val backend: MidonetBackend,
 
     register(this)
 
-    def store = backend.store
+    val store: Storage = if (config.initialStorageCacheEnabled) {
+        val wrapper = new StorageWrapper(config.initialStorageCacheTtlMs,
+                                         backend.store,
+                                         Map.empty /* TODO: pass real cache */)
+        worker.schedule(makeAction0(wrapper.invalidateCache()),
+                        config.initialStorageCacheTtlMs,
+                        TimeUnit.MILLISECONDS)
+        wrapper
+    } else {
+        backend.store
+    }
 
-    def stateStore = backend.stateStore
+    val stateStore: StateStorage = if (config.initialStorageCacheEnabled) {
+        val wrapper = new StateStorageWrapper(config.initialStorageCacheTtlMs,
+                                              backend.store, backend.stateStore,
+                                              Map.empty /* TODO: pass real cache */ ,
+                                              Map.empty /* TODO: pass real cache */)
+        worker.schedule(makeAction0(wrapper.invalidateCache()),
+                        config.initialStorageCacheTtlMs,
+                        TimeUnit.MILLISECONDS)
+        wrapper
+    } else {
+        backend.stateStore
+    }
 
     def stateTables = backend.stateTableStore
 
