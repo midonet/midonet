@@ -31,6 +31,8 @@ import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
+import org.midonet.cluster.data.storage.{StateStorage, Storage}
+import org.midonet.cluster.data.storage.cached.{StateStorageWrapper, StorageWrapper}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.CallbackRegistry
 import org.midonet.midolman.config.MidolmanConfig
@@ -231,9 +233,21 @@ class VirtualTopology(val backend: MidonetBackend,
 
     register(this)
 
-    def store = backend.store
+    def store: Storage = if (config.initialStorageCacheEnabled) {
+        new StorageWrapper(config.initialStorageCacheTtlMs, backend.store,
+                           Map.empty /* TODO: pass real cache */)
+    } else {
+        backend.store
+    }
 
-    def stateStore = backend.stateStore
+    def stateStore: StateStorage = if (config.initialStorageCacheEnabled) {
+        new StateStorageWrapper(config.initialStorageCacheTtlMs, backend.store,
+                                backend.stateStore,
+                                Map.empty /* TODO: pass real cache */ ,
+                                Map.empty /* TODO: pass real cache */)
+    } else {
+        backend.stateStore
+    }
 
     def stateTables = backend.stateTableStore
 
