@@ -89,6 +89,7 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     def outputChannels = getInt(s"$PREFIX.midolman.output_channels")
     def inputChannelThreading = getString(s"$PREFIX.midolman.input_channel_threading")
     def datapathName = Try(getString(s"$PREFIX.midolman.datapath")).getOrElse("midonet")
+    def initialStorageCacheTtlMs = getInt(s"$PREFIX.midolman.initial_storage_cache_ttl_ms")
 
     def lockMemory = getBoolean(s"$PREFIX.midolman.lock_memory")
 
