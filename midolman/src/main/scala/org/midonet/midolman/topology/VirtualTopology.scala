@@ -17,7 +17,7 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
+import java.util.concurrent.{ConcurrentHashMap, ExecutorService, ScheduledExecutorService, TimeUnit}
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -31,6 +31,8 @@ import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
+import org.midonet.cluster.data.storage.{StateStorage, Storage}
+import org.midonet.cluster.data.storage.cached.{StateStorageWrapper, StorageWrapper}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.CallbackRegistry
 import org.midonet.midolman.config.MidolmanConfig
@@ -162,7 +164,7 @@ class VirtualTopology(val backend: MidonetBackend,
                       simBackChannel: SimulationBackChannel,
                       val ruleLogEventChannel: RuleLogEventChannel,
                       val metricRegistry: MetricRegistry,
-                      val vtExecutor: ExecutorService,
+                      val vtExecutor: ScheduledExecutorService,
                       val ioExecutor: ExecutorService,
                       vtExecutorCheck: () => Boolean,
                       cbRegistry: CallbackRegistry)
@@ -231,9 +233,30 @@ class VirtualTopology(val backend: MidonetBackend,
 
     register(this)
 
-    def store = backend.store
+    def store: Storage = if (config.initialStorageCacheEnabled) {
+        val wrapper = new StorageWrapper(config.initialStorageCacheTtlMs,
+                                         backend.store,
+                                         Map.empty /* TODO: pass real cache */)
+        vtExecutor.schedule(new Runnable {
+            override def run() = wrapper.invalidateCache()
+        }, config.initialStorageCacheTtlMs, TimeUnit.MILLISECONDS)
+        wrapper
+    } else {
+        backend.store
+    }
 
-    def stateStore = backend.stateStore
+    def stateStore: StateStorage = if (config.initialStorageCacheEnabled) {
+        val wrapper = new StateStorageWrapper(config.initialStorageCacheTtlMs,
+                                              backend.store, backend.stateStore,
+                                              Map.empty /* TODO: pass real cache */ ,
+                                              Map.empty /* TODO: pass real cache */)
+        vtExecutor.schedule(new Runnable {
+            override def run() = wrapper.invalidateCache()
+        }, config.initialStorageCacheTtlMs, TimeUnit.MILLISECONDS)
+        wrapper
+    } else {
+        backend.stateStore
+    }
 
     def stateTables = backend.stateTableStore
 
