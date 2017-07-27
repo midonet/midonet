@@ -16,12 +16,12 @@
 package org.midonet.util.concurrent
 
 import scala.collection.JavaConversions._
+import java.util.{Collection, LinkedList, List => JList}
+import java.util.concurrent._
 
-import java.util.{Collection, List => JList, LinkedList}
-import java.util.concurrent.{Callable, ExecutionException, ExecutorService, Future, TimeUnit}
 import com.google.common.util.concurrent.SettableFuture
 
-class SameThreadButAfterExecutorService extends ExecutorService {
+class SameThreadButAfterExecutorService extends ScheduledExecutorService {
     var running = false
     @volatile var _shutdown = false
 
@@ -111,4 +111,23 @@ class SameThreadButAfterExecutorService extends ExecutorService {
                               timeout: Long, unit: TimeUnit): T = {
         invokeAny(tasks)
     }
+
+    override def scheduleAtFixedRate(command: Runnable,
+                                     initialDelay: Long, period: Long,
+                                     unit: TimeUnit): ScheduledFuture[_] =
+        throw new NotImplementedError()
+
+    override def schedule(command: Runnable, delay: Long,
+                          unit: TimeUnit): ScheduledFuture[_] =
+        throw new NotImplementedError()
+
+    override def schedule[V](callable: Callable[V],
+                             delay: Long,
+                             unit: TimeUnit): ScheduledFuture[V] =
+        throw new NotImplementedError()
+
+    override def scheduleWithFixedDelay(command: Runnable,
+                                        initialDelay: Long, delay: Long,
+                                        unit: TimeUnit): ScheduledFuture[_] =
+        throw new NotImplementedError()
 }
