@@ -139,6 +139,8 @@ public class MidolmanService extends AbstractService {
             notifyFailed(e);
         }
 
+        log.info("JMX reporter stopped.");
+
         List<Service> services = services();
         Collections.reverse(services);
         log.info("Stopping services");
@@ -148,6 +150,7 @@ public class MidolmanService extends AbstractService {
                 if (running) {
                     log.info("Stopping service: {}", service);
                     service.stopAsync().awaitTerminated();
+                    log.info("Service {} stopped.", service);
                 }
             } catch (Exception e) {
                 log.error("Exception while stopping the service {}", service, e);
@@ -156,7 +159,7 @@ public class MidolmanService extends AbstractService {
             }
         }
 
-        log.info("Stopping executors");
+        log.info("Stopping virtual topology executors");
         try {
             virtualTopology.vtExecutor().shutdown();
             virtualTopology.ioExecutor().shutdown();
@@ -170,11 +173,14 @@ public class MidolmanService extends AbstractService {
                 log.warn("Stopping the I/O executor timed out");
                 virtualTopology.ioExecutor().shutdownNow();
             }
+            log.info("Virtual topology executors stopped successfully.");
         } catch (InterruptedException e) {
             log.error("Exception while stopping the executors", e);
         }
 
+        log.info("Stopping rule event logger");
         virtualTopology.stopRuleLogEventChannel();
+        log.info("Rule event logger stopped");
 
         if (state() != State.FAILED)
             notifyStopped();
