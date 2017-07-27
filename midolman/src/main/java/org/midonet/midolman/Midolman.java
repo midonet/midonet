@@ -326,6 +326,8 @@ public class Midolman {
             log.error("Minion process failed while stopping.", e);
         }
 
+        log.info("Minion process stopped.");
+
         if (injector == null)
             return;
 

@@ -168,12 +168,12 @@ class MidolmanActorsService extends AbstractService {
         Props { injector.getInstance(actorClass) }
 
     protected def stopActor(actorRef: ActorRef) = {
-        log.debug("Stopping actor: {}", actorRef.toString())
+        log.info("Stopping actor: {}", actorRef.toString())
         gracefulStop(actorRef, ChildActorStopTimeout)
     }
 
     private def startTopActor(actorProps: Props, actorName: String) = {
-        log.debug("Starting actor {}", actorName)
+        log.info("Starting actor {}", actorName)
         system.actorOf(actorProps, actorName)
     }
 
