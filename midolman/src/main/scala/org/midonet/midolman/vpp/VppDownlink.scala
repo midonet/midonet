@@ -101,7 +101,7 @@ object VppDownlink {
 
         private val downlinks = new util.HashMap[UUID, DownlinkState]
 
-        private val table = vt.backend.stateTableStore
+        private val table = vt.stateTables
             .getTable[Fip64Entry, AnyRef](classOf[NeutronNetwork], networkId,
                                           MidonetBackend.Fip64Table)
 
