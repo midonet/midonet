@@ -28,6 +28,7 @@ import org.midonet.cluster.services.heartbeat.Heartbeat
 import org.midonet.cluster.services.rest_api.RestApi
 import org.midonet.cluster.services.state.StateProxy
 import org.midonet.cluster.services.topology.TopologyApiService
+import org.midonet.cluster.services.topology_cache.TopologyCache
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
@@ -73,6 +74,7 @@ class ClusterConfig(_conf: Config) {
     val stateProxy = new StateProxyConfig(conf)
     val executors = new ExecutorsConfig(conf, prefix)
     val recycler = new RecyclerConfig(conf)
+    val topologyCache = new TopologyCacheConfig(conf)
 }
 
 class AuthConfig(val conf: Config) {
@@ -216,4 +218,10 @@ class RecyclerConfig(val conf: Config) extends MinionConfig[Recycler] {
     def interval = conf.getDuration(s"$prefix.interval", TimeUnit.MINUTES) minutes
     def throttlingRate = conf.getInt(s"$prefix.throttling_rate")
     def shutdownTimeout = conf.getDuration(s"$prefix.shutdown_interval", TimeUnit.MILLISECONDS) millis
+}
+
+class TopologyCacheConfig(val conf: Config) extends MinionConfig[TopologyCache] {
+   final val prefix = "cluster.topology_cache"
+
+    override def isEnabled = conf.getBoolean(s"$prefix.enabled")
 }
