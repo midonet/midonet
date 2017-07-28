@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f3d862c9_51c354c3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-07-28T10:58:30Z",
+      "side": 1,
+      "message": "nit: use nanoTime to measure execution times, can be changed later, or if the time diff is relatively large I guess it doesn\u0027t really change that much",
+      "range": {
+        "startLine": 84,
+        "startChar": 31,
+        "endLine": 84,
+        "endChar": 48
+      },
+      "revId": "868f13d7dea212b885dc492d4712eb1bc4ff67aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
