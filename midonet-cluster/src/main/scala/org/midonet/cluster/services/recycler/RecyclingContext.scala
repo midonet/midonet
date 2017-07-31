@@ -32,7 +32,7 @@ import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.ZooKeeper
 import org.apache.zookeeper.data.Stat
 
-import org.midonet.cluster.RecyclerConfig
+import org.midonet.cluster.conf.RecyclerConfig
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper
 import org.midonet.cluster.models.Topology.{Host, Network, Router}
 import org.midonet.cluster.services.MidonetBackend

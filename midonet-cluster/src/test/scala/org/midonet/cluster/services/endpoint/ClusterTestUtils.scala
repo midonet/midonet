@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory
 
 import rx.subjects.BehaviorSubject
 
-import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.services.MidonetBackend

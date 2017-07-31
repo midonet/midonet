@@ -21,9 +21,9 @@ import org.mockito.Mockito.{mock, when}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
 
-import org.midonet.cluster.C3POConfig
 import org.midonet.minion.ScheduledMinion
 import ScheduledMinion.CfgParamUndefErrMsg
+import org.midonet.cluster.conf.C3POConfig
 
 @RunWith(classOf[JUnitRunner])
 class C3POConfigValidationTest extends FlatSpec with Matchers {

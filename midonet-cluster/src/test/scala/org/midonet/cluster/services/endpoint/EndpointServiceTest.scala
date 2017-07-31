@@ -31,7 +31,7 @@ import org.mockito.{ArgumentCaptor, Mockito, Matchers => MockMatchers}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
-import org.midonet.cluster.EndpointConfig.SSLSource
+import org.midonet.cluster.conf.EndpointConfig.SSLSource
 import org.midonet.cluster.services.endpoint.EndpointServiceTest.{DisabledUser, EarlyUser, LateUser}
 import org.midonet.cluster.services.endpoint.EndpointTestUtils.TestEndpointUser
 import org.midonet.cluster.util.CuratorTestFramework

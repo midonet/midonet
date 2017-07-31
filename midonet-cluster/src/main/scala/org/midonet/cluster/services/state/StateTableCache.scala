@@ -38,7 +38,8 @@ import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.services.state.StateTableCache._
-import org.midonet.cluster.{StateProxyConfig, StateProxyCacheLog}
+import org.midonet.cluster.StateProxyCacheLog
+import org.midonet.cluster.conf.StateProxyConfig
 import org.midonet.util.functors.makeRunnable
 
 object StateTableCache {

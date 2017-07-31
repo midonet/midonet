@@ -6,11 +6,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable.ListBuffer
 
 import com.google.common.annotations.VisibleForTesting
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch.CloseMode
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 
 class MockLeaderLatchProvider(backend: MidonetBackend,
                               config: ClusterConfig)

@@ -33,6 +33,7 @@ import rx.schedulers.Schedulers
 import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster._
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.storage.{CreateOp, InMemoryStorage}
 import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
 import org.midonet.cluster.models.Topology.{Host, ServiceContainer}

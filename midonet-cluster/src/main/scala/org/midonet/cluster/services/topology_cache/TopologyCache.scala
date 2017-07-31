@@ -33,7 +33,8 @@ import rx.schedulers.Schedulers
 
 import org.midonet.cluster.cache._
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.{ClusterConfig, TopologyCacheLog}
+import org.midonet.cluster.TopologyCacheLog
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.logging.Logger

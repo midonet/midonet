@@ -20,7 +20,7 @@ import java.util.Properties
 
 import com.typesafe.config.{Config, ConfigFactory}
 
-import org.midonet.cluster.EndpointConfig
+import org.midonet.cluster.conf.EndpointConfig
 import org.midonet.conf.MidoTestConfigurator
 
 /**

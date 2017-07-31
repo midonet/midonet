@@ -22,15 +22,15 @@ import java.util.UUID
 import com.typesafe.config.ConfigFactory
 
 import org.junit.runner.RunWith
-import org.scalatest.{GivenWhenThen, FeatureSpec, Matchers, BeforeAndAfter}
+import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.ContainersConfig
+import org.midonet.cluster.conf.ContainersConfig
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.cluster.models.Topology.{ServiceContainerPolicy, Port, ServiceContainer}
+import org.midonet.cluster.models.Topology.{Port, ServiceContainer, ServiceContainerPolicy}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.containers.schedulers.ContainerScheduler.DownState
 import org.midonet.cluster.util.UUIDUtil._

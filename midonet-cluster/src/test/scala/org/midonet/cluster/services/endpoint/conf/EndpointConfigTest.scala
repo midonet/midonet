@@ -27,8 +27,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 
-import org.midonet.cluster.EndpointConfig.SSLSource
-import org.midonet.cluster.EndpointConfig.DefaultKeystoreLocation
+import org.midonet.cluster.conf.EndpointConfig.SSLSource
+import org.midonet.cluster.conf.EndpointConfig.DefaultKeystoreLocation
 import org.midonet.cluster.services.endpoint.ClusterTestUtils
 
 @RunWith(classOf[JUnitRunner])

@@ -31,7 +31,8 @@ import rx.{Observable, Subscriber}
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.{ContainersConfig, ContainersLog}
+import org.midonet.cluster.ContainersLog
+import org.midonet.cluster.conf.ContainersConfig
 import org.midonet.containers.{Context, ObjectTracker}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 

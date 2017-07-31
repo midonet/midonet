@@ -27,7 +27,7 @@ import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
 import rx.observers.TestObserver
 
-import org.midonet.cluster.ContainersConfig
+import org.midonet.cluster.conf.ContainersConfig
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.util.UUIDUtil._
 

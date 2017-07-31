@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID, _}

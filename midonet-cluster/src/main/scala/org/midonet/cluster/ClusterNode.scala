@@ -41,6 +41,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler
 import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkConnectionProvider, ZookeeperConnectionWatcher}
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.services._
 import org.midonet.cluster.storage._
 import org.midonet.conf.{HostIdGenerator, LoggerLevelWatcher, MidoNodeConfigurator}

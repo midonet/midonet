@@ -24,7 +24,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.apache.commons.configuration.ConfigurationException
 
-import org.midonet.cluster.AuthConfig
+import org.midonet.cluster.conf.AuthConfig
 
 class AuthModule(config: AuthConfig, log: Logger) extends AbstractModule {
 
