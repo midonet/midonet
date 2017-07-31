@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "80638524_f743a8ac",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-07-31T08:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3d862c9_51c354c3",
+      "range": {
+        "startLine": 84,
+        "startChar": 31,
+        "endLine": 84,
+        "endChar": 48
+      },
+      "revId": "868f13d7dea212b885dc492d4712eb1bc4ff67aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b25cc4e9_1163fcee",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-07-28T17:12:07Z",
       "side": 1,
       "message": "We should probably enclose this in a try/catch block (timeout, or a failure to start could cause an exception here, and even if the consequences are not critical, it will be good to have the proper logging)",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 87,
+        "endChar": 49
+      },
+      "revId": "868f13d7dea212b885dc492d4712eb1bc4ff67aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ede83905_25b8a4e2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-07-31T08:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b25cc4e9_1163fcee",
       "range": {
         "startLine": 86,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "2567c262_af1d9888",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-07-31T08:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4cc1cc25_fe47dd71",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 50
+      },
+      "revId": "868f13d7dea212b885dc492d4712eb1bc4ff67aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2df4daa6_df17b756",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2017-07-28T17:12:07Z",
       "side": 1,
       "message": "Any exception above would prevent having a notifyStarted or a notifyError... probably we should enclose this in a try/catch block",
+      "range": {
+        "startLine": 110,
+        "startChar": 18,
+        "endLine": 111,
+        "endChar": 18
+      },
+      "revId": "868f13d7dea212b885dc492d4712eb1bc4ff67aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "857d15d0_b1efc168",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-07-31T08:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2df4daa6_df17b756",
       "range": {
         "startLine": 110,
         "startChar": 18,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3433fc13_8ecc4d43",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-07-31T08:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "095cbffd_2535ed66",
+      "range": {
+        "startLine": 118,
+        "startChar": 63,
+        "endLine": 118,
+        "endChar": 66
+      },
+      "revId": "868f13d7dea212b885dc492d4712eb1bc4ff67aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8768bbf5_9d57aa47",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2017-07-28T17:12:07Z",
       "side": 1,
       "message": "Isn\u0027t there a \u0027toFuture\u0027 method for observables?",
+      "range": {
+        "startLine": 148,
+        "startChar": 18,
+        "endLine": 148,
+        "endChar": 33
+      },
+      "revId": "868f13d7dea212b885dc492d4712eb1bc4ff67aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "57473e40_c641c25f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-07-31T08:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8768bbf5_9d57aa47",
       "range": {
         "startLine": 148,
         "startChar": 18,
