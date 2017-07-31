@@ -68,6 +68,9 @@ package object cluster {
     final val TopologyApiServerProtocolFactoryLog =
         "org.midonet.cluster.services.topology-api.server-protocol-factory"
 
+    final val TopologyCacheLog =
+        "org.midonet.cluster.services.topology-cache"
+
     final val VxgwLog = "org.midonet.cluster.services.vxgw"
     final val VxgwVtepLog = "org.midonet.cluster.services.vxgw.vtep"
 
