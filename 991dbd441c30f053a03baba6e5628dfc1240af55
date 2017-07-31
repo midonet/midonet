@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "44a46df1_3ab5c066",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-07-31T10:29:33Z",
+      "side": 1,
+      "message": "nitpick: you may want to do a objectCache.stopAsync() even if the stateCache.stopAsync() throwed an exception",
+      "range": {
+        "startLine": 89,
+        "startChar": 12,
+        "endLine": 89,
+        "endChar": 53
+      },
+      "revId": "991dbd441c30f053a03baba6e5628dfc1240af55",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9e9b0908_927f0ca9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-07-31T10:29:33Z",
+      "side": 1,
+      "message": "nitpick (very picky ;-): here you may want to check if objectCache is already started, and stop it (to avoid leaving the service running if the error comes from stateCache)",
+      "range": {
+        "startLine": 125,
+        "startChar": 21,
+        "endLine": 125,
+        "endChar": 29
+      },
+      "revId": "991dbd441c30f053a03baba6e5628dfc1240af55",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
