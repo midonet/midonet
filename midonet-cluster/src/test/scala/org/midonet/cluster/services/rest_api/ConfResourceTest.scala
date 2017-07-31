@@ -30,8 +30,8 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.auth.MockAuthService
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.test.util.ZookeeperTestSuite
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}

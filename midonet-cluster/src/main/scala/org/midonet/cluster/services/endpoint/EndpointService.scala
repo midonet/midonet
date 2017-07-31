@@ -37,11 +37,11 @@ import com.google.inject.{AbstractModule, Inject, Injector}
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.EndpointConfig.SSLSource
+import org.midonet.cluster.conf.EndpointConfig.SSLSource
 
 import io.netty.handler.ssl.util.SelfSignedCertificate
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
-import org.midonet.cluster.{ClusterConfig, EndpointConfig}
+import org.midonet.cluster.conf.{ClusterConfig, EndpointConfig}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.endpoint.comm.BaseEndpointAdapter
 import org.midonet.cluster.services.endpoint.registration.EndpointUserRegistrar

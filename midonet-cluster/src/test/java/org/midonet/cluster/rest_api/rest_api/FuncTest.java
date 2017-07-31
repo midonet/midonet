@@ -43,7 +43,7 @@ import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
 import org.reflections.Reflections;
 
-import org.midonet.cluster.ClusterConfig;
+import org.midonet.cluster.conf.ClusterConfig;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.data.storage.StateTableStorage;

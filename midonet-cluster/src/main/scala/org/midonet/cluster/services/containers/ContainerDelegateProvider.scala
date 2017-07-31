@@ -22,7 +22,7 @@ import com.google.inject.{AbstractModule, Guice}
 
 import org.reflections.Reflections
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.containers.{ContainerDelegate, ContainerProvider}
 import org.midonet.util.logging.Logger

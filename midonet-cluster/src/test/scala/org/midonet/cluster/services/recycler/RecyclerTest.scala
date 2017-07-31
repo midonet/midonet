@@ -34,7 +34,7 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import rx.Observable
 import rx.observers.TestObserver
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.models.Topology.{Host, Network, Port, Router}

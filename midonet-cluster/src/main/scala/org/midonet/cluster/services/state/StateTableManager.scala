@@ -31,6 +31,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster._
+import org.midonet.cluster.conf.StateProxyConfig
 import org.midonet.cluster.rpc.State.ProxyRequest.{Subscribe, Unsubscribe}
 import org.midonet.cluster.rpc.State.ProxyResponse.Error.Code
 import org.midonet.cluster.services.MidonetBackend

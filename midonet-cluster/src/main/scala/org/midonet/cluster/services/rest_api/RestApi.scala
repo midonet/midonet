@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
 
 import org.midonet.cluster.auth.{AuthModule, AuthService}
+import org.midonet.cluster.conf.{ClusterConfig, RestApiConfig}
 import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter, LoginFilter}
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
@@ -53,7 +54,7 @@ import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.cluster.{ClusterConfig, RestApiConfig, RestApiLog}
+import org.midonet.cluster.RestApiLog
 import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}

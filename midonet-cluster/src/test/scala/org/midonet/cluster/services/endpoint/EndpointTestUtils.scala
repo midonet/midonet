@@ -44,8 +44,8 @@ import org.apache.http.ssl.{SSLContextBuilder, TrustStrategy}
 import org.apache.http.{HttpHost, HttpResponse, HttpVersion}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.EndpointConfig.SSLSource
-import org.midonet.cluster.EndpointConfig.SSLSource.SSLSource
+import org.midonet.cluster.conf.EndpointConfig.SSLSource
+import org.midonet.cluster.conf.EndpointConfig.SSLSource.SSLSource
 import org.midonet.cluster.services.endpoint.comm.{CloseOnExceptionHandler, ConnectionHandler}
 import org.midonet.cluster.services.endpoint.conf.ConfigGenerator
 import org.midonet.cluster.services.endpoint.users.{EndpointUser, ProtoBufWSApiEndpointUser, StaticFilesEndpointUser}

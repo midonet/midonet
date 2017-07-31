@@ -25,7 +25,8 @@ import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.{ClusterConfig, TopologyApiLog}
+import org.midonet.cluster.TopologyApiLog
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.conf.HostIdGenerator
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule

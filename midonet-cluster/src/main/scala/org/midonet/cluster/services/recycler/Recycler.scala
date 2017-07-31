@@ -35,7 +35,8 @@ import rx.subjects.BehaviorSubject
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.recycler.Recycler.MinimumInterval
-import org.midonet.cluster.{ClusterConfig, RecyclerLog}
+import org.midonet.cluster.RecyclerLog
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.UnixClock

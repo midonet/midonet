@@ -20,13 +20,14 @@ import com.google.inject.Inject
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.conf.{ClusterConfig, TopologyApiConfig}
 import org.midonet.cluster.rpc.Commands
 import org.midonet.cluster.services.topology.common.{ApiServerHandler, ConnectionManager}
 import org.midonet.cluster.services.topology.server.{RequestHandler, _}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.{ClusterConfig, TopologyApiConfig, TopologyApiLog}
+import org.midonet.cluster.TopologyApiLog
 import org.midonet.minion.MinionService.TargetNode
-import org.midonet.minion.{MinionService, Context, Minion}
+import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.netty.{ProtoBufSocketAdapter, ProtoBufWebSocketServerAdapter, ServerFrontEnd}
 
 /**

@@ -31,7 +31,7 @@ import org.mockito.Mockito
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.storage.{KeyType, StateStorage, Storage}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{LBStatus => PLBStatus}

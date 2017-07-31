@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po
 
 import com.google.protobuf.Message
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron._

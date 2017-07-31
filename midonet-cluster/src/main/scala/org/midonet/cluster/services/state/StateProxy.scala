@@ -26,6 +26,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster._
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryImpl, MidonetServiceHandler}
 import org.midonet.cluster.services.state.server.StateProxyServer

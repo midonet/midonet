@@ -29,6 +29,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.conf.{C3POConfig, ClusterConfig}
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.C3POStorageManager._
@@ -36,7 +37,7 @@ import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
-import org.midonet.cluster.{C3POConfig, C3poLog, ClusterConfig}
+import org.midonet.cluster.C3poLog
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.ScheduledMinion.checkConfigParamDefined
 import org.midonet.minion.{Context, MinionService, ScheduledMinion}

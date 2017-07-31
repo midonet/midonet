@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
 import org.apache.commons.io.FilenameUtils
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.EndpointConfig
+import org.midonet.cluster.conf.EndpointConfig
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHandler}
 import org.midonet.cluster.services.endpoint.users.EndpointUser
 
