@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "869be807_9752d3ef",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-01T14:42:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "59ad0222_01a03f13",
+      "range": {
+        "startLine": 18,
+        "startChar": 20,
+        "endLine": 18,
+        "endChar": 22
+      },
+      "revId": "6fa392f578c6b289c4c04f8c6f76e304fa8b20b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a08d557_e30c464e",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "82f6640a_296f7d89",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-01T14:42:39Z",
+      "side": 1,
+      "message": "I\u0027m not sure, I added it as a placeholder for now, I\u0027ll check",
+      "parentUuid": "9a08d557_e30c464e",
+      "range": {
+        "startLine": 149,
+        "startChar": 39,
+        "endLine": 149,
+        "endChar": 44
+      },
+      "revId": "6fa392f578c6b289c4c04f8c6f76e304fa8b20b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5dcb909a_38e18ab7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2017-08-01T11:14:32Z",
       "side": 1,
       "message": "I\u0027d remove this so it\u0027s private, just to make sure in the future we don\u0027t use it directly.",
+      "range": {
+        "startLine": 162,
+        "startChar": 22,
+        "endLine": 162,
+        "endChar": 26
+      },
+      "revId": "6fa392f578c6b289c4c04f8c6f76e304fa8b20b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4ffffe04_beaf412d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-01T14:42:39Z",
+      "side": 1,
+      "message": "I tried to but it would involve some extra refactoring, in the meantime I took the direct usage of the storage from the classes that use the VT",
+      "parentUuid": "5dcb909a_38e18ab7",
       "range": {
         "startLine": 162,
         "startChar": 22,
@@ -181,6 +253,30 @@
     },
     {
       "key": {
+        "uuid": "ca87ffef_8ffdd89b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/StorageWrapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-01T14:42:39Z",
+      "side": 1,
+      "message": "This doesn\u0027t allocate, it only does an arithmetic operation. In any case I didnt realize I had the executor available, I did this to avoid creating a thread here. I\u0027ll use the executor instead, thanks!",
+      "parentUuid": "c2fe8809_a0a28648",
+      "range": {
+        "startLine": 46,
+        "startChar": 21,
+        "endLine": 46,
+        "endChar": 58
+      },
+      "revId": "6fa392f578c6b289c4c04f8c6f76e304fa8b20b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b80a674a_a8cdc602",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/StorageWrapper.scala",
         "patchSetId": 4
@@ -227,6 +323,54 @@
     },
     {
       "key": {
+        "uuid": "449657e6_8de0467f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/StorageWrapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-01T14:42:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b80a674a_a8cdc602",
+      "range": {
+        "startLine": 51,
+        "startChar": 58,
+        "endLine": 51,
+        "endChar": 81
+      },
+      "revId": "6fa392f578c6b289c4c04f8c6f76e304fa8b20b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79ae99bf_62e1990d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/StorageWrapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-01T14:42:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f9b5d47e_0386169b",
+      "range": {
+        "startLine": 51,
+        "startChar": 103,
+        "endLine": 51,
+        "endChar": 127
+      },
+      "revId": "6fa392f578c6b289c4c04f8c6f76e304fa8b20b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c07865ff_c4288073",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/cached/StorageWrapperTest.scala",
         "patchSetId": 4
@@ -238,6 +382,30 @@
       "writtenOn": "2017-08-01T11:14:32Z",
       "side": 1,
       "message": "consider using UnixClock, which can be mocked and advance the clock directly in tests (instead of sleeping which can be flakey)",
+      "range": {
+        "startLine": 76,
+        "startChar": 12,
+        "endLine": 76,
+        "endChar": 34
+      },
+      "revId": "6fa392f578c6b289c4c04f8c6f76e304fa8b20b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b7f1e490_e5fd9e98",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/cached/StorageWrapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-01T14:42:39Z",
+      "side": 1,
+      "message": "not needed now",
+      "parentUuid": "c07865ff_c4288073",
       "range": {
         "startLine": 76,
         "startChar": 12,
