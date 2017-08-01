@@ -94,6 +94,24 @@
     },
     {
       "key": {
+        "uuid": "3db65144_12ee1abb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/CachedStateStorage.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-01T13:48:16Z",
+      "side": 1,
+      "message": "Feel free to ignore this, lgtm as it is already.",
+      "parentUuid": "533e951b_11a95150",
+      "revId": "6fa392f578c6b289c4c04f8c6f76e304fa8b20b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "837f1019_2e9f8432",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/CachedStateStorage.scala",
         "patchSetId": 4
