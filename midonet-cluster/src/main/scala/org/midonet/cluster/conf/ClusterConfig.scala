@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster
+package org.midonet.cluster.conf
 
 import java.util.concurrent.TimeUnit
 
@@ -21,10 +21,10 @@ import scala.concurrent.duration._
 
 import com.typesafe.config.{Config, ConfigFactory}
 
-import org.midonet.cluster.services.recycler.Recycler
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.services.heartbeat.Heartbeat
+import org.midonet.cluster.services.recycler.Recycler
 import org.midonet.cluster.services.rest_api.RestApi
 import org.midonet.cluster.services.state.StateProxy
 import org.midonet.cluster.services.topology.TopologyApiService

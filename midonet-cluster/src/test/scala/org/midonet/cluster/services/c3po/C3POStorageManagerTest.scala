@@ -27,7 +27,7 @@ import org.mockito.Mockito._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.{PersistenceOp, Storage, StorageException, UpdateValidator, Transaction => ZoomTransaction}
 import org.midonet.cluster.models.Commons

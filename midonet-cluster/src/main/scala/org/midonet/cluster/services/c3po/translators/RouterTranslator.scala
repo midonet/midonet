@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.storage.{StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy

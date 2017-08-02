@@ -37,7 +37,7 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.StateProxyConfig
+import org.midonet.cluster.conf.StateProxyConfig
 import org.midonet.cluster.data.storage.{StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.rpc.State.ProxyRequest.{Subscribe, Unsubscribe}

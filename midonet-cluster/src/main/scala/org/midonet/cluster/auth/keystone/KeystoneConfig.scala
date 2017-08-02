@@ -18,7 +18,7 @@ package org.midonet.cluster.auth.keystone
 
 import com.typesafe.config.Config
 
-import org.midonet.cluster.AuthConfig
+import org.midonet.cluster.conf.AuthConfig
 
 class KeystoneConfig(conf: Config) extends AuthConfig(conf) {
 

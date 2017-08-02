@@ -25,9 +25,10 @@ import com.google.inject.Inject
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.{ClusterConfig, HeartbeatLog}
+import org.midonet.cluster.HeartbeatLog
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.minion.MinionService.TargetNode
-import org.midonet.minion.{MinionService, Context, ScheduledMinion}
+import org.midonet.minion.{Context, MinionService, ScheduledMinion}
 import org.midonet.util.functors.makeRunnable
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by

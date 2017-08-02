@@ -27,7 +27,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.MidonetBackend

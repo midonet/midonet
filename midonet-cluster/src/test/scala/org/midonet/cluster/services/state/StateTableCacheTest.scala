@@ -33,7 +33,7 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
 import rx.Observable
 
-import org.midonet.cluster.StateProxyConfig
+import org.midonet.cluster.conf.StateProxyConfig
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.rest_api.models.Bridge

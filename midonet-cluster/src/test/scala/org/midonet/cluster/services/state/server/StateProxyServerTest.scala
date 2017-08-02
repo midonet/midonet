@@ -35,7 +35,6 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.protobuf.{ProtobufDecoder, ProtobufEncoder, ProtobufVarint32FrameDecoder, ProtobufVarint32LengthFieldPrepender}
-
 import org.junit.runner.RunWith
 import org.mockito.Matchers.any
 import org.mockito.Mockito
@@ -47,7 +46,7 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.StateProxyConfig
+import org.midonet.cluster.conf.StateProxyConfig
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.rpc.State.ProxyRequest.{Ping, Subscribe, Unsubscribe}
 import org.midonet.cluster.rpc.State.ProxyResponse.Error.Code

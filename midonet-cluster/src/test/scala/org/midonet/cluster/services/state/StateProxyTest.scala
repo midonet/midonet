@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.util.CuratorTestFramework

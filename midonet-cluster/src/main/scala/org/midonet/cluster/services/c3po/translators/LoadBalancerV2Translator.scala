@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.storage.Transaction
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{NeutronLoadBalancerV2, NeutronPort}
@@ -27,7 +27,6 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.containers
 import org.midonet.packets.{IPv4Subnet, MAC}
-
 import scala.collection.mutable.ListBuffer
 
 class LoadBalancerV2Translator(config: ClusterConfig)
