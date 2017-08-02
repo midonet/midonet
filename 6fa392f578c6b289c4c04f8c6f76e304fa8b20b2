@@ -277,6 +277,30 @@
     },
     {
       "key": {
+        "uuid": "3d1284fa_8d3c9480",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/StorageWrapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-02T08:01:04Z",
+      "side": 1,
+      "message": "ah great sorry then, I misread as converting this to a Duration.",
+      "parentUuid": "ca87ffef_8ffdd89b",
+      "range": {
+        "startLine": 46,
+        "startChar": 21,
+        "endLine": 46,
+        "endChar": 58
+      },
+      "revId": "6fa392f578c6b289c4c04f8c6f76e304fa8b20b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b80a674a_a8cdc602",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/StorageWrapper.scala",
         "patchSetId": 4
