@@ -22,6 +22,30 @@
       "revId": "a29a6f6e9ca68448a2ebe762a68cd6ab28bd12ff",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0ab46035_641bd8c3",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/random/package.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-02T08:10:43Z",
+      "side": 1,
+      "message": "Doesn\u0027t look like. I\u0027ll remove in a later patch as I\u0027d like to keep this as similar as the closed source version.",
+      "parentUuid": "81212f29_eb5d4940",
+      "range": {
+        "startLine": 18,
+        "startChar": 35,
+        "endLine": 18,
+        "endChar": 59
+      },
+      "revId": "a29a6f6e9ca68448a2ebe762a68cd6ab28bd12ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
