@@ -155,6 +155,11 @@ there are some prerequisites:
 * java 8 jdk
 * rpm
 * ronn to build man pages
+* gcc to build native libraries
+
+**NOTE**: The gcc version installed should be 4.8.5 because the test framework
+used to run unit tests over the native libraries that MidoNet uses requires
+the code to be compiled with this version.
 
 You will also need to install the protobufs compiler, version 2.6.1 from
 [here](https://github.com/google/protobuf/releases/tag/v2.6.0).  Use
