@@ -4,7 +4,6 @@
 
 package org.midonet.util
 
-import scala.reflect.runtime.universe.TypeTag
 import scala.util.Random
 
 /**
@@ -15,7 +14,7 @@ package object random {
     def rndAlphaNum(len: Int): String = Random.alphanumeric.take(len).mkString
 
     /** Random value from seq */
-    def rndElement[S](seq: Seq[S])(implicit tag: TypeTag[S]): Option[S] =
+    def rndElement[S](seq: Seq[S]): Option[S] =
         if (seq.nonEmpty)
             Some(seq(Random.nextInt(seq.length)))
         else
