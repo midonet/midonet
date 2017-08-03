@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "18ad9b3e_46cd823d",
+        "filename": "DEVELOPMENT.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-03T07:32:29Z",
+      "side": 1,
+      "message": "I recall trying with 4.8.5. have you check the 4.9 series?",
+      "range": {
+        "startLine": 160,
+        "startChar": 48,
+        "endLine": 160,
+        "endChar": 49
+      },
+      "revId": "9f686be3e18ee225bf21806abf6b1bdbfb230d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
