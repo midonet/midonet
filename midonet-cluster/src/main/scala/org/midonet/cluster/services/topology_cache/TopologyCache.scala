@@ -31,16 +31,21 @@ import org.slf4j.LoggerFactory
 
 import rx.schedulers.Schedulers
 
-import org.midonet.cluster.cache._
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.TopologyCacheLog
+import org.midonet.cluster.cache._
 import org.midonet.cluster.conf.ClusterConfig
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.endpoint.users.HttpByteBufferEndpointUser
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.logging.Logger
-import org.midonet.util.reactivex._
+import org.midonet.util.reactivex.richObservable
+
+import io.netty.buffer.ByteBuf
 
 object TopologyCache {
+
+    final val ServiceName = "topology-cache"
 
     case class TopologySnapshot(objectSnapshot: ObjectNotification.Snapshot,
                                 stateSnapshot: StateNotification.Snapshot)
@@ -61,7 +66,7 @@ class TopologyCache @Inject()(context: Context,
                               backend: MidonetBackend,
                               config: ClusterConfig,
                               metrics: MetricRegistry)
-    extends Minion(context) {
+    extends Minion(context) with HttpByteBufferEndpointUser {
 
     import TopologyCache._
 
@@ -83,6 +88,10 @@ class TopologyCache @Inject()(context: Context,
     private var objectCache: ObjectCache = _
 
     private var stateCache: StateCache = _
+
+    // From HttpByteBufferEndpointUser
+    override val name = Option(ServiceName)
+    override val endpointPath: String = ServiceName
 
     /** Whether the service is enabled on this Cluster node. */
     override def isEnabled: Boolean = config.topologyCache.isEnabled
@@ -143,7 +152,7 @@ class TopologyCache @Inject()(context: Context,
         }
     }
 
-    def snapshot(): Future[TopologySnapshot] = {
+    private [topology_cache] def snapshot(): Future[TopologySnapshot] = {
         if (!isRunning) {
             Future.failed(
                 new IllegalStateException("Service not yet running " +
@@ -173,5 +182,10 @@ class TopologyCache @Inject()(context: Context,
             })
         }
     }
+
+    override def getByteBuffer(): ByteBuf = {
+        throw new NotImplementedError
+    }
+
 }
 
