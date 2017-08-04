@@ -19,10 +19,10 @@ package org.midonet.packets
 import java.util.ArrayList
 import java.util.UUID
 
-import uk.co.real_logic.sbe.codec.java.DirectBuffer
+import org.agrona.concurrent.UnsafeBuffer
 
-import org.midonet.cluster.flowstate.proto.FlowState.{Trace, Nat}
-import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, MessageHeader, InetAddrType, NatKeyType}
+import org.midonet.cluster.flowhistory.proto.MessageHeaderDecoder
+import org.midonet.cluster.flowstate.proto._
 import org.midonet.packets.ConnTrackState.{ConnTrackKeyAllocator, ConnTrackKeyStore}
 import org.midonet.packets.NatState._
 import org.midonet.packets.TraceState.{TraceKeyAllocator, TraceKeyStore}
@@ -139,7 +139,7 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
         case REV_STICKY_DNAT => NatKeyType.REV_STICKY_DNAT
     }
 
-    def portIdsFromSbe(portIds: FlowStateSbe.PortIds): (UUID, ArrayList[UUID]) = {
+    def portIdsFromSbe(portIds: FlowStateDecoder.PortIdsDecoder): (UUID, ArrayList[UUID]) = {
         val ingressPortId = uuidFromSbe(portIds.ingressPortId)
         val egressPortIds = new ArrayList[UUID]()
         val iterEgress = portIds.egressPortIds
@@ -151,16 +151,16 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
     }
 
     def portIdsToSbe(ingressPortId: UUID, egressPortIds: ArrayList[UUID],
-                     portIds: FlowStateSbe.PortIds): Unit = {
+                     portIds: FlowStateEncoder.PortIdsEncoder): Unit = {
         uuidToSbe(ingressPortId, portIds.ingressPortId)
         val iterEgress = portIds.egressPortIdsCount(egressPortIds.size)
         val iterEgressIds = egressPortIds.iterator
-        while (iterEgress.hasNext) {
+        while (iterEgressIds.hasNext) {
             uuidToSbe(iterEgressIds.next, iterEgress.next.egressPortId)
         }
     }
 
-    def connTrackKeyFromSbe(conntrack: FlowStateSbe.Conntrack,
+    def connTrackKeyFromSbe(conntrack: FlowStateDecoder.ConntrackDecoder,
                             allocator: ConnTrackKeyAllocator[ConnTrackKeyT])
     : ConnTrackKeyT = {
         allocator(ipFromSbe(conntrack.srcIpType, conntrack.srcIp),
@@ -172,7 +172,7 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
     }
 
     def connTrackKeyToSbe(key: ConnTrackKeyT,
-                          conntrack: FlowStateSbe.Conntrack): Unit = {
+                          conntrack: FlowStateEncoder.ConntrackEncoder): Unit = {
         uuidToSbe(key.deviceId, conntrack.device)
         ipToSbe(key.networkSrc, conntrack.srcIp)
         ipToSbe(key.networkDst, conntrack.dstIp)
@@ -183,7 +183,7 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
         conntrack.dstIpType(ipSbeType(key.networkDst))
     }
 
-    def natKeyFromSbe(nat: Nat,
+    def natKeyFromSbe(nat: FlowStateDecoder.NatDecoder,
                       allocator: NatKeyAllocator[NatKeyT])
     : NatKeyT = {
         allocator(natKeyTypeFromSbe(nat.keyType),
@@ -194,13 +194,13 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
                   uuidFromSbe(nat.keyDevice))
     }
 
-    def natBindingFromSbe(nat: FlowStateSbe.Nat): NatBinding =
+    def natBindingFromSbe(nat: FlowStateDecoder.NatDecoder): NatBinding =
         NatBinding(
             ipFromSbe(nat.valueIpType, nat.valueIp).asInstanceOf[IPv4Addr],
             nat.valuePort)
 
     def natToSbe(key: NatKeyT, value: NatBinding,
-                 nat: FlowStateSbe.Nat): Unit = {
+                 nat: FlowStateEncoder.NatEncoder): Unit = {
         uuidToSbe(key.deviceId, nat.keyDevice)
         ipToSbe(key.networkSrc, nat.keySrcIp)
         ipToSbe(key.networkDst, nat.keyDstIp)
@@ -215,7 +215,7 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
         nat.keyType(natKeySbeType(key.keyType))
     }
 
-    def traceFromSbe(trace: Trace,
+    def traceFromSbe(trace: FlowStateDecoder.TraceDecoder,
                      allocator: TraceKeyAllocator[TraceKeyT])
     : TraceKeyT = {
         allocator(macFromSbe(trace.srcMac),
@@ -228,7 +228,7 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
     }
 
     def traceToSbe(flowTraceId: UUID, key: TraceKeyT,
-                   trace: FlowStateSbe.Trace): Unit = {
+                   trace: FlowStateEncoder.TraceEncoder): Unit = {
         uuidToSbe(flowTraceId, trace.flowTraceId)
         ipToSbe(key.networkSrc, trace.srcIp)
         ipToSbe(key.networkDst, trace.dstIp)
@@ -264,7 +264,7 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
         }
     }
 
-    def toString(msg: FlowStateSbe,
+    def toString(msg: FlowStateDecoder,
                  connTrackAllocator: ConnTrackKeyAllocator[ConnTrackKeyT],
                  natAllocator: NatKeyAllocator[NatKeyT]): String = {
         val result = new StringBuilder("FlowStateMessage[")
@@ -309,36 +309,43 @@ object FlowStateStorePackets
     extends FlowStatePackets[ConnTrackKeyStore, NatKeyStore, TraceKeyStore]
 
 class SbeEncoder {
-    val flowStateHeader = new MessageHeader
-    val flowStateMessage = new FlowStateSbe
-    val flowStateBuffer = new DirectBuffer(new Array[Byte](0))
+    val flowStateHeaderEncoder = new MessageHeaderEncoder
+    val flowStateMessageEncoder = new FlowStateEncoder
 
-    def encodeTo(bytes: Array[Byte]): FlowStateSbe = {
+    val flowStateHeaderDecoder = new MessageHeaderDecoder
+    val flowStateMessageDecoder = new FlowStateDecoder
+
+    val flowStateBuffer = new UnsafeBuffer(new Array[Byte](0))
+
+    def encodeTo(bytes: Array[Byte]): FlowStateEncoder = {
         flowStateBuffer.wrap(bytes)
-        flowStateHeader.wrap(flowStateBuffer, 0,
-                             FlowStateStorePackets.MessageHeaderVersion)
-            .blockLength(flowStateMessage.sbeBlockLength)
-            .templateId(flowStateMessage.sbeTemplateId)
-            .schemaId(flowStateMessage.sbeSchemaId)
-            .version(flowStateMessage.sbeSchemaVersion)
-        flowStateMessage.wrapForEncode(flowStateBuffer, flowStateHeader.size)
-        flowStateMessage
+        flowStateHeaderEncoder.wrap(flowStateBuffer,
+                                    FlowStateStorePackets.MessageHeaderVersion)
+            .blockLength(flowStateMessageEncoder.sbeBlockLength)
+            .templateId(flowStateMessageEncoder.sbeTemplateId)
+            .schemaId(flowStateMessageEncoder.sbeSchemaId)
+            .version(flowStateMessageEncoder.sbeSchemaVersion)
+        flowStateMessageEncoder.wrap(flowStateBuffer,
+                                     flowStateHeaderEncoder.encodedLength())
+        flowStateMessageEncoder
     }
 
-    def encodedLength(): Int = flowStateHeader.size + flowStateMessage.size
+    def encodedLength(): Int = flowStateHeaderDecoder.encodedLength() +
+                               flowStateMessageDecoder.encodedLength()
 
-    def decodeFrom(bytes: Array[Byte]): FlowStateSbe = {
+    def decodeFrom(bytes: Array[Byte]): FlowStateDecoder = {
         flowStateBuffer.wrap(bytes)
-        flowStateHeader.wrap(flowStateBuffer, 0,
-                             FlowStateStorePackets.MessageHeaderVersion)
-        val templateId = flowStateHeader.templateId
-        if (templateId != FlowStateSbe.TEMPLATE_ID) {
+        flowStateHeaderDecoder.wrap(flowStateBuffer,
+                                    FlowStateStorePackets.MessageHeaderVersion)
+        val templateId = flowStateHeaderDecoder.templateId
+        if (templateId != FlowStateDecoder.TEMPLATE_ID) {
             throw new IllegalArgumentException(
                 s"Invalid template id for flow state $templateId")
         }
-        flowStateMessage.wrapForDecode(flowStateBuffer, flowStateHeader.size,
-                                       flowStateHeader.blockLength,
-                                       flowStateHeader.version)
-        flowStateMessage
+        flowStateMessageDecoder.wrap(flowStateBuffer,
+                                     flowStateHeaderDecoder.encodedLength(),
+                                     flowStateHeaderDecoder.blockLength,
+                                     flowStateHeaderDecoder.version)
+        flowStateMessageDecoder
     }
 }
