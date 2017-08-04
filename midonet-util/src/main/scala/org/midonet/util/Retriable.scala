@@ -75,7 +75,7 @@ trait ImmediateRetriable extends Retriable {
     protected abstract override def handleRetry[T](e: Throwable, retries: Int,
                                                    log: Logger, message: String)
     : Unit = {
-        log debug s"$message failed. Remaining retries: ${retries - 1}"
+        log debug s"$message failed (${e.getMessage}). Remaining retries: ${retries - 1}"
         super.handleRetry(e, retries, log, message)
     }
 }
@@ -88,7 +88,7 @@ trait AwaitRetriable extends Retriable {
     protected abstract override def handleRetry[T](e: Throwable, retries: Int,
                                                    log: Logger, message: String)
     : Unit = {
-        log debug s"$message failed. Remaining retries: ${retries - 1}. " +
+        log debug s"$message failed (${e.getMessage}). Remaining retries: ${retries - 1}. " +
                   s"Retrying in ${interval toMillis} ms."
         super.handleRetry(e, retries, log, message)
         await(interval toMillis)
@@ -110,7 +110,7 @@ trait ExponentialBackoffRetriable extends Retriable {
                                                    log: Logger, message: String)
     : Unit = {
         val backoff = Random.nextInt(backoffTime(maxRetries - retries))
-        log debug s"$message failed. Remaining attempts: ${retries -1}. " +
+        log debug s"$message failed (${e.getMessage}). Remaining attempts: ${retries -1}. " +
                   s"Retrying in $backoff ms."
         super.handleRetry(e, retries, log, message)
         await(backoff)
