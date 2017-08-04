@@ -25,7 +25,7 @@ import java.util.UUID
 import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
-import uk.co.real_logic.sbe.codec.java.DirectBuffer
+import org.agrona.concurrent.UnsafeBuffer
 
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr}
 
@@ -83,12 +83,12 @@ private object RuleLogEventBinaryDeserializer {
 class RuleLogEventBinaryDeserializer(path: String) {
     import RuleLogEventBinarySerialization._
 
-    protected val EventDecoder = new RuleLogEvent
+    protected val EventDecoder = new RuleLogEventDecoder
 
     private val inFile = new RandomAccessFile(path, "r")
     private val inChannel = inFile.getChannel
     private val byteBuf = inChannel.map(READ_ONLY, 0, inChannel.size)
-    private val directBuf = new DirectBuffer(byteBuf)
+    private val directBuf = new UnsafeBuffer(byteBuf)
 
     private val metadataBuf = new Array[Byte](8192)
     private val ipBuffer = new Array[Byte](16)
@@ -106,36 +106,35 @@ class RuleLogEventBinaryDeserializer(path: String) {
     case class FileHeader(templateId: Int, schemaId: Int,
                           version: Int, blockLength: Int)
     private def readHeader(): FileHeader = {
-        val h = new MessageHeader
-        if (inFile.length() < h.size()) {
+        val h = new MessageHeaderDecoder
+        if (inFile.length() < h.encodedLength()) {
             throw new IllegalArgumentException(
                 s"File $path is not a valid binary log file.")
         }
 
-        h.wrap(directBuf, 0, MessageTemplateVersion)
+        h.wrap(directBuf, 0)
 
         val templateId = h.templateId
-        if (templateId != RuleLogEvent.TEMPLATE_ID) {
+        if (templateId != RuleLogEventDecoder.TEMPLATE_ID) {
             throw new IllegalArgumentException(
                 s"Template ID is $templateId, should be " +
-                s"${RuleLogEvent.TEMPLATE_ID}.")
+                s"${RuleLogEventDecoder.TEMPLATE_ID}.")
         }
 
         val schemaId = h.schemaId
-        if (h.schemaId != RuleLogEvent.SCHEMA_ID) {
+        if (h.schemaId != RuleLogEventDecoder.SCHEMA_ID) {
             throw new IllegalArgumentException(
-                s"Schema ID is $schemaId, should be ${RuleLogEvent.SCHEMA_ID}.")
+                s"Schema ID is $schemaId, should be ${RuleLogEventDecoder.SCHEMA_ID}.")
         }
 
-        pos += h.size
+        pos += h.encodedLength()
 
         FileHeader(templateId, h.schemaId,
                    h.version, h.blockLength)
     }
 
     def next(): DeserializedRuleLogEvent = try {
-        EventDecoder.wrapForDecode(directBuf, pos, header.blockLength,
-                                   header.version)
+        EventDecoder.wrap(directBuf, pos, header.blockLength, header.version)
         val srcIpLen = EventDecoder.getSrcIp(ipBuffer, 0, 16)
         val srcIp = parseIp(srcIpLen)
         val dstIpLen = EventDecoder.getDstIp(ipBuffer, 0, 16)

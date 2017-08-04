@@ -208,7 +208,7 @@ class FlowStateReadHandler(context: Context)
         var outstandingBytes = 0
         var next = reader.read()
         while (next.isDefined) {
-            val sbeRaw = next.get.flowStateBuffer.array()
+            val sbeRaw = next.get.flowStateBuffer.byteArray()
             val f = writeAndFlushWithHeader(ctx, sbeRaw)
             outstandingBytes += sbeRaw.length
 

@@ -16,14 +16,14 @@
 package org.midonet.cluster.flowhistory
 
 import java.nio.ByteBuffer
-import java.util.{ArrayList, List => JList, UUID}
+import java.util.{ArrayList, UUID, List => JList}
 
-import Actions._
-import uk.co.real_logic.sbe.codec.java._
+import org.agrona.concurrent.UnsafeBuffer
 
-import org.midonet.cluster.flowhistory.proto.{SimulationResult => SbeSimResult,
-                                              DeviceType => SbeDeviceType,
-                                              RuleResult => SbeRuleResult, _}
+import org.midonet.cluster.flowhistory.Actions._
+import org.midonet.cluster.flowhistory.proto.{DeviceType => SbeDeviceType,
+                                              RuleResult => SbeRuleResult,
+                                              SimulationResult => SbeSimResult, _}
 import org.midonet.packets.{IPv4Addr, IPv6Addr}
 
 object BinarySerialization {
@@ -33,35 +33,34 @@ object BinarySerialization {
 }
 
 class BinarySerialization {
-    val MESSAGE_HEADER = new MessageHeader
-    val FLOW_SUMMARY = new FlowSummary
+    val MESSAGE_HEADER = new MessageHeaderDecoder
+    val FLOW_SUMMARY = new FlowSummaryDecoder
 
     val MAC_DECODE_ARRAY = new Array[Byte](
-        FlowSummary.flowMatchEthernetSrcLength)
+        FlowSummaryDecoder.flowMatchEthernetSrcLength)
     val IP_DECODE_ARRAY = new Array[Long](
-        FlowSummary.flowMatchNetworkSrcLength)
+        FlowSummaryDecoder.flowMatchNetworkSrcLength)
 
     val buffer = ByteBuffer.allocateDirect(BinarySerialization.BufferSize)
-    val directBuffer = new DirectBuffer(buffer)
+    val directBuffer = new UnsafeBuffer(buffer)
 
     val actionsBytes = new Array[Byte](BinarySerialization.ActionsBufferSize)
     val actionsBuffer = ByteBuffer.wrap(actionsBytes)
 
     def bufferToFlowRecord(buffer: Array[Byte]): FlowRecord = {
-        val directBuffer = new DirectBuffer(buffer)
-        MESSAGE_HEADER.wrap(directBuffer, 0,
-                            BinarySerialization.MessageTemplateVersion)
+        val directBuffer = new UnsafeBuffer(buffer)
+        MESSAGE_HEADER.wrap(directBuffer, 0)
         val templateId = MESSAGE_HEADER.templateId()
-        if (templateId != FlowSummary.TEMPLATE_ID) {
+        if (templateId != FlowSummaryDecoder.TEMPLATE_ID) {
             throw new IllegalArgumentException(
-                s"TemplateId $templateId should be ${FlowSummary.TEMPLATE_ID}")
+                s"TemplateId $templateId should be ${FlowSummaryDecoder.TEMPLATE_ID}")
         }
 
         val actingBlockLength = MESSAGE_HEADER.blockLength()
         val schemaId = MESSAGE_HEADER.schemaId()
         val actingVersion = MESSAGE_HEADER.version()
-        FLOW_SUMMARY.wrapForDecode(directBuffer, MESSAGE_HEADER.size,
-                                   actingBlockLength, actingVersion)
+        FLOW_SUMMARY.wrap(directBuffer, MESSAGE_HEADER.encodedLength(),
+                          actingBlockLength, actingVersion)
 
         val simResult = FLOW_SUMMARY.simResult match {
             case SbeSimResult.NoOp => SimulationResult.NOOP
@@ -172,7 +171,7 @@ class BinarySerialization {
 
     private def decodeMAC(getByte: (Int) => Byte): Array[Byte] = {
         var i = 0
-        val data = new Array[Byte](FlowSummary.flowMatchEthernetSrcLength)
+        val data = new Array[Byte](FlowSummaryDecoder.flowMatchEthernetSrcLength)
         while (i < MAC_DECODE_ARRAY.length) {
             data(i) = getByte(i)
             i += 1
