@@ -38,7 +38,7 @@ class FlowStateAggregator {
     val weakNat = new JHashMap[NatKey, NatBinding]()
 
     def push(sbe: SbeEncoder): Unit = {
-        val message = sbe.flowStateMessage
+        val message = sbe.flowStateMessageDecoder
 
         val connTrackIter = message.conntrack()
         while (connTrackIter.hasNext) {

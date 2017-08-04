@@ -171,7 +171,7 @@ class FlowStateWriteHandler(context: Context,
             case Some(legacyStorage) =>
                 val encoder = contextProvider.get.encoder
                 encoder.decodeFrom(buffer.array)
-                val msg = encoder.flowStateMessage
+                val msg = encoder.flowStateMessageDecoder
                 val conntrackKeys = MutableList.empty[ConnTrackKeyStore]
                 val conntrackIter = msg.conntrack()
                 while (conntrackIter.hasNext) {
@@ -228,7 +228,7 @@ class FlowStateWriteHandler(context: Context,
     protected[flowstate] def writeInLocalStorage(buffer: ByteBuffer): Boolean = {
         val encoder = contextProvider.get.encoder
         encoder.decodeFrom(buffer.array)
-        val msg = encoder.flowStateMessage
+        val msg = encoder.flowStateMessageDecoder
         // Bypass all blocks in the message until portIds
         val conntrackIter = msg.conntrack()
         while (conntrackIter.hasNext) conntrackIter.next()
