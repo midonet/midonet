@@ -19,6 +19,8 @@ package org.midonet.midolman.monitoring
 import java.nio.ByteBuffer
 import java.util.{ArrayList, List, UUID}
 
+import org.agrona.concurrent.UnsafeBuffer
+
 import uk.co.real_logic.sbe.codec.java._
 
 import org.midonet.cluster.flowhistory.{ActionEncoder, BinarySerialization}
@@ -34,10 +36,10 @@ import org.midonet.sdn.flows.FlowTagger._
 
 class BinaryFlowRecorder(val hostId: UUID, flowSenderWorker: FlowSenderWorker)
         extends AbstractFlowRecorder(flowSenderWorker) {
-    val MESSAGE_HEADER = new MessageHeader
-    val FLOW_SUMMARY = new FlowSummary
+    val MESSAGE_HEADER = new MessageHeaderEncoder
+    val FLOW_SUMMARY = new FlowSummaryEncoder
     val buffer = ByteBuffer.allocateDirect(BinarySerialization.BufferSize)
-    val directBuffer = new DirectBuffer(buffer)
+    val directBuffer = new UnsafeBuffer(buffer)
 
     val actionsBytes = new Array[Byte](BinarySerialization.ActionsBufferSize)
     val actionsBuffer = ByteBuffer.wrap(actionsBytes)
@@ -49,15 +51,14 @@ class BinaryFlowRecorder(val hostId: UUID, flowSenderWorker: FlowSenderWorker)
                               simRes: SimulationResult): ByteBuffer = {
         buffer.clear
         var bufferOffset = 0
-        MESSAGE_HEADER.wrap(directBuffer, 0,
-                            BinarySerialization.MessageTemplateVersion)
+        MESSAGE_HEADER.wrap(directBuffer, 0)
             .blockLength(FLOW_SUMMARY.sbeBlockLength)
             .templateId(FLOW_SUMMARY.sbeTemplateId)
             .schemaId(FLOW_SUMMARY.sbeSchemaId)
             .version(FLOW_SUMMARY.sbeSchemaVersion)
-        bufferOffset += MESSAGE_HEADER.size
+        bufferOffset += MESSAGE_HEADER.encodedLength()
 
-        FLOW_SUMMARY.wrapForEncode(directBuffer, bufferOffset)
+        FLOW_SUMMARY.wrap(directBuffer, bufferOffset)
 
         encodeSimpleValues(pktContext, simRes)
         encodeIcmpData(pktContext)
@@ -69,7 +70,7 @@ class BinaryFlowRecorder(val hostId: UUID, flowSenderWorker: FlowSenderWorker)
         actionsBuffer.clear()
         encodeFlowActions(pktContext.flowActions)(actionsBuffer)
 
-        buffer.limit(MESSAGE_HEADER.size + FLOW_SUMMARY.size)
+        buffer.limit(MESSAGE_HEADER.encodedLength + FLOW_SUMMARY.encodedLength)
         buffer
     }
 
@@ -148,7 +149,7 @@ class BinaryFlowRecorder(val hostId: UUID, flowSenderWorker: FlowSenderWorker)
     }
 
     private def encodeIP(address: IPAddr,
-                         typeSetter: InetAddrType => FlowSummary,
+                         typeSetter: InetAddrType => FlowSummaryEncoder,
                          setter: (Int, Long) => Unit): Unit = {
         if (address != null) {
             address match {

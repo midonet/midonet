@@ -79,10 +79,10 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
     private def assertEqualMessages(readEncoder: SbeEncoder,
                                     writeEncoder: SbeEncoder) = {
         val writeBuff = ByteBuffer
-            .wrap(writeEncoder.flowStateBuffer.array(),
-                  0, writeEncoder.encodedLength())
-        val readBuff = ByteBuffer.wrap(readEncoder.flowStateBuffer.array(),
-                                       0, readEncoder.encodedLength())
+            .wrap(writeEncoder.flowStateBuffer.byteArray(),
+                  0, writeEncoder.decodedLength())
+        val readBuff = ByteBuffer.wrap(readEncoder.flowStateBuffer.byteArray(),
+                                       0, readEncoder.decodedLength())
         readBuff.clear()
         writeBuff shouldBe readBuff
     }
