@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman
 
-import java.util.{LinkedList, List => JList, UUID}
+import java.util.{LinkedList, UUID, List => JList}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Future, Promise}
@@ -23,18 +23,18 @@ import scala.concurrent.{Future, Promise}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.flowstate.proto.FlowState
+import org.midonet.cluster.flowstate.proto.FlowStateDecoder
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.simulation.{Bridge, PacketContext, Simulator}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets, HappyGoLuckyLeaser, TraceState}
+import org.midonet.midolman.state.{HappyGoLuckyLeaser, FlowStateAgentPackets => FlowStatePackets}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.odp.{FlowMatches, Packet}
+import org.midonet.packets.TunnelKeys.TraceBit
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, IPv4Addr, SbeEncoder}
-import org.midonet.packets.TunnelKeys.TraceBit
 import org.midonet.sdn.state.{FlowStateTransaction, OnHeapShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
@@ -384,7 +384,7 @@ class FlowTracingTest extends MidolmanSpec {
             statePacketsSent.size shouldBe 2
 
             val encoder = new SbeEncoder
-            def parse(p: Ethernet): FlowState = {
+            def parse(p: Ethernet): FlowStateDecoder = {
                 encoder.decodeFrom(FlowStatePackets.parseDatagram(p).getData)
             }
 
