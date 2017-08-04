@@ -80,7 +80,7 @@ protected[flowstate] class FlowStateWriterImpl(val config: FlowStateConfig,
         val msgSize = encoder.encodedLength()
         buff.clear()
         buff.putInt(msgSize)
-        buff.put(encoder.flowStateBuffer.array(), 0, msgSize)
+        buff.put(encoder.flowStateBuffer.byteArray(), 0, msgSize)
         out.write(buff.array(), 0, LengthSize + msgSize)
     }
 
