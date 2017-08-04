@@ -19,8 +19,6 @@ package org.midonet.midolman
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.Future
-
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 import org.openjdk.jmh.infra.Blackhole
 
@@ -30,15 +28,14 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.state.ConnTrackState._
+import org.midonet.midolman.state.FlowStateReplicator
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{FlowStateReplicator, MockStateStorage}
 import org.midonet.odp.flows.FlowActionOutput
-import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.sdn.state.{FlowStateTransaction, OnHeapShardedFlowStateTable => ShardedFlowStateTable}
 
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -102,7 +99,8 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
                                              peerResolver,
                                              underlayResolver,
                                              mockFlowInvalidation,
-                                             MidolmanConfig.forTests)
+                                             MidolmanConfig.forTests,
+                                             new CallbackRegistryImpl)
         packetContext = packetContextFor(packet, leftPortId)
     }
 
