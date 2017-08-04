@@ -172,27 +172,27 @@ trait FlowStateBaseTest extends FeatureSpec
 
         // Encode keys
         val c = flowStateMessage.conntrackCount(numConntracks)
-        while (c.hasNext) {
+        (0 until numConntracks) foreach { _ =>
             val conntrackKey = randomConnTrackKey
             conntrackKeys += conntrackKey
             connTrackKeyToSbe(conntrackKey, c.next)
         }
 
         val n = flowStateMessage.natCount(numNats)
-        while (n.hasNext) {
+        (0 until numNats) foreach  { _ =>
             val (natKey, natBinding) = (randomNatKey, randomNatBinding)
             natKeys += ((natKey, natBinding))
             natToSbe(natKey, natBinding, n.next)
         }
 
         val t = flowStateMessage.traceCount(numTraces)
-        while (t.hasNext) {
+        (0 until numTraces) foreach  { _ =>
             val (traceId, traceKey) = randomTraceKey
             traceToSbe(traceId, traceKey, t.next)
         }
 
         val r = flowStateMessage.traceRequestIdsCount(numTraces)
-        while (r.hasNext) {
+        (0 until numTraces) foreach  { _ =>
             uuidToSbe(UUID.randomUUID, r.next().id)
         }
 
@@ -212,7 +212,7 @@ trait FlowStateBaseTest extends FeatureSpec
 
         udpBuffer.putInt(FlowStateInternalMessageType.FlowStateMessage)
         udpBuffer.putInt(encoder.encodedLength())
-        udpBuffer.put(encoder.flowStateBuffer.array, 0, encoder.encodedLength())
+        udpBuffer.put(encoder.flowStateBuffer.byteArray(), 0, encoder.encodedLength())
         udpBuffer.flip()
 
         val udp = new DatagramPacket(
@@ -220,6 +220,8 @@ trait FlowStateBaseTest extends FeatureSpec
             new InetSocketAddress(port))
 
         val protos = FlowStateProtos(ingressPort, egressPorts, conntrackKeys, natKeys)
+
+        encoder.decodeFrom(encoder.flowStateBuffer.byteArray())
 
         (udp, protos, encoder)
     }

@@ -27,7 +27,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
+import org.midonet.cluster.flowstate.proto._
 import org.midonet.midolman.CallbackRegistry
 import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback}
 import org.midonet.midolman.FlowController
@@ -147,9 +147,9 @@ class FlowStateReplicator(
     }
 
     private val _conntrackEncoder = new Reducer[ConnTrackKey, ConnTrackValue,
-                                                FlowStateSbe.Conntrack] {
-        override def apply(conntrack: FlowStateSbe.Conntrack, k: ConnTrackKey,
-                           v: ConnTrackValue): FlowStateSbe.Conntrack = {
+                                                FlowStateEncoder.ConntrackEncoder] {
+        override def apply(conntrack: FlowStateEncoder.ConntrackEncoder, k: ConnTrackKey,
+                           v: ConnTrackValue): FlowStateEncoder.ConntrackEncoder = {
             log.debug("push conntrack key: {}", k)
             connTrackKeyToSbe(k, conntrack.next())
             conntrack
@@ -175,9 +175,9 @@ class FlowStateReplicator(
         }
     }
 
-    private val _natEncoder = new Reducer[NatKey, NatBinding, FlowStateSbe.Nat] {
-        override def apply(nat: FlowStateSbe.Nat, k: NatKey,
-                           v: NatBinding): FlowStateSbe.Nat = {
+    private val _natEncoder = new Reducer[NatKey, NatBinding, FlowStateEncoder.NatEncoder] {
+        override def apply(nat: FlowStateEncoder.NatEncoder, k: NatKey,
+                           v: NatBinding): FlowStateEncoder.NatEncoder = {
             if (v != null) {
                 log.debug("push nat key: {}", k)
                 natToSbe(k, v, nat.next())
@@ -186,7 +186,7 @@ class FlowStateReplicator(
         }
     }
 
-    private def addTraceState(flowStateMessage: FlowStateSbe,
+    private def addTraceState(flowStateMessage: FlowStateEncoder,
                               k: TraceKey, ctx: TraceContext): Unit = {
         log.debug("push trace key: {}", k)
         val trace = flowStateMessage.traceCount(1)
@@ -311,7 +311,7 @@ class FlowStateReplicator(
     }
 
     private def acceptNewState(encoder: SbeEncoder) {
-        val msg = encoder.flowStateMessage
+        val msg = encoder.flowStateMessageDecoder
         val sender = uuidFromSbe(msg.sender)
         log.debug("Got state replication message from: {}", sender)
 
@@ -370,8 +370,8 @@ class FlowStateReplicator(
             }
 
             if (localPushState) {
-                sendState(encoder.flowStateBuffer.array,
-                          encoder.encodedLength())
+                sendState(encoder.flowStateBuffer.byteArray(),
+                          encoder.decodedLength())
             }
         } catch {
             case NonFatal(e) =>

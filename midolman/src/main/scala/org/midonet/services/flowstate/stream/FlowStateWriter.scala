@@ -77,10 +77,10 @@ protected[flowstate] class FlowStateWriterImpl(val config: FlowStateConfig,
                             FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
 
     def write(encoder: SbeEncoder): Unit = {
-        val msgSize = encoder.encodedLength()
+        val msgSize = encoder.decodedLength()
         buff.clear()
         buff.putInt(msgSize)
-        buff.put(encoder.flowStateBuffer.array(), 0, msgSize)
+        buff.put(encoder.flowStateBuffer.byteArray(), 0, msgSize)
         out.write(buff.array(), 0, LengthSize + msgSize)
     }
 

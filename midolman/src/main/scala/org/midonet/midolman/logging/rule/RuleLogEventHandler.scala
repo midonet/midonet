@@ -25,10 +25,10 @@ import scala.util.control.NonFatal
 
 import com.lmax.disruptor.{EventHandler, ExceptionHandler, LifecycleAware}
 
-import uk.co.real_logic.sbe.codec.java.DirectBuffer
+import org.agrona.concurrent.UnsafeBuffer
 
 import org.midonet.logging.rule.RuleLogEventBinarySerialization._
-import org.midonet.logging.rule.{MessageHeader, RuleLogEvent => RuleLogEventEncoder}
+import org.midonet.logging.rule.{MessageHeaderEncoder, RuleLogEventEncoder}
 import org.midonet.midolman.config.RuleLoggingConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.logging.rule.DisruptorRuleLogEventChannel.RuleLogEvent
@@ -42,10 +42,10 @@ abstract class RuleLogEventHandler extends EventHandler[RuleLogEvent]
                                            with MidolmanLogging
                                            with ExceptionHandler {
 
-    protected val headerEncoder = new MessageHeader
+    protected val headerEncoder = new MessageHeaderEncoder
     protected val eventEncoder = new RuleLogEventEncoder
 
-    private val eventBuffer = new DirectBuffer(new Array[Byte](BufferSize))
+    private val eventBuffer = new UnsafeBuffer(new Array[Byte](BufferSize))
     private val ipBuffer = ByteBuffer.allocate(16)
 
     protected var os: OutputStream = null
@@ -73,7 +73,7 @@ abstract class RuleLogEventHandler extends EventHandler[RuleLogEvent]
             return
         }
 
-        eventEncoder.wrapForEncode(eventBuffer, 0)
+        eventEncoder.wrap(eventBuffer, 0)
             .srcPort(event.srcPort)
             .dstPort(event.dstPort)
             .nwProto(event.nwProto)
@@ -96,7 +96,7 @@ abstract class RuleLogEventHandler extends EventHandler[RuleLogEvent]
 
         eventEncoder.putMetadata(chain.metadata, 0, chain.metadata.length)
 
-        os.write(eventBuffer.array, 0, eventEncoder.limit)
+        os.write(eventBuffer.byteArray, 0, eventEncoder.limit)
 
         // Flush on every statement when debug is enabled.
         if (log.underlying.isDebugEnabled)
@@ -194,13 +194,13 @@ class FileRuleLogEventHandler(config: RuleLoggingConfig,
     }
 
     private val header: Array[Byte] = {
-        val buf = new DirectBuffer(new Array[Byte](headerEncoder.size))
-        headerEncoder.wrap(buf, 0, MessageTemplateVersion)
+        val buf = new UnsafeBuffer(new Array[Byte](headerEncoder.encodedLength()))
+        headerEncoder.wrap(buf, 0)
             .blockLength(eventEncoder.sbeBlockLength())
             .templateId(eventEncoder.sbeTemplateId())
             .schemaId(eventEncoder.sbeSchemaId())
             .version(eventEncoder.sbeSchemaVersion())
-        buf.array()
+        buf.byteArray()
     }
 
     override def flush(): Unit = {
