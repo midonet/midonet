@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright 2017 Midokura SARL
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                   package="org.midonet.cluster.topology.snapshot"
+                   id="1"
+                   version="1"
+                   semanticVersion="5.6"
+                   description="Topology snapshot"
+                   byteOrder="littleEndian">
+
+    <types>
+        <composite name="messageHeader"
+                   description="Message identifiers and length of message root">
+            <type name="totalLength" primitiveType="uint16"/>
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="templateId" primitiveType="uint16"/>
+            <type name="schemaId" primitiveType="uint16"/>
+            <type name="version" primitiveType="uint16"/>
+        </composite>
+        <composite name="groupSizeEncoding" description="Repeating group dimensions">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="numInGroup" primitiveType="uint16"/>
+        </composite>
+        <composite name="stringEncoding">
+            <type name="length" primitiveType="uint16" maxValue="16384"/>
+            <type name="varData" primitiveType="uint8" length="0" characterEncoding="UTF-8"/>
+        </composite>
+        <composite name="byteArrayEncoding">
+            <type name="length" primitiveType="uint16" maxValue="16384"/>
+            <type name="varData" primitiveType="uint8" length="0"/>
+        </composite>
+        <type name="UUID" primitiveType="uint64" length="2" />
+        <enum name="topologyStateType" encodingType="uint8">
+            <validValue name="SINGLE">0</validValue>
+            <validValue name="MULTI">1</validValue>
+        </enum>
+    </types>
+
+    <sbe:message name="topologySnapshot" id="1">
+        <group name="objectClasses" id="1">
+            <group name="objects" id="2">
+                <field name="uuid" id="3" type="UUID"/>
+                <data name="objectData" id="4" type="byteArrayEncoding"/>
+            </group>
+            <data name="objectClass" id="5" type="stringEncoding"/>
+        </group>
+        <group name="stateClasses" id="6">
+            <group name="states" id="7">
+                <field name="uuid" id="8" type="UUID"/>
+                <field name="owner" id="9" type="UUID"/>
+                <field name="stateType" id="10" type="topologyStateType"/>
+                <group name="multiValue" id="11">
+                    <data name="multiValueEntry" id="12" type="stringEncoding"/>
+                </group>
+                <data name="stateKey" id="13" type="stringEncoding"/>
+                <data name="singleValue" id="14" type="byteArrayEncoding"/>
+            </group>
+            <data name="objectClass" id="15" type="stringEncoding"/>
+        </group>
+    </sbe:message>
+</sbe:messageSchema>
