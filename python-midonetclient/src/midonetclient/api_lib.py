@@ -40,6 +40,7 @@ def is_http_error(status):
 
 def from_json(content):
     """try to deserialize json string if not empty or else return raw input"""
+    content = content.decode()
     try:
         if content:
             return json.loads(content)

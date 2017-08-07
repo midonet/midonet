@@ -56,7 +56,8 @@ class Auth(object):
 
         if _sem.acquire(blocking=False):
             try:
-                auth = base64.b64encode(self.username + ':' + self.password)
+                auth = base64.b64encode(
+                    (self.username + ':' + self.password).encode()).decode()
                 headers = {'Authorization': 'Basic ' + auth}
 
                 if self.project_id is not None:

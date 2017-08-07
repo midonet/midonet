@@ -19,7 +19,6 @@
 from midonetclient import port_group_port
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
-from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
 
 
 class PortGroup(resource_base.ResourceBase):
@@ -58,7 +57,8 @@ class PortGroup(resource_base.ResourceBase):
         return self
 
     def get_ports(self, query=None):
-        headers = {'Accept': APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
+        headers = {'Accept':
+            vendor_media_type.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
         return self.get_children(self.dto['ports'], query, headers,
                                  port_group_port.PortGroupPort)
 
