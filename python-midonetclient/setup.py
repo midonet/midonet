@@ -45,6 +45,9 @@ def _git_revcount():
 
 
 def _version():
+    version = os.getenv("_PMC_VERSION_OVERRIDE")
+    if version is not None:
+        return version
     toplevel = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     regex = re.compile('\s*midonetVersion\s*=\s*"([^"]+)"')
     with open('/'.join([toplevel, 'build.gradle'])) as f:
@@ -59,7 +62,8 @@ def _version():
 
 
 def build_proto(proto_path, include_path, out_path):
-    protoc = spawn.find_executable('protoc')
+    protoc = spawn.find_executable(
+        os.getenv('PROTOC_EXECUTABLE', 'protoc'))
     if protoc is None:
         sys.stderr.write('Cannot find the protoc compiler in $PATH')
         sys.exit(1)
