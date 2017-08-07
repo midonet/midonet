@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "de0ced95_eba27b0c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-07T15:26:23Z",
+      "side": 1,
+      "message": "Do we need to import everything? (I would prefer avoiding the wildcard (_) )",
+      "range": {
+        "startLine": 35,
+        "startChar": 33,
+        "endLine": 35,
+        "endChar": 34
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "870a6eac_2e2b351a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-07T15:26:23Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 42,
+        "startChar": 34,
+        "endLine": 42,
+        "endChar": 35
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "39617580_223653d5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-07T15:26:23Z",
+      "side": 1,
+      "message": "Probably we could use \u0027val\u0027 here",
+      "range": {
+        "startLine": 93,
+        "startChar": 13,
+        "endLine": 93,
+        "endChar": 16
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e057e09e_8438354a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-07T15:26:23Z",
+      "side": 1,
+      "message": "Some?",
+      "range": {
+        "startLine": 93,
+        "startChar": 24,
+        "endLine": 93,
+        "endChar": 30
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "58f1e19c_51ddff6a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-07T15:26:23Z",
+      "side": 1,
+      "message": "val?",
+      "range": {
+        "startLine": 94,
+        "startChar": 13,
+        "endLine": 94,
+        "endChar": 16
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
