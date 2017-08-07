@@ -26,26 +26,22 @@ set -e
 
 ## Common args for rpm and deb
 FPM_BASE_ARGS=$(cat <<EOF
---name 'python-midonetclient' \
 --architecture 'noarch' \
 --license 'Apache License, Version 2.0' \
 --vendor 'MidoNet' \
 --maintainer "Midokura" \
---url 'http://midonet.org' \
---description 'Python client library for MidoNet API' \
--d 'python-webob' -d 'python-eventlet' -d 'python-httplib2' \
--s dir \
---before-remove package-hooks/before-remove.sh \
---after-install package-hooks/after-install.sh \
---after-upgrade package-hooks/after-upgrade.sh
+--url 'http://midonet.org'
 EOF
 )
+
+DESCRIPTION='Python client library for MidoNet API'
 
 function clean() {
     find . -name "*.pyc" -exec rm {} \;
     rm -f doc/*.{gz,.1}
     rm -rf build
     rm -f python-midonetclient*.deb
+    rm -f python3-midonetclient*.deb
     rm -f python-midonetclient*.rpm
     rm -f python-midonetclient*.tar
 }
@@ -84,14 +80,16 @@ function package_rpm() {
     eval fpm $FPM_BASE_ARGS $RPM_ARGS -t rpm .
 }
 
+function replace_package_name() {
+    for file in before-remove.sh after-install.sh after-upgrade.sh; do
+        sed -e "s/@PACKAGE_NAME@/$1/g" \
+            package-hooks/$file.in > package-hooks/$file
+    done
+}
+
 function package_deb() {
     DEB_BUILD_DIR=build/deb
-    mkdir -p  $DEB_BUILD_DIR/usr/lib/python2.7/dist-packages
-    mkdir -p  $DEB_BUILD_DIR/usr/bin/
     mkdir -p  $DEB_BUILD_DIR/usr/share/man/man1/
-
-    cp -r  src/midonetclient $DEB_BUILD_DIR/usr/lib/python2.7/dist-packages
-    cp src/bin/midonet-cli $DEB_BUILD_DIR/usr/bin/
     cp doc/*.gz $DEB_BUILD_DIR/usr/share/man/man1/
 
     DEB_ARGS="$DEB_ARGS -v $version"
@@ -99,7 +97,39 @@ function package_deb() {
     DEB_ARGS="$DEB_ARGS --epoch 2"
     DEB_ARGS="$DEB_ARGS --deb-priority optional"
 
-    eval fpm $FPM_BASE_ARGS $DEB_ARGS -t deb .
+    export PYTHONDONTWRITEBYTECODE=1
+    eval fpm $FPM_BASE_ARGS $DEB_ARGS \
+        --name python-midonetclient-doc \
+        --description \"$DESCRIPTION - doc\" \
+        -s dir -t deb .
+    replace_package_name python-midonetclient
+    eval fpm $FPM_BASE_ARGS $DEB_ARGS \
+        --name python-midonetclient \
+        --description \"$DESCRIPTION - Python 2.x\" \
+        -s python \
+        --python-package-name-prefix python \
+        --python-bin python2.7 \
+        --python-install-bin /usr/bin \
+        --python-install-lib /usr/lib/python2.7/dist-packages \
+        --before-remove package-hooks/before-remove.sh \
+        --after-install package-hooks/after-install.sh \
+        --after-upgrade package-hooks/after-upgrade.sh \
+        -t deb ./setup.py
+    if type python3.5 > /dev/null; then
+        replace_package_name python3-midonetclient
+        eval fpm $FPM_BASE_ARGS $DEB_ARGS \
+            --name python3-midonetclient \
+            --description \"$DESCRIPTION - Python 3.x\" \
+            -s python \
+            --python-package-name-prefix python3 \
+            --python-bin python3.5 \
+            --python-install-bin /usr/bin \
+            --python-install-lib /usr/lib/python3/dist-packages \
+            --before-remove package-hooks/before-remove.sh \
+            --after-install package-hooks/after-install.sh \
+            --after-upgrade package-hooks/after-upgrade.sh \
+            -t deb ./setup.py
+    fi
 }
 
 function package_tar() {
