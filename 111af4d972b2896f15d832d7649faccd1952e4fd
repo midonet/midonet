@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cfed80ee_46f2cbe0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-07T16:12:30Z",
+      "side": 1,
+      "message": "Do we have to set something in the headers to disable caching? (I saw some settings in HttpStaticFileServerHandler...)",
+      "range": {
+        "startLine": 62,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 20
+      },
+      "revId": "111af4d972b2896f15d832d7649faccd1952e4fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e551a2e8_adf60d06",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-07T16:12:30Z",
+      "side": 1,
+      "message": "Just curious... what is this for?\n(I\u0027ve seen it in other parts of the code, and apparently it was always false - even if the log was at DEBUG level...)",
+      "range": {
+        "startLine": 77,
+        "startChar": 16,
+        "endLine": 77,
+        "endChar": 30
+      },
+      "revId": "111af4d972b2896f15d832d7649faccd1952e4fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1715671a_90a386ba",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandlerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-07T16:12:30Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we have some actual ssl context here?",
+      "range": {
+        "startLine": 145,
+        "startChar": 57,
+        "endLine": 145,
+        "endChar": 61
+      },
+      "revId": "111af4d972b2896f15d832d7649faccd1952e4fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
