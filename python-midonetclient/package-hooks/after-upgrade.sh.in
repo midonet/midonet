@@ -1,16 +1,16 @@
 if command -v pyclean >/dev/null 2>&1; then
-    pyclean -p python-midonetclient
+    pyclean -p @PACKAGE_NAME@
 else
     PYFILES=""
     if [ -f /etc/debian_version ]; then
-        PYFILES=$(dpkg -L python-midonetclient | grep \.py$)
+        PYFILES=$(dpkg -L @PACKAGE_NAME@ | grep \.py$)
     elif [ -f /etc/redhat-release ]; then
-        PYFILES=$(rpm -ql python-midonetclient | grep \.py$)
+        PYFILES=$(rpm -ql @PACKAGE_NAME@ | grep \.py$)
     fi
     for file in $PYFILES; do
         rm -f "${file}"[co] >/dev/null
     done
 fi
 if command -v pycompile >/dev/null 2>&1; then
-    pycompile -p python-midonetclient
+    pycompile -p @PACKAGE_NAME@
 fi
