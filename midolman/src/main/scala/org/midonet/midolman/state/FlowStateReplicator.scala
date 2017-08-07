@@ -178,8 +178,10 @@ class FlowStateReplicator(
     private val _natEncoder = new Reducer[NatKey, NatBinding, FlowStateSbe.Nat] {
         override def apply(nat: FlowStateSbe.Nat, k: NatKey,
                            v: NatBinding): FlowStateSbe.Nat = {
-            log.debug("push nat key: {}", k)
-            natToSbe(k, v, nat.next())
+            if (v != null) {
+                log.debug("push nat key: {}", k)
+                natToSbe(k, v, nat.next())
+            }
             nat
         }
     }

@@ -18,11 +18,10 @@ package org.midonet.midolman.state
 
 import java.{util => ju}
 import java.util.UUID
-import java.util.concurrent.TimeUnit.{NANOSECONDS => NANOS, MILLISECONDS => MILLIS}
+import java.util.concurrent.TimeUnit.{MILLISECONDS => MILLIS, NANOSECONDS => NANOS}
 
 import scala.collection.mutable
 import scala.concurrent.Future
-
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -88,6 +87,12 @@ class NatLeaserExpirationTest extends MidolmanSpec {
     private val failSubnetPortMac: MAC = "03:32:61:43:ba:dd"
     private val failSubnetPortGatewayAddr = new IPv4Subnet("180.200.0.1", 24)
 
+    private val loopRouterPortMac: MAC = "43:53:16:b3:a3:33"
+    private val loopRouterPortAddr = new IPv4Subnet("180.30.0.1", 24)
+    private val loopUplinkPortMac: MAC = "43:53:16:b3:a3:44"
+    private val loopUplinkPortAddr = new IPv4Subnet("180.30.0.2", 24)
+    private val loopingIp = new IPv4Addr("3.3.3.3")
+
     private val snatAddressStart = IPv4Addr("180.0.1.200")
     private val snatAddressEnd = IPv4Addr("180.0.1.205")
 
@@ -143,13 +148,13 @@ class NatLeaserExpirationTest extends MidolmanSpec {
          *    bridge            |
          *                      |10.0.0.254
          *                 +----+----+
-         *      180.100.0.2| Router  |
-         *            +----+with SNAT|
-         * 180.100.0.1|    +-----+---+
-         *   +--------+-+        |180.0.1.2
-         *   |failRouter|        |
-         *   +--------+-+        |
-         * 180.200.0.2|          +180.0.1.1
+         *      180.100.0.2| Router  |180.30.0.2
+         *            +----+with SNAT+-------------+
+         * 180.100.0.1|    +-----+---+             |180.30.0.1
+         *   +--------+-+        |180.0.1.2    +---+------+
+         *   |failRouter|        |             |loopRouter|
+         *   +--------+-+        |             |with  SNAT|
+         * 180.200.0.2|          +180.0.1.1    +----------+
          *            |
          *            |
          *            +180.200.0.1
@@ -160,6 +165,8 @@ class NatLeaserExpirationTest extends MidolmanSpec {
          * 2.2.2.0/24 loops between both routers.
          * The port for 180.200.0.1 doesn't have its arp entry seeded,
          * so simulation will never complete.
+         * The loopRouter sends back all received traffic, after applying
+         * SNAT; Address 3.3.3.3 is routed to the loopRouter
          */
         var portIdCounter = 1
 
@@ -270,6 +277,8 @@ class NatLeaserExpirationTest extends MidolmanSpec {
         snatCond.nwDstIp = new IPv4Subnet(
                            IPv4Addr.fromString(vmNetworkIp.toUnicastString), 24)
         snatCond.nwDstInv = true
+        snatCond.nwProto = ICMP.PROTOCOL_NUMBER
+        snatCond.nwProtoInv = true
 
         val snatTarget = new NatTarget(snatAddressStart, snatAddressEnd,
                                        10001, 65535)
@@ -277,8 +286,57 @@ class NatLeaserExpirationTest extends MidolmanSpec {
                 RuleResult.Action.CONTINUE, Set(snatTarget), isDnat = false)
         snatRule should not be null
 
+        // Create a nat+loop router to emulate scenario for MI-2456
+
+        val loopRouter = newRouter("looper")
+        val loopRtrPort = newRouterPort(
+            loopRouter, loopRouterPortMac,
+            loopRouterPortAddr.toUnicastString,
+            loopRouterPortAddr.toNetworkAddress.toString,
+            loopRouterPortAddr.getPrefixLen)
+        val loopUplinkPort = newRouterPort(
+            router, loopUplinkPortMac,
+            loopUplinkPortAddr.toUnicastString,
+            loopUplinkPortAddr.toNetworkAddress.toString,
+            loopUplinkPortAddr.getPrefixLen)
+        linkPorts(loopRtrPort, loopUplinkPort)
+
+        // Routes for MI-2456
+
+        newRoute(router, "0.0.0.0", 0,
+                 loopUplinkPortAddr.toNetworkAddress.toString,
+                 loopUplinkPortAddr.getPrefixLen,
+                 NextHop.PORT, loopUplinkPort,
+                 new IPv4Addr(Route.NO_GATEWAY).toString, 1)
+        newRoute(router, "0.0.0.0", 0,
+                 loopingIp.toString, 32,
+                 NextHop.PORT, loopUplinkPort,
+                 new IPv4Addr(Route.NO_GATEWAY).toString, 10)
+        newRoute(loopRouter, "0.0.0.0", 0, "0.0.0.0", 0,
+                 NextHop.PORT, loopRtrPort,
+                 loopUplinkPortAddr.getAddress.toString, 10)
+
+        // Create NAT rules for MI-2456
+        val loopInChain  = newOutboundChainOnRouter("loopIntputChain", loopRouter)
+        val loopOutChain  = newOutboundChainOnRouter("loopOutputChain", loopRouter)
+
+        val revSnatLoopRule = newReverseNatRuleOnChain(
+            loopInChain, 1, new Condition(),
+            RuleResult.Action.CONTINUE, isDnat = false)
+        revSnatLoopRule should not be null
+
+        val snatLoopCond = new Condition()
+        snatLoopCond.outPortIds = new ju.HashSet[UUID]()
+        snatLoopCond.outPortIds.add(loopRtrPort)
+        val snatLoopTarget = new NatTarget(loopingIp, loopingIp, 1, 65535)
+        val snatLoopRule = newForwardNatRuleOnChain(
+            loopOutChain, 1, snatLoopCond, RuleResult.Action.CONTINUE,
+            Set(snatLoopTarget), isDnat = false)
+        snatLoopRule should not be null
+
         val simRouter: SimRouter = fetchDevice[SimRouter](router)
         val simBridge: SimBridge = fetchDevice[SimBridge](bridge)
+        val simLooper: SimRouter = fetchDevice[SimRouter](loopRouter)
 
         // feed the router arp cache with the uplink gateway's mac address
         feedArpTable(simRouter, uplinkGatewayAddr.addr, uplinkGatewayMac)
@@ -286,15 +344,22 @@ class NatLeaserExpirationTest extends MidolmanSpec {
         feedArpTable(simRouter, routerIp.getAddress.addr, routerMac)
         feedArpTable(simRouter, failUplinkGatewayAddr.getAddress.addr,
                      failUplinkGatewayMac)
+        feedArpTable(simRouter, loopRouterPortAddr.getAddress.addr, loopRouterPortMac)
+        feedArpTable(simRouter, loopUplinkPortAddr.getAddress.addr, loopUplinkPortMac)
+
+        feedArpTable(simLooper, loopRouterPortAddr.getAddress.addr, loopRouterPortMac)
+        feedArpTable(simLooper, loopUplinkPortAddr.getAddress.addr, loopUplinkPortMac)
 
         // feed the router's arp cache with each of the vm's addresses
         feedArpTable(simRouter, vmIp, vmMac)
         feedMacTable(simBridge, vmMac, vmPort)
 
         fetchDevice[SimRouter](failRouter)
+        fetchDevice[SimRouter](loopRouter)
         fetchPorts(rtrPort,  uplinkPort, failUplinkPort,
-                   failRtrPort, failSubnetPort, vmPort)
-        fetchChains(rtrInChain, rtrOutChain)
+                   failRtrPort, failSubnetPort, vmPort,
+                   loopRtrPort, loopUplinkPort)
+        fetchChains(rtrInChain, rtrOutChain, loopInChain, loopOutChain)
         pktWkfl = packetWorkflow(portMap, natTable = natTable,
                                  natLeaser = natLeaser)
         pktWkfl.process()
@@ -366,6 +431,32 @@ class NatLeaserExpirationTest extends MidolmanSpec {
 
             Then("a block should have been allocated")
             allocatedBlocks.size shouldBe 1
+
+            And("no keys committed")
+            fwdKeys().size should be (0)
+
+            When("the block expiration period passes")
+            clock.time = NatLeaser.BLOCK_EXPIRATION.toNanos + 1
+            pktWkfl.process() // obliterate expired blocks
+
+            Then("no nat binding is allocated")
+            fwdKeys().size should be (0)
+            allocatedBlocks.size shouldBe 0
+        }
+
+
+        scenario("after error drop with icmp (due to nat loop - MI-2456)") {
+            Given("a topology with SNAT")
+
+            pktWkfl.process()
+            allocatedBlocks.size shouldBe 0
+            pktWkfl.postponedContexts shouldBe 0
+
+            When("an icmp error packet is sent to a looping router")
+            injectUnreachableProto(vmPort, vmMac, vmIp, routerMac, loopingIp)
+
+            Then("a block should not have been allocated for icmp NAT")
+            allocatedBlocks.size shouldBe 0
 
             And("no keys committed")
             fwdKeys().size should be (0)
@@ -466,6 +557,18 @@ class NatLeaserExpirationTest extends MidolmanSpec {
             { ip4 src srcIp dst dstIp } <<
             { tcp src srcPort dst dstPort flags TCP.Flag.allOf(flagList) } <<
             payload("foobar")
+        inject(inPort, frame)
+        frame
+    }
+
+    def injectUnreachableProto(inPort: UUID, srcMac: MAC, srcIp: IPv4Addr,
+                               dstMac: MAC, dstIp: IPv4Addr): Ethernet = {
+
+        val failed = {ip4 src dstIp dst srcIp } <<
+                     { icmp echo }
+        val frame = { eth src srcMac dst dstMac } <<
+                    { ip4 src srcIp dst dstIp } <<
+                    { icmp.unreach.protocol culprit failed }
         inject(inPort, frame)
         frame
     }

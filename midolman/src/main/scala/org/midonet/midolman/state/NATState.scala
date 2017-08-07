@@ -166,7 +166,8 @@ object NatState {
 
     def releaseBinding(key: NatKey, binding: NatBinding, natLeaser: NatLeaser): Unit =
         if ((key.keyType eq FWD_SNAT) &&
-            key.networkProtocol != ICMP.PROTOCOL_NUMBER) {
+            key.networkProtocol != ICMP.PROTOCOL_NUMBER &&
+            binding != null) {
                 natLeaser.freeNatBinding(key.deviceId, key.networkDst,
                                          key.transportDst, binding)
         }
