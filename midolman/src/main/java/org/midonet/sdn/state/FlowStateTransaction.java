@@ -100,8 +100,11 @@ public class FlowStateTransaction<K, V> {
     public <U> U fold(U seed, Reducer<K, V, U> func) {
         for (int i = 0; i < keys.size(); i++)
             seed = func.apply(seed, keys.get(i), values.get(i));
-        for (int i = 0; i < refs.size(); i++)
-            seed = func.apply(seed, refs.get(i), parent.get(refs.get(i)));
+        for (int i = 0; i < refs.size(); i++) {
+            V value = parent.get(refs.get(i));
+            if (value != null)
+                seed = func.apply(seed, refs.get(i), value);
+        }
         return seed;
     }
 
