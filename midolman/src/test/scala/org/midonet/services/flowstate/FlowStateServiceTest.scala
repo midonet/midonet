@@ -234,7 +234,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             Given("A flow state message handler")
             val handler = new TestableWriteHandler(streamContext)
             And("A valid message")
-            val (datagram, protos, _) = validFlowStateInternalMessage(
+            val (datagram, protos, _, _) = validFlowStateInternalMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
                 numConntracks = 1, numNats = 1)
             val mockedLegacyStorage = handler.contextProvider.get.storage.get
@@ -260,7 +260,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             Given("A flow state handler")
             val handler = new TestableWriteHandler(streamContext)
             And("A message with trace keys")
-            val (datagram, protos, _) = validFlowStateInternalMessage(
+            val (datagram, protos, _, _) = validFlowStateInternalMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
                 numConntracks = 1, numNats = 1, numTraces = 1)
 
@@ -310,7 +310,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             Given("A flow state message handler")
             val handler = new TestableWriteHandler(streamContext)
             And("A message without keys")
-            val (datagram, protos, _) = validFlowStateInternalMessage(numIngressPorts = 0,
+            val (datagram, protos, _, _) = validFlowStateInternalMessage(numIngressPorts = 0,
                 numEgressPorts = 0,
                 numConntracks = 0,
                 numNats = 0)
@@ -337,7 +337,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
         scenario("Service handle calls to storage with > 1 keys") {
             Given("A flow state message handler and a message with > 1 keys")
             val handler = new TestableWriteHandler(streamContext)
-            val (datagram, protos, _) = validFlowStateInternalMessage(numConntracks = 2,
+            val (datagram, protos, _, _) = validFlowStateInternalMessage(numConntracks = 2,
                 numNats = 2)
             When("The message is handled")
             handler.channelRead0(null, datagram)
@@ -516,7 +516,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             val context = stream.Context(config.flowState,
                                          streamContext.ioManager)
             val handler = new TestableWriteHandler(context)
-            val (datagram, protos, _) = validFlowStateInternalMessage(
+            val (datagram, protos, _, _) = validFlowStateInternalMessage(
                 numConntracks = 1,
                 numNats = 2,
                 numIngressPorts = 1,
@@ -536,7 +536,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             val context = stream.Context(config.flowState,
                                          streamContext.ioManager)
             val handler = new TestableWriteHandler(context)
-            val (datagram, protos, _) = validFlowStateInternalMessage(
+            val (datagram, protos, _, _) = validFlowStateInternalMessage(
                 numConntracks = 1,
                 numNats = 2,
                 numIngressPorts = 1,
@@ -559,7 +559,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             val context = stream.Context(config.flowState,
                                          streamContext.ioManager)
             val handler = new TestableWriteHandler(context)
-            val (datagram, protos, _) = validFlowStateInternalMessage(
+            val (datagram, protos, _, _) = validFlowStateInternalMessage(
                 numConntracks = 1,
                 numNats = 2,
                 numIngressPorts = 1,

@@ -24,7 +24,7 @@ import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
 
-import org.midonet.packets.SbeEncoder
+import org.midonet.packets.SbeDecoder
 import org.midonet.services.FlowStateStreamLog
 import org.midonet.services.flowstate.stream.snappy.SnappyBlockReader
 import org.midonet.util.Clearable
@@ -67,9 +67,9 @@ trait FlowStateReader extends Clearable {
       * It decodes the message and returns the encoder used. The encoder already
       * contains the methods to read the contents of the message.
       *
-      * @return The [[SbeEncoder]] The encoder used to decode the message
+      * @return The [[SbeDecoder]] The encoder used to decode the message
       */
-    def read(): Option[SbeEncoder]
+    def read(): Option[SbeDecoder]
 
     /**
       * Repositions this stream to the initial position of the underlying
@@ -85,15 +85,15 @@ protected[flowstate] class FlowStateReaderImpl(var in: SnappyBlockReader)
     override def logSource = FlowStateStreamLog
     override def logMark = "FlowStateReader"
 
-    def read(): Option[SbeEncoder] = {
+    def read(): Option[SbeDecoder] = {
         try {
             val length = new Array[Byte](LengthSize)
             if (in.read(length) != -1) {
                 val buff = new Array[Byte](ByteBuffer.wrap(length).getInt)
                 in.read(buff)
-                val encoder = new SbeEncoder()
-                encoder.decodeFrom(buff)
-                Option(encoder)
+                val decoder = new SbeDecoder()
+                decoder.decodeFrom(buff)
+                Option(decoder)
             } else {
                 None // EOF as no more bytes were read from underlying stream
             }

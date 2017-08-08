@@ -31,7 +31,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.{Millis, Seconds, Span}
 
 import org.midonet.midolman.config.{FlowStateConfig, MidolmanConfig}
-import org.midonet.packets.SbeEncoder
+import org.midonet.packets.SbeDecoder
 import org.midonet.services.flowstate.stream.snappy.SnappyBlockWriter
 import org.midonet.services.flowstate.stream.{ByteBufferBlockReader, ByteBufferBlockWriter, _}
 import org.midonet.util.collection.RingBufferWithFactory
@@ -76,13 +76,13 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
         }
     }
 
-    private def assertEqualMessages(readEncoder: SbeEncoder,
-                                    writeEncoder: SbeEncoder) = {
+    private def assertEqualMessages(readDecoder: SbeDecoder,
+                                    writeDecoder: SbeDecoder) = {
         val writeBuff = ByteBuffer
-            .wrap(writeEncoder.flowStateBuffer.byteArray(),
-                  0, writeEncoder.encodedLength())
-        val readBuff = ByteBuffer.wrap(readEncoder.flowStateBuffer.byteArray(),
-                                       0, readEncoder.decodedLength())
+            .wrap(writeDecoder.flowStateBuffer.byteArray(),
+                  0, writeDecoder.decodedLength())
+        val readBuff = ByteBuffer.wrap(readDecoder.flowStateBuffer.byteArray(),
+                                       0, readDecoder.decodedLength())
         readBuff.clear()
         writeBuff shouldBe readBuff
     }
@@ -182,11 +182,11 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val buffers = outStream.out.out.buffers
 
             And("A message to store")
-            val writeEncoder = validFlowStateInternalMessage(numNats = 2,
+            val readDecoder = validFlowStateInternalMessage(numNats = 2,
                                                      numEgressPorts = 3)._3
 
             When("Writing to the stream")
-            outStream.write(writeEncoder)
+            outStream.write(readDecoder)
 
             Then("There's no buffer allocated yet.")
             buffers.length shouldBe 0
@@ -198,7 +198,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val position = buffers.head.get.limit()
             position should be > FlowStateBlock.headerSize
             position should
-            be < FlowStateBlock.headerSize + writeEncoder.encodedLength()
+            be < FlowStateBlock.headerSize + readDecoder.decodedLength()
         }
 
         scenario("Writing to a stream adds a buffer when current is full") {
@@ -208,9 +208,9 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
             When("Writing to the stream indefinitely")
             while (buffers.length < 2) {
-                val encoder =
+                val decoder =
                     validFlowStateInternalMessage(numNats = 2, numEgressPorts = 3)._3
-                outStream.write(encoder)
+                outStream.write(decoder)
             }
 
             When("Closing the stream and flushing the data to the buffers")
@@ -267,8 +267,8 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val inStream = FlowStateReader(context, portId)
 
             def readFully() {
-                val readMsgs = mutable.MutableList.empty[SbeEncoder]
-                var msg: Option[SbeEncoder] = None
+                val readMsgs = mutable.MutableList.empty[SbeDecoder]
+                var msg: Option[SbeDecoder] = None
                 while ( {
                     msg = inStream.read()
                     msg
@@ -298,7 +298,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val buffers = outStream.out.out.buffers
 
             When("Writing to the stream indefinitely")
-            val writeMsgs = mutable.MutableList.empty[SbeEncoder]
+            val writeMsgs = mutable.MutableList.empty[SbeDecoder]
             val numBlocks = 3
             while (buffers.length < numBlocks) {
                 val encoder =
@@ -311,8 +311,8 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             outStream.close()
 
             val inStream = FlowStateReader(context, portId)
-            val readMsgs = mutable.MutableList.empty[SbeEncoder]
-            var msg: Option[SbeEncoder] = None
+            val readMsgs = mutable.MutableList.empty[SbeDecoder]
+            var msg: Option[SbeDecoder] = None
             while ( {
                 msg = inStream.read(); msg
             }.isDefined) {
@@ -458,7 +458,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val outStream = FlowStateWriter(context, buffers)
 
             And("A stream of messages until we have two blocks")
-            val writeMsgs = mutable.MutableList.empty[SbeEncoder]
+            val writeMsgs = mutable.MutableList.empty[SbeDecoder]
             while (buffers.length < 2) {
                 val writeMsg = validFlowStateInternalMessage(numNats = 2,
                                                      numEgressPorts = 3)
@@ -470,8 +470,8 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
             Then("We can read from it")
             val inStream = FlowStateReader(context, buffers)
-            val readMsgs = mutable.MutableList.empty[SbeEncoder]
-            var msg: Option[SbeEncoder] = None
+            val readMsgs = mutable.MutableList.empty[SbeDecoder]
+            var msg: Option[SbeDecoder] = None
             while ( { msg = inStream.read(); msg }.isDefined) {
                 readMsgs += msg.get
             }

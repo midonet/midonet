@@ -23,7 +23,7 @@ import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.FlowStateAgentPackets._
 import org.midonet.midolman.state.NatState._
 import org.midonet.packets.NatState.NatBinding
-import org.midonet.packets.SbeEncoder
+import org.midonet.packets.SbeDecoder
 
 /**
   * Translates flow state SbeEncoder responses to internally used FlowStateBatch
@@ -37,7 +37,7 @@ class FlowStateAggregator {
     val strongNat = new JHashMap[NatKey, NatBinding]()
     val weakNat = new JHashMap[NatKey, NatBinding]()
 
-    def push(sbe: SbeEncoder): Unit = {
+    def push(sbe: SbeDecoder): Unit = {
         val message = sbe.flowStateMessageDecoder
 
         val connTrackIter = message.conntrack()

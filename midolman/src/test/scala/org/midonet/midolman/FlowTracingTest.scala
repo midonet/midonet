@@ -34,7 +34,7 @@ import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets.TunnelKeys.TraceBit
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.packets.{Ethernet, IPv4Addr, SbeEncoder}
+import org.midonet.packets.{Ethernet, IPv4Addr, SbeDecoder, SbeEncoder}
 import org.midonet.sdn.state.{FlowStateTransaction, OnHeapShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
@@ -383,9 +383,9 @@ class FlowTracingTest extends MidolmanSpec {
             packetsSent.size shouldBe 2
             statePacketsSent.size shouldBe 2
 
-            val encoder = new SbeEncoder
+            val decoder = new SbeDecoder
             def parse(p: Ethernet): FlowStateDecoder = {
-                encoder.decodeFrom(FlowStatePackets.parseDatagram(p).getData)
+                decoder.decodeFrom(FlowStatePackets.parseDatagram(p).getData)
             }
 
             val packet0 = parse(statePacketsSent.get(0))

@@ -23,7 +23,7 @@ import java.util.UUID
 import com.google.common.annotations.VisibleForTesting
 
 import org.midonet.midolman.config.FlowStateConfig
-import org.midonet.packets.{FlowStateEthernet, SbeEncoder}
+import org.midonet.packets.{FlowStateEthernet, SbeDecoder}
 import org.midonet.services.FlowStateStreamLog
 import org.midonet.services.flowstate.stream.snappy.SnappyBlockWriter
 import org.midonet.util.Clearable
@@ -62,7 +62,7 @@ trait FlowStateWriter extends Closeable with Flushable with Clearable {
       * Write the flow state message encoded by the 'encoder' into the
       * data stream.
       */
-    def write(encoder: SbeEncoder): Unit
+    def write(encoder: SbeDecoder): Unit
 }
 
 protected[flowstate] class FlowStateWriterImpl(val config: FlowStateConfig,
@@ -76,11 +76,11 @@ protected[flowstate] class FlowStateWriterImpl(val config: FlowStateConfig,
         ByteBuffer.allocate(LengthSize +
                             FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
 
-    def write(encoder: SbeEncoder): Unit = {
-        val msgSize = encoder.encodedLength()
+    def write(decoder: SbeDecoder): Unit = {
+        val msgSize = decoder.decodedLength()
         buff.clear()
         buff.putInt(msgSize)
-        buff.put(encoder.flowStateBuffer.byteArray(), 0, msgSize)
+        buff.put(decoder.flowStateBuffer.byteArray(), 0, msgSize)
         out.write(buff.array(), 0, LengthSize + msgSize)
     }
 

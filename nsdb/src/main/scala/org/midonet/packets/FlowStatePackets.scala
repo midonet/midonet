@@ -313,9 +313,6 @@ class SbeEncoder {
     val flowStateHeaderEncoder = new MessageHeaderEncoder
     val flowStateMessageEncoder = new FlowStateEncoder
 
-    val flowStateHeaderDecoder = new MessageHeaderDecoder
-    val flowStateMessageDecoder = new FlowStateDecoder
-
     val flowStateBuffer = new UnsafeBuffer(new Array[Byte](0))
 
     def encodeTo(bytes: Array[Byte]): FlowStateEncoder = {
@@ -332,6 +329,14 @@ class SbeEncoder {
 
     def encodedLength(): Int = flowStateHeaderEncoder.encodedLength() +
                                flowStateMessageEncoder.encodedLength()
+
+}
+
+class SbeDecoder {
+    val flowStateHeaderDecoder = new MessageHeaderDecoder
+    val flowStateMessageDecoder = new FlowStateDecoder
+
+    val flowStateBuffer = new UnsafeBuffer(new Array[Byte](0))
 
     def decodedLength(): Int = flowStateHeaderDecoder.encodedLength() +
                                flowStateMessageDecoder.encodedLength()

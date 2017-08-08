@@ -150,7 +150,7 @@ trait FlowStateBaseTest extends FeatureSpec
                                                 numIngressPorts: Int = 1,
                                                 numEgressPorts: Int = 1,
                                                 port: Short = 6688)
-    : (DatagramPacket, FlowStateProtos, SbeEncoder) = {
+    : (DatagramPacket, FlowStateProtos, SbeDecoder, SbeEncoder) = {
         var ingressPort: UUID = null
         val egressPorts = new util.ArrayList[UUID]()
         val conntrackKeys = mutable.MutableList.empty[ConnTrackKeyStore]
@@ -221,7 +221,9 @@ trait FlowStateBaseTest extends FeatureSpec
 
         val protos = FlowStateProtos(ingressPort, egressPorts, conntrackKeys, natKeys)
 
-        (udp, protos, encoder)
+        val decoder = new SbeDecoder()
+        decoder.decodeFrom(encoder.flowStateBuffer.byteArray())
+        (udp, protos, decoder, encoder)
     }
 
     protected def createValidFlowStatePorts(context: stream.Context) = {

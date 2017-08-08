@@ -42,7 +42,7 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.packets.NatState.NatBinding
-import org.midonet.packets.{Ethernet, FlowStateEthernet, SbeEncoder}
+import org.midonet.packets.{Ethernet, FlowStateEthernet, SbeDecoder, SbeEncoder}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType}
@@ -108,6 +108,7 @@ class FlowStateReplicator(
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     private val flowStateEncoder = new SbeEncoder
+    private val flowStateDecoder = new SbeDecoder
 
     @VisibleForTesting
     @inline protected def config = midolmanConfig
@@ -308,8 +309,8 @@ class FlowStateReplicator(
         flowStateSocket.send(flowStatePacket)
     }
 
-    private def acceptNewState(encoder: SbeEncoder) {
-        val msg = encoder.flowStateMessageDecoder
+    private def acceptNewState(decoder: SbeDecoder) {
+        val msg = decoder.flowStateMessageDecoder
         val sender = uuidFromSbe(msg.sender)
         log.debug("Got state replication message from: {}", sender)
 
@@ -368,8 +369,8 @@ class FlowStateReplicator(
             }
 
             if (localPushState) {
-                sendState(encoder.flowStateBuffer.byteArray(),
-                          encoder.decodedLength())
+                sendState(decoder.flowStateBuffer.byteArray(),
+                          decoder.decodedLength())
             }
         } catch {
             case NonFatal(e) =>
@@ -398,8 +399,8 @@ class FlowStateReplicator(
             log.info("Ignoring unexpected packet: {}", p)
         } else {
             try {
-                val flowStateMessage = flowStateEncoder.decodeFrom(data.getData)
-                acceptNewState(flowStateEncoder)
+                val flowStateMessage = flowStateDecoder.decodeFrom(data.getData)
+                acceptNewState(flowStateDecoder)
             } catch {
                 case e: IllegalArgumentException =>
                     log.error("Error decoding flow state", e)

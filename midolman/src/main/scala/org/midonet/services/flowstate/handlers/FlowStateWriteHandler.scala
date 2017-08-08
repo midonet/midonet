@@ -31,7 +31,7 @@ import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
 import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
-import org.midonet.packets.SbeEncoder
+import org.midonet.packets.{SbeDecoder, SbeEncoder}
 import org.midonet.services.FlowStateLog
 import org.midonet.services.flowstate.stream.{Context, FlowStateWriter}
 import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType, MaxMessageSize}
@@ -49,6 +49,7 @@ private[flowstate] final class PerThreadContext(
     private val portsSet = new util.ArrayList[UUID]()
 
     val encoder = new SbeEncoder()
+    val decoder = new SbeDecoder()
 
     def header(): ByteBuffer = {
         headerBuff.clear()
@@ -169,9 +170,9 @@ class FlowStateWriteHandler(context: Context,
     protected[flowstate] def maybeWriteInLegacyStorage(buffer: ByteBuffer): Boolean = {
         contextProvider.get.storage match {
             case Some(legacyStorage) =>
-                val encoder = contextProvider.get.encoder
-                encoder.decodeFrom(buffer.array)
-                val msg = encoder.flowStateMessageDecoder
+                val decoder = contextProvider.get.decoder
+                decoder.decodeFrom(buffer.array)
+                val msg = decoder.flowStateMessageDecoder
                 val conntrackKeys = MutableList.empty[ConnTrackKeyStore]
                 val conntrackIter = msg.conntrack()
                 while (conntrackIter.hasNext) {
@@ -226,9 +227,9 @@ class FlowStateWriteHandler(context: Context,
     }
 
     protected[flowstate] def writeInLocalStorage(buffer: ByteBuffer): Boolean = {
-        val encoder = contextProvider.get.encoder
-        encoder.decodeFrom(buffer.array)
-        val msg = encoder.flowStateMessageDecoder
+        val decoder = contextProvider.get.decoder
+        decoder.decodeFrom(buffer.array)
+        val msg = decoder.flowStateMessageDecoder
         // Bypass all blocks in the message until portIds
         val conntrackIter = msg.conntrack()
         while (conntrackIter.hasNext) conntrackIter.next()
@@ -250,7 +251,7 @@ class FlowStateWriteHandler(context: Context,
                     val writer = getFlowStateWriter(portId)
                     writer.synchronized {
                         log debug s"Writing flow state message to $portId writer."
-                        writer.write(encoder)
+                        writer.write(decoder)
                     }
                 }
                 true

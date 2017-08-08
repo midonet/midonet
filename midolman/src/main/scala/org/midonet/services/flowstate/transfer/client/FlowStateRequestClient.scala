@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
 import org.midonet.cluster.flowstate.FlowStateTransfer.{StateRequest, StateResponse}
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.config.FlowStateConfig
-import org.midonet.packets.SbeEncoder
+import org.midonet.packets.{SbeDecoder, SbeEncoder}
 import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser._
 import org.midonet.services.flowstate.transfer.internal._
@@ -158,9 +158,9 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
     }
 
     private def decodeFromBytes(bytes: Array[Byte]) = {
-        val encoder = new SbeEncoder
-        encoder.decodeFrom(bytes)
-        encoder
+        val decoder = new SbeDecoder
+        decoder.decodeFrom(bytes)
+        decoder
     }
 
 }
