@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "aa3c7d21_d8cfea85",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-08T15:11:25Z",
+      "side": 1,
+      "message": "Well, in this case ServiceName should never be null (and it would be good to have a NPE indicating so :-)",
+      "parentUuid": "05a3b7a8_52389f06",
+      "range": {
+        "startLine": 93,
+        "startChar": 24,
+        "endLine": 93,
+        "endChar": 30
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58f1e19c_51ddff6a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
         "patchSetId": 1
