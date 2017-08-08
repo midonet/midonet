@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "776dee83_ec9f159d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-08T15:07:23Z",
+      "side": 1,
+      "message": "I didn\u0027t add it because this is irrelevant in our case, as the client requesting this would be a midonet agent. Cache-control fields are only read by actual browsers. I\u0027ll add the no cache policy just in case we reuse it for browser clients.",
+      "parentUuid": "cfed80ee_46f2cbe0",
+      "range": {
+        "startLine": 62,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 20
+      },
+      "revId": "111af4d972b2896f15d832d7649faccd1952e4fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e551a2e8_adf60d06",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandler.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "002f7a0f_e72e199a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-08T15:07:23Z",
+      "side": 1,
+      "message": "It\u0027s only *always* false in the sl4j,NOPLogger. Otherwise, it depends on the logging level. As we need to add a listener only in debug mode, this check is necessary. Running the tests in debug mode shows the debug statements.",
+      "parentUuid": "e551a2e8_adf60d06",
+      "range": {
+        "startLine": 77,
+        "startChar": 16,
+        "endLine": 77,
+        "endChar": 30
+      },
+      "revId": "111af4d972b2896f15d832d7649faccd1952e4fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1715671a_90a386ba",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandlerTest.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2017-08-07T16:12:30Z",
       "side": 1,
       "message": "Shouldn\u0027t we have some actual ssl context here?",
+      "range": {
+        "startLine": 145,
+        "startChar": 57,
+        "endLine": 145,
+        "endChar": 61
+      },
+      "revId": "111af4d972b2896f15d832d7649faccd1952e4fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b3f2661f_2cbfd504",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandlerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-08T15:07:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1715671a_90a386ba",
       "range": {
         "startLine": 145,
         "startChar": 57,
