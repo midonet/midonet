@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ebd54ac_1a87eea7",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-08T15:03:38Z",
+      "side": 1,
+      "message": "Mmm... the start time is currently more than 10 seconds... shouldn\u0027t we increase it at least to 60 seconds?\n\nAlso, we could set this to \u0027Duration\u0027, and let the user specify the time units (e.g. \u002760s\u0027 or \u002760000ms\u0027) as we already have support for this in other configuration entries",
+      "range": {
+        "startLine": 149,
+        "startChar": 39,
+        "endLine": 149,
+        "endChar": 44
+      },
+      "revId": "ea31fe21d5c0e700bdb4411285b150c1fa5b96e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a89d7fcb_e15fc9a5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-08T15:03:38Z",
+      "side": 1,
+      "message": "Use getDuration instead (it lets the user specify the time unit and translates to milliseconds)",
+      "range": {
+        "startLine": 93,
+        "startChar": 35,
+        "endLine": 93,
+        "endChar": 41
+      },
+      "revId": "ea31fe21d5c0e700bdb4411285b150c1fa5b96e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fe16bc5b_3a4cbc55",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/CachedStorage.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-08T15:03:38Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we redirect to store in this case?",
+      "range": {
+        "startLine": 117,
+        "startChar": 16,
+        "endLine": 117,
+        "endChar": 63
+      },
+      "revId": "ea31fe21d5c0e700bdb4411285b150c1fa5b96e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "764101b1_494708ea",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/CachedStorage.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-08T15:03:38Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we check the actual store if we don\u0027t find it in cache?",
+      "range": {
+        "startLine": 153,
+        "startChar": 28,
+        "endLine": 153,
+        "endChar": 65
+      },
+      "revId": "ea31fe21d5c0e700bdb4411285b150c1fa5b96e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
