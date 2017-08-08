@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b635fca6_c0717c50",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-08T13:22:45Z",
+      "side": 1,
+      "message": "IntelliJ collapses them, I guess when we import more than X, or if it detects that all classes are imported.",
+      "parentUuid": "de0ced95_eba27b0c",
+      "range": {
+        "startLine": 35,
+        "startChar": 33,
+        "endLine": 35,
+        "endChar": 34
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "870a6eac_2e2b351a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-07T15:26:23Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 42,
+        "startChar": 34,
+        "endLine": 42,
+        "endChar": 35
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3da74eff_e6d9392f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-08T13:22:45Z",
+      "side": 1,
+      "message": "Done. But we do this through out the whole code base :D",
+      "parentUuid": "870a6eac_2e2b351a",
       "range": {
         "startLine": 42,
         "startChar": 34,
@@ -94,6 +142,54 @@
     },
     {
       "key": {
+        "uuid": "64948149_0a564752",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-08T13:22:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39617580_223653d5",
+      "range": {
+        "startLine": 93,
+        "startChar": 13,
+        "endLine": 93,
+        "endChar": 16
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "05a3b7a8_52389f06",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-08T13:22:45Z",
+      "side": 1,
+      "message": "We used to discuss this in the past and decided to use the Option builder (which checks for nullity). I don\u0027t have a strong opinion what is better.\n\nThe argument was that if ServiceName happened to be null, then Some(null) may throw a NullPointerException at some point. Otherwise, Option(null) returns None which is safer.",
+      "parentUuid": "e057e09e_8438354a",
+      "range": {
+        "startLine": 93,
+        "startChar": 24,
+        "endLine": 93,
+        "endChar": 30
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58f1e19c_51ddff6a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2017-08-07T15:26:23Z",
       "side": 1,
       "message": "val?",
+      "range": {
+        "startLine": 94,
+        "startChar": 13,
+        "endLine": 94,
+        "endChar": 16
+      },
+      "revId": "5f9dc05653785e49360fd9ad81cb6724a4e4d13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "aafc2ad2_e8d51ebc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-08-08T13:22:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58f1e19c_51ddff6a",
       "range": {
         "startLine": 94,
         "startChar": 13,
