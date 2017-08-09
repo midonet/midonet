@@ -245,6 +245,7 @@ On ubuntu you can install required packages with:
 
     # apt-get install ruby-dev
     # apt-get install ruby-ronn
+    # apt-get install python3.5
     # gem install fpm
 
 Building debian packages:

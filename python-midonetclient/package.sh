@@ -150,6 +150,11 @@ function package_tar() {
     eval fpm $TAR_ARGS -s dir -t tar .
 }
 
+# XXX This probably belongs to the gate job configuration
+if lsb_release -i 2>/dev/null | grep -iq "ubuntu"; then
+    sudo apt-get install python3.5
+fi
+
 case "$1" in
   deb)
       version=$2
