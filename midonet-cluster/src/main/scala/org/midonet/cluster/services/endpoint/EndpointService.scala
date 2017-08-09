@@ -76,7 +76,7 @@ class EndpointService @Inject() (nodeCtx: Context, conf: ClusterConfig,
 
     private val log = LoggerFactory.getLogger(classOf[EndpointService])
     private val graceTime = Duration(5, TimeUnit.SECONDS)
-    private val eConfig = new EndpointConfig(conf.conf)
+    private val eConfig = conf.endpoint
 
     // Create a thread pool with maximum of 5 threads. These threads will be
     // destroyed after 3 idle seconds and recreated on-demand.

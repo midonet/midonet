@@ -67,6 +67,7 @@ class ClusterConfig(_conf: Config) {
     val c3po = new C3POConfig(conf)
     val heartbeat = new HeartbeatConfig(conf)
     val vxgw = new VxGwConfig(conf)
+    val endpoint = new EndpointConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)

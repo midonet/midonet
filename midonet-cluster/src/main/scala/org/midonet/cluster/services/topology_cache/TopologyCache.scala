@@ -44,16 +44,13 @@ import org.midonet.util.reactivex.richObservable
 import io.netty.buffer.ByteBuf
 
 object TopologyCache {
-
     final val ServiceName = "topology-cache"
 
     case class TopologySnapshot(objectSnapshot: ObjectNotification.Snapshot,
                                 stateSnapshot: StateNotification.Snapshot)
 
     type ObjectSnapshot = ObjectNotification.Snapshot
-
     type StateSnapshot = StateNotification.Snapshot
-
 }
 
 /**
@@ -152,7 +149,7 @@ class TopologyCache @Inject()(context: Context,
         }
     }
 
-    private [topology_cache] def snapshot(): Future[TopologySnapshot] = {
+    private[topology_cache] def snapshot(): Future[TopologySnapshot] = {
         if (!isRunning) {
             Future.failed(
                 new IllegalStateException("Service not yet running " +
