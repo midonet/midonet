@@ -82,8 +82,8 @@ class VxLanPortMappingService(vt: VirtualTopology)
 
     override def logSource = "org.midonet.devices.vtep-port-mapping"
 
-    private val store = vt.backend.store
-    private val stateStore = vt.backend.stateStore
+    private val store = vt.store
+    private val stateStore = vt.stateStore
     private implicit val ec: ExecutionContext = fromExecutor(vt.vtExecutor)
 
     // Subscriber to the internal [[observable]] that will be used to cancel
