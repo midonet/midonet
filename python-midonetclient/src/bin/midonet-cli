@@ -355,7 +355,7 @@ class FloodingProxyWeight(ValueType):
             weight = int(value)
             return weight >= 0 and weight <= 65535
         except:
-            return false
+            return False
 
 class ContainerWeight(ValueType):
     def is_valid(self, value):
@@ -363,7 +363,7 @@ class ContainerWeight(ValueType):
             weight = int(value)
             return weight >= 0
         except:
-            return false
+            return False
 
 class VNI(ValueType):
     def is_valid(self, value):
