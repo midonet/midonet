@@ -30,7 +30,9 @@ FPM_BASE_ARGS=$(cat <<EOF
 --license 'Apache License, Version 2.0' \
 --vendor 'MidoNet' \
 --maintainer "Midokura" \
---url 'http://midonet.org'
+--url 'http://midonet.org' \
+--verbose \
+--debug
 EOF
 )
 
