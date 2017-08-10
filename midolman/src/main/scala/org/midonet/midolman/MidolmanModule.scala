@@ -64,8 +64,10 @@ import org.midonet.util._
 import org.midonet.util.concurrent._
 import org.midonet.util.eventloop.{Reactor, SelectLoop, SimpleSelectLoop}
 
-class MidolmanModule(injector: Injector,
-                     config: MidolmanConfig,
+class MidolmanModule(config: MidolmanConfig,
+                     backend: MidonetBackend,
+                     backendConfig: MidonetBackendConfig,
+                     directoryReactor: Reactor,
                      metricRegistry: MetricRegistry,
                      reflections: Reflections,
                      flowTablePreallocation: FlowTablePreallocation) extends AbstractModule {
@@ -173,7 +175,6 @@ class MidolmanModule(injector: Injector,
         val resolver = peerResolver(host, vt)
         bind(classOf[PeerResolver]).toInstance(resolver)
 
-        val backend = injector.getInstance(classOf[MidonetBackend])
         val workersService = createPacketWorkersService(config, hostIdProvider,
                                                         channel, dpState, fp,
                                                         allocator, resolver,
@@ -390,12 +391,11 @@ class MidolmanModule(injector: Injector,
             interfaceScanner: InterfaceScanner): HostService =
         new HostService(
             config,
-            injector.getInstance(classOf[MidonetBackendConfig]),
-            injector.getInstance(classOf[MidonetBackend]),
+            backendConfig,
+            backend,
             interfaceScanner,
             hostId,
-            injector.getInstance(Key.get(classOf[Reactor],
-                                         Names.named("directoryReactor"))))
+            directoryReactor)
 
     protected def qosService(scanner: InterfaceScanner,
                              hostId: UUID,
@@ -437,7 +437,6 @@ class MidolmanModule(injector: Injector,
     }
 
     protected def natAllocator(): NatBlockAllocator = {
-        val backend = injector.getInstance(classOf[MidonetBackend])
         new ZkNatBlockAllocator(backend.curator, UnixClock.DEFAULT)
     }
 
@@ -450,7 +449,7 @@ class MidolmanModule(injector: Injector,
     }
 
     protected def peerResolver(hostId: UUID, vt: VirtualTopology): PeerResolver =
-        new PeerResolver(hostId, injector.getInstance(classOf[MidonetBackend]), vt)
+        new PeerResolver(hostId, backend, vt)
 
     protected def virtualTopology(simBackChannel: SimulationBackChannel) = {
         val vtThread = new AtomicLong(-1)
@@ -468,7 +467,7 @@ class MidolmanModule(injector: Injector,
         }
 
         new VirtualTopology(
-            injector.getInstance(classOf[MidonetBackend]),
+            backend,
             config,
             simBackChannel,
             ruleLogEventChannel(1 << 12), // TODO: Make capacity configurable
@@ -481,7 +480,7 @@ class MidolmanModule(injector: Injector,
 
     protected def virtualToPhysicalMapper(hostId: UUID, vt: VirtualTopology) =
         new VirtualToPhysicalMapper(
-            injector.getInstance(classOf[MidonetBackend]),
+            backend,
             vt,
             reflections,
             hostId)

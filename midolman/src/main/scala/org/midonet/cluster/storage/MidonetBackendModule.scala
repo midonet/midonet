@@ -42,7 +42,12 @@ import org.midonet.packets.{IPv4Addr, MAC}
 /** This Guice module is dedicated to declare general-purpose dependencies that
   * are exposed to MidoNet components that need to access the various storage
   * backends that exist within a deployment.  It should not include any
-  * dependencies linked to any specific service or component. */
+  * dependencies linked to any specific service or component.
+  *
+  * NOTE: The storage backend is created when the module is instantiated.
+  * This allows publishing it and making it available to other modules that
+  * require storage support without the need of creating a child injector.
+  */
 class MidonetBackendModule(val conf: MidonetBackendConfig,
                            reflections: Option[Reflections],
                            metricRegistry: MetricRegistry)
@@ -55,11 +60,14 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
              metricRegistry: MetricRegistry) =
         this(new MidonetBackendConfig(config), reflections, metricRegistry)
 
+    private val curator = getCuratorFramework()
+    private val failFastCurator = failFastCuratorFramework()
+
+    val storeBackend = backend(curator, failFastCurator)
+
     override def configure(): Unit = {
-        val curator =  bindCuratorFramework()
-        val failFastCurator = failFastCuratorFramework()
-        val storage = backend(curator, failFastCurator)
-        bind(classOf[MidonetBackend]).toInstance(storage)
+        bind(classOf[CuratorFramework]).toInstance(curator)
+        bind(classOf[MidonetBackend]).toInstance(storeBackend)
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
     }
 
@@ -93,23 +101,17 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
         }
     }
 
-    protected def bindCuratorFramework() = {
-        val curator = CuratorFrameworkFactory.newClient(
-            conf.hosts,
-            new ExponentialBackoffRetry(
-                conf.retryMs.toInt, conf.maxRetries))
-        bind(classOf[CuratorFramework]).toInstance(curator)
-        curator
-    }
+    protected def getCuratorFramework() = CuratorFrameworkFactory.newClient(
+        conf.hosts,
+        new ExponentialBackoffRetry(conf.retryMs.toInt, conf.maxRetries))
 
-    protected def failFastCuratorFramework() = {
+    protected def failFastCuratorFramework() =
         CuratorFrameworkFactory.newClient(
             conf.hosts,
             conf.failFastSessionTimeout,
             conf.failFastSessionTimeout,
             new ExponentialBackoffRetry(
                 conf.retryMs.toInt, conf.maxRetries))
-    }
 
     private def configureClientBuffer(): Unit = {
         // Try configure the buffer size using the system property.
