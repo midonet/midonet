@@ -21,7 +21,9 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import com.google.inject._
+import com.google.inject.name.Names
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
+
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen}
 import org.scalatest.{Informer, Matchers, OneInstancePerTest}
 import org.slf4j.LoggerFactory
@@ -29,22 +31,23 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.storage.InMemoryStorage
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.storage.MidonetBackendTestModule
+import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendTestModule}
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.{FlowTranslator, DatapathState, MockMidolmanModule}
+import org.midonet.midolman.{DatapathState, FlowTranslator, MockMidolmanModule}
 import org.midonet.midolman.cluster._
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.MidolmanService
-import org.midonet.midolman.simulation.{PacketContext, CustomMatchers}
+import org.midonet.midolman.simulation.{CustomMatchers, PacketContext}
 import org.midonet.midolman.util.mock.MockMidolmanActors
 import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
 import org.midonet.odp.ports.VxLanTunnelPort.VXLAN_DEFAULT_DST_PORT
 import org.midonet.odp.{Datapath, DpPort}
-import org.midonet.odp.flows.{FlowActions, FlowActionOutput}
+import org.midonet.odp.flows.{FlowActionOutput, FlowActions}
 import org.midonet.util.collection.IPv4InvalidationArray
+import org.midonet.util.eventloop.Reactor
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -90,6 +93,10 @@ trait MidolmanSpec extends FeatureSpecLike
                 hostId,
                 injector,
                 new MidolmanConfig(conf, ConfigFactory.empty()),
+                injector.getInstance(classOf[MidonetBackend]),
+                injector.getInstance(classOf[MidonetBackendConfig]),
+                injector.getInstance(Key.get(classOf[Reactor],
+                                             Names.named("directoryReactor"))),
                 actorsService))
 
             IPv4InvalidationArray.reset()

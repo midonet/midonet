@@ -96,15 +96,11 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
     extends MidonetBackendModule(new MidonetBackendConfig(cfg), None,
                                  new MetricRegistry) {
 
-    override protected def bindCuratorFramework() = {
-        val curator = mock(classOf[CuratorFramework])
-        bind(classOf[CuratorFramework]).toInstance(curator)
-        curator
-    }
-
-    override protected def failFastCuratorFramework() = {
+    override protected def getCuratorFramework() =
         mock(classOf[CuratorFramework])
-    }
+
+    override protected def failFastCuratorFramework() =
+        mock(classOf[CuratorFramework])
 
     override protected def backend(curatorFramework: CuratorFramework,
                                    failFastCurator: CuratorFramework) = {

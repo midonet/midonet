@@ -32,7 +32,7 @@ import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.reflections.Reflections
 
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.storage.FlowStateStorage
+import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.insights.Insights
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
@@ -55,13 +55,17 @@ import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFam
 import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.util._
 import org.midonet.util.concurrent.{SameThreadButAfterExecutorService, _}
-import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
+import org.midonet.util.eventloop.{MockSelectLoop, Reactor, SelectLoop}
 
 class MockMidolmanModule(override val hostId: UUID,
                          injector: Injector,
                          config: MidolmanConfig,
+                         backend: MidonetBackend,
+                         backendConfig: MidonetBackendConfig,
+                         directoryReactor: Reactor,
                          actorService: MidolmanActorsService)
-        extends MidolmanModule(injector, config, new MetricRegistry,
+        extends MidolmanModule(config, backend, backendConfig, directoryReactor,
+                               new MetricRegistry,
                                new Reflections("org.midonet"),
                                new MockFlowTablePreallocation(config)) {
 
@@ -104,7 +108,7 @@ class MockMidolmanModule(override val hostId: UUID,
     protected override def virtualTopology(simBackChannel: SimulationBackChannel) = {
         val threadId = Thread.currentThread().getId
         new VirtualTopology(
-            injector.getInstance(classOf[MidonetBackend]),
+            backend,
             config,
             simBackChannel,
             new MockRuleLogEventChannel,

@@ -36,11 +36,21 @@ import org.midonet.util.eventloop.TryCatchReactor;
 public class ZookeeperConnectionModule extends PrivateModule {
 
     private final Class<? extends ZkConnectionAwareWatcher> connWatcherImpl;
+    private final Reactor directoryReactor;
+    private final Reactor bgpReactor;
 
     public ZookeeperConnectionModule(Class<? extends ZkConnectionAwareWatcher>
             connWatcherImpl) {
+        ZookeeperReactorProvider zkReactorProvider =
+            new ZookeeperReactorProvider();
         this.connWatcherImpl = connWatcherImpl;
+        this.directoryReactor = zkReactorProvider.get();
+        this.bgpReactor = zkReactorProvider.get();
     }
+
+    public Reactor getDirectoryReactor() { return directoryReactor; }
+    public Reactor getBgpReactor() { return bgpReactor; }
+
     @Override
     protected void configure() {
         requireBinding(MidonetBackendConfig.class);
@@ -89,12 +99,10 @@ public class ZookeeperConnectionModule extends PrivateModule {
     protected void bindReactor() {
         bind(Reactor.class).annotatedWith(
             Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
-            .toProvider(ZookeeperReactorProvider.class)
-            .asEagerSingleton();
+            .toInstance(directoryReactor);
         bind(Reactor.class)
             .annotatedWith(BGP_ZK_INFRA.class)
-            .toProvider(ZookeeperReactorProvider.class)
-            .asEagerSingleton();
+            .toInstance(bgpReactor);
     }
 
     public static class ZookeeperReactorProvider

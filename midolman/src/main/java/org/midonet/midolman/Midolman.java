@@ -242,13 +242,6 @@ public class Midolman {
 
         MidolmanConfig config = createConfig(configurator);
 
-        Reflections reflections = new Reflections("org.midonet");
-        injector = Guice.createInjector(
-            new MidonetBackendModule(config.zookeeper(),
-                                     scala.Option.apply(reflections),
-                                     metricRegistry),
-            new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class)
-        );
         FlowTablePreallocation preallocation;
         if (config.offHeapTables()) {
             preallocation = new FlowTableNoPreallocation();
@@ -257,9 +250,25 @@ public class Midolman {
             preallocation.allocateAndTenure();
         }
 
-        injector = injector.createChildInjector(
-                new MidolmanModule(injector, config, metricRegistry,
-                                   reflections, preallocation));
+        // MidonetBackendModule uses reflections to define additional
+        // zoom storage classes, that are not needed for the agent, so
+        // we can safely pass a 'None' option
+        MidonetBackendModule midonetBackendModule = new MidonetBackendModule(
+            config.zookeeper(), scala.Option.apply(null), metricRegistry);
+
+        ZookeeperConnectionModule zkConnectionModule =
+            new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class);
+
+        Reflections reflections = new Reflections("org.midonet");
+        MidolmanModule midolmanModule = new MidolmanModule(
+            config, midonetBackendModule.storeBackend(),
+            midonetBackendModule.conf(),
+            zkConnectionModule.getDirectoryReactor(),
+            metricRegistry, reflections, preallocation);
+
+        injector = Guice.createInjector(
+            midonetBackendModule, zkConnectionModule, midolmanModule
+        );
 
         Scheduler scheduler = injector.getInstance(VirtualTopology.class).vtScheduler();
         Observable<Config> configObservable = configurator
