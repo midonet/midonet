@@ -110,6 +110,7 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     val neutron = new NeutronConfig(conf, schema)
     val openstack = new OpenStackConfig(conf, schema)
     val flowHistory = new FlowHistoryConfig(conf, schema)
+    val insights = new InsightsConfig(conf, schema)
     val containers = new ContainerConfig(conf, schema)
     val services = new ServicesConfig(conf, schema)
     val flowState = new FlowStateConfig(conf, schema)
@@ -219,6 +220,11 @@ class FlowHistoryConfig(val conf: Config, val schema: Config) extends TypeFailur
     def queueSize = getInt("agent.flow_history.queue_size")
     def connectionInterval = getDuration("agent.flow_history.connection_interval",
                                          TimeUnit.MILLISECONDS) millis
+}
+
+class InsightsConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def enabled = getBoolean("agent.insights.enabled")
+    def listenerClass = getString("agent.insights.listener_class")
 }
 
 class ContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {

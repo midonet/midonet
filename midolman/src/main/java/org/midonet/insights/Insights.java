@@ -18,18 +18,18 @@ package org.midonet.insights;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.base.Strings;
 
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.PacketWorkflow;
+import org.midonet.midolman.config.InsightsConfig;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMetadata;
 import org.midonet.odp.Packet;
@@ -115,27 +115,27 @@ public final class Insights {
         listener = EMPTY_LISTENER;
     }
 
-    public Insights(Reflections reflections, MetricRegistry metrics) {
-        Set<Class<? extends Listener>> listeners =
-            reflections.getSubTypesOf(Listener.class);
-        if (listeners.size() == 0) {
-            LOG.info("No insights listener installed");
-            listener = EMPTY_LISTENER;
-        } else if (listeners.size() > 1) {
-            LOG.warn("Multiple insights listeners installed: insights will "
-                     + "be disabled");
+    public Insights(InsightsConfig conf, MetricRegistry metrics) {
+        if (!conf.enabled() || Strings.isNullOrEmpty(conf.listenerClass())) {
+            LOG.info("Insights listener not enabled");
             listener = EMPTY_LISTENER;
         } else {
             Listener l = EMPTY_LISTENER;
             try {
-                Class<? extends Listener> clazz = listeners.iterator().next();
-                l = clazz.getConstructor(MetricRegistry.class)
-                         .newInstance(metrics);
+                Class<? extends Listener> clazz = Class.forName(
+                    conf.listenerClass().replaceAll("\\.\\.", "."))
+                    .asSubclass(Listener.class);
+                l = clazz.getConstructor(MetricRegistry.class).newInstance(metrics);
                 LOG.info("Insights listener {} enabled", clazz.getName());
+            } catch (ClassNotFoundException e) {
+                LOG.warn(
+                    "Installing insights listener failed: class not found: {}",
+                    conf.listenerClass());
             } catch (NoSuchMethodException | InstantiationException |
                      IllegalAccessException | InvocationTargetException e) {
-                LOG.warn("Installing insights listener failed: insights will "
-                         + "be disabled", e);
+                LOG.warn(
+                    "Installing insights listener failed: cannot instantiate: {}",
+                         conf.listenerClass(), e);
             }
             listener = l;
         }
