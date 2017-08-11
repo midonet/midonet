@@ -89,7 +89,7 @@ class MidolmanModule(config: MidolmanConfig,
         bind(classOf[MetricRegistry]).toInstance(metricRegistry)
         bind(classOf[CallbackRegistry]).toInstance(cbRegistry)
 
-        val insights = new Insights(reflections, metricRegistry)
+        val insights = new Insights(config.insights, metricRegistry)
         bind(classOf[Insights]).toInstance(insights)
 
         // We add an extra slot so that channels can return tokens

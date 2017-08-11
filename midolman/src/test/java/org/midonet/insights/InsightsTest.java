@@ -25,9 +25,9 @@ import com.codahale.metrics.MetricRegistry;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.reflections.Reflections;
 
 import org.midonet.midolman.PacketWorkflow;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMetadata;
 import org.midonet.odp.Packet;
@@ -35,7 +35,7 @@ import org.midonet.sdn.flows.FlowTagger;
 
 public class InsightsTest {
 
-    private static class Listener implements Insights.Listener {
+    public static class Listener implements Insights.Listener {
 
         int flowsAdded = 0;
         int flowSimulation = 0;
@@ -71,25 +71,41 @@ public class InsightsTest {
 
     @Test
     public void testDefaultListener() {
-        // Given a reflection instance and a metric registry.
-        Reflections reflections = new Reflections(Void.class);
+        // Given an empty config and a metric registry.
+        MidolmanConfig conf = MidolmanConfig.forTests(
+            "agent.insights.listener_class = \"\"");
         MetricRegistry metrics = new MetricRegistry();
 
         // When creating an insights instance.
-        Insights insights = new Insights(reflections, metrics);
+        Insights insights = new Insights(conf.insights(), metrics);
 
         // Then the current listener is not null.
         Assert.assertNotNull(insights.currentListener());
     }
 
     @Test
-    public void testSingleListener() {
-        // Given a reflection instance and a metric registry.
-        Reflections reflections = new Reflections(Listener.class);
+    public void testInvalidListener() {
+        // Given a non-existing listener and a metric registry.
+        MidolmanConfig conf = MidolmanConfig.forTests(
+            "agent.insights.listener_class = \"not.a.listener\"");
         MetricRegistry metrics = new MetricRegistry();
 
         // When creating an insights instance.
-        Insights insights = new Insights(reflections, metrics);
+        Insights insights = new Insights(conf.insights(), metrics);
+
+        // Then the current listener is not null.
+        Assert.assertNotNull(insights.currentListener());
+    }
+
+    @Test
+    public void testSingleListener() throws ClassNotFoundException {
+        // Given a valid listener and a metric registry.
+        MidolmanConfig conf = MidolmanConfig.forTests(
+            "agent.insights.listener_class = \"" + Listener.class.getName() + "\"");
+        MetricRegistry metrics = new MetricRegistry();
+
+        // When creating an insights instance.
+        Insights insights = new Insights(conf.insights(), metrics);
 
         // Then the current listener is not null.
         Assert.assertNotNull(insights.currentListener());
