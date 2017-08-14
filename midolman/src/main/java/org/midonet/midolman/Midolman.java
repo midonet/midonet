@@ -34,7 +34,6 @@ import scala.concurrent.Promise$;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -46,13 +45,11 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Scheduler;
-import rx.schedulers.Schedulers;
 
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.cluster.services.MidonetBackend;
@@ -259,12 +256,11 @@ public class Midolman {
         ZookeeperConnectionModule zkConnectionModule =
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class);
 
-        Reflections reflections = new Reflections("org.midonet");
         MidolmanModule midolmanModule = new MidolmanModule(
             config, midonetBackendModule.storeBackend(),
             midonetBackendModule.conf(),
             zkConnectionModule.getDirectoryReactor(),
-            metricRegistry, reflections, preallocation);
+            metricRegistry, preallocation);
 
         injector = Guice.createInjector(
             midonetBackendModule, zkConnectionModule, midolmanModule

@@ -37,6 +37,7 @@ import org.midonet.cluster.data.getIdString
 import org.midonet.cluster.data.storage.{NotFoundException, StateResult}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
+import org.midonet.containers.{HaProxyContainer, IPSecContainer, QuaggaContainer}
 import org.midonet.midolman.containers.{ContainerExecutors, ContainerService}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -173,7 +174,6 @@ object VirtualToPhysicalMapper {
 
 class VirtualToPhysicalMapper(backend: MidonetBackend,
                               vt: VirtualTopology,
-                              reflections: Reflections,
                               hostId: UUID)
     extends AbstractService with MidolmanLogging {
 
@@ -183,6 +183,15 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
 
     private val vxlanPortMappingService = new VxLanPortMappingService(vt)
     private val gatewayMappingService = new GatewayMappingService(vt)
+
+    // Create the reflection object containing the required container
+    // classes. This is set up manually to avoid a costly classpath
+    // scan at the critical start path of the midolman agent.
+    private val reflections = new Reflections(
+        classOf[HaProxyContainer],
+        classOf[IPSecContainer],
+        classOf[QuaggaContainer]
+    )
 
     // Use a private executor to manage the container handlers. Since the
     // container handler perform I/O operations (e.g. create namespaces, etc.)

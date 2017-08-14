@@ -27,7 +27,6 @@ import com.codahale.metrics.MetricRegistry
 import org.junit.Assert
 import org.junit.runner.RunWith
 import org.mockito.Mockito
-import org.reflections.Reflections
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
@@ -138,9 +137,7 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
 
     private def createVirtualToPhysicalMapper(): VirtualToPhysicalMapper = {
         HostIdGenerator.useTemporaryHostId()
-        new VirtualToPhysicalMapper(backend, vt,
-                                    new Reflections("org.midonet.midolman"),
-                                    HostIdGenerator.getHostId)
+        new VirtualToPhysicalMapper(backend, vt, HostIdGenerator.getHostId)
     }
 
     private def createVppContoller(): TestableVppController = {

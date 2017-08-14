@@ -66,7 +66,6 @@ class MockMidolmanModule(override val hostId: UUID,
                          actorService: MidolmanActorsService)
         extends MidolmanModule(config, backend, backendConfig, directoryReactor,
                                new MetricRegistry,
-                               new Reflections("org.midonet"),
                                new MockFlowTablePreallocation(config)) {
 
     val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]

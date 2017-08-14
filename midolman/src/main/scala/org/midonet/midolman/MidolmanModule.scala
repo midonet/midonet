@@ -27,12 +27,10 @@ import akka.actor.{ActorSystem, OneForOneStrategy, SupervisorStrategy}
 
 import com.codahale.metrics.MetricRegistry
 import com.google.common.collect.Lists
-import com.google.inject.name.Names
-import com.google.inject.{AbstractModule, Injector, Key}
+import com.google.inject.AbstractModule
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
 
-import org.reflections.Reflections
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.Util
@@ -69,7 +67,6 @@ class MidolmanModule(config: MidolmanConfig,
                      backendConfig: MidonetBackendConfig,
                      directoryReactor: Reactor,
                      metricRegistry: MetricRegistry,
-                     reflections: Reflections,
                      flowTablePreallocation: FlowTablePreallocation) extends AbstractModule {
     private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanModule])
 
@@ -482,7 +479,6 @@ class MidolmanModule(config: MidolmanConfig,
         new VirtualToPhysicalMapper(
             backend,
             vt,
-            reflections,
             hostId)
 
     protected def vppController(hostId: UUID,
