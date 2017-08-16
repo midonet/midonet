@@ -160,23 +160,18 @@ public class MidolmanService extends AbstractService {
         }
 
         log.info("Stopping virtual topology executors");
-        try {
-            virtualTopology.vtExecutor().shutdown();
-            virtualTopology.ioExecutor().shutdown();
-            if (!virtualTopology.vtExecutor()
-                .awaitTermination(5, TimeUnit.SECONDS)) {
-                log.warn("Stopping the VT executor timed out");
-                virtualTopology.vtExecutor().shutdownNow();
-            }
-            if (!virtualTopology.ioExecutor()
-                                .awaitTermination(5, TimeUnit.SECONDS)) {
-                log.warn("Stopping the I/O executor timed out");
-                virtualTopology.ioExecutor().shutdownNow();
-            }
-            log.info("Virtual topology executors stopped successfully.");
-        } catch (InterruptedException e) {
-            log.error("Exception while stopping the executors", e);
-        }
+        int leftInVt = virtualTopology.vtExecutor().shutdownNow().size();
+        int leftInIo = virtualTopology.ioExecutor().shutdownNow().size();
+
+        if (leftInVt > 0)
+            log.warn(leftInVt + " tasks remained in the virtual topology"
+                     + " executor queue before closing.");
+
+        if (leftInIo > 0)
+            log.warn(leftInIo + " tasks remained in the virtual topology"
+                     + " IO executor queue before closing.");
+
+        log.info("Virtual topology executors stopped successfully.");
 
         log.info("Stopping rule event logger");
         virtualTopology.stopRuleLogEventChannel();
