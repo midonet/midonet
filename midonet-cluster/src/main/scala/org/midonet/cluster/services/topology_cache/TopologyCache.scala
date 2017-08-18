@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.topology_cache
 
-import java.util.concurrent.Executors
+import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -27,9 +27,6 @@ import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.slf4j.LoggerFactory
-
-import rx.schedulers.Schedulers
 
 import org.midonet.cluster.TopologyCacheLog
 import org.midonet.cluster.cache._
@@ -39,18 +36,11 @@ import org.midonet.cluster.services.endpoint.users.HttpByteBufferEndpointUser
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.logging.Logger
-import org.midonet.util.reactivex.richObservable
-
-import io.netty.buffer.ByteBuf
 
 object TopologyCache {
     final val ServiceName = "topology-cache"
-
-    case class TopologySnapshot(objectSnapshot: ObjectNotification.Snapshot,
-                                stateSnapshot: StateNotification.Snapshot)
-
-    type ObjectSnapshot = ObjectNotification.Snapshot
-    type StateSnapshot = StateNotification.Snapshot
+    final val InitialSnapshotDelaySeconds = 5
+    final val SnapshotDelaySeconds = 30
 }
 
 /**
@@ -67,15 +57,13 @@ class TopologyCache @Inject()(context: Context,
 
     import TopologyCache._
 
-    private val log = Logger(LoggerFactory.getLogger(TopologyCacheLog))
+    private val log = Logger(TopologyCacheLog)
 
     private val paths = new ZoomPaths(config.backend)
 
     private val executor = Executors.newSingleThreadScheduledExecutor()
 
     implicit private val ec = ExecutionContext.fromExecutor(executor)
-
-    private val scheduler = Schedulers.from(executor)
 
     private val curator = CuratorFrameworkFactory.newClient(
         config.backend.hosts,
@@ -86,36 +74,18 @@ class TopologyCache @Inject()(context: Context,
 
     private var stateCache: StateCache = _
 
+    private var localSnapshotProvider: TopologySnapshotProvider = _
+
+    override def snapshotProvider = localSnapshotProvider
+
+    private var scheduledSnapshot: ScheduledFuture[_] = _
+
     // From HttpByteBufferEndpointUser
     override val name = Option(ServiceName)
     override val endpointPath: String = ServiceName
 
     /** Whether the service is enabled on this Cluster node. */
     override def isEnabled: Boolean = config.topologyCache.isEnabled
-
-    override def doStop(): Unit = {
-        log.info("Stopping NSDB topology cache")
-        val timestamp = System.nanoTime()
-
-        try {
-            stateCache.stopAsync().awaitTerminated()
-            objectCache.stopAsync().awaitTerminated()
-            val elapsed = (System.nanoTime() - timestamp) / 1000000
-            log.info("NSDB topology cache stopped in " +
-                     s"$elapsed milliseconds")
-            notifyStopped()
-        } catch {
-            case NonFatal(e) =>
-                log.warn("Failed to stop topology cache", e)
-                notifyFailed(e)
-        } finally {
-            curator.getState match {
-                case CuratorFrameworkState.STARTED =>
-                    curator.close()
-                case _ =>
-            }
-        }
-    }
 
     override def doStart(): Unit = {
         log.info("Starting NSDB topology cache")
@@ -135,6 +105,15 @@ class TopologyCache @Inject()(context: Context,
                 val elapsed = (System.nanoTime() - timestamp) / 1000000
                 log.info("NSDB topology cache started in " +
                          s"$elapsed milliseconds")
+
+                localSnapshotProvider = new TopologySnapshotProvider(
+                    objectCache, stateCache, executor, log)
+
+                // TODO: make the period between snapshots configurable
+                scheduledSnapshot = executor.scheduleWithFixedDelay(
+                    snapshotProvider.snapshot, InitialSnapshotDelaySeconds,
+                    SnapshotDelaySeconds, TimeUnit.SECONDS)
+
                 notifyStarted()
             } catch {
                 case NonFatal(e) =>
@@ -149,40 +128,29 @@ class TopologyCache @Inject()(context: Context,
         }
     }
 
-    private[topology_cache] def snapshot(): Future[TopologySnapshot] = {
-        if (!isRunning) {
-            Future.failed(
-                new IllegalStateException("Service not yet running " +
-                                          "or already stopped."))
-        } else {
-            log.debug("Starting topology snapshot request.")
-            Future {
-                log.debug("Subscribing to the topology cache.")
-                val objectFuture = objectCache
-                    .observable()
-                    .observeOn(scheduler)
-                    .asFuture
-                val stateFuture = stateCache
-                    .observable()
-                    .observeOn(scheduler)
-                    .asFuture
-                Future.sequence(Seq(objectFuture, stateFuture))
-            }.flatMap(_.flatMap { seq =>
-                log.debug(
-                    "Topology snapshot request finished successfully.")
-                // TODO: serialize the snapshot to another buffer so the
-                // calling thread is ensured immutable data.
-                Future.successful(TopologySnapshot(
-                    seq.head.asInstanceOf[ObjectSnapshot],
-                    seq.last.asInstanceOf[StateSnapshot]
-                ))
-            })
+    override def doStop(): Unit = {
+        log.info("Stopping NSDB topology cache")
+        val timestamp = System.nanoTime()
+
+        try {
+            scheduledSnapshot.cancel(true)
+            stateCache.stopAsync().awaitTerminated()
+            objectCache.stopAsync().awaitTerminated()
+            val elapsed = (System.nanoTime() - timestamp) / 1000000
+            log.info("NSDB topology cache stopped in " +
+                     s"$elapsed milliseconds")
+            notifyStopped()
+        } catch {
+            case NonFatal(e) =>
+                log.warn("Failed to stop topology cache", e)
+                notifyFailed(e)
+        } finally {
+            curator.getState match {
+                case CuratorFrameworkState.STARTED =>
+                    curator.close()
+                case _ =>
+            }
         }
     }
-
-    override def getByteBuffer(): ByteBuf = {
-        throw new NotImplementedError
-    }
-
 }
 
