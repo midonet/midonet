@@ -16,15 +16,19 @@
 
 package org.midonet.cluster.cache;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import scala.Function0;
+import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import scala.runtime.AbstractFunction0;
 import scala.runtime.BoxedUnit;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 import com.typesafe.config.ConfigFactory;
 
@@ -35,6 +39,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import rx.Observable;
 import rx.Subscription;
 
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper;
@@ -44,6 +49,7 @@ import org.midonet.cluster.services.MidonetBackend$;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.cluster.util.UUIDUtil$;
 import org.midonet.cluster.ZooKeeperTest;
+import org.midonet.util.MidonetEventually;
 import org.midonet.util.reactivex.TestAwaitableObserver;
 
 public class ObjectCacheTest extends ZooKeeperTest {
@@ -313,4 +319,31 @@ public class ObjectCacheTest extends ZooKeeperTest {
         Assert.assertFalse(observer3.getOnCompletedEvents().isEmpty());
     }
 
+    @Test
+    public void testCachePublishesSnapshot() throws Exception {
+        // Given a cache.
+        ObjectCache cache = new ObjectCache(curator, paths, metricRegistry);
+
+        // And an observer.
+        TestAwaitableObserver<ObjectNotification> observer1 =
+            new TestAwaitableObserver<>();
+
+        // When the cache is started.
+        cache.startAsync().awaitRunning();
+        cache.observable().subscribe(observer1);
+
+        // When adding an object to the topology.
+        UUID id1 = UUID.randomUUID();
+        Topology.Network network = Topology.Network.newBuilder()
+            .setId(UUIDUtil$.MODULE$.toProto(id1))
+            .build();
+        storage.create(network);
+
+        // And it has landed in the cache
+        Assert.assertTrue(observer1.awaitOnNext(2, TIMEOUT));
+
+        // Then the class of the object is present in the snapshot
+        ObjectNotification.MappedSnapshot snapshot = cache.snapshot();
+        Assert.assertTrue(snapshot.keySet().contains(Topology.Network.class));
+    }
 }

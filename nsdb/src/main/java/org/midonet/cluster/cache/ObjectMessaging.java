@@ -27,7 +27,7 @@ import org.apache.commons.lang.StringUtils;
 
 import org.midonet.cluster.models.Topology;
 
-final class ObjectMessaging {
+final public class ObjectMessaging {
 
     private static final Map<Class<?>, ObjectSerializer> SERIALIZERS;
 
@@ -52,7 +52,7 @@ final class ObjectMessaging {
      * @param clazz The object class.
      * @return The {@link ObjectSerializer}.
      */
-    static ObjectSerializer serializerOf(Class<?> clazz) {
+    public static ObjectSerializer serializerOf(Class<?> clazz) {
         return SERIALIZERS.get(clazz);
     }
 
@@ -62,7 +62,7 @@ final class ObjectMessaging {
      * @return The tenant identifier or an empty string if the object does
      * not have any data or does not have a tenant.
      */
-    static String tenantOf(Message message) {
+    public static String tenantOf(Message message) {
         if (message == null) {
             return StringUtils.EMPTY;
         }
