@@ -20,10 +20,11 @@ import scala.collection.JavaConversions._
 
 import com.google.inject.{AbstractModule, Guice, Injector}
 import com.typesafe.config.{Config, ConfigFactory}
-import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
+
+import org.openjdk.jmh.annotations.{TearDown, Setup => JmhSetup}
 
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.storage.MidonetBackendTestModule
+import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendTestModule}
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.config.MidolmanConfig
@@ -41,13 +42,16 @@ trait MidolmanBenchmark extends MockMidolmanActors
     def midolmanBenchmarkSetup(): Unit = {
         val conf = MidoTestConfigurator.forAgents(fillConfig())
         injector = Guice.createInjector(getModules(conf))
+        injector.getInstance(classOf[MidonetBackend])
+            .startAsync().awaitRunning()
         injector = injector.createChildInjector(new MockMidolmanModule(
                 hostId,
                 injector,
                 new MidolmanConfig(conf, ConfigFactory.empty()),
+                injector.getInstance(classOf[MidonetBackend]),
+                new MidonetBackendConfig(conf),
+                null,
                 actorsService))
-        injector.getInstance(classOf[MidonetBackend])
-                .startAsync().awaitRunning()
         injector.getInstance(classOf[MidolmanService])
                 .startAsync().awaitRunning()
     }
