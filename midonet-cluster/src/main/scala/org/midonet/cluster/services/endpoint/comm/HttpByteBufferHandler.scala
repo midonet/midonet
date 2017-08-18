@@ -16,6 +16,9 @@
 
 package org.midonet.cluster.services.endpoint.comm
 
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+
 import org.slf4j.LoggerFactory
 
 import io.netty.buffer.{ByteBuf, ByteBufInputStream, Unpooled}
@@ -29,7 +32,9 @@ import io.netty.util.CharsetUtil
   * on the HTTPByteBufferHandler.
   */
 trait HttpByteBufferProvider {
-    def getByteBuffer(): ByteBuf
+    def getAndRef(): Future[ByteBuf]
+
+    def unref(): Unit
 }
 
 /**
@@ -56,15 +61,21 @@ class HttpByteBufferHandler(provider: HttpByteBufferProvider)
         } else {
             val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                                                    HttpResponseStatus.OK)
-            val buffer = provider.getByteBuffer()
-            response.headers.set(HttpHeaderNames.CACHE_CONTROL,
-                                 "no-store, must-revalidate")
-            response.headers.set(HttpHeaderNames.CONTENT_LENGTH,
-                                 buffer.readableBytes())
-            response.headers.set(HttpHeaderNames.CONTENT_TYPE,
-                                 "application/octet-stream")
-            ctx.write(response)
-            sendContents(ctx, buffer)
+            try {
+                // TODO: make the wait time configurable while waiting
+                // for the snapshot to finish
+                val buffer = Await.result(provider.getAndRef(), 5 second)
+                response.headers.set(HttpHeaderNames.CACHE_CONTROL,
+                                     "no-store, must-revalidate")
+                response.headers.set(HttpHeaderNames.CONTENT_LENGTH,
+                                     buffer.readableBytes())
+                response.headers.set(HttpHeaderNames.CONTENT_TYPE,
+                                     "application/octet-stream")
+                ctx.write(response)
+                sendContents(ctx, buffer)
+            } finally {
+                provider.unref()
+            }
         }
     }
 
