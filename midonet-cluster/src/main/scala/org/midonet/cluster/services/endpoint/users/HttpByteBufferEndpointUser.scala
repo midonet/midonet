@@ -16,7 +16,8 @@
 
 package org.midonet.cluster.services.endpoint.users
 
-import org.midonet.cluster.services.endpoint.comm.{HttpByteBufferHandler, HttpByteBufferProvider, KeepAliveHandler}
+import org.midonet.cluster.services.endpoint.comm.{HttpByteBufferHandler, KeepAliveHandler}
+import org.midonet.cluster.services.topology_cache.TopologySnapshotProvider
 
 import io.netty.channel.Channel
 
@@ -24,10 +25,11 @@ import io.netty.channel.Channel
   * Trait for those who want to have an endpoint with static file serving
   * capabilities.
   */
-trait HttpByteBufferEndpointUser extends EndpointUser
-                                         with HttpByteBufferProvider {
+trait HttpByteBufferEndpointUser extends EndpointUser {
 
     import HttpByteBufferEndpointUser.DefaultIdleTimeout
+
+    def snapshotProvider: TopologySnapshotProvider
 
     override def protocol(sslEnabled: Boolean): String =
         if (sslEnabled) "https" else "http"
@@ -41,7 +43,7 @@ trait HttpByteBufferEndpointUser extends EndpointUser
     override def initEndpointChannel(path: String, channel: Channel): Unit = {
         val pipe = channel.pipeline
         pipe.addLast("keep-alive", new KeepAliveHandler(DefaultIdleTimeout))
-        pipe.addLast("http-bytebuffer-handler", new HttpByteBufferHandler(this))
+        pipe.addLast("http-bytebuffer-handler", new HttpByteBufferHandler(snapshotProvider))
     }
 }
 

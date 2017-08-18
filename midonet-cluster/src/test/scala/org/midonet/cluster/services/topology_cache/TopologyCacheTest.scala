@@ -119,10 +119,7 @@ class TopologyCacheTest extends FeatureSpec
                                           clusterConfig,
                                           metrics)
 
-            val result = cache.snapshot()
-            ScalaFutures.whenReady(result.failed) { e =>
-                e shouldBe a [IllegalStateException]
-            }
+            cache.snapshotProvider shouldBe null
         }
     }
 
@@ -136,11 +133,12 @@ class TopologyCacheTest extends FeatureSpec
             cache.startAsync().awaitRunning()
 
             When("Requesting a snapshot")
-            val snapshot = Await.result(cache.snapshot(), 10 seconds)
+            val f = cache.snapshotProvider.getAndRef()
+            cache.snapshotProvider.unref()
+            val snapshot = Await.result(f, 10 seconds)
 
             Then("The snapshot is empty")
-            snapshot.objectSnapshot.size() shouldBe 0
-            snapshot.stateSnapshot.size() shouldBe 0
+            snapshot.capacity() shouldBe 0
 
             And("Stop the cache to clear subscriptions")
             cache.stopAsync().awaitTerminated()
@@ -171,10 +169,12 @@ class TopologyCacheTest extends FeatureSpec
 
             When("Requesting a snapshot")
             eventually {
-                val snapshot = Await.result(cache.snapshot(), 10 seconds)
+                val f = cache.snapshotProvider.getAndRef()
+                cache.snapshotProvider.unref()
+                val snapshot = Await.result(f, 10 seconds)
+
                 Then("The snapshot is not empty")
-                snapshot.objectSnapshot.size shouldBe 2
-                snapshot.stateSnapshot.size shouldBe 3
+                snapshot.capacity() should not be 0
             }
 
             And("Stop the cache to clear subscriptions")

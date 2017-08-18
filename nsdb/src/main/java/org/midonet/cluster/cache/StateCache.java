@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
@@ -235,29 +236,24 @@ public final class StateCache extends AbstractService {
          */
         synchronized void snapshot(StateNotification.MappedSnapshot snapshot) {
             for (Map.Entry<String, KeyCache> entry : keys.entrySet()) {
-                snapshot.putIfAbsent(
-                        entry.getValue().owner.toString(),
-                        new HashMap<>());
-                HashMap<Class<?>,
-                    HashMap<Object,
-                        HashMap<String, Object>>> classes =
-                    snapshot.get(entry.getValue().owner.toString());
+                KeyCache keyCache = entry.getValue();
+                String owner = Objects.toString(keyCache.owner(), null);
 
-                classes.putIfAbsent(
-                        entry.getValue().clazz,
-                        new HashMap<>());
+                snapshot.putIfAbsent(owner, new HashMap<>());
+                HashMap<Class<?>,
+                    HashMap<Object, HashMap<String, Object>>> classes =
+                    snapshot.get(owner);
+
+                classes.putIfAbsent(keyCache.clazz, new HashMap<>());
                 HashMap<Object,
                     HashMap<String, Object>> objectIds =
-                    classes.get(entry.getValue().clazz);
+                    classes.get(keyCache.clazz);
 
-                objectIds.putIfAbsent(
-                        entry.getValue().id(),
-                        new HashMap<>());
+                objectIds.putIfAbsent(keyCache.id(), new HashMap<>());
                 HashMap<String, Object> stateKeys =
-                    objectIds.get(entry.getValue().id());
+                    objectIds.get(keyCache.id());
 
-                stateKeys.putIfAbsent(entry.getValue().key(),
-                                      entry.getValue().key);
+                stateKeys.putIfAbsent(keyCache.key(), keyCache);
             }
         }
 

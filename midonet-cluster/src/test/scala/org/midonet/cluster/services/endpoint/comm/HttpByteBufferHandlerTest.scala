@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 import javax.net.ssl.HostnameVerifier
 
 import scala.async.Async.async
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.Random
@@ -21,7 +21,6 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier
 import org.apache.http.impl.client.{CloseableHttpClient, HttpClients}
 import org.apache.http.ssl.{SSLContextBuilder, TrustStrategy}
 import org.junit.runner.RunWith
-import org.mockito.{Matchers => MockMatchers}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
@@ -51,7 +50,8 @@ class HttpByteBufferHandlerTest extends FeatureSpec
         Random.nextBytes(buffer)
         val bufferProvider = new HttpByteBufferProvider {
             private val httpBuffer = Unpooled.wrappedBuffer(buffer)
-            override def getByteBuffer() = httpBuffer
+            override def getAndRef() = Future.successful(httpBuffer)
+            override def unref(): Unit = {}
         }
         handler = new HttpByteBufferHandler(bufferProvider)
     }

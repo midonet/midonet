@@ -16,10 +16,14 @@
 
 package org.midonet.cluster.services.endpoint.comm
 
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.{Failure, Success}
+
 import org.slf4j.LoggerFactory
 
 import io.netty.buffer.{ByteBuf, ByteBufInputStream, Unpooled}
-import io.netty.channel.{ChannelProgressiveFuture, ChannelProgressiveFutureListener, SimpleChannelInboundHandler}
+import io.netty.channel._
 import io.netty.handler.codec.http._
 import io.netty.handler.stream.ChunkedStream
 import io.netty.util.CharsetUtil
@@ -29,7 +33,9 @@ import io.netty.util.CharsetUtil
   * on the HTTPByteBufferHandler.
   */
 trait HttpByteBufferProvider {
-    def getByteBuffer(): ByteBuf
+    def getAndRef(): Future[ByteBuf]
+
+    def unref(): Unit
 }
 
 /**
@@ -43,12 +49,12 @@ trait HttpByteBufferProvider {
 class HttpByteBufferHandler(provider: HttpByteBufferProvider)
     extends SimpleChannelInboundHandler[FullHttpRequest] {
 
-    import io.netty.channel.ChannelHandlerContext
-
     private val log = LoggerFactory.getLogger(classOf[HttpByteBufferHandler])
 
     override def channelRead0(ctx: ChannelHandlerContext,
-                              request: FullHttpRequest) = {
+                              request: FullHttpRequest): Unit = {
+        implicit val ec = ExecutionContext.fromExecutor(ctx.channel.eventLoop)
+
         if (!request.decoderResult().isSuccess) {
             sendError(ctx, HttpResponseStatus.BAD_REQUEST)
         } else if (request.method() != HttpMethod.GET) {
@@ -56,15 +62,22 @@ class HttpByteBufferHandler(provider: HttpByteBufferProvider)
         } else {
             val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                                                    HttpResponseStatus.OK)
-            val buffer = provider.getByteBuffer()
-            response.headers.set(HttpHeaderNames.CACHE_CONTROL,
-                                 "no-store, must-revalidate")
-            response.headers.set(HttpHeaderNames.CONTENT_LENGTH,
-                                 buffer.readableBytes())
-            response.headers.set(HttpHeaderNames.CONTENT_TYPE,
-                                 "application/octet-stream")
-            ctx.write(response)
-            sendContents(ctx, buffer)
+
+            provider.getAndRef() onComplete {
+                case Success(buffer) =>
+                    response.headers.set(HttpHeaderNames.CACHE_CONTROL,
+                                         "no-store, must-revalidate")
+                    response.headers.set(HttpHeaderNames.CONTENT_LENGTH,
+                                         buffer.readableBytes())
+                    response.headers.set(HttpHeaderNames.CONTENT_TYPE,
+                                         "application/octet-stream")
+                    ctx.write(response)
+                    sendContents(ctx, buffer)
+                    provider.unref()
+                case Failure(e) =>
+                    log.warn("Error getting ref from buffer provider", e)
+                    provider.unref()
+            }
         }
     }
 
