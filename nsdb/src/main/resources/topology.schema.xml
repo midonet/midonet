@@ -53,25 +53,31 @@
     </types>
 
     <sbe:message name="topologySnapshot" id="1">
-        <group name="objectClasses" id="1">
-            <group name="objects" id="2">
+        <!-- Topology objects by object class -->
+        <group name="objectClass" id="1">
+            <group name="object" id="2">
                 <field name="uuid" id="3" type="UUID"/>
-                <data name="objectData" id="4" type="byteArrayEncoding"/>
+                <data name="data" id="4" type="byteArrayEncoding"/>
             </group>
             <data name="objectClass" id="5" type="stringEncoding"/>
         </group>
-        <group name="stateClasses" id="6">
-            <group name="states" id="7">
-                <field name="uuid" id="8" type="UUID"/>
-                <field name="owner" id="9" type="UUID"/>
-                <field name="stateType" id="10" type="topologyStateType"/>
-                <group name="multiValue" id="11">
-                    <data name="multiValueEntry" id="12" type="stringEncoding"/>
+        <!-- Topology state objects by ownerId/objectClass/objectId -->
+        <group name="stateOwner" id="6">
+            <field name="uuid" id="7" type="UUID"/>
+            <group name="stateClass" id="8">
+                <group name="stateId" id="9">
+                    <field name="uuid" id="10" type="UUID"/>
+                    <group name="stateKey" id="11">
+                        <field name="stateType" id="12" type="topologyStateType"/>
+                        <group name="multiValue" id="13">
+                            <data name="multiValueEntry" id="14" type="stringEncoding"/>
+                        </group>
+                        <data name="key" id="15" type="stringEncoding"/>
+                        <data name="singleValue" id="16" type="byteArrayEncoding"/>
+                    </group>
                 </group>
-                <data name="stateKey" id="13" type="stringEncoding"/>
-                <data name="singleValue" id="14" type="byteArrayEncoding"/>
+                <data name="stateClass" id="17" type="stringEncoding"/>
             </group>
-            <data name="objectClass" id="15" type="stringEncoding"/>
         </group>
     </sbe:message>
 </sbe:messageSchema>
