@@ -174,6 +174,14 @@ public final class StateCache extends AbstractService {
         }
 
         /**
+         * Adds a snapshot of the current data to the given notification map.
+         */
+        synchronized void snapshot(StateNotification.MappedSnapshot snapshot) {
+            for (Map.Entry<UUID, ObjCache> entry : objects.entrySet()) {
+                entry.getValue().snapshot(snapshot);
+            }
+        }
+        /**
          * Stops caching state for the current class.
          */
         @Override
@@ -219,6 +227,37 @@ public final class StateCache extends AbstractService {
         synchronized void snapshot(StateNotification.Snapshot snapshot) {
             for (Map.Entry<String, KeyCache> entry : keys.entrySet()) {
                 snapshot.add(entry.getValue());
+            }
+        }
+
+        /**
+         * Adds a snapshot of the current data to the given notification map.
+         */
+        synchronized void snapshot(StateNotification.MappedSnapshot snapshot) {
+            for (Map.Entry<String, KeyCache> entry : keys.entrySet()) {
+                snapshot.putIfAbsent(
+                        entry.getValue().owner.toString(),
+                        new HashMap<>());
+                HashMap<Class<?>,
+                    HashMap<Object,
+                        HashMap<String, Object>>> classes =
+                    snapshot.get(entry.getValue().owner.toString());
+
+                classes.putIfAbsent(
+                        entry.getValue().clazz,
+                        new HashMap<>());
+                HashMap<Object,
+                    HashMap<String, Object>> objectIds =
+                    classes.get(entry.getValue().clazz);
+
+                objectIds.putIfAbsent(
+                        entry.getValue().id(),
+                        new HashMap<>());
+                HashMap<String, Object> stateKeys =
+                    objectIds.get(entry.getValue().id());
+
+                stateKeys.putIfAbsent(entry.getValue().key(),
+                                      entry.getValue().key);
             }
         }
 
@@ -566,6 +605,30 @@ public final class StateCache extends AbstractService {
         }
 
         notifyStopped();
+    }
+
+
+    /**
+     * It requests a snapshot of the current NSDB cached objects.
+     *
+     * NOTE: Should run on the same thread as the thread receiving
+     * notifications from backend storage.
+     * @return
+     */
+
+    public StateNotification.MappedSnapshot snapshot() {
+        if (!isRunning()) {
+            throw new IllegalStateException("State cache not running");
+        }
+
+        StateNotification.MappedSnapshot snapshot = new StateNotification.MappedSnapshot();
+
+        for (Map.Entry<Class<?>, ClassCache> entry : classes.entrySet()) {
+            entry.getValue().snapshot(snapshot);
+        }
+
+        LOG.debug("Returning state snapshot to new subscriber: {}", snapshot);
+        return snapshot;
     }
 
     /**

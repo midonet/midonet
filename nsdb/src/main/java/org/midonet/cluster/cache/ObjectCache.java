@@ -202,6 +202,16 @@ public final class ObjectCache extends AbstractService {
         }
 
         /**
+         * Adds a snapshot of the current data to the given entries
+         * notification of the mapped snapshot.
+         */
+        synchronized void snapshot(ObjectNotification.MappedSnapshot snapshot) {
+            for (Map.Entry<String, ObjCache> entry : objects.entrySet()) {
+                entry.getValue().snapshot(snapshot);
+            }
+        }
+
+        /**
          * Closes the objects cache for this class.
          */
         private synchronized void closeInternal() {
@@ -403,6 +413,20 @@ public final class ObjectCache extends AbstractService {
             }
         }
 
+         /**
+         * Requests a snapshot for the current object to add it to the given
+         * entries map.
+         * @param snapshot The entries notification.
+         */
+        synchronized void snapshot(MappedSnapshot snapshot) {
+            if (data != null) {
+                snapshot.putIfAbsent(this.clazz, new HashMap<>());
+                HashMap<Object, Object> entry = snapshot.get(this.clazz);
+                entry.put(this.id(), this);
+            }
+        }
+
+
         /**
          * Calls the close handler for this object cache.
          */
@@ -517,6 +541,28 @@ public final class ObjectCache extends AbstractService {
         }
 
         notifyStopped();
+    }
+
+    /**
+     * It requests a snapshot of the current NSDB cached objects.
+     *
+     * NOTE: Should run on the same thread as the thread receiving
+     * notifications from backend storage.
+     * @return
+     */
+    public ObjectNotification.MappedSnapshot snapshot() {
+        if (!isRunning()) {
+            throw new IllegalStateException("Object cache not running");
+        }
+        ObjectNotification.MappedSnapshot snapshot =
+            new ObjectNotification.MappedSnapshot();
+
+        for (Map.Entry<Class<?>, ClassCache> entry : classes.entrySet()) {
+            entry.getValue().snapshot(snapshot);
+        }
+
+        LOG.debug("Returning object snapshot to new subscriber: {}", snapshot);
+        return snapshot;
     }
 
     /**

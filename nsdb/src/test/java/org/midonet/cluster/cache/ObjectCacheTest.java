@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.cache;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +27,7 @@ import scala.runtime.AbstractFunction0;
 import scala.runtime.BoxedUnit;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 import com.typesafe.config.ConfigFactory;
 
@@ -313,4 +316,23 @@ public class ObjectCacheTest extends ZooKeeperTest {
         Assert.assertFalse(observer3.getOnCompletedEvents().isEmpty());
     }
 
+    @Test
+    public void testCachePublishesSnapshot() throws Exception {
+        // Given a cache.
+        ObjectCache cache = new ObjectCache(curator, paths, metricRegistry);
+
+        // When the cache is started.
+        cache.startAsync().awaitRunning();
+
+        // When adding an object to the topology.
+        UUID id1 = UUID.randomUUID();
+        Topology.Network network = Topology.Network.newBuilder()
+            .setId(UUIDUtil$.MODULE$.toProto(id1))
+            .build();
+        storage.create(network);
+
+        ObjectNotification.MappedSnapshot snapshot = cache.snapshot();
+        Assert.assertTrue(snapshot.keySet().contains(Topology.Network.class));
+
+    }
 }

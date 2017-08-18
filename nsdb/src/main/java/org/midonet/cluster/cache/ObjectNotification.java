@@ -17,6 +17,7 @@
 package org.midonet.cluster.cache;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -73,6 +74,15 @@ public interface ObjectNotification {
      * Represents a snapshot of the NSDB objects.
      */
     final class Snapshot extends ArrayList<Update> implements ObjectNotification {
+    }
+
+    /**
+     * Represents a snapshot of the NSDB objects stored in a map as you would
+     * find on the Zookeeper hierarchy, i.e.:
+     * objectClass/objectId/object
+     */
+    final class MappedSnapshot extends HashMap<Class<?>, HashMap<Object, Object>>
+        implements ObjectNotification {
     }
 
 }
