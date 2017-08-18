@@ -27,7 +27,7 @@ import org.midonet.cluster.data.storage.KeyType.KeyTypeVal;
  * Contains the information for a state key, which includes the key type,
  * name and ownership.
  */
-class StateKey {
+public class StateKey {
 
     private static final Logger LOG = LoggerFactory.getLogger(StateKey.class);
 
