@@ -51,7 +51,7 @@ class HttpByteBufferHandlerTest extends FeatureSpec
         Random.nextBytes(buffer)
         val bufferProvider = new HttpByteBufferProvider {
             private val httpBuffer = Unpooled.wrappedBuffer(buffer)
-            override def getByteBuffer() = httpBuffer
+            override def getAndRef() = httpBuffer
         }
         handler = new HttpByteBufferHandler(bufferProvider)
     }
