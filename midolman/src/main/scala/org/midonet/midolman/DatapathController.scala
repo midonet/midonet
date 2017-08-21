@@ -26,6 +26,7 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.reflect._
+import scala.util.{Failure, Success}
 
 import akka.actor._
 import akka.pattern.{after, pipe}
@@ -57,6 +58,7 @@ import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent._
+import org.midonet.util.functors.makeRunnable
 
 object UnderlayResolver {
     case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput) {
@@ -126,6 +128,10 @@ object DatapathController extends Referenceable {
     // This value is just a reference in case there are no tunnel interfaces
     // configured.
     private[midolman] var defaultMtu: Int = _
+
+    // Delay for the datapart ports clean-up process, after the controller has
+    // been initialized.
+    private[midolman] val dpPortCleanupDelay = 60 seconds
 
     /**
      * This message is sent when the separate thread has successfully
@@ -228,6 +234,10 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                         def onNext(data: Set[InterfaceDescription]): Unit =
                             self ! InterfacesUpdate(data)
                     })
+                if (config.reclaimDatapath) {
+                    context.system.scheduler.scheduleOnce(
+                        dpPortCleanupDelay, self, makeRunnable {cleanStalePorts()})
+                }
             case m =>
                 log.info(s"Not handling $m (still initializing)")
         }
@@ -266,6 +276,28 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             driver.tunnelFip64VxLanPort = fip64Port
             TunnelPortsCreated
         } pipeTo self
+    }
+
+    private def cleanStalePorts(): Unit = {
+        VirtualToPhysicalMapper.allActivePorts
+            .zip(upcallConnManager.enumerateDpPorts(driver.datapath)).andThen {
+            case Success((vtpmPorts, dpPorts)) =>
+                val knownPorts = vtpmPorts.map(_.portNumber) ++
+                                 driver.dpStatePorts.map(_.getPortNo)
+                dpPorts
+                    .filterNot(p => knownPorts.contains(p.getPortNo))
+                    .foreach { p =>
+                        log.debug("removing stale dp port: {}", p)
+                        upcallConnManager.deleteDpPort(driver.datapath, p).andThen {
+                            case Success(_) =>
+                                log.info("removed stale dp port: {}", p)
+                            case Failure(e) =>
+                                log.warn("failed to remove stale dp port: " + p, e)
+                        }
+                    }
+            case Failure(e) =>
+                log.warn("Failed to clean-up stale ports from datapath", e)
+        }
     }
 
     private def makePort[P <: DpPort](t: ChannelType)(portFact: () => P)
@@ -454,6 +486,14 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     var tunnelRecircVxLanPort: VxLanTunnelPort = _
     var tunnelFip64VxLanPort: VxLanTunnelPort = _
     var hostRecircPort: NetDevPort = _
+
+    def dpStatePorts: Set[DpPort] = Set(
+        tunnelOverlayGrePort,
+        tunnelOverlayVxLanPort,
+        tunnelVtepVxLan,
+        tunnelRecircVxLanPort,
+        tunnelFip64VxLanPort,
+        hostRecircPort)
 
     val interfaceToTriad = new ConcurrentHashMap[String, DpTriad]()
     val vportToTriad = new ConcurrentHashMap[UUID, DpTriad]()

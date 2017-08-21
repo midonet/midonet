@@ -67,6 +67,12 @@ class DatapathControllerTest extends MidolmanSpec {
         new UpcallDatapathConnectionManager {
             var ports = Set.empty[DpPort]
 
+            override def enumerateDpPorts(dp: Datapath)
+                                         (implicit ec: ExecutionContext,
+                                          as: ActorSystem) = {
+                Future.successful(ports)
+            }
+
             override def createAndHookDpPort(dp: Datapath, port: DpPort,
                                              t: ChannelType)
                                             (implicit ec: ExecutionContext,
