@@ -21,6 +21,7 @@ import java.util.concurrent.locks.ReentrantLock
 
 import scala.collection.IndexedSeq
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
@@ -48,6 +49,9 @@ import org.midonet.util.{BatchCollector, Bucket}
  * select loop.
  */
 trait UpcallDatapathConnectionManager {
+
+    def enumerateDpPorts(dp: Datapath)
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[Set[DpPort]]
 
     def createAndHookDpPort(dp: Datapath, port: DpPort, t: ChannelType)
         (implicit ec: ExecutionContext, as: ActorSystem): Future[(DpPort, Int)]
@@ -84,6 +88,36 @@ abstract class UpcallDatapathConnectionManagerBase(
 
     def getDispatcher()(implicit as: ActorSystem) =
         NetlinkCallbackDispatcher.makeBatchCollector()
+
+    override def enumerateDpPorts(datapath: Datapath)
+                        (implicit ec: ExecutionContext, as: ActorSystem)
+    : Future[Set[DpPort]] = {
+        val connName = "datapath-enumerator-" + datapath.getName
+        log.debug("creating datapath connection for {}", connName)
+
+        try {
+            val conn = makeConnection(
+                connName, Bucket.BOTTOMLESS, VirtualMachine)
+            conn.start()
+            val dpConn = conn.getConnection
+            dpConn.setCallbackDispatcher(getDispatcher())
+            setUpcallHandler(dpConn)
+            val ops = new OvsConnectionOps(dpConn)
+            ops.enumPorts(datapath).andThen {
+                case Success(ports) =>
+                    log.debug("retrieved current datapath ports: {}", ports)
+                    stopConnection(conn)
+                case Failure(e) =>
+                    log.warn("failed to retrieve current datapath ports: {}",
+                             e.getMessage)
+                    stopConnection(conn)
+            }
+        } catch {
+            case NonFatal(e) =>
+                log.warn("Failed to connect to datapath to retrieve port list")
+                Future.failed(e)
+        }
+    }
 
     override def createAndHookDpPort(datapath: Datapath, port: DpPort, t: ChannelType)
                            (implicit ec: ExecutionContext, as: ActorSystem)
