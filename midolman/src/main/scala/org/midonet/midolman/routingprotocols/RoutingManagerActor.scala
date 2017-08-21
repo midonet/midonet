@@ -51,8 +51,8 @@ import org.midonet.util.reactivex._
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
 
-    case class ShowBgp(port : UUID, cmd : String)
-    case class BgpStatus(status : Array[String])
+    case class ShowBgp(port: UUID, cmd: String)
+    case class BgpStatus(status: Array[String])
     case class BgpContainerReady(portId: UUID)
 
     private[routingprotocols] trait RoutingStorage {
@@ -82,8 +82,7 @@ object RoutingManagerActor extends Referenceable {
         }
         override def learnedRoutes(routerId: UUID, portId: UUID, hostId: UUID)
         : Future[Set[Route]] = {
-            storage.getPortRoutes(portId, hostId)
-                   .asFuture
+            storage.getPortRoutes(portId, hostId).asFuture
         }
     }
 
@@ -217,7 +216,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                     log.error("Port {} unknown", portId)
             }
 
-        case BgpPort(port,_,_) =>
+        case BgpPort(port, _, _) =>
             if (isPossibleBgpPort(port) &&
                 activePorts.contains(port.id) &&
                 !portHandlers.contains(port.id)) {
@@ -269,7 +268,9 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     }
 
     override def postStop(): Unit = {
+        log.info("On RoutingManagerActor's postStop")
         portsSubscription.unsubscribe()
+        portHandlers.keys.foreach(stopHandler)
     }
 
     /** Stops the routing handler for the specified port identifier. Upon
