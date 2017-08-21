@@ -29,8 +29,6 @@ import com.google.inject.Injector
 import com.lmax.disruptor.{RingBuffer, SequenceBarrier}
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 
-import org.reflections.Reflections
-
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.insights.Insights

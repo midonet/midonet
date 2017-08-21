@@ -18,6 +18,7 @@ package org.midonet.cluster.services.containers
 
 import java.util.concurrent.{Executors, TimeUnit}
 
+import scala.async.Async
 import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
 
