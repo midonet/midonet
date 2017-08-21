@@ -333,6 +333,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
     protected def bgpd: BgpdProcess
 
     override def postStop(): Unit = {
+        log.info("On RoutingHandlers postStop")
         super.postStop()
         if (bgpSubscription ne null) {
             bgpSubscription.unsubscribe()
@@ -831,6 +832,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
     }
 
     private def startOrStopBgpd(): Future[_] = {
+        log.info("Calling startOrStopBgpd")
         if (bgpdShouldRun && !bgpd.isAlive)
             startBgpd()
         else if (bgpd.isAlive && !bgpdShouldRun)
