@@ -38,6 +38,7 @@ import org.midonet.midolman.l4lb.HealthMonitor
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.StopBgpHandlers
 import org.midonet.midolman.services.MidolmanActorsService._
 
 object MidolmanActorsService {
@@ -131,12 +132,20 @@ class MidolmanActorsService extends AbstractService {
     }
 
     protected override def doStop() {
+        log.info("Stopping BGP handler actors")
+        val path = system / SupervisorActor.Name / RoutingManagerActor.Name
+        val routingActor =
+            Await.result(system.actorSelection(path).resolveOne(),
+                         ChildActorStopTimeout)
+        routingActor ! StopBgpHandlers()
+
         log.info("Stopping all actors")
+
         try {
             var stopFutures = childrenActors map stopActor
             stopFutures ::= stopActor(supervisorActor)
-            val aggregationTimout = ChildActorStopTimeout * stopFutures.length
-            Await.result(Future.sequence(stopFutures), aggregationTimout)
+            val aggregationTimeout = ChildActorStopTimeout * stopFutures.length
+            Await.result(Future.sequence(stopFutures), aggregationTimeout)
             log.info("All actors stopped successfully")
         } catch {
             case NonFatal(e) =>
