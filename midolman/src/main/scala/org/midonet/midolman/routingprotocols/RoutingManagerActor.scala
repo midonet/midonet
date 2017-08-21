@@ -51,9 +51,10 @@ import org.midonet.util.reactivex._
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
 
-    case class ShowBgp(port : UUID, cmd : String)
-    case class BgpStatus(status : Array[String])
+    case class ShowBgp(port: UUID, cmd: String)
+    case class BgpStatus(status: Array[String])
     case class BgpContainerReady(portId: UUID)
+    case class StopBgpHandlers()
 
     private[routingprotocols] trait RoutingStorage {
         def setStatus(portId: UUID, status: String): Future[UUID]
@@ -82,8 +83,7 @@ object RoutingManagerActor extends Referenceable {
         }
         override def learnedRoutes(routerId: UUID, portId: UUID, hostId: UUID)
         : Future[Set[Route]] = {
-            storage.getPortRoutes(portId, hostId)
-                   .asFuture
+            storage.getPortRoutes(portId, hostId).asFuture
         }
     }
 
@@ -217,7 +217,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                     log.error("Port {} unknown", portId)
             }
 
-        case BgpPort(port,_,_) =>
+        case BgpPort(port, _, _) =>
             if (isPossibleBgpPort(port) &&
                 activePorts.contains(port.id) &&
                 !portHandlers.contains(port.id)) {
@@ -257,6 +257,10 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
         case OnError(e) =>
             log.error("Unhandled exception on BGP port observable", e)
 
+        case StopBgpHandlers() =>
+            log.info("Stopping all RMA BGP handler actors ...")
+            stopAllHandlers()
+
         case _ => log.error("Unknown message")
     }
 
@@ -269,8 +273,11 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     }
 
     override def postStop(): Unit = {
+        log.info("On RoutingManagerActor's postStop")
         portsSubscription.unsubscribe()
     }
+
+    private def stopAllHandlers(): Unit = portHandlers.keys foreach stopHandler
 
     /** Stops the routing handler for the specified port identifier. Upon
       * completion of the handler termination, the actor will receive a

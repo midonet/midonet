@@ -16,6 +16,7 @@
 package org.midonet.midolman.util.mock
 
 import java.util.concurrent.CountDownLatch
+
 import scala.collection.mutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
@@ -23,6 +24,7 @@ import scala.concurrent.duration.Duration
 import akka.actor.{Actor, ActorIdentity, Identify, Props}
 import akka.pattern.ask
 import akka.testkit.TestActorRef
+
 import com.google.inject.{Inject, Injector}
 
 import org.midonet.midolman.Referenceable

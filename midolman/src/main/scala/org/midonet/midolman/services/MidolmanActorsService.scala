@@ -38,6 +38,7 @@ import org.midonet.midolman.l4lb.HealthMonitor
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.StopBgpHandlers
 import org.midonet.midolman.services.MidolmanActorsService._
 
 object MidolmanActorsService {
@@ -100,6 +101,7 @@ class MidolmanActorsService extends AbstractService {
 
     protected var supervisorActor: ActorRef = _
     private var childrenActors: List[ActorRef] = Nil
+    private var rmaRef: ActorRef = null
 
     protected override def doStart() {
         try {
@@ -112,7 +114,10 @@ class MidolmanActorsService extends AbstractService {
 
             childrenActors = actorSpecs map { s =>
                 try {
-                    Await.result(startActor(s), ChildActorStartTimeout)
+
+                    val res = Await.result(startActor(s), ChildActorStartTimeout)
+                    if (s._2 == RoutingManagerActor.Name) rmaRef = res
+                    res
                 } catch {
                     case NonFatal(e) =>
                         // rethrow and propagate up to the injector
@@ -131,12 +136,19 @@ class MidolmanActorsService extends AbstractService {
     }
 
     protected override def doStop() {
+        log.info("Stopping RMA children with actorSelection")
+        val rma = Await.result(system.actorSelection(RoutingManagerActor.Name).resolveOne(), ActorsStartTimeout)
+        rma ! StopBgpHandlers()
+//        rmaRef ! StopBgpHandlers()
+        log.info("RMA children stop called")
+
         log.info("Stopping all actors")
+
         try {
             var stopFutures = childrenActors map stopActor
             stopFutures ::= stopActor(supervisorActor)
-            val aggregationTimout = ChildActorStopTimeout * stopFutures.length
-            Await.result(Future.sequence(stopFutures), aggregationTimout)
+            val aggregationTimeout = ChildActorStopTimeout * stopFutures.length
+            Await.result(Future.sequence(stopFutures), aggregationTimeout)
             log.info("All actors stopped successfully")
         } catch {
             case NonFatal(e) =>
