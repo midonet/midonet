@@ -126,6 +126,15 @@ object VirtualToPhysicalMapper {
     private[topology] var self: VirtualToPhysicalMapper = _
 
     /**
+      * Gets a snapshot of the currently active ports.
+      * This is executed in the virtual topology thread for atomicity.
+      * @return a future with a snapshot of the active ports
+      */
+    def allActivePorts: Future[Set[LocalPortActive]] = {
+        self.allActivePorts
+    }
+
+    /**
       * Sets the active flag for the specified local port. The method returns
       * a future that indicate the completion of the operation. The future will
       * complete on the virtual topology thread.
@@ -307,6 +316,18 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
                                          TimeUnit.MILLISECONDS)) {
             ioExecutor.shutdownNow()
         }
+    }
+
+    def allActivePorts: Future[Set[LocalPortActive]] = {
+        val promise = Promise[Set[LocalPortActive]]
+        vt.vtExecutor.execute(makeRunnable {
+            val ports = activePorts.entrySet().asScala.toSet.map {
+                e: util.Map.Entry[UUID, Integer] =>
+                    LocalPortActive(e.getKey, e.getValue, active = true)
+            }
+            promise.trySuccess(ports)
+        })
+        promise.future
     }
 
     /**
