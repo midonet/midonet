@@ -21,6 +21,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
+import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
@@ -38,6 +39,7 @@ import org.midonet.midolman.l4lb.HealthMonitor
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.StopBgpHandlers
 import org.midonet.midolman.services.MidolmanActorsService._
 
 object MidolmanActorsService {
@@ -131,12 +133,23 @@ class MidolmanActorsService extends AbstractService {
     }
 
     protected override def doStop() {
+        log.info("Stopping BGP handler actors")
+        val path = system / SupervisorActor.Name / RoutingManagerActor.Name
+        Await.ready(system.actorSelection(path).resolveOne(),
+                    ChildActorStopTimeout).onComplete {
+            case Success(routingActor) =>
+                routingActor ! StopBgpHandlers()
+            case Failure(_) =>
+                log.warn(s"Unable to get ${RoutingManagerActor.Name} actor")
+        }
+
         log.info("Stopping all actors")
+
         try {
             var stopFutures = childrenActors map stopActor
             stopFutures ::= stopActor(supervisorActor)
-            val aggregationTimout = ChildActorStopTimeout * stopFutures.length
-            Await.result(Future.sequence(stopFutures), aggregationTimout)
+            val aggregationTimeout = ChildActorStopTimeout * stopFutures.length
+            Await.result(Future.sequence(stopFutures), aggregationTimeout)
             log.info("All actors stopped successfully")
         } catch {
             case NonFatal(e) =>
