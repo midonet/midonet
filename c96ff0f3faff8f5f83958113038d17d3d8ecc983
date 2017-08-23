@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf589e82_5646efdd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-23T13:56:33Z",
+      "side": 1,
+      "message": "It should not be unref in case of error (because it was not actually referenced...)",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 36
+      },
+      "revId": "c96ff0f3faff8f5f83958113038d17d3d8ecc983",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
