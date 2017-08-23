@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "faa89ffd_06973922",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/topology/snapshot/package.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-23T13:32:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bb4fd74_35e3c8b9",
+      "range": {
+        "startLine": 208,
+        "startChar": 0,
+        "endLine": 208,
+        "endChar": 61
+      },
+      "revId": "6d63331744924b902d07cd174c3aabc40f74600f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "33ed7dc1_e6086144",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/topology/snapshot/package.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-23T10:29:15Z",
       "side": 1,
       "message": "indentation",
+      "range": {
+        "startLine": 217,
+        "startChar": 0,
+        "endLine": 217,
+        "endChar": 50
+      },
+      "revId": "6d63331744924b902d07cd174c3aabc40f74600f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c2c2796_6bb03a4f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/topology/snapshot/package.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-23T13:32:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "33ed7dc1_e6086144",
       "range": {
         "startLine": 217,
         "startChar": 0,
