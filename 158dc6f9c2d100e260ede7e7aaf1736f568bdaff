@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a2e60157_8998df88",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/endpoint/comm/HttpByteBufferHandler.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-23T11:10:07Z",
+      "side": 1,
+      "message": "We should not wait here, as this blocks the netty threads. Instead, we should send the response when the future is completed",
+      "range": {
+        "startLine": 67,
+        "startChar": 35,
+        "endLine": 67,
+        "endChar": 41
+      },
+      "revId": "158dc6f9c2d100e260ede7e7aaf1736f568bdaff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "37efa9ac_c1e86ea9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologyCache.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-23T11:10:07Z",
+      "side": 1,
+      "message": "Even if the intervals are fixed, it would be good to define them as constants in the companion object",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 71
+      },
+      "revId": "158dc6f9c2d100e260ede7e7aaf1736f568bdaff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "aa51cb89_ba45c3d9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologySnapshotProvider.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-08-23T11:10:07Z",
+      "side": 1,
+      "message": "Why does this need to be synchronized?",
+      "range": {
+        "startLine": 74,
+        "startChar": 35,
+        "endLine": 74,
+        "endChar": 47
+      },
+      "revId": "158dc6f9c2d100e260ede7e7aaf1736f568bdaff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
