@@ -26,7 +26,7 @@ import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.util.PortProvider
-import org.midonet.util.netty.ServerFrontEnd
+import org.midonet.util.netty.{HTTPAdapter, ServerFrontEnd}
 
 import io.netty.buffer.Unpooled
 import io.netty.channel.socket.SocketChannel
