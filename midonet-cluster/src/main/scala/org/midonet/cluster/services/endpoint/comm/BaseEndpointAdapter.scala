@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.endpoint.comm
 
 import org.midonet.cluster.services.endpoint.registration.EndpointUserRegistrar
+import org.midonet.util.netty.HTTPAdapter
 
 import io.netty.channel.ChannelPipeline
 import io.netty.channel.socket.SocketChannel
