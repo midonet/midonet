@@ -18,7 +18,7 @@ package org.midonet.cluster.services.endpoint.comm
 
 import com.google.protobuf.Message
 
-import org.midonet.util.netty.{BinaryToWSFrameEncoder, WSFrameToBinaryDecoder}
+import org.midonet.util.netty.{BinaryToWSFrameEncoder, HTTPAdapter, WSFrameToBinaryDecoder}
 
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.{ChannelInitializer, ChannelPipeline}

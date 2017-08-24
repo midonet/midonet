@@ -47,6 +47,7 @@ dependencies {
             libraries.curator_recipes,
             libraries.guava,
             libraries.guice,
+            libraries.httpclient,
             libraries.logback,
             libraries.netty,
             libraries.protobuf,
