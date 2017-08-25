@@ -234,6 +234,9 @@ allprojects {
             def genDir = file("${buildDir}/generated/java")
             sourceDirs += genDir
             idea.module.iml.withXml { p -> addProtobufFacet(p, genDir) }
+            def srcDir = file("${buildDir}/generated/source/proto/main/java")
+            sourceDirs += srcDir
+            idea.module.iml.withXml { p -> addProtobufFacet(p, srcDir) }
         }
 
         inheritOutputDirs = false
