@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "115f705b_bdd67fcd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/TopologyCacheClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-25T08:35:23Z",
+      "side": 1,
+      "message": "what\u0027s the use of this vs using \u0027Future { ... }\u0027 ? just curious",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 13
+      },
+      "revId": "f93f6cd05711e2d7cf5a5107dcee08af79cc2f42",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
