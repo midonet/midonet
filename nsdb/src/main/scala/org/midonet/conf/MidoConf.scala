@@ -330,6 +330,9 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     private val _templateMappings = new ZookeeperConf(zk, s"/config/template-mappings")
     private val digest = MessageDigest.getInstance("SHA-256")
 
+    @volatile
+    private var cachedSources: Option[Seq[(String, MidoConf)]] = None
+
     {
         zk.createContainers("/config")
         zk.createContainers("/config/nodes")
@@ -660,22 +663,27 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         templates
     }
 
-    private def bundledConfigSources(sourceType: String): Seq[(String, MidoConf)] = {
-        val path = s"org/midonet/conf/$sourceType"
-        val urls = getClass.getClassLoader.getResources(path)
+    private def bundledConfigSources(sourceType: String): Seq[(String, MidoConf)] =
+        cachedSources match {
+            case None =>
+                val path = s"org/midonet/conf/$sourceType"
+                val urls = getClass.getClassLoader.getResources(path)
 
-        var sources: List[(String, MidoConf)] = Nil
+                var sources: List[(String, MidoConf)] = Nil
 
-        while (urls.hasMoreElements) {
-            val uri = urls.nextElement.toURI
-            if (uri.toString.startsWith("jar:"))
-                sources :::= extractTemplatesFromJar(uri)
-            else
-                sources :::= extractTemplatesFromDir(uri)
+                while (urls.hasMoreElements) {
+                    val uri = urls.nextElement.toURI
+                    if (uri.toString.startsWith("jar:"))
+                        sources :::= extractTemplatesFromJar(uri)
+                    else
+                        sources :::= extractTemplatesFromDir(uri)
+                }
+
+                cachedSources = Some(sources)
+                sources
+            case Some(sources) =>
+                sources
         }
-
-        sources
-    }
 
     def bundledTemplates: Seq[(String, MidoConf)] = bundledConfigSources("templates")
 
