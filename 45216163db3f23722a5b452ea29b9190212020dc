@@ -22,6 +22,30 @@
       "revId": "45216163db3f23722a5b452ea29b9190212020dc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8cb2b8ad_cdc1ad8c",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 667,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-29T15:47:47Z",
+      "side": 1,
+      "message": "true, the original plan was to map by sourceType, updated the cache to a map",
+      "parentUuid": "b086f249_8e90f236",
+      "range": {
+        "startLine": 667,
+        "startChar": 8,
+        "endLine": 667,
+        "endChar": 29
+      },
+      "revId": "45216163db3f23722a5b452ea29b9190212020dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
