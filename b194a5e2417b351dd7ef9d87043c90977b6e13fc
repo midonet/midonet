@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "36a27c4b_2640aa6d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-08-29T14:23:54Z",
+      "side": 1,
+      "message": "unit test?",
+      "range": {
+        "startLine": 57,
+        "startChar": 15,
+        "endLine": 57,
+        "endChar": 30
+      },
+      "revId": "b194a5e2417b351dd7ef9d87043c90977b6e13fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "21afa739_8102fe51",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/services/MidolmanActorsService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-08-29T14:23:54Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 136,
+        "startChar": 8,
+        "endLine": 144,
+        "endChar": 9
+      },
+      "revId": "b194a5e2417b351dd7ef9d87043c90977b6e13fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
