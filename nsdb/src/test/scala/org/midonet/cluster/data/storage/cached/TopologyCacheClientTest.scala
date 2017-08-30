@@ -178,7 +178,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
             }
 
             val exc = the [HttpException] thrownBy
-                Await.result(client.fetch(executor), Timeout)
+                Await.result(client.fetch()(executor), Timeout)
 
             exc.getMessage should be
                 "Topology cache client got non-OK code: " +
@@ -192,7 +192,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
                 HostAndPort.fromParts(SrvHostName, port), None)
 
             a [NoHttpResponseException] shouldBe thrownBy(
-                Await.result(client.fetch(executor), Timeout))
+                Await.result(client.fetch()(executor), Timeout))
         }
     }
 
@@ -204,7 +204,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
             val client = new TopologyCacheClientImpl(
                 HostAndPort.fromParts(SrvHostName, port), None)
 
-            val result = Await.result(client.fetch(executor), Timeout)
+            val result = Await.result(client.fetch()(executor), Timeout)
             result shouldBe data
         }
         scenario("encrypted connection") {
@@ -214,7 +214,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
             val client = new TopologyCacheClientImpl(
                 HostAndPort.fromParts(SrvHostName, port), Some(clientSslCtx))
 
-            val result = Await.result(client.fetch(executor), Timeout)
+            val result = Await.result(client.fetch()(executor), Timeout)
             result shouldBe data
         }
     }
@@ -232,7 +232,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
 
             val client = new TopologyCacheClientDiscovery(discovery, None)
 
-            val result = Await.result(client.fetch(executor), Timeout)
+            val result = Await.result(client.fetch()(executor), Timeout)
             result shouldBe data
         }
         scenario("encrypted connection") {
@@ -248,7 +248,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
             val client =
                 new TopologyCacheClientDiscovery(discovery, Some(clientSslCtx))
 
-            val result = Await.result(client.fetch(executor), Timeout)
+            val result = Await.result(client.fetch()(executor), Timeout)
             result shouldBe data
         }
         scenario("server unavailable") {
@@ -262,9 +262,23 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
             val client = new TopologyCacheClientDiscovery(discovery, None)
 
             val exc = the [HttpException] thrownBy
-                      Await.result(client.fetch(executor), Timeout)
+                      Await.result(client.fetch()(executor), Timeout)
 
             exc.getMessage shouldBe "Topology cache service unavailable"
+        }
+    }
+
+    feature("data compression") {
+        scenario("if de-activated, a simple request should still work") {
+            server = createHttpServer(port, handler)
+            server.startAsync().awaitRunning(Timeout.length, Timeout.unit)
+
+            val client = new TopologyCacheClientImpl(
+                HostAndPort.fromParts(SrvHostName, port), None)
+
+            val result = Await.result(client.fetch(compress = false)(executor),
+                                      Timeout)
+            result shouldBe data
         }
     }
 }
