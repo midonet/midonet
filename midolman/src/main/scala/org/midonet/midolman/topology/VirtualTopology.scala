@@ -20,7 +20,8 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService, TimeUnit}
 
 import scala.collection.mutable
-import scala.concurrent.Future
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
@@ -32,8 +33,10 @@ import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
-import org.midonet.cluster.data.storage.cached.{StateStorageWrapper, StorageWrapper}
+import org.midonet.cluster.data.storage.cached.{StateStorageWrapper, StorageWrapper, TopologyCacheClientDiscovery}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceURI}
+import org.midonet.cluster.topology.snapshot.{TopologySnapshot, TopologySnapshotDeserializer}
 import org.midonet.midolman.CallbackRegistry
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
@@ -233,6 +236,22 @@ class VirtualTopology(val backend: MidonetBackend,
     )
 
     register(this)
+
+    private val snapshot: TopologySnapshot = {
+        val client = backend.discovery
+            .getClient[MidonetServiceURI](serviceName = "topology-cache")
+        val discoverySelector = MidonetDiscoverySelector
+            .roundRobin[MidonetServiceURI](client)
+        val cacheClient = new TopologyCacheClientDiscovery(discoverySelector,
+                                                           None /* TODO */)
+
+        implicit val ec = ExecutionContext.fromExecutor(vtExecutor)
+        val snapshot = cacheClient.fetch map {
+            new TopologySnapshotDeserializer().deserialize(_)
+        }
+
+        Await.result(snapshot, 1 second)
+    }
 
     val store: Storage = if (config.initialStorageCacheEnabled) {
         val wrapper = new StorageWrapper(config.initialStorageCacheTtlMs,
