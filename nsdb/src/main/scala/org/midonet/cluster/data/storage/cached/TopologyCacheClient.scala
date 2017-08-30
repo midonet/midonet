@@ -30,9 +30,9 @@ import org.apache.http.HttpException
 import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
 import org.apache.http.impl.client.HttpClients
 
-import org.midonet.cluster.services.discovery.{MidonetDiscoveryClient, MidonetDiscoverySelector, MidonetServiceURI}
+import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceURI}
 
-import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.handler.codec.http.{HttpHeaderNames, HttpHeaderValues, HttpResponseStatus}
 
 trait TopologyCacheClient {
     def fetch(implicit ec: ExecutionContext): Future[Array[Byte]]
@@ -53,7 +53,10 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
             if (srvUrl == null) {
                 throw new HttpException("Topology cache service unavailable")
             } else {
-                client.execute(new HttpGet(srvUrl))
+                val get = new HttpGet(srvUrl)
+                get.addHeader(HttpHeaderNames.ACCEPT_ENCODING.toString(),
+                              HttpHeaderValues.GZIP.toString())
+                client.execute(get)
             }
         } map checkResponse
     }

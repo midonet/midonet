@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory
 import io.netty.buffer.{ByteBuf, ByteBufInputStream, Unpooled}
 import io.netty.channel._
 import io.netty.handler.codec.http._
+import io.netty.handler.codec.http.HttpHeaderNames._
+import io.netty.handler.codec.http.HttpHeaderValues._
 import io.netty.handler.stream.ChunkedStream
 import io.netty.util.CharsetUtil
 
@@ -65,12 +67,11 @@ class HttpByteBufferHandler(provider: HttpByteBufferProvider)
 
             provider.getAndRef() onComplete {
                 case Success(buffer) =>
-                    response.headers.set(HttpHeaderNames.CACHE_CONTROL,
-                                         "no-store, must-revalidate")
-                    response.headers.set(HttpHeaderNames.CONTENT_LENGTH,
+                    response.headers.set(CACHE_CONTROL,
+                                         s"$NO_STORE, $MUST_REVALIDATE")
+                    response.headers.set(CONTENT_LENGTH,
                                          buffer.readableBytes())
-                    response.headers.set(HttpHeaderNames.CONTENT_TYPE,
-                                         "application/octet-stream")
+                    response.headers.set(CONTENT_TYPE, APPLICATION_OCTET_STREAM)
                     ctx.write(response)
                     sendContents(ctx, buffer)
                     provider.unref()

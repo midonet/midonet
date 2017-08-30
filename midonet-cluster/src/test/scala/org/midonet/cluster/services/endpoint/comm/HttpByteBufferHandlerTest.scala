@@ -6,6 +6,7 @@ package org.midonet.cluster.services.endpoint.comm
 
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import java.util.zip.{GZIPInputStream, ZipException}
 
 import javax.net.ssl.HostnameVerifier
 
@@ -23,13 +24,13 @@ import org.apache.http.ssl.{SSLContextBuilder, TrustStrategy}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
-import org.slf4j.LoggerFactory
 
 import org.midonet.util.PortProvider
 import org.midonet.util.netty.{HTTPAdapter, ServerFrontEnd}
 
 import io.netty.buffer.Unpooled
 import io.netty.channel.socket.SocketChannel
+import io.netty.handler.codec.http.{HttpHeaderNames, HttpHeaderValues}
 import io.netty.handler.codec.http.HttpResponseStatus._
 import io.netty.handler.ssl.util.SelfSignedCertificate
 import io.netty.handler.ssl.{SslContext, SslContextBuilder}
@@ -39,7 +40,6 @@ class HttpByteBufferHandlerTest extends FeatureSpec
                                         with Matchers
                                         with BeforeAndAfter {
 
-    private val log = LoggerFactory.getLogger(this.getClass)
     private val timeout = Duration(60, TimeUnit.SECONDS)
 
     private var buffer: Array[Byte] = _
@@ -67,7 +67,6 @@ class HttpByteBufferHandlerTest extends FeatureSpec
         (port, ServerFrontEnd.tcp(new HTTPAdapter(sslCtx) {
             override def initChannel(ch: SocketChannel): Unit = {
                 super.initChannel(ch)
-
                 ch.pipeline.addLast(handler)
             }
         }, port))
@@ -111,19 +110,20 @@ class HttpByteBufferHandlerTest extends FeatureSpec
         val url = createUrl(port, protocol =
             if (sslCtx.isDefined) "https" else "http")
         val result = async {
-            httpClient.execute(new HttpGet(url))
+            val get = new HttpGet(url)
+            get.addHeader(HttpHeaderNames.ACCEPT_ENCODING.toString(),
+                          HttpHeaderValues.GZIP.toString())
+            httpClient.execute(get)
         }
 
         val response = Await.result(result, timeout)
         response.getStatusLine.getStatusCode shouldBe OK.code()
         response.getEntity.getContentType.getValue shouldBe "application/octet-stream"
 
-        val receivedBytes = IOUtils.toByteArray(
-            response.getEntity.getContent)
+        val receivedBytes = IOUtils.toByteArray(response.getEntity.getContent)
 
         receivedBytes shouldBe buffer
     }
-
 
     feature("http byte buffer server handler") {
         scenario("non-get request not mocked") {
@@ -156,7 +156,41 @@ class HttpByteBufferHandlerTest extends FeatureSpec
 
             stopHttpServer(server)
         }
+    }
 
+    feature("handler can compress data") {
+        scenario("check data is being compressed") {
+            val (port, _, _) = startHttpServer(None)
+
+            val client =  HttpClients.custom()
+                .disableContentCompression()
+                .build()
+
+            val get = new HttpGet(s"http://localhost:$port/topology-cache")
+            get.addHeader(HttpHeaderNames.ACCEPT_ENCODING.toString(),
+                          HttpHeaderValues.GZIP.toString())
+            val response = client.execute(get)
+            val result = IOUtils.toByteArray(
+                new GZIPInputStream(response.getEntity.getContent))
+
+            result shouldBe buffer
+        }
+
+        scenario("check data is not being compressed without encoding header") {
+            val (port, _, _) = startHttpServer(None)
+
+            val client =  HttpClients.custom()
+                .disableContentCompression()
+                .build()
+
+            val get = new HttpGet(s"http://localhost:$port/topology-cache")
+            val response = client.execute(get)
+
+            a [ZipException] should be thrownBy {
+                IOUtils.toByteArray(
+                    new GZIPInputStream(response.getEntity.getContent))
+            }
+        }
     }
 
 }
