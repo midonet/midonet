@@ -20,6 +20,7 @@ import org.midonet.cluster.services.endpoint.comm.{HttpByteBufferHandler, KeepAl
 import org.midonet.cluster.services.topology_cache.TopologySnapshotProvider
 
 import io.netty.channel.Channel
+import io.netty.handler.codec.http.HttpContentCompressor
 
 /**
   * Trait for those who want to have an endpoint with static file serving
@@ -43,6 +44,7 @@ trait HttpByteBufferEndpointUser extends EndpointUser {
     override def initEndpointChannel(path: String, channel: Channel): Unit = {
         val pipe = channel.pipeline
         pipe.addLast("keep-alive", new KeepAliveHandler(DefaultIdleTimeout))
+        pipe.addLast("http-compressor", new HttpContentCompressor())
         pipe.addLast("http-bytebuffer-handler", new HttpByteBufferHandler(snapshotProvider))
     }
 }
