@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "20770702_3393b04e",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 667,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-08-30T07:53:29Z",
+      "side": 1,
+      "message": "this is not thread safe, is this okay? if yes, leave it as is, otherwise add a synchronize?",
+      "range": {
+        "startLine": 667,
+        "startChar": 16,
+        "endLine": 667,
+        "endChar": 36
+      },
+      "revId": "2e4009d3bebd298b87849371854e426dbe4f713b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
