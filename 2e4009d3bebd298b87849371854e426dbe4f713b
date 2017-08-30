@@ -22,6 +22,30 @@
       "revId": "2e4009d3bebd298b87849371854e426dbe4f713b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ed6ecfe_23868d36",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 667,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-08-30T08:04:06Z",
+      "side": 1,
+      "message": "it shouldn\u0027t give any trouble in most cases, but it is called in different threads, so I\u0027ll add a sync mechanism",
+      "parentUuid": "20770702_3393b04e",
+      "range": {
+        "startLine": 667,
+        "startChar": 16,
+        "endLine": 667,
+        "endChar": 36
+      },
+      "revId": "2e4009d3bebd298b87849371854e426dbe4f713b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
