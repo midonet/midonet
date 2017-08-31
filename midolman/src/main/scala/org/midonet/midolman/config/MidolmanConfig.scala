@@ -89,8 +89,6 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     def outputChannels = getInt(s"$PREFIX.midolman.output_channels")
     def inputChannelThreading = getString(s"$PREFIX.midolman.input_channel_threading")
     def datapathName = Try(getString(s"$PREFIX.midolman.datapath")).getOrElse("midonet")
-    def initialStorageCacheEnabled = getBoolean(s"$PREFIX.midolman.initial_storage_cache_enabled")
-    def initialStorageCacheTtlMs = getInt(s"$PREFIX.midolman.initial_storage_cache_ttl_ms")
 
     def lockMemory = getBoolean(s"$PREFIX.midolman.lock_memory")
 
@@ -117,6 +115,17 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     val bindingApi = new BindingApiConfig(conf, schema)
     val ruleLogging = new RuleLoggingConfig(conf, schema)
     val fip64 = new Fip64Config(conf, schema)
+    val initialStorageCache = new InitialStorageCacheConfig(conf, schema)
+}
+
+class InitialStorageCacheConfig(val conf: Config, val schema: Config)
+    extends TypeFailureFallback {
+    val PREFIX = "agent.midolman.initial_storage_cache"
+
+    def enabled = getBoolean(s"$PREFIX.enabled")
+    def ttlMs = getInt(s"$PREFIX.ttl_ms")
+    def snapshotRetries = getInt(s"$PREFIX.snapshot_retries")
+    def snapshotTimeoutMs = getInt(s"$PREFIX.snapshot_timeout_ms")
 }
 
 class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
