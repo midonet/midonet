@@ -32,6 +32,7 @@ import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
 import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
+import org.midonet.cluster.cache.StateNotification.{MappedSnapshot => StateSnapshot}
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.data.storage.cached.{StateStorageWrapper, StorageWrapper}
 import org.midonet.cluster.services.MidonetBackend
@@ -251,7 +252,7 @@ class VirtualTopology(val backend: MidonetBackend,
         val wrapper = new StateStorageWrapper(config.initialStorageCacheTtlMs,
                                               backend.store, backend.stateStore,
                                               new ObjSnapshot /* TODO: pass real cache */ ,
-                                              Map.empty /* TODO: pass real cache */)
+                                              new StateSnapshot /* TODO: pass real cache */)
         worker.schedule(makeAction0(wrapper.invalidateCache()),
                         config.initialStorageCacheTtlMs,
                         TimeUnit.MILLISECONDS)

@@ -29,7 +29,7 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
-import org.midonet.cluster.data.ObjId
+import org.midonet.cluster.cache.StateNotification.{MappedSnapshot => StateSnapshot}
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
@@ -56,14 +56,19 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
         objSnapshot
     }
 
-    val stateCache: Map[String, Map[Class[_], Map[ObjId, Map[String, StateKey]]]] =
-        Map(
-            namespace -> Map(
-                classOf[Port] -> Map(
-                    port1Id -> Map(key1.key -> key1)
-                )
-            )
-        )
+    private val stateSnapshot = {
+        val stateSnapshot = new StateSnapshot()
+
+        val keyEntry = new util.HashMap[String, AnyRef]()
+        keyEntry.put(key1.key, key1)
+        val objectEntry = new util.HashMap[AnyRef, util.HashMap[String, AnyRef]]()
+        objectEntry.put(port1Id, keyEntry)
+        val portEntry = new util.HashMap[Class[_], util.HashMap[AnyRef, util.HashMap[String, AnyRef]]]()
+        portEntry.put(classOf[Port], objectEntry)
+        stateSnapshot.put(namespace, portEntry)
+
+        stateSnapshot
+    }
 
     private var store: StateStorage = _
     private var wrapper: StateStorage = _
@@ -93,7 +98,7 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
         store.registerKey(classOf[Port], key1.key, KeyType.SingleFirstWriteWins)
         store.build()
 
-        wrapper = new StateStorageWrapper(cacheTtl, store, store, objSnapshot, stateCache)
+        wrapper = new StateStorageWrapper(cacheTtl, store, store, objSnapshot, stateSnapshot)
     }
 
     feature("Adding and removing values") {

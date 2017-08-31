@@ -27,7 +27,7 @@ import org.midonet.util.functors.makeFunc1
 class CachedStateStorage(private val store: Storage,
                          private val stateStore: StateStorage,
                          private val objSnapshot: ObjSnapshot,
-                         private val stateCache: Map[String, Map[Class[_], Map[ObjId, Map[String, StateKey]]]])
+                         private val stateSnapshot: StateSnapshot)
     extends CachedStorage(store, objSnapshot) with StateStorage {
 
     /** Adds a value to a key for the object with the specified class and
@@ -64,12 +64,13 @@ class CachedStateStorage(private val store: Storage,
       * the state key value for the specified namespace. */
     override def getKey(namespace: String, clazz: Class[_], id: ObjId,
                         key: String): Observable[StateKey] =
-        stateCache.get(namespace)
-            .flatMap(_ get clazz)
-            .flatMap(_ get id)
-            .flatMap(_ get key) match {
+        Option(stateSnapshot.get(namespace))
+            .map(_ get clazz)
+            .map(_ get id)
+            .map(_ get key) match {
                 case Some(stateKey) =>
-                    stateStore.getKey(clazz, id, key).startWith(stateKey)
+                    stateStore.getKey(clazz, id, key)
+                        .startWith(stateKey.asInstanceOf[StateKey])
                 case None =>
                     stateStore.getKey(clazz, id, key)
             }
@@ -95,13 +96,13 @@ class CachedStateStorage(private val store: Storage,
       * returns an observable for the state of the specified namespace. */
     override def keyObservable(namespace: String, clazz: Class[_], id: ObjId,
                                key: String): Observable[StateKey] =
-        stateCache.get(namespace)
-            .flatMap(_ get clazz)
-            .flatMap(_ get id)
-            .flatMap(_ get key) match {
+        Option(stateSnapshot.get(namespace))
+            .map(_ get clazz)
+            .map(_ get id)
+            .map(_ get key) match {
                 case Some(stateKey) =>
                     stateStore.keyObservable(namespace, clazz, id, key)
-                        .startWith(stateKey)
+                        .startWith(stateKey.asInstanceOf[StateKey])
                 case None =>
                     stateStore.keyObservable(namespace, clazz, id, key)
             }
