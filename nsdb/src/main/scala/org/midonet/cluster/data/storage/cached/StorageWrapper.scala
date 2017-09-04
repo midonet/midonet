@@ -19,6 +19,7 @@ import scala.concurrent.Future
 
 import rx.Observable
 
+import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.{PersistenceOp, Storage, Transaction}
@@ -31,10 +32,10 @@ import org.midonet.cluster.data.storage.{PersistenceOp, Storage, Transaction}
   */
 class StorageWrapper(private val cacheTtlMs: Long,
                      private val store: Storage,
-                     private val cache: Map[Class[_], Map[ObjId, Object]])
+                     private val snapshot: ObjSnapshot)
     extends Storage {
 
-    private val cachedStore = new CachedStorage(store, cache)
+    private val cachedStore = new CachedStorage(store, snapshot)
 
     @volatile
     protected var cacheValid: Boolean = true

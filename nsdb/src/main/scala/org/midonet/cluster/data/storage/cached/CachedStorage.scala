@@ -20,12 +20,13 @@ import scala.concurrent.Future
 
 import rx.Observable
 
+import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.{NotFoundException, PersistenceOp, Storage, Transaction}
 
 class CachedStorage(private val store: Storage,
-                    private val cache: Map[Class[_], Map[ObjId, Object]])
+                    private val snapshot: ObjSnapshot)
     extends Storage {
 
     protected def notImplemented = throw new NotImplementedError(
@@ -77,7 +78,7 @@ class CachedStorage(private val store: Storage,
       * requested then it'll onError.
       */
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] =
-        cache.get(clazz).flatMap(_ get id) match {
+        Option(snapshot.get(clazz)).map(_ get id) match {
             case Some(cached) =>
                 store.observable(clazz, id).startWith(cached.asInstanceOf[T])
             case None =>
@@ -97,12 +98,14 @@ class CachedStorage(private val store: Storage,
       * as ZookeeperObjectMapper.subscribe(Class[T], ObjId).
       */
     override def observable[T](clazz: Class[T]): Observable[Observable[T]] =
-        cache.get(clazz).map(_.values.map(_.asInstanceOf[T])) match {
-            case Some(cached) =>
-                store.observable(clazz).startWith(Observable.from(cached.asJava))
-            case None =>
-                store.observable(clazz)
-        }
+        Option(snapshot.get(clazz))
+            .map(_.values.asScala.map(_.asInstanceOf[T])) match {
+                case Some(cached) =>
+                    val initial = Observable.from(cached.asJava)
+                    store.observable(clazz).startWith(initial)
+                case None =>
+                    store.observable(clazz)
+            }
 
     /**
       * Asynchronous method that gets the specified instance of the specified
@@ -110,7 +113,7 @@ class CachedStorage(private val store: Storage,
       * in order to fetch the latest version of the entity.
       */
     override def get[T](clazz: Class[T], id: ObjId): Future[T] =
-        cache.get(clazz).flatMap(_ get id) match {
+        Option(snapshot.get(clazz)).map(_ get id) match {
             case Some(cached) =>
                 Future.successful(cached.asInstanceOf[T])
             case None =>
@@ -126,8 +129,8 @@ class CachedStorage(private val store: Storage,
       */
     override def getAll[T](clazz: Class[T],
                            ids: Seq[_ <: ObjId]): Future[Seq[T]] = {
-        val allCached = cache.get(clazz).map { all =>
-            all.filterKeys(ids contains _).values.map(_.asInstanceOf[T])
+        val allCached = Option(snapshot.get(clazz)).map { all =>
+            all.asScala.filterKeys(ids contains _).values.map(_.asInstanceOf[T])
         }.getOrElse(Iterable.empty)
         Future.successful(allCached.toSeq)
     }
@@ -140,7 +143,8 @@ class CachedStorage(private val store: Storage,
       * latest version.
       */
     override def getAll[T](clazz: Class[T]): Future[Seq[T]] = {
-        val allCached = cache.get(clazz).map(_.values.map(_.asInstanceOf[T]))
+        val allCached = Option(snapshot.get(clazz))
+            .map(_.values.asScala.map(_.asInstanceOf[T]))
             .getOrElse(Iterable.empty)
         Future.successful(allCached.toSeq)
     }
@@ -150,7 +154,7 @@ class CachedStorage(private val store: Storage,
       * storage.
       */
     override def exists(clazz: Class[_], id: ObjId): Future[Boolean] = {
-        val existsCached = cache.get(clazz).exists(_ contains id)
+        val existsCached = Option(snapshot.get(clazz)).exists(_ containsKey id)
         Future.successful(existsCached)
     }
 }

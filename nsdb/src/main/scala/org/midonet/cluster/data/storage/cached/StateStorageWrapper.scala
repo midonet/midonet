@@ -17,6 +17,8 @@ package org.midonet.cluster.data.storage.cached
 
 import rx.Observable
 
+import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
+import org.midonet.cluster.cache.StateNotification.{MappedSnapshot => StateSnapshot}
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage.{StateKey, StateResult, StateStorage, Storage}
 
@@ -29,12 +31,12 @@ import org.midonet.cluster.data.storage.{StateKey, StateResult, StateStorage, St
 class StateStorageWrapper(private val cacheTtlMs: Long,
                           private val store: Storage,
                           private val stateStore: StateStorage,
-                          private val cache: Map[Class[_], Map[ObjId, Object]],
+                          private val objSnapshot: ObjSnapshot,
                           private val stateCache: Map[String, Map[Class[_], Map[ObjId, Map[String, StateKey]]]])
-    extends StorageWrapper(cacheTtlMs, store, cache) with StateStorage {
+    extends StorageWrapper(cacheTtlMs, store, objSnapshot) with StateStorage {
 
     private val cachedStateStore =
-        new CachedStateStorage(store, stateStore, cache, stateCache)
+        new CachedStateStorage(store, stateStore, objSnapshot, stateCache)
 
     protected def validStateStore: StateStorage =
         if (cacheValid) cachedStateStore else stateStore

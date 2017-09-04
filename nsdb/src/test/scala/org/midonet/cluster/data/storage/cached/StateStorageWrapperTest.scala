@@ -16,6 +16,7 @@
 package org.midonet.cluster.data.storage.cached
 
 import java.io.{File, FileOutputStream}
+import java.util
 import java.util.{Properties, UUID}
 
 import scala.concurrent.duration._
@@ -27,6 +28,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.observers.TestObserver
 
+import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.{Port, Router}
@@ -44,9 +46,15 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
     private val port1 = Port.newBuilder().setId(port1Id).build()
     private val key1 = SingleValueKey("key", Some("value"), 1L)
 
-    private val cache: Map[Class[_], Map[ObjId, Object]] = Map(
-        classOf[Port] -> Map(port1Id -> port1)
-    )
+    private val objSnapshot = {
+        val objSnapshot = new ObjSnapshot()
+
+        val portEntry = new util.HashMap[AnyRef, AnyRef]()
+        portEntry.put(port1Id, port1)
+        objSnapshot.put(classOf[Port], portEntry)
+
+        objSnapshot
+    }
 
     val stateCache: Map[String, Map[Class[_], Map[ObjId, Map[String, StateKey]]]] =
         Map(
@@ -85,7 +93,7 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
         store.registerKey(classOf[Port], key1.key, KeyType.SingleFirstWriteWins)
         store.build()
 
-        wrapper = new StateStorageWrapper(cacheTtl, store, store, cache, stateCache)
+        wrapper = new StateStorageWrapper(cacheTtl, store, store, objSnapshot, stateCache)
     }
 
     feature("Adding and removing values") {

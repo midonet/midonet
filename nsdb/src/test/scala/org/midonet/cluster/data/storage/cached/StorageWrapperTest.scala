@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.data.storage.cached
 
+import java.util
+
 import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
@@ -23,7 +25,7 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.ObjId
+import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
 import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
 import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.util.ClassAwaitableObserver
@@ -41,10 +43,19 @@ class StorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAfter {
     private val port1Id = randomUuidProto
     private val port1 = Port.newBuilder().setId(port1Id).build()
 
-    private val cache: Map[Class[_], Map[ObjId, Object]] = Map(
-        classOf[Router] -> Map(router1Id -> router1),
-        classOf[Port] -> Map(port1Id -> port1)
-    )
+    private val objSnapshot = {
+        val objSnapshot = new ObjSnapshot()
+
+        val routerEntry = new util.HashMap[AnyRef, AnyRef]()
+        routerEntry.put(router1Id, router1)
+        objSnapshot.put(classOf[Router], routerEntry)
+
+        val portEntry = new util.HashMap[AnyRef, AnyRef]()
+        portEntry.put(port1Id, port1)
+        objSnapshot.put(classOf[Port], portEntry)
+
+        objSnapshot
+    }
 
     private var store: Storage = _
     private var wrapper: Storage = _
@@ -59,7 +70,7 @@ class StorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAfter {
         store.registerClass(classOf[Router])
         store.registerClass(classOf[Port])
         store.build()
-        wrapper = new StorageWrapper(cacheTtl, store, cache)
+        wrapper = new StorageWrapper(cacheTtl, store, objSnapshot)
     }
 
     feature("Query cached objects in the wrapper") {
