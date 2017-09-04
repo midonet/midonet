@@ -16,12 +16,9 @@
 
 package org.midonet.containers
 
-import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 import com.google.inject.Injector
-
-import org.reflections.Reflections
 
 import org.midonet.util.logging.Logger
 
@@ -39,18 +36,13 @@ import org.midonet.util.logging.Logger
   * implementation of the `injector` method which provides the appropriate
   * dependencies.
   */
-abstract class ContainerProvider[T](reflections: Reflections, log: Logger)
+abstract class ContainerProvider[T](containerClasses: Set[Class[_]], log: Logger)
                                    (tag: ClassTag[T]) {
-
-    log info s"Scanning classpath for service containers"
-
-    private val annotated =
-        reflections.getTypesAnnotatedWith(classOf[Container]).asScala
 
     protected def injector: Injector
 
     private val allContainers =
-        annotated filter {
+        containerClasses filter {
             tag.runtimeClass.isAssignableFrom
         } map { clazz =>
             val annotation = clazz.getAnnotation(classOf[Container])

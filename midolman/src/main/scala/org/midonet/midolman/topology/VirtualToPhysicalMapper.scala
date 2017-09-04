@@ -26,12 +26,10 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.Service.State
 import com.google.common.util.concurrent.{AbstractService, ThreadFactoryBuilder}
 
-import org.reflections.Reflections
-
-import rx.{Observable, Subscriber}
 import rx.Observable.OnSubscribe
 import rx.functions.Func1
 import rx.subjects.PublishSubject
+import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.getIdString
 import org.midonet.cluster.data.storage.{NotFoundException, StateResult}
@@ -193,15 +191,6 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
     private val vxlanPortMappingService = new VxLanPortMappingService(vt)
     private val gatewayMappingService = new GatewayMappingService(vt)
 
-    // Create the reflection object containing the required container
-    // classes. This is set up manually to avoid a costly classpath
-    // scan at the critical start path of the midolman agent.
-    private val reflections = new Reflections(
-        classOf[HaProxyContainer],
-        classOf[IPSecContainer],
-        classOf[QuaggaContainer]
-    )
-
     // Use a private executor to manage the container handlers. Since the
     // container handler perform I/O operations (e.g. create namespaces, etc.)
     // we cannot use the virtual topology thread since it will block the
@@ -214,9 +203,13 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
     val ioExecutor = Executors.newSingleThreadScheduledExecutor(
         new ThreadFactoryBuilder().setNameFormat("container-io")
             .setDaemon(true).build())
+    private val containerClasses: Set[Class[_]] =
+        Set(classOf[HaProxyContainer],
+            classOf[IPSecContainer],
+            classOf[QuaggaContainer])
     private val containersService =
         new ContainerService(vt, hostId, containerExecutor, containerExecutors,
-                             ioExecutor, reflections)
+                             ioExecutor, containerClasses)
 
     private val activePorts = new util.HashMap[UUID, Integer]
     private val portsActiveSubject = PublishSubject.create[LocalPortActive]

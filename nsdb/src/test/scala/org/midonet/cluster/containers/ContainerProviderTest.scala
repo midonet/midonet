@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.containers
 
+import scala.collection.JavaConverters._
 import scala.reflect.classTag
 
 import com.google.inject.Guice
@@ -47,7 +48,9 @@ object ContainerProviderTest {
 class ContainerProviderTest extends FlatSpec with Matchers
                                            with GivenWhenThen {
 
-    val reflections = new Reflections("org.midonet.cluster.containers")
+    val reflections: Set[Class[_]] =
+        new Reflections("org.midonet.cluster.containers")
+            .getTypesAnnotatedWith(classOf[Container]).asScala.toSet
 
     private class TestContainerProvider(log: Logger)
         extends ContainerProvider(reflections, log)(classTag[AnyRef]) {

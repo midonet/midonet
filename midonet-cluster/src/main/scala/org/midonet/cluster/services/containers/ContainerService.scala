@@ -85,7 +85,12 @@ class ContainerService @Inject()(nodeContext: Context,
         new NamedThreadFactory("container-config", isDaemon = true))
     private val delegateScheduler = Schedulers.from(delegateExecutor)
 
-    private val delegateProvider = new ContainerDelegateProvider(backend, reflections,
+    private val delegateClasses: Set[Class[_]] =
+        Set(classOf[HaProxyContainerDelegate],
+            classOf[IPSecContainerDelegate],
+            classOf[QuaggaContainerDelegate])
+    private val delegateProvider = new ContainerDelegateProvider(backend,
+                                                                 delegateClasses,
                                                                  config, log)
     private val delegates = new TrieMap[String, ContainerDelegate]
 
