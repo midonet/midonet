@@ -19,6 +19,7 @@ package org.midonet.cluster.services.containers
 import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.collection.concurrent.TrieMap
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
@@ -37,7 +38,7 @@ import org.midonet.cluster.services._
 import org.midonet.cluster.ContainersLog
 import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.containers
-import org.midonet.containers.ContainerDelegate
+import org.midonet.containers.{Container, ContainerDelegate}
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -85,7 +86,11 @@ class ContainerService @Inject()(nodeContext: Context,
         new NamedThreadFactory("container-config", isDaemon = true))
     private val delegateScheduler = Schedulers.from(delegateExecutor)
 
-    private val delegateProvider = new ContainerDelegateProvider(backend, reflections,
+    private val delegateClasses: Set[Class[_]] =
+        reflections.getTypesAnnotatedWith(classOf[Container]).asScala.toSet
+
+    private val delegateProvider = new ContainerDelegateProvider(backend,
+                                                                 delegateClasses,
                                                                  config, log)
     private val delegates = new TrieMap[String, ContainerDelegate]
 

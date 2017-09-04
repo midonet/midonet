@@ -32,7 +32,6 @@ import com.google.common.util.concurrent.AbstractService
 import org.apache.curator.framework.state.ConnectionState
 import org.apache.curator.framework.state.ConnectionState.{CONNECTED, RECONNECTED}
 import org.apache.zookeeper.KeeperException
-import org.reflections.Reflections
 
 import rx.schedulers.Schedulers
 import rx.{Observable, Subscriber, Subscription}
@@ -82,7 +81,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                        serviceExecutor: ExecutorService,
                        containerExecutors: ContainerExecutors,
                        ioExecutor: ScheduledExecutorService,
-                       reflections: Reflections)
+                       containerClasses: Set[Class[_]])
     extends AbstractService with MidolmanLogging {
 
     override def logSource = "org.midonet.containers"
@@ -141,7 +140,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private val containerObservable = Observable.create(containerMapper)
 
     private val provider =
-        new ContainerHandlerProvider(reflections, vt, ioExecutor, log)
+        new ContainerHandlerProvider(containerClasses, vt, ioExecutor, log)
 
     private val logger = new ContainerLogger(vt.config.containers, log.wrapper)
 
