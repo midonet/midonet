@@ -20,8 +20,6 @@ import scala.reflect.classTag
 
 import com.google.inject.{AbstractModule, Guice}
 
-import org.reflections.Reflections
-
 import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.containers.{ContainerDelegate, ContainerProvider}
@@ -31,10 +29,10 @@ import org.midonet.util.logging.Logger
   * Scans the current classpath for service container delegates.
   */
 class ContainerDelegateProvider(backend: MidonetBackend,
-                                reflections: Reflections,
+                                containerClasses: Set[Class[_]],
                                 config: ClusterConfig,
                                 log: Logger)
-    extends ContainerProvider[ContainerDelegate](reflections, log)(classTag[ContainerDelegate]) {
+    extends ContainerProvider[ContainerDelegate](containerClasses, log)(classTag[ContainerDelegate]) {
 
     protected override val injector = Guice.createInjector(new AbstractModule() {
         override def configure(): Unit = {

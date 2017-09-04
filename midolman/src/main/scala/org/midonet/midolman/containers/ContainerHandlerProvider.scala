@@ -24,8 +24,6 @@ import scala.reflect.classTag
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice}
 
-import org.reflections.Reflections
-
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.containers.{ContainerHandler, ContainerProvider}
 import org.midonet.midolman.topology.VirtualTopology
@@ -34,11 +32,11 @@ import org.midonet.util.logging.Logger
 /**
   * Scans the current classpath for service container handlers.
   */
-class ContainerHandlerProvider(reflections: Reflections,
+class ContainerHandlerProvider(containerClasses: Set[Class[_]],
                                vt: VirtualTopology,
                                ioExecutor: ScheduledExecutorService,
                                log: Logger)
-    extends ContainerProvider[ContainerHandler](reflections, log)(classTag[ContainerHandler]) {
+    extends ContainerProvider[ContainerHandler](containerClasses, log)(classTag[ContainerHandler]) {
 
     protected override val injector = Guice.createInjector(new AbstractModule() {
         override def configure(): Unit = {
