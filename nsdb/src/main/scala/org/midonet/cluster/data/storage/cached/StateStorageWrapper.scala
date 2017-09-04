@@ -32,11 +32,11 @@ class StateStorageWrapper(private val cacheTtlMs: Long,
                           private val store: Storage,
                           private val stateStore: StateStorage,
                           private val objSnapshot: ObjSnapshot,
-                          private val stateCache: Map[String, Map[Class[_], Map[ObjId, Map[String, StateKey]]]])
+                          private val stateSnapshot: StateSnapshot)
     extends StorageWrapper(cacheTtlMs, store, objSnapshot) with StateStorage {
 
     private val cachedStateStore =
-        new CachedStateStorage(store, stateStore, objSnapshot, stateCache)
+        new CachedStateStorage(store, stateStore, objSnapshot, stateSnapshot)
 
     protected def validStateStore: StateStorage =
         if (cacheValid) cachedStateStore else stateStore
