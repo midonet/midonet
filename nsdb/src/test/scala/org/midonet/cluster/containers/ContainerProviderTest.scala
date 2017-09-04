@@ -26,7 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.containers.ContainerProviderTest.{ContainerA2, ContainerB}
+import org.midonet.cluster.containers.ContainerProviderTest.{ContainerA1, ContainerA2, ContainerB}
 import org.midonet.containers.{Container, ContainerProvider}
 import org.midonet.util.logging.Logger
 
@@ -48,9 +48,12 @@ class ContainerProviderTest extends FlatSpec with Matchers
                                            with GivenWhenThen {
 
     val reflections = new Reflections("org.midonet.cluster.containers")
+    val containerClasses: Set[Class[_]] = Set(classOf[ContainerA1],
+                                              classOf[ContainerA2],
+                                              classOf[ContainerB])
 
     private class TestContainerProvider(log: Logger)
-        extends ContainerProvider(reflections, log)(classTag[AnyRef]) {
+        extends ContainerProvider(containerClasses, log)(classTag[AnyRef]) {
 
         protected override val injector = Guice.createInjector()
 
