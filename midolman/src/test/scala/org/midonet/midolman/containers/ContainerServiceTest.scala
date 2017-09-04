@@ -22,6 +22,7 @@ import java.util.UUID._
 import java.util.concurrent.{Callable, ExecutorService, ScheduledExecutorService}
 import java.util.concurrent.atomic.AtomicInteger
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 import com.google.common.util.concurrent.SettableFuture
@@ -153,7 +154,9 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
     private var store: Storage = _
     private var stateStore: StateStorage = _
     private var vt: VirtualTopology = _
-    private val reflections = new Reflections("org.midonet.midolman.containers")
+    private val reflections: Set[Class[_]] =
+        new Reflections("org.midonet.midolman.containers")
+            .getTypesAnnotatedWith(classOf[Container]).asScala.toSet
     private var serviceExecutor: ExecutorService = _
     private val ioExecutor = Mockito.mock(classOf[ScheduledExecutorService])
     private var executors: ContainerExecutors = _

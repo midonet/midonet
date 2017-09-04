@@ -19,10 +19,11 @@ package org.midonet.midolman.containers
 import java.util.UUID
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-import com.google.inject.{ConfigurationException, Inject}
 import com.google.inject.name.Named
+import com.google.inject.{ConfigurationException, Inject}
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito
@@ -34,7 +35,7 @@ import org.slf4j.LoggerFactory
 import rx.Observable
 
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.containers.{Container, ContainerHandler, ContainerPort, ContainerStatus}
+import org.midonet.containers._
 import org.midonet.midolman.containers.ContainerHandlerProviderTest.TestContainer
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.util.logging.Logger
@@ -62,7 +63,9 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
                                    with GivenWhenThen {
 
     private val log = Logger(LoggerFactory.getLogger(getClass))
-    private val reflections = new Reflections("org.midonet.midolman.containers")
+    private val reflections: Set[Class[_]] =
+        new Reflections("org.midonet.midolman.containers")
+            .getTypesAnnotatedWith(classOf[Container]).asScala.toSet
 
     "Container provider" should "load a container with the VT as argument" in {
         Given("A mock virtual topology")

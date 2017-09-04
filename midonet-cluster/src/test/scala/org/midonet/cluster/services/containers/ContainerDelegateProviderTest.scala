@@ -18,6 +18,8 @@ package org.midonet.cluster.services.containers
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import com.google.inject.Inject
 
 import org.junit.runner.RunWith
@@ -53,7 +55,9 @@ class ContainerDelegateProviderTest extends FlatSpec with Matchers
                                     with GivenWhenThen {
 
     private val log = Logger(LoggerFactory.getLogger(getClass))
-    private val reflections = new Reflections("org.midonet.cluster.services.containers")
+    private val reflections: Set[Class[_]] =
+        new Reflections("org.midonet.cluster.services.containers")
+            .getTypesAnnotatedWith(classOf[Container]).asScala.toSet
 
     "Container provider" should "load a container with the VT as argument" in {
         Given("A mock cluster configuration and backend")
