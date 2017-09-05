@@ -30,6 +30,8 @@ import org.midonet.util.logging.Logger
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 
+final class SnapshotInProgress extends Exception
+
 class TopologySnapshotProvider(objectCache: ObjectCache,
                                stateCache: StateCache,
                                executor: ScheduledExecutorService,
@@ -114,8 +116,18 @@ class TopologySnapshotProvider(objectCache: ObjectCache,
         // outstanding requests to finish
         outstandingRequestsDone = Promise[Unit]()
         outstandingRequests = refs.getAndSet(-1)
-        log.debug(s"Awaiting $outstandingRequests outstanding requests " +
-                  s"currently in progress before encoding the snapshot.")
+        if (outstandingRequests > 0) {
+            log.debug(s"Awaiting $outstandingRequests outstanding requests " +
+                      s"currently in progress before encoding the snapshot.")
+            outstandingRequestsDone.future
+        } else if (outstandingRequests < 0) {
+            log.debug("Snapshot in progress, skipping snapshot encoding.")
+            outstandingRequestsDone.tryFailure(new SnapshotInProgress)
+        } else {
+            log.debug("No outstanding requests in progress, ready to encode " +
+                      "the snapshot.")
+            outstandingRequestsDone.trySuccess()
+        }
         outstandingRequestsDone.future
     }
 
