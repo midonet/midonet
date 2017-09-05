@@ -29,6 +29,7 @@ import org.scalatest.{BeforeAndAfterAll, FeatureSpec, Matchers}
 import org.midonet.midolman.util.MockNetlinkChannelFactory
 import org.midonet.netlink.NetlinkMessage
 import org.midonet.netlink.rtnetlink.Rtnetlink
+import org.midonet.util.MidonetEventually
 
 case class TcReq(msg: Int, ifi: Int)
 case class NetlinkReq(typ: Int, ifi: Int)
@@ -67,7 +68,8 @@ class TestableTcRequestHandler
 class TcRequestHandlerTest extends FeatureSpec
                     with BeforeAndAfterAll
                     with Matchers
-                    with ScalaFutures {
+                    with ScalaFutures
+                    with MidonetEventually {
 
     val add = TcRequestOps.ADDFILTER
     val rem = TcRequestOps.REMQDISC
