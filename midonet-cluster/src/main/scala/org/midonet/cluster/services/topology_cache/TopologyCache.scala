@@ -82,7 +82,7 @@ class TopologyCache @Inject()(context: Context,
 
     // From HttpByteBufferEndpointUser
     override val name = Option(ServiceName)
-    override val endpointPath: String = ServiceName
+    override val endpointPath: String = s"/$ServiceName"
 
     /** Whether the service is enabled on this Cluster node. */
     override def isEnabled: Boolean = config.topologyCache.isEnabled
