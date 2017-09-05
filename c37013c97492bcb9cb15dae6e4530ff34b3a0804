@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1de09d1_84490b59",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologySnapshotProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-09-05T20:36:41Z",
+      "side": 1,
+      "message": "this should be set only if there are outstanding requests.",
+      "revId": "c37013c97492bcb9cb15dae6e4530ff34b3a0804",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3e4394af_4819f02c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologySnapshotProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-09-05T20:36:41Z",
+      "side": 1,
+      "message": "we should not complete this future but return a new failed future.",
+      "revId": "c37013c97492bcb9cb15dae6e4530ff34b3a0804",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8a287647_fd8a5a09",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/topology_cache/TopologySnapshotProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-09-05T20:36:41Z",
+      "side": 1,
+      "message": "same but a success future.",
+      "revId": "c37013c97492bcb9cb15dae6e4530ff34b3a0804",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
