@@ -115,10 +115,12 @@ class VppControllerIntegrationTest extends FeatureSpec with Matchers
         vt = createVirtualTopology()
         vtpm = createVirtualToPhysicalMapper()
         backend.startAsync().awaitRunning()
+        vt.startAsync().awaitRunning()
     }
 
     after {
         log info "Post test clean up"
+        vt.stopAsync().awaitTerminated()
         backend.stopAsync().awaitTerminated()
         dpState.asInstanceOf[VppTestDatapathState].cleanup()
         deleteDatapath(dpState.datapath, log)
