@@ -82,8 +82,6 @@ class VxLanPortMappingService(vt: VirtualTopology)
 
     override def logSource = "org.midonet.devices.vtep-port-mapping"
 
-    private val store = vt.store
-    private val stateStore = vt.stateStore
     private implicit val ec: ExecutionContext = fromExecutor(vt.vtExecutor)
 
     // Subscriber to the internal [[observable]] that will be used to cancel
@@ -307,7 +305,7 @@ class VxLanPortMappingService(vt: VirtualTopology)
           * to [[vt.config.zookeeper.maxRetries]] retries. */
         private def fetchNetwork(retries: Int = vt.config.zookeeper.maxRetries)
         : Unit = {
-            store.get(classOf[Network], networkId) onComplete {
+            vt.store.get(classOf[Network], networkId) onComplete {
                 case Success(network) =>
                     val newVni = network.getVni
                     val newPorts = network.getVxlanPortIdsList.asScala.map(_.asJava).toSet
@@ -352,7 +350,7 @@ class VxLanPortMappingService(vt: VirtualTopology)
         private def fetchPorts(portIds: Set[UUID],
                                retries: Int = vt.config.zookeeper.maxRetries)
         : Unit = {
-            store.getAll(classOf[Port], portIds.toSeq) onComplete {
+            vt.store.getAll(classOf[Port], portIds.toSeq) onComplete {
                 case Success(ports) =>
                     vt.assertThread()
                     ports.foreach(updatePort)
@@ -441,8 +439,8 @@ class VxLanPortMappingService(vt: VirtualTopology)
             // the VTEP's OVSDB.  State keys disappear when their parent
             // model is deleted, so a VTEP deletion will complete both
             // observables and the result of combineLatest.
-            val vtepStateObservable = stateStore.vtepConfigObservable(vtepId)
-                                                .filter(isUsableVtepConf)
+            val vtepStateObservable = vt.stateStore.vtepConfigObservable(vtepId)
+                                                   .filter(isUsableVtepConf)
 
             // Subscribe the VTEP subscribes to updates
             Observable.combineLatest[Vtep, VtepConfiguration, VtepInfo](
@@ -456,7 +454,7 @@ class VxLanPortMappingService(vt: VirtualTopology)
 
     override protected def doStart(): Unit = {
         log info "Starting VXLAN port mapping service"
-        vtepsSubscription = selfHealingTypeObservable[Vtep](store)
+        vtepsSubscription = selfHealingTypeObservable[Vtep](vt.store)
                                 .observeOn(vt.vtScheduler)
                                 .subscribe(vtepsObserver)
         notifyStarted()
