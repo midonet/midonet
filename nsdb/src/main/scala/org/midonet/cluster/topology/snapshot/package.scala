@@ -17,7 +17,6 @@
 package org.midonet.cluster.topology
 
 import java.io.IOException
-import java.nio.charset.StandardCharsets.UTF_8
 import java.util
 import java.util.UUID
 
@@ -34,11 +33,10 @@ import org.midonet.cluster.topology.snapshot.TopologySnapshotDecoder.StateOwnerD
 import org.midonet.cluster.topology.snapshot.TopologySnapshotDecoder.StateOwnerDecoder.StateClassDecoder.StateIdDecoder.StateKeyDecoder
 import org.midonet.cluster.topology.snapshot.TopologySnapshotDecoder.{ObjectClassDecoder, StateOwnerDecoder}
 import org.midonet.cluster.topology.snapshot.TopologySnapshotEncoder.ObjectClassEncoder.ObjectEncoder
-import org.midonet.cluster.topology.snapshot.TopologySnapshotEncoder.StateOwnerEncoder.StateClassEncoder
 import org.midonet.cluster.topology.snapshot.TopologySnapshotEncoder.StateOwnerEncoder.StateClassEncoder.StateIdEncoder
 import org.midonet.cluster.topology.snapshot.TopologySnapshotEncoder.StateOwnerEncoder.StateClassEncoder.StateIdEncoder.StateKeyEncoder
+import org.midonet.cluster.topology.snapshot.TopologySnapshotEncoder.StateOwnerEncoder.{StateClassEncoder, uuidNullValue}
 import org.midonet.cluster.topology.snapshot.TopologySnapshotEncoder.{ObjectClassEncoder, StateOwnerEncoder}
-import org.midonet.cluster.topology.snapshot.TopologySnapshotEncoder.StateOwnerEncoder.uuidNullValue
 import org.midonet.util.logging.Logger
 
 package object snapshot {
@@ -275,7 +273,6 @@ package object snapshot {
             val objId = new UUID(decoder.uuid(0), decoder.uuid(1))
             val objData = new Array[Byte](decoder.dataLength())
             decoder.getData(objData, 0, objData.length)
-            val data = new String(objData, UTF_8)
             snapshot.putIfAbsent(objId, objData)
         }
 
