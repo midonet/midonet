@@ -35,22 +35,41 @@ class CachedStateStorage(private val store: Storage,
       * asynchronous, returning an observable that when subscribed to will
       * execute the add and will emit one notification with the result of the
       * operation.
+      * NOTE: This method also updates the cache with the added value.
+      * This operation is immediately visible to the local cache whereas the
+      * actual transaction on ZK is performed once the user of this method
+      * subscribes to the returned observable.
       *
       * @throws IllegalArgumentException    The key or class have not been
       * registered. */
     override def addValue(clazz: Class[_], id: ObjId, key: String,
-                          value: String): Observable[StateResult] =
-        notImplemented
+                          value: String): Observable[StateResult] = {
+        Option(stateSnapshot.get(namespace))
+            .map(_ get clazz)
+            .map(_ get id)
+            .map(_ put(key, value))
+        stateStore.addValue(clazz, id, key, value)
+    }
 
     /** Removes a value from a key for the object with the specified class and
       * identifier from the state of the current namespace. For single value
       * keys, the `value` is ignored, and any current value is deleted. The
       * method is asynchronous, returning an observable that when subscribed to
       * will execute the remove and will emit one notification with the result
-      * of the operation. */
+      * of the operation.
+      * NOTE: This method also updates the cache with the added value.
+      * This operation is immediately visible to the local cache whereas the
+      * actual transaction on ZK is performed once the user of this method
+      * subscribes to the returned observable.
+      */
     override def removeValue(clazz: Class[_], id: ObjId, key: String,
-                             value: String): Observable[StateResult] =
-        notImplemented
+                             value: String): Observable[StateResult] = {
+        Option(stateSnapshot.get(namespace))
+            .map(_ get clazz)
+            .map(_ get id)
+            .map(_ remove (key, value))
+        stateStore.removeValue(clazz, id, key, value)
+    }
 
     /** Gets the set of values corresponding to a state key from the state of
       * the current namespace. The method is asynchronous, returning an
@@ -128,13 +147,13 @@ class CachedStateStorage(private val store: Storage,
       * session to storage.  Note that this value has nothing to do with the
       * node ID.
       */
-    override def ownerId: Long = notImplemented
+    override def ownerId: Long = stateStore.ownerId
 
     /** Returns a number uniquely identifying the current owner of the fail
       * fast session to storage.  Note that this value has nothing to do with
       * the node ID.
       */
-    override def failFastOwnerId: Long = notImplemented
+    override def failFastOwnerId: Long = stateStore.failFastOwnerId
 
     override protected val namespace: String =
         HostIdGenerator.getHostId.toString

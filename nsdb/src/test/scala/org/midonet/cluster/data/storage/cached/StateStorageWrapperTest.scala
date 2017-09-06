@@ -102,14 +102,13 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
     }
 
     feature("Adding and removing values") {
-        scenario("When the cache is active should fail") {
-            a [NotImplementedError] shouldBe thrownBy {
-                wrapper.addValue(classOf[Port], randomUuidProto, "key", "value")
-            }
+        scenario("When the cache is active should update the cache") {
+            val uuid = randomUuidProto
+            wrapper.addValue(classOf[Port], uuid, "key", "value")
+            wrapper.getKey(classOf[Port], uuid, "key") shouldBe "value"
 
-            a [NotImplementedError] shouldBe thrownBy {
-                wrapper.removeValue(classOf[Port], randomUuidProto, "key", "value")
-            }
+            wrapper.removeValue(classOf[Port], uuid, "key", "value")
+            wrapper.getKey(classOf[Port], uuid, "key") shouldBe null
         }
     }
 
