@@ -127,6 +127,54 @@ class TopologyCacheTest extends FeatureSpec
         }
     }
 
+    feature("Spanshot is created without requests") {
+        scenario("Non-empty storage") {
+            Given("A topology cache service")
+            val cache = new TopologyCache(context,
+                                          backend,
+                                          clusterConfig,
+                                          metrics)
+            cache.startAsync().awaitRunning()
+
+            eventually {
+                Then("There are no outstanding requests")
+                cache.snapshotProvider.outstandingRequests shouldBe 0
+                cache.snapshotProvider.outstandingRequestsDone shouldBe null
+                And("The snapshot is not serialized yet")
+                cache.snapshotProvider.serializedLength shouldBe 0
+            }
+
+            And("Some data in NSDB")
+            backend.store.tryTransaction(ZoomOwner.None) { tx =>
+                val bridge = createBridge()
+                val port = createBridgePort(bridgeId = Option(bridge.getId.asJava))
+                tx.create(bridge)
+                tx.create(port)
+            }
+
+            eventually {
+                backend.store.tryTransaction(ZoomOwner.None) { tx =>
+                    tx.getAll(classOf[Port]).size shouldBe 1
+                    tx.getAll(classOf[Network]).size shouldBe 1
+                }
+            }
+
+            When("After some time")
+            Thread.sleep(SECONDS.toMillis(TopologyCache.InitialSnapshotDelaySeconds))
+
+            eventually {
+                Then("There are no outstanding requests")
+                cache.snapshotProvider.outstandingRequests shouldBe 0
+                cache.snapshotProvider.outstandingRequestsDone shouldBe null
+                And("The snapshot is serialized")
+                cache.snapshotProvider.serializedLength should be > 0
+            }
+
+            And("Stop the cache to clear subscriptions")
+            cache.stopAsync().awaitTerminated()
+        }
+    }
+
     feature("Snapshot received upon request") {
         scenario("On an empty storage") {
             Given("A topology cache service")
