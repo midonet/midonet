@@ -20,58 +20,57 @@ import java.net.URI
 
 import javax.net.ssl.SSLContext
 
-import scala.async.Async.async
-import scala.concurrent.{ExecutionContext, Future}
-
 import com.google.common.net.HostAndPort
 
 import org.apache.commons.io.IOUtils
 import org.apache.http.HttpException
 import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
 import org.apache.http.impl.client.HttpClients
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceURI}
+import org.midonet.util.logging.Logger
 
 import io.netty.handler.codec.http.{HttpHeaderNames, HttpHeaderValues, HttpResponseStatus}
 
 trait TopologyCacheClient {
-    def fetch(implicit ec: ExecutionContext): Future[Array[Byte]]
+    def fetch(): Array[Byte]
 }
 
 abstract class TopologyCacheClientBase extends TopologyCacheClient {
 
-    private lazy val client = HttpClients.custom()
-        .setSslcontext(ssl.orNull)
-        .build()
+    private val log = Logger(LoggerFactory.getLogger(this.getClass))
+
+    private val client = HttpClients.createDefault()
 
     protected def ssl: Option[SSLContext]
     protected def url: URI
 
-    override def fetch(implicit ec: ExecutionContext): Future[Array[Byte]] = {
-        async {
-            val srvUrl = url
-            if (srvUrl == null) {
-                throw new HttpException("Topology cache service unavailable")
-            } else {
-                val get = new HttpGet(srvUrl)
-                get.addHeader(HttpHeaderNames.ACCEPT_ENCODING.toString(),
-                              HttpHeaderValues.GZIP.toString())
-                client.execute(get)
-            }
-        } map checkResponse
+    override def fetch(): Array[Byte] = {
+        val srvUrl = url
+        if (srvUrl == null) {
+            throw new HttpException("Topology cache service unavailable")
+        } else {
+            log.debug(s"Requesting topology snapshot from $srvUrl")
+            val get = new HttpGet(srvUrl)
+            get.addHeader(HttpHeaderNames.ACCEPT_ENCODING.toString(),
+                          HttpHeaderValues.GZIP.toString())
+            val response = client.execute(get)
+            checkResponse(response)
+        }
     }
 
     private def checkResponse(resp: CloseableHttpResponse): Array[Byte] = {
-        lazy val code = resp.getStatusLine.getStatusCode
-        lazy val ctype =
-            if (resp.getEntity.getContentType == null) null
-            else resp.getEntity.getContentType.getValue
-
+        val code = resp.getStatusLine.getStatusCode
         if (code != HttpResponseStatus.OK.code()) {
             throw new HttpException(
                 "Topology cache client got non-OK code: " +
                 HttpResponseStatus.valueOf(code))
         }
+
+        val ctype =
+            if (resp.getEntity.getContentType == null) null
+            else resp.getEntity.getContentType.getValue
         if (ctype != "application/octet-stream") {
             throw new HttpException(
                 "Topology cache client got unexpected content type: " + ctype)

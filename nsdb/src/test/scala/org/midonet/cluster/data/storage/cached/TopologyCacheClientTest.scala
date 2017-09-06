@@ -21,33 +21,32 @@ import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 
 import javax.net.ssl.SSLContext
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scala.util.Random
 
 import com.google.common.net.HostAndPort
 
-import org.apache.http.{HttpException, NoHttpResponseException}
 import org.apache.http.ssl.{SSLContextBuilder, TrustStrategy}
+import org.apache.http.{HttpException, NoHttpResponseException}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
 import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceURI}
-
-import io.netty.handler.ssl.util.SelfSignedCertificate
-import io.netty.handler.ssl.SslContextBuilder
-import io.netty.buffer.{ByteBuf, ByteBufInputStream, Unpooled}
-import io.netty.channel.{ChannelHandler, ChannelHandlerContext, SimpleChannelInboundHandler}
-import io.netty.channel.socket.SocketChannel
-import io.netty.handler.codec.http._
-import io.netty.handler.stream.ChunkedStream
-import io.netty.util.CharsetUtil
 import org.midonet.util.PortProvider
 import org.midonet.util.concurrent.{NamedThreadFactory, ThreadHelpers}
 import org.midonet.util.netty.{HTTPAdapter, ServerFrontEnd}
 
+import io.netty.buffer.{ByteBuf, ByteBufInputStream, Unpooled}
 import io.netty.channel.ChannelHandler.Sharable
+import io.netty.channel.socket.SocketChannel
+import io.netty.channel.{ChannelHandler, ChannelHandlerContext, SimpleChannelInboundHandler}
+import io.netty.handler.codec.http._
+import io.netty.handler.ssl.SslContextBuilder
+import io.netty.handler.ssl.util.SelfSignedCertificate
+import io.netty.handler.stream.ChunkedStream
+import io.netty.util.CharsetUtil
 
 @RunWith(classOf[JUnitRunner])
 class TopologyCacheClientTest extends FeatureSpec with Matchers
@@ -177,8 +176,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
                     createURI("http", srv.getHostText, srv.getPort, "/wrong")
             }
 
-            val exc = the [HttpException] thrownBy
-                Await.result(client.fetch(executor), Timeout)
+            val exc = the [HttpException] thrownBy client.fetch()
 
             exc.getMessage should be
                 "Topology cache client got non-OK code: " +
@@ -191,8 +189,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
             val client = new TopologyCacheClientImpl(
                 HostAndPort.fromParts(SrvHostName, port), None)
 
-            a [NoHttpResponseException] shouldBe thrownBy(
-                Await.result(client.fetch(executor), Timeout))
+            a [NoHttpResponseException] shouldBe thrownBy(client.fetch())
         }
     }
 
@@ -204,7 +201,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
             val client = new TopologyCacheClientImpl(
                 HostAndPort.fromParts(SrvHostName, port), None)
 
-            val result = Await.result(client.fetch(executor), Timeout)
+            val result = client.fetch()
             result shouldBe data
         }
         scenario("encrypted connection") {
@@ -214,7 +211,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
             val client = new TopologyCacheClientImpl(
                 HostAndPort.fromParts(SrvHostName, port), Some(clientSslCtx))
 
-            val result = Await.result(client.fetch(executor), Timeout)
+            val result = client.fetch()
             result shouldBe data
         }
     }
@@ -232,7 +229,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
 
             val client = new TopologyCacheClientDiscovery(discovery, None)
 
-            val result = Await.result(client.fetch(executor), Timeout)
+            val result = client.fetch()
             result shouldBe data
         }
         scenario("encrypted connection") {
@@ -248,7 +245,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
             val client =
                 new TopologyCacheClientDiscovery(discovery, Some(clientSslCtx))
 
-            val result = Await.result(client.fetch(executor), Timeout)
+            val result = client.fetch()
             result shouldBe data
         }
         scenario("server unavailable") {
@@ -261,8 +258,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
 
             val client = new TopologyCacheClientDiscovery(discovery, None)
 
-            val exc = the [HttpException] thrownBy
-                      Await.result(client.fetch(executor), Timeout)
+            val exc = the [HttpException] thrownBy client.fetch()
 
             exc.getMessage shouldBe "Topology cache service unavailable"
         }

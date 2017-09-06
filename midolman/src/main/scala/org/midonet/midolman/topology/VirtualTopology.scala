@@ -20,36 +20,35 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService, TimeUnit}
 
 import scala.collection.mutable
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.AbstractService
 
 import rx.Observable
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
-import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.data.storage.cached.{StateStorageWrapper, StorageWrapper, TopologyCacheClientDiscovery}
+import org.midonet.cluster.data.storage.{StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceURI}
 import org.midonet.cluster.topology.snapshot.{TopologySnapshot, TopologySnapshotDeserializer}
-import org.midonet.midolman.CallbackRegistry
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation._
-import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.logging.rule.RuleLogEventChannel
 import org.midonet.midolman.monitoring.metrics.VirtualTopologyMetrics
+import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.devices._
-import org.midonet.midolman.{NotYetException, SimulationBackChannel}
+import org.midonet.midolman.{CallbackRegistry, NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.{DefaultRetriable, ImmediateRetriable}
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
+import org.midonet.util.{DefaultRetriable, ImmediateRetriable}
 
 /**
  * This is a companion object of the [[VirtualTopology]] class, allowing the
@@ -172,7 +171,10 @@ class VirtualTopology(val backend: MidonetBackend,
                       val ioExecutor: ExecutorService,
                       vtExecutorCheck: () => Boolean,
                       cbRegistry: CallbackRegistry)
-    extends MidolmanLogging with DefaultRetriable with ImmediateRetriable {
+    extends AbstractService
+            with MidolmanLogging
+            with DefaultRetriable
+            with ImmediateRetriable {
 
     import VirtualTopology._
 
@@ -241,8 +243,20 @@ class VirtualTopology(val backend: MidonetBackend,
     // Topology snapshot retries
     override val maxRetries: Int = config.initialStorageCache.snapshotRetries
 
-    private val snapshot: TopologySnapshot =
-        if (config.initialStorageCache.enabled) {
+    private var snapshot: TopologySnapshot = _
+
+    private def snapshotAvailable = config.initialStorageCache.enabled &&
+                                    (snapshot ne null)
+
+    var store: Storage = _
+
+    var stateStore: StateStorage = _
+
+    var stateTables: StateTableStorage = _
+
+    protected override def doStart(): Unit = {
+        log.debug("Starting Virtual Topology service")
+        snapshot = if (config.initialStorageCache.enabled) {
             try {
                 val client = backend.discovery.getClient[MidonetServiceURI](
                     serviceName = "topology-cache")
@@ -250,16 +264,21 @@ class VirtualTopology(val backend: MidonetBackend,
                     .roundRobin[MidonetServiceURI](client)
                 val cacheClient = new TopologyCacheClientDiscovery(
                     discoverySelector,
-                    None /* TODO: config in agent? */)
-                implicit val ec = ExecutionContext.fromExecutor(vtExecutor)
+                    None)
+                val init = System.nanoTime()
 
                 retry(log.underlying, "Fetch topology snapshot from cluster") {
-                    val snapshot = cacheClient.fetch map {
-                        new TopologySnapshotDeserializer().deserialize(_)
-                    }
+                    val snapshotArray = cacheClient.fetch()
+                    val elapsedReceived = (System.nanoTime() - init) / 1000000
+                    log.debug("Topology snapshot received from cluster " +
+                              s"in $elapsedReceived ms.")
 
-                    Await.result(snapshot,
-                        config.initialStorageCache.snapshotTimeoutMs millis)
+                    val snapshotDecoded = new TopologySnapshotDeserializer()
+                        .deserialize(snapshotArray)
+                    val elapsedDecoded =
+                        ((System.nanoTime() - init) / 1000000) - elapsedReceived
+                    log.debug(s"Topology snapshot decoded in $elapsedDecoded ms.")
+                    snapshotDecoded
                 }
             } catch {
                 case NonFatal(e) =>
@@ -268,35 +287,39 @@ class VirtualTopology(val backend: MidonetBackend,
             }
         } else null
 
-    private def snapshotAvailable = config.initialStorageCache.enabled &&
-                                    (snapshot ne null)
 
-    val store: Storage = if (snapshotAvailable) {
-        val wrapper = new StorageWrapper(config.initialStorageCache.ttlMs,
-                                         backend.store,
-                                         snapshot.objectSnapshot)
-        worker.schedule(makeAction0(wrapper.invalidateCache()),
-                        config.initialStorageCache.ttlMs,
-                        TimeUnit.MILLISECONDS)
-        wrapper
-    } else {
-        backend.store
+        store = if (snapshotAvailable) {
+            val wrapper = new StorageWrapper(config.initialStorageCache.ttlMs,
+                                             backend.store,
+                                             snapshot.objectSnapshot)
+            worker.schedule(makeAction0(wrapper.invalidateCache()),
+                            config.initialStorageCache.ttlMs,
+                            TimeUnit.MILLISECONDS)
+            wrapper
+        } else {
+            backend.store
+        }
+
+        stateStore = if (snapshotAvailable) {
+            val wrapper = new StateStorageWrapper(config.initialStorageCache.ttlMs,
+                                                  backend.store, backend.stateStore,
+                                                  snapshot.objectSnapshot,
+                                                  snapshot.stateSnapshot)
+            worker.schedule(makeAction0(wrapper.invalidateCache()),
+                            config.initialStorageCache.ttlMs,
+                            TimeUnit.MILLISECONDS)
+            wrapper
+        } else {
+            backend.stateStore
+        }
+
+        stateTables = backend.stateTableStore
+        notifyStarted()
     }
 
-    val stateStore: StateStorage = if (snapshotAvailable) {
-        val wrapper = new StateStorageWrapper(config.initialStorageCache.ttlMs,
-                                              backend.store, backend.stateStore,
-                                              snapshot.objectSnapshot,
-                                              snapshot.stateSnapshot)
-        worker.schedule(makeAction0(wrapper.invalidateCache()),
-                        config.initialStorageCache.ttlMs,
-                        TimeUnit.MILLISECONDS)
-        wrapper
-    } else {
-        backend.stateStore
+    protected override def doStop(): Unit = {
+        notifyStopped()
     }
-
-    def stateTables = backend.stateTableStore
 
     private def observableOf[D <: Device](clazz: Class[D], id: UUID)
     : Observable[D] = {
