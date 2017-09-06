@@ -18,25 +18,23 @@ package org.midonet.cluster.services.topology_cache
 
 import java.util.UUID
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import com.codahale.metrics.MetricRegistry
 
+import org.apache.commons.io.FilenameUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
-import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.models.Topology.{Network, Port}
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
@@ -104,6 +102,12 @@ class TopologyCacheTest extends FeatureSpec
 
             Then("The topology cache is disabled by default for now")
             cache.isEnabled shouldBe false
+
+            Then("The endpoint path is an absolute path as checked by the EndpointUserRegistrar")
+            FilenameUtils.getPrefix(
+                FilenameUtils.normalizeNoEndSeparator(
+                    cache.endpointPath, true)) should not be ""
+
 
             And("The topology cache starts")
             cache.startAsync().awaitRunning()
