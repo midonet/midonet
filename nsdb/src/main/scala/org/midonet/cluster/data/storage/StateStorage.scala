@@ -263,7 +263,7 @@ trait StateStorage extends Storage {
 
     /** Gets the key type for the given class and key. */
     @throws[IllegalArgumentException]
-    protected[this] def getKeyType(clazz: Class[_], key: String): KeyType = {
+    protected[storage] def getKeyType(clazz: Class[_], key: String): KeyType = {
         currentStates.getOrElse(clazz, throw new IllegalArgumentException(
             s"Class ${clazz.getSimpleName} is not registered"))
                      .getOrElse(key, throw new IllegalArgumentException(

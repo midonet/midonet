@@ -19,7 +19,9 @@ import java.io.{File, FileOutputStream}
 import java.util
 import java.util.{Properties, UUID}
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FeatureSpec, Matchers}
@@ -34,7 +36,7 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.conf.HostIdGenerator
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
+import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAfter with BeforeAndAfterAll {
@@ -87,6 +89,24 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
         System.setProperty("midonet.host_id_filepath", path)
     }
 
+    private def getSingleValue(obs: Observable[StateKey]): String = {
+        try {
+            Await.result(obs.asFuture, 1 second)
+                .asInstanceOf[SingleValueKey].value.get
+        } catch {
+            case NonFatal(_) => null
+        }
+    }
+
+    private def getMultiValue(obs: Observable[StateKey]): Set[String] = {
+        try {
+            Await.result(obs.asFuture, 1 second)
+                .asInstanceOf[MultiValueKey].value
+        } catch {
+            case NonFatal(_) => null
+        }
+    }
+
     override def beforeAll(): Unit = {
         setupPropertyFile()
     }
@@ -96,20 +116,42 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
         store.registerClass(classOf[Router])
         store.registerClass(classOf[Port])
         store.registerKey(classOf[Port], key1.key, KeyType.SingleFirstWriteWins)
+        store.registerKey(classOf[Port], "keySingleFirst", KeyType.SingleFirstWriteWins)
+        store.registerKey(classOf[Port], "keySingleLast", KeyType.SingleLastWriteWins)
+        store.registerKey(classOf[Port], "keyMulti", KeyType.Multiple)
         store.build()
 
         wrapper = new StateStorageWrapper(cacheTtl, store, store, objSnapshot, stateSnapshot)
     }
 
     feature("Adding and removing values") {
-        scenario("When the cache is active should fail") {
-            a [NotImplementedError] shouldBe thrownBy {
-                wrapper.addValue(classOf[Port], randomUuidProto, "key", "value")
-            }
+        scenario("When the cache is active should update the cache - single first wins") {
+            val uuid = randomUuidProto
 
-            a [NotImplementedError] shouldBe thrownBy {
-                wrapper.removeValue(classOf[Port], randomUuidProto, "key", "value")
-            }
+            wrapper.addValue(classOf[Port], uuid, "keySingleFirst", "value1")
+            wrapper.addValue(classOf[Port], uuid, "keySingleFirst", "value2")
+            getSingleValue(wrapper.getKey(classOf[Port], uuid, "keySingleFirst")) shouldBe "value1"
+
+            wrapper.removeValue(classOf[Port], uuid, "keySingleFirst", "value")
+            getSingleValue(wrapper.getKey(classOf[Port], uuid, "keySingleFirst")) shouldBe null
+        }
+        scenario("When the cache is active should update the cache - single last wins") {
+            val uuid = randomUuidProto
+            wrapper.addValue(classOf[Port], uuid, "keySingleLast", "value1")
+            wrapper.addValue(classOf[Port], uuid, "keySingleLast", "value2")
+            getSingleValue(wrapper.getKey(classOf[Port], uuid, "keySingleLast")) shouldBe "value2"
+
+            wrapper.removeValue(classOf[Port], uuid, "keySingleLast", "value")
+            getSingleValue(wrapper.getKey(classOf[Port], uuid, "keySingleLast")) shouldBe null
+        }
+        scenario("When the cache is active should update the cache - multi") {
+            val uuid = randomUuidProto
+            wrapper.addValue(classOf[Port], uuid, "keyMulti", "value1")
+            wrapper.addValue(classOf[Port], uuid, "keyMulti", "value2")
+            getMultiValue(wrapper.getKey(classOf[Port], uuid, "keyMulti")) shouldBe Set("value1", "value2")
+
+            wrapper.removeValue(classOf[Port], uuid, "keyMulti", "value1")
+            getMultiValue(wrapper.getKey(classOf[Port], uuid, "keyMulti")) shouldBe Set("value2")
         }
     }
 
