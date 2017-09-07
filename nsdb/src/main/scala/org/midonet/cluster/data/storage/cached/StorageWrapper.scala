@@ -17,12 +17,15 @@ package org.midonet.cluster.data.storage.cached
 
 import scala.concurrent.Future
 
+import org.slf4j.LoggerFactory
+
 import rx.Observable
 
 import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.{PersistenceOp, Storage, Transaction}
+import org.midonet.util.logging.Logger
 
 /**
   * This class provides a wrapper over a regular storage object. This wrapper
@@ -35,12 +38,15 @@ class StorageWrapper(private val cacheTtlMs: Long,
                      private val snapshot: ObjSnapshot)
     extends Storage {
 
+    private val log = Logger(LoggerFactory.getLogger("org.midonet.cluster.storage-wrapper"))
+
     private val cachedStore = new CachedStorage(store, snapshot)
 
     @volatile
     protected var cacheValid: Boolean = true
 
     def invalidateCache(): Unit = {
+        log.debug(s"Invalidating NSDB ${getClass.getName} cache after $cacheTtlMs ms.")
         cacheValid = false
     }
 
