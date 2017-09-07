@@ -52,4 +52,27 @@ package object data {
         }
     }
 
+    /** Remove line breaks, and usually collapse multiple blanks into a
+      * single space
+      *
+      * @param obj is the original object to print
+      * @param collapse is a flag indicating if blank spaces should be collapsed
+      * @return the compacted string
+      */
+    def oneLiner(obj: Any, collapse: Boolean = true): String = obj match {
+        case s: String =>
+            if (collapse)
+                s.replaceAll("\\r\\n|\\r|\\n", " ").replaceAll("\\s+", " ").trim
+            else
+                s.replaceAll("\\r\\n|\\r|\\n", " ").trim
+        case other: Any =>
+            if (collapse)
+                other.toString.replaceAll("\\r\\n|\\r|\\n", " ")
+                    .replaceAll("\\s+", " ").trim
+            else
+                other.toString.replaceAll("\\r\\n|\\r|\\n", " ").trim
+        case null =>
+            "(null)"
+    }
+
 }
