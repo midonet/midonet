@@ -254,6 +254,7 @@ package object snapshot {
             }
             val clazz = decoder.objectClass()
             val objClass = Class.forName(clazz)
+            Log.debug(s"Decoded ${objects.count()} objects of type $clazz")
             // NOTE: Decode into a protocol buffer and replace in the map
             // We do this after decoding the raw object because we need
             // the class name, which comes after the data itself.
@@ -305,6 +306,7 @@ package object snapshot {
             }
             val clazz = decoder.stateClass()
             snapshot.putIfAbsent(Class.forName(clazz), stateIdGroup)
+            Log.debug(s"Decoding ${stateIds.count()} state ids of type $clazz")
         }
 
         private def decodeStateId(decoder: StateIdDecoder,
