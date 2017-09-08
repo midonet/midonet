@@ -51,21 +51,6 @@ import org.midonet.util.collection.Reducer
 /**
  * A class to replicate per-flow connection state between interested hosts.
  *
- * Sample usage:
- *
- * <code>
- * replicator.accumulateNewKeys(natTx, conntrackTx, ingressPort, egressPort, null)
- * replicator.pushState()
- * natTx.commit()
- * conntrackTx.commit()
- *
- * natTable.expireIdleEntries(interval, replicator.natRemover)
- * conntrackTable.expireIdleEntries(interval, replicator.conntrackRemover)
- * replicator.pushState()
- *
- * replicator.accept(packet)
- * </code>
- *
  *          NOTES ON THREAD SAFETY
  *          **********************
  *
@@ -256,7 +241,7 @@ class FlowStateReplicator(
         }
     }
 
-    def buildFlowState(context: PacketContext): Unit = {
+    private def buildFlowState(context: PacketContext): Unit = {
         val flowStateMessage = flowStateEncoder.encodeTo(
             context.stateMessage)
         uuidToSbe(hostId, flowStateMessage.sender)
@@ -393,7 +378,6 @@ class FlowStateReplicator(
      * EXPECTED CALLING THREADS: only the packet processing thread that owns
      * this replicator.
      */
-    @throws(classOf[NotYetException])
     def accept(p: Ethernet) = {
         val data = parseDatagram(p)
         if (data == null) {
