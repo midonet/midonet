@@ -21,6 +21,7 @@ import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapsh
 import org.midonet.cluster.cache.StateNotification.{MappedSnapshot => StateSnapshot}
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.topology.snapshot.{StateClasses, StateIds, StateKeys}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.util.functors.makeFunc1
 
@@ -35,22 +36,72 @@ class CachedStateStorage(private val store: Storage,
       * asynchronous, returning an observable that when subscribed to will
       * execute the add and will emit one notification with the result of the
       * operation.
+      * NOTE: This method also updates the cache with the added value.
+      * This operation is immediately visible to the local cache whereas the
+      * actual transaction on ZK is performed once the user of this method
+      * subscribes to the returned observable. Also, the semantics of First/Last
+      * wins doesn't apply on the cache because remote operations are not
+      * visible.
       *
       * @throws IllegalArgumentException    The key or class have not been
       * registered. */
     override def addValue(clazz: Class[_], id: ObjId, key: String,
-                          value: String): Observable[StateResult] =
-        notImplemented
+                          value: String): Observable[StateResult] = {
+
+        stateSnapshot.putIfAbsent(namespace, new StateClasses)
+        val snapshotByNamespace = stateSnapshot.get(namespace)
+
+        snapshotByNamespace.putIfAbsent(clazz, new StateIds)
+        val snapshotByClass = snapshotByNamespace.get(clazz)
+
+        snapshotByClass.putIfAbsent(id.asInstanceOf[AnyRef], new StateKeys)
+        val snapshotById = snapshotByClass.get(id)
+
+        val keyType = stateStore.getKeyType(clazz, key)
+        if (keyType.isSingle) {
+            val singleValue = SingleValueKey(key, Option(value), ownerId)
+            if (keyType.firstWins) {
+                snapshotById.putIfAbsent(key, singleValue)
+            } else {
+                snapshotById.put(key, singleValue)
+            }
+        } else {
+            snapshotById.putIfAbsent(key, MultiValueKey(key, Set()))
+            val current = snapshotById.get(key).asInstanceOf[MultiValueKey].value
+            snapshotById.put(key, MultiValueKey(key, current + value))
+        }
+        stateStore.addValue(clazz, id, key, value)
+    }
 
     /** Removes a value from a key for the object with the specified class and
       * identifier from the state of the current namespace. For single value
       * keys, the `value` is ignored, and any current value is deleted. The
       * method is asynchronous, returning an observable that when subscribed to
       * will execute the remove and will emit one notification with the result
-      * of the operation. */
+      * of the operation.
+      * NOTE: This method also updates the cache with the added value.
+      * This operation is immediately visible to the local cache whereas the
+      * actual transaction on ZK is performed once the user of this method
+      * subscribes to the returned observable.
+      */
     override def removeValue(clazz: Class[_], id: ObjId, key: String,
-                             value: String): Observable[StateResult] =
-        notImplemented
+                             value: String): Observable[StateResult] = {
+        val snapshotById =
+            Option(stateSnapshot.get(namespace))
+                .map(_ get clazz)
+                .map(_ get id)
+
+        val keyType = stateStore.getKeyType(clazz, key)
+        if (keyType.isSingle) {
+            snapshotById.map(_ remove key)
+        } else {
+            snapshotById.map(_ putIfAbsent(key, MultiValueKey(key, Set())))
+            val current =
+                snapshotById.map(_ get key).get.asInstanceOf[MultiValueKey].value
+            snapshotById.map(_ put (key, MultiValueKey(key, current - value)))
+        }
+        stateStore.removeValue(clazz, id, key, value)
+    }
 
     /** Gets the set of values corresponding to a state key from the state of
       * the current namespace. The method is asynchronous, returning an
@@ -128,13 +179,13 @@ class CachedStateStorage(private val store: Storage,
       * session to storage.  Note that this value has nothing to do with the
       * node ID.
       */
-    override def ownerId: Long = notImplemented
+    override def ownerId: Long = stateStore.ownerId
 
     /** Returns a number uniquely identifying the current owner of the fail
       * fast session to storage.  Note that this value has nothing to do with
       * the node ID.
       */
-    override def failFastOwnerId: Long = notImplemented
+    override def failFastOwnerId: Long = stateStore.failFastOwnerId
 
     override protected val namespace: String =
         HostIdGenerator.getHostId.toString
