@@ -18,16 +18,22 @@ package org.midonet.cluster.data.storage.cached
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
+import org.slf4j.LoggerFactory
+
 import rx.Observable
 
 import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
-import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.{NotFoundException, PersistenceOp, Storage, Transaction}
+import org.midonet.cluster.data.{ObjId, oneLiner}
+import org.midonet.util.logging.Logger
 
 class CachedStorage(private val store: Storage,
                     private val snapshot: ObjSnapshot)
     extends Storage {
+
+    private val log =
+        Logger(LoggerFactory.getLogger("org.midonet.cluster.cached-storage"))
 
     protected def notImplemented = throw new NotImplementedError(
         "Operation not implemented for the initial cached storage")
@@ -80,8 +86,12 @@ class CachedStorage(private val store: Storage,
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] =
         Option(snapshot.get(clazz)).map(_ get id) match {
             case Some(cached) =>
+                log.debug("Cache hit, starting observable with cached instance " +
+                          s"[$clazz, ${oneLiner(id)}] -> ${oneLiner(cached)}")
                 store.observable(clazz, id).startWith(cached.asInstanceOf[T])
             case None =>
+                log.debug("Cache miss, listening for update from storage " +
+                          s"[$clazz, ${oneLiner(id)}]")
                 store.observable(clazz, id)
         }
 
@@ -101,9 +111,13 @@ class CachedStorage(private val store: Storage,
         Option(snapshot.get(clazz))
             .map(_.values.asScala.map(_.asInstanceOf[T])) match {
                 case Some(cached) =>
+                    log.debug("Cache hit, starting observable with cached " +
+                              s"instances of [$clazz] -> ${oneLiner(cached)}")
                     val initial = Observable.from(cached.asJava)
                     store.observable(clazz).startWith(initial)
                 case None =>
+                    log.debug("Cache miss, listening for updates from storage " +
+                              s"[$clazz].")
                     store.observable(clazz)
             }
 
@@ -115,8 +129,12 @@ class CachedStorage(private val store: Storage,
     override def get[T](clazz: Class[T], id: ObjId): Future[T] =
         Option(snapshot.get(clazz)).map(_ get id) match {
             case Some(cached) =>
+                log.debug("Cache hit, returning cached value for " +
+                          s"[$clazz, ${oneLiner(id)}] -> ${oneLiner(cached)}")
                 Future.successful(cached.asInstanceOf[T])
             case None =>
+                log.debug("Cache miss, failing for value " +
+                          s"[$clazz, ${oneLiner(id)}]")
                 Future.failed(new NotFoundException(clazz, id))
         }
 
