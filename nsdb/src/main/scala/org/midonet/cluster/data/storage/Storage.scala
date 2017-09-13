@@ -386,13 +386,13 @@ trait Storage extends ReadOnlyStorage {
       * methods such as CRUD operations and subscribe().
       */
     @throws[IllegalStateException]
-    final def build(): Unit = mutex.synchronized {
+    final def build(ensureNodes: Boolean = true): Unit = mutex.synchronized {
         assertNotBuilt()
 
         currentClasses = classInfo.toMap
         currentBindings = Multimaps.unmodifiableListMultimap(fieldBindings)
 
-        onBuild()
+        onBuild(ensureNodes)
         built = true
     }
 
@@ -455,6 +455,6 @@ trait Storage extends ReadOnlyStorage {
       * Called when the storage is built. This allows derived classes to perform
       * further storage initialization.
       */
-    protected def onBuild(): Unit = { }
+    protected def onBuild(ensureNodes: Boolean): Unit = { }
 
 }
