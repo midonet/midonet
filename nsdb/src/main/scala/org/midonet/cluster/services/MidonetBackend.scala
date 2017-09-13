@@ -303,7 +303,7 @@ object MidonetBackend {
                              classOf[QosPolicy], "network_ids", CLEAR)
 
         setup()
-        store.build()
+        store.build(ensureNodes = MidonetBackend.isCluster)
     }
 
 }
