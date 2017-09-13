@@ -249,7 +249,8 @@ public class Midolman {
         // zoom storage classes, that are not needed for the agent, so
         // we can safely pass a 'None' option
         MidonetBackendModule midonetBackendModule = new MidonetBackendModule(
-            config.zookeeper(), scala.Option.apply(null), metricRegistry);
+            config.zookeeper(), scala.Option.apply(null), metricRegistry,
+            false);
 
         ZookeeperConnectionModule zkConnectionModule =
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class);

@@ -96,7 +96,7 @@ public class StateCacheTest extends ZooKeeperTest {
         storage = new ZookeeperObjectMapper(config, NAMESPACE, curator, curator,
                                             null, null, metrics);
 
-        MidonetBackend$.MODULE$.setupBindings(storage, storage, NO_SETUP);
+        MidonetBackend$.MODULE$.setupBindings(storage, storage, NO_SETUP, true);
     }
 
     @After

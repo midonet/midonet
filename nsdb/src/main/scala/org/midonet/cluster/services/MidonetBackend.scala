@@ -72,7 +72,8 @@ object MidonetBackend {
       * classpath for subclasses of ZoomInitializer which are also annotated
       * with @ZoomInit and runs their setup methods. */
     final def setupBindings(store: Storage, stateStore: StateStorage,
-                            setup: () => Unit = () => {})
+                            setup: () => Unit = () => {},
+                            ensureNodes: Boolean = true)
     : Unit = {
         List(classOf[AgentMembership],
              classOf[BgpNetwork],
@@ -303,7 +304,7 @@ object MidonetBackend {
                              classOf[QosPolicy], "network_ids", CLEAR)
 
         setup()
-        store.build()
+        store.build(ensureNodes)
     }
 
 }

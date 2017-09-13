@@ -133,7 +133,8 @@ public class HostServiceTest {
             MidonetBackendService backend =
                 new MidonetBackendService(backendConfig, curator, curator,
                                           new MetricRegistry(),
-                                          scala.Option.apply(null));
+                                          scala.Option.apply(null),
+                                          true);
             bind(MidonetBackend.class).toInstance(backend);
             bind(Reactor.class)
                 .toProvider(ZookeeperConnectionModule.ZookeeperReactorProvider.class)
@@ -180,7 +181,7 @@ public class HostServiceTest {
         stateStore.registerKey(Topology.Host.class,
                                MidonetBackend.HostKey(),
                                KeyType.SingleLastWriteWins());
-        store.build();
+        store.build(true);
     }
 
     @After

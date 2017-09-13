@@ -60,7 +60,8 @@ class MidonetBackendService(config: MidonetBackendConfig,
                             override val curator: CuratorFramework,
                             override val failFastCurator: CuratorFramework,
                             metricRegistry: MetricRegistry,
-                            reflections: Option[Reflections])
+                            reflections: Option[Reflections],
+                            ensureNodes: Boolean = true)
     extends MidonetBackend {
 
     private val log = Logger(LoggerFactory.getLogger("org.midonet.nsdb"))
@@ -224,7 +225,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
                 if (reflections.isDefined) {
                     setupFromClasspath(zoom, zoom, reflections.get)
                 }
-            })
+            }, ensureNodes)
             zoom.enableLock()
 
             log.info("Start observing backend connection")

@@ -50,7 +50,8 @@ import org.midonet.packets.{IPv4Addr, MAC}
   */
 class MidonetBackendModule(val conf: MidonetBackendConfig,
                            reflections: Option[Reflections],
-                           metricRegistry: MetricRegistry)
+                           metricRegistry: MetricRegistry,
+                           ensureNodes: Boolean = true)
     extends AbstractModule {
 
     private val log = LoggerFactory.getLogger("org.midonet.nsdb")
@@ -63,7 +64,7 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
     private val curator = getCuratorFramework()
     private val failFastCurator = failFastCuratorFramework()
 
-    val storeBackend = backend(curator, failFastCurator)
+    val storeBackend = backend(curator, failFastCurator, ensureNodes)
 
     override def configure(): Unit = {
         bind(classOf[CuratorFramework]).toInstance(curator)
@@ -72,9 +73,10 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
     }
 
     protected def backend(curatorFramework: CuratorFramework,
-                          failFastCurator: CuratorFramework): MidonetBackend = {
+                          failFastCurator: CuratorFramework,
+                          ensureNodes: Boolean): MidonetBackend = {
         new MidonetBackendService(conf, curatorFramework, failFastCurator,
-                                  metricRegistry, reflections) {
+                                  metricRegistry, reflections, ensureNodes) {
             protected override def setup(storage: StateTableStorage): Unit = {
                 // Setup state tables (note: we do this here because the tables
                 // backed by the replicated maps are not available to the nsdb

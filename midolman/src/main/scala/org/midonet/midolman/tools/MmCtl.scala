@@ -24,10 +24,10 @@ import scala.util.{Failure, Success, Try}
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.{Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
+
 import org.apache.commons.cli._
 
 import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZookeeperConnectionWatcher}
-import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
@@ -111,7 +111,7 @@ object MmCtl {
         val configurator = MidoNodeConfigurator.apply(LegacyConfFilePath)
         val config = new MidonetBackendConfig(configurator.runtimeConfig)
         Guice.createInjector(new MidonetBackendModule(config, None,
-                                                      new MetricRegistry),
+                                                      new MetricRegistry, false),
                              new ZookeeperConnectionModule(
                                  classOf[ZookeeperConnectionWatcher]))
     }

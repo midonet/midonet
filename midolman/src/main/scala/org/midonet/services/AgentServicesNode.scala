@@ -164,7 +164,7 @@ object AgentServicesNode extends App {
 
     protected var injector = Guice.createInjector(
         new MidonetBackendModule(midolmanConf.zookeeper, Some(reflections),
-                                 metrics)
+                                 metrics, false)
             :: servicesNodeModule :: classpathModules()
     )
 

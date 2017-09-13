@@ -103,7 +103,8 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
         mock(classOf[CuratorFramework])
 
     override protected def backend(curatorFramework: CuratorFramework,
-                                   failFastCurator: CuratorFramework) = {
+                                   failFastCurator: CuratorFramework,
+                                   ensureNodes: Boolean) = {
         new MidonetTestBackend
     }
 
