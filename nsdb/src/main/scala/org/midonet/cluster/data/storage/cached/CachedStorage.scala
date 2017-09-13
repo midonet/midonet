@@ -18,22 +18,30 @@ package org.midonet.cluster.data.storage.cached
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-import org.slf4j.LoggerFactory
-
 import rx.Observable
 
+import org.midonet.cluster.cache.ObjectMessaging
 import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.{NotFoundException, PersistenceOp, Storage, Transaction}
 import org.midonet.cluster.data.{ObjId, oneLiner}
 import org.midonet.util.logging.Logger
 
+/**
+  * Implements the Storage trait using a cache of the topology objects that is
+  * backed up by a map. This is meant to be used only during startup to start
+  * simulating new packets faster, and eventually start using an implementation
+  * that reaches NSDB directly.
+  *
+  * For performance, the objects are only finally deserialized into their
+  * message type once a client asks for the object. This saves the cost of
+  * deserializing the whole map on startup before starting to use it.
+  */
 class CachedStorage(private val store: Storage,
                     private val snapshot: ObjSnapshot)
     extends Storage {
 
-    private val log =
-        Logger(LoggerFactory.getLogger("org.midonet.cluster.cached-storage"))
+    private val log = Logger("org.midonet.cluster.cached-storage")
 
     protected def notImplemented = throw new NotImplementedError(
         "Operation not implemented for the initial cached storage")
@@ -84,11 +92,11 @@ class CachedStorage(private val store: Storage,
       * requested then it'll onError.
       */
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] =
-        Option(snapshot.get(clazz)).map(_ get id) match {
+        getDeserialized(clazz, id) match {
             case Some(cached) =>
-                log.debug("Cache hit, starting observable with cached instance " +
-                          s"[$clazz, ${oneLiner(id)}] -> ${oneLiner(cached)}")
-                store.observable(clazz, id).startWith(cached.asInstanceOf[T])
+                log.debug("Cache hit, starting observable with cached instance" +
+                          s" [$clazz, ${oneLiner(id)}] -> ${oneLiner(cached)}")
+                store.observable(clazz, id).startWith(cached)
             case None =>
                 log.debug("Cache miss, listening for update from storage " +
                           s"[$clazz, ${oneLiner(id)}]")
@@ -108,8 +116,7 @@ class CachedStorage(private val store: Storage,
       * as ZookeeperObjectMapper.subscribe(Class[T], ObjId).
       */
     override def observable[T](clazz: Class[T]): Observable[Observable[T]] =
-        Option(snapshot.get(clazz))
-            .map(_.values.asScala.map(_.asInstanceOf[T])) match {
+        getAllDeserialized(clazz) match {
                 case Some(cached) =>
                     log.debug("Cache hit, starting observable with cached " +
                               s"instances of [$clazz] -> ${oneLiner(cached)}")
@@ -127,11 +134,11 @@ class CachedStorage(private val store: Storage,
       * in order to fetch the latest version of the entity.
       */
     override def get[T](clazz: Class[T], id: ObjId): Future[T] =
-        Option(snapshot.get(clazz)).map(_ get id) match {
+        getDeserialized(clazz, id) match {
             case Some(cached) =>
                 log.debug("Cache hit, returning cached value for " +
                           s"[$clazz, ${oneLiner(id)}] -> ${oneLiner(cached)}")
-                Future.successful(cached.asInstanceOf[T])
+                Future.successful(cached)
             case None =>
                 log.debug("Cache miss, failing for value " +
                           s"[$clazz, ${oneLiner(id)}]")
@@ -147,10 +154,9 @@ class CachedStorage(private val store: Storage,
       */
     override def getAll[T](clazz: Class[T],
                            ids: Seq[_ <: ObjId]): Future[Seq[T]] = {
-        val allCached = Option(snapshot.get(clazz)).map { all =>
-            all.asScala.filterKeys(ids contains _).values.map(_.asInstanceOf[T])
-        }.getOrElse(Iterable.empty)
-        Future.successful(allCached.toSeq)
+        val allCached = getAllDeserialized(clazz, filter = ids contains _)
+            .getOrElse(Seq.empty)
+        Future.successful(allCached)
     }
 
     /**
@@ -161,10 +167,8 @@ class CachedStorage(private val store: Storage,
       * latest version.
       */
     override def getAll[T](clazz: Class[T]): Future[Seq[T]] = {
-        val allCached = Option(snapshot.get(clazz))
-            .map(_.values.asScala.map(_.asInstanceOf[T]))
-            .getOrElse(Iterable.empty)
-        Future.successful(allCached.toSeq)
+        val allCached = getAllDeserialized(clazz).getOrElse(Seq.empty)
+        Future.successful(allCached)
     }
 
     /**
@@ -172,7 +176,47 @@ class CachedStorage(private val store: Storage,
       * storage.
       */
     override def exists(clazz: Class[_], id: ObjId): Future[Boolean] = {
-        val existsCached = Option(snapshot.get(clazz)).exists(_ containsKey id)
+        val existsCached = Option(snapshot get clazz).exists(_ containsKey id)
         Future.successful(existsCached)
+    }
+
+    private def getDeserialized[T](clazz: Class[T], id: ObjId)
+    : Option[T] = {
+        val cached = Option(snapshot get clazz)
+            .map(_ get id)
+            .filterNot( _ eq null)
+            .map(_.asInstanceOf[T])
+
+        cached match {
+            case Some(textData: Array[Byte]) =>
+                val obj = deserialize(clazz, textData).asInstanceOf[AnyRef]
+                snapshot.get(clazz).put(id.asInstanceOf[AnyRef], obj)
+            case _ =>
+        }
+
+        cached
+    }
+
+    private def getAllDeserialized[T](clazz: Class[T],
+                                      filter: (AnyRef) => Boolean = _ => true)
+    : Option[Seq[T]] = {
+        val cached = Option(snapshot get clazz).map { all =>
+            all.asScala.filterKeys(filter).mapValues {
+                case textData: Array[Byte] => deserialize[T](clazz, textData)
+                case deserialized => deserialized.asInstanceOf[T]
+            }
+        }
+
+        cached.foreach(_.foreach { entry =>
+            snapshot.get(clazz).put(entry._1, entry._2.asInstanceOf[AnyRef])
+        })
+
+        cached.map(_.values.toSeq)
+    }
+
+    private def deserialize[T](clazz: Class[T], textData: Array[Byte]): T = {
+        ObjectMessaging.serializerOf(clazz)
+            .convertTextToMessage(textData)
+            .asInstanceOf[T]
     }
 }
