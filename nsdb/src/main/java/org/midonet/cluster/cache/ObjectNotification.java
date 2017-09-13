@@ -19,6 +19,7 @@ package org.midonet.cluster.cache;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nullable;
 
@@ -81,7 +82,8 @@ public interface ObjectNotification {
      * find on the Zookeeper hierarchy, i.e.:
      * objectClass/objectId/object
      */
-    final class MappedSnapshot extends HashMap<Class<?>, HashMap<Object, Object>>
+    final class MappedSnapshot
+        extends ConcurrentHashMap<Class<?>, ConcurrentHashMap<Object, Object>>
         implements ObjectNotification {
     }
 
