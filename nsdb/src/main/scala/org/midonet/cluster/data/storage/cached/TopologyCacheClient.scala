@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceURI}
 import org.midonet.util.logging.Logger
 
-import io.netty.handler.codec.http.{HttpHeaderNames, HttpHeaderValues, HttpResponseStatus}
+import io.netty.handler.codec.http.HttpResponseStatus
 
 trait TopologyCacheClient {
     def fetch(): Array[Byte]
@@ -52,10 +52,7 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
             throw new HttpException("Topology cache service unavailable")
         } else {
             log.debug(s"Requesting topology snapshot from $srvUrl")
-            val get = new HttpGet(srvUrl)
-            get.addHeader(HttpHeaderNames.ACCEPT_ENCODING.toString(),
-                          HttpHeaderValues.GZIP.toString())
-            val response = client.execute(get)
+            val response = client.execute(new HttpGet(srvUrl))
             checkResponse(response)
         }
     }
