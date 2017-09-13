@@ -50,6 +50,7 @@ import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZoomSerializer.{createProvenance, deserialize, deserializerOf, serialize, updateProvenance}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId, getIdString}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException, PathCacheClosedException}
@@ -531,8 +532,10 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
                  s"${Storage.ProductCommit}")
 
         super.onBuild()
-        ensureClassNodes()
-        ensureStateTableNodes()
+        if (MidonetBackend.isCluster) {
+            ensureClassNodes()
+            ensureStateTableNodes()
+        }
         lockFreeAndWatch(async = false)
         metrics.build(this)
     }
