@@ -33,7 +33,7 @@ import rx.observers.TestObserver
 import org.midonet.cluster.cache.ObjectNotification.{MappedSnapshot => ObjSnapshot}
 import org.midonet.cluster.cache.StateNotification.{MappedSnapshot => StateSnapshot}
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Topology.{Port, Router}
+import org.midonet.cluster.models.Topology.{PoolMember, Port, Router}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.conf.HostIdGenerator
 import org.midonet.util.reactivex._
@@ -119,6 +119,7 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
         store.registerKey(classOf[Port], "keySingleFirst", KeyType.SingleFirstWriteWins)
         store.registerKey(classOf[Port], "keySingleLast", KeyType.SingleLastWriteWins)
         store.registerKey(classOf[Port], "keyMulti", KeyType.Multiple)
+        store.registerKey(classOf[PoolMember], "status", KeyType.SingleLastWriteWins)
         store.build()
 
         wrapper = new StateStorageWrapper(cacheTtl, store, store, objSnapshot, stateSnapshot)
@@ -178,6 +179,12 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
             stateKeys.get(0) shouldBe key1
         }
 
+        scenario("Get key from a registered class but with no cached data") {
+            val obs = makeObservable[StateKey]()
+            wrapper.getKey(namespace, classOf[PoolMember], port1Id, key1.key).subscribe(obs)
+            obs.isCompleted shouldBe true
+        }
+
         scenario("Key observable for default namespace") {
             val obs = makeObservable[StateKey]()
             wrapper.keyObservable(classOf[Port], port1Id, key1.key).subscribe(obs)
@@ -207,6 +214,12 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
 
             stateKeys.size() shouldBe 1
             stateKeys.get(0) shouldBe key1
+        }
+
+        scenario("Key observable from a registered class but with no cached data") {
+            val obs = makeObservable[StateKey]()
+            wrapper.keyObservable(namespace, classOf[PoolMember], port1Id, key1.key).subscribe(obs)
+            obs.isCompleted shouldBe true
         }
     }
 }
