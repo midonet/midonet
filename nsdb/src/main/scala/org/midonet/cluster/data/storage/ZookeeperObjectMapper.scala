@@ -22,8 +22,8 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.collection.{breakOut, mutable}
 import scala.collection.concurrent.TrieMap
+import scala.collection.{breakOut, mutable}
 import scala.concurrent.{Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
@@ -47,7 +47,7 @@ import rx.{Notification, Observable, Subscriber}
 
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.data.storage.TransactionManager._
-import org.midonet.cluster.data.storage.ZoomSerializer.{createProvenance, deserialize, deserializerOf, serialize, updateProvenance}
+import org.midonet.cluster.data.storage.ZoomSerializer._
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId, getIdString}
 import org.midonet.cluster.services.state.client.StateTableClient
@@ -526,13 +526,15 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     /**
       * @see [[Storage.onBuild()]]
       */
-    protected override def onBuild(): Unit = {
+    protected override def onBuild(ensureNodes: Boolean): Unit = {
         Log.info(s"Initializing NSDB version ${Storage.ProductVersion}:" +
                  s"${Storage.ProductCommit}")
 
-        super.onBuild()
-        ensureClassNodes()
-        ensureStateTableNodes()
+        super.onBuild(ensureNodes)
+        if (ensureNodes) {
+            ensureClassNodes()
+            ensureStateTableNodes()
+        }
         lockFreeAndWatch(async = false)
         metrics.build(this)
     }
