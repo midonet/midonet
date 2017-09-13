@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -420,8 +421,8 @@ public final class ObjectCache extends AbstractService {
          */
         synchronized void snapshot(MappedSnapshot snapshot) {
             if (data != null) {
-                snapshot.putIfAbsent(this.clazz, new HashMap<>());
-                HashMap<Object, Object> entry = snapshot.get(this.clazz);
+                snapshot.putIfAbsent(this.clazz, new ConcurrentHashMap<>());
+                ConcurrentHashMap<Object, Object> entry = snapshot.get(this.clazz);
                 entry.put(this.id(), this);
             }
         }

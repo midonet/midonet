@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.data.storage.cached
 
-import java.util
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.concurrent.duration._
 
@@ -46,11 +46,11 @@ class StorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAfter {
     private val objSnapshot = {
         val objSnapshot = new ObjSnapshot()
 
-        val routerEntry = new util.HashMap[AnyRef, AnyRef]()
+        val routerEntry = new ConcurrentHashMap[AnyRef, AnyRef]()
         routerEntry.put(router1Id, router1)
         objSnapshot.put(classOf[Router], routerEntry)
 
-        val portEntry = new util.HashMap[AnyRef, AnyRef]()
+        val portEntry = new ConcurrentHashMap[AnyRef, AnyRef]()
         portEntry.put(port1Id, port1)
         objSnapshot.put(classOf[Port], portEntry)
 

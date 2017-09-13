@@ -19,6 +19,7 @@ package org.midonet.cluster.topology.snapshot
 import scala.collection.JavaConversions._
 import java.util
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.mutable
 
@@ -100,7 +101,7 @@ class TopologySnapshotEncodingTest extends FeatureSpec
     }
 
     private def createNetworkObjects(numObjects: Int) = {
-        val objects = new util.HashMap[Object, Object]()
+        val objects = new ConcurrentHashMap[Object, Object]()
         (0 until numObjects) foreach { _ =>
             val uuid = UUID.randomUUID()
             val obj = Topology.Network.newBuilder()
@@ -115,7 +116,7 @@ class TopologySnapshotEncodingTest extends FeatureSpec
     }
 
     private def createPortObjects(numObjects: Int) = {
-        val objects = new util.HashMap[Object, Object]()
+        val objects = new ConcurrentHashMap[Object, Object]()
         (0 until numObjects) foreach { _ =>
             val uuid = UUID.randomUUID()
             val obj = Topology.Port.newBuilder()
@@ -130,7 +131,7 @@ class TopologySnapshotEncodingTest extends FeatureSpec
     }
 
     private def createRouterObjects(numObjects: Int) = {
-        val objects = new util.HashMap[Object, Object]()
+        val objects = new ConcurrentHashMap[Object, Object]()
         (0 until numObjects) foreach { _ =>
             val uuid = UUID.randomUUID()
             val obj = Topology.Router.newBuilder()
@@ -144,7 +145,7 @@ class TopologySnapshotEncodingTest extends FeatureSpec
         (classOf[Topology.Router], objects)
     }
 
-    private def createObjectSnapshot(generators: Seq[(Int) => (Class[_], util.HashMap[Object, Object])],
+    private def createObjectSnapshot(generators: Seq[(Int) => (Class[_], ConcurrentHashMap[Object, Object])],
                                      numObjects: Int): ObjectSnapshot = {
         val snapshot = new ObjectSnapshot
         for (generator <- generators) {
