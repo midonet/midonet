@@ -38,11 +38,11 @@
             <type name="numInGroup" primitiveType="uint16"/>
         </composite>
         <composite name="stringEncoding">
-            <type name="length" primitiveType="uint16" maxValue="16384"/>
+            <type name="length" primitiveType="uint32" maxValue="2097152"/>
             <type name="varData" primitiveType="uint8" length="0" characterEncoding="UTF-8"/>
         </composite>
         <composite name="byteArrayEncoding">
-            <type name="length" primitiveType="uint16" maxValue="16384"/>
+            <type name="length" primitiveType="uint32" maxValue="2097152"/>
             <type name="varData" primitiveType="uint8" length="0"/>
         </composite>
         <type name="UUID" primitiveType="uint64" length="2" />
