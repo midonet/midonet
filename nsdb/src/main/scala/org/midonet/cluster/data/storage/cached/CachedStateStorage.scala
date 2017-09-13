@@ -114,17 +114,18 @@ class CachedStateStorage(private val store: Storage,
     /** The same as the previous `getKey`, except that this method returns
       * the state key value for the specified namespace. */
     override def getKey(namespace: String, clazz: Class[_], id: ObjId,
-                        key: String): Observable[StateKey] =
-        Option(stateSnapshot.get(namespace))
-            .map(_ get clazz)
-            .map(_ get id)
-            .map(_ get key) match {
-                case Some(stateKey) =>
-                    stateStore.getKey(clazz, id, key)
-                        .startWith(stateKey.asInstanceOf[StateKey])
-                case None =>
-                    stateStore.getKey(clazz, id, key)
-            }
+                        key: String): Observable[StateKey] = {
+         Option(stateSnapshot.get(namespace))
+            .flatMap { byNamespace => Option(byNamespace get clazz) }
+            .flatMap { byClass => Option(byClass get id) }
+            .flatMap { byId => Option(byId get key) } match {
+            case Some(stateKey) =>
+                stateStore.getKey(namespace, clazz, id, key)
+                    .startWith(stateKey.asInstanceOf[StateKey])
+            case None =>
+                stateStore.getKey(namespace, clazz, id, key)
+        }
+    }
 
     /** Returns an observable for a state key of the current namespace. Upon
       * subscription, the observable will emit a notification with current set
@@ -146,17 +147,18 @@ class CachedStateStorage(private val store: Storage,
     /** The same as the previous `keyObservable` method, except that this method
       * returns an observable for the state of the specified namespace. */
     override def keyObservable(namespace: String, clazz: Class[_], id: ObjId,
-                               key: String): Observable[StateKey] =
+                               key: String): Observable[StateKey] = {
         Option(stateSnapshot.get(namespace))
-            .map(_ get clazz)
-            .map(_ get id)
-            .map(_ get key) match {
-                case Some(stateKey) =>
-                    stateStore.keyObservable(namespace, clazz, id, key)
-                        .startWith(stateKey.asInstanceOf[StateKey])
-                case None =>
-                    stateStore.keyObservable(namespace, clazz, id, key)
-            }
+            .flatMap { byNamespace => Option(byNamespace get clazz) }
+            .flatMap { byClass => Option(byClass get id) }
+            .flatMap { byId => Option(byId get key) } match {
+            case Some(stateKey) =>
+                stateStore.keyObservable(namespace, clazz, id, key)
+                    .startWith(stateKey.asInstanceOf[StateKey])
+            case None =>
+                stateStore.keyObservable(namespace, clazz, id, key)
+        }
+    }
 
     /** The same as the previous `keyObservable` method, except that this method
       * returns an observable for the state of the last namespace identifier
