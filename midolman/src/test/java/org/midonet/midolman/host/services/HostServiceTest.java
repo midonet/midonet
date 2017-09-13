@@ -180,7 +180,7 @@ public class HostServiceTest {
         stateStore.registerKey(Topology.Host.class,
                                MidonetBackend.HostKey(),
                                KeyType.SingleLastWriteWins());
-        store.build();
+        store.build(true);
     }
 
     @After
