@@ -232,8 +232,6 @@ public class Midolman {
 
         MidoNodeConfigurator configurator =
             MidoNodeConfigurator.apply(configFilePath);
-        if (configurator.deployBundledConfig())
-            log.info("Deployed new configuration schema into NSDB");
 
         MetricRegistry metricRegistry = new MetricRegistry();
 
