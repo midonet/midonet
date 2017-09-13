@@ -19,13 +19,14 @@ package org.midonet.cluster.topology
 import java.io.IOException
 import java.util
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.mutable
 
 import org.agrona.concurrent.UnsafeBuffer
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.cache.{ObjectMessaging, ObjectNotification, StateNotification}
+import org.midonet.cluster.cache.{ObjectNotification, StateNotification}
 import org.midonet.cluster.data.storage.{MultiValueKey, SingleValueKey, StateStorage}
 import org.midonet.cluster.topology.snapshot.TopologySnapshotDecoder.ObjectClassDecoder.ObjectDecoder
 import org.midonet.cluster.topology.snapshot.TopologySnapshotDecoder.StateOwnerDecoder.StateClassDecoder
@@ -59,7 +60,7 @@ package object snapshot {
 
     type ObjectSnapshot = ObjectNotification.MappedSnapshot
     type ObjectUpdate = ObjectNotification.Update
-    type Objects = util.HashMap[Object, Object]
+    type Objects = ConcurrentHashMap[Object, Object]
 
     type StateSnapshot = StateNotification.MappedSnapshot
     type StateUpdate = StateNotification.Update
@@ -255,17 +256,6 @@ package object snapshot {
             val clazz = decoder.objectClass()
             val objClass = Class.forName(clazz)
             Log.debug(s"Decoded ${objects.count()} objects of type $clazz")
-            // NOTE: Decode into a protocol buffer and replace in the map
-            // We do this after decoding the raw object because we need
-            // the class name, which comes after the data itself.
-            val serializer = ObjectMessaging.serializerOf(objClass)
-            val entries = objGroup.entrySet().iterator()
-            while (entries.hasNext) {
-                val entry = entries.next()
-                val objProto = serializer.convertTextToMessage(
-                    entry.getValue.asInstanceOf[Array[Byte]])
-                objGroup.put(entry.getKey, objProto)
-            }
             snapshot.putIfAbsent(objClass, objGroup)
         }
 

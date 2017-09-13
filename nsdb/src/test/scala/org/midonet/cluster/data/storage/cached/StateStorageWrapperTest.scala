@@ -17,6 +17,7 @@ package org.midonet.cluster.data.storage.cached
 
 import java.io.{File, FileOutputStream}
 import java.util
+import java.util.concurrent.ConcurrentHashMap
 import java.util.{Properties, UUID}
 
 import scala.concurrent.Await
@@ -51,7 +52,7 @@ class StateStorageWrapperTest extends FeatureSpec with Matchers with BeforeAndAf
     private val objSnapshot = {
         val objSnapshot = new ObjSnapshot()
 
-        val portEntry = new util.HashMap[AnyRef, AnyRef]()
+        val portEntry = new ConcurrentHashMap[AnyRef, AnyRef]()
         portEntry.put(port1Id, port1)
         objSnapshot.put(classOf[Port], portEntry)
 

@@ -19,6 +19,7 @@ package org.midonet.cluster.topology.snapshot
 import scala.collection.JavaConversions._
 import java.util
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.mutable
 
@@ -100,7 +101,7 @@ class TopologySnapshotEncodingTest extends FeatureSpec
     }
 
     private def createNetworkObjects(numObjects: Int) = {
-        val objects = new util.HashMap[Object, Object]()
+        val objects = new ConcurrentHashMap[Object, Object]()
         (0 until numObjects) foreach { _ =>
             val uuid = UUID.randomUUID()
             val obj = Topology.Network.newBuilder()
@@ -115,7 +116,7 @@ class TopologySnapshotEncodingTest extends FeatureSpec
     }
 
     private def createPortObjects(numObjects: Int) = {
-        val objects = new util.HashMap[Object, Object]()
+        val objects = new ConcurrentHashMap[Object, Object]()
         (0 until numObjects) foreach { _ =>
             val uuid = UUID.randomUUID()
             val obj = Topology.Port.newBuilder()
@@ -130,7 +131,7 @@ class TopologySnapshotEncodingTest extends FeatureSpec
     }
 
     private def createRouterObjects(numObjects: Int) = {
-        val objects = new util.HashMap[Object, Object]()
+        val objects = new ConcurrentHashMap[Object, Object]()
         (0 until numObjects) foreach { _ =>
             val uuid = UUID.randomUUID()
             val obj = Topology.Router.newBuilder()
@@ -144,7 +145,7 @@ class TopologySnapshotEncodingTest extends FeatureSpec
         (classOf[Topology.Router], objects)
     }
 
-    private def createObjectSnapshot(generators: Seq[(Int) => (Class[_], util.HashMap[Object, Object])],
+    private def createObjectSnapshot(generators: Seq[(Int) => (Class[_], ConcurrentHashMap[Object, Object])],
                                      numObjects: Int): ObjectSnapshot = {
         val snapshot = new ObjectSnapshot
         for (generator <- generators) {
@@ -212,14 +213,20 @@ class TopologySnapshotEncodingTest extends FeatureSpec
         snapshot
     }
 
-    private def checkObjects[T](original: util.Collection[AnyRef],
-                                deserialized: util.Collection[T],
-                                clazz: Class[_]) = {
+    private def checkObjects(original: util.Collection[AnyRef],
+                             serialized: util.Collection[_],
+                             clazz: Class[_]) = {
         val originalProto = for (obj <- original.toSeq) yield {
             deserializeMessage(
                 obj.asInstanceOf[ObjectUpdate].childData().getData,
                 clazz)
         }
+
+        // Objects messages are lazy-deserialized in the CachedStorage
+        val deserialized = for (obj <- serialized.toSeq) yield {
+            deserializeMessage(obj.asInstanceOf[Array[Byte]], clazz)
+        }
+
         originalProto.toSet shouldBe deserialized.toSet
     }
 
@@ -230,10 +237,11 @@ class TopologySnapshotEncodingTest extends FeatureSpec
         // Check topology objects
         deserialized.entrySet().foreach { classGroup =>
             val clazz = classGroup.getKey
-            val deserializedGroup = classGroup.getValue.values()
+            // Messages are still serialized in the object snapshot
+            val serializedGroup = classGroup.getValue.values()
             val originalGroup = original.get(clazz).values()
-            deserializedGroup.size() shouldBe originalGroup.size()
-            checkObjects(originalGroup, deserializedGroup, clazz)
+            serializedGroup.size() shouldBe originalGroup.size()
+            checkObjects(originalGroup, serializedGroup, clazz)
         }
     }
 
