@@ -37,6 +37,7 @@ import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.{Network, Router}
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
+import org.midonet.midolman.Midolman
 import org.midonet.packets.{IPv4Addr, MAC}
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
@@ -66,9 +67,11 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
     val storeBackend = backend(curator, failFastCurator)
 
     override def configure(): Unit = {
+        val init0 = System.nanoTime()
         bind(classOf[CuratorFramework]).toInstance(curator)
         bind(classOf[MidonetBackend]).toInstance(storeBackend)
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
+        val init1 = Midolman.mark("MIDONET MODULE -> total configuration", init0)
     }
 
     protected def backend(curatorFramework: CuratorFramework,

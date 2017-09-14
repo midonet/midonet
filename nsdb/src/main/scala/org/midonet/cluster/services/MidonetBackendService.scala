@@ -173,17 +173,27 @@ class MidonetBackendService(config: MidonetBackendConfig,
 
     protected def setup(stateTableStorage: StateTableStorage): Unit = { }
 
+    def mark(tag: String, previous: Long): Long = {
+        val mark = System.nanoTime()
+        log.debug(s"XLDEBUG: BOOT -> MIDONET BACKEND SERVICE start -> $tag: " +
+                  s"${(mark - previous) / 1000000} ms")
+        mark
+    }
+
     protected override def doStart(): Unit = {
         log.info("Starting backend store for host {}", namespaceId)
         try {
+            val init0 = System.nanoTime()
             if (curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
             }
+            val init1 = mark("curator start", init0)
             if (config.enableFailFast &&
                 failFastCurator.getState != CuratorFrameworkState.STARTED) {
                 log info s"Starting fail-fast NSDB connection"
                 failFastCurator.start()
             }
+            val init2 = mark("fail fast curator start", init1)
 
             if (config.enableDiscovery) {
                 log info "Starting discovery service"
@@ -193,6 +203,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
                         Executors.CallerRunsPolicy)
                 discoveryService = new MidonetDiscoveryImpl(
                     curator, discoveryServiceExecutor, config)
+                val init3 = mark("start discovery service", init2)
 
                 if (config.enableStateProxy && config.stateClient.enabled) {
                     log info "Starting state proxy client"
@@ -215,8 +226,10 @@ class MidonetBackendService(config: MidonetBackendConfig,
                         eventLoopGroup)(ec)
 
                     stateProxyClient.start()
+                    val init4 = mark("start state proxy client", init3)
                 }
             }
+            val init5 = System.nanoTime()
 
             log.info("Setting up storage bindings")
             MidonetBackend.setupBindings(zoom, zoom, () => {
@@ -225,11 +238,14 @@ class MidonetBackendService(config: MidonetBackendConfig,
                     setupFromClasspath(zoom, zoom, reflections.get)
                 }
             })
+            val init6 = mark("setting up storage bindings", init5)
             zoom.enableLock()
+            val init7 = mark("enable zoom lock", init6)
 
             log.info("Start observing backend connection")
             connectionState subscribe connectionSubscriber
 
+            val init8 = mark("start observing backend connection", init7)
             notifyStarted()
         } catch {
             case NonFatal(e) =>
