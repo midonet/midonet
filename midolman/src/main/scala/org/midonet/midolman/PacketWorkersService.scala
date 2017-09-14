@@ -84,6 +84,8 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
 
     override def logSource = "org.midonet.packet-worker.packet-worker-supervisor"
 
+    val init0 = System.nanoTime()
+
     val numWorkers = PacketWorkersService.numWorkers(config)
 
     val connTrackStateTable = if (config.offHeapTables) {
@@ -92,27 +94,37 @@ class PacketWorkersServiceImpl(config: MidolmanConfig,
     } else {
         new OnHeapShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock)
     }
+
+    val init1 = Midolman.mark("WORKER SERVICE -> contrack state table", init0)
+
     val natStateTable = if (config.offHeapTables) {
         new OffHeapShardedFlowStateTable[NatKey, NatBinding](
             clock, new NatKeySerializer, new NatBindingSerializer)
     } else {
         new OnHeapShardedFlowStateTable[NatKey, NatBinding](clock)
     }
+
+    val init2 = Midolman.mark("WORKER SERVICE -> nat state table", init1)
     val natLeaser: NatLeaser = new NatLeaser {
         val log: Logger = Logger(LoggerFactory.getLogger(classOf[NatLeaser]))
         val allocator = natBlockAllocator
         val clock = PacketWorkersServiceImpl.this.clock
     }
+    val init3 = Midolman.mark("WORKER SERVICE -> nat leaser", init2)
     val traceStateTable = new OnHeapShardedFlowStateTable[TraceKey, TraceContext](clock)
+    val init4 = Midolman.mark("WORKER SERVICE -> trace state table", init3)
 
     val supervisorThread = new Thread(this, "packet-worker-supervisor")
     supervisorThread.setDaemon(true)
     val shutdownLatch = new CountDownLatch(1)
+    val init5 = Midolman.mark("WORKER SERVICE -> supervisor thread", init4)
 
     private val flowSenderWorker = FlowSenderWorker(config, backend)
+    val init6 = Midolman.mark("WORKER SERVICE -> flow sender worker", init5)
 
     val workers: IndexedSeq[DisruptorPacketWorker] =
         0 until numWorkers map createWorker
+    val init7 = Midolman.mark("WORKER SERVICE -> create workers", init6)
 
     override def doStart(): Unit = {
         flowSenderWorker.startAsync().awaitRunning()
