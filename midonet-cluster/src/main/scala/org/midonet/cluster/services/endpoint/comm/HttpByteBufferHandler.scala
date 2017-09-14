@@ -16,17 +16,16 @@
 
 package org.midonet.cluster.services.endpoint.comm
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import org.slf4j.LoggerFactory
 
 import io.netty.buffer.{ByteBuf, ByteBufInputStream, Unpooled}
 import io.netty.channel._
-import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpHeaderNames._
 import io.netty.handler.codec.http.HttpHeaderValues._
+import io.netty.handler.codec.http._
 import io.netty.handler.stream.ChunkedStream
 import io.netty.util.CharsetUtil
 
@@ -73,6 +72,7 @@ class HttpByteBufferHandler(provider: HttpByteBufferProvider)
                                          buffer.readableBytes())
                     response.headers.set(CONTENT_TYPE, APPLICATION_OCTET_STREAM)
                     ctx.write(response)
+                    ctx.write(buffer.readableBytes())
                     sendContents(ctx, buffer)
                     provider.unref()
                 case Failure(e) =>

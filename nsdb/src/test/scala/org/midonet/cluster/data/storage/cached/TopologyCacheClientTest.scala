@@ -81,6 +81,7 @@ class TopologyCacheClientTest extends FeatureSpec with Matchers
                             buf.readableBytes())
                 resp.headers().add(headers)
                 ctx.write(resp)
+                ctx.write(buf.readableBytes())
                 ctx.writeAndFlush(new HttpChunkedInput(
                     new ChunkedStream(new ByteBufInputStream(buf))))
             }

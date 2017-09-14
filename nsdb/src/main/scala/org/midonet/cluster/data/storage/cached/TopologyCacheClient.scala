@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.data.storage.cached
 
+import java.io.DataInputStream
 import java.net.URI
 
 import javax.net.ssl.SSLContext
@@ -72,7 +73,9 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
             throw new HttpException(
                 "Topology cache client got unexpected content type: " + ctype)
         }
-        IOUtils.toByteArray(resp.getEntity.getContent)
+        val contentStream = resp.getEntity.getContent
+        val streamLength = new DataInputStream(contentStream).readInt()
+        IOUtils.toByteArray(contentStream, streamLength)
     }
 }
 
