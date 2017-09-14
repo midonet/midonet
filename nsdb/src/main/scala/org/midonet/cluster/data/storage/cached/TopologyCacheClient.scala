@@ -16,7 +16,6 @@
 
 package org.midonet.cluster.data.storage.cached
 
-import java.io.DataInputStream
 import java.net.URI
 
 import javax.net.ssl.SSLContext
@@ -33,6 +32,7 @@ import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceURI}
 import org.midonet.util.logging.Logger
 
+import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpResponseStatus
 
 trait TopologyCacheClient {
@@ -78,7 +78,9 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
         }
         val init0 = System.nanoTime()
         val contentStream = resp.getEntity.getContent
-        val streamLength = new DataInputStream(contentStream).readInt()
+        val length = new Array[Byte](4)
+        contentStream.read(length)
+        val streamLength = Unpooled.wrappedBuffer(length).readInt()
         val pepo = IOUtils.toByteArray(contentStream, streamLength)
         MidonetBackendService.mark("SNAPSHOT FETCH -> to byte array", init0)
         pepo

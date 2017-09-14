@@ -72,7 +72,7 @@ class HttpByteBufferHandler(provider: HttpByteBufferProvider)
                                          buffer.readableBytes())
                     response.headers.set(CONTENT_TYPE, APPLICATION_OCTET_STREAM)
                     ctx.write(response)
-                    ctx.write(buffer.readableBytes())
+                    ctx.write(Unpooled.copyInt(buffer.readableBytes()))
                     sendContents(ctx, buffer)
                     provider.unref()
                 case Failure(e) =>
