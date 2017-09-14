@@ -52,6 +52,19 @@ import org.midonet.util.concurrent.Executors
 import org.midonet.util.eventloop.TryCatchReactor
 import org.midonet.util.functors.makeRunnable
 
+object MidonetBackendService {
+    def mark(tag: String, previous: Long): Long = {
+        val mark = System.nanoTime()
+        log.debug(s"XLDEBUG: BOOT -> MIDONET BACKEND SERVICE start -> $tag: " +
+                  s"${(mark - previous) / 1000000} ms")
+        mark
+    }
+
+    val log = Logger(LoggerFactory.getLogger("org.midonet.nsdb"))
+
+
+}
+
 /**
   * Class responsible for providing services to access to the new Storage
   * services.
@@ -64,7 +77,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
                             ensureNodes: Boolean = true)
     extends MidonetBackend {
 
-    private val log = Logger(LoggerFactory.getLogger("org.midonet.nsdb"))
+    import MidonetBackendService.{mark, log}
 
     private val namespaceId =
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
@@ -174,17 +187,21 @@ class MidonetBackendService(config: MidonetBackendConfig,
 
     protected def setup(stateTableStorage: StateTableStorage): Unit = { }
 
+
     protected override def doStart(): Unit = {
         log.info("Starting backend store for host {}", namespaceId)
         try {
+            val init0 = System.nanoTime()
             if (curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
             }
+            val init1 = mark("curator start", init0)
             if (config.enableFailFast &&
                 failFastCurator.getState != CuratorFrameworkState.STARTED) {
                 log info s"Starting fail-fast NSDB connection"
                 failFastCurator.start()
             }
+            val init2 = mark("fail fast curator start", init1)
 
             if (config.enableDiscovery) {
                 log info "Starting discovery service"
@@ -194,6 +211,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
                         Executors.CallerRunsPolicy)
                 discoveryService = new MidonetDiscoveryImpl(
                     curator, discoveryServiceExecutor, config)
+                val init3 = mark("start discovery service", init2)
 
                 if (config.enableStateProxy && config.stateClient.enabled) {
                     log info "Starting state proxy client"
@@ -206,18 +224,25 @@ class MidonetBackendService(config: MidonetBackendConfig,
                     val numNettyThreads = config.stateClient.numNetworkThreads
                     val eventLoopGroup = new NioEventLoopGroup(numNettyThreads)
 
+                    val init4 = mark("instantiate state proxy executor", init3)
+
                     val discoverySelector = MidonetDiscoverySelector.random(
                         discoveryService.getClient[MidonetServiceHostAndPort](
                         StateProxyService.Name))
+                    val init5 = mark("instantiate discovery selector", init4)
+
                     stateProxyClient = new StateProxyClient(
                         config.stateClient,
                         discoverySelector,
                         stateProxyClientExecutor,
                         eventLoopGroup)(ec)
+                    val init6 = mark("instantiate state proxy client", init5)
 
                     stateProxyClient.start()
+                    val init7 = mark("start state proxy client", init6)
                 }
             }
+            val init5 = System.nanoTime()
 
             log.info("Setting up storage bindings")
             MidonetBackend.setupBindings(zoom, zoom, () => {
@@ -226,11 +251,14 @@ class MidonetBackendService(config: MidonetBackendConfig,
                     setupFromClasspath(zoom, zoom, reflections.get)
                 }
             }, ensureNodes)
+            val init6 = mark("setting up storage bindings", init5)
             zoom.enableLock()
+            val init7 = mark("enable zoom lock", init6)
 
             log.info("Start observing backend connection")
             connectionState subscribe connectionSubscriber
 
+            val init8 = mark("start observing backend connection", init7)
             notifyStarted()
         } catch {
             case NonFatal(e) =>
