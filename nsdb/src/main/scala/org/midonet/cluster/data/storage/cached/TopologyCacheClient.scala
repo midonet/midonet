@@ -29,6 +29,7 @@ import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
 import org.apache.http.impl.client.HttpClients
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceURI}
 import org.midonet.util.logging.Logger
 
@@ -53,7 +54,9 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
             throw new HttpException("Topology cache service unavailable")
         } else {
             log.debug(s"Requesting topology snapshot from $srvUrl")
+            val init0 = System.nanoTime()
             val response = client.execute(new HttpGet(srvUrl))
+            MidonetBackendService.mark("SNAPSHOT FETCH -> execute get", init0)
             checkResponse(response)
         }
     }
@@ -73,9 +76,12 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
             throw new HttpException(
                 "Topology cache client got unexpected content type: " + ctype)
         }
+        val init0 = System.nanoTime()
         val contentStream = resp.getEntity.getContent
         val streamLength = new DataInputStream(contentStream).readInt()
-        IOUtils.toByteArray(contentStream, streamLength)
+        val pepo = IOUtils.toByteArray(contentStream, streamLength)
+        MidonetBackendService.mark("SNAPSHOT FETCH -> to byte array", init0)
+        pepo
     }
 }
 
