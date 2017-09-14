@@ -44,7 +44,7 @@ import org.midonet.midolman.logging.rule.RuleLogEventChannel
 import org.midonet.midolman.monitoring.metrics.VirtualTopologyMetrics
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.devices._
-import org.midonet.midolman.{CallbackRegistry, NotYetException, SimulationBackChannel}
+import org.midonet.midolman.{CallbackRegistry, Midolman, NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
@@ -258,6 +258,7 @@ class VirtualTopology(val backend: MidonetBackend,
         log.debug("Starting Virtual Topology service")
         snapshot = if (config.initialStorageCache.enabled) {
             try {
+                val init0 = System.nanoTime()
                 val client = backend.discovery.getClient[MidonetServiceURI](
                     serviceName = "topology-cache")
                 val discoverySelector = MidonetDiscoverySelector
@@ -265,10 +266,12 @@ class VirtualTopology(val backend: MidonetBackend,
                 val cacheClient = new TopologyCacheClientDiscovery(
                     discoverySelector,
                     None)
+                val init1 = Midolman.mark("VIRTUAL TOPOLOGY START -> get client", init0)
                 val init = System.nanoTime()
 
-                retry(log.underlying, "Fetch topology snapshot from cluster") {
+                val decoded = retry(log.underlying, "Fetch topology snapshot from cluster") {
                     val snapshotArray = cacheClient.fetch()
+                    val init2 = Midolman.mark("VIRTUAL TOPOLOGY START -> topology fetch", init1)
                     val elapsedReceived = (System.nanoTime() - init) / 1000000
                     log.debug("Topology snapshot received from cluster " +
                               s"in $elapsedReceived ms.")
@@ -278,8 +281,11 @@ class VirtualTopology(val backend: MidonetBackend,
                     val elapsedDecoded =
                         ((System.nanoTime() - init) / 1000000) - elapsedReceived
                     log.debug(s"Topology snapshot decoded in $elapsedDecoded ms.")
+                    val init3 = Midolman.mark("VIRTUAL TOPOLOGY START -> topology decoded", init2)
                     snapshotDecoded
                 }
+                val init2 = Midolman.mark("VIRTUAL TOPOLOGY START -> snapshot received total", init1)
+                decoded
             } catch {
                 case NonFatal(e) =>
                     log.warn("Unable to get topology snapshot from cluster", e)

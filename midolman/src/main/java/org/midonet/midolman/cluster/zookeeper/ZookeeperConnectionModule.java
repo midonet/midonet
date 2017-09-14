@@ -26,6 +26,7 @@ import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider.BGP_ZK_INFRA;
 import org.midonet.cluster.storage.MidonetBackendConfig;
+import org.midonet.midolman.Midolman;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.TryCatchReactor;
 
@@ -53,19 +54,26 @@ public class ZookeeperConnectionModule extends PrivateModule {
 
     @Override
     protected void configure() {
+        long init0 = System.nanoTime();
         requireBinding(MidonetBackendConfig.class);
+        long init1 = Midolman.mark("ZK MODULE -> Require binding", init0);
 
         bindZookeeperConnection();
+        long init2 = Midolman.mark("ZK MODULE -> bind zk connection", init1);
         bindDirectory();
+        long init3 = Midolman.mark("ZK MODULE -> bind directory", init2);
         bindReactor();
+        long init4 = Midolman.mark("ZK MODULE -> bind reactor", init3);
 
         expose(Key.get(Reactor.class,
                        Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)));
         expose(Key.get(Reactor.class, BGP_ZK_INFRA.class));
 
         expose(Directory.class);
+        long init5 = Midolman.mark("ZK MODULE -> expose classes ", init4);
 
         bindZkConnectionWatcher();
+        long init6 = Midolman.mark("ZK MODULE -> bind ZK conn watcher", init5);
     }
 
     protected void bindZkConnectionWatcher() {
