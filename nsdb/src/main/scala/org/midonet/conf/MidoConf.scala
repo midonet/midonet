@@ -550,12 +550,17 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      *
      *   - The local configuration sources.
      *   - The server-side configuration sources
-     *   - The schema bundled in the application's jars.
+     *   - The schema bundled in the application's jars (if applicable).
      */
-    def runtimeConfig(node: UUID): Config =
-        localOnlyConfig.
-            withFallback(centralConfig(node)).
-            withFallback(mergedBundledSchemas).resolve()
+    def runtimeConfig(node: UUID, includeBundledSchemas: Boolean = true): Config = {
+        val conf = localOnlyConfig.
+            withFallback(centralConfig(node))
+        if (includeBundledSchemas) {
+            conf.withFallback(mergedBundledSchemas).resolve()
+        } else {
+            conf.resolve()
+        }
+    }
 
     def runtimeConfig: Config = runtimeConfig(HostIdGenerator.getHostId)
 
