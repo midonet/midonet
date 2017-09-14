@@ -21,6 +21,8 @@ import scala.util.{Failure, Success}
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.midolman.Midolman
+
 import io.netty.buffer.{ByteBuf, ByteBufInputStream, Unpooled}
 import io.netty.channel._
 import io.netty.handler.codec.http.HttpHeaderNames._
@@ -72,7 +74,8 @@ class HttpByteBufferHandler(provider: HttpByteBufferProvider)
                                          buffer.readableBytes())
                     response.headers.set(CONTENT_TYPE, APPLICATION_OCTET_STREAM)
                     ctx.write(response)
-                    ctx.write(buffer.readableBytes())
+                    ctx.write(Unpooled.copyInt(buffer.readableBytes()))
+                    Midolman.mark(s"SIZE OF READABLE BYTES ${buffer.readableBytes()}", 0)
                     sendContents(ctx, buffer)
                     provider.unref()
                 case Failure(e) =>
