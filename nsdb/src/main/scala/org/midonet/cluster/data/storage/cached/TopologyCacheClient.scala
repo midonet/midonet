@@ -72,7 +72,8 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
             throw new HttpException(
                 "Topology cache client got unexpected content type: " + ctype)
         }
-        IOUtils.toByteArray(resp.getEntity.getContent)
+        val contentStream = resp.getEntity.getContent
+        IOUtils.toByteArray(contentStream, resp.getEntity.getContentLength)
     }
 }
 

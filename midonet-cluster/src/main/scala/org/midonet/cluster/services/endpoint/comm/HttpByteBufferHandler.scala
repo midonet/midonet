@@ -16,8 +16,7 @@
 
 package org.midonet.cluster.services.endpoint.comm
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import org.slf4j.LoggerFactory
@@ -25,8 +24,6 @@ import org.slf4j.LoggerFactory
 import io.netty.buffer.{ByteBuf, ByteBufInputStream, Unpooled}
 import io.netty.channel._
 import io.netty.handler.codec.http._
-import io.netty.handler.codec.http.HttpHeaderNames._
-import io.netty.handler.codec.http.HttpHeaderValues._
 import io.netty.handler.stream.ChunkedStream
 import io.netty.util.CharsetUtil
 
@@ -67,11 +64,16 @@ class HttpByteBufferHandler(provider: HttpByteBufferProvider)
 
             provider.getAndRef() onComplete {
                 case Success(buffer) =>
-                    response.headers.set(CACHE_CONTROL,
-                                         s"$NO_STORE, $MUST_REVALIDATE")
-                    response.headers.set(CONTENT_LENGTH,
-                                         buffer.readableBytes())
-                    response.headers.set(CONTENT_TYPE, APPLICATION_OCTET_STREAM)
+                    val headers = new CombinedHttpHeaders(true)
+                    headers.add(HttpHeaderNames.CACHE_CONTROL,
+                                HttpHeaderValues.NO_STORE)
+                    headers.add(HttpHeaderNames.CACHE_CONTROL,
+                                HttpHeaderValues.MUST_REVALIDATE)
+                    headers.add(HttpHeaderNames.CONTENT_TYPE,
+                                HttpHeaderValues.APPLICATION_OCTET_STREAM)
+                    headers.add(HttpHeaderNames.CONTENT_LENGTH,
+                                buffer.readableBytes())
+                    response.headers().add(headers)
                     ctx.write(response)
                     sendContents(ctx, buffer)
                     provider.unref()
