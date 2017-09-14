@@ -267,7 +267,7 @@ public class Midolman {
 
         Scheduler scheduler = injector.getInstance(VirtualTopology.class).vtScheduler();
         Observable<Config> configObservable = configurator
-            .observableRuntimeConfig(HostIdGenerator.getHostId())
+            .observableRuntimeConfig(HostIdGenerator.getHostId(), false)
             .observeOn(scheduler);
 
         configObservable
@@ -377,7 +377,7 @@ public class Midolman {
     private static MidolmanConfig createConfig(MidoNodeConfigurator configurator) {
         try {
             return new MidolmanConfig(
-                configurator.runtimeConfig(HostIdGenerator.getHostId()),
+                configurator.runtimeConfig(HostIdGenerator.getHostId(), false),
                 configurator.mergedSchemas(),
                 true);
         } catch (HostIdGenerator.PropertiesFileNotWritableException e) {

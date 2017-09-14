@@ -550,12 +550,17 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      *
      *   - The local configuration sources.
      *   - The server-side configuration sources
-     *   - The schema bundled in the application's jars.
+     *   - The schema bundled in the application's jars (if applicable).
      */
-    def runtimeConfig(node: UUID): Config =
-        localOnlyConfig.
-            withFallback(centralConfig(node)).
-            withFallback(mergedBundledSchemas).resolve()
+    def runtimeConfig(node: UUID, includeBundledSchemas: Boolean = true): Config = {
+        val conf = localOnlyConfig.
+            withFallback(centralConfig(node))
+        if (includeBundledSchemas) {
+            conf.withFallback(mergedBundledSchemas).resolve()
+        } else {
+            conf.resolve()
+        }
+    }
 
     def runtimeConfig: Config = runtimeConfig(HostIdGenerator.getHostId)
 
@@ -563,10 +568,16 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * Return an Observable on the runtime configuration that a particular
      * node must use at runtime.
      */
-    def observableRuntimeConfig(node: UUID): Observable[Config] = {
+    def observableRuntimeConfig(node: UUID, includeBundledSchemas: Boolean = true)
+    : Observable[Config] = {
+        val bundledSchemas = if (includeBundledSchemas) {
+            Observable.just(mergedBundledSchemas)
+        } else {
+            Observable.empty[Config]()
+        }
         combine(Observable.just(localOnlyConfig),
                 combine(observableCentralConfig(node),
-                        Observable.just(mergedBundledSchemas))) map makeFunc1(_.resolve())
+                        bundledSchemas)) map makeFunc1(_.resolve())
     }
 
     /**
