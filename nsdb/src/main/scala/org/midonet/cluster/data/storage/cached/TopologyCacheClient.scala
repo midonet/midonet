@@ -41,7 +41,8 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
 
     private val log = Logger(LoggerFactory.getLogger(this.getClass))
 
-    private val client = HttpClients.createDefault()
+    //private val client = HttpClients.createDefault()
+    private val client = HttpClients.custom().disableContentCompression().build()
 
     protected def ssl: Option[SSLContext]
     protected def url: URI
@@ -72,7 +73,8 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
             throw new HttpException(
                 "Topology cache client got unexpected content type: " + ctype)
         }
-        IOUtils.toByteArray(resp.getEntity.getContent)
+        IOUtils.toByteArray(resp.getEntity.getContent,
+                            resp.getEntity.getContentLength)
     }
 }
 
