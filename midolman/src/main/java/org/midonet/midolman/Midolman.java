@@ -195,7 +195,14 @@ public class Midolman {
         });
     }
 
+    public static long mark(String tag, long previous) {
+        long mark = System.nanoTime();
+        log.debug("XLDEBUG: BOOT -> " + tag + ": " + (mark - previous) / 1000000 + " ms");
+        return mark;
+    }
+
     private void run(String[] args) throws Exception {
+        long init0 = System.nanoTime();
         Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
         setUncaughtExceptionHandler();
         int initTimeout = Integer.valueOf(
@@ -208,6 +215,7 @@ public class Midolman {
             watchedProcess.close();
             throw t;
         }
+        long init1 = mark("initialization", init0);
 
         minionProcess = new MonitoredDaemonProcess(
             "/usr/share/midolman/minions-start", log, "org.midonet.services",
@@ -218,11 +226,15 @@ public class Midolman {
             });
         minionProcess.startAsync();
 
+        long init2 = mark("minion process start", init1);
+
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
 
         CommandLineParser parser = new GnuParser();
         CommandLine cl = parser.parse(options, args);
+
+        long init3 = mark("cmd line parsing", init2);
 
         String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
         if (!java.nio.file.Files.isReadable(Paths.get(configFilePath))) {
@@ -230,12 +242,20 @@ public class Midolman {
             Midolman.exitsMissingConfigFile(configFilePath);
         }
 
+        long init4 = mark("read initial/bootstrap config file", init3);
+
         MidoNodeConfigurator configurator =
             MidoNodeConfigurator.apply(configFilePath);
 
+        long init5 = mark("configurator apply", init4);
+
         MetricRegistry metricRegistry = new MetricRegistry();
 
+        long init6 = mark("create metric registry", init5);
+
         MidolmanConfig config = createConfig(configurator);
+
+        long init7 = mark("create MidolmanConfig", init6);
 
         FlowTablePreallocation preallocation;
         if (config.offHeapTables()) {
@@ -245,14 +265,20 @@ public class Midolman {
             preallocation.allocateAndTenure();
         }
 
+        long init8 = mark("preallocate flow tables", init7);
+
         // MidonetBackendModule uses reflections to define additional
         // zoom storage classes, that are not needed for the agent, so
         // we can safely pass a 'None' option
         MidonetBackendModule midonetBackendModule = new MidonetBackendModule(
             config.zookeeper(), scala.Option.apply(null), metricRegistry);
 
+        long init9 = mark("instantiate backend module", init8);
+
         ZookeeperConnectionModule zkConnectionModule =
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class);
+
+        long init10 = mark("instantiate ZK connection module", init9);
 
         MidolmanModule midolmanModule = new MidolmanModule(
             config, midonetBackendModule.storeBackend(),
@@ -260,9 +286,13 @@ public class Midolman {
             zkConnectionModule.getDirectoryReactor(),
             metricRegistry, preallocation);
 
+        long init11 = mark("instantiate Midolman module", init10);
+
         injector = Guice.createInjector(
             midonetBackendModule, zkConnectionModule, midolmanModule
         );
+
+        long init12 = mark("create injector with modules", init11);
 
         Scheduler scheduler = injector.getInstance(VirtualTopology.class).vtScheduler();
         Observable<Config> configObservable = configurator
@@ -274,6 +304,8 @@ public class Midolman {
 
         configObservable.
             subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
+
+        long init13 = mark("subscribe to logger levels and metrics", init12);
 
         ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
             .setJson(true)
@@ -287,19 +319,28 @@ public class Midolman {
                  configurator.dropSchema(conf, showConfigPasswords).root()
                              .render(renderOpts));
 
+        long init14 = mark("render config options", init13);
+
         // start the services
         injector.getInstance(MidonetBackend.class)
             .startAsync()
             .awaitRunning();
+        long init15 = mark("start midonet backend service", init14);
+
         injector.getInstance(MidolmanService.class)
             .startAsync()
             .awaitRunning();
 
+        long init16 = mark("start midolman service", init15);
+
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
 
+        long init17 = mark("enable flow tracing appender", init16);
         if (config.lockMemory())
             lockMemory();
+
+        long init18 = mark("lock memory", init17);
 
         if (!initializationPromise.trySuccess(true)) {
             log.error("MidoNet Agent failed to initialize in {} seconds and " +
@@ -309,6 +350,8 @@ public class Midolman {
                       "cause of the failure.", initTimeout);
             System.exit(-1);
         }
+        long init19 = mark("complete promise", init18);
+        long init20 = mark("TOTAL", init0);
         log.info("MidoNet Agent started");
 
         if (config.reclaimDatapath()) {
@@ -404,7 +447,9 @@ public class Midolman {
 
     public static void main(String[] args) {
         try {
+            long init0 = System.nanoTime();
             Midolman midolman = getInstance();
+            long init1 = mark("getInstance", init0);
             midolman.run(args);
         } catch (Throwable e) {
             log.error("Unhandled exception in main method", e);
