@@ -203,6 +203,11 @@ public class Midolman {
 
     private void run(String[] args) throws Exception {
         long init0 = System.nanoTime();
+            lockMemory();
+
+        long init18 = mark("lock memory", init0);
+
+
         Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
         setUncaughtExceptionHandler();
         int initTimeout = Integer.valueOf(
@@ -215,7 +220,7 @@ public class Midolman {
             watchedProcess.close();
             throw t;
         }
-        long init1 = mark("initialization", init0);
+        long init1 = mark("initialization", init18);
 
         minionProcess = new MonitoredDaemonProcess(
             "/usr/share/midolman/minions-start", log, "org.midonet.services",
@@ -338,10 +343,7 @@ public class Midolman {
                 injector.getInstance(FlowTracingAppender.class));
 
         long init17 = mark("enable flow tracing appender", init16);
-        if (config.lockMemory())
-            lockMemory();
 
-        long init18 = mark("lock memory", init17);
 
         if (!initializationPromise.trySuccess(true)) {
             log.error("MidoNet Agent failed to initialize in {} seconds and " +
@@ -351,7 +353,7 @@ public class Midolman {
                       "cause of the failure.", initTimeout);
             System.exit(-1);
         }
-        long init19 = mark("complete promise", init18);
+        long init19 = mark("complete promise", init17);
         long init20 = mark("TOTAL", init0);
         log.info("MidoNet Agent started");
 
