@@ -256,6 +256,10 @@ public class Midolman {
         MidolmanConfig config = createConfig(configurator);
 
         long init7 = mark("create MidolmanConfig", init6);
+        if (config.lockMemory())
+            lockMemory();
+
+        long init18 = mark("lock memory", init7);
 
         FlowTablePreallocation preallocation;
         if (config.offHeapTables()) {
@@ -265,7 +269,7 @@ public class Midolman {
             preallocation.allocateAndTenure();
         }
 
-        long init8 = mark("preallocate flow tables", init7);
+        long init8 = mark("preallocate flow tables", init18);
 
         // MidonetBackendModule uses reflections to define additional
         // zoom storage classes, that are not needed for the agent, so
@@ -338,10 +342,7 @@ public class Midolman {
                 injector.getInstance(FlowTracingAppender.class));
 
         long init17 = mark("enable flow tracing appender", init16);
-        if (config.lockMemory())
-            lockMemory();
 
-        long init18 = mark("lock memory", init17);
 
         if (!initializationPromise.trySuccess(true)) {
             log.error("MidoNet Agent failed to initialize in {} seconds and " +
@@ -351,7 +352,7 @@ public class Midolman {
                       "cause of the failure.", initTimeout);
             System.exit(-1);
         }
-        long init19 = mark("complete promise", init18);
+        long init19 = mark("complete promise", init17);
         long init20 = mark("TOTAL", init0);
         log.info("MidoNet Agent started");
 
