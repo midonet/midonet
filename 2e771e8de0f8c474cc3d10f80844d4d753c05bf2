@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d821ddf9_9036a19a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-09-15T10:26:44Z",
+      "side": 1,
+      "message": "should we update this in the documentation? couldn\u0027t find anything related with restarts",
+      "range": {
+        "startLine": 11,
+        "startChar": 38,
+        "endLine": 13,
+        "endChar": 7
+      },
+      "revId": "2e771e8de0f8c474cc3d10f80844d4d753c05bf2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
