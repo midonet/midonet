@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "18d779b4_4cef5ab8",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/cache/ObjectCache.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-09-15T09:16:12Z",
+      "side": 1,
+      "message": "This doesn\u0027t need to be a concurrent hash map, the thread requesting the snapshot (caller) must be the same thread receiving the updates from ZK. Otherwise, this could result in an inconsistent state, because an object already included in the map could be modified afterwards. This is why we also serialize/encode to SBE with the same thread.",
+      "range": {
+        "startLine": 424,
+        "startChar": 53,
+        "endLine": 424,
+        "endChar": 70
+      },
+      "revId": "4772ed98deb279e7173ebdb1f4bf7115f3db46e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7f164032_694e3cad",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/cache/ObjectNotification.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-09-15T09:16:12Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 86,
+        "startChar": 16,
+        "endLine": 86,
+        "endChar": 61
+      },
+      "revId": "4772ed98deb279e7173ebdb1f4bf7115f3db46e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "73abd4aa_6c63763c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/CachedStorage.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-09-15T09:16:12Z",
+      "side": 1,
+      "message": "nice :) I was always using the logger factory and didn\u0027t realize this.",
+      "range": {
+        "startLine": 44,
+        "startChar": 22,
+        "endLine": 44,
+        "endChar": 66
+      },
+      "revId": "4772ed98deb279e7173ebdb1f4bf7115f3db46e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a776c0bc_10678aa6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/CachedStorage.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-09-15T09:16:12Z",
+      "side": 1,
+      "message": "Here we are putting both the recently deserialized and those that were already deserialized. Could we move putting the object into the map just after deserialization (line 203) and safe some puts?\n\nIt\u0027s ok as is, just wondering.",
+      "range": {
+        "startLine": 208,
+        "startChar": 8,
+        "endLine": 210,
+        "endChar": 10
+      },
+      "revId": "4772ed98deb279e7173ebdb1f4bf7115f3db46e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
