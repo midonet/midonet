@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5d687688_7c8e0322",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/cache/ObjectCache.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-09-15T09:53:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "18d779b4_4cef5ab8",
+      "range": {
+        "startLine": 424,
+        "startChar": 53,
+        "endLine": 424,
+        "endChar": 70
+      },
+      "revId": "4772ed98deb279e7173ebdb1f4bf7115f3db46e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f164032_694e3cad",
         "filename": "nsdb/src/main/java/org/midonet/cluster/cache/ObjectNotification.java",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2017-09-15T09:16:12Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 86,
+        "startChar": 16,
+        "endLine": 86,
+        "endChar": 61
+      },
+      "revId": "4772ed98deb279e7173ebdb1f4bf7115f3db46e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "62cb810c_960fa468",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/cache/ObjectNotification.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-09-15T09:53:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7f164032_694e3cad",
       "range": {
         "startLine": 86,
         "startChar": 16,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "0895cc3d_74da35c5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/CachedStorage.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-09-15T09:53:06Z",
+      "side": 1,
+      "message": ":)",
+      "parentUuid": "73abd4aa_6c63763c",
+      "range": {
+        "startLine": 44,
+        "startChar": 22,
+        "endLine": 44,
+        "endChar": 66
+      },
+      "revId": "4772ed98deb279e7173ebdb1f4bf7115f3db46e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a776c0bc_10678aa6",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/CachedStorage.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2017-09-15T09:16:12Z",
       "side": 1,
       "message": "Here we are putting both the recently deserialized and those that were already deserialized. Could we move putting the object into the map just after deserialization (line 203) and safe some puts?\n\nIt\u0027s ok as is, just wondering.",
+      "range": {
+        "startLine": 208,
+        "startChar": 8,
+        "endLine": 210,
+        "endChar": 10
+      },
+      "revId": "4772ed98deb279e7173ebdb1f4bf7115f3db46e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "85112b4a_502578d8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/cached/CachedStorage.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-09-15T09:53:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a776c0bc_10678aa6",
       "range": {
         "startLine": 208,
         "startChar": 8,
