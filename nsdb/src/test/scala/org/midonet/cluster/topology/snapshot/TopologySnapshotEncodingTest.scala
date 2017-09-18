@@ -212,14 +212,20 @@ class TopologySnapshotEncodingTest extends FeatureSpec
         snapshot
     }
 
-    private def checkObjects[T](original: util.Collection[AnyRef],
-                                deserialized: util.Collection[T],
-                                clazz: Class[_]) = {
+    private def checkObjects(original: util.Collection[AnyRef],
+                             serialized: util.Collection[_],
+                             clazz: Class[_]) = {
         val originalProto = for (obj <- original.toSeq) yield {
             deserializeMessage(
                 obj.asInstanceOf[ObjectUpdate].childData().getData,
                 clazz)
         }
+
+        // Objects messages are lazy-deserialized in the CachedStorage
+        val deserialized = for (obj <- serialized.toSeq) yield {
+            deserializeMessage(obj.asInstanceOf[Array[Byte]], clazz)
+        }
+
         originalProto.toSet shouldBe deserialized.toSet
     }
 
@@ -230,10 +236,11 @@ class TopologySnapshotEncodingTest extends FeatureSpec
         // Check topology objects
         deserialized.entrySet().foreach { classGroup =>
             val clazz = classGroup.getKey
-            val deserializedGroup = classGroup.getValue.values()
+            // Messages are still serialized in the object snapshot
+            val serializedGroup = classGroup.getValue.values()
             val originalGroup = original.get(clazz).values()
-            deserializedGroup.size() shouldBe originalGroup.size()
-            checkObjects(originalGroup, deserializedGroup, clazz)
+            serializedGroup.size() shouldBe originalGroup.size()
+            checkObjects(originalGroup, serializedGroup, clazz)
         }
     }
 
