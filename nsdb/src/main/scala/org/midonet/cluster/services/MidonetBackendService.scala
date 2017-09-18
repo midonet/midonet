@@ -117,12 +117,12 @@ class MidonetBackendService(config: MidonetBackendConfig,
             }
         }
 
-        override def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+        override def getClient[S](serviceName: String)(tag: TypeTag[S])
         : MidonetDiscoveryClient[S] = {
             val init0 = System.nanoTime()
             if (config.enableDiscovery) {
                 val init1 = mark("INSIDE GETCLIENT -> before actual getClient", init0)
-                val srv = discoveryService.getClient(serviceName)
+                val srv = discoveryService.getClient(serviceName)(tag)
                 val init2 = mark("INSIDE GETCLIENT -> after actual getClient", init1)
                 srv
             } else {
@@ -230,7 +230,8 @@ class MidonetBackendService(config: MidonetBackendConfig,
 
                     val init4 = mark("instantiate state proxy executor", init3)
 
-                    val discoveryClient = discoveryService.getClient[MidonetServiceHostAndPort](StateProxyService.Name)
+                    val discoveryClient = discoveryService
+                        .getClient[MidonetServiceHostAndPort](StateProxyService.Name)(typeTag[MidonetServiceHostAndPort])
                     val init40 = mark("instantiate discovery client", init4)
 
                     val discoverySelector = MidonetDiscoverySelector.random(discoveryClient)

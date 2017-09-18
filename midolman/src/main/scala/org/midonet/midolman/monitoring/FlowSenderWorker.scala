@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory
 
 import rx.Observer
 
+import reflect.runtime.universe.typeTag
+
 import org.midonet.Util
 import org.midonet.cluster.flowhistory.BinarySerialization
 import org.midonet.cluster.services.MidonetBackend
@@ -180,7 +182,7 @@ class FlowSender(config: FlowHistoryConfig, backend: MidonetBackend)
     override def doStart(): Unit = {
         clioDiscoveryClient =
             backend.discovery.getClient[MidonetServiceHostAndPort](
-                config.endpointService)
+                config.endpointService)(typeTag[MidonetServiceHostAndPort])
         subscribeToDiscovery()
         notifyStarted()
     }
