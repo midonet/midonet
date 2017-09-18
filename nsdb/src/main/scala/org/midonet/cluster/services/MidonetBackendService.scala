@@ -21,13 +21,10 @@ import java.util.concurrent.{ExecutorService, ScheduledExecutorService, Schedule
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
-import scala.reflect.runtime.universe._
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
 import com.typesafe.scalalogging.Logger
-
-import io.netty.channel.nio.NioEventLoopGroup
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
@@ -51,6 +48,8 @@ import org.midonet.conf.HostIdGenerator
 import org.midonet.util.concurrent.Executors
 import org.midonet.util.eventloop.TryCatchReactor
 import org.midonet.util.functors.makeRunnable
+
+import io.netty.channel.nio.NioEventLoopGroup
 
 object MidonetBackendService {
     def mark(tag: String, previous: Long): Long = {
@@ -77,7 +76,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
                             ensureNodes: Boolean = true)
     extends MidonetBackend {
 
-    import MidonetBackendService.{mark, log}
+    import MidonetBackendService.{log, mark}
 
     private val namespaceId =
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
@@ -122,7 +121,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
             val init0 = System.nanoTime()
             if (config.enableDiscovery) {
                 val init1 = mark("INSIDE GETCLIENT -> before actual getClient", init0)
-                val srv = discoveryService.getClient(serviceName)
+                val srv = discoveryService.getClient[S](serviceName)
                 val init2 = mark("INSIDE GETCLIENT -> after actual getClient", init1)
                 srv
             } else {
