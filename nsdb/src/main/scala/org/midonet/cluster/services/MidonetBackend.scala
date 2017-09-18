@@ -71,10 +71,12 @@ object MidonetBackend {
       * and, if a Reflections object is provided, this method searches the
       * classpath for subclasses of ZoomInitializer which are also annotated
       * with @ZoomInit and runs their setup methods. */
+    import MidonetBackendService.mark
     final def setupBindings(store: Storage, stateStore: StateStorage,
                             setup: () => Unit = () => {},
                             assertInitialization: Boolean = true)
     : Unit = {
+        val init0 = System.nanoTime()
         List(classOf[AgentMembership],
              classOf[BgpNetwork],
              classOf[BgpPeer],
@@ -134,7 +136,12 @@ object MidonetBackend {
              classOf[Vip],
              classOf[VpnService],
              classOf[Vtep]
+<<<<<<< HEAD
         ).foreach(store.registerClass(_, assertInitialization))
+=======
+        ).foreach(store.registerClass)
+        val init1 = mark("class registration", init0)
+>>>>>>> 813d540... Add boot logging
 
         store.declareBinding(classOf[Port], "insertion_ids", CASCADE,
                              classOf[L2Insertion], "port_id", CLEAR)
@@ -268,6 +275,8 @@ object MidonetBackend {
         store.declareBinding(classOf[RuleLogger], "logging_resource_id", CLEAR,
                              classOf[LoggingResource], "logger_ids", CASCADE)
 
+        val init2 = mark("store.declare bindings", init1)
+
         stateStore.registerKey(classOf[ServiceContainer], StatusKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Host], AliveKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Host], ContainerKey, FailFast)
@@ -280,6 +289,8 @@ object MidonetBackend {
         stateStore.registerKey(classOf[Vtep], VtepConfig, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConnState, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleFirstWriteWins)
+
+        val init3 = mark("statestore register keys", init2)
 
         store.declareBinding(classOf[VpnService], "router_id", CLEAR,
                              classOf[Router], "vpn_service_ids", CASCADE)
@@ -303,8 +314,13 @@ object MidonetBackend {
         store.declareBinding(classOf[Network], "qos_policy_id", CLEAR,
                              classOf[QosPolicy], "network_ids", CLEAR)
 
+        val init4 = mark("store declare more bindings", init3)
+
         setup()
+        val init5 = mark("setup", init4)
         store.build(assertInitialization)
+
+        val init6 = mark("build", init5)
     }
 
 }
