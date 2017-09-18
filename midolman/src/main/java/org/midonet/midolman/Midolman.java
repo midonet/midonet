@@ -265,29 +265,6 @@ public class Midolman {
             midonetBackendModule, zkConnectionModule, midolmanModule
         );
 
-        Scheduler scheduler = injector.getInstance(VirtualTopology.class).vtScheduler();
-        Observable<Config> configObservable = configurator
-            .observableRuntimeConfig(HostIdGenerator.getHostId(), false)
-            .observeOn(scheduler);
-
-        configObservable
-            .subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
-
-        configObservable.
-            subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
-
-        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
-            .setJson(true)
-            .setComments(false)
-            .setOriginComments(false)
-            .setFormatted(true);
-        Config conf = injector.getInstance(MidolmanConfig.class).conf();
-        Boolean showConfigPasswords =
-            System.getProperties().containsKey("midonet.show_config_passwords");
-        log.info("Loaded configuration: {}",
-                 configurator.dropSchema(conf, showConfigPasswords).root()
-                             .render(renderOpts));
-
         // start the services
         injector.getInstance(MidonetBackend.class)
             .startAsync()
@@ -316,6 +293,29 @@ public class Midolman {
             FlowExpirator expirator = injector.getInstance(FlowExpirator.class);
             new Thread(expirator::expireAllFlows, "flow-expirator").start();
         }
+
+        Scheduler scheduler = injector.getInstance(VirtualTopology.class).vtScheduler();
+        Observable<Config> configObservable = configurator
+            .observableRuntimeConfig(HostIdGenerator.getHostId(), false)
+            .observeOn(scheduler);
+
+        configObservable
+            .subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
+
+        configObservable.
+            subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
+
+        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
+            .setJson(true)
+            .setComments(false)
+            .setOriginComments(false)
+            .setFormatted(true);
+        Config conf = injector.getInstance(MidolmanConfig.class).conf();
+        Boolean showConfigPasswords =
+            System.getProperties().containsKey("midonet.show_config_passwords");
+        log.info("Loaded configuration: {}",
+                 configurator.dropSchema(conf, showConfigPasswords).root()
+                             .render(renderOpts));
 
         injector.getInstance(MidolmanService.class).awaitTerminated();
     }
