@@ -21,13 +21,11 @@ import java.util.concurrent.{ExecutorService, ScheduledExecutorService, Schedule
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
-import scala.reflect.runtime.universe._
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
 import com.typesafe.scalalogging.Logger
-
-import io.netty.channel.nio.NioEventLoopGroup
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
@@ -51,6 +49,8 @@ import org.midonet.conf.HostIdGenerator
 import org.midonet.util.concurrent.Executors
 import org.midonet.util.eventloop.TryCatchReactor
 import org.midonet.util.functors.makeRunnable
+
+import io.netty.channel.nio.NioEventLoopGroup
 
 /**
   * Class responsible for providing services to access to the new Storage
@@ -104,10 +104,10 @@ class MidonetBackendService(config: MidonetBackendConfig,
             }
         }
 
-        override def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+        override def getClient[S](serviceName: String)(implicit tag: ClassTag[S])
         : MidonetDiscoveryClient[S] = {
             if (config.enableDiscovery) {
-                discoveryService.getClient(serviceName)(tag)
+                discoveryService.getClient(serviceName)
             } else {
                 throw new UnsupportedOperationException("Service discovery disabled")
             }

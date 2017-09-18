@@ -18,14 +18,14 @@ package org.midonet.cluster.services
 
 import java.net.URI
 
-import scala.reflect.runtime.universe._
+import scala.reflect.ClassTag
 
 import rx.Observable
 
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryClient, MidonetServiceHandler}
 
 class MockMidonetDiscovery() extends MidonetDiscovery {
-    override def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+    override def getClient[S](serviceName: String)(implicit tag: ClassTag[S])
         : MidonetDiscoveryClient[S] = {
             new MockMidonetServiceClient[S]
         }
