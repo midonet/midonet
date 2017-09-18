@@ -18,7 +18,7 @@ package org.midonet.cluster.services.discovery
 
 import java.net.URI
 
-import scala.reflect.runtime.universe.{TypeTag, typeOf}
+import scala.reflect.ClassTag
 
 import org.apache.curator.x.discovery.UriSpec
 
@@ -63,7 +63,7 @@ class FakeDiscovery extends MidonetDiscovery {
     }
 
     override def getClient[S](serviceName: String)
-                             (implicit tag: TypeTag[S]) =
+                             (implicit tag: ClassTag[S]) =
         new FakeDiscoveryClient[S](serviceName)
 
     override def registerServiceInstance(serviceName: String,
@@ -91,7 +91,7 @@ class FakeDiscovery extends MidonetDiscovery {
       *                    get notified about.
       * @tparam S One of MidonetServiceHostAndPort or MidonetServiceURI
       */
-    class FakeDiscoveryClient[S](serviceName: String)(implicit val tag: TypeTag[S])
+    class FakeDiscoveryClient[S](serviceName: String)(implicit val tag: ClassTag[S])
         extends MidonetDiscoveryClient[S] with Observer[Set[(String, URI)]] {
         private val updates = BehaviorSubject.create[Seq[S]]
 
@@ -137,10 +137,10 @@ class FakeDiscovery extends MidonetDiscovery {
         private def asMidonetService(uri: URI): Option[S] = {
             (uri.getHost, uri.getPort, new UriSpec(uri.toString)) match {
                 case (address: String, port: Int, _)
-                    if typeOf[S] =:= typeOf[MidonetServiceHostAndPort] =>
+                    if tag.runtimeClass == classOf[MidonetServiceHostAndPort] =>
                     Option(MidonetServiceHostAndPort(address, port).asInstanceOf[S])
                 case (_, _, uri: UriSpec)
-                    if typeOf[S] =:= typeOf[MidonetServiceURI] =>
+                    if tag.runtimeClass == classOf[MidonetServiceURI] =>
                     Option(MidonetServiceURI(new URI(uri.build)).asInstanceOf[S])
                 case _ =>
                     // We filter those instances that do not comply with the
