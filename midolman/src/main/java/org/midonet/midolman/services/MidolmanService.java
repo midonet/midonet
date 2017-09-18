@@ -27,6 +27,8 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Inject;
+
+import org.midonet.midolman.Midolman;
 import org.midonet.midolman.host.services.QosService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,8 +99,10 @@ public class MidolmanService extends AbstractService {
         for (Service service : services()) {
             log.info("Starting service: {}", service);
             try {
+                long init0 = System.nanoTime();
                 service.startAsync().awaitRunning();
                 log.info("Service started: {}", service);
+                Midolman.mark("MIDOLMAN SERVICE START -> started service " + service.toString(), init0);
             } catch (Exception e) {
                 log.error("Exception while starting service " + service, e);
                 notifyFailed(e);
@@ -108,8 +112,10 @@ public class MidolmanService extends AbstractService {
         }
 
         try {
+            long init0 = System.nanoTime();
             jmxReporter = JmxReporter.forRegistry(metrics).build();
             jmxReporter.start();
+            Midolman.mark("MIDOLMAN SERVICE START -> started jmx reporter", init0);
         } catch (Exception e) {
             log.error("Cannot start metrics reporter");
             notifyFailed(e);
@@ -117,7 +123,9 @@ public class MidolmanService extends AbstractService {
         }
 
         try {
+            long init0 = System.nanoTime();
             resolver.start();
+            Midolman.mark("MIDOLMAN SERVICE START -> started peer resolver", init0);
         } catch (Exception e) {
             log.error("Cannot start the peer resolver");
             notifyFailed(e);
