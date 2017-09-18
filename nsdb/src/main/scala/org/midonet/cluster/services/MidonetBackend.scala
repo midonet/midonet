@@ -73,7 +73,7 @@ object MidonetBackend {
       * with @ZoomInit and runs their setup methods. */
     final def setupBindings(store: Storage, stateStore: StateStorage,
                             setup: () => Unit = () => {},
-                            ensureNodes: Boolean = true)
+                            assertInitialization: Boolean = true)
     : Unit = {
         List(classOf[AgentMembership],
              classOf[BgpNetwork],
@@ -134,7 +134,7 @@ object MidonetBackend {
              classOf[Vip],
              classOf[VpnService],
              classOf[Vtep]
-        ).foreach(store.registerClass)
+        ).foreach(store.registerClass(_, assertInitialization))
 
         store.declareBinding(classOf[Port], "insertion_ids", CASCADE,
                              classOf[L2Insertion], "port_id", CLEAR)
@@ -304,7 +304,7 @@ object MidonetBackend {
                              classOf[QosPolicy], "network_ids", CLEAR)
 
         setup()
-        store.build(ensureNodes)
+        store.build(assertInitialization)
     }
 
 }

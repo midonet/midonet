@@ -39,7 +39,7 @@ class StorageCacheTest extends FeatureSpec with BeforeAndAfter
     before {
         storage = new InMemoryStorage()
         val classes = List(classOf[Network], classOf[Rule])
-        classes.foreach(storage.registerClass)
+        classes.foreach(storage.registerClass(_))
         storage.build()
     }
 

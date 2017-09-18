@@ -174,7 +174,7 @@ public class HostServiceTest {
                                 + "server");
         }
 
-        store.registerClass(Topology.Host.class);
+        store.registerClass(Topology.Host.class, true);
         stateStore.registerKey(Topology.Host.class,
                                MidonetBackend.AliveKey(),
                                KeyType.SingleLastWriteWins());
