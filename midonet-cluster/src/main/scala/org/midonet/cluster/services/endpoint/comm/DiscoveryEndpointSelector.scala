@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory
 import rx.subjects.BehaviorSubject
 import rx.{Observable, Observer}
 
+import reflect.runtime.universe.typeTag
+
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHostAndPort}
 import org.midonet.cluster.services.endpoint.EndpointSelector
 import org.midonet.util.random._
@@ -49,7 +51,8 @@ class DiscoveryEndpointSelector(name: String, discovery: MidonetDiscovery,
 
     private val subject = BehaviorSubject.create(endpoints.get)
 
-    private val client = discovery.getClient[MidonetServiceHostAndPort](name)
+    private val client = discovery.getClient[MidonetServiceHostAndPort](name)(
+        typeTag[MidonetServiceHostAndPort])
 
     client.observable.subscribe(
         new Observer[Seq[MidonetServiceHostAndPort]] {

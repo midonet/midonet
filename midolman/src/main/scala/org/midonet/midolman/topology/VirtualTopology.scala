@@ -32,6 +32,8 @@ import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
+import reflect.runtime.universe.typeTag
+
 import org.midonet.cluster.data.storage.cached.{StateStorageWrapper, StorageWrapper, TopologyCacheClientDiscovery}
 import org.midonet.cluster.data.storage.{StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
@@ -260,7 +262,7 @@ class VirtualTopology(val backend: MidonetBackend,
             try {
                 val init0 = System.nanoTime()
                 val client = backend.discovery.getClient[MidonetServiceURI](
-                    serviceName = "topology-cache")
+                    serviceName = "topology-cache")(typeTag[MidonetServiceURI])
                 val discoverySelector = MidonetDiscoverySelector
                     .roundRobin[MidonetServiceURI](client)
                 val cacheClient = new TopologyCacheClientDiscovery(

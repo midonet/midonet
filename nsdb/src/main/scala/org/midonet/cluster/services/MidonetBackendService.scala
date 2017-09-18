@@ -53,6 +53,8 @@ import org.midonet.util.eventloop.TryCatchReactor
 import org.midonet.util.functors.makeRunnable
 
 object MidonetBackendService {
+    var last = 0L
+
     def mark(tag: String, previous: Long): Long = {
         val mark = System.nanoTime()
         log.debug(s"XLDEBUG: BOOT -> MIDONET BACKEND SERVICE start -> $tag: " +
@@ -117,12 +119,12 @@ class MidonetBackendService(config: MidonetBackendConfig,
             }
         }
 
-        override def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+        override def getClient[S](serviceName: String)(tag: TypeTag[S])
         : MidonetDiscoveryClient[S] = {
             val init0 = System.nanoTime()
             if (config.enableDiscovery) {
                 val init1 = mark("INSIDE GETCLIENT -> before actual getClient", init0)
-                val srv = discoveryService.getClient(serviceName)
+                val srv = discoveryService.getClient(serviceName)(tag)
                 val init2 = mark("INSIDE GETCLIENT -> after actual getClient", init1)
                 srv
             } else {
@@ -229,8 +231,9 @@ class MidonetBackendService(config: MidonetBackendConfig,
                     val eventLoopGroup = new NioEventLoopGroup(numNettyThreads)
 
                     val init4 = mark("instantiate state proxy executor", init3)
-
-                    val discoveryClient = discoveryService.getClient[MidonetServiceHostAndPort](StateProxyService.Name)
+                    MidonetBackendService.last = init4
+                    val discoveryClient = discoveryService
+                        .getClient[MidonetServiceHostAndPort](StateProxyService.Name)(typeTag[MidonetServiceHostAndPort])
                     val init40 = mark("instantiate discovery client", init4)
 
                     val discoverySelector = MidonetDiscoverySelector.random(discoveryClient)
