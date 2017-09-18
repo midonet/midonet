@@ -145,7 +145,7 @@ object Storage {
     private[storage] final class MessageClassInfo(clazz: Class[_])
         extends ClassInfo(clazz) {
 
-        private val idFieldDesc =
+        private lazy val idFieldDesc =
             ProtoFieldBinding.getMessageField(clazz, FieldBinding.ID_FIELD)
 
         def idOf(obj: Obj) = obj.asInstanceOf[Message].getField(idFieldDesc)
@@ -154,9 +154,11 @@ object Storage {
     private[storage] final class JavaClassInfo(clazz: Class[_])
         extends ClassInfo(clazz) {
 
-        private val idField = clazz.getDeclaredField(FieldBinding.ID_FIELD)
-
-        idField.setAccessible(true)
+        private lazy val idField = {
+            val field = clazz.getDeclaredField(FieldBinding.ID_FIELD)
+            field.setAccessible(true)
+            field
+        }
 
         def idOf(obj: Obj) = idField.get(obj)
     }
