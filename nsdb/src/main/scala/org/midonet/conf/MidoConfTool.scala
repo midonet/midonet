@@ -252,7 +252,7 @@ object ImportConf extends ConfigWriter("import") with ConfCommand {
         var toImport = newConf
 
         if (!importAll.get.get) {
-            val schemas = configurator.mergedSchemas().resolve()
+            val schemas = configurator.mergedSchemas.resolve()
             toImport = ConfigFactory.empty
 
             for (entry <- newConf.entrySet) {
@@ -373,7 +373,7 @@ object Doc extends Subcommand("doc") with ConfCommand {
     val key = trailArg[String](required = false, descr = "Configuration key")
 
     override def run(configurator: MidoNodeConfigurator) = {
-        val conf = configurator.mergedSchemas().resolve()
+        val conf = configurator.mergedSchemas.resolve()
 
         def doc(key: String): Unit = {
             println(s"Key: $key")
@@ -517,7 +517,7 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
         }
 
         if (useSchema)
-            conf = conf.withFallback(configurator.mergedSchemas())
+            conf = conf.withFallback(configurator.mergedSchemas)
 
         conf
     }

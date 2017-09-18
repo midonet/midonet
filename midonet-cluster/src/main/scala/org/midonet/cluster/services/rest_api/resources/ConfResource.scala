@@ -45,7 +45,7 @@ class ConfResource @Inject()(resContext: ResourceContext,
     @Path("schemas")
     @Produces(Array(TEXT_PLAIN))
     def listSchemas(): String = {
-        render(configurator.mergedSchemas())
+        render(configurator.mergedSchemas)
     }
 
     @GET
