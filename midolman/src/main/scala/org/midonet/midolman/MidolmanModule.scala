@@ -73,8 +73,11 @@ class MidolmanModule(config: MidolmanConfig,
     val cbRegistry = new CallbackRegistryImpl
 
     override def configure(): Unit = {
+        val init0 = System.nanoTime()
         bind(classOf[MidolmanConfig]).toInstance(config)
+        val init1 = Midolman.mark("MIDOLMAN MODULE -> bind config", init0)
         val host = hostId()
+        val init2 = Midolman.mark("MIDOLMAN MODULE -> hostid", init1)
         val hostIdProvider = new HostIdProvider {
             override def hostId(): UUID = host
         }
@@ -86,26 +89,37 @@ class MidolmanModule(config: MidolmanConfig,
         bind(classOf[MetricRegistry]).toInstance(metricRegistry)
         bind(classOf[CallbackRegistry]).toInstance(cbRegistry)
 
+        val init3 = Midolman.mark("MIDOLMAN MODULE -> some bindings", init2)
         val insights = new Insights(config.insights, metricRegistry)
         bind(classOf[Insights]).toInstance(insights)
+        val init4 = Midolman.mark("MIDOLMAN MODULE -> bind insights", init3)
 
         // We add an extra slot so that channels can return tokens
         // they obtained due to the multiplier effect but didn't use.
         val counter = new StatisticalCounter(config.simulationThreads + 1)
         val policy = htbPolicy(counter)
+        val init5 = Midolman.mark("MIDOLMAN MODULE -> htb policy", init4)
         bind(classOf[StatisticalCounter]).toInstance(counter)
         bind(classOf[TokenBucketPolicy]).toInstance(policy)
 
         val channelFactory = netlinkChannelFactory()
+        val init6 = Midolman.mark("MIDOLMAN MODULE -> netlink channel factory", init5)
         val families = ovsNetlinkFamilies(channelFactory)
+        val init7 = Midolman.mark("MIDOLMAN MODULE -> ovs netlink families", init6)
         val dp = datapath(channelFactory, families, metricRegistry)
+        val init8 = Midolman.mark("MIDOLMAN MODULE -> datapath", init7)
         if (config.reclaimDatapath) {
+            val init9 = System.nanoTime()
             val flowList = reclaimFlows(dp, config, metricRegistry)
+            val init10 = Midolman.mark("MIDOLMAN MODULE -> reclaimFlows", init9)
             val flowExpirator = new FlowExpirator(flowList, config, dp,
                 families, channelFactory)
             bind(classOf[FlowExpirator]).toInstance(flowExpirator)
+            val init11 = Midolman.mark("MIDOLMAN MODULE -> flow expirator instantiation", init10)
         }
+        val init12 = System.nanoTime()
         val dpState = datapathStateDriver(dp)
+        val init13 = Midolman.mark("MIDOLMAN MODULE -> datapath state driver", init12)
         bind(classOf[NetlinkChannelFactory]).toInstance(channelFactory)
         bind(classOf[OvsNetlinkFamilies]).toInstance(families)
         bind(classOf[DatapathStateDriver]).toInstance(dpState)
@@ -113,7 +127,10 @@ class MidolmanModule(config: MidolmanConfig,
         bind(classOf[VirtualPortsResolver]).to(classOf[DatapathStateDriver])
         bind(classOf[UnderlayResolver]).to(classOf[DatapathStateDriver])
 
+        val init14 = Midolman.mark("MIDOLMAN MODULE -> some more bindings", init13)
         val as = actorSystem()
+        val init15 = Midolman.mark("MIDOLMAN MODULE -> actor system", init14)
+
         bind(classOf[ActorSystem]).toInstance(as)
         bind(classOf[SupervisorStrategy]).toInstance(crashStrategy())
 
@@ -125,52 +142,70 @@ class MidolmanModule(config: MidolmanConfig,
             config.datapath.globalIncomingBurstCapacity)
         val ringBuffer = RingBuffer
             .createMultiProducer(DisruptorDatapathChannel.Factory, capacity)
+        val init16 = Midolman.mark("MIDOLMAN MODULE -> ring buffer", init15)
         val barrier = ringBuffer.newBarrier()
         val fp = flowProcessor(dpState, families, channelFactory, backChannel)
+        val init17 = Midolman.mark("MIDOLMAN MODULE -> flow processor", init16)
         val channel = datapathChannel(
             ringBuffer, barrier, fp, dpState, families, channelFactory)
+        val init18 = Midolman.mark("MIDOLMAN MODULE -> datapath channel", init17)
         bind(classOf[FlowProcessor]).toInstance(fp)
         bind(classOf[DatapathChannel]).toInstance(channel)
 
         bind(classOf[DatapathConnectionPool]).toInstance(connectionPool())
+        val init19 = Midolman.mark("MIDOLMAN MODULE -> connection pool", init18)
 
         bind(classOf[DatapathService]).asEagerSingleton()
 
         bind(classOf[FlowStateStorageFactory]).toInstance(flowStateStorageFactory())
+        val init20 = Midolman.mark("MIDOLMAN MODULE -> flow state storage factory", init19)
 
         bindActorService()
+        val init21 = Midolman.mark("MIDOLMAN MODULE -> bind actor service", init20)
 
         val scanner = interfaceScanner(channelFactory)
         bind(classOf[InterfaceScanner]).toInstance(scanner)
+        val init22 = Midolman.mark("MIDOLMAN MODULE -> interface scanner", init21)
 
         val hservice = hostService(host, scanner)
         bind(classOf[HostService]).toInstance(hservice)
+        val init23 = Midolman.mark("MIDOLMAN MODULE -> host service", init22)
 
         bind(classOf[Plumber]).toInstance(plumber(dpState))
+        val init24 = Midolman.mark("MIDOLMAN MODULE -> plumber", init23)
 
         val tcRequestHandler = TcRequestHandler(channelFactory)
         bind(classOf[TcRequestHandler]).toInstance(tcRequestHandler)
+        val init25 = Midolman.mark("MIDOLMAN MODULE -> tc request handler", init24)
 
         val qService = qosService(scanner, host, tcRequestHandler)
         bind(classOf[QosService]).toInstance(qService)
+        val init26 = Midolman.mark("MIDOLMAN MODULE -> qos service", init25)
 
         val statsHttpSvc = statsHttpService()
         bind(classOf[SimpleHTTPServerService]).toInstance(statsHttpSvc)
+        val init27 = Midolman.mark("MIDOLMAN MODULE -> http service", init26)
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
+        val init28 = Midolman.mark("MIDOLMAN MODULE -> flow tracing appender", init27)
 
         val allocator = natAllocator()
         bind(classOf[NatBlockAllocator]).toInstance(allocator)
+        val init29 = Midolman.mark("MIDOLMAN MODULE -> nat allocator", init28)
         bindSelectLoopService()
+        val init30 = Midolman.mark("MIDOLMAN MODULE -> bind select loop service", init29)
 
         val vt = virtualTopology(backChannel)
         bind(classOf[VirtualTopology]).toInstance(vt)
+        val init31 = Midolman.mark("MIDOLMAN MODULE -> virtual topology", init30)
 
         val vtpm = virtualToPhysicalMapper(host, vt)
         bind(classOf[VirtualToPhysicalMapper]).toInstance(vtpm)
+        val init32 = Midolman.mark("MIDOLMAN MODULE -> virtual to physical mapper", init31)
 
         val resolver = peerResolver(host, vt)
         bind(classOf[PeerResolver]).toInstance(resolver)
+        val init33 = Midolman.mark("MIDOLMAN MODULE -> peer resolver", init32)
 
         val workersService = createPacketWorkersService(config, hostIdProvider,
                                                         channel, dpState, fp,
@@ -183,15 +218,19 @@ class MidolmanModule(config: MidolmanConfig,
                                                         counter, as,
                                                         flowTablePreallocation)
         bind(classOf[PacketWorkersService]).toInstance(workersService)
+        val init34 = Midolman.mark("MIDOLMAN MODULE -> worker service", init33)
 
         val dpConnectionManager = upcallDatapathConnectionManager(
             policy, workersService.workers)
         bind(classOf[UpcallDatapathConnectionManager]).toInstance(
             dpConnectionManager)
+        val init35 = Midolman.mark("MIDOLMAN MODULE -> upcall datapath manager", init34)
         bind(classOf[DatapathInterface]).toInstance(
             datapathInterface(scanner, dpState, dpConnectionManager))
+        val init36 = Midolman.mark("MIDOLMAN MODULE -> datapath interface", init35)
 
         bind(classOf[VppController]).toInstance(vppController(host, dpState, vt))
+        val init37 = Midolman.mark("MIDOLMAN MODULE -> vpp controller", init36)
 
         bind(classOf[MidolmanService]).asEagerSingleton()
     }

@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory
 import rx.Observable
 import rx.subjects.BehaviorSubject
 
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.services.discovery.MidonetDiscovery._
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.util.functors.makeRunnable
@@ -191,7 +192,10 @@ class MidonetDiscoveryImpl @Inject()(curator: CuratorFramework,
 
     def getClient[S](serviceName: String)(implicit tag: ClassTag[S])
     : MidonetDiscoveryClient[S] = {
-        new MidonetDiscoveryClientImpl[S](serviceName, discoveryService, executor)
+        val init0 = System.nanoTime()
+        val clt = new MidonetDiscoveryClientImpl[S](serviceName, discoveryService, executor)
+        MidonetBackendService.mark("INSIDE ACTUAL GETCLIENT -> AFTER instantiate midonet discovery client impl", init0)
+        clt
     }
 
     def registerServiceInstance(serviceName: String, address: String, port: Int)
@@ -244,17 +248,24 @@ trait MidonetDiscoveryClient[S] {
     def stop(): Unit
 }
 
+import org.midonet.cluster.services.MidonetBackendService.mark
 private[discovery] final class MidonetDiscoveryClientImpl[S](
         serviceName: String, serviceDiscovery: ServiceDiscovery[Void],
         executor: ExecutorService)(implicit val tag: ClassTag[S])
     extends MidonetDiscoveryClient[S]{
 
+    val init0 = System.nanoTime()
+
     private val log = Logger(LoggerFactory.getLogger(ServiceDiscoveryLog))
 
     private val updates = BehaviorSubject.create[Seq[S]]
 
+    val init1 = mark("INSIDE CLIENT INSTANTIATE -> instantiate behaviour subject", init0)
+
     private val cache =
         serviceDiscovery.serviceCacheBuilder.name(serviceName).build
+
+    val init2 = mark("INSIDE CLIENT INSTANTIATE -> build service cache builder", init1)
 
     private def updateServiceInstances(): Unit = {
         updates.onNext(instances)
@@ -267,11 +278,19 @@ private[discovery] final class MidonetDiscoveryClientImpl[S](
             log.info(s"Changed state for $serviceName service: $newState")
     }, executor)
 
+    val init3 = mark("INSIDE CLIENT INSTANTIATE -> cache add listener", init2)
+
     cache.start()
+
+    val init4 = mark("INSIDE CLIENT INSTANTIATE -> cache start", init3)
 
     executor.submit(makeRunnable { updateServiceInstances() })
 
+    val init5 = mark("INSIDE CLIENT INSTANTIATE -> executor submit updateServiceInstances", init4)
+
     override val observable = updates.asObservable.distinctUntilChanged
+
+    val init6 = mark("INSIDE CLIENT INSTANTIATE -> updates as observable distinct", init4)
 
     override def stop(): Unit = {
         try {
