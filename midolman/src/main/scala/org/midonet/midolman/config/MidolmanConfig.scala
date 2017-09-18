@@ -43,7 +43,7 @@ object MidolmanConfig {
     def apply() = {
         val configurator = MidoNodeConfigurator()
         new MidolmanConfig(configurator.runtimeConfig(HostIdGenerator.getHostId),
-                           configurator.mergedSchemas())
+                           configurator.mergedSchemas)
     }
 }
 

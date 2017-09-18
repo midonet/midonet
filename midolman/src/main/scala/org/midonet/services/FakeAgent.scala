@@ -73,7 +73,7 @@ object FakeAgent extends App {
     val metrics = new MetricRegistry
     val configurator = MidoNodeConfigurator(curator)
     val config = new MidolmanConfig(configurator.runtimeConfig(hostId),
-                                    configurator.mergedSchemas())
+                                    configurator.mergedSchemas)
     val backendConfig = config.zookeeper
     val reactor = new TryCatchReactor("zookeeper", 1);
     val backendService = new MidonetBackendService(
