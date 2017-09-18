@@ -388,7 +388,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * These sources are system properties, environment variables and
      * configuration files.
      */
-    def localOnlyConfig: Config = ConfigFactory.systemEnvironment().withFallback(legacyConfigFile)
+    lazy val localOnlyConfig: Config = ConfigFactory.systemEnvironment().withFallback(legacyConfigFile)
 
     /**
      * Returns the WritableConf that points to the centrally stored configuration
@@ -455,18 +455,18 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         _templateMappings.unset(node.toString)
     }
 
-    def listTemplates: Seq[String] = zk.getChildren.forPath(s"/config/templates")
+    lazy val listTemplates: Seq[String] = zk.getChildren.forPath(s"/config/templates")
 
-    def listSchemas: Seq[String] = zk.getChildren.forPath(s"/config/schemas")
+    lazy val listSchemas: Seq[String] = zk.getChildren.forPath(s"/config/schemas")
 
-    def listPerNodeConfigs: Seq[String] = zk.getChildren.forPath(s"/config/nodes")
+    lazy val listPerNodeConfigs: Seq[String] = zk.getChildren.forPath(s"/config/nodes")
 
-    def mergedSchemas(): Config = {
+    lazy val mergedSchemas: Config = {
         (listSchemas map (schema(_).closeAfter(_.get))).
             fold(ConfigFactory.empty)((a, b) => a.withFallback(b))
     }
 
-    def observableMergedSchemas(): Observable[Config] = {
+    lazy val observableMergedSchemas: Observable[Config] = {
         (listSchemas map (schema(_).observable)).
             fold(Observable.just(ConfigFactory.empty))((a, b) => combine(a, b))
     }
@@ -476,7 +476,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * of keys that are missing from the schemas and thus could not be validated
      */
     def validate(newConf: Config): Seq[String] = {
-        val schemas = mergedSchemas().resolve()
+        val schemas = mergedSchemas.resolve()
         val validationConf = newConf.withFallback(schemas).resolve()
         var unverified: List[String] = List.empty
 
@@ -521,7 +521,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         centralPerNodeConfig(node).closeAfter(_.get).
             withFallback(templateByNodeId(node).closeAfter(_.get)).
             withFallback(templateByName("default").closeAfter(_.get)).
-            withFallback(mergedSchemas())
+            withFallback(mergedSchemas)
 
     private def combine(c1: Observable[Config], c2: Observable[Config]): Observable[Config] = {
         Observable.combineLatest(c1, c2,
@@ -541,7 +541,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         combine(centralPerNodeConfig(node),
                 combine(observableTemplateForNode(node),
                         combine(templateByName("default"),
-                                observableMergedSchemas())))
+                                observableMergedSchemas)))
     }
 
     /**
