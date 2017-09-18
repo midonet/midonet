@@ -20,7 +20,6 @@ import java.net.URI
 import java.util.concurrent.ExecutorService
 
 import scala.collection.JavaConverters._
-import scala.reflect.runtime.universe._
 import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
@@ -107,7 +106,7 @@ trait MidonetDiscovery {
       * @param serviceName is the name of the desired service
       */
 
-    def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+    def getClient[S](serviceName: String)
     : MidonetDiscoveryClient[S]
 
      /** Returns a [[MidonetServiceHandler]] handle necessary to register the
@@ -190,9 +189,9 @@ class MidonetDiscoveryImpl @Inject()(curator: CuratorFramework,
 
     def stop(): Unit = discoveryService.close()
 
-    def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+    def getClient[S](serviceName: String)
     : MidonetDiscoveryClient[S] = {
-        val init0 = System.nanoTime()
+        val init0 = MidonetBackendService.mark("INSIDE ACTUAL GETCLIENT -> top of getClient", MidonetBackendService.last)
         val clt = new MidonetDiscoveryClientImpl[S](serviceName, discoveryService, executor)
         MidonetBackendService.mark("INSIDE ACTUAL GETCLIENT -> AFTER instantiate midonet discovery client impl", init0)
         clt
@@ -251,12 +250,14 @@ trait MidonetDiscoveryClient[S] {
 import org.midonet.cluster.services.MidonetBackendService.mark
 private[discovery] final class MidonetDiscoveryClientImpl[S](
         serviceName: String, serviceDiscovery: ServiceDiscovery[Void],
-        executor: ExecutorService)(implicit val tag: TypeTag[S])
+        executor: ExecutorService)
     extends MidonetDiscoveryClient[S]{
 
     val init0 = System.nanoTime()
 
     private val log = Logger(LoggerFactory.getLogger(ServiceDiscoveryLog))
+
+    val init00 = mark("INSIDE CLIENT INSTANTIATE -> After logger", init0)
 
     private val updates = BehaviorSubject.create[Seq[S]]
 
@@ -309,11 +310,11 @@ private[discovery] final class MidonetDiscoveryClientImpl[S](
 
     private def asMidonetService(instance: ServiceInstance[Void]): Option[S] = {
         (instance.getAddress, instance.getPort, instance.getUriSpec) match {
-            case (address: String, port: Integer, _)
-                if typeOf[S] =:= typeOf[MidonetServiceHostAndPort] =>
+            case (address: String, port: Integer, _) =>
+                //if tag.tpe =:= typeOf[MidonetServiceHostAndPort] =>
                 Option(MidonetServiceHostAndPort(address, port).asInstanceOf[S])
-            case (_, _, uri: UriSpec)
-                if typeOf[S] =:= typeOf[MidonetServiceURI] =>
+            case (_, _, uri: UriSpec) =>
+                //if tag.tpe =:= typeOf[MidonetServiceURI] =>
                 Option(MidonetServiceURI(new URI(uri.build)).asInstanceOf[S])
             case _ =>
                 // We filter those instances that do not comply with the
