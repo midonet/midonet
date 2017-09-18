@@ -50,6 +50,7 @@ import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZoomSerializer._
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId, getIdString}
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException, PathCacheClosedException}
@@ -529,6 +530,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     protected override def onBuild(assertInitialization: Boolean): Unit = {
         Log.info(s"Initializing NSDB version ${Storage.ProductVersion}:" +
                  s"${Storage.ProductCommit}")
+        val init = System.nanoTime()
         super.onBuild(assertInitialization)
         if (assertInitialization) {
             ensureClassNodes()
@@ -536,6 +538,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         }
         lockFreeAndWatch(async = false)
         metrics.build(this)
+        MidonetBackendService.mark("onBuild ensure nodes?", init)
     }
 
     /**
