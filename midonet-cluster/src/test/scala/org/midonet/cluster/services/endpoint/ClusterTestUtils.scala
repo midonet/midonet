@@ -131,7 +131,7 @@ object ClusterTestUtils {
     def createInjector(m: TestModule[_], storageClasses: Class[_]*): Injector = {
         val injector = Guice.createInjector(m)
         val store = injector.getInstance(classOf[MidonetBackend]).store
-        storageClasses.foreach(store.registerClass)
+        storageClasses.foreach(store.registerClass(_))
         store.build()
         injector
     }

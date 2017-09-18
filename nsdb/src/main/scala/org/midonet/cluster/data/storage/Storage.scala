@@ -145,7 +145,7 @@ object Storage {
     private[storage] final class MessageClassInfo(clazz: Class[_])
         extends ClassInfo(clazz) {
 
-        private val idFieldDesc =
+        private lazy val idFieldDesc =
             ProtoFieldBinding.getMessageField(clazz, FieldBinding.ID_FIELD)
 
         def idOf(obj: Obj) = obj.asInstanceOf[Message].getField(idFieldDesc)
@@ -154,9 +154,11 @@ object Storage {
     private[storage] final class JavaClassInfo(clazz: Class[_])
         extends ClassInfo(clazz) {
 
-        private val idField = clazz.getDeclaredField(FieldBinding.ID_FIELD)
-
-        idField.setAccessible(true)
+        private lazy val idField = {
+            val field = clazz.getDeclaredField(FieldBinding.ID_FIELD)
+            field.setAccessible(true)
+            field
+        }
 
         def idOf(obj: Obj) = idField.get(obj)
     }
@@ -328,8 +330,12 @@ trait Storage extends ReadOnlyStorage {
       * Registers a new object class in storage.
       */
     @throws[IllegalArgumentException]
-    final def registerClass(clazz: Class[_]): Unit = mutex.synchronized {
+    final def registerClass(clazz: Class[_], assertInitialization: Boolean = true)
+    : Unit = mutex.synchronized {
         assertNotBuilt()
+        if (assertInitialization) {
+            assertClassIdField(clazz)
+        }
 
         val name = clazz.getSimpleName
         if (classNames.contains(name)) {
@@ -344,6 +350,7 @@ trait Storage extends ReadOnlyStorage {
 
         onRegisterClass(clazz)
     }
+
 
     /**
       * Declares a field binding between the specified fields of the given
@@ -386,13 +393,13 @@ trait Storage extends ReadOnlyStorage {
       * methods such as CRUD operations and subscribe().
       */
     @throws[IllegalStateException]
-    final def build(ensureNodes: Boolean = true): Unit = mutex.synchronized {
+    final def build(assertInitialization: Boolean = true): Unit = mutex.synchronized {
         assertNotBuilt()
 
         currentClasses = classInfo.toMap
         currentBindings = Multimaps.unmodifiableListMultimap(fieldBindings)
 
-        onBuild(ensureNodes)
+        onBuild(assertInitialization)
         built = true
     }
 
@@ -425,6 +432,27 @@ trait Storage extends ReadOnlyStorage {
         }
     }
 
+    /**
+      * Verifies whether the object class contains an id field.
+      */
+    @throws[IllegalArgumentException]
+    @inline protected final def assertClassIdField(clazz: Class[_]): Unit = {
+        assertNotBuilt()
+        try {
+            if (classOf[Message].isAssignableFrom(clazz)) {
+                ProtoFieldBinding.getMessageField(clazz, FieldBinding.ID_FIELD)
+            } else {
+                clazz.getDeclaredField(FieldBinding.ID_FIELD).setAccessible(true)
+            }
+        } catch {
+            case NonFatal(e) =>
+                throw new IllegalArgumentException(
+                    s"Class $clazz does not have a field named 'id', or the " +
+                    "field could not be made accessible.", e)
+        }
+    }
+
+
     /** Whether the instance is ready to service requests */
     @inline final def isBuilt: Boolean = built
 
@@ -455,6 +483,6 @@ trait Storage extends ReadOnlyStorage {
       * Called when the storage is built. This allows derived classes to perform
       * further storage initialization.
       */
-    protected def onBuild(ensureNodes: Boolean): Unit = { }
+    protected def onBuild(assertInitialization: Boolean): Unit = { }
 
 }

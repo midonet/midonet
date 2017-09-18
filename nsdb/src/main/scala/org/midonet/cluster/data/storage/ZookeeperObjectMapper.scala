@@ -526,12 +526,11 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     /**
       * @see [[Storage.onBuild()]]
       */
-    protected override def onBuild(ensureNodes: Boolean): Unit = {
+    protected override def onBuild(assertInitialization: Boolean): Unit = {
         Log.info(s"Initializing NSDB version ${Storage.ProductVersion}:" +
                  s"${Storage.ProductCommit}")
-
-        super.onBuild(ensureNodes)
-        if (ensureNodes) {
+        super.onBuild(assertInitialization)
+        if (assertInitialization) {
             ensureClassNodes()
             ensureStateTableNodes()
         }
