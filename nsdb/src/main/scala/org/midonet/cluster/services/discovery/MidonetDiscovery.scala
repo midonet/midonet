@@ -20,7 +20,7 @@ import java.net.URI
 import java.util.concurrent.ExecutorService
 
 import scala.collection.JavaConverters._
-import scala.reflect.runtime.universe._
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
@@ -106,7 +106,7 @@ trait MidonetDiscovery {
       * @param serviceName is the name of the desired service
       */
 
-    def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+    def getClient[S](serviceName: String)(implicit tag: ClassTag[S])
     : MidonetDiscoveryClient[S]
 
      /** Returns a [[MidonetServiceHandler]] handle necessary to register the
@@ -189,7 +189,7 @@ class MidonetDiscoveryImpl @Inject()(curator: CuratorFramework,
 
     def stop(): Unit = discoveryService.close()
 
-    def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+    def getClient[S](serviceName: String)(implicit tag: ClassTag[S])
     : MidonetDiscoveryClient[S] = {
         new MidonetDiscoveryClientImpl[S](serviceName, discoveryService, executor)
     }
@@ -246,7 +246,7 @@ trait MidonetDiscoveryClient[S] {
 
 private[discovery] final class MidonetDiscoveryClientImpl[S](
         serviceName: String, serviceDiscovery: ServiceDiscovery[Void],
-        executor: ExecutorService)(implicit val tag: TypeTag[S])
+        executor: ExecutorService)(implicit val tag: ClassTag[S])
     extends MidonetDiscoveryClient[S]{
 
     private val log = Logger(LoggerFactory.getLogger(ServiceDiscoveryLog))
@@ -291,10 +291,10 @@ private[discovery] final class MidonetDiscoveryClientImpl[S](
     private def asMidonetService(instance: ServiceInstance[Void]): Option[S] = {
         (instance.getAddress, instance.getPort, instance.getUriSpec) match {
             case (address: String, port: Integer, _)
-                if typeOf[S] =:= typeOf[MidonetServiceHostAndPort] =>
+                if tag.runtimeClass == classOf[MidonetServiceHostAndPort] =>
                 Option(MidonetServiceHostAndPort(address, port).asInstanceOf[S])
             case (_, _, uri: UriSpec)
-                if typeOf[S] =:= typeOf[MidonetServiceURI] =>
+                if tag.runtimeClass == classOf[MidonetServiceURI] =>
                 Option(MidonetServiceURI(new URI(uri.build)).asInstanceOf[S])
             case _ =>
                 // We filter those instances that do not comply with the
