@@ -104,10 +104,10 @@ class MidonetBackendService(config: MidonetBackendConfig,
             }
         }
 
-        override def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+        override def getClient[S](serviceName: String)
         : MidonetDiscoveryClient[S] = {
             if (config.enableDiscovery) {
-                discoveryService.getClient(serviceName)(tag)
+                discoveryService.getClient(serviceName)
             } else {
                 throw new UnsupportedOperationException("Service discovery disabled")
             }

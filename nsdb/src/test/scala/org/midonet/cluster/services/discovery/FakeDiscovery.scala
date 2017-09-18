@@ -62,8 +62,7 @@ class FakeDiscovery extends MidonetDiscovery {
         // Do nothing
     }
 
-    override def getClient[S](serviceName: String)
-                             (implicit tag: TypeTag[S]) =
+    override def getClient[S](serviceName: String) =
         new FakeDiscoveryClient[S](serviceName)
 
     override def registerServiceInstance(serviceName: String,

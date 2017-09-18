@@ -106,7 +106,7 @@ trait MidonetDiscovery {
       * @param serviceName is the name of the desired service
       */
 
-    def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+    def getClient[S](serviceName: String)
     : MidonetDiscoveryClient[S]
 
      /** Returns a [[MidonetServiceHandler]] handle necessary to register the
@@ -189,7 +189,7 @@ class MidonetDiscoveryImpl @Inject()(curator: CuratorFramework,
 
     def stop(): Unit = discoveryService.close()
 
-    def getClient[S](serviceName: String)(implicit tag: TypeTag[S])
+    def getClient[S](serviceName: String)
     : MidonetDiscoveryClient[S] = {
         new MidonetDiscoveryClientImpl[S](serviceName, discoveryService, executor)
     }
