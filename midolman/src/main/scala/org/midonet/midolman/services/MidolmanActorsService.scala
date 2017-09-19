@@ -21,8 +21,8 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.{ask, gracefulStop}
@@ -149,7 +149,7 @@ class MidolmanActorsService extends AbstractService {
             var stopFutures = childrenActors map stopActor
             stopFutures ::= stopActor(supervisorActor)
             val aggregationTimeout = ChildActorStopTimeout * stopFutures.length
-            Await.result(Future.sequence(stopFutures), aggregationTimeout)
+            //Await.result(Future.sequence(stopFutures), aggregationTimeout)
             log.info("All actors stopped successfully")
         } catch {
             case NonFatal(e) =>
