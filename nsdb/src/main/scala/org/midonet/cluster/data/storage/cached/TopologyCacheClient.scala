@@ -24,6 +24,7 @@ import com.google.common.net.HostAndPort
 
 import org.apache.commons.io.IOUtils
 import org.apache.http.HttpException
+import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
 import org.apache.http.impl.client.HttpClients
 import org.slf4j.LoggerFactory
@@ -33,6 +34,10 @@ import org.midonet.util.logging.Logger
 
 import io.netty.handler.codec.http.HttpResponseStatus
 
+object TopologyCacheClient {
+    val SocketTimeoutMillis: Int = 500
+}
+
 trait TopologyCacheClient {
     def fetch(): Array[Byte]
 }
@@ -41,7 +46,16 @@ abstract class TopologyCacheClientBase extends TopologyCacheClient {
 
     private val log = Logger(LoggerFactory.getLogger(this.getClass))
 
-    private val client = HttpClients.custom().disableContentCompression().build()
+    private val client = {
+        val requestConfig = RequestConfig.custom()
+            .setSocketTimeout(TopologyCacheClient.SocketTimeoutMillis)
+            .build()
+
+        HttpClients.custom()
+            .setDefaultRequestConfig(requestConfig)
+            .disableContentCompression()
+            .build()
+    }
 
     protected def ssl: Option[SSLContext]
     protected def url: URI
