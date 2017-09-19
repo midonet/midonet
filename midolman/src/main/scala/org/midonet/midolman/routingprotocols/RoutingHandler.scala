@@ -18,8 +18,7 @@ package org.midonet.midolman.routingprotocols
 import java.io.File
 import java.util.UUID
 
-import scala.collection.breakOut
-import scala.collection.mutable
+import scala.collection.{breakOut, mutable}
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -52,7 +51,7 @@ import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
+import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError, OnStop}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.{AfUnix, UnixClock}
@@ -442,6 +441,12 @@ abstract class RoutingHandler(var routerPort: RouterPort,
             log.debug("BGP port and configuration changed {} {}", port, router)
             portUpdated(port).flatMap[Any] { _ =>
                 configurationUpdated(router, neighborIds)
+            }(singleThreadExecutionContext)
+
+        case OnStop =>
+            log.debug("Request to stop routing handler: stopping BGP daemon.")
+            stopBgpd().andThen {
+                case _ => sender ! "Done"
             }(singleThreadExecutionContext)
 
         case OnError(BgpPortDeleted(portId)) =>
