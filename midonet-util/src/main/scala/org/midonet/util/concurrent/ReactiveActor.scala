@@ -24,6 +24,7 @@ object ReactiveActor {
     sealed trait ReactiveAction
     case class OnError(e: Throwable) extends ReactiveAction
     case object OnCompleted extends ReactiveAction
+    case object OnStop extends ReactiveAction
 
 }
 
