@@ -18,8 +18,7 @@ package org.midonet.midolman.routingprotocols
 import java.io.File
 import java.util.UUID
 
-import scala.collection.breakOut
-import scala.collection.mutable
+import scala.collection.{breakOut, mutable}
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -52,7 +51,7 @@ import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
+import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError, RoutingHandlerStopped, StopRoutingHandler}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.{AfUnix, UnixClock}
@@ -316,6 +315,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
     private var zookeeperConnected = true
     private var portActive = true
+    private var stopping = false
 
     protected[this] var bgpSubscription: Subscription = _
 
@@ -323,7 +323,8 @@ abstract class RoutingHandler(var routerPort: RouterPort,
         zookeeperConnected &&
         portActive &&
         bgpConfig.as > 0 &&
-        (isContainer || bgpConfig.neighbors.nonEmpty)
+        (isContainer || bgpConfig.neighbors.nonEmpty) &&
+        !stopping
     }
 
     protected def createDpPort(port: String): Future[(DpPort, Int)]
@@ -442,6 +443,13 @@ abstract class RoutingHandler(var routerPort: RouterPort,
             log.debug("BGP port and configuration changed {} {}", port, router)
             portUpdated(port).flatMap[Any] { _ =>
                 configurationUpdated(router, neighborIds)
+            }(singleThreadExecutionContext)
+
+        case StopRoutingHandler =>
+            log.debug("Request to stop routing handler: stopping BGP daemon.")
+            stopBgpd().map[Any] { _ =>
+                log.debug("XLDEBUG SENDING DONE from handler!!!!!!!!!!!!")
+                sender ! RoutingHandlerStopped
             }(singleThreadExecutionContext)
 
         case OnError(BgpPortDeleted(portId)) =>
@@ -800,6 +808,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
     private def stopBgpd(): Future[_] = {
         log.debug("Disabling BGP")
+        stopping = true
         clearRoutingWorkflow()
         stopZebra()
 
