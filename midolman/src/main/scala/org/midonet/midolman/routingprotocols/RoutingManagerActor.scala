@@ -106,8 +106,8 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
 
     private implicit val ec: ExecutionContext = context.system.dispatcher
 
-    @Inject
-    override val supervisorStrategy: SupervisorStrategy = null
+    //@Inject
+    //override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
     var zkConnectionProvider: ZkConnectionProvider = null
@@ -287,7 +287,8 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
             case Some(routingHandler) =>
                 log.debug("Stopping BGP routing for port {}", portId)
                 checkZkConnection()
-                context stop routingHandler
+                routingHandler ! OnCompleted
+                //context stop routingHandler
             case None => // ignore
         }
     }

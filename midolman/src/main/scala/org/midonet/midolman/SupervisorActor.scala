@@ -17,8 +17,7 @@ package org.midonet.midolman
 
 import scala.concurrent.duration._
 
-import akka.actor.{Props, SupervisorStrategy, Actor, Status}
-import com.google.inject.Inject
+import akka.actor.{Actor, Props, Status}
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
 
@@ -39,8 +38,8 @@ class SupervisorActor extends Actor with ActorLogWithoutPath {
 
     import SupervisorActor._
 
-    @Inject
-    override val supervisorStrategy: SupervisorStrategy = null
+    //@Inject
+    //override val supervisorStrategy: SupervisorStrategy = null
 
     override def postStop() {
         log.info("Supervisor actor is shutting down")
@@ -49,7 +48,7 @@ class SupervisorActor extends Actor with ActorLogWithoutPath {
     def receive = {
         case StartChild(props, name) =>
             val result = try {
-                import context.{system, dispatcher}
+                import context.{dispatcher, system}
                 context.actorOf(props, name).awaitStart(30 seconds)
             } catch {
                 case t: Throwable =>
