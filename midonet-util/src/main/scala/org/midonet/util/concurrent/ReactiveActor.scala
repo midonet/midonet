@@ -24,6 +24,9 @@ object ReactiveActor {
     sealed trait ReactiveAction
     case class OnError(e: Throwable) extends ReactiveAction
     case object OnCompleted extends ReactiveAction
+    case object StopRoutingHandler extends ReactiveAction
+    case object RoutingHandlerStopped extends ReactiveAction
+    case object RoutingManagerStopped extends ReactiveAction
 
 }
 
