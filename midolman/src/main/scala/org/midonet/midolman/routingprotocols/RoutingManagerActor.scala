@@ -19,10 +19,14 @@ import java.util.UUID
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
+
 import akka.actor._
+
 import com.google.inject.Inject
+
 import rx.Subscription
 import rx.subscriptions.CompositeSubscription
+
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkConnectionProvider}
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider.BGP_ZK_INFRA
 import org.midonet.cluster.data.storage.StateStorage
@@ -42,7 +46,7 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
-import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
+import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError, OnStop}
 import org.midonet.util.concurrent.{ReactiveActor, toFutureOps}
 import org.midonet.util.eventloop.{Reactor, SelectLoop}
 import org.midonet.util.functors._
@@ -287,7 +291,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
             case Some(routingHandler) =>
                 log.debug("Stopping BGP routing for port {}", portId)
                 checkZkConnection()
-                context stop routingHandler
+                routingHandler ! OnStop
             case None => // ignore
         }
     }

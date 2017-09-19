@@ -146,10 +146,7 @@ class MidolmanActorsService extends AbstractService {
         log.info("Stopping all actors")
 
         try {
-            var stopFutures = childrenActors map stopActor
-            stopFutures ::= stopActor(supervisorActor)
-            val aggregationTimeout = ChildActorStopTimeout * stopFutures.length
-            Await.result(Future.sequence(stopFutures), aggregationTimeout)
+            Await.result(stopActor(supervisorActor), ChildActorStopTimeout)
             log.info("All actors stopped successfully")
         } catch {
             case NonFatal(e) =>
