@@ -18,8 +18,7 @@ package org.midonet.midolman.routingprotocols
 import java.io.File
 import java.util.UUID
 
-import scala.collection.breakOut
-import scala.collection.mutable
+import scala.collection.{breakOut, mutable}
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -52,7 +51,7 @@ import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
+import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError, RoutingHandlerStopped, StopRoutingHandler}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.{AfUnix, UnixClock}
@@ -316,6 +315,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
     private var zookeeperConnected = true
     private var portActive = true
+    private var stopping = false
 
     protected[this] var bgpSubscription: Subscription = _
 
@@ -323,7 +323,8 @@ abstract class RoutingHandler(var routerPort: RouterPort,
         zookeeperConnected &&
         portActive &&
         bgpConfig.as > 0 &&
-        (isContainer || bgpConfig.neighbors.nonEmpty)
+        (isContainer || bgpConfig.neighbors.nonEmpty) &&
+        !stopping
     }
 
     protected def createDpPort(port: String): Future[(DpPort, Int)]
@@ -444,6 +445,13 @@ abstract class RoutingHandler(var routerPort: RouterPort,
                 configurationUpdated(router, neighborIds)
             }(singleThreadExecutionContext)
 
+        case StopRoutingHandler =>
+            log.debug("Request to stop routing handler: stopping BGP daemon.")
+            stopBgpd().map[Any] { _ =>
+                log.debug("XLDEBUG SENDING DONE from handler!!!!!!!!!!!!")
+                senderRef ! RoutingHandlerStopped
+            }(singleThreadExecutionContext)
+
         case OnError(BgpPortDeleted(portId)) =>
             log.warn("Port {} deleted: stopping BGP daemon", portId)
             stopBgpd()
@@ -463,9 +471,15 @@ abstract class RoutingHandler(var routerPort: RouterPort,
             stopBgpd()
     }
 
+    private var senderRef: ActorRef = _
+
     override def receive = super.receive orElse {
         case m if eventHandler.isDefinedAt(m) =>
-            belt.handle(() => eventHandler(m))
+            val eventSender = sender()
+            belt.handle(() => {
+                senderRef = eventSender
+                eventHandler(m)
+            })
         case m => log.warn(s"$m: ignoring unrecognized message")
     }
 
@@ -800,6 +814,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
     private def stopBgpd(): Future[_] = {
         log.debug("Disabling BGP")
+        stopping = true
         clearRoutingWorkflow()
         stopZebra()
 

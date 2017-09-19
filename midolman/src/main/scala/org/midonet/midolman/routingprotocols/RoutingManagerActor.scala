@@ -18,13 +18,20 @@ package org.midonet.midolman.routingprotocols
 import java.util.UUID
 
 import scala.collection.mutable
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
+
 import akka.actor._
+import akka.pattern.{ask, pipe}
+import akka.util.Timeout
+
 import com.google.inject.Inject
+
 import rx.Subscription
 import rx.subscriptions.CompositeSubscription
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkConnectionProvider}
+
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider.BGP_ZK_INFRA
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkConnectionProvider}
 import org.midonet.cluster.data.storage.StateStorage
 import org.midonet.cluster.models.Topology.{Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
@@ -42,7 +49,7 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
-import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
+import org.midonet.util.concurrent.ReactiveActor._
 import org.midonet.util.concurrent.{ReactiveActor, toFutureOps}
 import org.midonet.util.eventloop.{Reactor, SelectLoop}
 import org.midonet.util.functors._
@@ -158,6 +165,8 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     @Inject
     var upcallConnManager: UpcallDatapathConnectionManager = null
 
+    var actorsServiceSender: ActorRef = _
+
     private def sendPortActive(portId: UUID) = {
         log.debug("Port {} became active", portId)
         if (!activePorts.contains(portId)) {
@@ -257,11 +266,30 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
         case OnError(e) =>
             log.error("Unhandled exception on BGP port observable", e)
 
+        case RoutingHandlerStopped =>
+            log.debug("XLDEBUG BGP routing handler successfully stopped.")
+            checkZkConnection()
+
         case StopBgpHandlers() =>
-            log.debug("Stopping all BGP handler actors ...")
+            log.debug("XLDEBUG Stopping all BGP handler actors ...")
             stopAllHandlers()
+            context become stopping
 
         case _ => log.error("Unknown message")
+    }
+
+    private def stopping: Actor.Receive = {
+        case RoutingHandlerStopped =>
+            log.debug("XLDEBUG BGP routing handler successfully stopped.")
+            checkZkConnection()
+            if (bgpActorCount == 0) {
+                log.debug("XLDEBUG ALL BGP routing handlers stopped. " +
+                          "Notify MidolmanActors service.")
+                actorsServiceSender ! RoutingManagerStopped
+            }
+
+        case unhandled =>
+            log.debug(s"Actor stopping, ignoring message: $unhandled")
     }
 
     override def preStart(): Unit = {
@@ -276,18 +304,22 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
         portsSubscription.unsubscribe()
     }
 
-    private def stopAllHandlers(): Unit = portHandlers.keys foreach stopHandler
+    private def stopAllHandlers(): Unit = {
+        portHandlers.keys foreach stopHandler
+        log.debug("XLDEBUG stopAllHandlers sending done! to actor service")
+        actorsServiceSender = sender()
+    }
 
     /** Stops the routing handler for the specified port identifier. Upon
       * completion of the handler termination, the actor will receive a
       * [[HandlerStop]] if the stop was successful, or [[HandlerStopError]]
       * otherwise. */
+    implicit val duration: Timeout = new Timeout(1 second)
     private def stopHandler(portId: UUID): Unit = {
         portHandlers remove portId match {
             case Some(routingHandler) =>
                 log.debug("Stopping BGP routing for port {}", portId)
-                checkZkConnection()
-                context stop routingHandler
+                routingHandler ? StopRoutingHandler pipeTo self
             case None => // ignore
         }
     }
