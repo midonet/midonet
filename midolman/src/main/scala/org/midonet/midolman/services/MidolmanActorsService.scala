@@ -21,8 +21,8 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.{ask, gracefulStop}
