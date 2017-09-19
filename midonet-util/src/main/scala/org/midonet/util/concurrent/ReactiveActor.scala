@@ -15,6 +15,8 @@
  */
 package org.midonet.util.concurrent
 
+import java.util.UUID
+
 import akka.actor.Actor
 
 import rx.Observer
@@ -24,6 +26,9 @@ object ReactiveActor {
     sealed trait ReactiveAction
     case class OnError(e: Throwable) extends ReactiveAction
     case object OnCompleted extends ReactiveAction
+    case object StopRoutingHandler extends ReactiveAction
+    case class RoutingHandlerStopped(id: UUID) extends ReactiveAction
+    case object RoutingManagerStopped extends ReactiveAction
 
 }
 

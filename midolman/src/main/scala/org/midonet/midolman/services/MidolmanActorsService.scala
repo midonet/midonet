@@ -21,7 +21,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
@@ -133,23 +132,11 @@ class MidolmanActorsService extends AbstractService {
     }
 
     protected override def doStop() {
-        log.info("Stopping BGP handler actors")
-        val path = system / SupervisorActor.Name / RoutingManagerActor.Name
-        Await.ready(system.actorSelection(path).resolveOne(),
-                    ChildActorStopTimeout).onComplete {
-            case Success(routingActor) =>
-                routingActor ! StopBgpHandlers()
-            case Failure(_) =>
-                log.warn(s"Unable to get ${RoutingManagerActor.Name} actor")
-        }
-
         log.info("Stopping all actors")
-
         try {
-            var stopFutures = childrenActors map stopActor
-            stopFutures ::= stopActor(supervisorActor)
-            val aggregationTimeout = ChildActorStopTimeout * stopFutures.length
-            Await.result(Future.sequence(stopFutures), aggregationTimeout)
+            stopRoutingHandlerActors()
+
+            Await.result(stopActor(supervisorActor), ChildActorStopTimeout * actorSpecs.length)
             log.info("All actors stopped successfully")
         } catch {
             case NonFatal(e) =>
@@ -179,6 +166,17 @@ class MidolmanActorsService extends AbstractService {
 
     def propsFor[T <: Actor: ClassTag](actorClass: Class[T]) =
         Props { injector.getInstance(actorClass) }
+
+    protected def stopRoutingHandlerActors() = {
+        log.info("Stopping BGP handler actors")
+        val path = system / SupervisorActor.Name / RoutingManagerActor.Name
+        val routingActor = Await.result(system.actorSelection(path).resolveOne(),
+                                        ChildActorStopTimeout)
+        val routingActorStopped = routingActor ? StopBgpHandlers()
+        log.debug("Awaiting for the routing manager actor to finish stopping" +
+                  "its child routing handler actors.")
+        Await.result(routingActorStopped, ActorsStopTimeout)
+    }
 
     protected def stopActor(actorRef: ActorRef) = {
         log.info("Stopping actor: {}", actorRef.toString())

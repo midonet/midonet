@@ -116,4 +116,6 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
         actors += (name -> testRef)
         Future successful testRef
     }
+
+    override protected def stopRoutingHandlerActors() = {}
 }
