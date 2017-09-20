@@ -35,8 +35,7 @@ import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster._
-import org.midonet.cluster.conf.StateProxyConfig
+import org.midonet.cluster.{StateProxyConfig, _}
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHandler}
 import org.midonet.cluster.services.state.server.ChannelUtil._
 import org.midonet.cluster.services.state.server.StateProxyServer._

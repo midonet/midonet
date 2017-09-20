@@ -23,7 +23,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 import org.midonet.minion.ScheduledMinion
 import ScheduledMinion.CfgParamUndefErrMsg
-import org.midonet.cluster.conf.C3POConfig
+import org.midonet.cluster.C3POConfig
 
 @RunWith(classOf[JUnitRunner])
 class C3POConfigValidationTest extends FlatSpec with Matchers {

@@ -28,9 +28,8 @@ import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.apache.curator.retry.ExponentialBackoffRetry
 
-import org.midonet.cluster.TopologyCacheLog
+import org.midonet.cluster.{ClusterConfig, TopologyCacheLog}
 import org.midonet.cluster.cache._
-import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.endpoint.users.HttpByteBufferEndpointUser
 import org.midonet.minion.MinionService.TargetNode
