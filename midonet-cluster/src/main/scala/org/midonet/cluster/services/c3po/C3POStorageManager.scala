@@ -32,8 +32,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.TranslationException
 import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.cluster.C3poStorageManagerLog
-import org.midonet.cluster.conf.ClusterConfig
+import org.midonet.cluster.{C3poStorageManagerLog, ClusterConfig}
 
 object C3POStorageManager {
 

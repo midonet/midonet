@@ -32,9 +32,8 @@ import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.{Observable, Observer, Subscriber}
 
-import org.midonet.cluster._
+import org.midonet.cluster.{ClusterConfig, _}
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher
-import org.midonet.cluster.conf.ClusterConfig
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Vtep
 import org.midonet.cluster.services.MidonetBackend.VtepVxgwManager

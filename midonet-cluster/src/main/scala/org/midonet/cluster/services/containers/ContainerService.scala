@@ -35,8 +35,7 @@ import rx.{Observer, Subscription}
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.containers.schedulers._
 import org.midonet.cluster.services._
-import org.midonet.cluster.ContainersLog
-import org.midonet.cluster.conf.ClusterConfig
+import org.midonet.cluster.{ClusterConfig, ContainersLog}
 import org.midonet.containers
 import org.midonet.containers.{Container, ContainerDelegate}
 import org.midonet.minion.MinionService.TargetNode

@@ -28,7 +28,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.observers.TestObserver
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.conf.ContainersConfig
+import org.midonet.cluster.ContainersConfig
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.models.Topology.{Port, ServiceContainer, ServiceContainerPolicy}
 import org.midonet.cluster.services.MidonetBackend
