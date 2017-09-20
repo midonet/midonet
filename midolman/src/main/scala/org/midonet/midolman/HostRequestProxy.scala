@@ -174,7 +174,7 @@ class HostRequestProxy(hostId: UUID,
                               s"from $source")
                     backChannel tell stateBatch
                 case Failure(e) =>
-                    log.warn(s"Failed to fetch state from $source", e)
+                    log.warn(s"Failed to fetch state from $source: ${e.getMessage}")
             }(singleThreadExecutionContext)
 
     private def mergedBatches(batches: Iterable[Future[FlowStateBatch]]) =
