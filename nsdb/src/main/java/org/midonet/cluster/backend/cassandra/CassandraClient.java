@@ -218,7 +218,8 @@ public class CassandraClient {
             sessionPromise.success(session);
 
         } catch (Exception e) {
-            log.error("Connection to Cassandra key space " + keyspaceName + " FAILED", e);
+            log.warn("Connection to Cassandra key space " + keyspaceName +
+                      " FAILED: " + e.getMessage());
             if (this.session != null) {
                 this.session.close();
                 this.session = null;
@@ -230,8 +231,9 @@ public class CassandraClient {
     }
 
     private void scheduleReconnect(final int retries) {
-        log.info("Scheduling Cassandra reconnection retry");
         if (retries > 0) {
+            log.info("Scheduling Cassandra reconnection retry ({} retries left).",
+                     retries);
             theReactor.schedule(new Runnable() {
                 @Override
                 public void run() {
@@ -242,7 +244,7 @@ public class CassandraClient {
                 }
             }, 30, TimeUnit.SECONDS);
         } else {
-            log.error("Unable to connect to cassandra after 10 retries, giving up");
+            log.warn("Unable to connect to cassandra after 10 retries, giving up");
             sessionPromise.tryFailure(new Exception("Unable to connect to Cassandra"));
         }
     }
