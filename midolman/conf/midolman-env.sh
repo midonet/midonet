@@ -81,6 +81,9 @@ JVM_OPTS="$JVM_OPTS -XX:NumberOfGCLogFiles=10"
 JVM_OPTS="$JVM_OPTS -XX:GCLogFileSize=10M"
 JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midolman/gc-`date +%Y%m%d_%H%M%S`.log"
 
+# set Netlink connection buffer size (in bytes - defaults to 2MB if empty)
+# JVM_OPTS="$JVM_OPTS -Dmidonet.netlink.buffer_size=2097152"
+
 # uncomment to have Midolman JVM listen for remote debuggers/profilers on port 1414
 # JVM_OPTS="$JVM_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1414"
 

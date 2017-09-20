@@ -40,7 +40,7 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
     private static final Logger log =
         LoggerFactory.getLogger("org.midonet.netlink.channel");
 
-    /* Set the RCVBUF size to 2MB.
+    /* Set the RCVBUF size to the received JVM argument, or default to 2MB.
      *
      * Since we are disabling ENOBUFS errors below, a bigger buffer size cannot
      * hurt us. Had we not, a big size could cause msgs to be dropped for too
@@ -51,7 +51,10 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
      * room to fall behind and then catch up without losing messages under
      * heavy traffic/load.
      */
-    private final static int RCVBUF_SIZE = 2 * 1024 * 1024;
+    private final static String RCVBUF_SIZE_PROPERTY_KEY =
+        "midonet.netlink.buffer_size";
+    private final static int DEFAULT_RCVBUF_SIZE = 2 * 1024 * 1024;
+    private final static int RCVBUF_SIZE = getBufferSizeOrDefault();
 
     private Selector selector = null;
 
@@ -252,5 +255,24 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         if (selector != null)
             selector.close();
         super.implCloseSelectableChannel();
+    }
+
+    private static int getBufferSizeOrDefault() {
+        int size = DEFAULT_RCVBUF_SIZE;
+        String sizeArg = System.getProperty(RCVBUF_SIZE_PROPERTY_KEY);
+
+        if (sizeArg != null) {
+            try {
+                size = Integer.parseInt(sizeArg);
+            } catch (Exception ex) {
+                log.warn("Illegal JVM option for {}: {}. Using default value of"
+                         + " {}", RCVBUF_SIZE_PROPERTY_KEY, sizeArg, DEFAULT_RCVBUF_SIZE);
+            }
+        } else {
+            log.warn("{} value not set in JVM args, using default value of {} "
+                     + "bytes", RCVBUF_SIZE_PROPERTY_KEY, DEFAULT_RCVBUF_SIZE);
+        }
+
+        return size;
     }
 }
