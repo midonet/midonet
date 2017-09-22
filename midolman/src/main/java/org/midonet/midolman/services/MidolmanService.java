@@ -27,6 +27,8 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Inject;
+
+import org.midonet.insights.Insights;
 import org.midonet.midolman.host.services.QosService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +91,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject(optional = true)
     SimpleHTTPServerService statsHttpService;
+
+    @Inject(optional = true)
+    Insights insights;
 
     private JmxReporter jmxReporter = null;
 
@@ -182,7 +187,7 @@ public class MidolmanService extends AbstractService {
     }
 
     private List<Service> services() {
-        ArrayList<Service> services = new ArrayList<>(10);
+        ArrayList<Service> services = new ArrayList<>(12);
         // Virtual Topology Service should go first as other services rely on it
         services.add(virtualTopology);
         services.add(datapathService);
@@ -197,6 +202,8 @@ public class MidolmanService extends AbstractService {
         services.add(qosService);
         if (statsHttpService != null)
             services.add(statsHttpService);
+        if (insights != null)
+            services.add(insights);
         return services;
     }
 }

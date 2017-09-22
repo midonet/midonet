@@ -516,8 +516,7 @@ class PacketWorkflow(
         }
 
         meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
-        insights.flowSimulation(pktCtx.cookie, pktCtx.packet, pktCtx.inputPort,
-                                pktCtx.origMatch, pktCtx.flowTags, simRes)
+        insights.flowSimulation(pktCtx, simRes)
         flowRecorder.record(pktCtx, simRes)
     }
 
