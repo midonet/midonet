@@ -18,33 +18,38 @@ package org.midonet.insights;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nonnull;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Strings;
+import com.google.common.util.concurrent.AbstractService;
+import com.google.common.util.concurrent.Service;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.PacketWorkflow;
-import org.midonet.midolman.config.InsightsConfig;
+import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMetadata;
-import org.midonet.odp.Packet;
 import org.midonet.sdn.flows.FlowTagger;
 
 /**
- * Provides a pluggable mechanism for collecting analytics data from this
+ * Provides a plug-able mechanism for collecting analytics data from this
  * MidoNet Agent.
  */
 @SuppressWarnings("unused")
-public final class Insights {
+public final class Insights extends AbstractService {
 
     private static final Logger LOG = LoggerFactory.getLogger(Insights.class);
 
-    interface Listener {
+    interface Listener extends Service {
 
         /**
          * Records adding a new flow. Implementations this method must be
@@ -63,18 +68,10 @@ public final class Insights {
          * Implementations of this method must be lock-free, do not allocate
          * heap memory and be thread-safe.
          *
-         * @param cookie The simulation cookie.
-         * @param packet The simulated packet.
-         * @param inputPort The input port.
-         * @param flowMatch The flow match.
-         * @param flowTags The flow tags.
+         * @param context The packet context.
          * @param result The simulation result.
          */
-        void flowSimulation(long cookie,
-                            Packet packet,
-                            UUID inputPort,
-                            FlowMatch flowMatch,
-                            List<FlowTagger.FlowTag> flowTags,
+        void flowSimulation(PacketContext context,
                             PacketWorkflow.SimulationResult result);
 
         /**
@@ -89,23 +86,70 @@ public final class Insights {
         void flowDeleted(FlowMatch flowMatch, FlowMetadata metadata);
     }
 
-    private static final Listener EMPTY_LISTENER = new Listener() {
+    private static final class EmptyListener implements Listener {
         @Override
+
         public void flowAdded(FlowMatch flowMatch,
                               List<FlowTagger.FlowTag> flowTags,
                               long expiration) { }
 
         @Override
-        public void flowSimulation(long cookie,
-                                   Packet packet,
-                                   UUID inputPort,
-                                   FlowMatch flowMatch,
-                                   List<FlowTagger.FlowTag> flowTags,
+        public void flowSimulation(PacketContext context,
                                    PacketWorkflow.SimulationResult result) { }
 
         @Override
         public void flowDeleted(FlowMatch flowMatch, FlowMetadata metadata) { }
-    };
+
+        @Override
+        public Service startAsync() {
+            return this;
+        }
+
+        @Override
+        public boolean isRunning() {
+            return false;
+        }
+
+        @Override
+        public State state() {
+            return null;
+        }
+
+        @Override
+        public Service stopAsync() {
+            return this;
+        }
+
+        @Override
+        public void awaitRunning() {
+
+        }
+
+        @Override
+        public void awaitRunning(long timeout, TimeUnit unit)
+            throws TimeoutException {
+        }
+
+        @Override
+        public void awaitTerminated() {
+        }
+
+        @Override
+        public void awaitTerminated(long timeout, TimeUnit unit)
+            throws TimeoutException {
+        }
+
+        @Override
+        public Throwable failureCause() {
+            return null;
+        }
+
+        @Override
+        public void addListener(Listener listener, Executor executor) {
+        }
+    }
+
+    private static final Listener EMPTY_LISTENER = new EmptyListener();
 
     public static final Insights NONE = new Insights();
 
@@ -115,27 +159,37 @@ public final class Insights {
         listener = EMPTY_LISTENER;
     }
 
-    public Insights(InsightsConfig conf, MetricRegistry metrics) {
-        if (!conf.enabled() || Strings.isNullOrEmpty(conf.listenerClass())) {
+    public Insights(MidolmanConfig config,
+                    CuratorFramework curator,
+                    MetricRegistry metrics) {
+        if (!config.insights().enabled() ||
+            StringUtils.isBlank(config.insights().listenerClass())) {
             LOG.info("Insights listener not enabled");
             listener = EMPTY_LISTENER;
         } else {
             Listener l = EMPTY_LISTENER;
             try {
                 Class<? extends Listener> clazz = Class.forName(
-                    conf.listenerClass().replaceAll("\\.\\.", "."))
+                    config.insights().listenerClass().replaceAll("\\.\\.", "."))
                     .asSubclass(Listener.class);
-                l = clazz.getConstructor(MetricRegistry.class).newInstance(metrics);
+                l = clazz.getConstructor(MidolmanConfig.class,
+                                         CuratorFramework.class,
+                                         MetricRegistry.class)
+                    .newInstance(config, curator, metrics);
                 LOG.info("Insights listener {} enabled", clazz.getName());
             } catch (ClassNotFoundException e) {
                 LOG.warn(
-                    "Installing insights listener failed: class not found: {}",
-                    conf.listenerClass());
+                    "Installing Insights listener failed: class not found: {}",
+                    config.insights().listenerClass());
             } catch (NoSuchMethodException | InstantiationException |
                      IllegalAccessException | InvocationTargetException e) {
                 LOG.warn(
-                    "Installing insights listener failed: cannot instantiate: {}",
-                         conf.listenerClass(), e);
+                    "Installing Insights listener failed: cannot instantiate: {}",
+                    config.insights().listenerClass(), e);
+            } catch (ClassCastException e) {
+                LOG.warn(
+                    "Installing Insights listener failed: invalid class: {}",
+                    config.insights().listenerClass(), e);
             }
             listener = l;
         }
@@ -160,21 +214,12 @@ public final class Insights {
      * this method is lock-free, does not allocate heap memory and
      * is thread-safe.
      *
-     * @param cookie The simulation cookie.
-     * @param packet The simulated packet.
-     * @param inputPort The input port.
-     * @param flowMatch The flow match.
-     * @param flowTags The flow tags.
+     * @param context The packet context.
      * @param result The simulation result.
      */
-    public void flowSimulation(long cookie,
-                               @Nonnull Packet packet,
-                               @Nonnull UUID inputPort,
-                               @Nonnull FlowMatch flowMatch,
-                               @Nonnull List<FlowTagger.FlowTag> flowTags,
+    public void flowSimulation(@Nonnull PacketContext context,
                                @Nonnull PacketWorkflow.SimulationResult result) {
-        listener.flowSimulation(cookie, packet, inputPort, flowMatch, flowTags,
-                                result);
+        listener.flowSimulation(context, result);
     }
 
     /**
@@ -195,6 +240,18 @@ public final class Insights {
      */
     Listener currentListener() {
         return listener;
+    }
+
+    @Override
+    protected void doStart() {
+        listener.startAsync().awaitRunning();
+        notifyStarted();
+    }
+
+    @Override
+    protected void doStop() {
+        listener.stopAsync().awaitTerminated();
+        notifyStopped();
     }
 
 }
