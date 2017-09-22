@@ -570,14 +570,14 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      */
     def observableRuntimeConfig(node: UUID, includeBundledSchemas: Boolean = true)
     : Observable[Config] = {
-        val bundledSchemas = if (includeBundledSchemas) {
-            Observable.just(mergedBundledSchemas)
+        if (includeBundledSchemas) {
+            combine(Observable.just(localOnlyConfig),
+                    combine(observableCentralConfig(node),
+                            Observable.just(mergedBundledSchemas))) map makeFunc1(_.resolve())
         } else {
-            Observable.empty[Config]()
+            combine(Observable.just(localOnlyConfig),
+                    observableCentralConfig(node)) map makeFunc1(_.resolve())
         }
-        combine(Observable.just(localOnlyConfig),
-                combine(observableCentralConfig(node),
-                        bundledSchemas)) map makeFunc1(_.resolve())
     }
 
     /**
