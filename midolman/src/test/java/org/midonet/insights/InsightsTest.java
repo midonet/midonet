@@ -18,31 +18,39 @@ package org.midonet.insights;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.util.concurrent.AbstractService;
 
+import org.apache.curator.framework.CuratorFramework;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.midonet.midolman.PacketWorkflow;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.FlowMetadata;
-import org.midonet.odp.Packet;
 import org.midonet.sdn.flows.FlowTagger;
 
 public class InsightsTest {
 
-    public static class Listener implements Insights.Listener {
+    public static class Listener
+        extends AbstractService implements Insights.Listener {
 
         int flowsAdded = 0;
         int flowSimulation = 0;
         int flowDeleted = 0;
+        public final MidolmanConfig config;
+        public final CuratorFramework curator;
         public final MetricRegistry metrics;
 
-        public Listener(MetricRegistry metrics) {
+        public Listener(MidolmanConfig config,
+                        CuratorFramework curator,
+                        MetricRegistry metrics) {
+            this.config = config;
+            this.curator = curator;
             this.metrics = metrics;
         }
 
@@ -54,11 +62,7 @@ public class InsightsTest {
         }
 
         @Override
-        public void flowSimulation(long cookie,
-                                   Packet packet,
-                                   UUID inputPort,
-                                   FlowMatch flowMatch,
-                                   List<FlowTagger.FlowTag> flowTags,
+        public void flowSimulation(PacketContext context,
                                    PacketWorkflow.SimulationResult result) {
             flowSimulation++;
         }
@@ -67,20 +71,86 @@ public class InsightsTest {
         public void flowDeleted(FlowMatch flowMatch, FlowMetadata metadata) {
             flowDeleted++;
         }
+
+        @Override
+        protected void doStart() {
+            notifyStarted();
+        }
+
+        @Override
+        protected void doStop() {
+            notifyStopped();
+        }
+    }
+
+    public static class InvalidConstructorListener
+        extends AbstractService implements Insights.Listener {
+
+        @Override
+        public void flowAdded(FlowMatch flowMatch,
+                              List<FlowTagger.FlowTag> flowTags,
+                              long expiration) {
+        }
+
+        @Override
+        public void flowSimulation(PacketContext context,
+                                   PacketWorkflow.SimulationResult result) {
+        }
+
+        @Override
+        public void flowDeleted(FlowMatch flowMatch, FlowMetadata metadata) {
+        }
+
+        @Override
+        protected void doStart() {
+            notifyStarted();
+        }
+
+        @Override
+        protected void doStop() {
+            notifyStopped();
+        }
+    }
+
+    public static class InvalidClassListener {
     }
 
     @Test
     public void testDefaultListener() {
         // Given an empty config and a metric registry.
-        MidolmanConfig conf = MidolmanConfig.forTests(
+        MidolmanConfig config = MidolmanConfig.forTests(
             "agent.insights.listener_class = \"\"");
         MetricRegistry metrics = new MetricRegistry();
 
+        // And a curator instance.
+        CuratorFramework curator = Mockito.mock(CuratorFramework.class);
+
         // When creating an insights instance.
-        Insights insights = new Insights(conf.insights(), metrics);
+        Insights insights = new Insights(config, curator, metrics);
 
         // Then the current listener is not null.
         Assert.assertNotNull(insights.currentListener());
+
+        // And all methods are implemented.
+        insights.flowAdded(Mockito.mock(FlowMatch.class),
+                           Collections.emptyList(),
+                           0L);
+        insights.flowSimulation(new PacketContext(),
+                                PacketWorkflow.NoOp$.MODULE$);
+        insights.flowDeleted(Mockito.mock(FlowMatch.class),
+                             Mockito.mock(FlowMetadata.class));
+
+        // When starting insights.
+        insights.startAsync().awaitRunning();
+
+        // Then insights is started.
+        Assert.assertTrue(insights.currentListener().isRunning());
+
+        // Then stopping insights.
+        insights.stopAsync().awaitTerminated();
+
+        // Then insights is stopped.
+        Assert.assertFalse(insights.currentListener().isRunning());
     }
 
     @Test
@@ -90,8 +160,47 @@ public class InsightsTest {
             "agent.insights.listener_class = \"not.a.listener\"");
         MetricRegistry metrics = new MetricRegistry();
 
+        // And a curator instance.
+        CuratorFramework curator = Mockito.mock(CuratorFramework.class);
+
         // When creating an insights instance.
-        Insights insights = new Insights(conf.insights(), metrics);
+        Insights insights = new Insights(conf, curator, metrics);
+
+        // Then the current listener is not null.
+        Assert.assertNotNull(insights.currentListener());
+    }
+
+    @Test
+    public void testInvalidConstructor() {
+        // Given a non-existing listener and a metric registry.
+        MidolmanConfig conf = MidolmanConfig.forTests(
+            "agent.insights.listener_class = \"" +
+            InvalidConstructorListener.class.getName() + "\"");
+        MetricRegistry metrics = new MetricRegistry();
+
+        // And a curator instance.
+        CuratorFramework curator = Mockito.mock(CuratorFramework.class);
+
+        // When creating an insights instance.
+        Insights insights = new Insights(conf, curator, metrics);
+
+        // Then the current listener is not null.
+        Assert.assertNotNull(insights.currentListener());
+    }
+
+    @Test
+    public void testInvalidClass() {
+        // Given a non-existing listener and a metric registry.
+        MidolmanConfig conf = MidolmanConfig.forTests(
+            "agent.insights.listener_class = \"" +
+            InvalidClassListener.class.getName() + "\"");
+        MetricRegistry metrics = new MetricRegistry();
+
+        // And a curator instance.
+        CuratorFramework curator = Mockito.mock(CuratorFramework.class);
+
+        // When creating an insights instance.
+        Insights insights = new Insights(conf, curator, metrics);
 
         // Then the current listener is not null.
         Assert.assertNotNull(insights.currentListener());
@@ -100,22 +209,27 @@ public class InsightsTest {
     @Test
     public void testSingleListener() throws ClassNotFoundException {
         // Given a valid listener and a metric registry.
-        MidolmanConfig conf = MidolmanConfig.forTests(
+        MidolmanConfig config = MidolmanConfig.forTests(
             "agent.insights.listener_class = \"" + Listener.class.getName() + "\"");
         MetricRegistry metrics = new MetricRegistry();
 
+        // And a curator instance.
+        CuratorFramework curator = Mockito.mock(CuratorFramework.class);
+
         // When creating an insights instance.
-        Insights insights = new Insights(conf.insights(), metrics);
+        Insights insights = new Insights(config, curator, metrics);
 
         // Then the current listener is not null.
         Assert.assertNotNull(insights.currentListener());
 
         // And the current listener is an instance of Listener.
-        Assert.assertEquals(insights.currentListener().getClass(),
-                            Listener.class);
+        Assert.assertEquals(Listener.class,
+                            insights.currentListener().getClass());
 
         // And the listener was passed the metrics.
         Listener listener = (Listener) insights.currentListener();
+        Assert.assertEquals(listener.config, config);
+        Assert.assertEquals(listener.curator, curator);
         Assert.assertEquals(listener.metrics, metrics);
 
         // When adding a flow.
@@ -127,11 +241,7 @@ public class InsightsTest {
         Assert.assertEquals(1, listener.flowsAdded);
 
         // When recording a simulation.
-        insights.flowSimulation(0L,
-                                Mockito.mock(Packet.class),
-                                UUID.randomUUID(),
-                                Mockito.mock(FlowMatch.class),
-                                Collections.emptyList(),
+        insights.flowSimulation(new PacketContext(),
                                 PacketWorkflow.NoOp$.MODULE$);
 
         // Then the call is passed to the listener.
@@ -143,6 +253,32 @@ public class InsightsTest {
 
         // Then the call is passed to the listener.
         Assert.assertEquals(1, listener.flowDeleted);
+    }
+
+    @Test
+    public void testLifecycle() {
+        // Given a valid listener and a metric registry.
+        MidolmanConfig config = MidolmanConfig.forTests(
+            "agent.insights.listener_class = \"" + Listener.class.getName() + "\"");
+        MetricRegistry metrics = new MetricRegistry();
+
+        // And a curator instance.
+        CuratorFramework curator = Mockito.mock(CuratorFramework.class);
+
+        // When creating an insights instance.
+        Insights insights = new Insights(config, curator, metrics);
+
+        // And starting insights.
+        insights.startAsync().awaitRunning();
+
+        // Then the listener is started.
+        Assert.assertTrue(insights.currentListener().isRunning());
+
+        // When stopping insights.
+        insights.stopAsync().awaitTerminated();
+
+        // Then the listener is stopped.
+        Assert.assertFalse(insights.currentListener().isRunning());
     }
 
 }

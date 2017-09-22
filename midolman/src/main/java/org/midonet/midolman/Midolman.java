@@ -256,10 +256,12 @@ public class Midolman {
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class);
 
         MidolmanModule midolmanModule = new MidolmanModule(
-            config, midonetBackendModule.storeBackend(),
+            config,
+            midonetBackendModule.storeBackend(),
             midonetBackendModule.conf(),
             zkConnectionModule.getDirectoryReactor(),
-            metricRegistry, preallocation);
+            metricRegistry,
+            preallocation);
 
         injector = Guice.createInjector(
             midonetBackendModule, zkConnectionModule, midolmanModule
