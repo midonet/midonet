@@ -38,8 +38,7 @@ import com.typesafe.scalalogging.Logger
 import org.eclipse.jetty.http.HttpStatus.METHOD_NOT_ALLOWED_405
 import org.slf4j.LoggerFactory.getLogger
 
-import org.midonet.cluster._
-import org.midonet.cluster.conf.RestApiConfig
+import org.midonet.cluster.{RestApiConfig, _}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner

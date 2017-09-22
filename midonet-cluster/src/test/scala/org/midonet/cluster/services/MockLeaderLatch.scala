@@ -11,7 +11,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch.CloseMode
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 
-import org.midonet.cluster.conf.ClusterConfig
+import org.midonet.cluster.ClusterConfig
 
 class MockLeaderLatchProvider(backend: MidonetBackend,
                               config: ClusterConfig)

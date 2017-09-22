@@ -32,7 +32,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.conf.ClusterConfig
+import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.ZoomMetadata.ZoomOwner
 import org.midonet.cluster.models.Topology.{Network, Port}
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
