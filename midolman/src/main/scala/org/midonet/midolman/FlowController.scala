@@ -418,6 +418,7 @@ class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
             case _ =>
                 log.error(s"Failed to delete ${req.flowMatch}", req.failure)
         }
+        insights.flowDeleted(req.flowMatch, null)
         meters.forgetFlow(req.flowMatch)
         req.clear()
     }
