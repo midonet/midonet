@@ -573,7 +573,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         val bundledSchemas = if (includeBundledSchemas) {
             Observable.just(mergedBundledSchemas)
         } else {
-            Observable.empty[Config]()
+            Observable.just(ConfigFactory.empty)
         }
         combine(Observable.just(localOnlyConfig),
                 combine(observableCentralConfig(node),

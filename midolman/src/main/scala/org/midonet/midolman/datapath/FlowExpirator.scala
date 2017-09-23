@@ -49,15 +49,18 @@ class FlowExpirator(val flows: NativeFlowMatchList, config: MidolmanConfig,
     private val nanosPerDeletion = TimeUnit.SECONDS.toNanos(1) / flowsPerSecond
 
     def expireAllFlows(): Unit = {
+        val init = System.nanoTime()
+        val numFlows = flows.size()
         try {
-            log.debug(s"Deleting ${flows.size} flows from $datapath at " +
-                s"$flowsPerSecond flows per second")
-            var lastDeletion = System.nanoTime()
+            log.info(s"Deleting $numFlows flows from $datapath at " +
+                     s"$flowsPerSecond flows per second")
+            var lastDeletion = init
 
             while (flows.size > 0) {
-                val nanosSinceLast = System.nanoTime() - lastDeletion
+                @inline
+                def nanosSinceLast = System.nanoTime() - lastDeletion
 
-                if (nanosSinceLast < nanosPerDeletion) {
+                while (nanosSinceLast < nanosPerDeletion) {
                     // If not enough time has passed since the last deletion
                     // to maintain the rate limit, then we wait for that
                     // difference before deleting again
@@ -68,9 +71,10 @@ class FlowExpirator(val flows: NativeFlowMatchList, config: MidolmanConfig,
                 deleteNextFlow()
             }
         } finally {
+            val elapsed = (System.nanoTime() - init) / 1000000
             channel.close()
             flows.delete()
-            log.debug(s"Finished deleting flows from $datapath")
+            log.info(s"Finished deleting flows from $datapath in $elapsed ms.")
         }
     }
 
@@ -79,7 +83,7 @@ class FlowExpirator(val flows: NativeFlowMatchList, config: MidolmanConfig,
         try {
             protocol.prepareFlowDelete(datapath.getIndex, keys, buf)
             val flow = NetlinkUtil.rpc(buf, writer, reader, Flow.buildFrom)
-            log.info(s"Deleted flow $flow")
+            log.debug(s"Deleted flow $flow")
         } catch {
             case NonFatal(e) =>
                 log.warn("Error deleting flow from OVS", e)

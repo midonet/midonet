@@ -85,7 +85,7 @@ class FlowTracingAppender(sessionFuture: Future[Session])
                 session = s
                 sender.start()
             case Failure(t) =>
-                log.warn("Failed to start session to Cassandra", t)
+                log.warn(s"Failed to start session to Cassandra: ${t.getMessage}")
         }(CallingThreadExecutionContext)
         super.start()
     }
