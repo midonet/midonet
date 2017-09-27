@@ -17,14 +17,13 @@
 package org.midonet.midolman
 
 import java.lang.{Integer => JInteger}
-import java.util.UUID
-import java.util.ArrayDeque
+import java.util.{ArrayDeque, UUID}
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.control.NonFatal
 import scala.util.Failure
+import scala.util.control.NonFatal
 
 import com.lmax.disruptor._
 
@@ -32,22 +31,20 @@ import org.slf4j.{LoggerFactory, MDC}
 
 import org.midonet.insights.Insights
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.datapath.FlowProcessor.{DuplicateFlow, FlowError}
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
-import org.midonet.midolman.flows.{FlowExpirationIndexer, NativeFlowController}
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
-import org.midonet.midolman.logging.FlowTracingContext
-import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.management.Metering
-import org.midonet.midolman.management.PacketTracing
-import org.midonet.midolman.monitoring.{FlowRecorder, MeterRegistry}
+import org.midonet.midolman.flows.{FlowExpirationIndexer, NativeFlowController}
+import org.midonet.midolman.logging.{FlowTracingContext, MidolmanLogging}
+import org.midonet.midolman.management.{Metering, PacketTracing}
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.monitoring.{FlowRecorder, MeterRegistry}
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
-import org.midonet.midolman.simulation.{Port, _}
 import org.midonet.midolman.simulation.Simulator.Fip64Action
-import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
-import org.midonet.midolman.datapath.FlowProcessor.{DuplicateFlow, FlowError}
+import org.midonet.midolman.simulation.{Port, _}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatKey, releaseBinding}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -500,6 +497,7 @@ class PacketWorkflow(
         } finally {
             MDC.remove("cookie")
             metrics.packetsDropped.mark()
+            recordPacket(context, ErrorDrop)
         }
 
     private def complete(pktCtx: PacketContext, simRes: SimulationResult): Unit = {
@@ -514,7 +512,11 @@ class PacketWorkflow(
             metrics.packetsProcessed.update(latency.toInt,
                                             TimeUnit.NANOSECONDS)
         }
+        recordPacket(pktCtx, simRes)
+    }
 
+    private def recordPacket(pktCtx: PacketContext, simRes: SimulationResult): Unit = {
+        pktCtx.log.debug("Recording packet")
         meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
         insights.flowSimulation(pktCtx.cookie, pktCtx.packet, pktCtx.inputPort,
                                 pktCtx.origMatch, pktCtx.flowTags, simRes)
