@@ -370,4 +370,9 @@ public final class CLibrary {
      */
     public static native int isatty(int fd);
 
+    /**
+     * Returns the current pid of the process running this jvm.
+     */
+    public static native int getpid();
+
 }
