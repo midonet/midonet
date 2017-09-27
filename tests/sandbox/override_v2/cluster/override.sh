@@ -20,10 +20,11 @@ MIDOENT_CLUSTER_ENV_FILE='/etc/midonet-cluster/midonet-cluster-env.sh'
 sed -i 's/\(MAX_HEAP_SIZE=\).*$/\1128M/' $MIDOENT_CLUSTER_ENV_FILE
 sed -i 's/\(HEAP_NEWSIZE=\).*$/\164M/' $MIDOENT_CLUSTER_ENV_FILE
 
-mn-conf set -t default <<EOF
+mn-conf set -h local <<EOF
 cluster.containers.scheduler_timeout="20s"
 cluster.loggers.org.midonet.cluster.root=DEBUG
 cluster.loggers.com.sun.jersey=INFO
+cluster.topology_cache.enabled=false
 EOF
 
 # Run cluster
