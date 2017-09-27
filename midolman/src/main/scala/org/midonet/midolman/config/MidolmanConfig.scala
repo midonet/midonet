@@ -95,6 +95,8 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     def statsHttpServerPort: Int =
         getInt(s"$PREFIX.midolman.stats_http_server_port")
 
+    def fastRebootEnabled = getBoolean(s"$PREFIX.midolman.fast_reboot")
+
     val bridge = new BridgeConfig(conf, schema)
     val router = new RouterConfig(conf, schema)
     val zookeeper =
