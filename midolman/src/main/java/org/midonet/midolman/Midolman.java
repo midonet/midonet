@@ -28,6 +28,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import org.midonet.conf.AgentFastRebootBarriers;
+import org.midonet.conf.AgentFastRebootWatcher;
 import org.midonet.midolman.datapath.FlowExpirator;
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
@@ -45,6 +47,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -269,9 +272,33 @@ public class Midolman {
         injector.getInstance(MidonetBackend.class)
             .startAsync()
             .awaitRunning();
+
+        AgentFastRebootBarriers barriers = new AgentFastRebootBarriers(
+            configurator.zk(), config.zookeeper());
+
+        if (config.fastRebootEnabled()) {
+            AgentFastRebootWatcher.RebootLog().info(
+                "Fast reboot (twin agent): ready, waiting (2s) for main agent " +
+                "to stop incompatible service.");
+            barriers.stage2().setBarrier();
+            barriers.stage1().removeBarrier();
+            barriers.stage2().waitOnBarrier(2, TimeUnit.SECONDS);
+            AgentFastRebootWatcher.RebootLog().info(
+                "Fast reboot (twin agent): starting services");
+        }
+
         injector.getInstance(MidolmanService.class)
             .startAsync()
             .awaitRunning();
+
+        if (config.fastRebootEnabled()) {
+            AgentFastRebootWatcher.RebootLog().info(
+                "Fast reboot (twin agent): services started and hand over " +
+                "completed, notifying main agent.");
+            // TODO: write current PID to process manager file
+            barriers.stage3().removeBarrier();
+            // TODO: set fast_reboot flag to disable
+        }
 
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
@@ -302,8 +329,13 @@ public class Midolman {
         configObservable
             .subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
 
-        configObservable.
-            subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
+        configObservable
+            .subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
+
+        configObservable
+            .subscribe(new AgentFastRebootWatcher(minionProcess,
+                                                  injector,
+                                                  config.zookeeper()));
 
         ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
             .setJson(true)
