@@ -324,7 +324,7 @@ object MidoTestConfigurator {
  * @param zk Curator framework connection.
  * @param agentLegacyIniFile Optional location of a legacy .ini configuration file.
  */
-class MidoNodeConfigurator(zk: CuratorFramework,
+class MidoNodeConfigurator(val zk: CuratorFramework,
                            agentLegacyIniFile: Option[String] = Some("/etc/midolman/midolman.conf")) {
     val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
 
