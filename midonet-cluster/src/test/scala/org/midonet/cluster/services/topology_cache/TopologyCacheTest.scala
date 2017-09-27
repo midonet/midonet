@@ -100,8 +100,8 @@ class TopologyCacheTest extends FeatureSpec
                                           clusterConfig,
                                           metrics)
 
-            Then("The topology cache is disabled by default for now")
-            cache.isEnabled shouldBe false
+            Then("The topology cache is enabled by default")
+            cache.isEnabled shouldBe true
 
             Then("The endpoint path is an absolute path as checked by the EndpointUserRegistrar")
             FilenameUtils.getPrefix(
