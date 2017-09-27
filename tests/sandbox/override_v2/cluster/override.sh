@@ -20,10 +20,40 @@ MIDOENT_CLUSTER_ENV_FILE='/etc/midonet-cluster/midonet-cluster-env.sh'
 sed -i 's/\(MAX_HEAP_SIZE=\).*$/\1128M/' $MIDOENT_CLUSTER_ENV_FILE
 sed -i 's/\(HEAP_NEWSIZE=\).*$/\164M/' $MIDOENT_CLUSTER_ENV_FILE
 
+
+# Default mido_zookeeper_key
+if [ -z "$MIDO_ZOOKEEPER_ROOT_KEY" ]; then
+    MIDO_ZOOKEEPER_ROOT_KEY=/midonet/v1
+fi
+
+# Update ZK hosts in case they were linked to this container
+if [[ `env | grep _PORT_2181_TCP_ADDR` ]]; then
+    MIDO_ZOOKEEPER_HOSTS="$(env | grep _PORT_2181_TCP_ADDR | sed -e 's/.*_PORT_2181_TCP_ADDR=//g' -e 's/^.*/&:2181/g' | sort -u)"
+    MIDO_ZOOKEEPER_HOSTS="$(echo $MIDO_ZOOKEEPER_HOSTS | sed 's/ /,/g')"
+fi
+
+if [ -z "$MIDO_ZOOKEEPER_HOSTS" ]; then
+    echo "No Zookeeper hosts specified neither by ENV VAR nor by linked containers"
+    exit 1
+fi
+
+echo "Configuring cluster using MIDO_ZOOKEEPER_HOSTS: $MIDO_ZOOKEEPER_HOSTS"
+echo "Configuring cluster using MIDO_ZOOKEEPER_ROOT_KEY: $MIDO_ZOOKEEPER_ROOT_KEY"
+
+sed -i -e 's/zookeeper_hosts = .*$/zookeeper_hosts = '"$MIDO_ZOOKEEPER_HOSTS"'/' /etc/midolman/midolman.conf
+sed -i -e 's/root_key = .*$/root_key = '"$(echo $MIDO_ZOOKEEPER_ROOT_KEY|sed 's/\//\\\//g')"'/' /etc/midolman/midolman.conf
+
+cat << EOF > /root/.midonetrc
+[zookeeper]
+zookeeper_hosts = $MIDO_ZOOKEEPER_HOSTS
+root_key = $MIDO_ZOOKEEPER_ROOT_KEY
+EOF
+
 mn-conf set -t default <<EOF
 cluster.containers.scheduler_timeout="20s"
 cluster.loggers.org.midonet.cluster.root=DEBUG
 cluster.loggers.com.sun.jersey=INFO
+cluster.topology_cache.enabled=false
 EOF
 
 # Run cluster
