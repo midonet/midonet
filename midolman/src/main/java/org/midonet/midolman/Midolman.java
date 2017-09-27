@@ -28,6 +28,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import org.midonet.conf.AgentFastRebootWatcher;
 import org.midonet.midolman.datapath.FlowExpirator;
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
@@ -302,8 +303,11 @@ public class Midolman {
         configObservable
             .subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
 
-        configObservable.
-            subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
+        configObservable
+            .subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
+
+        configObservable
+            .subscribe(new AgentFastRebootWatcher("agent", minionProcess));
 
         ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
             .setJson(true)
