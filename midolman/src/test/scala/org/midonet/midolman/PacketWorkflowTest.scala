@@ -29,7 +29,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.flows.ManagedFlow
 import org.midonet.midolman.monitoring.NullFlowRecorder
-import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.simulation.{ArpTimeoutException, PacketContext}
 import org.midonet.midolman.simulation.Simulator.Fip64Action
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.NatKey
@@ -42,13 +42,12 @@ import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.flows.{FlowAction, FlowActions}
 import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort}
 import org.midonet.odp.{Datapath, FlowMatches, Packet}
-import org.midonet.packets.{Ethernet, TunnelKeys}
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
+import org.midonet.packets.{Ethernet, IPv4Addr, TunnelKeys}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.state.OnHeapShardedFlowStateTable
-import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
 class PacketWorkflowTest extends MidolmanSpec {
@@ -149,6 +148,34 @@ class PacketWorkflowTest extends MidolmanSpec {
 
             And("4 packet workflows should be executed")
             packetsSeen map (_.cookie) should be (1 to 4)
+        }
+
+        scenario("Workflow record packet upon successful completion") {
+            Given("A packet")
+            createPacketWorkflow(0, custom=false)
+            val packet = makePacket(1)
+            packetWorkflow.packetRecorded = false
+
+            When("Simulating the packet")
+            packetWorkflow.handlePackets(packet)
+
+            Then("The packet should be processed")
+            packetWorkflow.packetRecorded shouldBe true
+        }
+
+        scenario("Workflow record packet upon drop due to error") {
+            Given("A packet")
+            createPacketWorkflow(0)
+            val packet = makePacket(1)
+            packetWorkflow.packetRecorded = false
+
+            When("Simulating the packet with an exception")
+            packetWorkflow.completeWithError(
+                new ArpTimeoutException(UUID.randomUUID(), IPv4Addr.random))
+            packetWorkflow.handlePackets(packet)
+
+            Then("The packet should be processed")
+            packetWorkflow.packetRecorded shouldBe true
         }
 
         scenario("simulates generated logical packets") {
@@ -732,8 +759,10 @@ class PacketWorkflowTest extends MidolmanSpec {
         var flowActions: List[FlowAction] = _
         var virtualFlowActions: List[FlowAction] = _
         var exception: Exception = _
+        var error: Exception = _
         var result: SimulationResult = _
         var flow: ManagedFlow = _
+        var packetRecorded: Boolean = false
 
         def completeWithGenerated(actions: List[FlowAction],
                                   generatedPacket: GeneratedPacket): Unit = {
@@ -754,6 +783,10 @@ class PacketWorkflowTest extends MidolmanSpec {
             complete(Nil)
         }
 
+        def completeWithError(error: Exception): Unit = {
+            this.error = error
+        }
+
         def complete(actions: List[FlowAction]): Unit = {
             flowActions = actions
             p success null
@@ -767,6 +800,10 @@ class PacketWorkflowTest extends MidolmanSpec {
         protected override def handleStateMessage(packet: Packet): Unit =
             stateMessagesSeen += 1
 
+        override def recordPacket(pktCtx: PacketContext, res: SimulationResult): Unit = {
+            packetRecorded = true
+        }
+
         override def start(pktCtx: PacketContext): SimulationResult = {
             if (!custom) {
                 result = super.start(pktCtx)
@@ -777,6 +814,9 @@ class PacketWorkflowTest extends MidolmanSpec {
             }
 
             pktCtx.runs += 1
+            if (error ne null) {
+                throw error
+            }
             pktCtx.addFlowTag(FlowTagger.tagForDpPort(1))
             pktCtx.addFlowRemovedCallback(new Callback0 {
                 override def call(): Unit = { }
