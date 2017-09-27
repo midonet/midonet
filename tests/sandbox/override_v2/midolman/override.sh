@@ -45,19 +45,29 @@ fi
 
 sed -i -e 's/zookeeper_hosts = .*$/zookeeper_hosts = '"$MIDO_ZOOKEEPER_HOSTS"'/' /etc/midolman/midolman.conf
 
-# Enable offheap tables for midolman1
 # Force quagga 0.99.23 (v2 zebra protocol) on midolman1
 if [ $(hostname) = "midolman1" ]; then
-    mn-conf set -h local <<EOF
-agent.midolman.off_heap_tables=true
-agent.midolman.reclaim_datapath=true
+     mn-conf set -h local <<EOF
+agent.midolman.initial_storage_cache.enabled=false
 EOF
     apt-get install -qy --force-yes quagga=0.99.23.1-0midokura
 fi
 
 # Install quagga 1.1.1 (v3 zebra protocol) on midolman2
+# Disable offheap tables for midolman2
 if [ $(hostname) = "midolman2" ]; then
+    mn-conf set -h local <<EOF
+agent.midolman.off_heap_tables=false
+agent.midolman.reclaim_datapath=false
+agent.midolman.initial_storage_cache.enabled=false
+EOF
     apt-get install -qy --force-yes quagga=1.1.1-3
+fi
+
+if [ $(hostname) = "cluster1" ]; then
+    mn-conf set -h local <<EOF
+cluster.topology_cache.enabled=false
+EOF
 fi
 
 exec /run-midolman.sh
