@@ -530,10 +530,10 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         Log.info(s"Initializing NSDB version ${Storage.ProductVersion}:" +
                  s"${Storage.ProductCommit}")
         super.onBuild(assertInitialization)
-        if (assertInitialization) {
-            ensureClassNodes()
-            ensureStateTableNodes()
-        }
+
+        ensureClassNodes(assertInitialization)
+        ensureStateTableNodes(assertInitialization)
+
         lockFreeAndWatch(async = false)
         metrics.build(this)
     }
@@ -549,7 +549,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
      * Ensures that the class nodes in Zookeeper for each provided class exist,
      * creating them if needed.
      */
-    private def ensureClassNodes(): Unit = {
+    private def ensureClassNodes(assertInitialization: Boolean = true): Unit = {
         val classes = objectClasses.keySet
         classes.foreach(assertRegistered)
 
@@ -558,10 +558,14 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         // in a single round trip to Zookeeper.
         var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
         for (clazz <- classes) {
-            txn = txn.check().forPath(classPath(clazz)).and()
-            txn = txn.check().forPath(altClassPath(clazz)).and()
+            if (assertInitialization) {
+                txn = txn.check().forPath(classPath(clazz)).and()
+                txn = txn.check().forPath(altClassPath(clazz)).and()
+                txn = txn.check().forPath(tablesClassPath(clazz)).and()
+            }
+            // NOTE: always check that state class paths for
+            //       the given namespace are created
             txn = txn.check().forPath(stateClassPath(namespace, clazz)).and()
-            txn = txn.check().forPath(tablesClassPath(clazz)).and()
         }
         try {
             txn.commit()
@@ -575,14 +579,18 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         // One or more didn't exist, so we'll have to check them individually.
         try {
             for (clazz <- classes) {
-                ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
-                               classPath(clazz))
-                ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
-                               altClassPath(clazz))
+                if (assertInitialization) {
+                    ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                                   classPath(clazz))
+                    ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                                   altClassPath(clazz))
+                    ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                                   tablesClassPath(clazz))
+                }
+                // NOTE: always attempt to create the state class paths for
+                //       the namespace
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                                stateClassPath(namespace, clazz))
-                ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
-                               tablesClassPath(clazz))
             }
         } catch {
             case NonFatal(e) => throw new InternalObjectMapperException(e)
@@ -593,32 +601,34 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
       * Ensures that the global state table nodes in ZooKeeper for each table
       * exist, creating them if needed.
       */
-    private def ensureStateTableNodes(): Unit = {
-        // First try a multi-check for all the classes. If they already exist,
-        // as they usually will except on the first startup, we can verify this
-        // in a single round trip to Zookeeper.
-        var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
-        for (table <- globalTables.keys) {
-            txn = txn.check().forPath(tablePath(table)).and()
-        }
-        try {
-            txn.commit()
-            return
-        } catch {
-            case NonFatal(e) =>
-                Log.info("Could not confirm existence of all state table " +
-                         "nodes in Zookeeper. Creating missing state table " +
-                         "node(s).")
-        }
-
-        // One or more didn't exist, so we'll have to check them individually.
-        try {
+    private def ensureStateTableNodes(assertInitialization: Boolean = true): Unit = {
+        if (assertInitialization) {
+            // First try a multi-check for all the classes. If they already exist,
+            // as they usually will except on the first startup, we can verify this
+            // in a single round trip to Zookeeper.
+            var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
             for (table <- globalTables.keys) {
-                ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
-                               tablePath(table))
+                txn = txn.check().forPath(tablePath(table)).and()
             }
-        } catch {
-            case NonFatal(e) => throw new InternalObjectMapperException(e)
+            try {
+                txn.commit()
+                return
+            } catch {
+                case NonFatal(e) =>
+                    Log.info("Could not confirm existence of all state table " +
+                             "nodes in Zookeeper. Creating missing state table " +
+                             "node(s).")
+            }
+
+            // One or more didn't exist, so we'll have to check them individually.
+            try {
+                for (table <- globalTables.keys) {
+                    ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                                   tablePath(table))
+                }
+            } catch {
+                case NonFatal(e) => throw new InternalObjectMapperException(e)
+            }
         }
     }
 
