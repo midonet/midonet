@@ -254,11 +254,11 @@ trait StateStorage extends Storage {
     /**
       * @see [[Storage.onBuild()]]
       */
-    protected abstract override def onBuild(assertInitialization: Boolean): Unit = {
+    protected abstract override def onBuild(isCluster: Boolean): Unit = {
         mutex.synchronized {
             currentStates = stateInfo.mapValues(_.toMap).toMap
         }
-        super.onBuild(assertInitialization)
+        super.onBuild(isCluster)
     }
 
     /** Gets the key type for the given class and key. */

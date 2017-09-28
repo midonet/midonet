@@ -104,7 +104,7 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
 
     override protected def backend(curatorFramework: CuratorFramework,
                                    failFastCurator: CuratorFramework,
-                                   assertInitialization: Boolean) = {
+                                   isCluster: Boolean) = {
         new MidonetTestBackend
     }
 

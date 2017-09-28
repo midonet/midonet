@@ -190,6 +190,6 @@ trait ZoomStorageTester extends StorageTester
 
     protected override def onRegisterClass(clazz: Class[_]): Unit = { }
 
-    protected override def onBuild(assertInitialization: Boolean): Unit = { }
+    protected override def onBuild(isCluster: Boolean): Unit = { }
 
 }

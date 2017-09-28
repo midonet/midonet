@@ -701,8 +701,8 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage
         super.onRegisterClass(clazz)
     }
 
-    protected override def onBuild(assertInitialization: Boolean): Unit = {
-        super.onBuild(assertInitialization)
+    protected override def onBuild(isCluster: Boolean): Unit = {
+        super.onBuild(isCluster)
     }
 
     @throws[ServiceUnavailableException]

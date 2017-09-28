@@ -526,13 +526,13 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
     /**
       * @see [[Storage.onBuild()]]
       */
-    protected override def onBuild(assertInitialization: Boolean): Unit = {
+    protected override def onBuild(isCluster: Boolean): Unit = {
         Log.info(s"Initializing NSDB version ${Storage.ProductVersion}:" +
                  s"${Storage.ProductCommit}")
-        super.onBuild(assertInitialization)
+        super.onBuild(isCluster)
 
-        ensureClassNodes(assertInitialization)
-        ensureStateTableNodes(assertInitialization)
+        ensureClassNodes(isCluster)
+        ensureStateTableNodes(isCluster)
 
         lockFreeAndWatch(async = false)
         metrics.build(this)
@@ -549,7 +549,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
      * Ensures that the class nodes in Zookeeper for each provided class exist,
      * creating them if needed.
      */
-    private def ensureClassNodes(assertInitialization: Boolean = true): Unit = {
+    private def ensureClassNodes(isCluster: Boolean = true): Unit = {
         val classes = objectClasses.keySet
         classes.foreach(assertRegistered)
 
@@ -558,7 +558,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         // in a single round trip to Zookeeper.
         var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
         for (clazz <- classes) {
-            if (assertInitialization) {
+            if (isCluster) {
                 txn = txn.check().forPath(classPath(clazz)).and()
                 txn = txn.check().forPath(altClassPath(clazz)).and()
                 txn = txn.check().forPath(tablesClassPath(clazz)).and()
@@ -579,7 +579,7 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
         // One or more didn't exist, so we'll have to check them individually.
         try {
             for (clazz <- classes) {
-                if (assertInitialization) {
+                if (isCluster) {
                     ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                                    classPath(clazz))
                     ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
@@ -601,8 +601,8 @@ class ZookeeperObjectMapper(config: MidonetBackendConfig,
       * Ensures that the global state table nodes in ZooKeeper for each table
       * exist, creating them if needed.
       */
-    private def ensureStateTableNodes(assertInitialization: Boolean = true): Unit = {
-        if (assertInitialization) {
+    private def ensureStateTableNodes(isCluster: Boolean = true): Unit = {
+        if (isCluster) {
             // First try a multi-check for all the classes. If they already exist,
             // as they usually will except on the first startup, we can verify this
             // in a single round trip to Zookeeper.

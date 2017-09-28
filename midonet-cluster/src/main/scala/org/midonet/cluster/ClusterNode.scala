@@ -218,7 +218,7 @@ object ClusterNode extends App {
 
     protected[cluster] var injector = Guice.createInjector(
         new MidonetBackendModule(clusterConf.backend, Some(reflections),
-                                 metrics, assertInitialization = true),
+                                 metrics, isCluster = true),
         clusterNodeModule,
         dataClientDependencies
     )
