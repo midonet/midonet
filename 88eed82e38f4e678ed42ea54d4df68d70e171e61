@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23b4214c_5812bb12",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-09-28T06:54:52Z",
+      "side": 1,
+      "message": "it would be better to describe the change a little more than just \"update\"",
+      "revId": "88eed82e38f4e678ed42ea54d4df68d70e171e61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
