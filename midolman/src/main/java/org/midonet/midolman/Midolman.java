@@ -280,6 +280,9 @@ public class Midolman {
         if (config.fastRebootEnabled()) {
             AgentFastRebootWatcher.RebootLog().info(
                 "Setting barrier 2 and removing barrier 1");
+            AgentFastRebootWatcher.RebootLog().info(
+                "STATE OF THE BACKEND CURATOR: {}",
+                backend.curator().getState());
             barriers.stage2().setBarrier();
             barriers.stage1().removeBarrier();
             AgentFastRebootWatcher.RebootLog().info(
