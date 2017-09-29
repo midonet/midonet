@@ -233,12 +233,12 @@ trait StateTableStorage extends Storage {
     /**
       * @see [[Storage.onBuild()]]
       */
-    protected abstract override def onBuild(assertInitialization: Boolean): Unit = {
+    protected abstract override def onBuild(isCluster: Boolean): Unit = {
         mutex.synchronized {
             currentGlobalTables = globalTableProviders.toMap
             currentObjectTables = objectTableProviders.mapValues(_.toMap).toMap
         }
-        super.onBuild(assertInitialization)
+        super.onBuild(isCluster)
     }
 
     /** Gets the table provider for the given object, key and value classes. */

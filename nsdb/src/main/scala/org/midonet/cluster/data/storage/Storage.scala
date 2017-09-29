@@ -330,10 +330,10 @@ trait Storage extends ReadOnlyStorage {
       * Registers a new object class in storage.
       */
     @throws[IllegalArgumentException]
-    final def registerClass(clazz: Class[_], assertInitialization: Boolean = true)
+    final def registerClass(clazz: Class[_], isCluster: Boolean = true)
     : Unit = mutex.synchronized {
         assertNotBuilt()
-        if (assertInitialization) {
+        if (isCluster) {
             assertClassIdField(clazz)
         }
 
@@ -393,13 +393,13 @@ trait Storage extends ReadOnlyStorage {
       * methods such as CRUD operations and subscribe().
       */
     @throws[IllegalStateException]
-    final def build(assertInitialization: Boolean = true): Unit = mutex.synchronized {
+    final def build(isCluster: Boolean = true): Unit = mutex.synchronized {
         assertNotBuilt()
 
         currentClasses = classInfo.toMap
         currentBindings = Multimaps.unmodifiableListMultimap(fieldBindings)
 
-        onBuild(assertInitialization)
+        onBuild(isCluster)
         built = true
     }
 
@@ -483,6 +483,6 @@ trait Storage extends ReadOnlyStorage {
       * Called when the storage is built. This allows derived classes to perform
       * further storage initialization.
       */
-    protected def onBuild(assertInitialization: Boolean): Unit = { }
+    protected def onBuild(isCluster: Boolean): Unit = { }
 
 }
