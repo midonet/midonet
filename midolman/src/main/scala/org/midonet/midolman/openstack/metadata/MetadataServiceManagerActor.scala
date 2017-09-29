@@ -60,6 +60,7 @@ class MetadataServiceManagerActor @Inject() (
 
     override def postStop(): Unit = {
         super.postStop()
+        Proxy stop()
         if (subscription ne null) {
             subscription.unsubscribe()
             subscription = null
