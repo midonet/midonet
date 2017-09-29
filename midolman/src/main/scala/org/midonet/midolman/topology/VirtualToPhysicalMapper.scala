@@ -252,8 +252,14 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
     }
 
     override def doStop(): Unit = {
-        clearPortsActive().await()
-
+        try {
+            clearPortsActive().await()
+        } catch {
+            case NonFatal(e) =>
+                log.warn("Failed to clear ports state. This is normal " +
+                         "while doing a fast reboot, as the secondary " +
+                         "agent takes over the ports state.")
+        }
         stopService(containersService, "containers")
         stopService(vxlanPortMappingService, "VXLAN port mapping")
         stopService(gatewayMappingService, "gateway mapping")
@@ -286,7 +292,7 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
             service.stopAsync().awaitTerminated()
         } catch {
             case NonFatal(e) =>
-                log.warn(s"Failed to stop the $name service", e)
+                log.warn(s"Failed to stop the $name service: ${e.getMessage}")
         }
     }
 

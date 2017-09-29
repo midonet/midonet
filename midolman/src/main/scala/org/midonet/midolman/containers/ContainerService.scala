@@ -310,7 +310,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             notifyStopped()
         } catch {
             case NonFatal(e) =>
-                log.warn("Failed to stop the Containers service", e)
+                log.warn(s"Failed to stop the Containers service: ${e.getMessage}")
                 notifyFailed(e)
         }
     }
@@ -469,7 +469,8 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                          .await(vt.config.zookeeper.sessionTimeout millis)
         } catch {
             case NonFatal(e) =>
-                log.warn("Failed to update the status of the container service", e)
+                log.warn("Failed to update the status of the container service: " +
+                         s"${e.getMessage}")
                 notifyFailed(e)
         }
     }
