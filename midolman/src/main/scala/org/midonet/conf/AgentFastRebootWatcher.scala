@@ -59,6 +59,10 @@ class AgentFastRebootBarriers(zk: CuratorFramework,
 
     val stage3 = new DistributedBarrier(zk, s"$path/stage3")
 
+    RebootLog.info(s"STAGE1!!! -> $path/stage1")
+    RebootLog.info(s"STAGE2!!! -> $path/stage2")
+    RebootLog.info(s"STAGE3!!! -> $path/stage3")
+
     def clear() = {
         RebootLog.info("Clearing fast reboot barriers.")
         Seq(stage1, stage2, stage3) foreach { stage =>
