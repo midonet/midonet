@@ -73,6 +73,8 @@ class MidolmanActorsService extends AbstractService {
     implicit def ex: ExecutionContext = system.dispatcher
     implicit protected val timeout = new Timeout(ChildActorStartTimeout)
 
+    private var routingActorStopped = false
+
     protected def actorSpecs = {
         val actors = ListBuffer(
             (propsFor(classOf[NetlinkCallbackDispatcher]),
@@ -168,14 +170,26 @@ class MidolmanActorsService extends AbstractService {
         Props { injector.getInstance(actorClass) }
 
     protected def stopRoutingHandlerActors() = {
-        log.info("Stopping BGP handler actors")
-        val path = system / SupervisorActor.Name / RoutingManagerActor.Name
-        val routingActor = Await.result(system.actorSelection(path).resolveOne(),
-                                        ChildActorStopTimeout)
-        val routingActorStopped = routingActor ? StopBgpHandlers()
-        log.debug("Awaiting for the routing manager actor to finish stopping" +
-                  "its child routing handler actors.")
-        Await.result(routingActorStopped, ActorsStopTimeout)
+        if (!routingActorStopped) {
+            log.info("Stopping BGP handler actors")
+            val path = system / SupervisorActor.Name / RoutingManagerActor.Name
+            val routingActor = Await
+                .result(system.actorSelection(path).resolveOne(),
+                        ChildActorStopTimeout)
+            val routingActorStoppedFuture = routingActor ? StopBgpHandlers()
+            log.debug(
+                "Awaiting for the routing manager actor to finish stopping" +
+                "its child routing handler actors.")
+            Await.result(routingActorStoppedFuture, ActorsStopTimeout)
+            routingActorStopped = true
+        }
+    }
+
+    protected def stopMetadataActor() = {
+        val path = system / SupervisorActor.Name / MetadataServiceManagerActor.Name
+        val metadata = Await.result(
+            system.actorSelection(path).resolveOne(), 1 second)
+        system.stop(metadata)
     }
 
     protected def stopActor(actorRef: ActorRef) = {
