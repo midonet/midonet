@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6472d242_fe0bbf2c",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-10-02T08:47:55Z",
+      "side": 1,
+      "message": "Need to increase the schema version",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 22
+      },
+      "revId": "5a0db20ef27398e9e7344a6a334725ab60b7464e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
