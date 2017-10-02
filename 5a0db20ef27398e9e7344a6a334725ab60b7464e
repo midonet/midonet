@@ -22,6 +22,30 @@
       "revId": "5a0db20ef27398e9e7344a6a334725ab60b7464e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "82079fb3_64df6d37",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-10-02T09:29:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6472d242_fe0bbf2c",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 22
+      },
+      "revId": "5a0db20ef27398e9e7344a6a334725ab60b7464e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
