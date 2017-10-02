@@ -58,8 +58,11 @@ JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 
 set -x
 
-midonet_kill_process $MIDO_MAIN
-midonet_check_tcp_port $JMX_PORT
+if [ ! -e "/var/run/midolman/fast_reboot.file" ]; then
+    midonet_kill_process $MIDO_MAIN
+    midonet_check_tcp_port $JMX_PORT
+fi
+
 if [ -z "$JVM_ON_OUT_OF_MEM" ]; then
     JVM_ON_OUT_OF_MEM="-XX:OnOutOfMemoryError=kill -9 %p"
 fi
