@@ -412,6 +412,9 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/deb/bin/mm-stat") {
         into "usr/bin"
     }
+    from("src/deb/bin/mm-reboot") {
+        into "usr/bin"
+    }
     from("src/lib/midolman/bgpd-helper") {
         into "usr/lib/midolman"
     }
