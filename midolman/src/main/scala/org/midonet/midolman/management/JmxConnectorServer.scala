@@ -46,7 +46,7 @@ class JmxConnectorServer extends AbstractService {
             LocateRegistry.createRegistry(jmxPort)
             val mbs = ManagementFactory.getPlatformMBeanServer
             val url = new JMXServiceURL(
-                s"service:jmx:rmi://localhost/jndi/rmi://localhost:$jmxPort/jmxrmi")
+                s"service:jmx:rmi://0.0.0.0/jndi/rmi://0.0.0.0:$jmxPort/jmxrmi")
             server = JMXConnectorServerFactory
                 .newJMXConnectorServer(url, null, mbs)
             server.start()
