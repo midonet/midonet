@@ -35,7 +35,24 @@ public class TestRuleProtocol {
                 $("6", "tcp", RuleProtocol.TCP),
                 $("17", "udp", RuleProtocol.UDP),
                 $("1", "icmp", RuleProtocol.ICMP),
-                $("58", "icmpv6", RuleProtocol.ICMPv6)
+                $("58", "icmpv6", RuleProtocol.ICMPv6),
+                $("51", "ah", RuleProtocol.AH),
+                $("33", "dccp", RuleProtocol.DCCP),
+                $("8", "egp", RuleProtocol.EGP),
+                $("50", "esp", RuleProtocol.ESP),
+                $("47", "gre", RuleProtocol.GRE),
+                $("2", "igmp", RuleProtocol.IGMP),
+                $("41", "ipv6_encap", RuleProtocol.IPV6_ENCAP),
+                $("44", "ipv6_frag", RuleProtocol.IPV6_FRAG),
+                $("59", "ipv6_nonxt", RuleProtocol.IPV6_NONXT),
+                $("60", "ipv6_opts", RuleProtocol.IPV6_OPTS),
+                $("43", "ipv6_route", RuleProtocol.IPV6_ROUTE),
+                $("89", "ospf", RuleProtocol.OSPF),
+                $("113", "pgm", RuleProtocol.PGM),
+                $("46", "rsvp", RuleProtocol.RSVP),
+                $("132", "sctp", RuleProtocol.SCTP),
+                $("136", "udplite", RuleProtocol.UDPLITE),
+                $("112", "vrrp", RuleProtocol.VRRP)
             );
         }
     }

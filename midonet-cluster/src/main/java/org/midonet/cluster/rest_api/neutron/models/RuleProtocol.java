@@ -21,22 +21,73 @@ import com.google.common.primitives.Ints;
 
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
-import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.models.Commons.Protocol;
 
-@ZoomEnum(clazz = Commons.Protocol.class)
+@ZoomEnum(clazz = Protocol.class)
 public enum RuleProtocol {
 
     @ZoomEnumValue("TCP")
-    TCP("tcp", org.midonet.packets.TCP.PROTOCOL_NUMBER),
+    TCP("tcp", (byte) Protocol.TCP.getNumber()),
 
     @ZoomEnumValue("UDP")
-    UDP("udp", org.midonet.packets.UDP.PROTOCOL_NUMBER),
+    UDP("udp", (byte) Protocol.UDP.getNumber()),
 
     @ZoomEnumValue("ICMP")
-    ICMP("icmp", org.midonet.packets.ICMP.PROTOCOL_NUMBER),
+    ICMP("icmp", (byte) Protocol.ICMP.getNumber()),
 
     @ZoomEnumValue("ICMPV6")
-    ICMPv6("icmpv6", org.midonet.packets.ICMPv6.PROTOCOL_NUMBER);
+    ICMPv6("icmpv6", (byte) Protocol.ICMPV6.getNumber()),
+
+    @ZoomEnumValue("AH")
+    AH("ah", (byte) Protocol.AH.getNumber()),
+
+    @ZoomEnumValue("DCCP")
+    DCCP("dccp", (byte) Protocol.DCCP.getNumber()),
+
+    @ZoomEnumValue("EGP")
+    EGP("egp",(byte) Protocol.EGP.getNumber()),
+
+    @ZoomEnumValue("ESP")
+    ESP("esp",(byte) Protocol.ESP.getNumber()),
+
+    @ZoomEnumValue("GRE")
+    GRE("gre",(byte) Protocol.GRE.getNumber()),
+
+    @ZoomEnumValue("IGMP")
+    IGMP("igmp",(byte) Protocol.IGMP.getNumber()),
+
+    @ZoomEnumValue("IPV6_ENCAP")
+    IPV6_ENCAP("ipv6_encap",(byte) Protocol.IPV6_ENCAP.getNumber()),
+
+    @ZoomEnumValue("IPV6_FRAG")
+    IPV6_FRAG("ipv6_frag",(byte) Protocol.IPV6_FRAG.getNumber()),
+
+    @ZoomEnumValue("IPV6_NONXT")
+    IPV6_NONXT("ipv6_nonxt",(byte) Protocol.IPV6_NONXT.getNumber()),
+
+    @ZoomEnumValue("IPV6_OPTS")
+    IPV6_OPTS("ipv6_opts",(byte) Protocol.IPV6_OPTS.getNumber()),
+
+    @ZoomEnumValue("IPV6_ROUTE")
+    IPV6_ROUTE("ipv6_route",(byte) Protocol.IPV6_ROUTE.getNumber()),
+
+    @ZoomEnumValue("OSPF")
+    OSPF("ospf",(byte) Protocol.OSPF.getNumber()),
+
+    @ZoomEnumValue("PGM")
+    PGM("pgm",(byte) Protocol.PGM.getNumber()),
+
+    @ZoomEnumValue("RSVP")
+    RSVP("rsvp",(byte) Protocol.RSVP.getNumber()),
+
+    @ZoomEnumValue("SCTP")
+    SCTP("sctp",(byte) Protocol.SCTP.getNumber()),
+
+    @ZoomEnumValue("UDPLITE")
+    UDPLITE("udplite",(byte) Protocol.UDPLITE.getNumber()),
+
+    @ZoomEnumValue("VRRP")
+    VRRP("vrrp",(byte) Protocol.VRRP.getNumber());
 
     private final String value;
     private final byte number;
