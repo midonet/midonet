@@ -70,6 +70,23 @@ enum Protocol {
     UDP = 17;     // 0x11
     ICMP = 1;     // 0x1
     ICMPV6 = 58;  // 0x3a
+    AH = 51;
+    DCCP = 33;
+    EGP = 8;
+    ESP = 50;
+    GRE = 47;
+    IGMP = 2;
+    IPV6_ENCAP = 41;
+    IPV6_FRAG = 44;
+    IPV6_NONXT = 59;
+    IPV6_OPTS = 60;
+    IPV6_ROUTE = 43;
+    OSPF = 89;
+    PGM = 113;
+    RSVP = 46;
+    SCTP = 132;
+    UDPLITE = 136;
+    VRRP = 112;
 }
 
 enum LBStatus {
