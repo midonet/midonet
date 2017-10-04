@@ -18,7 +18,6 @@ MIDO_HOME=/usr/share/midolman
 MIDO_CFG=/etc/midolman
 MIDO_LOG_DIR=/var/log/midolman/
 MIDO_DEBUG_PORT=8001
-JMX_PORT="7200"
 MIDO_CFG_FILE=midolman.conf
 QUAGGA_DIR=/var/run/quagga
 # setting this option will make the agent not run under the watchdog
@@ -87,6 +86,9 @@ JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midolman/gc-`date +%Y%m%d_%H%M%S`.log"
 # uncomment to have Midolman JVM listen for remote debuggers/profilers on port 1414
 # JVM_OPTS="$JVM_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1414"
 
+# uncomment to disable JMX startup with the JMV (delegate to runtime JMX service)
+JMXDISABLE=true
+
 # Prefer binding to IPv4 network intefaces (when net.ipv6.bindv6only=1). See
 # http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6342561 (short version:
 # comment out this entry to enable IPv6 support).
@@ -95,10 +97,7 @@ JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midolman/gc-`date +%Y%m%d_%H%M%S`.log"
 # uncomment to log configuration passwords
 # JVM_OPTS="$JVM_OPTS -Dmidonet.show_config_passwords"
 
-# uncomment to disable JMX
-# JMXDISABLE=true
-
-# jmx: metrics and administration interface
+# (legacy) jmx: metrics and administration interface
 #
 # add this if you're having trouble connecting:
 # JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"
@@ -113,9 +112,9 @@ if [ "x$JMXDISABLE" = "x" ] ; then
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT"
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=false"
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
-    HOSTNAME=`hostname`
-    JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=$HOSTNAME"
 fi
+
+JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=$(hostname)"
 
 if [ "$MIDOLMAN_HPROF" = "1" ] ; then
     DATE=$(date +'%H%M%S')
