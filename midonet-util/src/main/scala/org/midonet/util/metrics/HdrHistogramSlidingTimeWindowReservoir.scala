@@ -62,9 +62,23 @@ class HdrHistogramSlidingTimeWindowReservoir(window: Long, unit: TimeUnit,
 
         def size: Int = snapshotHistogram.getTotalCount.toInt
         def getMax: Long = snapshotHistogram.getMaxValue
-        def getMean: Double = snapshotHistogram.getMean
+        def getMean: Double = {
+            snapshotLock.lock()
+            try {
+                snapshotHistogram.getMean
+            } finally {
+                snapshotLock.unlock()
+            }
+        }
         def getMin: Long = snapshotHistogram.getMinValue
-        def getStdDev: Double = snapshotHistogram.getStdDeviation
+        def getStdDev: Double = {
+            snapshotLock.lock()
+            try {
+                snapshotHistogram.getStdDeviation
+            } finally {
+                snapshotLock.unlock()
+            }
+        }
 
         // this is a noop, because you can't get all values from hdr histogram
         val getValues: Array[Long] = new Array[Long](0)
