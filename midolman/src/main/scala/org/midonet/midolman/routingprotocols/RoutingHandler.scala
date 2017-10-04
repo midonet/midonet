@@ -450,6 +450,7 @@ abstract class RoutingHandler(var routerPort: RouterPort,
             stopBgpd().map[Any] { _ =>
                 log.debug("Sending FIN ACK back to routing manager.")
                 senderRef ! RoutingHandlerStopped(routerPort.id)
+                context.stop(self)
             }(singleThreadExecutionContext)
 
         case OnError(BgpPortDeleted(portId)) =>
