@@ -24,7 +24,6 @@ MIDO_HOME=/usr/share/midolman
 MIDO_CFG=/etc/midolman
 MIDO_LOG_DIR=/var/log/midolman/
 MIDO_DEBUG_PORT=8001
-JMX_PORT="7200"
 MIDO_CFG_FILE=midolman.conf
 QUAGGA_DIR=/var/run/quagga
 WATCHDOG_TIMEOUT=10
@@ -61,7 +60,6 @@ set -x
 
 if [ ! -e "/var/run/midolman/fast_reboot.file" ]; then
     midonet_kill_process $MIDO_MAIN
-    midonet_check_tcp_port $JMX_PORT
 fi
 
 if [ -z "$JVM_ON_OUT_OF_MEM" ]; then

@@ -18,6 +18,7 @@ package org.midonet.midolman.management
 
 import java.lang.management.ManagementFactory
 import java.rmi.registry.LocateRegistry
+import java.util
 
 import javax.management.remote.{JMXConnectorServer, JMXConnectorServerFactory, JMXServiceURL}
 
@@ -31,24 +32,39 @@ object JmxConnectorServer {
 
     val Log = Logger("org.midonet.midolman.management.jmx-server")
 
+    val DefaultJmxPort = 7200
+
 }
 
 class JmxConnectorServer extends AbstractService {
 
     import JmxConnectorServer._
 
-    private val jmxPort = System.getenv("JMX_PORT").toInt
+    private val jmxPort = {
+        val portStr = System.getenv("JMX_PORT")
+        if (portStr ne null) {
+            portStr.toInt
+        } else {
+            DefaultJmxPort
+        }
+    }
 
     private var server: JMXConnectorServer = _
+
+    private val env = new util.HashMap[String, Object]()
 
     override def doStart(): Unit = {
         try {
             LocateRegistry.createRegistry(jmxPort)
             val mbs = ManagementFactory.getPlatformMBeanServer
             val url = new JMXServiceURL(
-                s"service:jmx:rmi://0.0.0.0/jndi/rmi://0.0.0.0:$jmxPort/jmxrmi")
+                s"service:jmx:rmi:///jndi/rmi://:$jmxPort/jmxrmi")
+            env.put("com.sun.management.jmxremote.local.only", "false")
+            env.put("com.sun.management.jmxremote.ssl", "false")
+            env.put("com.sun.management.jmxremote.authenticate", "false")
+
             server = JMXConnectorServerFactory
-                .newJMXConnectorServer(url, null, mbs)
+                .newJMXConnectorServer(url, env, mbs)
             server.start()
             Log.info("JMX Connector server started.")
             notifyStarted()
