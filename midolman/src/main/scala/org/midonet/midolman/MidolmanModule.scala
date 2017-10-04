@@ -47,7 +47,7 @@ import org.midonet.midolman.host.services.{HostService, QosService, TcRequestHan
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.rule.{DisruptorRuleLogEventChannel, RuleLogEventChannel}
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
-import org.midonet.midolman.management.{MeteringHTTPHandler, SimpleHTTPServerService}
+import org.midonet.midolman.management.{JmxConnectorServer, MeteringHTTPHandler, SimpleHTTPServerService}
 import org.midonet.midolman.monitoring.metrics.{DatapathMetrics, PacketExecutorMetrics}
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
@@ -156,6 +156,9 @@ class MidolmanModule(config: MidolmanConfig,
 
         val statsHttpSvc = statsHttpService()
         bind(classOf[SimpleHTTPServerService]).toInstance(statsHttpSvc)
+
+        val jmxServer = new JmxConnectorServer
+        bind(classOf[JmxConnectorServer]).toInstance(jmxServer)
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
 
