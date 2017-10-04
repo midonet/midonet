@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.PacketWorkersService;
 import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.host.services.TcRequestHandler;
+import org.midonet.midolman.management.JmxConnectorServer;
 import org.midonet.midolman.management.SimpleHTTPServerService;
 import org.midonet.midolman.state.PeerResolver;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
@@ -94,6 +95,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject(optional = true)
     Insights insights;
+
+    @Inject(optional = true)
+    JmxConnectorServer jmxConnectorService;
 
     private JmxReporter jmxReporter = null;
 
@@ -204,6 +208,8 @@ public class MidolmanService extends AbstractService {
             services.add(statsHttpService);
         if (insights != null)
             services.add(insights);
+        if (jmxConnectorService != null)
+            services.add(jmxConnectorService);
         return services;
     }
 }

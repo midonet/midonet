@@ -116,6 +116,15 @@ class MidolmanConfig(config: Config, val schema: Config = ConfigFactory.empty(),
     val ruleLogging = new RuleLoggingConfig(conf, schema)
     val fip64 = new Fip64Config(conf, schema)
     val initialStorageCache = new InitialStorageCacheConfig(conf, schema)
+    val jmxConfig = new JMXServerConfig(conf, schema)
+}
+
+class JMXServerConfig(val conf: Config, val schema: Config)
+    extends TypeFailureFallback {
+    val PREFIX = "agent.midolman.jmx_server"
+
+    def enabled = getBoolean(s"$PREFIX.enabled")
+    def port = getInt(s"$PREFIX.port")
 }
 
 class InitialStorageCacheConfig(val conf: Config, val schema: Config)
