@@ -37,7 +37,7 @@ class JmxConnectorServer extends AbstractService {
 
     import JmxConnectorServer._
 
-    private val jmxPort = System.getenv("JMX_PORT").toInt
+    private val jmxPort = 7200 //System.getenv("JMX_PORT").toInt
 
     private var server: JMXConnectorServer = _
 
