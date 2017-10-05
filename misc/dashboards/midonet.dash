@@ -2,7 +2,7 @@
 title = MidoNet Review Inbox
 description = Review Inbox
 baseurl = https://review.gerrithub.io/#/dashboard/?
-foreach = (project:midonet/midonet) status:open NOT owner:self NOT label:Workflow<=-1 label:Verified>=1,Monitor@midokura.com NOT label:Code-Review<0,self NOT label:Code-Review>0,self
+foreach = (project:midonet/midonet) status:open NOT owner:self NOT label:Workflow<=-1 label:Verified>=1,midonet-bots NOT label:Code-Review<0,self NOT label:Code-Review>0,self
 
 [section "Needs Feedback (Changes older than 5 days that have not been reviewed by anyone)"]
 query = NOT label:Code-Review<=2 age:5d branch:master
@@ -10,7 +10,7 @@ query = NOT label:Code-Review<=2 age:5d branch:master
 [section "You are a reviewer, but haven't voted in the current revision"]
 query = reviewer:self branch:master
 
-[section "Needs final +2"]
+[section "Has +2"]
 query = label:Code-Review>=2 NOT(reviewerin:midonet-core label:Code-Review<=-1) limit:50 branch:master
 
 [section "Passed Jenkins, No Negative Core Feedback"]
