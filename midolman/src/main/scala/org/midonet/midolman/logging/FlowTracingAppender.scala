@@ -90,7 +90,7 @@ class FlowTracingAppender(sessionFuture: Future[Session])
         super.start()
     }
 
-    override def append(event: ILoggingEvent): Unit = {
+    override def append(event: ILoggingEvent): Unit = if (schema != null) {
         import FlowTracingContext._
         val mdc = event.getMDCPropertyMap
 
