@@ -288,11 +288,15 @@ class PacketWorkflowTest extends MidolmanSpec {
             }
             packetWorkflow.process()
 
+            mockDpChannel.contextsSeen.size() shouldBe 1
+            mockDpChannel.contextsSeen.get(0).runs shouldBe 1
+
             And("Completing the postpone future")
             packetWorkflow.p.trySuccess(null)
 
             Then("The workflow is not restarted")
-            packetWorkflow.backChannel.hasMessages shouldBe false
+            mockDpChannel.contextsSeen.size() shouldBe 1
+            mockDpChannel.contextsSeen.get(0).runs shouldBe 1
         }
 
         scenario("Failures on postponed context removes it from waiting room") {
