@@ -45,49 +45,49 @@ public enum RuleProtocol {
     DCCP("dccp", (byte) Protocol.DCCP.getNumber()),
 
     @ZoomEnumValue("EGP")
-    EGP("egp",(byte) Protocol.EGP.getNumber()),
+    EGP("egp", (byte) Protocol.EGP.getNumber()),
 
     @ZoomEnumValue("ESP")
-    ESP("esp",(byte) Protocol.ESP.getNumber()),
+    ESP("esp", (byte) Protocol.ESP.getNumber()),
 
     @ZoomEnumValue("GRE")
-    GRE("gre",(byte) Protocol.GRE.getNumber()),
+    GRE("gre", (byte) Protocol.GRE.getNumber()),
 
     @ZoomEnumValue("IGMP")
-    IGMP("igmp",(byte) Protocol.IGMP.getNumber()),
+    IGMP("igmp", (byte) Protocol.IGMP.getNumber()),
 
     @ZoomEnumValue("IPV6_ENCAP")
-    IPV6_ENCAP("ipv6_encap",(byte) Protocol.IPV6_ENCAP.getNumber()),
+    IPV6_ENCAP("ipv6_encap", (byte) Protocol.IPV6_ENCAP.getNumber()),
 
     @ZoomEnumValue("IPV6_FRAG")
-    IPV6_FRAG("ipv6_frag",(byte) Protocol.IPV6_FRAG.getNumber()),
+    IPV6_FRAG("ipv6_frag", (byte) Protocol.IPV6_FRAG.getNumber()),
 
     @ZoomEnumValue("IPV6_NONXT")
-    IPV6_NONXT("ipv6_nonxt",(byte) Protocol.IPV6_NONXT.getNumber()),
+    IPV6_NONXT("ipv6_nonxt", (byte) Protocol.IPV6_NONXT.getNumber()),
 
     @ZoomEnumValue("IPV6_OPTS")
-    IPV6_OPTS("ipv6_opts",(byte) Protocol.IPV6_OPTS.getNumber()),
+    IPV6_OPTS("ipv6_opts", (byte) Protocol.IPV6_OPTS.getNumber()),
 
     @ZoomEnumValue("IPV6_ROUTE")
-    IPV6_ROUTE("ipv6_route",(byte) Protocol.IPV6_ROUTE.getNumber()),
+    IPV6_ROUTE("ipv6_route", (byte) Protocol.IPV6_ROUTE.getNumber()),
 
     @ZoomEnumValue("OSPF")
-    OSPF("ospf",(byte) Protocol.OSPF.getNumber()),
+    OSPF("ospf", (byte) Protocol.OSPF.getNumber()),
 
     @ZoomEnumValue("PGM")
-    PGM("pgm",(byte) Protocol.PGM.getNumber()),
+    PGM("pgm", (byte) Protocol.PGM.getNumber()),
 
     @ZoomEnumValue("RSVP")
-    RSVP("rsvp",(byte) Protocol.RSVP.getNumber()),
+    RSVP("rsvp", (byte) Protocol.RSVP.getNumber()),
 
     @ZoomEnumValue("SCTP")
-    SCTP("sctp",(byte) Protocol.SCTP.getNumber()),
+    SCTP("sctp", (byte) Protocol.SCTP.getNumber()),
 
     @ZoomEnumValue("UDPLITE")
-    UDPLITE("udplite",(byte) Protocol.UDPLITE.getNumber()),
+    UDPLITE("udplite", (byte) Protocol.UDPLITE.getNumber()),
 
     @ZoomEnumValue("VRRP")
-    VRRP("vrrp",(byte) Protocol.VRRP.getNumber());
+    VRRP("vrrp", (byte) Protocol.VRRP.getNumber());
 
     private final String value;
     private final byte number;
@@ -112,7 +112,7 @@ public enum RuleProtocol {
                 return protocol;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No RuleProtocol for number " + num);
     }
 
     private static RuleProtocol forStrValue(String s) {
@@ -121,7 +121,7 @@ public enum RuleProtocol {
                 return protocol;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No RuleProtocol for string " + s);
     }
 
     @JsonCreator
