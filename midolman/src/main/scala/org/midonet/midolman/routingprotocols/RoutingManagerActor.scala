@@ -307,9 +307,15 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     }
 
     private def stopAllHandlers(): Unit = {
-        portHandlers.keys foreach stopHandler
-        actorsServiceSender = sender()
-        log.debug("Waiting for routing handlers to report FIN ACK.")
+        if (bgpActorCount == 0) {
+            log.debug("No BGP routing handlers to stop. " +
+                      "Notify MidolmanActors service")
+            sender ! RoutingManagerStopped
+        } else {
+            portHandlers.keys foreach stopHandler
+            actorsServiceSender = sender()
+            log.debug("Waiting for routing handlers to report FIN ACK.")
+        }
     }
 
     /** Stops the routing handler for the specified port identifier. Upon
