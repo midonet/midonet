@@ -412,7 +412,6 @@ class PacketWorkflow(
 
     private def returnContext(context: PacketContext): Unit = {
         val cookie = context.cookie
-        context.resetContext()
         if (contextPool.size() < maxPooledContexts &&
                 contextPool.offerFirst(context)) {
             log.debug(s"Returned context for cookie:$cookie to pool")
