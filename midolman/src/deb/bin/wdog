@@ -203,22 +203,28 @@ class ProcMon(ISelectLoopObserver):
         # pipe writer on the primary agent does not fire a SIGKILL.
         self.ticks_left = 60
 
-        # 1. mark a fast reboot lock file while rebooting
-        #    will be removed by the newly created process
-        fd = os.open('/var/run/midolman/fast_reboot.file', os.O_CREAT)
-        os.close(fd)
+        try:
+            # 1. mark a fast reboot lock file while rebooting
+            #    will be removed by the newly created process
+            fd = os.open('/var/run/midolman/fast_reboot.file',
+                         os.O_CREAT | os.O_EXCL)
+            os.close(fd)
 
-        # 2. SIGKILL current process
-        os.kill(self.child_pid, signal.SIGTERM)
+            # 2. SIGKILL current process
+            os.kill(self.child_pid, signal.SIGTERM)
 
-        # 3. Remove pipe
-        if self.pipe > 0:
-            os.close(self.pipe)
-            os.unlink(self.pipe_path)
-        os.rmdir(self.pipe_dir)
+            # 3. Remove pipe
+            if self.pipe > 0:
+                os.close(self.pipe)
+                os.unlink(self.pipe_path)
+            os.rmdir(self.pipe_dir)
 
-        #4. Spawn new process and start monitoring it
-        ProcMon(self.grace, self.dump_path, self.args).run()
+            #4. Spawn new process and start monitoring it
+            ProcMon(self.grace, self.dump_path, self.args).run()
+        except:
+            msg('Failed to execute the fast reboot sequence. Check that the '
+                '/var/run/midolman/fast_reboot.file does not exist and try '
+                'again: ' + sys.exc_info()[0])
 
 
     def wait_on_child(self, pid, timeout):
@@ -353,6 +359,12 @@ def main():
         import setproctitle
         setproctitle.setproctitle(program_name)
     except ImportError:
+        pass
+
+    try:
+        os.remove('/var/run/midolman/fast_reboot.file')
+    except:
+        # Ignore if the file does not exist
         pass
 
     ProcMon(timeout, dump_path, argv).run()

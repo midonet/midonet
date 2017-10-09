@@ -82,7 +82,7 @@ class RebootBarriers(zk: CuratorFramework,
     def clear() = {
         Log.info("Clearing fast reboot barriers")
 
-        Seq(stage1) foreach { stage =>
+        Seq(stage1, stage2, stage3) foreach { stage =>
             stage.removeBarrier()
             stage.waitOnBarrier()
         }

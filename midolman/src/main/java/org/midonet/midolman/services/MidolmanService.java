@@ -191,7 +191,7 @@ public class MidolmanService extends AbstractService {
     }
 
     private List<Service> services() {
-        ArrayList<Service> services = new ArrayList<>(12);
+        ArrayList<Service> services = new ArrayList<>();
         // Virtual Topology Service should go first as other services rely on it
         services.add(virtualTopology);
         services.add(datapathService);
