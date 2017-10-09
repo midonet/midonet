@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "23d952b4_2f7aea2b",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 39
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2017-10-09T13:39:04Z",
+      "side": 1,
+      "message": "O_EXCL and capture the error to prevent race conditions",
+      "range": {
+        "startLine": 208,
+        "startChar": 62,
+        "endLine": 208,
+        "endChar": 69
+      },
+      "revId": "6a40c0f9c23b7f50136c59473bac2c870dd994d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "880337c3_61c9c7af",
         "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
         "patchSetId": 39
