@@ -15,4 +15,4 @@
 # limitations under the License.
 
 echo "Sending fast reboot signal to running agent..."
-kill -10 $(pgrep wdog)
+kill -SIGUSR1 $(pgrep wdog)

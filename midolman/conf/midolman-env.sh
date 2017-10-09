@@ -86,8 +86,8 @@ JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midolman/gc-`date +%Y%m%d_%H%M%S`.log"
 # uncomment to have Midolman JVM listen for remote debuggers/profilers on port 1414
 # JVM_OPTS="$JVM_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1414"
 
-# uncomment to disable JMX startup with the JMV (delegate to runtime JMX service)
-JMXDISABLE=true
+# uncomment to enable JMX startup with the JMV (do not delegate to runtime service)
+# JMXENABLE=true
 
 # Prefer binding to IPv4 network intefaces (when net.ipv6.bindv6only=1). See
 # http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6342561 (short version:
@@ -106,7 +106,7 @@ JMXDISABLE=true
 # http://blogs.sun.com/jmxetc/entry/troubleshooting_connection_problems_in_jconsole
 # for more on configuring JMX through firewalls, etc. (Short version:
 # get it working with no firewall first.)
-if [ "x$JMXDISABLE" = "x" ] ; then
+if [ "x$JMXENABLE" = "xtrue" ] ; then
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote"
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.local.only=$JMXLOCALONLY"
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT"
