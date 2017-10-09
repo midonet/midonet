@@ -189,8 +189,9 @@ public class Midolman {
         Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
             @Override
             public void run() {
-                log.debug("Fast reboot - isFastReboot? {}", isFastReboot());
-                if (isFastReboot()) {
+                boolean fastReboot = isFastReboot();
+                log.debug("Fast reboot - isFastReboot? {}", fastReboot);
+                if (fastReboot) {
                     doServicesCleanupOnFastReboot();
                 } else {
                     doServicesCleanup();
@@ -256,6 +257,9 @@ public class Midolman {
 
         MidolmanConfig config = createConfig(configurator);
 
+        if (config.lockMemory())
+            lockMemory();
+
         FlowTablePreallocation preallocation;
         if (config.offHeapTables()) {
             preallocation = new FlowTableNoPreallocation();
@@ -292,8 +296,9 @@ public class Midolman {
 
         RebootBarriers barriers = new RebootBarriers(
             backend.curator(), config.zookeeper());
+        boolean fastReboot = isFastReboot();
 
-        if (isFastReboot()) {
+        if (fastReboot) {
             log.info("Fast reboot (backup): initialization finished, remove "
                      + "stage1 barrier and wait (5s) on stage2 barrier.");
             barriers.stage2().setBarrier();
@@ -305,7 +310,7 @@ public class Midolman {
             .startAsync()
             .awaitRunning();
 
-        if (isFastReboot()) {
+        if (fastReboot) {
             log.info("Fast reboot (backup): services started.");
             barriers.stage3().removeBarrier();
             new File(FAST_REBOOT_FILE).delete();
@@ -313,9 +318,6 @@ public class Midolman {
 
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
-
-        if (config.lockMemory())
-            lockMemory();
 
         if (!initializationPromise.trySuccess(true)) {
             log.error("MidoNet Agent failed to initialize in {} seconds and " +
