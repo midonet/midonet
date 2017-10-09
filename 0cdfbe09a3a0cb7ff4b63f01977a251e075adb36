@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8294312a_a14afdb9",
+        "filename": "midolman/conf/midolman-env.sh",
+        "patchSetId": 8
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-10-09T13:05:43Z",
+      "side": 1,
+      "message": "is this supposed to be uncommented? otherwise change the comment above",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 15
+      },
+      "revId": "0cdfbe09a3a0cb7ff4b63f01977a251e075adb36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5775b29f_34e11ec2",
+        "filename": "midolman/src/main/java/org/midonet/midolman/services/MidolmanService.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-10-09T13:05:43Z",
+      "side": 1,
+      "message": "nit: 13, or rm to stop updating every time",
+      "range": {
+        "startLine": 194,
+        "startChar": 54,
+        "endLine": 194,
+        "endChar": 56
+      },
+      "revId": "0cdfbe09a3a0cb7ff4b63f01977a251e075adb36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "19363d16_c8e4ca2b",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 8
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-10-09T13:05:43Z",
+      "side": 1,
+      "message": "update",
+      "range": {
+        "startLine": 18,
+        "startChar": 20,
+        "endLine": 18,
+        "endChar": 22
+      },
+      "revId": "0cdfbe09a3a0cb7ff4b63f01977a251e075adb36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
