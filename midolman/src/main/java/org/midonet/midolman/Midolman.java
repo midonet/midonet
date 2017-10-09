@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
@@ -28,6 +29,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.datapath.FlowExpirator;
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
@@ -61,9 +63,14 @@ import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.jna.CLibrary;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.logging.FlowTracingAppender;
+import org.midonet.midolman.management.JmxConnectorServer;
+import org.midonet.midolman.management.SimpleHTTPServerService;
+import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
+import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopology;
 import org.midonet.util.process.MonitoredDaemonProcess;
 
@@ -87,6 +94,9 @@ public class Midolman {
         Midolman.class.getPackage().getImplementationVersion();
     public static final String VENDOR =
         Midolman.class.getPackage().getImplementationVendor();
+
+    private static final String FAST_REBOOT_FILE =
+        "/var/run/midolman/fast_reboot.file";
 
     private Injector injector;
 
@@ -179,9 +189,19 @@ public class Midolman {
         Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
             @Override
             public void run() {
-                doServicesCleanup();
+                boolean fastReboot = isFastReboot();
+                log.debug("Fast reboot - isFastReboot? {}", fastReboot);
+                if (fastReboot) {
+                    doServicesCleanupOnFastReboot();
+                } else {
+                    doServicesCleanup();
+                }
             }
         });
+    }
+
+    private boolean isFastReboot() {
+        return new File(FAST_REBOOT_FILE).exists();
     }
 
     private void setUncaughtExceptionHandler() {
@@ -237,6 +257,9 @@ public class Midolman {
 
         MidolmanConfig config = createConfig(configurator);
 
+        if (config.lockMemory())
+            lockMemory();
+
         FlowTablePreallocation preallocation;
         if (config.offHeapTables()) {
             preallocation = new FlowTableNoPreallocation();
@@ -268,18 +291,33 @@ public class Midolman {
         );
 
         // start the services
-        injector.getInstance(MidonetBackend.class)
-            .startAsync()
-            .awaitRunning();
+        MidonetBackend backend = injector.getInstance(MidonetBackend.class);
+        backend.startAsync().awaitRunning();
+
+        RebootBarriers barriers = new RebootBarriers(
+            backend.curator(), config.zookeeper());
+        boolean fastReboot = isFastReboot();
+
+        if (fastReboot) {
+            log.info("Fast reboot (backup): initialization finished, remove "
+                     + "stage1 barrier and wait (5s) on stage2 barrier.");
+            barriers.stage2().setBarrier();
+            barriers.stage1().removeBarrier();
+            barriers.stage2().waitOnBarrier(5, TimeUnit.SECONDS);
+        }
+
         injector.getInstance(MidolmanService.class)
             .startAsync()
             .awaitRunning();
 
+        if (fastReboot) {
+            log.info("Fast reboot (backup): services started.");
+            barriers.stage3().removeBarrier();
+            new File(FAST_REBOOT_FILE).delete();
+        }
+
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
-
-        if (config.lockMemory())
-            lockMemory();
 
         if (!initializationPromise.trySuccess(true)) {
             log.error("MidoNet Agent failed to initialize in {} seconds and " +
@@ -326,8 +364,10 @@ public class Midolman {
         log.info("MidoNet Agent shutting down...");
 
         try {
-            minionProcess.stopAsync()
-                .awaitTerminated(MINION_PROCESS_WAIT_TIMEOUT, TimeUnit.SECONDS);
+            if (minionProcess != null)
+                minionProcess.stopAsync()
+                    .awaitTerminated(MINION_PROCESS_WAIT_TIMEOUT,
+                                     TimeUnit.SECONDS);
         } catch (Exception e) {
             log.error("Minion process failed while stopping.", e);
         }
@@ -351,6 +391,57 @@ public class Midolman {
             watchedProcess.close();
             log.info("MidoNet Agent exiting. Bye!");
         }
+    }
+
+    private void doServicesCleanupOnFastReboot() {
+        log.info("Fast reboot (main) Midonet Agent coordinated shutdown started...");
+
+        MidonetBackend backend = injector
+            .getInstance(MidonetBackend.class);
+        MidonetBackendConfig backendConfig = injector
+            .getInstance(MidonetBackendConfig.class);
+        RebootBarriers barriers = new RebootBarriers(
+            backend.curator(), backendConfig);
+        MidolmanActorsService actorsService = injector
+            .getInstance(MidolmanActorsService.class);
+
+        barriers.clear();
+
+        try {
+            minionProcess.stopAsync()
+                .awaitTerminated(MINION_PROCESS_WAIT_TIMEOUT, TimeUnit.SECONDS);
+            minionProcess = null;
+        } catch (Exception e) {
+            log.error("Minion process failed while stopping.", e);
+        }
+
+        log.info("Minion process stopped.");
+
+        barriers.stage1().setBarrier();
+        log.info("Fast reboot (main): minion stopped, set barrier 1 and "
+                 + "wait (10s) on stage1 barrier.");
+        barriers.stage1().waitOnBarrier(10, TimeUnit.SECONDS);
+
+        // Stop non-critical services that have hard coded resources
+        // that could interfere with a concurrent MidoNet Agent instance.
+        actorsService.stopRoutingHandlerActors();
+        actorsService.stopMetadataActor();
+        injector.getInstance(HostService.class)
+            .stopAsync().awaitTerminated();
+        injector.getInstance(SimpleHTTPServerService.class)
+            .stopAsync().awaitTerminated();
+        injector.getInstance(JmxConnectorServer.class)
+            .stopAsync().awaitTerminated();
+        injector.getInstance(VirtualToPhysicalMapper.class)
+            .stopAsync().awaitTerminated();
+
+        barriers.stage3().setBarrier();
+        barriers.stage2().removeBarrier();
+        log.info("Fast reboot (main): non-critical services stopped, " +
+                 "remove stage 2 barrier and wait (5s) on stage3 barrier.");
+        barriers.stage3().waitOnBarrier(5, TimeUnit.SECONDS);
+
+        doServicesCleanup();
     }
 
     @VisibleForTesting
