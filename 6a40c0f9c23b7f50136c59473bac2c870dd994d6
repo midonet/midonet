@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9c2a040_eb3edfb8",
+        "filename": "midolman/src/deb/bin/mm-reboot",
+        "patchSetId": 39
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-10-09T13:28:24Z",
+      "side": 1,
+      "message": "I\u0027ve read this can change in different platforms, maybe change to -SIGUSR1 for portability later",
+      "range": {
+        "startLine": 18,
+        "startChar": 6,
+        "endLine": 18,
+        "endChar": 8
+      },
+      "revId": "6a40c0f9c23b7f50136c59473bac2c870dd994d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "880337c3_61c9c7af",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 39
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-10-09T13:28:24Z",
+      "side": 1,
+      "message": "can we call this once? or cache it? just to avoid reading from the fs several times, can be done later",
+      "range": {
+        "startLine": 192,
+        "startChar": 60,
+        "endLine": 192,
+        "endChar": 74
+      },
+      "revId": "6a40c0f9c23b7f50136c59473bac2c870dd994d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2e191520_9bc51768",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/RebootBarriers.scala",
+        "patchSetId": 39
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-10-09T13:28:24Z",
+      "side": 1,
+      "message": "(stage1, stage2, stage3) ?",
+      "range": {
+        "startLine": 85,
+        "startChar": 12,
+        "endLine": 85,
+        "endChar": 18
+      },
+      "revId": "6a40c0f9c23b7f50136c59473bac2c870dd994d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
