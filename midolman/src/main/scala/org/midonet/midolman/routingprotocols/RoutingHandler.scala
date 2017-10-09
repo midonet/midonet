@@ -25,7 +25,7 @@ import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
 
-import akka.actor.ActorRef
+import akka.actor.{ActorRef, Cancellable}
 
 import org.apache.zookeeper.KeeperException
 
@@ -153,6 +153,7 @@ object RoutingHandler {
                 new IPv4Subnet(IPv4Addr.fromInt(BgpIpIntPrefix + 1 + 4 * bgpIdx), 30)
             private final val bgpVtyPeerIp =
                 new IPv4Subnet(IPv4Addr.fromInt(BgpIpIntPrefix + 2 + 4 * bgpIdx), 30)
+            private var scheduledBgpStatus: Cancellable = _
 
             protected override val bgpd = DefaultBgpdProcess(
                 portId = routerPort.id,
@@ -200,8 +201,8 @@ object RoutingHandler {
                     portBgpSub = portBgpObs.subscribe(new PortBgpObserver)
                 }
 
-                system.scheduler.schedule(2 seconds, 5 seconds,
-                                          self, FetchBgpdStatus)(context.dispatcher)
+                scheduledBgpStatus = system.scheduler.schedule(
+                    2 seconds, 5 seconds, self, FetchBgpdStatus)(context.dispatcher)
                 log.debug("Routing handler started")
             }
 
@@ -257,6 +258,9 @@ object RoutingHandler {
 
             override def stopZebra(): Unit = {
                 log.debug("Stopping zebra server")
+                if (scheduledBgpStatus ne null) {
+                    scheduledBgpStatus.cancel()
+                }
                 if (zebra ne null) {
                     context.stop(zebra)
                 }
