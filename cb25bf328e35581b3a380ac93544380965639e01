@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c323500_e045c46a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-10-09T08:16:32Z",
+      "side": 1,
+      "message": "I\u0027d add an else statement with a debug message \"Cassandra session not ready yet\" or the likes.",
+      "range": {
+        "startLine": 93,
+        "startChar": 54,
+        "endLine": 93,
+        "endChar": 73
+      },
+      "revId": "cb25bf328e35581b3a380ac93544380965639e01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
