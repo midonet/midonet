@@ -40,8 +40,8 @@ fi
 echo "Configuring cluster using MIDO_ZOOKEEPER_HOSTS: $MIDO_ZOOKEEPER_HOSTS"
 echo "Configuring cluster using MIDO_ZOOKEEPER_ROOT_KEY: $MIDO_ZOOKEEPER_ROOT_KEY"
 
-sed -i -e 's/zookeeper_hosts = .*$/zookeeper_hosts = '"$MIDO_ZOOKEEPER_HOSTS"'/' /etc/midolman/midolman.conf
-sed -i -e 's/root_key = .*$/root_key = '"$(echo $MIDO_ZOOKEEPER_ROOT_KEY|sed 's/\//\\\//g')"'/' /etc/midolman/midolman.conf
+sed -i -e 's/zookeeper_hosts = .*$/zookeeper_hosts = '"$MIDO_ZOOKEEPER_HOSTS"'/' /etc/midonet/midonet.conf
+sed -i -e 's/root_key = .*$/root_key = '"$(echo $MIDO_ZOOKEEPER_ROOT_KEY|sed 's/\//\\\//g')"'/' /etc/midonet/midonet.conf
 
 cat << EOF > /root/.midonetrc
 [zookeeper]
@@ -53,6 +53,7 @@ mn-conf set -t default <<EOF
 cluster.containers.scheduler_timeout="20s"
 cluster.loggers.org.midonet.cluster.root=DEBUG
 cluster.loggers.com.sun.jersey=INFO
+cluster.topology_cache.enabled=false
 EOF
 
 # Run cluster
