@@ -91,6 +91,8 @@ future of the solution and new features.
 Your input is appreciated and welcome, we are very glad to learn about new
 innovations and ideas from our community!
 
-* http://slack.midonet.org/
+* [`MidoNet Slack`][1]
 
 * http://lists.midonet.org/listinfo/midonet-dev
+
+[1]: https://join.slack.com/t/midonet/shared_invite/enQtMjU2NzAzNzIyNjc0LWYzZTczYmVkZjkxMDllOWUxMGVjNGI1NjNlZDM1Y2JhZGMyZDNkMGVlNWE2ZWU0ZmJlNDFhMWRmMGRjODE5YjA

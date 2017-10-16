@@ -63,7 +63,7 @@ Feel free to join other MidoNet developers on our public
     "GerritHub"
 [dev-guide]: http://wiki.midonet.org/Developer%27s%20Guide
     "MidoNet developers guide"
-[slack]: http://slack.midonet.org
+[slack]: https://join.slack.com/t/midonet/shared_invite/enQtMjU2NzAzNzIyNjc0LWYzZTczYmVkZjkxMDllOWUxMGVjNGI1NjNlZDM1Y2JhZGMyZDNkMGVlNWE2ZWU0ZmJlNDFhMWRmMGRjODE5YjA
     "MidoNet Public Slack"
 [dev-mail]: http://lists.midonet.org/listinfo/midonet-dev
     "MidoNet developers mailing list"
