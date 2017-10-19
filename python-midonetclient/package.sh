@@ -33,7 +33,7 @@ FPM_BASE_ARGS=$(cat <<EOF
 --maintainer "Midokura" \
 --url 'http://midonet.org' \
 --description 'Python client library for MidoNet API' \
--d 'python-webob' -d 'python-eventlet' -d 'python-httplib2' \
+-d 'python-webob' -d 'python-httplib2' \
 -s dir \
 --before-remove package-hooks/before-remove.sh \
 --after-install package-hooks/after-install.sh \
