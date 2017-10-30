@@ -78,6 +78,7 @@ class SignalsPipe:
         signal.signal(signal.SIGTERM, self._handler)
         signal.signal(signal.SIGQUIT, self._handler)
         signal.signal(signal.SIGCHLD, self._handler)
+        signal.signal(signal.SIGUSR1, self._handler)
 
     def _handler(self, signum, frame):
         os.write(self.wd, struct.pack('1B', signum))
@@ -196,6 +197,36 @@ class ProcMon(ISelectLoopObserver):
         msg('Signal received, exiting')
         self.terminate(10)
 
+    def on_sigusr1(self):
+        msg('User signal received, starting fast reboot mechanism.')
+        # Setting the ticks left to an arbitrary high value so stopping the
+        # pipe writer on the primary agent does not fire a SIGKILL.
+        self.ticks_left = 60
+
+        try:
+            # 1. mark a fast reboot lock file while rebooting
+            #    will be removed by the newly created process
+            fd = os.open('/var/run/midolman/fast_reboot.file',
+                         os.O_CREAT | os.O_EXCL)
+            os.close(fd)
+
+            # 2. SIGKILL current process
+            os.kill(self.child_pid, signal.SIGTERM)
+
+            # 3. Remove pipe
+            if self.pipe > 0:
+                os.close(self.pipe)
+                os.unlink(self.pipe_path)
+            os.rmdir(self.pipe_dir)
+
+            #4. Spawn new process and start monitoring it
+            ProcMon(self.grace, self.dump_path, self.args).run()
+        except:
+            msg('Failed to execute the fast reboot sequence. Check that the '
+                '/var/run/midolman/fast_reboot.file does not exist and try '
+                'again.')
+
+
     def wait_on_child(self, pid, timeout):
         for i in range(timeout):
             try:
@@ -226,6 +257,8 @@ class ProcMon(ISelectLoopObserver):
             self.on_sigterm()
         elif signum == signal.SIGCHLD:
             self.on_sigchld()
+        elif signum == signal.SIGUSR1:
+            self.on_sigusr1()
 
     def on_ready(self, fd):
         nbytes = 0
@@ -326,6 +359,12 @@ def main():
         import setproctitle
         setproctitle.setproctitle(program_name)
     except ImportError:
+        pass
+
+    try:
+        os.remove('/var/run/midolman/fast_reboot.file')
+    except:
+        # Ignore if the file does not exist
         pass
 
     ProcMon(timeout, dump_path, argv).run()
