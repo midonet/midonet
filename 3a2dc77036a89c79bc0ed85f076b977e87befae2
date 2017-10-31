@@ -22,6 +22,30 @@
       "revId": "3a2dc77036a89c79bc0ed85f076b977e87befae2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2da79b82_5058bc91",
+        "filename": "docs/fast-reboot.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2017-10-31T10:47:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bdf5d1c_e7262343",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 76
+      },
+      "revId": "3a2dc77036a89c79bc0ed85f076b977e87befae2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
