@@ -32,7 +32,7 @@ import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
-import org.midonet.cluster.data.storage.cached.{StateStorageWrapper, StorageWrapper, TopologyCacheClientDiscovery}
+import org.midonet.cluster.data.storage.cached.{StorageWrapper, TopologyCacheClientDiscovery}
 import org.midonet.cluster.data.storage.{StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.discovery.{MidonetDiscoverySelector, MidonetServiceURI}
@@ -300,18 +300,7 @@ class VirtualTopology(val backend: MidonetBackend,
             backend.store
         }
 
-        stateStore = if (snapshotAvailable) {
-            val wrapper = new StateStorageWrapper(config.initialStorageCache.ttlMs,
-                                                  backend.store, backend.stateStore,
-                                                  snapshot.objectSnapshot,
-                                                  snapshot.stateSnapshot)
-            worker.schedule(makeAction0(wrapper.invalidateCache()),
-                            config.initialStorageCache.ttlMs,
-                            TimeUnit.MILLISECONDS)
-            wrapper
-        } else {
-            backend.stateStore
-        }
+        stateStore = backend.stateStore
 
         stateTables = backend.stateTableStore
         notifyStarted()
