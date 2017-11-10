@@ -131,7 +131,7 @@ in the "Prerequisites" section above, of course.
 
     |mn-conf key                               |appropriate value|
     |:-----------------------------------------|-----------------|
-    |agent.openstack.metadata.nova_metadata_url|"http://${nova_metadata_ip}:${nova_metadata_port}" where nova_metadata_ip and nova_metadata_port are the corresponding neutron-metadata-agent configuration.|
+    |agent.openstack.metadata.nova_metadata_url|"http://${nova_metadata_host}:${nova_metadata_port}" where nova_metadata_host and nova_metadata_port are the corresponding neutron-metadata-agent configuration.|
     |agent.openstack.metadata.shared_secret    |same as "metadata_proxy_shared_secret" neutron-metadata-agent configuration.|
     |agent.openstack.metadata.enabled          |true             |
 
