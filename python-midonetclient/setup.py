@@ -59,7 +59,8 @@ def _version():
 
 
 def build_proto(proto_path, include_path, out_path):
-    protoc = spawn.find_executable('protoc')
+    protoc = spawn.find_executable(
+        os.getenv('PROTOC_EXECUTABLE', 'protoc'))
     if protoc is None:
         sys.stderr.write('Cannot find the protoc compiler in $PATH')
         sys.exit(1)
