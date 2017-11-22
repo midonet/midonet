@@ -76,6 +76,7 @@ class NativeFlowController(config: MidolmanConfig,
         val flow = addFlow(fmatch, expiration)
         flow.addCallbacks(removeCallbacks)
         flow.addTags(flowTags)
+        registerFlow(flow, flowTags, expiration)
         metrics.dpFlowsMetric.mark(1)
         flow
     }
@@ -92,8 +93,17 @@ class NativeFlowController(config: MidolmanConfig,
         flow.addCallbacks(removeCallbacks)
         flow.addTags(flowTags)
         outerFlow.setLinkedId(flow.id)
+        registerFlow(flow, flowTags, expiration)
         metrics.dpFlowsMetric.mark(2)
         flow
+    }
+
+    private def registerFlow(flow: ManagedFlow,
+                             tags: ArrayList[FlowTag],
+                             expiration: Expiration): Unit = {
+        val absoluteExpirationNanos = clock.tick + expiration.value
+        meters.trackFlow(flow.flowMatch, tags)
+        insights.flowAdded(flow.flowMatch, tags, absoluteExpirationNanos)
     }
 
     override def removeDuplicateFlow(mark: Int): Unit = {
