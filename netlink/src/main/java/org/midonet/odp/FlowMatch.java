@@ -512,6 +512,8 @@ public class FlowMatch {
         tunnelKey = that.tunnelKey;
         tunnelSrc = that.tunnelSrc;
         tunnelDst = that.tunnelDst;
+        tunnelTOS = that.tunnelTOS;
+        tunnelTTL = that.tunnelTTL;
         ethSrc = that.ethSrc;
         ethDst = that.ethDst;
         etherType = that.etherType;
