@@ -61,7 +61,9 @@ public class FlowMatches {
 
         if (rand.nextInt(4) == 0) {
             keys.add(FlowKeys.tunnel(rand.nextLong(), rand.nextInt(),
-                                     rand.nextInt(), (byte) 0));
+                                     rand.nextInt(),
+                                     (byte)rand.nextInt(),
+                                     (byte)rand.nextInt()));
         }
 
         keys.add(FlowKeys.ethernet(MAC.random().getAddress(),

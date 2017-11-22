@@ -17,6 +17,7 @@
 package org.midonet.odp;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.junit.After;
 import org.junit.Before;
@@ -416,5 +417,17 @@ public class FlowMatchTest {
         m.getNetworkSrcIP();
         m.getNetworkTTL();
         assertEquals(m.highestLayerSeen(), 4);
+    }
+
+    @Test
+    public void testResetAndHashCode() {
+        Random r = new Random();
+
+        for (int i = 0; i < 10000; i++) {
+            FlowMatch m = FlowMatches.generateFlowMatch(r);
+            FlowMatch copy = new FlowMatch();
+            copy.reset(m);
+            assertEquals(copy.hashCode(), m.hashCode());
+        }
     }
 }
