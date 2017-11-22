@@ -95,10 +95,15 @@ class OnHeapMeterRegistry(val maxFlows: Int) extends MeterRegistry {
         }
 
         log.debug(s"new flow is associated with ${metadata.meters.size} meters")
-        if (metadata.meters.size() > 0)
-            trackedFlows.put(flowMatch, metadata)
-        else
+        if (metadata.meters.size() > 0) {
+            // Note: Avoid keeping a reference to the given FlowMatch
+            // because it's lifetime can be shorter than this entry.
+            val key = new FlowMatch
+            key.reset(flowMatch)
+            trackedFlows.put(key, metadata)
+        } else {
             metadataPool.offer(metadata)
+        }
     }
 
     override def recordPacket(packetLen: Int, tags: List[FlowTag]): Unit = {
