@@ -20,22 +20,27 @@ import java.util.Random
 import com.google.common.collect.Lists
 
 import org.junit.runner.RunWith
+import org.mockito.Matchers.{eq => mockEq}
+import org.mockito.Mockito.verify
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.mock.MockitoSugar
 
 import org.midonet.Util
 import org.midonet.insights.Insights
 import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback}
+import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.{FlowController, MockFlowTablePreallocation, PacketWorkersService}
 import org.midonet.odp.FlowMatches
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
-class NativeFlowControllerTest extends MidolmanSpec {
+class NativeFlowControllerTest extends MidolmanSpec with MockitoSugar {
     val flowTimeout: Int = 1000
     val tagCount: Int = 10
 
     var flowController: FlowController = _
+    var mockMeterRegistry: MeterRegistry = _
 
     var callbackCalled = false
     var linkedCallbackCalled = false
@@ -47,10 +52,11 @@ class NativeFlowControllerTest extends MidolmanSpec {
 
     override def beforeTest(): Unit = {
         val preallocation = new MockFlowTablePreallocation(config)
+        mockMeterRegistry = mock[MeterRegistry]
         flowController = new NativeFlowController(
             config, clock, flowProcessor,
             0, 0, metrics,
-            preallocation.takeMeterRegistry(),
+            mockMeterRegistry,
             cbRegistry, Insights.NONE)
         val callbackCalledCbId = cbRegistry.registerCallback(
             new SerializableCallback() {
@@ -65,15 +71,19 @@ class NativeFlowControllerTest extends MidolmanSpec {
     feature("The flow controller processes flows") {
         scenario("A flow is added") {
             When("The flow is added to the flow controller")
+            val flowMatch = FlowMatches.generateFlowMatch(random)
+            val tags = Lists.newArrayList[FlowTagger.FlowTag]()
             val managedFlow = flowController.addFlow(
-                FlowMatches.generateFlowMatch(random),
-                Lists.newArrayList(),
+                flowMatch,
+                tags,
                 Lists.newArrayList(callbackCalledSpec),
                 FlowExpirationIndexer.FLOW_EXPIRATION)
 
             Then("The flow is registered and the metrics updated")
             managedFlow should not be null
             metrics.dpFlowsMetric.getCount should be (1)
+            verify(mockMeterRegistry).trackFlow(mockEq(flowMatch),
+                                                mockEq(tags))
         }
 
         scenario("A flow is removed") {
