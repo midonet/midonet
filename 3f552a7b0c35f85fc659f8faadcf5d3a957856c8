@@ -22,6 +22,30 @@
       "revId": "3f552a7b0c35f85fc659f8faadcf5d3a957856c8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d4082e7_78750195",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-11-23T01:52:05Z",
+      "side": 1,
+      "message": "1. just because we didn\u0027t test much? this class hasn\u0027t changed much but the caller has been changed to recycle the FlowMatch earlier.\n\n2. yes, it\u0027s redundant. well, actually the FlowMatch is copied a few times before coming here. the FlowMatch given here is the one permanently attached in ManagedFlowImpl.",
+      "parentUuid": "469c72e8_72ef55f1",
+      "range": {
+        "startLine": 101,
+        "startChar": 12,
+        "endLine": 101,
+        "endChar": 35
+      },
+      "revId": "3f552a7b0c35f85fc659f8faadcf5d3a957856c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
