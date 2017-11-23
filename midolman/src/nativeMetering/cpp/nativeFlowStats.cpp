@@ -25,6 +25,7 @@ NativeFlowStats& NativeFlowStats::operator=(const NativeFlowStats& fs) {
         this->packets = fs.packets;
         this->bytes = fs.bytes;
     }
+    return *this;
 }
 
 void NativeFlowStats::add(int64_t p, int64_t b) {
