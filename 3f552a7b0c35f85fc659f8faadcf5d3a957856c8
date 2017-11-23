@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "469c72e8_72ef55f1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2017-11-23T00:13:59Z",
+      "side": 1,
+      "message": "1. I didn\u0027t look at this closely, but if this is a bug, it looks like a serious one. Do you know why we didn\u0027t catch this before? This class hasn\u0027t changed that much.\n\n2.This seems a bit redundant, since we already allocate a new FlowMatch for every packet (e.g. OvsDatapathConnectionImpl.java@91). Isn\u0027t it possible to keep a single instance?",
+      "range": {
+        "startLine": 101,
+        "startChar": 12,
+        "endLine": 101,
+        "endChar": 35
+      },
+      "revId": "3f552a7b0c35f85fc659f8faadcf5d3a957856c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
