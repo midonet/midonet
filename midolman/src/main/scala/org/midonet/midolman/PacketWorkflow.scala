@@ -38,7 +38,7 @@ import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.FlowExpirationIndexer
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.midolman.logging.{FlowTracingContext, MidolmanLogging}
-import org.midonet.midolman.management.{Metering, PacketTracing}
+import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.FlowRecorder
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
@@ -263,12 +263,10 @@ class PacketWorkflow(
     private val maxWithoutExpiration = (5 seconds) toNanos
 
     protected val datapathId = dpState.datapath.getIndex
-    private val meters = preallocation.takeMeterRegistry()
-    Metering.registerAsMXBean(meters)
     protected val flowController: FlowController =
         new FlowControllerImpl(config, clock, flowProcessor,
                                datapathId, workerId,
-                               metrics, meters,
+                               metrics,
                                preallocation,
                                insights)
 
@@ -505,7 +503,7 @@ class PacketWorkflow(
 
     protected def recordPacket(pktCtx: PacketContext, simRes: SimulationResult): Unit = {
         pktCtx.log.debug("Recording packet")
-        meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
+        flowController.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
         insights.flowSimulation(pktCtx.cookie, pktCtx.packet, pktCtx.inputPort,
                                 pktCtx.origMatch, pktCtx.flowTags, simRes)
         flowRecorder.record(pktCtx, simRes)
