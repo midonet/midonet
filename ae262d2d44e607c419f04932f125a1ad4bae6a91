@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cbd2511a_71e65df5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-11-30T13:48:54Z",
+      "side": 1,
+      "message": "conflicts due to selective revert\n(i didn\u0027t revert I0407b8da8032b9b9ab5d66636da886dd1a1b2a47)",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 9
+      },
+      "revId": "ae262d2d44e607c419f04932f125a1ad4bae6a91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
