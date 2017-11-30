@@ -81,7 +81,7 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
             indexToFlows.add(new Array[ManagedFlowImpl](indexToFlowsSize))
             managedFlowPools.add(new ArrayObjectPool[ManagedFlowImpl](
                                      maxFlows, new ManagedFlowImpl(_)))
-            meterRegistries.add(MeterRegistry.newOnHeap(maxFlows))
+            meterRegistries.add(new MeterRegistry(maxFlows))
 
             errorExpirationQueues.add(new ExpirationQueue(maxFlows/3))
             flowExpirationQueues.add(new ExpirationQueue(maxFlows))
