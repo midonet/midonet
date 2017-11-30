@@ -126,12 +126,6 @@ trait FlowController extends DisruptorBackChannel {
     def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit
 }
 
-trait FlowControllerDeleter {
-    def removeFlowFromDatapath(flowMatch: FlowMatch, sequence: Long): Unit
-    def processCompletedFlowOperations(): Unit
-    def shouldProcess: Boolean
-}
-
 class FlowControllerImpl(config: MidolmanConfig,
                          clock: NanoClock,
                          flowProcessor: FlowProcessor,
@@ -155,13 +149,16 @@ class FlowControllerImpl(config: MidolmanConfig,
     private val managedFlowPool = preallocation.takeManagedFlowPool()
     private val tagIndexer = new FlowTagIndexer
     private val expirationIndexer = new FlowExpirationIndexer(preallocation)
-    private val deleter = new FlowControllerDeleterImpl(flowProcessor,
-                                                        datapathId,
-                                                        meters,
-                                                        insights)
 
     private val oversubscriptionFlowPool = new NoOpPool[ManagedFlowImpl](
         new ManagedFlowImpl(_))
+
+    private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
+        flowProcessor.capacity)
+    private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
+        flowProcessor.capacity, new FlowOperation(_, completedFlowOperations))
+    private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
+        flowProcessor.capacity)
 
     override def addFlow(fmatch: FlowMatch, flowTags: ArrayList[FlowTag],
                          removeCallbacks: ArrayList[Callback0],
@@ -207,8 +204,7 @@ class FlowControllerImpl(config: MidolmanConfig,
             forgetFlow(flow)
             var flowsRemoved = 1
             if (flow.linkedFlow ne null) {
-                deleter.removeFlowFromDatapath(flow.linkedFlow.flowMatch,
-                                               flow.linkedFlow.sequence)
+                removeFlowFromDatapath(flow.linkedFlow)
                 forgetFlow(flow.linkedFlow)
                 flowsRemoved += 1
             }
@@ -221,10 +217,10 @@ class FlowControllerImpl(config: MidolmanConfig,
         (flow ne null) && flow.mark == mark
     }
 
-    override def shouldProcess = deleter.shouldProcess()
+    override def shouldProcess = completedFlowOperations.size > 0
 
     override def process(): Unit = {
-        deleter.processCompletedFlowOperations()
+        processCompletedFlowOperations()
         val tick = clock.tick
         var flowId = expirationIndexer.pollForExpired(tick)
         while (flowId != ManagedFlow.NoFlow) {
@@ -262,12 +258,11 @@ class FlowControllerImpl(config: MidolmanConfig,
     }
 
     private def removeFlow(flow: ManagedFlowImpl): Unit = {
-        deleter.removeFlowFromDatapath(flow.flowMatch, flow.sequence)
+        removeFlowFromDatapath(flow)
         forgetFlow(flow)
         var flowsRemoved = 1
         if (flow.linkedFlow ne null) {
-            deleter.removeFlowFromDatapath(flow.linkedFlow.flowMatch,
-                                           flow.linkedFlow.sequence)
+            removeFlowFromDatapath(flow.linkedFlow)
             forgetFlow(flow.linkedFlow)
             flowsRemoved += 1
         }
@@ -281,63 +276,7 @@ class FlowControllerImpl(config: MidolmanConfig,
         flow.unref()
     }
 
-    private def indexFlow(flow: ManagedFlowImpl): Unit = {
-        numFlows += 1
-        ensureCapacity()
-        var index = 0
-        do {
-            curIndex += 1
-            index = curIndex & mask
-        } while (indexToFlow(index) ne null)
-        indexToFlow(index) = flow
-        flow.setId(curIndex)
-        flow.setMark((curIndex & IndexMask) | (workerId << IndexShift))
-    }
-
-    private def clearFlowIndex(flow: ManagedFlowImpl): Unit = {
-        indexToFlow(flow.mark & mask) = null
-        numFlows -= 1
-    }
-
-    private def ensureCapacity(): Unit = {
-        if (numFlows > indexToFlow.length) {
-            val newIndexToFlow = new Array[ManagedFlowImpl](indexToFlow.length * 2)
-            Array.copy(indexToFlow, 0, newIndexToFlow, 0, indexToFlow.length)
-            indexToFlow = newIndexToFlow
-            mask = indexToFlow.length - 1
-        }
-    }
-
-    override def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit =
-        meters.recordPacket(packetLen, tags)
-}
-
-class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
-                                datapathId: Int,
-                                meters: MeterRegistry,
-                                insights: Insights)
-        extends FlowControllerDeleter with MidolmanLogging {
-    private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
-        flowProcessor.capacity)
-    private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
-        flowProcessor.capacity, new FlowOperation(_, completedFlowOperations))
-    private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
-        flowProcessor.capacity)
-
-    override def removeFlowFromDatapath(flowMatch: FlowMatch,
-                                        sequence: Long): Unit = {
-        log.debug(s"Removing flow $flowMatch($sequence) from datapath")
-        val flowOp = takeFlowOperation(flowMatch, sequence)
-        // Spin while we try to eject the flow. This can happen if we invalidated
-        // a flow so close to its creation that it has not been created yet.
-        while (!flowProcessor.tryEject(sequence, datapathId,
-                                       flowMatch, flowOp)) {
-            processCompletedFlowOperations()
-            Thread.`yield`()
-        }
-    }
-
-    override def processCompletedFlowOperations(): Unit = {
+    private def processCompletedFlowOperations(): Unit = {
         var req: FlowOperation = null
         while ({ req = completedFlowOperations.poll(); req } ne null) {
             if (req.isFailed) {
@@ -348,8 +287,6 @@ class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
         }
         retryFailedFlowOperations()
     }
-
-    override def shouldProcess(): Boolean = completedFlowOperations.size > 0
 
     private def retryFailedFlowOperations(): Unit = {
         var i = 0
@@ -400,8 +337,7 @@ class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
         override def shouldWakeUp() = completedFlowOperations.size > 0
     }
 
-    private def takeFlowOperation(flowMatch: FlowMatch,
-                                  sequence: Long): FlowOperation = {
+    private def takeFlowOperation(flow: ManagedFlowImpl): FlowOperation = {
         var flowOp: FlowOperation = null
         while ({ flowOp = pooledFlowOperations.take; flowOp } eq null) {
             processCompletedFlowOperations()
@@ -410,7 +346,49 @@ class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
                 flowOperationParkable.park()
             }
         }
-        flowOp.reset(flowMatch, sequence, retries = 10)
+        flowOp.reset(flow.flowMatch, flow.sequence, retries = 10)
         flowOp
     }
+
+    private def removeFlowFromDatapath(flow: ManagedFlowImpl): Unit = {
+        log.debug(s"Removing flow $flow from datapath")
+        val flowOp = takeFlowOperation(flow)
+        // Spin while we try to eject the flow. This can happen if we invalidated
+        // a flow so close to its creation that it has not been created yet.
+        while (!flowProcessor.tryEject(flow.sequence, datapathId,
+                                       flow.flowMatch, flowOp)) {
+            processCompletedFlowOperations()
+            Thread.`yield`()
+        }
+    }
+
+    private def indexFlow(flow: ManagedFlowImpl): Unit = {
+        numFlows += 1
+        ensureCapacity()
+        var index = 0
+        do {
+            curIndex += 1
+            index = curIndex & mask
+        } while (indexToFlow(index) ne null)
+        indexToFlow(index) = flow
+        flow.setId(curIndex)
+        flow.setMark((curIndex & IndexMask) | (workerId << IndexShift))
+    }
+
+    private def clearFlowIndex(flow: ManagedFlowImpl): Unit = {
+        indexToFlow(flow.mark & mask) = null
+        numFlows -= 1
+    }
+
+    private def ensureCapacity(): Unit = {
+        if (numFlows > indexToFlow.length) {
+            val newIndexToFlow = new Array[ManagedFlowImpl](indexToFlow.length * 2)
+            Array.copy(indexToFlow, 0, newIndexToFlow, 0, indexToFlow.length)
+            indexToFlow = newIndexToFlow
+            mask = indexToFlow.length - 1
+        }
+    }
+
+    override def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit =
+        meters.recordPacket(packetLen, tags)
 }
