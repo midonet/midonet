@@ -119,8 +119,8 @@ trait FlowController extends DisruptorBackChannel {
                       flowTags: ArrayList[FlowTag],
                       removeCallbacks: ArrayList[Callback0],
                       expiration: Expiration): ManagedFlow
-    def removeDuplicateFlow(mark: Int): Unit
-    def flowExists(mark: Int): Boolean
+    def deleteFlow(flow: ManagedFlow): Unit
+    def duplicateFlow(mark: Int): Unit
 
     def invalidateFlowsFor(tag: FlowTag): Unit
     def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit
@@ -187,19 +187,20 @@ class FlowControllerImpl(config: MidolmanConfig,
         flow
     }
 
+    override def deleteFlow(flow: ManagedFlow): Unit =
+        removeFlow(flow.asInstanceOf[ManagedFlowImpl])
+
     private def takeFlow() = {
         val flow = managedFlowPool.take
-        if (flow ne null) {
-            flow.ref()
+        if (flow ne null)
             flow
-        } else {
+        else
             oversubscriptionFlowPool.take
-        }
     }
 
-    override def removeDuplicateFlow(mark: Int): Unit = {
+    def duplicateFlow(mark: Int): Unit = {
         val flow = indexToFlow(mark & mask)
-        if ((flow ne null) && flow.mark == mark) {
+        if ((flow ne null) && flow.mark == mark && !flow.removed) {
             log.debug(s"Removing duplicate flow $flow")
             forgetFlow(flow)
             var flowsRemoved = 1
@@ -210,11 +211,6 @@ class FlowControllerImpl(config: MidolmanConfig,
             }
             metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
         }
-    }
-
-    override def flowExists(mark: Int): Boolean = {
-        val flow = indexToFlow(mark & mask)
-        (flow ne null) && flow.mark == mark
     }
 
     override def shouldProcess = completedFlowOperations.size > 0
@@ -252,27 +248,32 @@ class FlowControllerImpl(config: MidolmanConfig,
         var flowsAdded = 1
         if (flow.linkedFlow ne null) {
             indexFlow(flow.linkedFlow)
+            flow.linkedFlow.ref()
             flowsAdded += 1
         }
         metrics.dpFlowsMetric.mark(flowsAdded)
+        flow.ref()
     }
 
     private def removeFlow(flow: ManagedFlowImpl): Unit = {
-        removeFlowFromDatapath(flow)
-        forgetFlow(flow)
-        var flowsRemoved = 1
-        if (flow.linkedFlow ne null) {
-            removeFlowFromDatapath(flow.linkedFlow)
-            forgetFlow(flow.linkedFlow)
-            flowsRemoved += 1
+        if (!flow.removed) {
+            removeFlowFromDatapath(flow)
+            forgetFlow(flow)
+            var flowsRemoved = 1
+            if (flow.linkedFlow ne null) {
+                removeFlowFromDatapath(flow.linkedFlow)
+                forgetFlow(flow.linkedFlow)
+                flowsRemoved += 1
+            }
+            metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
         }
-        metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
     }
 
     private def forgetFlow(flow: ManagedFlowImpl): Unit = {
         tagIndexer.removeFlowTags(flow)
         clearFlowIndex(flow)
         flow.callbacks.runAndClear()
+        flow.removed = true
         flow.unref()
     }
 
