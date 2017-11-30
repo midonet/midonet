@@ -192,9 +192,7 @@ class FlowControllerImpl(config: MidolmanConfig,
             flow.ref()
             flow
         } else {
-            val flow = oversubscriptionFlowPool.take
-            flow.ref()
-            flow
+            oversubscriptionFlowPool.take
         }
     }
 
