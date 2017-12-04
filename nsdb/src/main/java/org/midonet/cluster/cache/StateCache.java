@@ -338,6 +338,7 @@ public final class StateCache extends AbstractService {
                 } else if (o instanceof scala.collection.immutable.Set) {
                     // If the object is a Set of strings (multi value key),
                     // fetch the data from the set.
+                    @SuppressWarnings("unchecked")
                     scala.collection.immutable.Set<String> set =
                         (scala.collection.immutable.Set<String>) o;
                     multiData = new String[set.size()];
