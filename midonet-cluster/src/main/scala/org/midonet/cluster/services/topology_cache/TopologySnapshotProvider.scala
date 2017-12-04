@@ -97,7 +97,7 @@ class TopologySnapshotProvider(objectCache: ObjectCache,
                 log.debug("Unref: snapshot in progress, decrement outstanding " +
                           s"requests to $outstandingRequests.")
                 if (outstandingRequests <= 0)
-                    outstandingRequestsDone.trySuccess()
+                    outstandingRequestsDone.trySuccess(Unit)
             }
         } else {
             if (!refs.compareAndSet(currentRefs, currentRefs - 1)) {
@@ -126,7 +126,7 @@ class TopologySnapshotProvider(objectCache: ObjectCache,
         } else {
             log.debug("No outstanding requests in progress, ready to encode " +
                       "the snapshot.")
-            Future.successful()
+            Future.successful(Unit)
         }
     }
 
