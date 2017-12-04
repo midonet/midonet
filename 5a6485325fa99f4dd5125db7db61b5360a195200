@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f89f750e_07910739",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-12-04T09:16:40Z",
+      "side": 1,
+      "message": "this revert re-introduces MI-2618/MI-2681/MNA-1182\nbut it should be ok as far as this is merged with another revert [1] which reverts the change which originally introduced the issue.\n\n[1] https://review.gerrithub.io/#/c/389828/",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 6
+      },
+      "revId": "5a6485325fa99f4dd5125db7db61b5360a195200",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
