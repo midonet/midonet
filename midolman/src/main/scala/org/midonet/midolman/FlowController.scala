@@ -28,6 +28,7 @@ import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.flows.FlowExpirationIndexer.{Expiration, ExpirationQueue}
 import org.midonet.midolman.flows._
 import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.odp.FlowMatch
@@ -81,7 +82,7 @@ class FlowTablePreallocation(config: MidolmanConfig) extends MidolmanLogging {
             indexToFlows.add(new Array[ManagedFlowImpl](indexToFlowsSize))
             managedFlowPools.add(new ArrayObjectPool[ManagedFlowImpl](
                                      maxFlows, new ManagedFlowImpl(_)))
-            meterRegistries.add(MeterRegistry.newOnHeap(maxFlows))
+            meterRegistries.add(new MeterRegistry(maxFlows))
 
             errorExpirationQueues.add(new ExpirationQueue(maxFlows/3))
             flowExpirationQueues.add(new ExpirationQueue(maxFlows))
@@ -118,16 +119,11 @@ trait FlowController extends DisruptorBackChannel {
                       flowTags: ArrayList[FlowTag],
                       removeCallbacks: ArrayList[Callback0],
                       expiration: Expiration): ManagedFlow
-    def removeDuplicateFlow(mark: Int): Unit
-    def flowExists(mark: Int): Boolean
+    def deleteFlow(flow: ManagedFlow): Unit
+    def duplicateFlow(mark: Int): Unit
 
     def invalidateFlowsFor(tag: FlowTag): Unit
-}
-
-trait FlowControllerDeleter {
-    def removeFlowFromDatapath(flowMatch: FlowMatch, sequence: Long): Unit
-    def processCompletedFlowOperations(): Unit
-    def shouldProcess: Boolean
+    def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit
 }
 
 class FlowControllerImpl(config: MidolmanConfig,
@@ -136,7 +132,6 @@ class FlowControllerImpl(config: MidolmanConfig,
                          datapathId: Int,
                          workerId: Int,
                          metrics: PacketPipelineMetrics,
-                         meters: MeterRegistry,
                          preallocation: FlowTablePreallocation,
                          insights: Insights)
         extends FlowController with DisruptorBackChannel with MidolmanLogging {
@@ -148,16 +143,22 @@ class FlowControllerImpl(config: MidolmanConfig,
     private var indexToFlow = preallocation.takeIndexToFlow()
     private var mask = indexToFlow.length - 1
 
+    val meters = preallocation.takeMeterRegistry()
+    Metering.registerAsMXBean(meters)
+
     private val managedFlowPool = preallocation.takeManagedFlowPool()
     private val tagIndexer = new FlowTagIndexer
     private val expirationIndexer = new FlowExpirationIndexer(preallocation)
-    private val deleter = new FlowControllerDeleterImpl(flowProcessor,
-                                                        datapathId,
-                                                        meters,
-                                                        insights)
 
     private val oversubscriptionFlowPool = new NoOpPool[ManagedFlowImpl](
         new ManagedFlowImpl(_))
+
+    private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
+        flowProcessor.capacity)
+    private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
+        flowProcessor.capacity, new FlowOperation(_, completedFlowOperations))
+    private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
+        flowProcessor.capacity)
 
     override def addFlow(fmatch: FlowMatch, flowTags: ArrayList[FlowTag],
                          removeCallbacks: ArrayList[Callback0],
@@ -186,27 +187,25 @@ class FlowControllerImpl(config: MidolmanConfig,
         flow
     }
 
+    override def deleteFlow(flow: ManagedFlow): Unit =
+        removeFlow(flow.asInstanceOf[ManagedFlowImpl])
+
     private def takeFlow() = {
         val flow = managedFlowPool.take
-        if (flow ne null) {
-            flow.ref()
+        if (flow ne null)
             flow
-        } else {
-            val flow = oversubscriptionFlowPool.take
-            flow.ref()
-            flow
-        }
+        else
+            oversubscriptionFlowPool.take
     }
 
-    override def removeDuplicateFlow(mark: Int): Unit = {
+    def duplicateFlow(mark: Int): Unit = {
         val flow = indexToFlow(mark & mask)
-        if ((flow ne null) && flow.mark == mark) {
+        if ((flow ne null) && flow.mark == mark && !flow.removed) {
             log.debug(s"Removing duplicate flow $flow")
             forgetFlow(flow)
             var flowsRemoved = 1
             if (flow.linkedFlow ne null) {
-                deleter.removeFlowFromDatapath(flow.linkedFlow.flowMatch,
-                                               flow.linkedFlow.sequence)
+                removeFlowFromDatapath(flow.linkedFlow)
                 forgetFlow(flow.linkedFlow)
                 flowsRemoved += 1
             }
@@ -214,15 +213,10 @@ class FlowControllerImpl(config: MidolmanConfig,
         }
     }
 
-    override def flowExists(mark: Int): Boolean = {
-        val flow = indexToFlow(mark & mask)
-        (flow ne null) && flow.mark == mark
-    }
-
-    override def shouldProcess = deleter.shouldProcess()
+    override def shouldProcess = completedFlowOperations.size > 0
 
     override def process(): Unit = {
-        deleter.processCompletedFlowOperations()
+        processCompletedFlowOperations()
         val tick = clock.tick
         var flowId = expirationIndexer.pollForExpired(tick)
         while (flowId != ManagedFlow.NoFlow) {
@@ -254,29 +248,119 @@ class FlowControllerImpl(config: MidolmanConfig,
         var flowsAdded = 1
         if (flow.linkedFlow ne null) {
             indexFlow(flow.linkedFlow)
+            flow.linkedFlow.ref()
             flowsAdded += 1
         }
         metrics.dpFlowsMetric.mark(flowsAdded)
+        flow.ref()
     }
 
     private def removeFlow(flow: ManagedFlowImpl): Unit = {
-        deleter.removeFlowFromDatapath(flow.flowMatch, flow.sequence)
-        forgetFlow(flow)
-        var flowsRemoved = 1
-        if (flow.linkedFlow ne null) {
-            deleter.removeFlowFromDatapath(flow.linkedFlow.flowMatch,
-                                           flow.linkedFlow.sequence)
-            forgetFlow(flow.linkedFlow)
-            flowsRemoved += 1
+        if (!flow.removed) {
+            removeFlowFromDatapath(flow)
+            forgetFlow(flow)
+            var flowsRemoved = 1
+            if (flow.linkedFlow ne null) {
+                removeFlowFromDatapath(flow.linkedFlow)
+                forgetFlow(flow.linkedFlow)
+                flowsRemoved += 1
+            }
+            metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
         }
-        metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
     }
 
     private def forgetFlow(flow: ManagedFlowImpl): Unit = {
         tagIndexer.removeFlowTags(flow)
         clearFlowIndex(flow)
         flow.callbacks.runAndClear()
+        flow.removed = true
         flow.unref()
+    }
+
+    private def processCompletedFlowOperations(): Unit = {
+        var req: FlowOperation = null
+        while ({ req = completedFlowOperations.poll(); req } ne null) {
+            if (req.isFailed) {
+                flowDeleteFailed(req)
+            } else {
+                flowDeleteSucceeded(req)
+            }
+        }
+        retryFailedFlowOperations()
+    }
+
+    private def retryFailedFlowOperations(): Unit = {
+        var i = 0
+        while (i < flowRemoveCommandsToRetry.size()) {
+            val cmd = flowRemoveCommandsToRetry.get(i)
+            val fmatch = cmd.managedFlow.flowMatch
+            val seq = cmd.managedFlow.sequence
+            flowProcessor.tryEject(seq, datapathId, fmatch, cmd)
+            i += 1
+        }
+        flowRemoveCommandsToRetry.clear()
+    }
+
+    private def flowDeleteFailed(req: FlowOperation): Unit = {
+        log.debug("Got an exception when trying to remove " +
+                  s"${req.managedFlow}", req.failure)
+        req.netlinkErrorCode match {
+            case EBUSY | EAGAIN | EIO | EINTR | ETIMEOUT if req.retries > 0 =>
+                scheduleRetry(req)
+                return
+            case ENODEV | ENOENT | ENXIO =>
+                log.debug(s"${req.managedFlow} was already deleted")
+            case _ =>
+                log.error(s"Failed to delete ${req.managedFlow}", req.failure)
+        }
+        meters.forgetFlow(req.managedFlow.flowMatch)
+        req.clear()
+    }
+
+    private def scheduleRetry(req: FlowOperation): Unit = {
+        req.retries = (req.retries - 1).toByte
+        req.failure = null
+        log.debug(s"Scheduling retry of flow ${req.managedFlow}")
+        flowRemoveCommandsToRetry.add(req)
+    }
+
+    private def flowDeleteSucceeded(req: FlowOperation): Unit = {
+        val flowMetadata = req.flowMetadata
+        val flowMatch = req.managedFlow.flowMatch
+        log.debug(s"DP confirmed removal of ${req.managedFlow}")
+        meters.updateFlow(flowMatch, flowMetadata.getStats)
+        meters.forgetFlow(flowMatch)
+        insights.flowDeleted(flowMatch, flowMetadata)
+        req.clear()
+    }
+
+    private val flowOperationParkable = new Parkable {
+        override def shouldWakeUp() = completedFlowOperations.size > 0
+    }
+
+    private def takeFlowOperation(flow: ManagedFlowImpl): FlowOperation = {
+        var flowOp: FlowOperation = null
+        while ({ flowOp = pooledFlowOperations.take; flowOp } eq null) {
+            processCompletedFlowOperations()
+            if (pooledFlowOperations.available == 0) {
+                log.debug("Parking until the pending flow operations complete")
+                flowOperationParkable.park()
+            }
+        }
+        flowOp.reset(flow, retries = 10)
+        flowOp
+    }
+
+    private def removeFlowFromDatapath(flow: ManagedFlowImpl): Unit = {
+        log.debug(s"Removing flow $flow from datapath")
+        val flowOp = takeFlowOperation(flow)
+        // Spin while we try to eject the flow. This can happen if we invalidated
+        // a flow so close to its creation that it has not been created yet.
+        while (!flowProcessor.tryEject(flow.sequence, datapathId,
+                                       flow.flowMatch, flowOp)) {
+            processCompletedFlowOperations()
+            Thread.`yield`()
+        }
     }
 
     private def indexFlow(flow: ManagedFlowImpl): Unit = {
@@ -305,107 +389,7 @@ class FlowControllerImpl(config: MidolmanConfig,
             mask = indexToFlow.length - 1
         }
     }
-}
 
-class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
-                                datapathId: Int,
-                                meters: MeterRegistry,
-                                insights: Insights)
-        extends FlowControllerDeleter with MidolmanLogging {
-    private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
-        flowProcessor.capacity)
-    private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
-        flowProcessor.capacity, new FlowOperation(_, completedFlowOperations))
-    private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
-        flowProcessor.capacity)
-
-    override def removeFlowFromDatapath(flowMatch: FlowMatch,
-                                        sequence: Long): Unit = {
-        log.debug(s"Removing flow $flowMatch($sequence) from datapath")
-        val flowOp = takeFlowOperation(flowMatch, sequence)
-        // Spin while we try to eject the flow. This can happen if we invalidated
-        // a flow so close to its creation that it has not been created yet.
-        while (!flowProcessor.tryEject(sequence, datapathId,
-                                       flowMatch, flowOp)) {
-            processCompletedFlowOperations()
-            Thread.`yield`()
-        }
-    }
-
-    override def processCompletedFlowOperations(): Unit = {
-        var req: FlowOperation = null
-        while ({ req = completedFlowOperations.poll(); req } ne null) {
-            if (req.isFailed) {
-                flowDeleteFailed(req)
-            } else {
-                flowDeleteSucceeded(req)
-            }
-        }
-        retryFailedFlowOperations()
-    }
-
-    override def shouldProcess(): Boolean = completedFlowOperations.size > 0
-
-    private def retryFailedFlowOperations(): Unit = {
-        var i = 0
-        while (i < flowRemoveCommandsToRetry.size()) {
-            val cmd = flowRemoveCommandsToRetry.get(i)
-            val fmatch = cmd.flowMatch
-            val seq = cmd.sequence
-            flowProcessor.tryEject(seq, datapathId, fmatch, cmd)
-            i += 1
-        }
-        flowRemoveCommandsToRetry.clear()
-    }
-
-    private def flowDeleteFailed(req: FlowOperation): Unit = {
-        log.debug("Got an exception when trying to remove " +
-                  s"${req.flowMatch}", req.failure)
-        req.netlinkErrorCode match {
-            case EBUSY | EAGAIN | EIO | EINTR | ETIMEOUT if req.retries > 0 =>
-                scheduleRetry(req)
-                return
-            case ENODEV | ENOENT | ENXIO =>
-                log.debug(s"${req.flowMatch} was already deleted")
-            case _ =>
-                log.error(s"Failed to delete ${req.flowMatch}", req.failure)
-        }
-        meters.forgetFlow(req.flowMatch)
-        req.clear()
-    }
-
-    private def scheduleRetry(req: FlowOperation): Unit = {
-        req.retries = (req.retries - 1).toByte
-        req.failure = null
-        log.debug(s"Scheduling retry of flow ${req.flowMatch}")
-        flowRemoveCommandsToRetry.add(req)
-    }
-
-    private def flowDeleteSucceeded(req: FlowOperation): Unit = {
-        val flowMetadata = req.flowMetadata
-        val flowMatch = req.flowMatch
-        log.debug(s"DP confirmed removal of ${req.flowMatch}")
-        meters.updateFlow(flowMatch, flowMetadata.getStats)
-        meters.forgetFlow(flowMatch)
-        insights.flowDeleted(flowMatch, flowMetadata)
-        req.clear()
-    }
-
-    private val flowOperationParkable = new Parkable {
-        override def shouldWakeUp() = completedFlowOperations.size > 0
-    }
-
-    private def takeFlowOperation(flowMatch: FlowMatch,
-                                  sequence: Long): FlowOperation = {
-        var flowOp: FlowOperation = null
-        while ({ flowOp = pooledFlowOperations.take; flowOp } eq null) {
-            processCompletedFlowOperations()
-            if (pooledFlowOperations.available == 0) {
-                log.debug("Parking until the pending flow operations complete")
-                flowOperationParkable.park()
-            }
-        }
-        flowOp.reset(flowMatch, sequence, retries = 10)
-        flowOp
-    }
+    override def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit =
+        meters.recordPacket(packetLen, tags)
 }

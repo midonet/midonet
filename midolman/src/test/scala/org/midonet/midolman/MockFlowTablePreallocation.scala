@@ -34,7 +34,7 @@ class MockFlowTablePreallocation(config: MidolmanConfig)
         new ArrayObjectPool[ManagedFlowImpl](
             maxFlows, new ManagedFlowImpl(_))
     override def takeMeterRegistry(): MeterRegistry =
-        MeterRegistry.newOnHeap(maxFlows)
+        new MeterRegistry(maxFlows)
     override def takeErrorExpirationQueue(): ExpirationQueue =
         new ExpirationQueue(maxFlows/3)
     override def takeFlowExpirationQueue(): ExpirationQueue =

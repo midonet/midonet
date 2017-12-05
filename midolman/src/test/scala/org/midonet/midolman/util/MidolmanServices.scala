@@ -120,11 +120,13 @@ trait MidolmanServices {
                                    flowTags: ArrayList[FlowTag],
                                    removeCallbacks: ArrayList[Callback0],
                                    expiration: Expiration): ManagedFlow = null
-        override def removeDuplicateFlow(mark: Int): Unit = {}
-        override def flowExists(mark: Int): Boolean = false
+        override def deleteFlow(flow: ManagedFlow): Unit = {}
+        override def duplicateFlow(mark: Int): Unit = {}
         override def shouldProcess = false
         override def process(): Unit = {}
         override def invalidateFlowsFor(tag: FlowTag) = tags = tags :+ tag
+        override def recordPacket(packetLen: Int,
+                                  tags: ArrayList[FlowTag]): Unit = {}
     }
 
     def dpConn()(implicit ec: ExecutionContext, as: ActorSystem):
