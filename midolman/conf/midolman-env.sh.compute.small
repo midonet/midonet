@@ -18,7 +18,6 @@ MIDO_HOME=/usr/share/midolman
 MIDO_CFG=/etc/midolman
 MIDO_LOG_DIR=/var/log/midolman/
 MIDO_DEBUG_PORT=8001
-JMX_PORT="7200"
 MIDO_CFG_FILE=midolman.conf
 QUAGGA_DIR=/var/run/quagga
 # setting this option will make the agent not run under the watchdog
@@ -26,7 +25,7 @@ QUAGGA_DIR=/var/run/quagga
 WATCHDOG_TIMEOUT=10
 
 # Amount of memory to allocate for the JVM heap.
-MAX_HEAP_SIZE="2048M"
+MAX_HEAP_SIZE="1024M"
 
 # Here we create the arguments that will get passed to the jvm when
 # starting midolman.
@@ -81,16 +80,22 @@ JVM_OPTS="$JVM_OPTS -XX:NumberOfGCLogFiles=10"
 JVM_OPTS="$JVM_OPTS -XX:GCLogFileSize=10M"
 JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midolman/gc-`date +%Y%m%d_%H%M%S`.log"
 
+# set Netlink connection buffer size (in bytes - defaults to 2MB if empty)
+# JVM_OPTS="$JVM_OPTS -Dmidonet.netlink.buffer_size=2097152"
+
 # uncomment to have Midolman JVM listen for remote debuggers/profilers on port 1414
 # JVM_OPTS="$JVM_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1414"
+
+# uncomment to enable JMX startup with the JMV (do not delegate to runtime service)
+# JMXENABLE=true
 
 # Prefer binding to IPv4 network intefaces (when net.ipv6.bindv6only=1). See
 # http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6342561 (short version:
 # comment out this entry to enable IPv6 support).
 # JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
 
-# uncomment to enable JMX startup with the JMV (do not delegate to runtime service)
-# JMXENABLE=true
+# uncomment to log configuration passwords
+# JVM_OPTS="$JVM_OPTS -Dmidonet.show_config_passwords"
 
 # (legacy) jmx: metrics and administration interface
 #

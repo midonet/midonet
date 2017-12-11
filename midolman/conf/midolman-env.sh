@@ -18,6 +18,7 @@ MIDO_HOME=/usr/share/midolman
 MIDO_CFG=/etc/midolman
 MIDO_LOG_DIR=/var/log/midolman/
 MIDO_DEBUG_PORT=8001
+JMX_PORT="7200"
 MIDO_CFG_FILE=midolman.conf
 QUAGGA_DIR=/var/run/quagga
 # setting this option will make the agent not run under the watchdog
@@ -25,7 +26,7 @@ QUAGGA_DIR=/var/run/quagga
 WATCHDOG_TIMEOUT=10
 
 # Amount of memory to allocate for the JVM heap.
-MAX_HEAP_SIZE="1024M"
+MAX_HEAP_SIZE="2048M"
 
 # Here we create the arguments that will get passed to the jvm when
 # starting midolman.
