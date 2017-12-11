@@ -45,6 +45,14 @@ fi
 
 sed -i -e 's/zookeeper_hosts = .*$/zookeeper_hosts = '"$MIDO_ZOOKEEPER_HOSTS"'/' /etc/midolman/midolman.conf
 
+# The default values are much larger, not needed in testing
+mn-conf set -h local <<EOF
+agent.midolman.output_channels=1
+agent.datapath.max_flow_count=20000
+agent.datapath.send_buffer_pool_max_size=4096
+agent.datapath.send_buffer_pool_initial_size=2048
+EOF
+
 # Force quagga 0.99.23 (v2 zebra protocol) on midolman1
 if [ $(hostname) = "midolman1" ]; then
      mn-conf set -h local <<EOF
