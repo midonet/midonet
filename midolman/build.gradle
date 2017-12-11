@@ -480,7 +480,7 @@ packaging {
     description = 'Midolman is a virtual network controller'
     dependencies = ['haproxy']
     confFiles = ['/etc/midolman/midolman-env.sh',
-                 '/etc/midolman/midolman-env.sh.compute.large',
+                 '/etc/midolman/midolman-env.sh.compute.small',
                  '/etc/midolman/midolman-env.sh.gateway.large',
                  '/etc/midolman/midolman.conf',
                  '/etc/midolman/minions-env.sh',
