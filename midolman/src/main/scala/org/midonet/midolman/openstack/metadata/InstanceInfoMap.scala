@@ -54,11 +54,21 @@ case class InstanceInfo(address: String,
  * are considered immutable.
  */
 object InstanceInfoMap {
+
     private val byAddr: TrieMap[String, InstanceInfo] = new TrieMap()
     private val byPortId: TrieMap[UUID, String] = new TrieMap()
 
     def put(addr: String, portId: UUID, value: InstanceInfo) = {
-        byAddr put (addr, value)
+        // Since the address is calculated using the datapath port, if we get 2
+        // different ports with the same datapath port, the last one will
+        // overwrite the first entry.
+        byAddr put (addr, value) match {
+            case Some(staleInfo) if staleInfo.portId != portId =>
+                Log warn s"Found stale info: $staleInfo"
+                Log warn s"Removing old entry for port: ${staleInfo.portId}"
+                byPortId remove staleInfo.portId
+            case _ => // everything ok
+        }
         byPortId put (portId, addr)
     }
 

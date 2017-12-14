@@ -74,18 +74,56 @@ class MetadataServiceManagerActorTest extends FeatureSpecLike
         as.shutdown
     }
 
+    private def mockedInfoFor(portId: UUID): Option[InstanceInfo] = {
+        val info = mock[InstanceInfo]
+        when(info.portId).thenReturn(portId)
+        Some(info)
+    }
+
     feature("MetadataServiceManagerActor") {
         scenario("port active found") {
             val portJId = UUID.randomUUID
             val addr = "1.2.3.4"
-            val info = mock[InstanceInfo]
-            val infoOpt = Some(info)
+            val info = mockedInfoFor(portJId)
 
-            when(mockStore.getComputePortInfo(portJId)).thenReturn(infoOpt)
-            when(mockPlumber.plumb(mockEq(info), any())).thenReturn(addr)
+            when(mockStore.getComputePortInfo(portJId)).thenReturn(info)
+            when(mockPlumber.plumb(mockEq(info.get), any())).thenReturn(addr)
             actorRef ! LocalPortActive(portJId, -1, true)
             verify(mockStore).getComputePortInfo(portJId)
-            InstanceInfoMap getByAddr addr shouldBe Some(info)
+            InstanceInfoMap getByAddr addr shouldBe info
+        }
+
+        scenario("port active with same dpPort as previous one") {
+            val portJId = UUID.randomUUID
+            val portJId2 = UUID.randomUUID
+            // The address will be the same for both, because it is calculated
+            // using the dpPort in the AddressManager class
+            val addr = "1.2.3.4"
+            val info = mockedInfoFor(portJId)
+            val info2 = mockedInfoFor(portJId2)
+
+            when(mockStore.getComputePortInfo(portJId)).thenReturn(info)
+            when(mockStore.getComputePortInfo(portJId2)).thenReturn(info2)
+            when(mockPlumber.plumb(mockEq(info.get), any())).thenReturn(addr)
+            when(mockPlumber.plumb(mockEq(info2.get), any())).thenReturn(addr)
+
+            actorRef ! LocalPortActive(portJId, -1, true)
+            verify(mockStore).getComputePortInfo(portJId)
+            InstanceInfoMap getByAddr addr shouldBe info
+            actorRef ! LocalPortActive(portJId2, -1, true)
+            verify(mockStore).getComputePortInfo(portJId2)
+            // We should see the latest one if we search by address
+            InstanceInfoMap getByAddr addr shouldBe info2
+            InstanceInfoMap getByPortId portJId2 shouldBe Some(addr)
+            // The previous stale port was removed from the map
+            InstanceInfoMap getByPortId portJId shouldBe None
+
+            actorRef ! LocalPortActive(portJId2, -1, false)
+            InstanceInfoMap getByPortId portJId2 shouldBe None
+            // If we happen to receive the inactive message for the stale port,
+            // we should do nothing and not fail.
+            actorRef ! LocalPortActive(portJId, -1, false)
+            InstanceInfoMap getByPortId portJId shouldBe None
         }
 
         scenario("port active not found") {
