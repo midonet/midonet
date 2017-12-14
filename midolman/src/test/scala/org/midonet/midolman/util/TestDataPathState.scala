@@ -49,7 +49,12 @@ class TestDatapathState extends DatapathState {
     var vxlanTunnellingOutputAction: FlowActionOutput = null
 
     override def peerTunnelInfo(peer: UUID) = peerTunnels get peer
-    override def getVportForDpPortNumber(portNum: Integer): UUID = null
+
+    override def getVportForDpPortNumber(portNum: Integer): UUID = {
+        dpPortNumberForVport.find(_._2 == portNum).map(_._1)
+            .getOrElse(null: UUID)
+    }
+
     override def dpPortForTunnelKey(tunnelKey: Long): DpPort = null
     override def isVtepTunnellingPort(portNumber: Int): Boolean =
         portNumber == vxlanPortNumber
