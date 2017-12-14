@@ -68,7 +68,7 @@ class MetadataServiceManagerActor @Inject() (
     }
 
     override def receive = {
-        case LocalPortActive(portId, _, true) =>
+        case LocalPortActive(portId, dpPortNumber, true) =>
             log debug s"Port $portId became active"
             /*
              * XXX Theoretically, this can race with metadata requests
@@ -77,12 +77,21 @@ class MetadataServiceManagerActor @Inject() (
              * It's unlikely though, because typically VM doesn't
              * use metadata service that early in its boot process.
              */
-            store getComputePortInfo portId match {
-                case Some(info) =>
-                    val remoteAddr = plumber.plumb(info, mdInfo)
-                    InstanceInfoMap.put(remoteAddr, portId, info)
-                case _ =>
-                    log debug s"Non-compute port: $portId"
+            val assigned = plumber.dpState.getVportForDpPortNumber(dpPortNumber)
+
+            // Make sure the vPort we received is still attached to the dpPort
+            if (assigned == portId) {
+                store getComputePortInfo portId match {
+                    case Some(info) =>
+                        val remoteAddr = plumber.plumb(info, mdInfo)
+                        InstanceInfoMap.put(remoteAddr, portId, info)
+                    case _ =>
+                        log debug s"Non-compute port: $portId"
+                }
+            } else {
+                log warn "Received stale LocalPortActive message for vPort " +
+                         s"$portId. The actual vPort with this datapath port " +
+                         s"number assigned is $assigned"
             }
 
         case LocalPortActive(portId, _, false) =>
