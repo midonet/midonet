@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "af91c417_1f57915c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-12-15T01:16:08Z",
+      "side": 1,
+      "message": "good catch. DPE only serializes updates for the same interface.",
+      "range": {
+        "startLine": 9,
+        "startChar": 45,
+        "endLine": 10,
+        "endChar": 20
+      },
+      "revId": "a1208c25f30e8a5ccd17a310b58278eab7ee108b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "48bfb897_5c8ff898",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/InstanceInfoMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-12-15T01:16:08Z",
+      "side": 1,
+      "message": "is this guard necessary?",
+      "range": {
+        "startLine": 66,
+        "startChar": 33,
+        "endLine": 66,
+        "endChar": 62
+      },
+      "revId": "a1208c25f30e8a5ccd17a310b58278eab7ee108b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
