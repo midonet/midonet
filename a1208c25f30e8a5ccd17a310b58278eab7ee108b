@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "90918374_479ad1c1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-12-15T05:13:39Z",
+      "side": 1,
+      "message": "although unlikely, i think events can be delayed even more.\ni think it\u0027s safer to make MetadataServiceManagerActor confirm the combination of port id and dp port number given by LocalPortActive(_,_,true) is still valid, and if not, ignore it.\nhow do you think?",
+      "parentUuid": "af91c417_1f57915c",
+      "range": {
+        "startLine": 9,
+        "startChar": 45,
+        "endLine": 10,
+        "endChar": 20
+      },
+      "revId": "a1208c25f30e8a5ccd17a310b58278eab7ee108b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "48bfb897_5c8ff898",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/InstanceInfoMap.scala",
         "patchSetId": 1
