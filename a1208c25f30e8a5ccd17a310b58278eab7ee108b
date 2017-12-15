@@ -69,6 +69,30 @@
       "revId": "a1208c25f30e8a5ccd17a310b58278eab7ee108b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f2950728_4c96a672",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/InstanceInfoMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-12-15T08:26:12Z",
+      "side": 1,
+      "message": "no, but if it has the same portId then it will overwrite the byPortId map too",
+      "parentUuid": "48bfb897_5c8ff898",
+      "range": {
+        "startLine": 66,
+        "startChar": 33,
+        "endLine": 66,
+        "endChar": 62
+      },
+      "revId": "a1208c25f30e8a5ccd17a310b58278eab7ee108b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
