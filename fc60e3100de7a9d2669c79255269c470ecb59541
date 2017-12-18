@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b8c3edd0_c01ce7ff",
+        "filename": "docs/fast-path.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2017-12-18T09:07:58Z",
+      "side": 1,
+      "message": "since you\u0027re correcting typos: maintaning -\u003e maintaining",
+      "revId": "fc60e3100de7a9d2669c79255269c470ecb59541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6581b1b1_b84b5869",
+        "filename": "docs/fast-path.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2017-12-18T09:07:58Z",
+      "side": 1,
+      "message": "Can\u0027t we also remove this?",
+      "range": {
+        "startLine": 135,
+        "startChar": 35,
+        "endLine": 137,
+        "endChar": 7
+      },
+      "revId": "fc60e3100de7a9d2669c79255269c470ecb59541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
