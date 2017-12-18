@@ -39,6 +39,30 @@
       "revId": "5c47c9289ad3aa91409e85d844f1a696e14c4791",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "55ed3c55_a87f7e80",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2017-12-18T08:44:09Z",
+      "side": 1,
+      "message": "yes, right, what sould you suggest? something like: \"Non-compute or unassigned port\" ?",
+      "parentUuid": "088bfcc8_149c18fe",
+      "range": {
+        "startLine": 106,
+        "startChar": 32,
+        "endLine": 106,
+        "endChar": 49
+      },
+      "revId": "5c47c9289ad3aa91409e85d844f1a696e14c4791",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
