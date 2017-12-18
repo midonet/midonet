@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "292e8163_769702c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/InstanceInfoMap.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-12-18T05:20:04Z",
+      "side": 1,
+      "message": "should call plumber.unplumb as well, but it\u0027s ok as it\u0027s currently no-op",
+      "revId": "5c47c9289ad3aa91409e85d844f1a696e14c4791",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "088bfcc8_149c18fe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-12-18T05:20:04Z",
+      "side": 1,
+      "message": "this message might be confusing now",
+      "range": {
+        "startLine": 106,
+        "startChar": 32,
+        "endLine": 106,
+        "endChar": 49
+      },
+      "revId": "5c47c9289ad3aa91409e85d844f1a696e14c4791",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
