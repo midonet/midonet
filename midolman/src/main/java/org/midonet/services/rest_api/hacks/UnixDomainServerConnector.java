@@ -22,12 +22,11 @@
 package org.midonet.services.rest_api.hacks;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.nio.channels.Channel;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -39,8 +38,8 @@ import org.eclipse.jetty.io.ByteBufferPool;
 import org.eclipse.jetty.io.Connection;
 import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.io.ManagedSelector;
-import org.eclipse.jetty.io.SelectChannelEndPoint;
 import org.eclipse.jetty.io.SelectorManager;
+import org.eclipse.jetty.io.SocketChannelEndPoint;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.annotation.ManagedAttribute;
 import org.eclipse.jetty.util.annotation.ManagedObject;
@@ -49,7 +48,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.Scheduler;
 import org.eclipse.jetty.server.*;
 
-import org.midonet.services.rest_api.hacks.UnixDomainServerSocketChannel;
 import org.midonet.util.AfUnix;
 
 /**
@@ -243,7 +241,6 @@ public class UnixDomainServerConnector extends AbstractNetworkConnector
         _manager = newSelectorManager(getExecutor(), getScheduler(),
             selectors>0?selectors:Math.max(1,Math.min(4,Runtime.getRuntime().availableProcessors()/2)));
         addBean(_manager, true);
-        setSelectorPriorityDelta(-1);
         setAcceptorPriorityDelta(-2);
     }
 
@@ -271,26 +268,6 @@ public class UnixDomainServerConnector extends AbstractNetworkConnector
         return channel!=null && channel.isOpen();
     }
 
-    /**
-     * @return the selector priority delta
-     * @deprecated not implemented
-     */
-    @Deprecated
-    public int getSelectorPriorityDelta()
-    {
-        return _manager.getSelectorPriorityDelta();
-    }
-
-    /**
-     * @param selectorPriorityDelta the selector priority delta
-     * @deprecated not implemented
-     */
-    @Deprecated
-    public void setSelectorPriorityDelta(int selectorPriorityDelta)
-    {
-        _manager.setSelectorPriorityDelta(selectorPriorityDelta);
-    }
-    
     /**
      * @return whether this connector uses a channel inherited from the JVM.
      * @see System#inheritedChannel()
@@ -421,9 +398,9 @@ public class UnixDomainServerConnector extends AbstractNetworkConnector
         return _localPort;
     }
 
-    protected SelectChannelEndPoint newEndPoint(SocketChannel channel, ManagedSelector selectSet, SelectionKey key) throws IOException
+    protected SocketChannelEndPoint newEndPoint(SelectableChannel channel, ManagedSelector selectSet, SelectionKey key) throws IOException
     {
-        return new SelectChannelEndPoint(channel, selectSet, key, getScheduler(), getIdleTimeout());
+        return new SocketChannelEndPoint(channel, selectSet, key, getScheduler());
     }
 
     /**
@@ -488,24 +465,6 @@ public class UnixDomainServerConnector extends AbstractNetworkConnector
         }
 
         @Override
-        protected void accepted(SocketChannel channel) throws IOException
-        {
-            UnixDomainServerConnector.this.accepted(channel);
-        }
-
-        @Override
-        protected SelectChannelEndPoint newEndPoint(SocketChannel channel, ManagedSelector selectSet, SelectionKey selectionKey) throws IOException
-        {
-            return UnixDomainServerConnector.this.newEndPoint(channel, selectSet, selectionKey);
-        }
-
-        @Override
-        public Connection newConnection(SocketChannel channel, EndPoint endpoint, Object attachment) throws IOException
-        {
-            return getDefaultConnectionFactory().newConnection(UnixDomainServerConnector.this, endpoint);
-        }
-
-        @Override
         protected void endPointOpened(EndPoint endpoint)
         {
             super.endPointOpened(endpoint);
@@ -517,6 +476,21 @@ public class UnixDomainServerConnector extends AbstractNetworkConnector
         {
             onEndPointClosed(endpoint);
             super.endPointClosed(endpoint);
+        }
+
+        @Override
+        protected EndPoint newEndPoint(SelectableChannel channel,
+                                       ManagedSelector selector,
+                                       SelectionKey selectionKey)
+            throws IOException {
+            return UnixDomainServerConnector.this.newEndPoint(channel, selector, selectionKey);
+        }
+
+        @Override
+        public Connection newConnection(SelectableChannel channel,
+                                        EndPoint endpoint, Object attachment)
+            throws IOException {
+            return getDefaultConnectionFactory().newConnection(UnixDomainServerConnector.this, endpoint);
         }
     }
 }

@@ -22,7 +22,11 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
+import com.fasterxml.jackson.databind.introspect.AnnotatedClassResolver;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.AnnotationMap;
 
@@ -67,7 +71,11 @@ public class TestVersionCheckAnnotationIntrospector {
             throws NoSuchFieldException {
 
         Field field = TestClass.class.getField(fieldName);
-        AnnotatedClass clazz = AnnotatedClass.construct(TestClass.class, testObject, null);
+        ObjectMapper mapper = new ObjectMapper();
+        SerializationConfig config = mapper.getSerializationConfig();
+        JavaType forType =
+            mapper.getTypeFactory().constructType(TestClass.class);
+        AnnotatedClass clazz = AnnotatedClassResolver.resolve(config, forType, null);
         AnnotationMap map = new AnnotationMap();
         for (Annotation annotation : field.getAnnotations()) {
             map.add(annotation);
