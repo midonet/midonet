@@ -105,6 +105,30 @@
       "revId": "fc60e3100de7a9d2669c79255269c470ecb59541",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8ae179c6_682616bb",
+        "filename": "docs/fast-path.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-12-21T09:13:00Z",
+      "side": 1,
+      "message": "i agree it\u0027s too vague to be useful.  i\u0027ll remove.",
+      "parentUuid": "f4809b0e_e9b4fb72",
+      "range": {
+        "startLine": 135,
+        "startChar": 35,
+        "endLine": 137,
+        "endChar": 7
+      },
+      "revId": "fc60e3100de7a9d2669c79255269c470ecb59541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
