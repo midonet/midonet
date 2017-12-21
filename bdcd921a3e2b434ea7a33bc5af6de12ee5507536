@@ -46,6 +46,30 @@
       "revId": "bdcd921a3e2b434ea7a33bc5af6de12ee5507536",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "135a70af_b89e15df",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2017-12-21T12:43:48Z",
+      "side": 1,
+      "message": "i\u0027m not sure if it\u0027s desirable to save bumps but it\u0027s ok",
+      "parentUuid": "e1f4fd3b_fa1ca0c3",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 17
+      },
+      "revId": "bdcd921a3e2b434ea7a33bc5af6de12ee5507536",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
