@@ -142,7 +142,7 @@ abstract class UpcallDatapathConnectionManagerBase(
         setUpcallHandler(dpConn)
         ensurePortPid(port, datapath, dpConn) andThen {
             case Success((createdPort, _)) =>
-                log.debug(s"Successfully created or reclaimed port $createdPort")
+                log.info(s"Successfully created or reclaimed port $createdPort")
                 portToChannel.put((datapath, createdPort.getPortNo.intValue), conn)
             case Failure(e) =>
                 log.error(s"Failed to create or reclaim datapath port ${port.getName}", e)
@@ -168,9 +168,15 @@ abstract class UpcallDatapathConnectionManagerBase(
                     // NOTE: set port operation not supported, need to get
                     // the port and recreate it with the same port number
                     dpConnOps.getPort(port.getName, dp) flatMap { existingPort =>
-                        log.info(s"Reclaiming datapath port $existingPort.")
+                        log.info(s"MNA-1187=> Reclaiming datapath port $existingPort.")
                         dpConnOps.delPort(existingPort, dp) flatMap { _ =>
-                            dpConnOps.createPort(existingPort, dp)
+                            log.info(s"MNA-1187=> deleted port ${existingPort.getName}")
+                            dpConnOps.createPort(existingPort, dp).andThen {
+                                case Success(_) =>
+                                    log.info(s"MNA-1187=> created port ${existingPort.getName}")
+                                case _ =>
+                                    log.info(s"MNA-1187=> failed to create port ${existingPort.getName}")
+                            }
                         }
                     }
                 } else {
