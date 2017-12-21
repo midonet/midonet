@@ -81,6 +81,30 @@
       "revId": "fc60e3100de7a9d2669c79255269c470ecb59541",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f4809b0e_e9b4fb72",
+        "filename": "docs/fast-path.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2017-12-21T06:20:30Z",
+      "side": 1,
+      "message": "I don\u0027t fully understand it but I don\u0027t think it says too much and it\u0027s confusing.  And it even sounds like it might be referring to Ringbuffer that we already use (at least readers may get confused with it).  I think we can remove it.  What do you think?",
+      "parentUuid": "fd6b50bc_c0c5e2d3",
+      "range": {
+        "startLine": 135,
+        "startChar": 35,
+        "endLine": 137,
+        "endChar": 7
+      },
+      "revId": "fc60e3100de7a9d2669c79255269c470ecb59541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
