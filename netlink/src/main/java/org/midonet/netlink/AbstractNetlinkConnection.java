@@ -268,49 +268,6 @@ public abstract class AbstractNetlinkConnection {
         }
     }
 
-    /*
-     * Use blocking-write to send a batch of netlink requests and do
-     * blocking reads until all their ACKs have been received back.
-     *
-     * Will throw if the channel is in non-blocking mode.
-     *
-     * NOT thread-safe.
-     */
-    public void doTransactionBatch() throws InterruptedException {
-        if (! channel.isBlocking()) {
-            throw new UnsupportedOperationException(
-                "Blocking transactions on non-blocking channels are unsupported");
-        }
-
-        NetlinkRequest r;
-
-        /* Wait five seconds for the 1st request to arrive, don't wait at all
-         * after that. */
-        for (r = writeQueue.poll(5000, TimeUnit.MILLISECONDS);
-             r != null && ongoingTransaction.size() < maxBatchIoOps;
-             r = writeQueue.poll()) {
-
-            if (processWriteToChannel(r) <= 0)
-                break;
-
-            if (r.hasCallback())
-                ongoingTransaction.add(r);
-        }
-
-        try {
-            while (!ongoingTransaction.isEmpty()) {
-                if (processReadFromChannel(Bucket.BOTTOMLESS) <= 0)
-                    break;
-            }
-        } catch (IOException e) {
-            log.error("Netlink channel read() error", e);
-        }
-
-        expireOldRequests();
-        dispatcher.endBatch();
-        ongoingTransaction.clear();
-    }
-
     public void handleWriteEvent() throws IOException {
         for (int i = 0; i < maxBatchIoOps; i++) {
             final NetlinkRequest request = writeQueue.poll();
