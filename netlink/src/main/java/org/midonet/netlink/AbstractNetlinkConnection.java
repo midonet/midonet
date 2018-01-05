@@ -269,20 +269,24 @@ public abstract class AbstractNetlinkConnection {
     }
 
     public void handleWriteEvent() throws IOException {
-        for (int i = 0; i < maxBatchIoOps; i++) {
-            final NetlinkRequest request = writeQueue.poll();
-            if (request == null)
-                break;
-            final int ret = processWriteToChannel(request);
-            if (ret <= 0) {
-                if (ret < 0) {
-                    log.warn("NETLINK write() error: {}",
-                             CLibrary.strerror(Native.getLastError()));
+        try {
+            for (int i = 0; i < maxBatchIoOps; i++) {
+                final NetlinkRequest request = writeQueue.poll();
+                if (request == null)
+                    break;
+                final int ret = processWriteToChannel(request);
+                if (ret <= 0) {
+                    if (ret < 0) {
+                        log.warn("NETLINK write() error: {}",
+                                 CLibrary.strerror(Native.getLastError()));
+                    }
+                    break;
                 }
-                break;
             }
+            expireOldRequests();
+        } finally {
+            dispatcher.endBatch();
         }
-        expireOldRequests();
     }
 
     private int processWriteToChannel(final NetlinkRequest request) {
