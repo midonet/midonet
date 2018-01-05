@@ -326,6 +326,7 @@ public abstract class AbstractNetlinkConnection {
             }
         }
         expireOldRequests();
+        dispatcher.endBatch();
     }
 
     private int processWriteToChannel(final NetlinkRequest request) {
