@@ -203,7 +203,7 @@ public abstract class AbstractNetlinkConnection {
     }
 
     /** Finalizes a ByteBuffer containing a msg payload and puts it in the
-     *  internal queue of messages to be writen to the nl socket by the
+     *  internal queue of messages to be written to the nl socket by the
      *  writing thread. It is assumed that this message will be answered by
      *  a unique reply message. */
     protected <T> void sendNetlinkMessage(ByteBuffer payload,
