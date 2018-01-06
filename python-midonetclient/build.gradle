@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-task clean(overwrite: true, type: Exec) {
-    commandLine './package.sh', 'clean'
+clean.doFirst {
+    exec {
+        commandLine './package.sh', 'clean'
+    }
 }
 
 task rpm(type: Exec) {
