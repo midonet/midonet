@@ -45,6 +45,7 @@ dependencies {
             libraries.scallop, libraries.commons_io,
             libraries.guava, libraries.metrics
 
+    testCompile project(path: ':midonet-util', configuration: 'tests')
     testCompile libraries.scalatest,
                 libraries.hamcrest_core,
                 libraries.hamcrest_lib
