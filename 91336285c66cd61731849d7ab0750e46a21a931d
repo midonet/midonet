@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3ebaa134_f09aa4ed",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-01-12T04:15:33Z",
+      "side": 1,
+      "message": "the upper-right search box on gerrithub?  for some reasons this change doesn\u0027t show up though.\n\n\"git log\" and search is more reliable.",
+      "parentUuid": "f6e69e16_0d1f4c10",
+      "range": {
+        "startLine": 16,
+        "startChar": 4,
+        "endLine": 16,
+        "endChar": 45
+      },
+      "revId": "91336285c66cd61731849d7ab0750e46a21a931d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9446beb3_c6826f98",
         "filename": "netlink/src/main/java/org/midonet/netlink/AbstractNetlinkConnection.java",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-12T00:28:26Z",
       "side": 1,
       "message": "do we need to put this into a finally like for handleReadEvent",
+      "range": {
+        "startLine": 286,
+        "startChar": 8,
+        "endLine": 286,
+        "endChar": 30
+      },
+      "revId": "91336285c66cd61731849d7ab0750e46a21a931d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5bb8d6fa_a45858e5",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractNetlinkConnection.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-01-12T04:15:33Z",
+      "side": 1,
+      "message": "i haven\u0027t noticed anything which can throws an exception. but probably it\u0027s safer.",
+      "parentUuid": "9446beb3_c6826f98",
       "range": {
         "startLine": 286,
         "startChar": 8,
