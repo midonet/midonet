@@ -20,8 +20,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 
 import scala.collection.IndexedSeq
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
@@ -170,13 +169,14 @@ abstract class UpcallDatapathConnectionManagerBase(
                     // the port and recreate it with the same port number
                     dpConnOps.getPort(port.getName, dp) flatMap { existingPort =>
                         log.info(s"MNA-1187=> Reclaiming datapath port $existingPort.")
-                        val res: DpPort = Await.result(dpConnOps.delPort(existingPort, dp), 5 seconds)
-                        log.info(s"MNA-1187=> deleted port ${res}")
-                        dpConnOps.createPort(existingPort, dp).andThen {
-                            case Success(_) =>
-                                log.info(s"MNA-1187=> created port ${existingPort.getName}")
-                            case _ =>
-                                log.info(s"MNA-1187=> failed to create port ${existingPort.getName}")
+                        dpConnOps.delPort(existingPort, dp) flatMap { _ =>
+                            log.info(s"MNA-1187=> deleted port ${existingPort.getName}")
+                            dpConnOps.createPort(existingPort, dp).andThen {
+                                case Success(_) =>
+                                    log.info(s"MNA-1187=> created port ${existingPort.getName}")
+                                case _ =>
+                                    log.info(s"MNA-1187=> failed to create port ${existingPort.getName}")
+                            }
                         }
                     }
                 } else {
