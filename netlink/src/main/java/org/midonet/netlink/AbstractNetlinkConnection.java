@@ -17,7 +17,6 @@ package org.midonet.netlink;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -75,8 +74,6 @@ public abstract class AbstractNetlinkConnection {
             new SelectorInputQueue<>();
 
     private PriorityQueue<NetlinkRequest> expirationQueue;
-
-    private Set<NetlinkRequest> ongoingTransaction = new HashSet<>();
 
     /* When true, this connection will interpret that the notification
      * handler is shared with other channels and thus an upper entity
@@ -438,7 +435,6 @@ public abstract class AbstractNetlinkConnection {
 
     private void processSuccessfulRequest(NetlinkRequest request) {
         if (request != null) {
-            ongoingTransaction.remove(request);
             dispatcher.submit(request.successful());
         }
     }
