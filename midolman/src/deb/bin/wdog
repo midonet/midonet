@@ -210,7 +210,7 @@ class ProcMon(ISelectLoopObserver):
                          os.O_CREAT | os.O_EXCL)
             os.close(fd)
 
-            # 2. SIGKILL current process
+            # 2. Signal current process
             os.kill(self.child_pid, signal.SIGTERM)
 
             # 3. Remove pipe
@@ -219,7 +219,7 @@ class ProcMon(ISelectLoopObserver):
                 os.unlink(self.pipe_path)
             os.rmdir(self.pipe_dir)
 
-            #4. Spawn new process and start monitoring it
+            # 4. Spawn new process and start monitoring it
             ProcMon(self.grace, self.dump_path, self.args).run()
         except:
             msg('Failed to execute the fast reboot sequence. Check that the '
