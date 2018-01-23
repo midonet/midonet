@@ -204,8 +204,17 @@ class ProcMon(ISelectLoopObserver):
         self.ticks_left = 60
 
         try:
-            # 1. mark a fast reboot lock file while rebooting
-            #    will be removed by the newly created process
+            # 1. Mark a fast reboot lock file while rebooting.
+            #    It will be removed by the newly created process.
+            #    Also, create a fifo for coordination between agent
+            #    processes.  (See RebootBarriers.scala)
+            barrier_path = '/var/run/midolman/fast_reboot.barrier'
+            try:
+                os.unlink(barrier_path)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise
+            os.mkfifo(barrier_path)
             fd = os.open('/var/run/midolman/fast_reboot.file',
                          os.O_CREAT | os.O_EXCL)
             os.close(fd)
