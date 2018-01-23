@@ -294,16 +294,14 @@ public class Midolman {
         MidonetBackend backend = injector.getInstance(MidonetBackend.class);
         backend.startAsync().awaitRunning();
 
-        RebootBarriers barriers = new RebootBarriers(
-            backend.curator(), config.zookeeper());
-        boolean fastReboot = isFastReboot();
+        RebootBarriers barriers = null;
+        final boolean fastReboot = isFastReboot();
 
         if (fastReboot) {
-            log.info("Fast reboot (backup): initialization finished, remove "
-                     + "stage1 barrier and wait (5s) on stage2 barrier.");
-            barriers.stage2().setBarrier();
-            barriers.stage1().removeBarrier();
-            barriers.stage2().waitOnBarrier(5, TimeUnit.SECONDS);
+            log.info("Fast reboot (backup): initialization finished.");
+            barriers = new RebootBarriers(false);
+            barriers.waitOnBarrier(1, 10, TimeUnit.SECONDS);
+            barriers.waitOnBarrier(2, 5, TimeUnit.SECONDS);
         }
 
         injector.getInstance(MidolmanService.class)
@@ -312,7 +310,7 @@ public class Midolman {
 
         if (fastReboot) {
             log.info("Fast reboot (backup): services started.");
-            barriers.stage3().removeBarrier();
+            barriers.waitOnBarrier(3, 5, TimeUnit.SECONDS);
             new File(FAST_REBOOT_FILE).delete();
         }
 
@@ -400,12 +398,9 @@ public class Midolman {
             .getInstance(MidonetBackend.class);
         MidonetBackendConfig backendConfig = injector
             .getInstance(MidonetBackendConfig.class);
-        RebootBarriers barriers = new RebootBarriers(
-            backend.curator(), backendConfig);
+        RebootBarriers barriers = new RebootBarriers(true);
         MidolmanActorsService actorsService = injector
             .getInstance(MidolmanActorsService.class);
-
-        barriers.clear();
 
         try {
             minionProcess.stopAsync()
@@ -417,10 +412,8 @@ public class Midolman {
 
         log.info("Minion process stopped.");
 
-        barriers.stage1().setBarrier();
-        log.info("Fast reboot (main): minion stopped, set barrier 1 and "
-                 + "wait (10s) on stage1 barrier.");
-        barriers.stage1().waitOnBarrier(10, TimeUnit.SECONDS);
+        log.info("Fast reboot (main): minion stopped");
+        barriers.waitOnBarrier(1, 10, TimeUnit.SECONDS);
 
         // Stop non-critical services that have hard coded resources
         // that could interfere with a concurrent MidoNet Agent instance.
@@ -435,11 +428,9 @@ public class Midolman {
         injector.getInstance(VirtualToPhysicalMapper.class)
             .stopAsync().awaitTerminated();
 
-        barriers.stage3().setBarrier();
-        barriers.stage2().removeBarrier();
-        log.info("Fast reboot (main): non-critical services stopped, " +
-                 "remove stage 2 barrier and wait (5s) on stage3 barrier.");
-        barriers.stage3().waitOnBarrier(5, TimeUnit.SECONDS);
+        log.info("Fast reboot (main): non-critical services stopped.");
+        barriers.waitOnBarrier(2, 5, TimeUnit.SECONDS);
+        barriers.waitOnBarrier(3, 5, TimeUnit.SECONDS);
 
         doServicesCleanup();
     }
