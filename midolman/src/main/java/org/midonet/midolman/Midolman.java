@@ -419,14 +419,19 @@ public class Midolman {
         // that could interfere with a concurrent MidoNet Agent instance.
         actorsService.stopRoutingHandlerActors();
         actorsService.stopMetadataActor();
-        injector.getInstance(HostService.class)
-            .stopAsync().awaitTerminated();
-        injector.getInstance(SimpleHTTPServerService.class)
-            .stopAsync().awaitTerminated();
-        injector.getInstance(JmxConnectorServer.class)
-            .stopAsync().awaitTerminated();
-        injector.getInstance(VirtualToPhysicalMapper.class)
-            .stopAsync().awaitTerminated();
+
+        Service[] services = {
+            injector.getInstance(HostService.class),
+            injector.getInstance(SimpleHTTPServerService.class),
+            injector.getInstance(JmxConnectorServer.class),
+            injector.getInstance(VirtualToPhysicalMapper.class),
+        };
+
+        for (Service service : services) {
+            log.info("Stopping service: {}", service);
+            service.stopAsync().awaitTerminated();
+            log.info("Service {} stopped.", service);
+        }
 
         log.info("Fast reboot (main): non-critical services stopped.");
         barriers.waitOnBarrier(2, 5, TimeUnit.SECONDS);
