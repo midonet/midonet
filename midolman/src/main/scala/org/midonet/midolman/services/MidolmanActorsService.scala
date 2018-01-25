@@ -178,7 +178,7 @@ class MidolmanActorsService extends AbstractService {
                         ChildActorStopTimeout)
             val routingActorStoppedFuture = routingActor ? StopBgpHandlers()
             log.debug(
-                "Awaiting for the routing manager actor to finish stopping" +
+                "Awaiting for the routing manager actor to finish stopping " +
                 "its child routing handler actors.")
             Await.result(routingActorStoppedFuture, ActorsStopTimeout)
             routingActorStopped = true
