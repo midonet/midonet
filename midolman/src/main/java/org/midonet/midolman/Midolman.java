@@ -104,6 +104,8 @@ public class Midolman {
 
     private volatile MonitoredDaemonProcess minionProcess = null;
 
+    private static Boolean fastRebootBackup = false;
+
     private Midolman() {
     }
 
@@ -184,12 +186,11 @@ public class Midolman {
             log.info("  {}", a);
         }
         log.info("-------------------------------------");
-
         log.info("Adding shutdown hook");
         Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
             @Override
             public void run() {
-                boolean fastReboot = isFastReboot();
+                boolean fastReboot = !fastRebootBackup && isFastReboot();
                 log.debug("Fast reboot - isFastReboot? {}", fastReboot);
                 if (fastReboot) {
                     doServicesCleanupOnFastReboot();
@@ -216,6 +217,8 @@ public class Midolman {
     }
 
     private void run(String[] args) throws Exception {
+        fastRebootBackup = isFastReboot();
+
         Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
         setUncaughtExceptionHandler();
         int initTimeout = Integer.valueOf(
@@ -295,9 +298,8 @@ public class Midolman {
         backend.startAsync().awaitRunning();
 
         RebootBarriers barriers = null;
-        final boolean fastReboot = isFastReboot();
 
-        if (fastReboot) {
+        if (fastRebootBackup) {
             log.info("Fast reboot (backup): initialization finished.");
             barriers = new RebootBarriers(false);
             barriers.waitOnBarrier(1, 10, TimeUnit.SECONDS);
@@ -308,10 +310,11 @@ public class Midolman {
             .startAsync()
             .awaitRunning();
 
-        if (fastReboot) {
+        if (fastRebootBackup) {
             log.info("Fast reboot (backup): services started.");
             barriers.waitOnBarrier(3, 5, TimeUnit.SECONDS);
             new File(FAST_REBOOT_FILE).delete();
+            fastRebootBackup = false;
         }
 
         enableFlowTracingAppender(
