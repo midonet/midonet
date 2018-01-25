@@ -49,6 +49,10 @@ def msg(s):
     sys.stdout.flush()
 
 
+class FastRebootException(Exception):
+    pass
+
+
 class ISelectLoopObserver:
     def __init__(self):
         pass
@@ -220,15 +224,12 @@ class ProcMon(ISelectLoopObserver):
             # 2. Signal current process
             os.kill(self.child_pid, signal.SIGTERM)
 
-            # 3. Remove pipe
-            if self.pipe > 0:
-                os.close(self.pipe)
-                os.unlink(self.pipe_path)
-            os.rmdir(self.pipe_dir)
+            # 3. Forget current process
+            self.child_pid = 0
 
             # 4. Spawn new process and start monitoring it
-            ProcMon(self.grace, self.dump_path, self.args).run()
-        except:
+            raise FastRebootException()
+        except OSError:
             msg('Failed to execute the fast reboot sequence. Check that the '
                 '/var/run/midolman/fast_reboot.file does not exist and try '
                 'again.')
@@ -378,7 +379,11 @@ def main():
         # Ignore if the file does not exist
         pass
 
-    ProcMon(timeout, dump_path, argv).run()
+    while True:
+        try:
+            ProcMon(timeout, dump_path, argv).run()
+        except FastRebootException:
+            msg('Fast reboot - launching new agent')
 
 if __name__ == '__main__':
     main()
