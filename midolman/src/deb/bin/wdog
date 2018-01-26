@@ -199,9 +199,6 @@ class ProcMon(ISelectLoopObserver):
 
     def on_sigusr1(self):
         msg('User signal received, starting fast reboot mechanism.')
-        # Setting the ticks left to an arbitrary high value so stopping the
-        # pipe writer on the primary agent does not fire a SIGKILL.
-        self.ticks_left = 60
 
         try:
             # 1. mark a fast reboot lock file while rebooting
