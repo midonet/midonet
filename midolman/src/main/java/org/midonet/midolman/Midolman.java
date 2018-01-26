@@ -312,7 +312,7 @@ public class Midolman {
 
         if (fastRebootBackup) {
             log.info("Fast reboot (backup): services started.");
-            barriers.waitOnBarrier(3, 5, TimeUnit.SECONDS);
+            barriers.waitOnBarrier(3, 15, TimeUnit.SECONDS);
             new File(FAST_REBOOT_FILE).delete();
             fastRebootBackup = false;
         }
@@ -438,7 +438,7 @@ public class Midolman {
 
         log.info("Fast reboot (main): non-critical services stopped.");
         barriers.waitOnBarrier(2, 5, TimeUnit.SECONDS);
-        barriers.waitOnBarrier(3, 5, TimeUnit.SECONDS);
+        barriers.waitOnBarrier(3, 15, TimeUnit.SECONDS);
 
         doServicesCleanup();
     }
