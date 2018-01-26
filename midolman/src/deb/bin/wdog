@@ -237,8 +237,8 @@ class ProcMon(ISelectLoopObserver):
 
     def wait_on_child(self, pid, timeout):
         for i in range(timeout):
+            self.select_loop.loop(1.0)
             try:
-                time.sleep(1)
                 os.kill(pid, 0)
             except OSError:
                 return True
