@@ -112,7 +112,8 @@ class SelectLoop:
                 if fd == self.selfpipe.rd:
                     self.selfpipe.read()
                 else:
-                    self.observer.on_ready(fd)
+                    if self.observer.on_ready(fd) == 0:
+                        self.fds.remove(fd)
         except select.error as e:
             err, message = e.args
             if err != errno.EAGAIN and err != errno.EINTR:
@@ -276,6 +277,10 @@ class ProcMon(ISelectLoopObserver):
 
         if nbytes > 0:
             self.ticks_left = self.grace
+
+        if nbytes == 0:
+            msg('wdog pipe EOF')
+        return nbytes
 
     def open_pipe(self):
         msg('Opening pipe at ' + self.pipe_path)
