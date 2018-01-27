@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "50c955f6_4d5d44b0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/RebootBarriers.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-01-27T22:47:11Z",
+      "side": 1,
+      "message": "Just to be aware the NonFatal doesn\u0027t match on InterruptedException, so if you timeout below and interrupt the thread, the promise completes with success. I agree that it\u0027s unlikely to happen.",
+      "range": {
+        "startLine": 93,
+        "startChar": 25,
+        "endLine": 93,
+        "endChar": 36
+      },
+      "revId": "a0b0ddc1d221dafa86f139c9f3518ead8a86110f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b35fe5e3_5d05f611",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/RebootBarriers.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-01-27T22:47:11Z",
+      "side": 1,
+      "message": "This is not the same as above (here it\u0027s RebootBarriers.this, whereas above it\u0027s Thread_anonymous_class.this). Maybe it\u0027s safer to use a synchronization object.",
+      "range": {
+        "startLine": 124,
+        "startChar": 12,
+        "endLine": 124,
+        "endChar": 17
+      },
+      "revId": "a0b0ddc1d221dafa86f139c9f3518ead8a86110f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
