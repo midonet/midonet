@@ -221,22 +221,13 @@ public class Midolman {
         int initTimeout = Integer.valueOf(
             System.getProperty("midolman.init_timeout", "120"));
         try {
-            watchedProcess.start(initializationPromise, initTimeout);
             initialize(args);
+            watchedProcess.start(initializationPromise, initTimeout);
         } catch (Throwable t) {
             log.error("Exception while initializing the MidoNet Agent", t);
             watchedProcess.close();
             throw t;
         }
-
-        minionProcess = new MonitoredDaemonProcess(
-            "/usr/share/midolman/minions-start", log, "org.midonet.services",
-            MINION_PROCESS_MAXIMUM_STARTS, MINION_PROCESS_FAILING_PERIOD,
-            (Exception e) -> {
-                log.debug(e.getMessage());
-                Midolman.exitAsync(MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED);
-            });
-        minionProcess.startAsync();
 
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
@@ -253,9 +244,39 @@ public class Midolman {
         MidoNodeConfigurator configurator =
             MidoNodeConfigurator.apply(configFilePath);
 
+        MidolmanConfig config = createConfig(configurator);
+
         MetricRegistry metricRegistry = new MetricRegistry();
 
-        MidolmanConfig config = createConfig(configurator);
+        Observable<Config> configObservable = configurator
+            .observableRuntimeConfig(HostIdGenerator.getHostId(), false);
+
+        configObservable
+            .subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
+
+        configObservable
+            .subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
+
+        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
+            .setJson(true)
+            .setComments(false)
+            .setOriginComments(false)
+            .setFormatted(true);
+        Config conf = injector.getInstance(MidolmanConfig.class).conf();
+        Boolean showConfigPasswords =
+            System.getProperties().containsKey("midonet.show_config_passwords");
+        log.info("Loaded configuration: {}",
+                 configurator.dropSchema(conf, showConfigPasswords).root()
+                     .render(renderOpts));
+
+        minionProcess = new MonitoredDaemonProcess(
+            "/usr/share/midolman/minions-start", log, "org.midonet.services",
+            MINION_PROCESS_MAXIMUM_STARTS, MINION_PROCESS_FAILING_PERIOD,
+            (Exception e) -> {
+                log.debug(e.getMessage());
+                Midolman.exitAsync(MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED);
+            });
+        minionProcess.startAsync();
 
         if (config.lockMemory())
             lockMemory();
@@ -333,29 +354,6 @@ public class Midolman {
             FlowExpirator expirator = injector.getInstance(FlowExpirator.class);
             new Thread(expirator::expireAllFlows, "flow-expirator").start();
         }
-
-        Scheduler scheduler = injector.getInstance(VirtualTopology.class).vtScheduler();
-        Observable<Config> configObservable = configurator
-            .observableRuntimeConfig(HostIdGenerator.getHostId(), false)
-            .observeOn(scheduler);
-
-        configObservable
-            .subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
-
-        configObservable.
-            subscribe(new LoggerMetricsWatcher("agent", metricRegistry));
-
-        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
-            .setJson(true)
-            .setComments(false)
-            .setOriginComments(false)
-            .setFormatted(true);
-        Config conf = injector.getInstance(MidolmanConfig.class).conf();
-        Boolean showConfigPasswords =
-            System.getProperties().containsKey("midonet.show_config_passwords");
-        log.info("Loaded configuration: {}",
-                 configurator.dropSchema(conf, showConfigPasswords).root()
-                             .render(renderOpts));
 
         injector.getInstance(MidolmanService.class).awaitTerminated();
     }

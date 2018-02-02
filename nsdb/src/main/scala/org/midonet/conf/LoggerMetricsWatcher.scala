@@ -61,7 +61,7 @@ class LoggerMetricsWatcher(prefix: String,
     private[conf] var config: Option[ReporterConfig] = None
     private var reporter: Option[Slf4jReporter] = None
 
-    override def onNext(rawConfig: Config): Unit = {
+    override def onNext(rawConfig: Config): Unit = this.synchronized {
         try {
             val newConfig = ReporterConfig(rawConfig, prefix)
             (config, newConfig) match {
