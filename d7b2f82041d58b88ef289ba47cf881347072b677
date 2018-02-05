@@ -52,6 +52,24 @@
       "revId": "d7b2f82041d58b88ef289ba47cf881347072b677",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcc23123_c4752d34",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-02-05T19:46:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "351c911e_0cf0e0a1",
+      "revId": "d7b2f82041d58b88ef289ba47cf881347072b677",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
