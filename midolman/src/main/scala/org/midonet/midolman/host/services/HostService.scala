@@ -103,7 +103,6 @@ class HostService (config: MidolmanConfig,
     private val interfacesLatch = new CountDownLatch(1)
     @volatile private var currentInterfaces: Set[InterfaceDescription] = null
     @volatile private var oldInterfaces: Set[InterfaceDescription] = null
-    @volatile private var scannerSubscription: Subscription = null
 
     private val aliveState = new AtomicReference(OwnershipState.Released)
     @volatile private var aliveSubscription: Subscription = null
@@ -186,11 +185,6 @@ class HostService (config: MidolmanConfig,
         log.info("Stopping MidoNet agent host service")
         aliveState.set(OwnershipState.Released)
         scanner.stop()
-
-        if (scannerSubscription ne null) {
-            scannerSubscription.unsubscribe()
-            scannerSubscription = null
-        }
 
         // If the cluster storage is enabled, delete the ownership.
         if (aliveSubscription ne null) {
@@ -343,10 +337,6 @@ class HostService (config: MidolmanConfig,
                           "host {}: calling shutdown method", hostId, e)
                 aliveState.set(OwnershipState.Released)
                 try { scanner.stop() } catch { case NonFatal(_) => }
-                if (scannerSubscription ne null) {
-                    scannerSubscription.unsubscribe()
-                    scannerSubscription = null
-                }
                 if (aliveSubscription ne null) {
                     aliveSubscription.unsubscribe()
                     aliveSubscription = null
