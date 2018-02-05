@@ -219,13 +219,14 @@ public class Midolman {
     private void run(String[] args) throws Exception {
         fastRebootBackup = isFastReboot();
 
-        Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
         setUncaughtExceptionHandler();
+        initialize(args);
+
+        Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
         int initTimeout = Integer.valueOf(
             System.getProperty("midolman.init_timeout", "120"));
         try {
             watchedProcess.start(initializationPromise, initTimeout);
-            initialize(args);
         } catch (Throwable t) {
             log.error("Exception while initializing the MidoNet Agent", t);
             watchedProcess.close();
