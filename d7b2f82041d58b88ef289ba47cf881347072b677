@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b1e09078_b6a9dbcc",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-02-05T09:04:26Z",
+      "side": 1,
+      "message": "why did you change this?",
+      "revId": "d7b2f82041d58b88ef289ba47cf881347072b677",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
