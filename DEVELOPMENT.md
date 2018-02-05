@@ -30,11 +30,15 @@ the ZooKeeper cluster, but not necessarily any other node types.
 ## How to contribute
 
 You can report a bug using [MidoNet Issue tracking][jira].
+**NOTE**: Please use "MidoNet (MNA)" project to report any MidoNet bugs.
+Other MidoNet related projects are merely historical and not actively used anymore.
 
 All patches to MidoNet are submitted to Gerrit, an open source,
 web-based code review system. It's publicly hosted on
 [GerritHub][gerrithub], and integrated with a CI infrastructure based on
 Jenkins that runs several suites of automated tests.
+**NOTE**: At this point, the CI logs are available only to Midokura internal.
+We consider it a problem. (MNA-1209)
 
 To submit a patch, you'll need to sign into GerritHub using your GitHub
 account and set up your ssh-key in `Settings->SSH public keys`. If you
@@ -73,6 +77,17 @@ Feel free to join other MidoNet developers on our public
 It's strongly recommended to describe the whole relevant information
 in the commit message itself, rather than just having a reference to
 a bug tracker, especially when the tracker is not publicly available.
+
+It's required to include a reference to the related jira issue in
+a commit message:
+
+    Ref: MNA-xxx
+
+Otherwise, the CI will complain by putting "Verified -1" on the patch.
+For trivial patches which don't worth jira issues, you can put the following
+string instead:
+
+    Ref: MINOR_CHANGE
 
 #### Bug references
 
