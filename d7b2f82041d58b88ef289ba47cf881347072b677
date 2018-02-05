@@ -16,6 +16,24 @@
       "revId": "d7b2f82041d58b88ef289ba47cf881347072b677",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bfaf509_20500548",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-02-05T09:11:45Z",
+      "side": 1,
+      "message": "So maybe this is unrelated to the title of the patch. The idea was to log the initialization (e.g. command line args, env vars, etc) before anything else, such that if this would ever, fail, we don\u0027t get only the error message below, but also the startup config that we can use to troubleshoot.\n\nShall we do this is a separate patch?",
+      "parentUuid": "b1e09078_b6a9dbcc",
+      "revId": "d7b2f82041d58b88ef289ba47cf881347072b677",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
