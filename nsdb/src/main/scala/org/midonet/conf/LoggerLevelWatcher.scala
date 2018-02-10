@@ -37,16 +37,16 @@ class LoggerLevelWatcher(prefix: Option[String] = None) extends Observer[Config]
 
     override def onNext(config: Config): Unit = {
         try {
-            val logconf = loggerConf(config)
-            for (entry <- logconf.entrySet
+            val logConfig = loggerConf(config)
+            for (entry <- logConfig.entrySet
                     if !entry.getKey.endsWith("_description") && entry.getKey != "root") {
-                val level = Level.toLevel(logconf.getString(entry.getKey), Level.INFO)
+                val level = Level.toLevel(logConfig.getString(entry.getKey), Level.INFO)
                 val key = entry.getKey.stripSuffix(".root")
                 logbackLogger(key).setLevel(level)
                 log.info(s"Set logging level of $key to $level")
             }
 
-            val rootLevel = Level.toLevel(logconf.getString("root"), Level.INFO)
+            val rootLevel = Level.toLevel(logConfig.getString("root"), Level.INFO)
             logbackLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).setLevel(rootLevel)
             log.info(s"Set root logging level to $rootLevel")
         } catch {
