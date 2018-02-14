@@ -134,10 +134,11 @@ trait FlowContext extends Clearable { this: PacketContext =>
         flowTags.add(tag)
     }
 
+    // Remove tags except flow state tags
     def clearFlowTags(): Unit = {
         val it = flowTags.iterator
         while (it.hasNext) {
-            if (it.next().isInstanceOf[FlowStateTag]) {
+            if (!it.next().isInstanceOf[FlowStateTag]) {
                 it.remove()
             }
         }
