@@ -25,7 +25,7 @@ const std::string jba2str(JNIEnv *env, jbyteArray ba) {
   auto len = env->GetArrayLength(ba);
   auto bytes = env->GetByteArrayElements(ba, 0);
   auto ret = std::string(reinterpret_cast<const char*>(bytes), len);
-  env->ReleaseByteArrayElements(ba, bytes, 0);
+  env->ReleaseByteArrayElements(ba, bytes, JNI_ABORT);
   return ret;
 }
 
@@ -148,7 +148,7 @@ Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerIndexFlowT
   for (int i = 0; i < tagCount; i++) {
     tags.push_back(elements[i]);
   }
-  env->ReleaseLongArrayElements(tagsArray, elements, 0);
+  env->ReleaseLongArrayElements(tagsArray, elements, JNI_ABORT);
   indexer->index_flow_tags(flow, tags);
 }
 
