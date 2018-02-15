@@ -40,8 +40,6 @@ import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class NativeFlowControllerTest extends MidolmanSpec with MockitoSugar {
-    val flowTimeout: Int = 1000
-    val tagCount: Int = 10
 
     var flowController: FlowController = _
     var mockMeterRegistry: MeterRegistry = _
