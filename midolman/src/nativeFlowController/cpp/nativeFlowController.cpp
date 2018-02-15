@@ -49,11 +49,11 @@ Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTablePutFlow
   return table->put(jba2str(env, flowMatch));
 }
 
-jlong
+void
 Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableClearFlow
 (JNIEnv *env, jclass, jlong pointer, jlong flowId) {
-    auto table = reinterpret_cast<FlowTable*>(pointer);
-    table->clear(flowId);
+  auto table = reinterpret_cast<FlowTable*>(pointer);
+  table->clear(flowId);
 }
 
 jlong
@@ -119,7 +119,8 @@ Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowCallbackCou
   return table->get(flowId).callbacks().size();
 }
 
-jlong Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowCallbackId
+jlong
+Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTableFlowCallbackId
 (JNIEnv *env, jclass, jlong pointer, jlong flowId, jint index) {
   auto table = reinterpret_cast<FlowTable*>(pointer);
   return table->get(flowId).callbacks().at(index).cb_id();
@@ -180,7 +181,7 @@ jlong Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerInva
   return invalids->at(index);
 }
 
-jlong
+void
 Java_org_midonet_midolman_flows_NativeFlowControllerJNI_flowTagIndexerInvalidFlowsFree
 (JNIEnv *env, jclass, jlong invalidPointer) {
   auto invalids = reinterpret_cast<std::vector<FlowId>*>(invalidPointer);
