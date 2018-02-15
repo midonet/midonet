@@ -18,7 +18,7 @@ package org.midonet.midolman.flows;
 public class NativeFlowControllerJNI {
     public static native long createFlowTable(int maxFlows);
     public static native long flowTablePutFlow(long flowTable, byte[] flowMatch);
-    public static native long flowTableClearFlow(long flowTable, long id);
+    public static native void flowTableClearFlow(long flowTable, long id);
 
     public static native long flowTableIdAtIndex(long flowTable, int index);
     public static native int flowTableOccupied(long flowTable);
@@ -47,7 +47,7 @@ public class NativeFlowControllerJNI {
     public static native long flowTagIndexerInvalidFlowsCount(long invalids);
     public static native long flowTagIndexerInvalidFlowsGet(long invalids,
                                                             int index);
-    public static native long flowTagIndexerInvalidFlowsFree(long invalids);
+    public static native void flowTagIndexerInvalidFlowsFree(long invalids);
 
     public static native long createFlowExpirationIndexer();
     public static native void flowExpirationIndexerEnqueueFlowExpiration(
