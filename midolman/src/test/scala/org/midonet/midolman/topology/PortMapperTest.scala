@@ -278,6 +278,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             device1.tunnelKey shouldBe port.getTunnelKey
 
             When("Setting the port state to active")
+            simBackChannel clear
             val tunnelKey = random.nextLong()
             store.setPortActive(port.getId, InMemoryStorage.namespaceId,
                                 active = true, tunnelKey = tunnelKey)
@@ -287,9 +288,31 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
             val device2 = obs.getOnNextEvents.get(1).asInstanceOf[BridgePort]
 
+            And("The flows should be invalidated")
+            simBackChannel should invalidate (
+                device2.flowStateTag, device2.deviceTag)
+
             And("The port tunnel key should be read from state")
             device2.isActive shouldBe true
             device2.tunnelKey shouldBe tunnelKey
+
+            When("The local tunnel key is changed")
+            simBackChannel clear
+            val tunnelKey2 = random.nextLong()
+            store.setPortActive(port.getId, InMemoryStorage.namespaceId,
+                                active = true, tunnelKey = tunnelKey2)
+                 .await(timeout)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device4 = obs.getOnNextEvents.get(2).asInstanceOf[BridgePort]
+
+            And("The flows should be invalidated")
+            simBackChannel should invalidate (device4.deviceTag)
+
+            And("The port tunnel key should be read from state")
+            device4.isActive shouldBe true
+            device4.tunnelKey shouldBe tunnelKey2
 
             When("Setting the port state to inactive")
             store.setPortActive(port.getId, InMemoryStorage.namespaceId,
@@ -297,8 +320,8 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
                  .await(timeout)
 
             Then("The observer should receive the port")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            val device3 = obs.getOnNextEvents.get(2).asInstanceOf[BridgePort]
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(3).asInstanceOf[BridgePort]
 
             And("The port tunnel key should be read from topology")
             device3.isActive shouldBe false
