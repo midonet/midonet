@@ -16,6 +16,7 @@
 package org.midonet.midolman.util
 
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConverters._
 
@@ -38,6 +39,7 @@ import org.midonet.midolman.simulation.{CustomMatchers, PacketContext}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.mock.MockMidolmanActors
 import org.midonet.midolman.{DatapathState, FlowTranslator, MockMidolmanModule}
+import org.midonet.odp.{Flow, FlowMatch}
 import org.midonet.util.collection.IPv4InvalidationArray
 import org.midonet.util.eventloop.Reactor
 
@@ -66,6 +68,8 @@ trait MidolmanSpec extends FeatureSpecLike
 
     var injector: Injector = null
 
+    val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
+
     /**
      * Override this function to perform a custom set-up needed for the test.
      */
@@ -79,10 +83,12 @@ trait MidolmanSpec extends FeatureSpecLike
 
     before {
         try {
+            flowsTable.clear()
             val conf = MidoTestConfigurator.forAgents(fillConfig())
             injector = Guice.createInjector(getModules(conf))
             injector = injector.createChildInjector(new MockMidolmanModule(
                 hostId,
+                flowsTable,
                 injector,
                 new MidolmanConfig(conf, ConfigFactory.empty()),
                 injector.getInstance(classOf[MidonetBackend]),

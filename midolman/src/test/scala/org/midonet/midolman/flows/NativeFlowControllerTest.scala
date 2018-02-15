@@ -17,6 +17,10 @@ package org.midonet.midolman.flows
 
 import java.util.Random
 
+import scala.collection.mutable.{ArrayBuffer, Buffer, HashMap}
+import scala.collection.JavaConverters._
+import scala.util.Random.shuffle
+
 import com.google.common.collect.Lists
 
 import org.junit.runner.RunWith
@@ -31,7 +35,7 @@ import org.midonet.midolman.CallbackRegistry.{CallbackSpec, SerializableCallback
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.{FlowController, MockFlowTablePreallocation, PacketWorkersService}
-import org.midonet.odp.FlowMatches
+import org.midonet.odp.{Flow, FlowMatch, FlowMatches}
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
@@ -269,6 +273,47 @@ class NativeFlowControllerTest extends MidolmanSpec with MockitoSugar {
             And("The flow removal callback method was called again")
             callbackCalled should be (true)
             callbackCalled = false
+        }
+
+        scenario("invalidation removes a flow (many flows)") {
+            val tagsToInvalidate = ArrayBuffer.empty[FlowTagger.FlowTag]
+            val flows = HashMap.empty[FlowMatch, Buffer[FlowTagger.FlowTag]]
+            val numFlows = 10000
+
+            Given("Many flows in the flow controller")
+            for (i <- 1 to numFlows) {
+                val flowMatch = FlowMatches.generateFlowMatch(random)
+                val tag0 = FlowTagger.tagForDpPort(0)
+                val tag1 = FlowTagger.tagForDpPort(i)
+                val tag2 = FlowTagger.tagForDpPort(i / 2 + 100)
+                val tags = List(tag0, tag1, tag2)
+                val managedFlow = flowController.addFlow(
+                    flowMatch,
+                    Lists.newArrayList(shuffle(tags).asJava),
+                    Lists.newArrayList(callbackCalledSpec),
+                    FlowExpirationIndexer.FLOW_EXPIRATION)
+                managedFlow should not be null
+                flowsTable.put(flowMatch, new Flow())
+
+                tagsToInvalidate += tag1
+                tagsToInvalidate += tag2
+                flows.getOrElseUpdate(flowMatch, ArrayBuffer.empty) ++= tags
+            }
+
+            metrics.dpFlowsMetric.getCount should be (numFlows)
+
+            When("Tags are invalidated in a random order")
+            for (tag <- shuffle(tagsToInvalidate.toList)) {
+                flowController.invalidateFlowsFor(tag)
+                flows.retain { (_, v) => !v.contains(tag) }
+                val expected = flows.size
+                flowsTable.size should be (expected)
+                metrics.currentDpFlowsMetric.getValue should be (expected)
+            }
+
+            Then("All flows should be removed")
+            flowsTable.size should be (0)
+            metrics.currentDpFlowsMetric.getValue should be (0)
         }
 
         scenario("invalidation removes a linked flow") {
