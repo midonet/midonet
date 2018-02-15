@@ -30,8 +30,6 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @RunWith(classOf[JUnitRunner])
 class FlowControllerTest extends MidolmanSpec {
-    val flowTimeout: Int = 1000
-    val tagCount: Int = 10
 
     var flowController: FlowController = _
 
