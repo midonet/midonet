@@ -311,6 +311,7 @@ Flow& FlowTable::get(FlowId id) {
 }
 
 void FlowTable::clear(FlowId id) {
+  assert(m_table[id & m_mask].id() == id);
   m_table[id & m_mask] = Flow();
   m_occupied--;
 }
@@ -371,6 +372,7 @@ void FlowTagIndexer::remove_flow(FlowId id,
       iter++;
 
       if (!invalidating || invalidTag != tag) {
+        assert(*id_iter == id);
         ids.erase(id_iter);
         if (ids.empty()) {
           m_tags_to_flows.erase(tag);
