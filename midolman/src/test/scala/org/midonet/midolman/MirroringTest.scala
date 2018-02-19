@@ -219,7 +219,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightBridgePort),
+                FlowTagger.tagForPortTx(rightBridgePort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightBridgePort, dstPortA))
         }
 
@@ -228,7 +233,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightBridgePort),
+                FlowTagger.tagForPortTx(rightBridgePort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightBridgePort, dstPortA))
         }
     }
@@ -239,7 +249,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2Vlan(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightBridgePort),
+                FlowTagger.tagForPortTx(rightBridgePort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightBridgePort, dstPortA))
         }
 
@@ -248,7 +263,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2Vlan(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightBridgePort),
+                FlowTagger.tagForPortTx(rightBridgePort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightBridgePort, dstPortA))
         }
     }
@@ -259,7 +279,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL3(22), leftRouterPort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightRouterPort),
+                FlowTagger.tagForPortTx(rightRouterPort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightRouterPort, dstPortA))
             context should be (processedWith (ToPort, SetKey, SetKey, ToPort))
         }
@@ -269,7 +294,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL3(22), leftRouterPort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightRouterPort),
+                FlowTagger.tagForPortTx(rightRouterPort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightRouterPort, dstPortA))
             context should be (processedWith (SetKey, SetKey, ToPort, ToPort))
         }
@@ -281,7 +311,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightBridgePort),
+                FlowTagger.tagForPortTx(rightBridgePort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightBridgePort, dstPortA))
         }
 
@@ -290,7 +325,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightBridgePort),
+                FlowTagger.tagForPortTx(rightBridgePort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightBridgePort, dstPortA))
         }
     }
@@ -301,7 +341,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightBridgePort),
+                FlowTagger.tagForPortTx(rightBridgePort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightBridgePort, dstPortA))
         }
 
@@ -311,7 +356,12 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(rightBridgePort),
+                FlowTagger.tagForPortTx(rightBridgePort),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
             context should be (toPorts (rightBridgePort, dstPortA))
         }
     }
@@ -323,7 +373,14 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
-            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (taggedWith (
+                FlowTagger.tagForMirror(mirrorA),
+                FlowTagger.tagForPort(dstPortA),
+                FlowTagger.tagForPortTx(dstPortA)))
+            context should not be (taggedWith (
+                FlowTagger.tagForPort(rightBridgePort)))
+            context should not be (taggedWith (
+                FlowTagger.tagForPortTx(rightBridgePort)))
             context should be (toPorts (dstPortA))
         }
 
