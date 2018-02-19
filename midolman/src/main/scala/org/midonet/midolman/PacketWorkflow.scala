@@ -541,9 +541,6 @@ class PacketWorkflow(
             case ArpTimeoutException(router, ip) =>
                 pktCtx.log.debug(s"ARP timeout at router $router for address $ip")
             case _: DhcpException =>
-            case e: DeviceQueryTimeoutException =>
-                pktCtx.log.warn("Timeout while fetching " +
-                                s"${e.deviceType} with id ${e.deviceId}")
             case e =>
                 pktCtx.log.warn("Exception while processing packet", e)
         }
