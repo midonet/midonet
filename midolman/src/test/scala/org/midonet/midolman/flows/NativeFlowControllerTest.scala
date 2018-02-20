@@ -86,6 +86,10 @@ class NativeFlowControllerTest extends MidolmanSpec with MockitoSugar {
             metrics.dpFlowsMetric.getCount should be (1)
             verify(mockMeterRegistry).trackFlow(mockEq(flowMatch),
                                                 mockEq(tags))
+
+            And("The flow has a reasonable string representation")
+            managedFlow.toString() should fullyMatch regex (
+                "NativeManagedFlow\\{.*flowMatch=.*\\}")
         }
 
         scenario("A flow is removed") {
@@ -123,6 +127,10 @@ class NativeFlowControllerTest extends MidolmanSpec with MockitoSugar {
             val flowId = managedFlow.id.toInt
             flowController.flowExists(linkedFlowId) shouldBe true
             flowController.flowExists(flowId) shouldBe true
+
+            Then("The flow has a reasonable string representation")
+            managedFlow.toString() should fullyMatch regex (
+                "NativeManagedFlow\\{.*flowMatch=.*, linked flow=.*\\}")
 
             When("Marking one of the flows as duplicate")
             flowController.removeDuplicateFlow(managedFlow.mark)
