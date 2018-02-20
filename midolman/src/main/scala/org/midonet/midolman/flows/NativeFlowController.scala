@@ -252,6 +252,18 @@ class NativeFlowController(config: MidolmanConfig,
             cbRegistry.runAndClear(callbacks())
             JNI.flowTableClearFlow(flowTable, id)
         }
+
+        override def toString: String = toString(linkedId)
+
+        private def toString(linkedFlowId: Long): String = {
+            "NativeManagedFlow{" +
+                s"objref=${System.identityHashCode(this)}" +
+                s", flowMatch=$flowMatch" +
+                s", flowMatch hash=${flowMatch.hashCode()}" +
+                s", sequence=$sequence" +
+                (if (linkedFlowId > 0) s", linked flow=${new NativeManagedFlow(linkedFlowId).toString(-1)}" else "") +
+                '}'
+        }
     }
 }
 
