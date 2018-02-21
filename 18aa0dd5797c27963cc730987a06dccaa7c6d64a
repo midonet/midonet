@@ -22,6 +22,30 @@
       "revId": "18aa0dd5797c27963cc730987a06dccaa7c6d64a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e5898c7a_1de80884",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-21T11:17:54Z",
+      "side": 1,
+      "message": "Before getsockname() was failing with strange \"invalid argument\" error.\nI failed to reproduce this directly in \"C\" code, so I guess that the JNA library does something wrong. Upgrading to the latest version of this library solved this issue.",
+      "parentUuid": "61e0d625_ff8b2e7f",
+      "range": {
+        "startLine": 9,
+        "startChar": 28,
+        "endLine": 9,
+        "endChar": 40
+      },
+      "revId": "18aa0dd5797c27963cc730987a06dccaa7c6d64a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
