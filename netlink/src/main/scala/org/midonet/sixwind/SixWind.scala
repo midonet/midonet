@@ -72,7 +72,7 @@ object SixWind {
             }
         }
 
-        val options: JMap[_, _] = Map(
+        val options: JMap[String, _] = Map(
             Library.OPTION_FUNCTION_MAPPER -> functionMapper
         ).asJava
 
