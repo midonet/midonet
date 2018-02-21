@@ -27,6 +27,20 @@ def JNI_INCLUDE_DIR = "${Jvm.current().getJavacExecutable().getParentFile().getP
 
 // native C++ library (must  be at start of file)
 model {
+    platforms {
+        linux_aarch64 {
+          operatingSystem "linux"
+          architecture "arm64"
+        }
+    }
+    toolChains {
+        gcc(Gcc){
+        target("linux_aarch64") {
+	        cppCompiler.executable = "/usr/bin/gcc"
+	    }
+        }
+    }
+
     repositories {
         libs(PrebuiltLibraries) {
             googleTest {
@@ -45,12 +59,8 @@ model {
             tbb {
                 headers.srcDir "${tbbHeaderDir}"
                 binaries.withType(SharedLibraryBinary) {
-                    if (targetPlatform.operatingSystem.linux) {
-                        sharedLibraryFile = file("${tbbDir}/linux-x86_64/libtbb.so.2")
-                    }
-                    if (targetPlatform.operatingSystem.macOsX) {
-                        sharedLibraryFile = file("${tbbDir}/osx-x86_64/libtbb.dylib")
-                    }
+                   ext.tbbLibraryDir = tbbLibDir(targetPlatform)
+                   sharedLibraryFile = file(tbbSharedLib(ext.tbbLibraryDir))
                 }
             }
         }
@@ -158,25 +168,23 @@ model {
             }
         }
         nativeFlowControllerSharedLibrary {
+            ext.tbbLibraryDir = tbbLibDir(targetPlatform)
             if (targetPlatform.operatingSystem.linux) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowController.so"
-                ext.tbbLibraryDir = "${tbbDir}/linux-x86_64"
             }
             if (targetPlatform.operatingSystem.macOsX) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeFlowController.dylib"
-                ext.tbbLibraryDir = "${tbbDir}/osx-x86_64"
             }
         }
         nativeMeteringSharedLibrary {
             lib library: "tbb", linkage: "shared"
 
+            ext.tbbLibraryDir = tbbLibDir(targetPlatform)
             if (targetPlatform.operatingSystem.linux) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeMetering.so"
-                ext.tbbLibraryDir = "${tbbDir}/linux-x86_64"
             }
             if (targetPlatform.operatingSystem.macOsX) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeMetering.dylib"
-                ext.tbbLibraryDir = "${tbbDir}/osx-x86_64"
             }
         }
         nativeFlowMatchListSharedLibrary {
@@ -428,7 +436,7 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
         include "*.so"
         into "usr/lib/midolman"
     }
-    from("${tbbDir}/linux-x86_64") {
+    from("${tbbLibraryDir}") {
         include "*.so*"
         into "usr/lib/midolman"
     }
