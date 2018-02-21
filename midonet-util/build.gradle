@@ -24,6 +24,20 @@ def JNI_INCLUDE_DIR = "${Jvm.current().getJavacExecutable().getParentFile().getP
 
 // native C++ library (must  be at start of file)
 model {
+    platforms {
+        linux_aarch64 {
+            operatingSystem "linux"
+            architecture "arm64"
+        }
+    }
+    toolChains {
+        clang(Clang)
+        gcc(Gcc){
+            target("linux_aarch64") {
+                cppCompiler.executable = "/usr/bin/gcc"
+            }
+        }
+    }
     repositories {
         libs(PrebuiltLibraries) {
             googleTest {
@@ -42,12 +56,7 @@ model {
             tbb {
                headers.srcDir "${tbbHeaderDir}"
                binaries.withType(SharedLibraryBinary) {
-                   if (targetPlatform.operatingSystem.linux) {
-                       sharedLibraryFile = file("${tbbDir}/linux-x86_64/libtbb.so.2")
-                   }
-                   if (targetPlatform.operatingSystem.macOsX) {
-                       sharedLibraryFile = file("${tbbDir}/osx-x86_64/libtbb.dylib")
-                   }
+                   sharedLibraryFile = file(tbbSharedLib(tbbLibDir(targetPlatform)))
                }
             }
         }
@@ -88,13 +97,12 @@ model {
         nativeTimedExpirationMapSharedLibrary {
             lib library: "tbb", linkage: "shared"
 
+            ext.tbbLibraryDir = tbbLibDir(targetPlatform)
             if (targetPlatform.operatingSystem.linux) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeTimedExpirationMap.so"
-                ext.tbbLibraryDir = "${tbbDir}/linux-x86_64"
             }
             if (targetPlatform.operatingSystem.macOsX) {
                 sharedLibraryFile = "${nativeLibraryDir}/libnativeTimedExpirationMap.dylib"
-                ext.tbbLibraryDir = "${tbbDir}/osx-x86_64"
             }
         }
         withType(GoogleTestTestSuiteBinarySpec) {
