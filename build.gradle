@@ -15,6 +15,7 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import static org.apache.tools.ant.taskdefs.condition.Os.*
 
 project.ext {
     midonetVersion = "5.8-SNAPSHOT"
@@ -248,6 +249,12 @@ allprojects {
         nativeLibraryDir = "$buildDir/nativelibs"
         tbbDir = "${rootDir}/tools/tbb-2017_U6"
         tbbHeaderDir = "${tbbDir}/include"
+        tbbLibraryDir = "${tbbDir}/linux-x86_64"
+        if ("${OS_NAME}".toLowerCase().contains("osx")) {
+            tbbLibraryDir = "${tbbDir}/osx-x86_64"
+        } else if ("${OS_ARCH}".toLowerCase().contains("aarch64")) {
+            tbbLibraryDir = "${tbbDir}/aarch64-linux-gnu"
+        }
         gtestDir = "${rootDir}/tools/google-test-${versions.google_test}"
         gtestHeaderDir = "${gtestDir}/include"
     }
@@ -473,9 +480,11 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         coverageFormats = ['html', 'xml']
     }
 
-    protobuf {
-        protoc {
-            artifact = "com.google.protobuf:protoc:${versions.protobuf}"
+    if (!"${OS_ARCH}".toLowerCase().contains("aarch64")) {
+        protobuf {
+            protoc {
+               artifact = "com.google.protobuf:protoc:${versions.protobuf}"
+            }
         }
     }
 }
@@ -608,6 +617,25 @@ def getGitSHA() {
     } catch (e) {
         return "git"
     }
+}
+
+def tbbLibDir(targetPlatform) {
+     String tbbLibraryDir = "${tbbDir}/linux-x86_64"
+     if (targetPlatform.operatingSystem.macOsX) {
+         tbbLibraryDir = "${tbbDir}/osx-x86_64"
+     } else if (targetPlatform.getName() == "linux_aarch64") {
+         tbbLibraryDir = "${tbbDir}/aarch64-linux-gnu"
+     }
+     return tbbLibraryDir
+}
+
+def tbbSharedLib(targetPlatform) {
+    String tbbLibDir = tbbLibDir(targetPlatform)
+    String tbbSharedLib = tbbLibDir + "/libtbb.so.2"
+    if (tbbLibDir.contains("osx")) {
+        tbbSharedLib = tbbLibDir + "/libtbb.dylib"
+    }
+    return tbbSharedLib
 }
 
 task wrapper(type: Wrapper) {

@@ -2,7 +2,7 @@ TBB is a concurrency library for C++
 
 The complete sources can be downloaded at https://github.com/01org/tbb.
 
-For midonet, we have taken the source from release 2017_U6, compiled a
+For midonet x86_64, we have taken the source from release 2017_U6, compiled a
 shared library and included the includes and the shared library in our
 source tree.
 
@@ -31,5 +31,9 @@ $ make clean tbb
 ...
 $ cp build/macos_intel64_clang_cc6.1.0_os10.10.3_release/libtbb.dylib $MIDONET_SRC/tools/tbb-2017_U6/osx-x86_64
 ```
+
+For midonet ARMv8, we have extracted libtbb.so library from
+version 4.4~20151115 of libtbb-dev package:
+https://blueprints.launchpad.net/ubuntu/xenial/arm64/libtbb-dev/4.4~20151115-0ubuntu3
 
 TBB is licensed under the Apache License, version 2.
