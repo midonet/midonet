@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dc02a20d_ea060fe5",
+        "filename": "build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-02-22T18:18:10Z",
+      "side": 1,
+      "message": "better remove tbbLibraryDir definition from here and just define them on the build.gradle of native components (unless it is needed for other reasons)",
+      "range": {
+        "startLine": 252,
+        "startChar": 0,
+        "endLine": 258,
+        "endChar": 9
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "65679859_a040a098",
+        "filename": "build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 634,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-02-22T18:18:10Z",
+      "side": 1,
+      "message": "Use else-if or switch-default is possible",
+      "range": {
+        "startLine": 624,
+        "startChar": 0,
+        "endLine": 634,
+        "endChar": 6
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fbd4d9d6_2b469958",
+        "filename": "build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 638,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-02-22T18:18:10Z",
+      "side": 1,
+      "message": "I would pass targetPlatform as argument here too instead of tbbLibDir and reuse the previous function.",
+      "range": {
+        "startLine": 638,
+        "startChar": 17,
+        "endLine": 638,
+        "endChar": 26
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89bcdce3_6c417627",
+        "filename": "build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 645,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-02-22T18:18:10Z",
+      "side": 1,
+      "message": "Use else-if or switch-default is possible",
+      "range": {
+        "startLine": 639,
+        "startChar": 0,
+        "endLine": 645,
+        "endChar": 5
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bd8c8ab_7c87575c",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-02-22T18:18:10Z",
+      "side": 1,
+      "message": "is defining just this one acceptable for the x86 case?",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 9
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "748c4ac6_1ae5ce76",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-02-22T18:18:10Z",
+      "side": 1,
+      "message": "pass just targetPlatform",
+      "range": {
+        "startLine": 64,
+        "startChar": 44,
+        "endLine": 64,
+        "endChar": 75
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c3307166_0733599d",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-02-22T18:18:10Z",
+      "side": 1,
+      "message": "remove printf?",
+      "range": {
+        "startLine": 440,
+        "startChar": 4,
+        "endLine": 440,
+        "endChar": 47
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eba37fc9_2bd742c0",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-02-22T18:18:10Z",
+      "side": 1,
+      "message": "include also files with other extensions? maybe not needed as we don\u0027t package OSX binaries I guess (just Linux *.so)",
+      "range": {
+        "startLine": 441,
+        "startChar": 0,
+        "endLine": 444,
+        "endChar": 5
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa55fb4c_1cf302a0",
+        "filename": "midonet-util/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-02-22T18:18:10Z",
+      "side": 1,
+      "message": "pass just targetPlatform",
+      "range": {
+        "startLine": 59,
+        "startChar": 57,
+        "endLine": 59,
+        "endChar": 82
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
