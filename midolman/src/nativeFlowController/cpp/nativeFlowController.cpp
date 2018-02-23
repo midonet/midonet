@@ -39,6 +39,8 @@ jbyteArray str2jba(JNIEnv *env, std::string str) {
 jlong
 Java_org_midonet_midolman_flows_NativeFlowControllerJNI_createFlowTable
 (JNIEnv *env, jclass, jint maxFlows) {
+  assert(maxFlows <= MAX_TABLE_SIZE);
+  assert((maxFlows & (maxFlows - 1)) == 0);  // Should be a power of two
   return reinterpret_cast<jlong>(new FlowTable(maxFlows));
 }
 
@@ -254,31 +256,8 @@ void Flow::add_callback(CallbackSpec spec) {
   m_callbacks.push_back(spec);
 }
 
-int leading_zeros(int input) {
-  int leading_zeros = 0;
-  int int_width = sizeof(int)*8;
-  for (int i = int_width - 1; i >= 0; i--) {
-    if (((input >> i) & 0x1) == 0x1) {
-      break;
-    } else {
-      leading_zeros++;
-    }
-  }
-  return leading_zeros;
-}
-
-int next_pos_power_of_two(int input) {
-  int int_width = sizeof(int)*8;
-  if (input > (1 << (int_width - 2))) {
-    return (1 << (int_width - 2));
-  } else if (input < 0) {
-    return 1;
-  }
-  return 1 << (int_width - leading_zeros(input - 1));
-}
-
 FlowTable::FlowTable(int max_flows)
-  : m_max_flows(std::min(next_pos_power_of_two(max_flows), MAX_TABLE_SIZE)),
+  : m_max_flows(max_flows),
     m_mask(m_max_flows - 1),
     m_table(m_max_flows), m_id_counter(0), m_occupied(0) {}
 

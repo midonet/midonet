@@ -19,24 +19,6 @@
 
 using namespace testing;
 
-TEST(Utils, test_leading_zeros) {
-  ASSERT_EQ(sizeof(int), 4);
-  ASSERT_EQ(leading_zeros(-2147483648), 0);
-  ASSERT_EQ(leading_zeros(0), 32);
-  ASSERT_EQ(leading_zeros(1073741824), 1);
-  ASSERT_EQ(leading_zeros(297376), 13);
-}
-
-TEST(Utils, next_pos_power_of_two) {
-  ASSERT_EQ(sizeof(int), 4);
-  ASSERT_EQ(next_pos_power_of_two(-2147483648), 1);
-  ASSERT_EQ(next_pos_power_of_two(-1), 1);
-  ASSERT_EQ(next_pos_power_of_two(0), 1);
-  ASSERT_EQ(next_pos_power_of_two(1 << 15), 1 << 15);
-  ASSERT_EQ(next_pos_power_of_two(1073741824), 1073741824);
-  ASSERT_EQ(next_pos_power_of_two(std::numeric_limits<int>::max()), 1073741824);
-}
-
 TEST(FlowTable, test_put_and_get) {
   FlowTable table(4);
   std::string match1("match1");
