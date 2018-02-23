@@ -29,7 +29,7 @@ const FlowId NULL_ID = -839193346820535158;
 // See FlowController.scala
 const int INDEX_SHIFT = 28;
 const int INDEX_MASK = (1 << INDEX_SHIFT) - 1;
-const int MAX_TABLE_SIZE = INDEX_MASK;
+const int MAX_TABLE_SIZE = INDEX_MASK + 1;
 
 class CallbackSpec {
 public:
@@ -107,9 +107,5 @@ private:
   std::unordered_map<FlowTag, FlowIdList> m_tags_to_flows;
   std::unordered_map<FlowId, std::vector<FlowIdReference>> m_flows_to_tags;
 };
-
-int leading_zeros(int input);
-int next_pos_power_of_two(int input);
-
 
 #endif // _NATIVE_FLOW_CONTROLLER_H_

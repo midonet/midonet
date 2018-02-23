@@ -59,7 +59,7 @@ class NativeFlowController(config: MidolmanConfig,
     private val numWorkers = PacketWorkersService.numWorkers(config)
     private val maxFlows = Math.min(Util.findNextPositivePowerOfTwo(
                                         config.datapath.maxFlowCount / numWorkers),
-                                    FlowController.IndexMask)
+                                    FlowController.MaxTableSize)
     private val flowTable = JNI.createFlowTable(maxFlows)
     private val indexer = JNI.createFlowTagIndexer()
     private val expirer = JNI.createFlowExpirationIndexer()
