@@ -42,6 +42,7 @@ object FlowController {
     val NoTags = new ArrayList[FlowTag]()
     private[midolman] val IndexShift = 28 // Leave 4 bits for the work ID
     private[midolman] val IndexMask = (1 << IndexShift) - 1
+    private[midolman] val MaxTableSize = IndexMask + 1
 }
 
 trait FlowTablePreallocation {
@@ -116,7 +117,7 @@ class FlowTablePreallocationImpl(config: MidolmanConfig)
 
     val maxFlows = Math.min(
         ((config.datapath.maxFlowCount / numWorkers) * 1.2).toInt,
-        (1 << IndexShift) - 1)
+        MaxTableSize)
 
     override def allocateAndTenure() {
         var i = 0
