@@ -390,7 +390,7 @@ class NativeFlowControllerTest extends MidolmanSpec with MockitoSugar {
             val maxFlows = Math.min(
                 Util.findNextPositivePowerOfTwo(
                     config.datapath.maxFlowCount / numWorkers),
-                FlowController.IndexMask)
+                FlowController.MaxTableSize)
             val managedFlow1 =  flowController.addFlow(
                 FlowMatches.generateFlowMatch(random),
                 Lists.newArrayList(tag1),
