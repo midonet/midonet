@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21ca69aa_fec7c993",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 9
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-02-27T22:56:54Z",
+      "side": 1,
+      "message": "try trim message line to 72 chars\n\nhttps://github.com/midonet/midonet/wiki/Developer%27s-Guide#message",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 52
+      },
+      "revId": "c97d5a46ffddee4e330d94e3e70620b3574aefec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
