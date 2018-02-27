@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8267e876_9c4e3316",
+        "filename": "build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-27T10:30:51Z",
+      "side": 1,
+      "message": "It is needed for other reasons, it is used by \"non-native\" task :midolman:preparePkg to copy platform specific libraries to midolman package. A clean solution would be make :midolman:preparePkg \"native copy\". I spent one day trying to figure out a way to achieve this without success. I think we could create our own \"native copy\" task, but leave this as a future improvement.",
+      "parentUuid": "dc02a20d_ea060fe5",
+      "range": {
+        "startLine": 252,
+        "startChar": 0,
+        "endLine": 258,
+        "endChar": 9
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "65679859_a040a098",
         "filename": "build.gradle",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2018-02-22T18:18:10Z",
       "side": 1,
       "message": "Use else-if or switch-default is possible",
+      "range": {
+        "startLine": 624,
+        "startChar": 0,
+        "endLine": 634,
+        "endChar": 6
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d86683ba_5839e728",
+        "filename": "build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 634,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-27T10:30:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "65679859_a040a098",
       "range": {
         "startLine": 624,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a146119_ee213d44",
+        "filename": "build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 638,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-27T10:30:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fbd4d9d6_2b469958",
+      "range": {
+        "startLine": 638,
+        "startChar": 17,
+        "endLine": 638,
+        "endChar": 26
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "89bcdce3_6c417627",
         "filename": "build.gradle",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2018-02-22T18:18:10Z",
       "side": 1,
       "message": "Use else-if or switch-default is possible",
+      "range": {
+        "startLine": 639,
+        "startChar": 0,
+        "endLine": 645,
+        "endChar": 5
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ccc85d85_4dd0141c",
+        "filename": "build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 645,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-27T10:30:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "89bcdce3_6c417627",
       "range": {
         "startLine": 639,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "681f55a8_d2e1f265",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-27T10:30:51Z",
+      "side": 1,
+      "message": "Seems that yes",
+      "parentUuid": "1bd8c8ab_7c87575c",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 9
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "748c4ac6_1ae5ce76",
         "filename": "midolman/build.gradle",
         "patchSetId": 7
@@ -128,6 +248,30 @@
       "writtenOn": "2018-02-22T18:18:10Z",
       "side": 1,
       "message": "pass just targetPlatform",
+      "range": {
+        "startLine": 64,
+        "startChar": 44,
+        "endLine": 64,
+        "endChar": 75
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56f5c3bd_8927b8d5",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-27T10:30:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "748c4ac6_1ae5ce76",
       "range": {
         "startLine": 64,
         "startChar": 44,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "dabb86fc_8cf4db01",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-27T10:30:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3307166_0733599d",
+      "range": {
+        "startLine": 440,
+        "startChar": 4,
+        "endLine": 440,
+        "endChar": 47
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eba37fc9_2bd742c0",
         "filename": "midolman/build.gradle",
         "patchSetId": 7
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "62fb8142_81e25f61",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-27T10:30:51Z",
+      "side": 1,
+      "message": "Midolman only works in linux (for now) :)",
+      "parentUuid": "eba37fc9_2bd742c0",
+      "range": {
+        "startLine": 441,
+        "startChar": 0,
+        "endLine": 444,
+        "endChar": 5
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa55fb4c_1cf302a0",
         "filename": "midonet-util/build.gradle",
         "patchSetId": 7
@@ -197,6 +389,30 @@
       "writtenOn": "2018-02-22T18:18:10Z",
       "side": 1,
       "message": "pass just targetPlatform",
+      "range": {
+        "startLine": 59,
+        "startChar": 57,
+        "endLine": 59,
+        "endChar": 82
+      },
+      "revId": "0b72ecb41b6ed4643fe5cee2c57892f24a168ff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f001a65_b592b320",
+        "filename": "midonet-util/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-02-27T10:30:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa55fb4c_1cf302a0",
       "range": {
         "startLine": 59,
         "startChar": 57,
