@@ -112,7 +112,7 @@ project.ext {
         jetty_websocket: ["org.eclipse.jetty.websocket:websocket-server:${versions.jetty}",
                           "org.eclipse.jetty.websocket:websocket-client:${versions.jetty}"],
         jminix: "org.jminix:jminix:1.1.0",
-        jna: ["net.java.dev.jna:jna:4.2.2", "net.java.dev.jna:jna-platform:4.2.2"],
+        jna: ["net.java.dev.jna:jna:4.5.1", "net.java.dev.jna:jna-platform:4.5.1"],
         jsch: 'com.jcraft:jsch:0.1.45',
         jsonpath: "com.jayway.jsonpath:json-path:${versions.jsonpath}",
         jsonpath_assert: "com.jayway.jsonpath:json-path-assert:${versions.jsonpath}",
