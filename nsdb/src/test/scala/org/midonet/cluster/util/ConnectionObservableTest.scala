@@ -76,7 +76,7 @@ class ConnectionObservableTest extends FlatSpec with CuratorTestFramework
 
     "Connection observable" should "detect connection changes" in {
         Given("A connection observable")
-        val observable = ConnectionObservable.create(curator)
+        val observable = ConnectionObservable.create(curator).distinctUntilChanged
 
         And("An observer subscribed to the observable")
         val obs1 = new TestObserver[ConnectionState]

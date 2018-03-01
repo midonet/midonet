@@ -79,6 +79,15 @@ class OnSubscribeToConnection(curator: CuratorFramework)
             return
         }
         if (state.compareAndSet(State.Stopped, State.Started)) {
+            // This one seems to be racy: once the client moves to connected
+            // state the "state changed" event is pushed into eventQueue of connection
+            // state manager. The events in this queue are processed on different
+            // thread. If the client has just been connected to server
+            // (zkClient.isConnected is true),
+            // the state change event might not be processed yet
+            // and it can be processed after subject.subscribe() call. This result
+            // the subsriber receives CONNECTED event twice. Does not seem to be
+            // very harmful though
             curator.getConnectionStateListenable.addListener(connectionListener)
             subject.onNext(if (curator.getZookeeperClient.isConnected)
                 ConnectionState.CONNECTED else ConnectionState.LOST)
