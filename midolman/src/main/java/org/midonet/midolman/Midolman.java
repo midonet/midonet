@@ -80,10 +80,10 @@ public class Midolman {
 
     public static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
     public static final int MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP = 2;
-    public static final int MIDOLMAN_ERROR_CODE_UNHANDLED_EXCEPTION = 6001;
-    public static final int MIDOLMAN_ERROR_CODE_PACKET_WORKER_DIED = 6002;
-    public static final int MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED = 6003;
-    public static final int MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED = 6004;
+    public static final int MIDOLMAN_ERROR_CODE_UNHANDLED_EXCEPTION = 113;
+    public static final int MIDOLMAN_ERROR_CODE_PACKET_WORKER_DIED = 114;
+    public static final int MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED = 115;
+    public static final int MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED = 116;
 
     private static final long MIDOLMAN_EXIT_TIMEOUT_MILLIS = 30000;
     private static final int MINION_PROCESS_MAXIMUM_STARTS = 3;
