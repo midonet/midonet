@@ -294,15 +294,22 @@ private final class PerThreadICMPErrorContext {
         flowMatch.clear()
         val buffer = ByteBuffer.wrap(icmpData)
         origIpHeader.deserialize(buffer)
-        val origTransportHeader =
-            origIpHeader.getPayload.asInstanceOf[Transport]
         srcIpAddr.setAddr(origIpHeader.getSourceAddress)
         dstIpAddr.setAddr(origIpHeader.getDestinationAddress)
-        flowMatch.setNetworkSrc(srcIpAddr)
+        flowMatch
+            .setNetworkSrc(srcIpAddr)
             .setNetworkDst(dstIpAddr)
             .setNetworkProto(origIpHeader.getProtocol)
-            .setSrcPort(origTransportHeader.getSourcePort)
-            .setDstPort(origTransportHeader.getDestinationPort)
+        origIpHeader.getPayload match {
+            case transportHeader: Transport =>
+                flowMatch
+                    .setSrcPort(transportHeader.getSourcePort)
+                    .setDstPort(transportHeader.getDestinationPort)
+            case icmpHeader: ICMP =>
+                flowMatch
+                    .setIcmpIdentifier(icmpHeader.getIdentifier)
+            case _ =>
+        }
     }
 }
 
