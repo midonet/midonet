@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73bad6c1_b61d29ae",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-03-07T08:49:45Z",
+      "side": 1,
+      "message": "How can I find this in JIRA?",
+      "range": {
+        "startLine": 15,
+        "startChar": 5,
+        "endLine": 15,
+        "endChar": 13
+      },
+      "revId": "5b451303d0d820632a2a81889f164169b11abf78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
