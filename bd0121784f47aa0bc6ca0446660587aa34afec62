@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d54bb1b_6451dee3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/NativeFlowController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-03-07T08:36:53Z",
+      "side": 1,
+      "message": "What is this?",
+      "range": {
+        "startLine": 268,
+        "startChar": 16,
+        "endLine": 268,
+        "endChar": 19
+      },
+      "revId": "bd0121784f47aa0bc6ca0446660587aa34afec62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
