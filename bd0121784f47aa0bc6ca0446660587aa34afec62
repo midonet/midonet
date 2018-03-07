@@ -46,6 +46,30 @@
       "revId": "bd0121784f47aa0bc6ca0446660587aa34afec62",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "161cafd2_a411252f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/NativeFlowController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-03-07T20:15:42Z",
+      "side": 1,
+      "message": "Ah, now I see last \"+\" operator!",
+      "parentUuid": "67235ef2_c568239c",
+      "range": {
+        "startLine": 268,
+        "startChar": 16,
+        "endLine": 268,
+        "endChar": 19
+      },
+      "revId": "bd0121784f47aa0bc6ca0446660587aa34afec62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
