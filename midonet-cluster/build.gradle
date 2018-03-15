@@ -299,3 +299,39 @@ task runTopologySnoopy(type: JavaExec) {
         args = ["conf/topology-client.conf"]
     }
 }
+
+// Split tests to three groups, so they all runs fine
+// The complete :test job tends to fail by unknown reason
+task test1(type: Test) {
+    exclude 'org/midonet/cluster/rest_api/**'
+    exclude 'org/midonet/southbound/**'
+    exclude 'org/midonet/cluster/services/rest_api/**'
+
+    exclude 'org/midonet/cluster/data/**'
+    exclude 'org/midonet/cluster/services/recycler/**'
+    exclude 'org/midonet/cluster/services/vxgw/**'
+    maxParallelForks = Runtime.runtime.availableProcessors()
+    forkEvery = 10
+    testLogging.events "started", "passed", "skipped", "failed"
+    reports.junitXml.enabled = true
+}
+
+task test2(type: Test) {
+    include 'org/midonet/cluster/rest_api/**'
+    include 'org/midonet/southbound/**'
+    include 'org/midonet/cluster/services/rest_api/**'
+    maxParallelForks = Runtime.runtime.availableProcessors()
+    forkEvery = 10
+    testLogging.events "started", "passed", "skipped", "failed"
+    reports.junitXml.enabled = true
+}
+
+task test3(type: Test) {
+    include 'org/midonet/cluster/data/**'
+    include 'org/midonet/cluster/services/recycler/**'
+    include 'org/midonet/cluster/services/vxgw/**'
+    maxParallelForks = Runtime.runtime.availableProcessors()
+    forkEvery = 10
+    testLogging.events "started", "passed", "skipped", "failed"
+    reports.junitXml.enabled = true
+}
