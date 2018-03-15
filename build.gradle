@@ -319,7 +319,7 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         if (project.hasProperty('maxTestForks')) {
             maxParallelForks = Integer.parseInt(project.maxTestForks)
         } else {
-            maxParallelForks = 4
+            maxParallelForks = Runtime.runtime.availableProcessors()
         }
 
         forkEvery = 10
