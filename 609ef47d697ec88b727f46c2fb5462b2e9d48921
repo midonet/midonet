@@ -272,6 +272,29 @@
     },
     {
       "key": {
+        "uuid": "6f4cd394_d60a646b",
+        "filename": "nsdb/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-03-20T09:33:31Z",
+      "side": 1,
+      "message": "In theory, protobuf plugin does this",
+      "range": {
+        "startLine": 29,
+        "startChar": 26,
+        "endLine": 29,
+        "endChar": 74
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0a6e5458_cd34ff7d",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 1
