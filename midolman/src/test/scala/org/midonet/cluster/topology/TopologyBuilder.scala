@@ -23,6 +23,7 @@ import scala.util.Random
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, LBStatus, LogEvent}
+import org.midonet.cluster.models.Neutron.HostPortBinding
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.{IkeVersion, Phase1NegotiationMode}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
@@ -186,6 +187,22 @@ trait TopologyBuilder {
             .setContainerWeight(containerWeight)
             .setContainerLimit(containerLimit)
             .setEnforceContainerLimit(enforceContainerLimit)
+            .build()
+    }
+
+    def createHostPortBinding(hostId: UUID,
+                              portId: UUID,
+                              interfaceName: String): HostPortBinding = {
+        createHostPortBinding(UUIDUtil.fromProto(UUIDUtil.mix(UUIDUtil.toProto(hostId),
+                                                 UUIDUtil.toProto(portId))),
+                              interfaceName)
+    }
+
+    def createHostPortBinding(hostPortBindingId: UUID,
+                              interfaceName: String): HostPortBinding = {
+        HostPortBinding.newBuilder
+            .setId(UUIDUtil.toProto(hostPortBindingId))
+            .setInterfaceName(interfaceName)
             .build()
     }
 
