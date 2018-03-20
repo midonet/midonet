@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2b32546d_968b14b9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "I started to verify the reproducibility of the bug in v5.2 since it was reported there, so I made the changes for it. But I am preparing a version in master (consider this a draft)",
+      "parentUuid": "1c23c13f_fc06a413",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 60
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7dabbea5_5ad4db6a",
         "filename": "midolman/build.gradle",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2018-03-20T08:56:12Z",
       "side": 1,
       "message": "related?",
+      "range": {
+        "startLine": 90,
+        "startChar": 16,
+        "endLine": 90,
+        "endChar": 54
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d3f568ea_1881ee1a",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "No, I will put in a separate commit.",
+      "parentUuid": "7dabbea5_5ad4db6a",
       "range": {
         "startLine": 90,
         "startChar": 16,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "f9323cc2_d743458a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/HostPortBinding.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "True",
+      "parentUuid": "43d22f3d_70403eb0",
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3bb839cb_771e9aba",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 1
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "bdf855d7_b4fb154e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "true",
+      "parentUuid": "3bb839cb_771e9aba",
+      "range": {
+        "startLine": 190,
+        "startChar": 46,
+        "endLine": 191,
+        "endChar": 59
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4036873c_4237bc3f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 1
@@ -99,6 +189,30 @@
       "writtenOn": "2018-03-20T08:56:12Z",
       "side": 1,
       "message": "remove",
+      "range": {
+        "startLine": 203,
+        "startChar": 8,
+        "endLine": 203,
+        "endChar": 34
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "06ebf56b_75b3acc3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "4036873c_4237bc3f",
       "range": {
         "startLine": 203,
         "startChar": 8,
@@ -180,6 +294,30 @@
     },
     {
       "key": {
+        "uuid": "c56ce090_3fcc85d4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "Yes, these were just a help during debugging. I will remove since they are just cluttering the code.",
+      "parentUuid": "eb4a2c4e_9546995f",
+      "range": {
+        "startLine": 220,
+        "startChar": 19,
+        "endLine": 220,
+        "endChar": 67
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "001af3a3_f538d633",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 1
@@ -191,6 +329,30 @@
       "writtenOn": "2018-03-20T08:56:12Z",
       "side": 1,
       "message": "here I would expect to listen to port bindings only for this particular host, receiving notifications for all bindings is not very scalable",
+      "range": {
+        "startLine": 298,
+        "startChar": 6,
+        "endLine": 298,
+        "endChar": 61
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a2e304a_93d1d44a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "Yes, that was my first approach, but it seems that you cannot listen to an object unless it is already created. So I understand that listen to all the class level events is not very scalable, but on the other hand the alternative seems to be either a) assure the objects will be created jointly with the port b) polling the database from time to time and each time a port is added to a host c) just using another method (like putting the info directly in the port topology data)",
+      "parentUuid": "001af3a3_f538d633",
       "range": {
         "startLine": 298,
         "startChar": 6,
@@ -226,6 +388,30 @@
     },
     {
       "key": {
+        "uuid": "77b8dfcb_77aea487",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostPortBindingMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "588c8b77_4ff05fa4",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 37
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f8c9f9c7_91be4f7d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostPortBindingMapper.scala",
         "patchSetId": 1
@@ -237,6 +423,30 @@
       "writtenOn": "2018-03-20T08:56:12Z",
       "side": 1,
       "message": "scaladoc \u0026 unit test",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 27
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b13a994d_4a3ad0ac",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostPortBindingMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "true",
+      "parentUuid": "f8c9f9c7_91be4f7d",
       "range": {
         "startLine": 12,
         "startChar": 6,
@@ -272,6 +482,30 @@
     },
     {
       "key": {
+        "uuid": "ed4ca835_44e45fef",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "31b69d8f_66aaaaa3",
+      "range": {
+        "startLine": 67,
+        "startChar": 5,
+        "endLine": 67,
+        "endChar": 107
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6f4cd394_d60a646b",
         "filename": "nsdb/build.gradle",
         "patchSetId": 1
@@ -283,6 +517,30 @@
       "writtenOn": "2018-03-20T09:33:31Z",
       "side": 1,
       "message": "In theory, protobuf plugin does this",
+      "range": {
+        "startLine": 29,
+        "startChar": 26,
+        "endLine": 29,
+        "endChar": 74
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7b104a17_98e5eef5",
+        "filename": "nsdb/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "yes, probably this is just because of v5.2 is outdated or my IDE version",
+      "parentUuid": "6f4cd394_d60a646b",
       "range": {
         "startLine": 29,
         "startChar": 26,
@@ -318,6 +576,30 @@
     },
     {
       "key": {
+        "uuid": "d8b07641_3fac8a02",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "It has to be an UUID to be accepted by ZOOM, so it can be the mix or either the host or the port ID. I thought that maybe it was easier to manage the mix, so you can subscribe to specific object. If you make the ID to be the host, you need to store in it the iface mapping of all the ports of the host and get the list of all the ports even if only one changes. If you make the ID to be the port, you need to store in it the iface mapping of all the hosts of the port. But it is true that maybe is too confusing and maybe the option of using the host ID is better, and keeping a map inside of port-\u003eiface. In fact I tried it, but creating a custom ZOOM MapConverter was tricky. Maybe I need to give another try.",
+      "parentUuid": "0a6e5458_cd34ff7d",
+      "range": {
+        "startLine": 256,
+        "startChar": 4,
+        "endLine": 256,
+        "endChar": 25
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6c67a03b_8735d1ee",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
         "patchSetId": 1
@@ -329,6 +611,30 @@
       "writtenOn": "2018-03-20T08:56:12Z",
       "side": 1,
       "message": "this name is confusing, perhaps xor is better",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 11
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "88e43aee_cb3f9eb3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-20T11:58:20Z",
+      "side": 1,
+      "message": "I named it because is not a pure XOR (if I remember well the operation is not commutative like XOR is because some fields are kept on first one)",
+      "parentUuid": "6c67a03b_8735d1ee",
       "range": {
         "startLine": 117,
         "startChar": 8,
