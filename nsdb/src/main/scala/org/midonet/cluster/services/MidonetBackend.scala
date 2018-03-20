@@ -88,6 +88,7 @@ object MidonetBackend {
              classOf[HealthMonitor],
              classOf[Host],
              classOf[HostGroup],
+             classOf[HostPortBinding],
              classOf[IPAddrGroup],
              classOf[IPSecSiteConnection],
              classOf[L2GatewayConnection],
