@@ -1,0 +1,320 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c23c13f_fc06a413",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "why 5.2? that seems obsolete at this point? I would expect this to go first to master",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 60
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7dabbea5_5ad4db6a",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "related?",
+      "range": {
+        "startLine": 90,
+        "startChar": 16,
+        "endLine": 90,
+        "endChar": 54
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43d22f3d_70403eb0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/HostPortBinding.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "opyright",
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3bb839cb_771e9aba",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "wip?",
+      "range": {
+        "startLine": 190,
+        "startChar": 46,
+        "endLine": 191,
+        "endChar": 59
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4036873c_4237bc3f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 203,
+        "startChar": 8,
+        "endLine": 203,
+        "endChar": 34
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7b62750f_5f5904a9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "log message not very informative",
+      "range": {
+        "startLine": 214,
+        "startChar": 16,
+        "endLine": 214,
+        "endChar": 70
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5fafd07b_b1052a91",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 217,
+        "startChar": 20,
+        "endLine": 217,
+        "endChar": 88
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb4a2c4e_9546995f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 220,
+        "startChar": 19,
+        "endLine": 220,
+        "endChar": 67
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "001af3a3_f538d633",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "here I would expect to listen to port bindings only for this particular host, receiving notifications for all bindings is not very scalable",
+      "range": {
+        "startLine": 298,
+        "startChar": 6,
+        "endLine": 298,
+        "endChar": 61
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "588c8b77_4ff05fa4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostPortBindingMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "copyright",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 37
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f8c9f9c7_91be4f7d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostPortBindingMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "scaladoc \u0026 unit test",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 27
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "31b69d8f_66aaaaa3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 67,
+        "startChar": 5,
+        "endLine": 67,
+        "endChar": 107
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0a6e5458_cd34ff7d",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "why make this a mix of hostId xor portId? isn\u0027t it simpler to store both?",
+      "range": {
+        "startLine": 256,
+        "startChar": 4,
+        "endLine": 256,
+        "endChar": 25
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6c67a03b_8735d1ee",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-20T08:56:12Z",
+      "side": 1,
+      "message": "this name is confusing, perhaps xor is better",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 11
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
