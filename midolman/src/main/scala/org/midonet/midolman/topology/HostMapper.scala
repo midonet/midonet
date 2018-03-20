@@ -23,17 +23,20 @@ import scala.collection.mutable
 
 import com.google.common.annotations.VisibleForTesting
 
-import rx.Observable
+import rx.{Observable, Observer}
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.storage.StateKey
 import org.midonet.cluster.models.Topology.{Host => TopologyHost}
+import org.midonet.cluster.models.Neutron.{HostPortBinding => TopologyHostPortBinding}
 import org.midonet.cluster.services.MidonetBackend.AliveKey
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Port
+import org.midonet.midolman.simulation.HostPortBinding
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.midolman.topology.devices.{PortBinding, TunnelZone, Host => SimulationHost}
-import org.midonet.util.functors.{makeAction0, makeFunc1}
+import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
 /**
  * A class that implements the [[DeviceMapper]] for a [[SimulationHost]].
@@ -54,11 +57,17 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     private val portsSubject = PublishSubject.create[Observable[Port]]()
     private val ports = mutable.Map[UUID, PortState]()
 
+    private val hostPortBindingsSubject = PublishSubject.create[Observable[HostPortBinding]]()
+    private val hostPortBindings = mutable.Map[UUID, HostPortBindingState]()
+
     /** Stores the state for a tunnel zone. */
     type TunnelZoneState = DeviceState[TunnelZone]
 
     /** Stores the state for a port. */
     type PortState = DeviceState[Port]
+
+    /** Stores the state for a host port binding (the interface name) */
+    type HostPortBindingState = DeviceState[HostPortBinding]
 
     /**
      * @return True iff the HostMapper is observing updates to the given tunnel
@@ -95,6 +104,8 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                     host.getTunnelZoneIdsList.asScala.map(_.asJava).toSet
                 val portIds =
                     host.getPortIdsList.asScala.map(_.asJava).toSet
+                val hostPortIds =
+                    host.getPortIdsList.asScala.map(UUIDUtil.mix(host.getId,_).asJava).toSet
                 log.debug("Host updated with tunnel zones: {} bound ports: {}",
                           tunnelZoneIds, portIds)
 
@@ -124,7 +135,19 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                         ports -= id
                         Observable.just[Port](null)
                     })
-
+                updateTopologyDeviceState(
+                    classOf[HostPortBinding],
+                    hostPortIds, hostPortBindings, hostPortBindingsSubject,
+                    (id: UUID) => {
+                        log.debug("Host port binding {} deleted", id)
+                        hostPortBindings -= id
+                    },
+                    (id: UUID, e: Throwable) => {
+                        log.error("Host port binding {} error and is discarded by this host",
+                                  id, e)
+                        hostPortBindings -= id
+                        Observable.just[HostPortBinding](null)
+                    })
                 currentHost = host
             case a: Boolean =>
                 log.debug("Host alive changed: {}", Boolean.box(a))
@@ -133,15 +156,69 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                 log.debug("Host tunnel zone updated: {}", tunnelZone.id)
             case port: Port if ports.contains(port.id) =>
                 log.debug("Host bound port updated: {}", port)
+            case hostPortBinding: TopologyHostPortBinding =>
+                val hostPortBindingId = hostPortBinding.getId.asJava
+                if(currentHost != null) {
+                    val hostPortBindingIds =
+                        currentHost.getPortIdsList.asScala
+                            .map(UUIDUtil.mix(currentHost.getId, _).asJava)
+                            .toSet
+                    if (hostPortBindingIds.contains(hostPortBindingId)) {
+                        updateTopologyDeviceState(
+                            classOf[HostPortBinding],
+                            hostPortBindingIds, hostPortBindings,
+                            hostPortBindingsSubject,
+                            (id: UUID) => {
+                                log.debug("Host port binding {} deleted", id)
+                                hostPortBindings -= id
+                            },
+                            (id: UUID, e: Throwable) => {
+                                log.error(
+                                    "Host port binding {} error and is discarded by this host",
+                                    id, e)
+                                hostPortBindings -= id
+                                Observable.just[HostPortBinding](null)
+                            })
+                    }
+                }
             case null => // Ignore null updates
             case _ => log.warn("Unexpected update: ignoring")
         }
 
         val ready = (currentHost ne null) && alive.isDefined &&
                     tunnelZones.forall(_._2.isReady) &&
-                    ports.forall(_._2.isReady)
+                    ports.forall(_._2.isReady) &&
+                    hostPortBindings.forall(_._2.isReady)
+
         log.debug("Host ready: {}", Boolean.box(ready))
         ready
+    }
+
+    private def hostPortBindingsUpdated(hostPortBinding: TopologyHostPortBinding) = {
+        val hostPortBindingId = hostPortBinding.getId.asJava
+        if(currentHost != null) {
+            val hostPortBindingIds =
+                currentHost.getPortIdsList.asScala
+                    .map(UUIDUtil.mix(currentHost.getId, _).asJava)
+                    .toSet
+            if (hostPortBindingIds.contains(hostPortBindingId)) {
+                updateTopologyDeviceState(
+                    classOf[HostPortBinding],
+                    hostPortBindingIds, hostPortBindings,
+                    hostPortBindingsSubject,
+                    (id: UUID) => {
+                        log.debug("Host port binding {} deleted", id)
+                        hostPortBindings -= id
+                    },
+                    (id: UUID, e: Throwable) => {
+                        log.error(
+                            "Host port binding {} error and is discarded by this host",
+                            id, e)
+                        hostPortBindings -= id
+                        Observable.just[HostPortBinding](null)
+                    })
+            }
+        }
     }
 
     /**
@@ -158,11 +235,33 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                 yield tunnelZoneId -> addr
 
         // Compute the port bindings for this host.
-        def portBindings = for ((id, state) <- ports)
-            yield id -> PortBinding(id,
-                                    state.device.previousHostId,
-                                    state.device.tunnelKey,
-                                    state.device.interfaceName)
+        val portBindings = for ((portId, state) <- ports)
+            yield {
+                val interfaceName = if(state.device.interfaceName != null && !state.device.interfaceName.equals("")) {
+                    state.device.interfaceName
+                } else {
+                    val hostPortId = UUIDUtil.mix(hostId, portId)
+                    if (hostPortBindings.contains(hostPortId)) {
+                        val someBinding = hostPortBindings.get(hostPortId)
+                        if(someBinding.isDefined) {
+                            if(someBinding.get.device != null) {
+                                someBinding.get.device.interfaceName
+                            } else {
+                                null
+                            }
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                }
+
+                portId -> PortBinding(portId,
+                                      state.device.previousHostId,
+                                      state.device.tunnelKey,
+                                      interfaceName)
+            }
 
         val host = SimulationHost(currentHost.getId.asJava,
                                   alive.get,
@@ -188,6 +287,10 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         portsSubject.onCompleted()
         ports.values.foreach(_.complete())
         ports.clear()
+        hostPortBindingsSubscription.unsubscribe()
+        hostPortBindingsSubject.onCompleted()
+        hostPortBindings.values.foreach(_.complete())
+        hostPortBindings.clear()
     }
 
     /**
@@ -214,12 +317,29 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
             .distinctUntilChanged
             .onErrorResumeNext(Observable.empty)
 
+    private val hostPortBindingsSubscription =
+        vt.store.observable(classOf[TopologyHostPortBinding])
+            .observeOn(vt.vtScheduler)
+            .flatMap(makeFunc1({x => x}))
+            .distinctUntilChanged().subscribe(new Observer[TopologyHostPortBinding] {
+                override def onError(e: Throwable): Unit = {}
+
+                override def onCompleted(): Unit = {}
+
+                override def onNext(t: TopologyHostPortBinding): Unit = {
+                    hostPortBindingsUpdated(t)
+                }
+            })
+
     protected override lazy val observable: Observable[SimulationHost] =
         Observable.merge[Any](Observable.merge(tunnelZonesSubject),
                               Observable.merge(portsSubject),
+                              Observable.merge(hostPortBindingsSubject),
                               aliveObservable,
                               hostObservable)
                   .filter(makeFunc1(isHostReady))
                   .map[SimulationHost](makeFunc1(deviceUpdated))
                   .distinctUntilChanged
+
+
 }

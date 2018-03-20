@@ -29,15 +29,17 @@ import rx.Observable
 
 import org.midonet.cluster.data.storage.{CreateOp, StateStorage, Storage}
 import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
+import org.midonet.cluster.models.Neutron.HostPortBinding
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.AliveKey
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.IPAddressUtil
+import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.{PortBinding, Host => SimHost}
+import org.midonet.midolman.simulation.{HostPortBinding => SimulationHostPortBinding}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPAddr
 import org.midonet.util.concurrent._
@@ -204,6 +206,7 @@ class HostMapperTest extends MidolmanSpec
     }
 
     feature("A host's port bindings should be handled") {
+
         scenario("The host has one port binding on creation") {
             Given("A host with one port binding")
             val (protoHost, _) = createHostAndTunnelZone()
@@ -221,14 +224,19 @@ class HostMapperTest extends MidolmanSpec
             And("Waiting for the host")
             hostObs.awaitOnNext(1, timeout) shouldBe true
 
+            val bindings = hostObs.getOnNextEvents.last.portBindings
+
+            val expectedBinding = PortBinding(port.getId.asJava,
+                                               null, 10, "eth0")
+
             Then("We obtain a simulation host with the port bound.")
             hostObs.getOnNextEvents.last.portBindings should
-                contain only port.getId.asJava -> PortBinding(port.getId.asJava,
-                                                              null, 10, "eth0")
+                contain only port.getId.asJava -> expectedBinding
 
             And("The host mapper is observing the port.")
             hostMapper.isObservingPort(port.getId) shouldBe true
         }
+
 
         scenario("An additional port is bound while mapper is watching host") {
             Given("A host with one port binding")
@@ -376,7 +384,115 @@ class HostMapperTest extends MidolmanSpec
             hostObs.getOnNextEvents.get(2).portBindings should have size 1
             hostObs.getOnNextEvents.get(2).portBindings should not contain key(port1.getId.asJava)
         }
-    }
+
+
+        scenario("The host has no port binding on creation") {
+            Given("A host with one port binding")
+            val (protoHost, _) = createHostAndTunnelZone()
+            val interfaceName: String = null
+            val port = createRouterWithPorts(1).head
+            bindPort(port, protoHost, interfaceName)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = new DeviceObserver[SimHost](vt)
+            observable.subscribe(hostObs)
+
+            And("Waiting for the host")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+
+            val bindings = hostObs.getOnNextEvents.last.portBindings
+
+            val expectedBinding = PortBinding(port.getId.asJava,
+                                              null, 10, null)
+
+            Then("We obtain a simulation host with the port bound.")
+            hostObs.getOnNextEvents.last.portBindings should
+            contain only port.getId.asJava -> expectedBinding
+
+            And("The host mapper is observing the port.")
+            hostMapper.isObservingPort(port.getId) shouldBe true
+        }
+
+        scenario("Binding port with 'host port binding' before port's host update with no interface") {
+            Given("A port (not assigned to any host)")
+            val port = createRouterWithPorts(1).head
+            val portId = port.getId.asJava
+
+            And("A host")
+            val (protoHost, _) = createHostAndTunnelZone()
+
+            And("A binding for the previous host and port")
+            val interfaceName: String = "eth0"
+            val hostPortBinding = createAHostPortBinding(protoHost, port, interfaceName)
+
+            When("A host mapper is created and we observe its notifications")
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+            val observable = Observable.create(hostMapper)
+            val hostObs = new DeviceObserver[SimHost](vt)
+            observable.subscribe(hostObs)
+
+            Then("A new simulation host is observed")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+            val simulationHost1 = hostObs.getOnNextEvents.last
+
+            And("That simulation host has no bindings (since no ports owned)")
+            simulationHost1.portBindings shouldBe empty
+
+            When("The port is updated to be owned by the host, but without specifying the interface")
+            bindPort(port, protoHost, null)
+
+            Then("A new simulation host is observed")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+            val simulationHost2 = hostObs.getOnNextEvents.last
+
+            And("That simulation host has only a binding for the port and the interface.")
+            simulationHost2.portBindings should contain only
+                portId -> PortBinding(portId, null, 10, interfaceName)
+       }
+
+       scenario("Binding port with 'host port binding' after port's host update with no interface") {
+            Given("A port (not assigned to any host)")
+            val port = createRouterWithPorts(1).head
+            val portId = port.getId.asJava
+
+            And("A host")
+            val (protoHost, _) = createHostAndTunnelZone()
+
+            And("The port is owned by the host, but without specifying the interface")
+            bindPort(port, protoHost, null)
+
+            When("A host mapper is created and we observe its notifications")
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+            val observable = Observable.create(hostMapper)
+            val hostObs = new DeviceObserver[SimHost](vt)
+            observable.subscribe(hostObs)
+
+            Then("A new simulation host is observed")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+            val simulationHost1 = hostObs.getOnNextEvents.last
+
+            And("That simulation host has a binding (since no port is owned) but with no interface")
+            simulationHost1.portBindings should contain only
+                portId -> PortBinding(portId, null, 10, interfaceName = null)
+
+            When("A binding is created for the previous host and port")
+            val theInterfaceName: String = "eth0"
+            val hostPortBinding = createAHostPortBinding(protoHost, port, theInterfaceName)
+
+            Then("A new simulation host is observed")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+            val simulationHost2 = hostObs.getOnNextEvents.last
+
+            And("That simulation host has only a binding for the port and the interface.")
+            val bindings = simulationHost2.portBindings
+            bindings should contain only
+                portId -> PortBinding(portId, null, 10, theInterfaceName)
+       }
+     }
 
     feature("The host mapper handles deletion of hosts appropriately") {
         scenario("Deleting the host") {
@@ -622,9 +738,18 @@ class HostMapperTest extends MidolmanSpec
         ps
     }
 
+    private def createAHostPortBinding(host: Host, port: Port, interfaceName: String): HostPortBinding = {
+        val hostPortBinding = createHostPortBinding(host.getId, port.getId, interfaceName)
+        store.create(hostPortBinding)
+        hostPortBinding
+    }
+
     private def bindPort(port: Port, host: Host, ifName: String): Port = {
-        val updatedPort = port.toBuilder.setHostId(host.getId)
-                                        .setInterfaceName(ifName).build()
+        val updatedPortBuilder = port.toBuilder.setHostId(host.getId)
+        if(ifName != null) {
+            updatedPortBuilder.setInterfaceName(ifName).build()
+        }
+        val updatedPort = updatedPortBuilder.build()
         store.update(updatedPort)
         updatedPort
     }
