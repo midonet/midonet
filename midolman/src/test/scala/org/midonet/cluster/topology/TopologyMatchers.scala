@@ -25,15 +25,16 @@ import org.scalatest.Matchers
 import org.midonet.cluster.models.Topology.SessionPersistence
 import org.midonet.cluster.models.Commons.{Condition => TopologyCondition}
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, Host => TopologyHost, IPAddrGroup => TopologyIpAddrGroup, LoadBalancer => TopologyLB, Mirror => TopologyMirror, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
+import org.midonet.cluster.models.Neutron.{HostPortBinding => TopologyHostPortBinding}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules._
-import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, Vip}
+import org.midonet.midolman.simulation.{Bridge, Chain, HostPortBinding, IPAddrGroup, LoadBalancer, PortGroup, Router, Vip}
 import org.midonet.midolman.state.l4lb
-import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, ConditionMatcher, RouterPortMatcher, _}
+import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, ConditionMatcher, HostPortBindingMatcher, RouterPortMatcher, _}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.simulation.{BridgePort, Port, _}
@@ -97,6 +98,13 @@ object TopologyMatchers {
             host.id shouldBe h.getId.asJava
             host.portBindings.keys should contain theSameElementsAs h.getPortIdsList.asScala.map(_.asJava)
             host.tunnelZones.keys should contain theSameElementsAs h.getTunnelZoneIdsList.asScala.map(_.asJava)
+        }
+    }
+
+    class HostPortBindingMatcher(hostPortBinding: HostPortBinding) extends TopologyMatchers with DeviceMatcher[TopologyHostPortBinding] {
+        override def shouldBeDeviceOf(hpb: TopologyHostPortBinding): Unit = {
+            hostPortBinding.id shouldBe hpb.getId.asJava
+            hostPortBinding.interfaceName shouldBe hpb.getInterfaceName
         }
     }
 
@@ -373,4 +381,6 @@ trait TopologyMatchers {
     implicit def asMatcher(healthMonitor: HealthMonitor): HealthMonitorMatcher =
         new HealthMonitorMatcher(healthMonitor)
 
+    implicit def asMatcher(hostPortBinding: HostPortBinding): HostPortBindingMatcher =
+        new HostPortBindingMatcher(hostPortBinding)
 }
