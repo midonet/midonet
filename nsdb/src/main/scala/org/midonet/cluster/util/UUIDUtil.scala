@@ -108,6 +108,14 @@ object UUIDUtil {
             val lsbMask = lsb & 0x3fffffffffffffffL
             toProto(uuid.getMsb ^ msbMask, uuid.getLsb ^ lsbMask)
         }
+
+        def xorWith(uuid: PUUID): PUUID = {
+            xorWith(uuid.getMsb, uuid.getLsb)
+        }
+    }
+
+    def mix(a: PUUID, b: PUUID) = {
+        new RichProtoUuid(a).xorWith(b)
     }
 
     def toString(id: PUUID) = if (id == null) "null" else fromProto(id).toString

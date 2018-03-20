@@ -26,11 +26,11 @@ jar {
 sourceSets {
     main {
         scala { srcDirs = ['src/main/scala', 'src/main/java'] }
-        java { srcDirs = [] }
+        java { srcDirs = ['../nsdb/build/generated/source/proto/main/java'] }
     }
     test {
         scala { srcDirs = ['src/test/scala', 'src/test/java'] }
-        java { srcDirs = [] }
+        java { srcDirs = ['../nsdb/build/generated/source/proto/main/java'] }
     }
 }
 

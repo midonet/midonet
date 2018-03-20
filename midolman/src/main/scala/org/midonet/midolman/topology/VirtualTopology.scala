@@ -209,6 +209,8 @@ class VirtualTopology(val backend: MidonetBackend,
             classOf[PoolHealthMonitorMap], _ => new PoolHealthMonitorMapper(this)),
         classOf[Port] -> DeviceFactory(
             classOf[Port], new PortMapper(_, this, traceChains)),
+        classOf[HostPortBinding] -> DeviceFactory(
+            classOf[HostPortBinding], new HostPortBindingMapper(_, this)),
         classOf[PortGroup] -> DeviceFactory(
             classOf[PortGroup], new PortGroupMapper(_, this)),
         classOf[Router] -> DeviceFactory(

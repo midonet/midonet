@@ -252,6 +252,11 @@ message NeutronHealthMonitor {
     optional string type = 8;
 }
 
+message HostPortBinding {
+    optional UUID id = 1;
+    optional string interface_name = 2;
+}
+
 message PortBinding {  // This model itself will not be persisted in Storage.
     optional UUID id = 1;
     optional UUID host_id = 2;

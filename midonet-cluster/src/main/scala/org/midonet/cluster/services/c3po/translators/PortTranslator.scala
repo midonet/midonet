@@ -22,6 +22,8 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
@@ -35,9 +37,10 @@ import org.midonet.cluster.services.c3po.translators.PortTranslator._
 import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator._
 import org.midonet.cluster.services.c3po.translators.IPSecSiteConnectionTranslator._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
-import org.midonet.cluster.util.IPSubnetUtil.{fromAddress, AnyIPv4Subnet}
+import org.midonet.cluster.util.IPSubnetUtil.{AnyIPv4Subnet, fromAddress}
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.cluster.util._
+import org.midonet.cluster.c3poNeutronTranslatorLog
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.packets.{ARP, IPv4Addr, MAC}
 import org.midonet.util.Range
@@ -60,6 +63,9 @@ class PortTranslator(stateTableStorage: StateTableStorage,
                      sequenceDispenser: SequenceDispenser)
     extends Translator[NeutronPort]
         with ChainManager with PortManager with RouteManager with RuleManager {
+
+    //protected override val log = LoggerFactory.getLogger("org.midonet.cluster.services.rest-api.neutron")
+
 
     /**
       *  Neutron does not maintain the back reference to the Floating IP, so we
@@ -228,8 +234,10 @@ class PortTranslator(stateTableStorage: StateTableStorage,
     /**
       * @see [[Translator.translateUpdate()]]
       */
-    override protected def translateUpdate(tx: Transaction, nPort: NeutronPort)
+    override protected def translateUpdate(txArg: Transaction, nPort: NeutronPort)
     : Unit = {
+        implicit val tx = txArg
+
         // If the equivalent Midonet port doesn't exist, then it's either a
         // floating IP or port on an uplink network. In either case, we
         // don't create anything in the Midonet topology for this Neutron port,
@@ -258,7 +266,17 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         // It is assumed that the fixed IPs assigned to a Neutron Port will not
         // be changed.
         val mPort = if (portChanged(nPort, oldNPort)) {
+
             val bldr = oldMPort.toBuilder.setAdminStateUp(nPort.getAdminStateUp)
+
+            PortBinding(nPort) match {
+                case Some(PortBinding(hostId, interface)) => {
+                    log.debug("Updating port binding")
+                    bldr.setHostId(hostId)
+                    bldr.setInterfaceName(interface)
+                }
+                case None => {}
+            }
 
             if (isTrustedPort(nPort)) {
                 bldr.clearInboundFilterId()
@@ -269,13 +287,7 @@ class PortTranslator(stateTableStorage: StateTableStorage,
                 bldr.setOutboundFilterId(outChainId(portId))
             }
 
-            // Neutron may specify binding information for router interface
-            // ports on edge routers. For VIF/DHCP ports, binding information
-            // is controlled by mm-ctl, and we shouldn't change it.
-            if (nPort.getDeviceOwner != oldNPort.getDeviceOwner) {
-                bldr.clearHostId().clearInterfaceName()
-            }
-            if (isRouterInterfacePort(nPort)) {
+            if (isRouterInterfacePort(nPort)) { // this checks the DeviceOwner
                 if (hasBinding(nPort)) {
                     bldr.setHostId(getHostIdByName(tx, nPort.getHostId))
                     bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
@@ -372,6 +384,28 @@ class PortTranslator(stateTableStorage: StateTableStorage,
             chains: ListBuffer[Operation[Chain]],
             updatedIpAddrGrps: ListBuffer[Operation[IPAddrGroup]])
 
+    /* A container class holding the binding associated with a Neutron Port */
+    private object PortBinding {
+        def apply(port: NeutronPort)(implicit tx: Transaction): Option[PortBinding] = {
+            if(port.hasHostId) {
+                val hostId = getHostIdByName(tx, port.getHostId)
+                if(port.hasProfile && port.getProfile.hasInterfaceName) {
+                    return Some(PortBinding(hostId, port.getProfile.getInterfaceName))
+                } else {
+                    val bindingId = UUIDUtil.mix(hostId, port.getId)
+                    if (tx.exists(classOf[HostPortBinding], bindingId)) {
+                        val binding = tx.get(classOf[HostPortBinding], bindingId)
+                        log.debug("Found a match in HostPortBinding")
+                        return Some(PortBinding(hostId, binding.getInterfaceName()))
+                    }
+                }
+            }
+            return None
+        }
+    }
+
+    private case class PortBinding(hostId: UUID, interface: String)
+
     private def initPortContext =
         PortContext(mutable.Map[UUID, Dhcp.Builder](),
                     ListBuffer[Operation[Rule]](),
@@ -443,23 +477,20 @@ class PortTranslator(stateTableStorage: StateTableStorage,
     /**
       * There's no binding unless both hostId and interfaceName are set.
       */
-    private def hasBinding(np: NeutronPort): Boolean =
-        np.hasHostId && np.hasProfile && np.getProfile.hasInterfaceName
+    private def hasBinding(np: NeutronPort)(implicit tx: Transaction): Boolean = {
+        PortBinding(np).isDefined
+    }
 
     /**
       * Returns true if a port has changed in a way relevant to a port update,
       * i.e. whether the admin state or host binding has changed.
       */
     private def portChanged(newPort: NeutronPort,
-                            curPort: NeutronPort): Boolean = {
-        if (newPort.getAdminStateUp != curPort.getAdminStateUp ||
-            newPort.getDeviceOwner != curPort.getDeviceOwner ||
-            hasBinding(newPort) != hasBinding(curPort)) return true
-
-        hasBinding(newPort) &&
-            (newPort.getHostId != curPort.getHostId ||
-             newPort.getProfile.getInterfaceName !=
-             curPort.getProfile.getInterfaceName)
+                            curPort: NeutronPort)
+                           (implicit tx: Transaction): Boolean = {
+        newPort.getAdminStateUp != curPort.getAdminStateUp ||
+        newPort.getDeviceOwner != curPort.getDeviceOwner ||
+        PortBinding(newPort) != PortBinding(curPort)
     }
 
     /**
@@ -788,17 +819,22 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         }
     }
 
-    private def translateNeutronPort(tx: Transaction,
+    private def translateNeutronPort(implicit tx: Transaction,
                                      nPort: NeutronPort): Port.Builder = {
         val bldr = Port.newBuilder.setId(nPort.getId)
             .setNetworkId(nPort.getNetworkId)
             .setAdminStateUp(nPort.getAdminStateUp)
 
-        if (hasBinding(nPort)) {
-            bldr.setHostId(getHostIdByName(tx, nPort.getHostId))
-            bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
+        log.debug("translateNeutronPort checking if has binding info")
+        PortBinding(nPort) match {
+            case Some(PortBinding(hostId, interfaceName)) =>
+                bldr.setHostId(hostId)
+                    .setInterfaceName(interfaceName)
+            case None =>
+                if(nPort.hasHostId) {
+                    bldr.setHostId(getHostIdByName(tx, nPort.getHostId))
+                }
         }
-
         bldr
     }
 
