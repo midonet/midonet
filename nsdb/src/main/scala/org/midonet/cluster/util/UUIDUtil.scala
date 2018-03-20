@@ -154,6 +154,14 @@ object UUIDUtil {
                 xorWith(ip.upperWord, ip.lowerWord ^ subnet.getPrefixLength)
             }
         }
+
+        def xorWith(uuid: PUUID): PUUID = {
+            xorWith(uuid.getMsb, uuid.getLsb)
+        }
+    }
+
+    def mix(a: PUUID, b: PUUID) = {
+        new RichProtoUuid(a).xorWith(b)
     }
 
     object Comparator extends Comparator[JUUID] {
