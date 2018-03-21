@@ -30,7 +30,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.{MatchResult, Matcher}
 
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.ModelsUtil._
+import org.midonet.cluster.models.ModelsUtil.{nNetworkFromTxt, _}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronBgpSpeaker, NeutronPort}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{CreateNode, DeleteNode, Operation, Create => CreateOp, Delete => DeleteOp, Update => UpdateOp}
@@ -809,13 +809,38 @@ class VifPortBindingTranslationTest extends VifPortTranslationTest {
 
     private val hostId = randomUuidProto
     private val hostName = "hostname"
+    private val hostId2 = randomUuidProto
+    private val hostName2 = "hostname2"
     private val interfaceName = "tap0"
+
+    private val host = mHostFromTxt(s"""
+            id { $hostId }
+            name: '$hostName'
+            port_ids { $portId }
+        """)
+
+    private val host2 = mHostFromTxt(s"""
+            id { $hostId2 }
+            name: '$hostName2'
+            port_ids { $portId }
+         """)
+
+    private val vifPortWithPartialBinding = nPortFromTxt(s"""
+         $portBaseUp
+         host_id: '$hostName'
+         """)
+
     private val vifPortWithBinding = nPortFromTxt(s"""
         $portBaseUp
         host_id: '$hostName'
         profile {
             interface_name: '$interfaceName'
         }
+        """)
+
+    private val vifPortWithHost2 = nPortFromTxt(s"""
+        $portBaseUp
+        host_id: '$hostName2'
         """)
 
     private val mPortWithBinding = mPortFromTxt(s"""
@@ -828,6 +853,10 @@ class VifPortBindingTranslationTest extends VifPortTranslationTest {
         initMockStorage()
         translator = new PortTranslator(stateTableStorage, seqDispenser)
 
+        bind(hostId, host)
+        bind(hostId2, host2)
+        when(transaction.getAll(classOf[Host])).thenReturn(Seq(host, host2))
+        bind(networkId, nNetworkBase)
         bind(inboundChainId, inboundChain)
         bind(outboundChainId, outboundChain)
         bind(spoofChainId, antiSpoofChain)
@@ -837,12 +866,30 @@ class VifPortBindingTranslationTest extends VifPortTranslationTest {
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
+    "VIF port CREATE with host but no interface (partial binding) " should "propagate host id" in {
+        translator.translate(transaction, CreateOp(vifPortWithPartialBinding))
+        midoOps.exists {
+            case CreateOp(obj: Port) =>
+                obj.hasHostId && obj.getHostId == hostId
+            case _ => false
+        } shouldBe true
+    }
+
     "VIF port UPDATE with no change " should "NOT update binding" in {
         translator.translate(transaction, UpdateOp(vifPortWithBinding))
         midoOps.exists {
             case UpdateOp(obj: Port, _) => true
             case _ => false
         } shouldBe false
+    }
+
+    "VIF port UPDATE with change in host " should " update binding" in {
+        translator.translate(transaction, UpdateOp(vifPortWithHost2))
+        midoOps.exists {
+            case UpdateOp(obj: Port, _) =>
+                obj.hasHostId && obj.getHostId == hostId2
+            case _ => false
+        } shouldBe true
     }
 }
 

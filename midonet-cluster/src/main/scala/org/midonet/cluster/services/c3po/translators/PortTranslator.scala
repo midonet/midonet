@@ -265,6 +265,13 @@ class PortTranslator(stateTableStorage: StateTableStorage,
         val mPort = if (portChanged(nPort, oldNPort)) {
             val bldr = oldMPort.toBuilder.setAdminStateUp(nPort.getAdminStateUp)
 
+            if(nPort.hasHostId) {
+                val nHostName = getHostIdByName(tx, nPort.getHostId)
+                if(nHostName != null) {
+                    bldr.setHostId(nHostName)
+                }
+            }
+
             if (isTrustedPort(nPort)) {
                 bldr.clearInboundFilterId()
                 bldr.clearOutboundFilterId()
@@ -460,13 +467,23 @@ class PortTranslator(stateTableStorage: StateTableStorage,
                             curPort: NeutronPort): Boolean = {
         if (newPort.getAdminStateUp != curPort.getAdminStateUp ||
             newPort.getDeviceOwner != curPort.getDeviceOwner ||
-            hasBinding(newPort) != hasBinding(curPort) ||
+            newPort.hasHostId != curPort.hasHostId ||
             newPort.getQosPolicyId != curPort.getQosPolicyId) return true
 
-        hasBinding(newPort) &&
-            (newPort.getHostId != curPort.getHostId ||
-             newPort.getProfile.getInterfaceName !=
-             curPort.getProfile.getInterfaceName)
+        def portInterfaceOrNull(p : NeutronPort) = {
+            if (newPort.hasProfile) {
+                val profile = newPort.getProfile
+                if(profile.hasInterfaceName)
+                    profile.getInterfaceName else null
+            } else null
+        }
+
+        def hostChanged =
+            newPort.hasHostId && newPort.getHostId != curPort.getHostId
+        def interfaceChanged =
+             (portInterfaceOrNull(newPort) != portInterfaceOrNull(curPort))
+
+        hostChanged || interfaceChanged
     }
 
     /**
@@ -804,9 +821,13 @@ class PortTranslator(stateTableStorage: StateTableStorage,
             .setAdminStateUp(nPort.getAdminStateUp)
         if (nPort.hasQosPolicyId)
             bldr.setQosPolicyId(nPort.getQosPolicyId)
-        if (hasBinding(nPort)) {
+        if (nPort.hasHostId) {
             bldr.setHostId(getHostIdByName(tx, nPort.getHostId))
-            bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
+            if (nPort.hasProfile) {
+                val profile = nPort.getProfile
+                if(profile.hasInterfaceName)
+                    bldr.setInterfaceName(profile.getInterfaceName)
+            }
         }
 
         bldr

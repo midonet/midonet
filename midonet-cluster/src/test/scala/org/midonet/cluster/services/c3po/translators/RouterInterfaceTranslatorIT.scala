@@ -159,12 +159,12 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
     }
 
     it should "get the router correctly even if not set on the port" in {
+        createHost(hostId)
         createTenantNetwork(2, tenantNetworkId)
         createSubnet(3, tenantNetworkId, "10.0.0.0/24", subnetId)
         createDhcpPort(4, tenantNetworkId, subnetId, "10.0.0.2",
                        portId = dhcpPortId)
         createRouter(5, routerId)
-
         val json = portJson(rifPortId, tenantNetworkId, null,
                             deviceOwner = DeviceOwner.ROUTER_INTERFACE,
                             macAddr = "ab:cd:ef:01:02:03",
