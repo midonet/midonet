@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "e697567d_b926008d",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-03-21T11:59:57Z",
+      "side": 1,
+      "message": "Better just to remove it at all, unit tests somehow work in gate",
+      "parentUuid": "d3f568ea_1881ee1a",
+      "range": {
+        "startLine": 90,
+        "startChar": 16,
+        "endLine": 90,
+        "endChar": 54
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43d22f3d_70403eb0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/HostPortBinding.scala",
         "patchSetId": 1
