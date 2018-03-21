@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1db81bf8_b20c14f0",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-03-21T20:38:28Z",
+      "side": 1,
+      "message": "So this approach seems to me to be different from what has been proposed in the design document: https://docs.google.com/document/d/1YpPgeqh32KET9IYTy852yj0i-ZpZkjeJ-rgk8e-g0xk/edit#\n\nIf I understand correctly your change, you are proposing that we store all bindings for all ports together in a single list, indexed by \u003cHOST_ID\u003e xor \u003cPORT_ID\u003e and where each agent tracks every such port binding (not just the local bindings), matches them by the XOR above and if the match is true it maps the interface to the vport.\n\nIMO I don\u0027t think this approach will scale very well as you add more ports, and certainly not up to 10K ports per bridge, which was one of the initial design objectives. The rationale that bindings are stored *per host* object is exactly that, even if it results in much more complex processing.\n\nI think Ryu and Takashi should definitely chime in on this, but I don\u0027t think this is the way to go :(\n\nLet\u0027s sync on Slack.",
+      "range": {
+        "startLine": 361,
+        "startChar": 0,
+        "endLine": 361,
+        "endChar": 7
+      },
+      "revId": "787b17d214cee8bb10e38dee2117576c512762f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
