@@ -22,6 +22,30 @@
       "revId": "787b17d214cee8bb10e38dee2117576c512762f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f963b70_19838f2e",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-21T23:53:24Z",
+      "side": 1,
+      "message": "Thanks for your feedback.\n\nI will comment a little in case you can read it tomorrow before I connect (usually later I think).\n\nI understand your concerns, but I think they are more related to the observable on the entire class (in line 321 at HostMapper class -\u003e https://review.gerrithub.io/#/c/404712/1/midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala) than in the data structure.\n\nThe data structure in ZK is not \"a list\": to me is a key-value table in which we can access elements individually. It fulfills the requirements described in the document: 1) persists reboots 2) observable without polling (with some limitations I will comment later) and 3) updatable event with down agent (as any ZK data). If you know the host ID (always) and the port ID (always, as we only need to interact with ports that are included in the list of port of the normal Host entry) you know the key to HostPortBinding.\n\nThe observable limitations: at the beginning I thought that you can subscribe to the class observer and that it only give you the new entries/changes. The ZOOM API gives you an observer for each instance, that I flatmap. But thinking better, as you point, the watcher in ZooKeeper under ZOOM will give you the full list of entries, and yes, that\u0027s crazy. So, knowing that, it would be better to not use it as despite the ZOOM API seems to give only the new changes, it does not scale a ZK watcher level.\n\nIn my original intents I did not use it, but rather just watch/observe the specific instances related to the host. But since sometimes the entry was not created yet and you cannot further listen to non-existing-yet-instances I decided to use the class-level observer (bad idea as it turns).\n\nSo to address the scalability concerns you mention it would be better to just create an empty HostPortBinding entry in case it does not exist (maybe with a new special XOR ZOOM binding to host+port?), and subscribe to it for updates. This solves the subscribe-all problem without polling. But that is a problem to solve in the code at HostMapper more than in the protobuf schema.\n\nAnyway I would like to review the list of design objectives and figures to better take them in accounts.\n\nLet\u0027s sync tomorrow.",
+      "parentUuid": "1db81bf8_b20c14f0",
+      "range": {
+        "startLine": 361,
+        "startChar": 0,
+        "endLine": 361,
+        "endChar": 7
+      },
+      "revId": "787b17d214cee8bb10e38dee2117576c512762f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
