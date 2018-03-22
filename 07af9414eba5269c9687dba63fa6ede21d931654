@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0b4895d9_4a7b808d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-03-22T13:26:02Z",
+      "side": 1,
+      "message": "what does this code mean?",
+      "range": {
+        "startLine": 9,
+        "startChar": 28,
+        "endLine": 9,
+        "endChar": 40
+      },
+      "revId": "07af9414eba5269c9687dba63fa6ede21d931654",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
