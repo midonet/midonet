@@ -281,7 +281,7 @@ class UplinkWithVPP(NeutronVPPTopologyManagerBase):
         self.flush_all()
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_ports[0])
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
-        self.await_vpp_initialized('midolman1', uplink_port_name, 180)
+        self.await_vpp_initialized('midolman1', uplink_port_name, 300)
         self.add_route_to_vpp('midolman1',
                               prefix='bbbb::/64',
                               via='2001::2',
@@ -496,7 +496,7 @@ class DualUplinkAssymetric(SingleTenantWithNeutronIPv6FIP):
 
         uplink_port_id = self.get_mn_uplink_port_id(self.uplink_ports[1])
         uplink_port_name = 'vpp-' + uplink_port_id[0:8]
-        self.await_vpp_initialized('midolman2', uplink_port_name, 180)
+        self.await_vpp_initialized('midolman2', uplink_port_name, 300)
         self.add_route_to_vpp('midolman2',
                               prefix='bbbb::/64',
                               via='3001::2',
