@@ -22,6 +22,30 @@
       "revId": "07af9414eba5269c9687dba63fa6ede21d931654",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0560dbd7_17ef0fb3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-03-22T14:26:35Z",
+      "side": 1,
+      "message": "I don\u0027t know so far.\nPosted it on stackoverflow for a case:\nhttps://stackoverflow.com/questions/49428792/process-gradle-test-executor-finished-with-non-zero-exit-value-29",
+      "parentUuid": "0b4895d9_4a7b808d",
+      "range": {
+        "startLine": 9,
+        "startChar": 28,
+        "endLine": 9,
+        "endChar": 40
+      },
+      "revId": "07af9414eba5269c9687dba63fa6ede21d931654",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
