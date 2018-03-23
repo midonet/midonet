@@ -137,7 +137,7 @@ public interface Ethtool {
      */
     class EthtoolCmd extends Structure {
 
-        private static final List FIELDS =
+        private static final List<String> FIELDS =
             Arrays.asList("cmd", "supported", "advertising", "speed", "duplex",
                           "port", "phyAddress", "transceiver", "autoneg",
                           "mdioSupport", "maxtxpkt", "maxrxpkt", "speedHi",
@@ -168,7 +168,7 @@ public interface Ethtool {
             super(ptr);
         }
 
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return FIELDS;
         }
 
@@ -189,7 +189,7 @@ public interface Ethtool {
      */
     class EthtoolValue extends Structure {
 
-        private static final List FIELDS = Arrays.asList("cmd", "data");
+        private static final List<String> FIELDS = Arrays.asList("cmd", "data");
 
         public int cmd;
         public int data;
@@ -200,7 +200,7 @@ public interface Ethtool {
             super(ptr);
         }
 
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return FIELDS;
         }
 
