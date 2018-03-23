@@ -46,6 +46,30 @@
       "revId": "07af9414eba5269c9687dba63fa6ede21d931654",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b65f3873_95b6153a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2018-03-23T08:29:51Z",
+      "side": 1,
+      "message": "In my env, setting maxTestForks to 2 seems to get past this issue, albeit, I only tried several times.  But if that does allow us to get around this problem, why don\u0027t we just create midonet-cluster/gradle.properties and set maxTestForks \u003d 2 for now?  It would be a smaller change and lets us avoid maintaining the task grouping.  It\u0027ll slow down the tests, but I think we need to also look into why midonet-cluster tests are requiring so much resources.",
+      "parentUuid": "0560dbd7_17ef0fb3",
+      "range": {
+        "startLine": 9,
+        "startChar": 28,
+        "endLine": 9,
+        "endChar": 40
+      },
+      "revId": "07af9414eba5269c9687dba63fa6ede21d931654",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
