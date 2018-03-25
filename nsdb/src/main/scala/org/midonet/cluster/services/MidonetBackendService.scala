@@ -65,6 +65,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
     extends MidonetBackend {
 
     private val log = Logger(LoggerFactory.getLogger("org.midonet.nsdb"))
+    private val e = new Exception()
 
     private val namespaceId =
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
@@ -389,7 +390,9 @@ class MidonetBackendService(config: MidonetBackendConfig,
     private def shutdown(code: Int): Unit = {
         curator.close()
         failFastCurator.close()
-        System.exit(code)
+        log.error("Shutdown called", e)
+        throw e
+        //System.exit(code)
     }
 
 }
