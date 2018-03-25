@@ -341,6 +341,10 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         reports {
             junitXml.enabled = true
         }
+
+        testLogging {
+            showStandardStreams = true
+        }
     }
 
     dependencies {
