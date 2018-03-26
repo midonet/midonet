@@ -89,6 +89,7 @@ class TopologyCacheTest extends FeatureSpec
     }
 
     after {
+        backend.stopAsync().awaitTerminated()
         testServer.stop()
     }
 
