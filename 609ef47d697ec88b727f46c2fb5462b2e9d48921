@@ -624,6 +624,30 @@
     },
     {
       "key": {
+        "uuid": "ff20f409_123b12ff",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-03-27T10:08:11Z",
+      "side": 1,
+      "message": "i guess HostMapper can be simpler if you add host_id here and its back reference in Host.",
+      "parentUuid": "d8b07641_3fac8a02",
+      "range": {
+        "startLine": 256,
+        "startChar": 4,
+        "endLine": 256,
+        "endChar": 25
+      },
+      "revId": "609ef47d697ec88b727f46c2fb5462b2e9d48921",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6c67a03b_8735d1ee",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
         "patchSetId": 1
