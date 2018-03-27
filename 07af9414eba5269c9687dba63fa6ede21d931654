@@ -70,6 +70,30 @@
       "revId": "07af9414eba5269c9687dba63fa6ede21d931654",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "38276c77_e2a986fd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-03-27T10:05:18Z",
+      "side": 1,
+      "message": "Ok, lets try this out, if it passes unit test gate twice its a good one :)",
+      "parentUuid": "b65f3873_95b6153a",
+      "range": {
+        "startLine": 9,
+        "startChar": 28,
+        "endLine": 9,
+        "endChar": 40
+      },
+      "revId": "07af9414eba5269c9687dba63fa6ede21d931654",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
