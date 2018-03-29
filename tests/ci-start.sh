@@ -113,3 +113,23 @@ if [ $I -eq $TIMEOUT ]; then
     echo "Agents never came up"
     exit 1
 fi
+
+# generate a midonet rc file
+
+MIDONETRC_FILE=~/.midonetrc
+if [ ! -f "${MIDONETRC_FILE}" ]; then
+  echo "Midonet RC file does not exists at ${MIDONETRC_FILE}, creating it (for mdts)"
+  CLUSTER_IP="$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mnsandboxmdts_cluster1_1)"
+  cat > "${MIDONETRC_FILE}" <<EOF
+[cli]
+api_url = http://CLUSTER_IP:8181/midonet-api
+username = admin
+password = admin
+project_id = admin
+EOF
+  sed -i "s/CLUSTER_IP/${CLUSTER_IP}/" "${MIDONETRC_FILE}"
+else
+  echo "WARNING: Midonet RC file does exists at ${MIDONETRC_FILE}, skipping creating one"
+fi
+echo "Midonet RC (${MIDONETRC_FILE}) contents:"
+cat "${MIDONETRC_FILE}"
