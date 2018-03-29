@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1b0cd61c_9e50a010",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/HostPortBinding.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-29T09:29:10Z",
+      "side": 1,
+      "message": "Yes, I now, but it seems that the HostMapper code was easier to extend if a VirtualDevice was created and to me was not clear if other entities (like TunnelZone) were true VirtualDevice or just classes to proxy ZOOM API in a convenient to create the (Simulation)Host. I will see it I can refactor the code to avoid defining it as a VirtualDevice.",
+      "parentUuid": "07c62ce0_56b9d4e8",
+      "revId": "5ac6451da04b9efb7a7b23fcfccc87ae71fd66b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "92a374f3_6728eb79",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 6
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "28257e6e_d74fe544",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-29T09:29:10Z",
+      "side": 1,
+      "message": "Ok, I wasn\u0027t sure either. I can move to topology.proto if it is preferred.",
+      "parentUuid": "92a374f3_6728eb79",
+      "range": {
+        "startLine": 361,
+        "startChar": 8,
+        "endLine": 361,
+        "endChar": 23
+      },
+      "revId": "5ac6451da04b9efb7a7b23fcfccc87ae71fd66b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "720bcade_56591c31",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 6
@@ -53,6 +95,24 @@
       "writtenOn": "2018-03-29T08:12:10Z",
       "side": 1,
       "message": "i guess you can have host_id here and back references in Host. that way HostMapper would be simpler.",
+      "revId": "5ac6451da04b9efb7a7b23fcfccc87ae71fd66b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8c447f3b_5789e355",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-03-29T09:29:10Z",
+      "side": 1,
+      "message": "I didn\u0027t want to change too much the current schema, to avoid upgrade issues, but maybe this is fair, since it would simplifies the code and is an addition of fields, that is backward compatible with the old schema. Also the Host entries already have a port_ids list, so I guess a potential extra entry per port is not affecting scalability (at least its big O complexity)",
+      "parentUuid": "720bcade_56591c31",
       "revId": "5ac6451da04b9efb7a7b23fcfccc87ae71fd66b0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
