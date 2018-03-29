@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07c62ce0_56b9d4e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/HostPortBinding.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-03-29T08:12:10Z",
+      "side": 1,
+      "message": "this VirtualDevice seems to be used only by HostMapper and not by the simulation. i suspect it\u0027s unnecessary.",
+      "revId": "5ac6451da04b9efb7a7b23fcfccc87ae71fd66b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "92a374f3_6728eb79",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-03-29T08:12:10Z",
+      "side": 1,
+      "message": "i\u0027m not sure if this belongs to neutron.",
+      "range": {
+        "startLine": 361,
+        "startChar": 8,
+        "endLine": 361,
+        "endChar": 23
+      },
+      "revId": "5ac6451da04b9efb7a7b23fcfccc87ae71fd66b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "720bcade_56591c31",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-03-29T08:12:10Z",
+      "side": 1,
+      "message": "i guess you can have host_id here and back references in Host. that way HostMapper would be simpler.",
+      "revId": "5ac6451da04b9efb7a7b23fcfccc87ae71fd66b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
