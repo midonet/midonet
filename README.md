@@ -95,4 +95,4 @@ innovations and ideas from our community!
 
 * http://lists.midonet.org/listinfo/midonet-dev
 
-[1]: https://join.slack.com/t/midonet/shared_invite/enQtMjU2NzAzNzIyNjc0LWYzZTczYmVkZjkxMDllOWUxMGVjNGI1NjNlZDM1Y2JhZGMyZDNkMGVlNWE2ZWU0ZmJlNDFhMWRmMGRjODE5YjA
+[1]: https://join.slack.com/t/midonet/shared_invite/enQtMzQxOTIzNjU4NzY5LTgwOGYyYWQ2ZTI5MmQxNmQyN2U3ZDEyOTY0NzUyZDI2NzEwYzhjMWRlYzY0NTA0MDJjODNkYWE5Y2FhZjk1Njg
