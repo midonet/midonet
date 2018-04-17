@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e4aaa24_9fdebe42",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-04-17T19:22:12Z",
+      "side": 1,
+      "message": "nit: Ref JIRA ticket?",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 52
+      },
+      "revId": "544aa959975233e71373b6cbb33558302ba363a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
