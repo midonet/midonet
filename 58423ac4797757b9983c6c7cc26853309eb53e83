@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c8029a17_6e3f8dd0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/NativeFlowController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-04-18T09:41:49Z",
+      "side": 1,
+      "message": "Nit: remove?",
+      "range": {
+        "startLine": 257,
+        "startChar": 12,
+        "endLine": 257,
+        "endChar": 39
+      },
+      "revId": "58423ac4797757b9983c6c7cc26853309eb53e83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fb40cc1b_da557e62",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/NativeFlowController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-04-18T09:41:49Z",
+      "side": 1,
+      "message": "Use MoreObjest.toStringHelper() ?",
+      "range": {
+        "startLine": 262,
+        "startChar": 12,
+        "endLine": 262,
+        "endChar": 34
+      },
+      "revId": "58423ac4797757b9983c6c7cc26853309eb53e83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b0fe90bc_071fc9d9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/NativeFlowController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-04-18T09:41:49Z",
+      "side": 1,
+      "message": "Integer.toUnsignedString(System.identityHashCode(this), 16) ?",
+      "range": {
+        "startLine": 263,
+        "startChar": 27,
+        "endLine": 263,
+        "endChar": 50
+      },
+      "revId": "58423ac4797757b9983c6c7cc26853309eb53e83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d3e12676_55a34fcd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/NativeFlowController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-04-18T09:41:49Z",
+      "side": 1,
+      "message": "Integer.toUnsignedString(flowMatch.hashCode(), 16) ?",
+      "range": {
+        "startLine": 265,
+        "startChar": 35,
+        "endLine": 265,
+        "endChar": 58
+      },
+      "revId": "58423ac4797757b9983c6c7cc26853309eb53e83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
