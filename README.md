@@ -96,3 +96,9 @@ innovations and ideas from our community!
 * http://lists.midonet.org/listinfo/midonet-dev
 
 [1]: https://join.slack.com/t/midonet/shared_invite/enQtMjU2NzAzNzIyNjc0LWYzZTczYmVkZjkxMDllOWUxMGVjNGI1NjNlZDM1Y2JhZGMyZDNkMGVlNWE2ZWU0ZmJlNDFhMWRmMGRjODE5YjA
+
+## Licensing
+
+MidoNet is licensed under the Apache license. Please see [LICENSE](./LICENSE) for details.
+
+Copyright 2018 Midokura SARL
