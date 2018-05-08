@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ $1 -eq "dev" ]; then
+if [ "$1" = "dev" ]; then
     # Pass "dev" as the first arg, and the script will abort as soon as
     # an error happens.
     set -e
