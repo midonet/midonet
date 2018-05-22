@@ -158,7 +158,6 @@ VTM = BgpIpTopologyManager()
 BM = BindingManager(None, VTM)
 
 
-@nottest
 @bindings(binding_onehost_intra_tenant_mm1, binding_onehost_intra_tenant_mm2, binding_manager=BM)
 def test_bgp_ip_basic():
 
