@@ -37,7 +37,8 @@ public interface In {
      */
     class InAddr extends Structure {
 
-        private static final List FIELDS = Collections.singletonList("sAddr");
+        private static final List<String> FIELDS =
+            Collections.singletonList("sAddr");
 
         public int sAddr;
 
@@ -47,7 +48,7 @@ public interface In {
             super(ptr);
         }
 
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return FIELDS;
         }
 
@@ -75,7 +76,7 @@ public interface In {
      */
     class SockAddrIn extends Structure {
 
-        private static final List FIELDS =
+        private static final List<String> FIELDS =
             Arrays.asList("sinFamily", "sinPort", "sinAddr", "pad");
 
         public short sinFamily;
@@ -89,7 +90,7 @@ public interface In {
             super(ptr);
         }
 
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return FIELDS;
         }
 

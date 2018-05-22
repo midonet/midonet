@@ -58,7 +58,7 @@ public final class CLibrary {
         public int nl_groups;
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return Arrays.asList("nl_family", "nl_pad", "nl_pid", "nl_groups");
         }
     }
@@ -67,7 +67,7 @@ public final class CLibrary {
         public byte[] chars = new byte[108];
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return Collections.singletonList("chars");
         }
     }
@@ -79,7 +79,7 @@ public final class CLibrary {
         public UnixPathByVal sun_path;
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return Arrays.asList("sun_family", "sun_path");
         }
     }

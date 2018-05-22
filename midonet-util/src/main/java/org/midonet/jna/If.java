@@ -142,7 +142,8 @@ public interface If {
             }
         }
 
-        private static final List FIELDS = Arrays.asList("ifrIfrn", "ifrIfru");
+        private static final List<String> FIELDS =
+            Arrays.asList("ifrIfrn", "ifrIfru");
 
         public IfrIfrn ifrIfrn;
         public IfrIfru ifrIfru;
@@ -153,7 +154,7 @@ public interface If {
             super(ptr);
         }
 
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return FIELDS;
         }
 

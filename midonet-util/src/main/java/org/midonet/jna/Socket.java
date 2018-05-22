@@ -42,7 +42,8 @@ public interface Socket {
      */
     class SockAddr extends Structure {
 
-        private static final List FIELDS = Arrays.asList("saFamily", "saData");
+        private static final List<String> FIELDS =
+            Arrays.asList("saFamily", "saData");
 
         public short saFamily;
         public byte[] saData = new byte[14];
@@ -53,7 +54,7 @@ public interface Socket {
             super(ptr);
         }
 
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return FIELDS;
         }
 
