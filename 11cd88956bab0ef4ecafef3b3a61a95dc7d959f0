@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb11c6fd_1dbd59ae",
+        "filename": "LICENSE",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1014335
+      },
+      "writtenOn": "2018-05-22T09:06:28Z",
+      "side": 1,
+      "message": "Do we need this paragraph?",
+      "revId": "11cd88956bab0ef4ecafef3b3a61a95dc7d959f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
