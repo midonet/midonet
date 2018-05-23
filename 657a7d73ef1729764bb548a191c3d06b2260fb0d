@@ -22,6 +22,30 @@
       "revId": "657a7d73ef1729764bb548a191c3d06b2260fb0d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f90581ce_694bcf17",
+        "filename": "LICENSE",
+        "patchSetId": 3
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1014324
+      },
+      "writtenOn": "2018-05-23T21:06:09Z",
+      "side": 1,
+      "message": "Good question - this actually doesn\u0027t need to be filled in.\n\nHere\u0027s a link with more info:\nhttps://books.google.com/books?id\u003dnHDtDAAAQBAJ\u0026lpg\u003dPA89\u0026dq\u003dapache%20license%20placeholder%20text\u0026pg\u003dPA89#v\u003donepage\u0026q\u0026f\u003dfalse",
+      "parentUuid": "ca736a1a_6b246886",
+      "range": {
+        "startLine": 189,
+        "startChar": 13,
+        "endLine": 189,
+        "endChar": 45
+      },
+      "revId": "657a7d73ef1729764bb548a191c3d06b2260fb0d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
