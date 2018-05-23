@@ -16,6 +16,24 @@
       "revId": "11cd88956bab0ef4ecafef3b3a61a95dc7d959f0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3867986f_52e4ccd8",
+        "filename": "LICENSE",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1014324
+      },
+      "writtenOn": "2018-05-23T02:15:41Z",
+      "side": 1,
+      "message": "Good question. Yes, the entirety of this license file needs to be included in the repository. So, yes, we do need to include this section.",
+      "parentUuid": "eb11c6fd_1dbd59ae",
+      "revId": "11cd88956bab0ef4ecafef3b3a61a95dc7d959f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
