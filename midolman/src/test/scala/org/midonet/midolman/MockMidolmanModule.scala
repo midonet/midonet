@@ -17,7 +17,7 @@
 package org.midonet.midolman
 
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
+import java.util.{Map => JMap}
 
 import scala.collection.IndexedSeq
 import scala.concurrent.Future
@@ -56,6 +56,7 @@ import org.midonet.util.concurrent.{SameThreadButAfterExecutorService, _}
 import org.midonet.util.eventloop.{MockSelectLoop, Reactor, SelectLoop}
 
 class MockMidolmanModule(override val hostId: UUID,
+                         val flowsTable: JMap[FlowMatch, Flow],
                          injector: Injector,
                          config: MidolmanConfig,
                          backend: MidonetBackend,
@@ -65,8 +66,6 @@ class MockMidolmanModule(override val hostId: UUID,
         extends MidolmanModule(config, backend, backendConfig, directoryReactor,
                                new MetricRegistry,
                                new MockFlowTablePreallocation(config)) {
-
-    val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
 
     protected override def bindSelectLoopService(): Unit = {
         bind(classOf[SelectLoop])
