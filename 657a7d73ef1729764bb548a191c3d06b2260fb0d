@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ca736a1a_6b246886",
+        "filename": "LICENSE",
+        "patchSetId": 3
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-05-23T20:28:04Z",
+      "side": 1,
+      "message": "This need to be filled-in, correct?",
+      "range": {
+        "startLine": 189,
+        "startChar": 13,
+        "endLine": 189,
+        "endChar": 45
+      },
+      "revId": "657a7d73ef1729764bb548a191c3d06b2260fb0d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
