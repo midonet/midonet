@@ -151,10 +151,10 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
             val ChainPair(inChain1a, outChain1a) = getChains(ipg1a)
             inChain1a.getRuleIdsCount shouldBe 0
 
-            outChain1a.getRuleIdsCount shouldBe 3
+            // Since sg2 is deleted, rule pointing to it should be deleted from sg1
+            outChain1a.getRuleIdsCount shouldBe 2
             outChain1a.getRuleIds(0) shouldBe toProto(rule1Id)
             outChain1a.getRuleIds(1) shouldBe toProto(SecurityGroupRuleManager.nonHeaderRuleId(rule1Id))
-            outChain1a.getRuleIds(2) shouldBe toProto(rule2Id)
 
             // The Neutron security group should also keep its rules.
             val nsg = storage.get(classOf[SecurityGroup], sg1Id).await()

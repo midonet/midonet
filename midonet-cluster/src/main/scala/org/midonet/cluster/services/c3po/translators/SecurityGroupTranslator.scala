@@ -119,6 +119,12 @@ class SecurityGroupTranslator
         // make sure to clean up any Port references to this SecurityGroup.
         cleanUpPortBackrefs(tx, securityGroup.getId)
 
+        // MNA-1283
+        // Sometimes, some rules pointing to IP address group remain after
+        // group itself was deleted with corresponding security group. These
+        // rules will cause midolman to fail and blackhole traffic
+        cleanUpIpAddrGroupBackrefs(tx, securityGroup.getId)
+
         // Delete associated SecurityGroupRules.
         securityGroup.getSecurityGroupRulesList.asScala.foreach { rule =>
             tx.delete(classOf[SecurityGroupRule], rule.getId, ignoresNeo = true)
@@ -128,6 +134,17 @@ class SecurityGroupTranslator
         tx.delete(classOf[IPAddrGroup], securityGroup.getId, ignoresNeo = true)
         tx.delete(classOf[SecurityGroup], securityGroup.getId, ignoresNeo = true)
 
+    }
+
+    private def cleanUpIpAddrGroupBackrefs(tx: Transaction, sgId: UUID): Unit = {
+        val rules = tx.getAll(classOf[Rule])
+        for (rule <- rules if rule.getCondition.getIpAddrGroupIdDst == sgId ||
+            rule.getCondition.getIpAddrGroupIdSrc == sgId) {
+            log.warn("IpAddrGroup {} deleted while still associated with " +
+                     "Rule {}. This should not happen, but will be handled " +
+                     "correctly.", UUIDUtil.toString(sgId):Any, UUIDUtil.toString(rule.getId):Any)
+            tx.delete(classOf[Rule], rule.getId)
+        }
     }
 
     private def cleanUpPortBackrefs(tx: Transaction, sgId: UUID): Unit = {
