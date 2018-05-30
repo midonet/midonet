@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "31fcc32f_d2ff7075",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-05-30T00:28:45Z",
+      "side": 1,
+      "message": "what happens if someone tries to use these features without these packages? i suppose it should be loudly documented at least.",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 9
+      },
+      "revId": "824336ab4dcca72e5fcb006ec5539a367e9d1db5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
