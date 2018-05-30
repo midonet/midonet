@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a0d3224d_2415cc05",
+        "filename": "tools/google-test-1.8.0/lib/README.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-05-30T00:25:27Z",
+      "side": 1,
+      "message": "this looks like a copy from googletest doc.\ni\u0027m not sure if it\u0027s license-wise ok.\ni suppose it\u0027s safer to just have a reference here.",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 3
+      },
+      "revId": "885250853528e6a33289072ac88a43d9e66302e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
