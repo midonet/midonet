@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "f3ed610f_48eccbcf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-06-05T21:45:59Z",
+      "side": 1,
+      "message": "lgtm, but can you add a unit test?",
+      "range": {
+        "startLine": 139,
+        "startChar": 4,
+        "endLine": 139,
+        "endChar": 72
+      },
+      "revId": "ba58df553c532f4e501d99312fcb44c2bcbdfd24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "673aa4f1_d688f870",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
         "patchSetId": 3
