@@ -36,6 +36,7 @@ model {
                 cppCompiler.executable = "/usr/bin/gcc"
             }
         }
+        clang(Clang)
     }
     repositories {
         libs(PrebuiltLibraries) {
