@@ -34,6 +34,24 @@
       "revId": "b7509238ef83b3df5129b533dd2e39eb29cefe97",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ce63671d_8fc8c38f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-06-06T10:41:19Z",
+      "side": 1,
+      "message": "ensure_default_domain_exists looks normal.\n\ni wonder if it\u0027s safe to run db-sync while keystone is online though.",
+      "parentUuid": "f51825a7_f48b0259",
+      "revId": "b7509238ef83b3df5129b533dd2e39eb29cefe97",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
