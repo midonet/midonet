@@ -10,11 +10,13 @@ OS_SERVICE_ENDPOINT="http://$KEYSTONE_IP:35357/v2.0"
 KEYSTONE="$INDOCKER keystone --os-endpoint=$OS_SERVICE_ENDPOINT --os-token=$OS_SERVICE_TOKEN"
 $INDOCKER keystone-manage db_sync
 
-
+sleep 10
 $KEYSTONE role-create --name admin
 $KEYSTONE role-create --name __member__
 
+sleep 3
 $KEYSTONE tenant-create --name admin --description "Admin tenant"
+sleep 3
 $KEYSTONE user-create --name admin --pass admin
 $KEYSTONE user-role-add --user admin --tenant admin --role admin
 $KEYSTONE user-role-add --user admin --tenant admin --role __member__
