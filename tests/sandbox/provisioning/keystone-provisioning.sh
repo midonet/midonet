@@ -8,8 +8,6 @@ OS_SERVICE_TOKEN="ADMIN"
 OS_SERVICE_ENDPOINT="http://$KEYSTONE_IP:35357/v2.0"
 
 KEYSTONE="$INDOCKER keystone --os-endpoint=$OS_SERVICE_ENDPOINT --os-token=$OS_SERVICE_TOKEN"
-$INDOCKER keystone-manage db_sync
-
 
 $KEYSTONE role-create --name admin
 $KEYSTONE role-create --name __member__

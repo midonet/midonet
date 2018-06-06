@@ -9,8 +9,6 @@ OS_SERVICE_ENDPOINT="http://$KEYSTONE_IP:5000"
 
 OPENSTACK="$INDOCKER openstack --os-auth-url=$OS_SERVICE_ENDPOINT"
 
-$INDOCKER keystone-manage db_sync
-
 KEYSTONE_SERVICE_ID=$($OPENSTACK service list | awk  '/ identity / {print $2}' | xargs | cut -d' ' -f1)
 NEUTRON_SERVICE_ID=$($OPENSTACK service list | awk  '/ network / {print $2}' | xargs | cut -d' ' -f1)
 
