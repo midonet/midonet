@@ -16,6 +16,24 @@
       "revId": "b7509238ef83b3df5129b533dd2e39eb29cefe97",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f51825a7_f48b0259",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-06-06T09:34:50Z",
+      "side": 1,
+      "message": "I don\u0027t know. A suspicious error message we saw in log is:\n\"2018-06-05 07:20:03.631 54 INFO keystone.common.wsgi [req-9a75431f-f964-4f81-9a4f-430f0a45e012 - - - - -] POST http://172.17.0.2:35357/v2.0/users\n2018-06-05 07:20:03.633 54 WARNING oslo_log.versionutils [req-9a75431f-f964-4f81-9a4f-430f0a45e012 - - - - -] Deprecated: create_user of the v2 API is deprecated as of Mitaka in favor of a similar function in the v3 API and may be removed in Q.\n2018-06-05 07:20:03.640 54 DEBUG keystone.common.sql.core [req-9a75431f-f964-4f81-9a4f-430f0a45e012 - - - - -] Conflict project: (sqlite3.IntegrityError) UNIQUE constraint failed: project.domain_id, project.name [SQL: u\u0027INSERT INTO project (id, name, domain_id, description, enabled, extra, parent_id, is_domain) VALUES (?, ?, ?, ?, ?, ?, ?, ?)\u0027] [parameters: (\u0027default\u0027, \u0027Default\u0027, \u0027\u003c\u003ckeystone.domain.root\u003e\u003e\u0027, \u0027Domain created automatically to support V2.0 operations.\u0027, 1, \u0027{}\u0027, None, 1)] wrapper /usr/lib/python2.7/dist-packages/keystone/common/sql/core.py:415\n2018-06-05 07:20:03.642 54 DEBUG keystone.resource.core [req-9a75431f-f964-4f81-9a4f-430f0a45e012 - - - - -] The default domain already exists. ensure_default_domain_exists /usr/lib/python2.7/dist-packages/keystone/resource/core.py:902\n\"\n\nI am even not sure if this is the root cause of the failure.\nDo you know what does this error mean?\nCould you check if it appears in successful runs?",
+      "parentUuid": "d8b7afb8_b6188e66",
+      "revId": "b7509238ef83b3df5129b533dd2e39eb29cefe97",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
