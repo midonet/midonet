@@ -52,6 +52,24 @@
       "revId": "b7509238ef83b3df5129b533dd2e39eb29cefe97",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "018ac610_0eb519b5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-06-07T09:23:53Z",
+      "side": 1,
+      "message": "Shall we restart keystone service after db_sync?",
+      "parentUuid": "ce63671d_8fc8c38f",
+      "revId": "b7509238ef83b3df5129b533dd2e39eb29cefe97",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
