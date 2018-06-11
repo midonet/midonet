@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ef80937_43e2188a",
+        "filename": "midonet-util/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-06-11T08:17:31Z",
+      "side": 1,
+      "message": "This change made clang(Clang) necessary",
+      "range": {
+        "startLine": 34,
+        "startChar": 8,
+        "endLine": 34,
+        "endChar": 17
+      },
+      "revId": "c237f8c0370b19cef552a7c5a223f6baa5843ef3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
