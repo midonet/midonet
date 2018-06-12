@@ -15,7 +15,6 @@
 from mdts.lib.bindings import BindingManager
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.utils.utils import bindings
-from nose.tools import nottest
 import time
 
 
@@ -158,7 +157,6 @@ VTM = BgpIpTopologyManager()
 BM = BindingManager(None, VTM)
 
 
-@nottest
 @bindings(binding_onehost_intra_tenant_mm1, binding_onehost_intra_tenant_mm2, binding_manager=BM)
 def test_bgp_ip_basic():
 
