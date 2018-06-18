@@ -88,6 +88,24 @@
       "revId": "b7509238ef83b3df5129b533dd2e39eb29cefe97",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "86e7fc18_fe6dc85e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1009315
+      },
+      "writtenOn": "2018-06-18T10:01:37Z",
+      "side": 1,
+      "message": "I am testing this change in a background. It is taking a while",
+      "parentUuid": "ea95099d_669ea857",
+      "revId": "b7509238ef83b3df5129b533dd2e39eb29cefe97",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
