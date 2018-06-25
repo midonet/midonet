@@ -497,7 +497,7 @@ public class Tap {
         public InterfaceReqParam ifr_ifru;
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return Arrays.asList("ifr_ifrn", "ifr_ifru");
         }
 
@@ -532,7 +532,7 @@ public class Tap {
             public byte[] sa_data = new byte[14];
 
             @Override
-            protected List getFieldOrder() {
+            protected List<String> getFieldOrder() {
                 return Arrays.asList("sa_family_t", "sa_data");
             }
         }
