@@ -167,6 +167,7 @@ Most dependencies are pulled in by the gradle build scripts, however
 there are some prerequisites:
 
 * fpm (ruby gem) to build debian/rpm/tar packages
+* python and setuptools to build python-midonetclient packages
 * java 8 jdk
 * rpm
 * ronn to build man pages
@@ -261,6 +262,9 @@ On ubuntu you can install required packages with:
     # apt-get install ruby-dev
     # apt-get install ruby-ronn
     # gem install fpm
+
+    # apt-get install python3-setuptools
+    # apt-get install python-setuptools
 
 Building debian packages:
 
