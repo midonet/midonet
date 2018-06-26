@@ -212,10 +212,12 @@ class FlowProcessor(dpState: DatapathState,
                 broker.publishRequest(brokerSeq, obs)
                 datapathMetrics.flowsDeleted.mark()
             } catch { case e: Throwable =>
+                log.error(s"tryEject publish failed with ${e}")
                 obs.onError(e)
             }
             true
         } else {
+            log.debug(s"tryEject failed sequence ${sequence} disruptorSeq ${disruptorSeq} brokerSeq ${brokerSeq}")
             false
         }
     }
