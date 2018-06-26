@@ -112,6 +112,24 @@ class NativeFlowControllerTest extends MidolmanSpec with MockitoSugar {
             callbackCalled should be (true)
         }
 
+        scenario("Sequence is preserved") {
+            Given("A flow in the flow controller")
+            val managedFlow = flowController.addFlow(
+                FlowMatches.generateFlowMatch(random),
+                Lists.newArrayList(),
+                Lists.newArrayList(callbackCalledSpec),
+                FlowExpirationIndexer.FLOW_EXPIRATION)
+            managedFlow should not be null
+            metrics.dpFlowsMetric.getCount should be (1)
+
+            When("A sequence is assigned to the flow")
+            val seq = 987654321
+            managedFlow.assignSequence(seq)
+
+            Then("The sequence is preserved for the flow")
+            managedFlow.sequence shouldBe seq
+        }
+
         scenario("The linked flow of a duplicate flow is removed") {
             Given("A flow in the flow controller")
             val managedFlow = flowController.addRecircFlow(
