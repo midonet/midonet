@@ -381,7 +381,7 @@ class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
         }
     }
 
-    override def processCompletedFlowOperations(): Unit = {
+    private def drainCompletedFlowOperations(): Unit = {
         var req: FlowOperation = null
         while ({ req = completedFlowOperations.poll(); req } ne null) {
             if (req.isFailed) {
@@ -390,6 +390,10 @@ class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
                 flowDeleteSucceeded(req)
             }
         }
+    }
+
+    override def processCompletedFlowOperations(): Unit = {
+        drainCompletedFlowOperations()
         retryFailedFlowOperations()
     }
 
@@ -401,7 +405,10 @@ class FlowControllerDeleterImpl(flowProcessor: FlowProcessor,
             val cmd = flowRemoveCommandsToRetry.get(i)
             val fmatch = cmd.flowMatch
             val seq = cmd.sequence
-            flowProcessor.tryEject(seq, datapathId, fmatch, cmd)
+            while (!flowProcessor.tryEject(seq, datapathId, fmatch, cmd)) {
+                drainCompletedFlowOperations()
+                Thread.`yield`()
+            }
             i += 1
         }
         flowRemoveCommandsToRetry.clear()
