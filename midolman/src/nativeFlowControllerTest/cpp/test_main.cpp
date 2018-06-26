@@ -28,6 +28,16 @@ TEST(FlowTable, test_put_and_get) {
   ASSERT_EQ(table.get(id).flow_match(), match1);
 }
 
+TEST(FlowTable, test_sequence) {
+  FlowTable table(4);
+  std::string match1("match1");
+  auto id = table.put(match1);
+  ASSERT_NE(id, NULL_ID);
+  long long seq = 9987437143223;
+  table.get(id).set_sequence(seq);
+  ASSERT_EQ(table.get(id).sequence(), seq);
+}
+
 TEST(FlowTable, test_put_to_full_table) {
   FlowTable table(4);
   std::string match1("match1");
