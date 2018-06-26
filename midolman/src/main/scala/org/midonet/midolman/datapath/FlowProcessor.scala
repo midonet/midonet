@@ -145,6 +145,9 @@ class FlowProcessor(dpState: DatapathState,
                 context.log.error("Failed to create datapath flow", t)
             }
 
+            // Note: user -> kernel netlink communication is synchronous.
+            // At this point, our createFlow requests above has been
+            // processed by the kernel and it's safe to update lastSequence.
             lastSequence = sequence
         }
         context.setFlowProcessed()
