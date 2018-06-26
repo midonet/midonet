@@ -264,11 +264,14 @@ trait FlowTranslator {
                     case p: VxLanPort => // Always exterior
                         outputActionsToVtep(
                             p.id, context, addFlowAndPacketAction)
-                    case p: Port if p.isExterior =>
+                    case p: Port if p.isExterior && p.hostId != hostId =>
                         context.outPorts.add(port)
                         outputActionsToPeer(
                             p.tunnelKey, p.hostId, context,
                             addFlowAndPacketAction)
+                    case p: Port if p.isExterior =>
+                        context.log.warn(
+                            "Local exterior port unbound: {}", p)
                     case p =>
                         context.log.warn("Port is not exterior: {}", p)
                 }
