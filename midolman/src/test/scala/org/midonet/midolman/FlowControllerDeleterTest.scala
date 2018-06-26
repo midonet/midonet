@@ -81,9 +81,8 @@ class FlowControllerDeleterTest extends MidolmanSpec {
             test(List(true, true, true, true, true))
         }
 
-        // MNA-1301
-        // scenario("mixed failure") {
-        //     test(List(false, true, false, true, false, true))
-        // }
+        scenario("mixed failure") {
+            test(List(false, true, false, true, false, true))
+        }
     }
 }
