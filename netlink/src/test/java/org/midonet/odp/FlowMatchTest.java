@@ -440,4 +440,13 @@ public class FlowMatchTest {
             assertEquals(copy.hashCode(), m.hashCode());
         }
     }
+
+    @Test
+    public void testStringPreserveSeenFields() {
+        Random r = new Random();
+        FlowMatch m = FlowMatches.generateFlowMatch(r);
+        long seen = m.getSeenFields();
+        m.toString();
+        assertEquals(seen, m.getSeenFields());
+    }
 }
