@@ -279,6 +279,7 @@ FlowId FlowTable::put(std::string fmatch) {
        m_table[index] = Flow(m_id_counter, fmatch);
        id = m_id_counter;
        m_occupied++;
+       break;
      }
      index = ++m_id_counter & m_mask;
    } while (index != start && id == NULL_ID);
