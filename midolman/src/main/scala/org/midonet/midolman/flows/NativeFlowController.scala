@@ -154,6 +154,10 @@ class NativeFlowController(config: MidolmanConfig,
     private def addFlow(flowMatch: FlowMatch, expiration: Expiration)
     : NativeManagedFlow = {
         val id = JNI.flowTablePutFlow(flowTable, FlowMatches.toBytes(flowMatch))
+        if (id == ManagedFlow.NoFlow) {
+            // Should not happen as we did ensureSpace
+            throw new AssertionError("flowTablePutFlow failed")
+        }
         JNI.flowExpirationIndexerEnqueueFlowExpiration(
             expirer, id, clock.tick + expiration.value, expiration.typeId)
         new NativeManagedFlow(id)
