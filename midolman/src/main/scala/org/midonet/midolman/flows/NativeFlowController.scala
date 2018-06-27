@@ -184,6 +184,9 @@ class NativeFlowController(config: MidolmanConfig,
     }
 
     private def flowForMark(mark: Int): NativeManagedFlow = {
+        if (mark >> FlowController.IndexShift != workerId) {
+            return null
+        }
         val index = mark & FlowController.IndexMask
         val id = JNI.flowTableIdAtIndex(flowTable, index)
         if (id >= 0) {
