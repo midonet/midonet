@@ -177,7 +177,7 @@ public class FlowMatch {
         },
         NetworkProto {
             public String toString(FlowMatch wcmatch) {
-                if (wcmatch.getEtherType() == ARP.ETHERTYPE)
+                if (wcmatch.etherType == ARP.ETHERTYPE)
                     return "ArpOp=" + wcmatch.networkProto;
                 else
                     return toString() + "=" + getNetworkProtocolAsString(wcmatch.networkProto);
