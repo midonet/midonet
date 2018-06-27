@@ -35,6 +35,7 @@ JVM_OPTS="$JVM_OPTS -XX:+UseThreadPriorities"
 # http://tech.stolsvik.com/2010/01/linux-java-thread-priorities-workaround.html
 JVM_OPTS="$JVM_OPTS -XX:ThreadPriorityPolicy=42"
 
+JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=/var/log/midolman/minions"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError"
