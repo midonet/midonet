@@ -136,6 +136,62 @@ object Metering extends MeteringMXBean {
         StringUtil.append(writer, packets).append(delim)
         StringUtil.append(writer, bytes).append('\n')
     }
+
+    private final val metrics = Map(
+        "midonet_packets_total" ->
+            (((m: FlowStats) => m.getPackets),
+             "Total number of packets processed."),
+        "midonet_packets_bytes" ->
+            (((m: FlowStats) => m.getBytes),
+             "Total number of bytes processed.")
+    )
+
+    def toPrometheusMetrics(writer: BufferedWriter) : Unit = {
+        // "Text Format" described in:
+        // https://prometheus.io/docs/instrumenting/exposition_formats/
+        // See also:
+        // https://prometheus.io/docs/practices/naming/
+
+        val now = System.currentTimeMillis()
+
+        metrics.foreach { case (metricsName, desc) =>
+            val (getter, help) = desc
+
+            // # HELP name help text
+            // # TYPE name type
+            writer.append("# HELP ")
+            writer.append(metricsName)
+            writer.append(" ")
+            writer.append(help)
+            writer.append("\n")
+            writer.append("# TYPE ")
+            writer.append(metricsName)
+            writer.append(" counter\n")
+
+            var i = 0
+            while (i < registries.length) {
+                val keys = registries(i).getMeterKeys.iterator
+                while (keys.hasNext) {
+                    val key = keys.next()
+                    val meter = registries(i).getMeter(key)
+
+                    // produce a line like:
+                    //   midonet_packets_total{key="...",registry="1"} 1027 1530166440000
+                    // REVISIT: Keys like "meters:tunnel:167772169:167772170"
+                    // are not very convenient for users.  It would be more
+                    // useful if we decomposite keys to IDs, IP addresses, etc.
+                    writer.append(metricsName)
+                    writer.append("{key=\"")
+                    writer.append(key)
+                    writer.append("\",registry=\"")
+                    StringUtil.append(writer, i).append("\"} ")
+                    StringUtil.append(writer, getter(meter)).append(' ')
+                    StringUtil.append(writer, now).append('\n')
+                }
+                i += 1
+            }
+        }
+    }
 }
 
 class MeteringHTTPHandler extends SimpleHTTPServer.Handler {
@@ -145,3 +201,9 @@ class MeteringHTTPHandler extends SimpleHTTPServer.Handler {
     }
 }
 
+class PrometheusMetricsHTTPHandler extends SimpleHTTPServer.Handler {
+    override def path: String = "/metrics"
+    def writeResponse(writer: BufferedWriter): Unit = {
+        Metering.toPrometheusMetrics(writer)
+    }
+}
