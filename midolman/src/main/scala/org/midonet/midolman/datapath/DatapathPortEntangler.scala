@@ -233,7 +233,11 @@ trait DatapathPortEntangler {
             if (dpPort ne null) { // If it was registered
                 setVportStatus(triad, active = true)
                 triad.dpPortNo = dpPort.getPortNo
-                dpPortNumToTriad.put(dpPort.getPortNo, triad)
+                val old = dpPortNumToTriad.put(dpPort.getPortNo, triad)
+                if (old != null) {
+                    throw new AssertionError(
+                        s"dpPortNumToTriad corruption with portNo ${dpPort.getPortNo}")
+                }
                 Future successful null
             } else {
                 addDpPort(triad)
@@ -276,7 +280,11 @@ trait DatapathPortEntangler {
             log.info(s"Datapath port ${triad.ifname} added")
             triad.dpPort = dpPort
             triad.dpPortNo = dpPort.getPortNo
-            dpPortNumToTriad.put(dpPort.getPortNo, triad)
+            val old = dpPortNumToTriad.put(dpPort.getPortNo, triad)
+            if (old != null) {
+                throw new AssertionError(
+                    s"dpPortNumToTriad corruption with portNo ${dpPort.getPortNo}")
+            }
             setVportStatus(triad, active = true)
         } recover { case t =>
             // We'll retry on the next interface scan
