@@ -140,10 +140,23 @@ abstract class UpcallDatapathConnectionManagerBase(
         val dpConn = conn.getConnection
         dpConn setCallbackDispatcher getDispatcher()
         setUpcallHandler(dpConn)
-        ensurePortPid(port, datapath, dpConn) andThen {
+        ensurePortPid(port, datapath, dpConn) flatMap {
+            case portPid @ (createdPort, _) =>
+                val key = (datapath, createdPort.getPortNo.intValue)
+                val old = portToChannel.put(key, conn)
+                if (old != null) {
+                    // Probabaly the port was removed from the datapath
+                    // behind us.  E.g. a veth pair attached to the
+                    // datapath was destroyed.
+                    portToChannel.put(key, old)
+                    Future.failed(new RuntimeException(
+                        s"Duplicate portNo ${createdPort.getPortNo}"))
+                } else {
+                    Future.successful(portPid)
+                }
+        } andThen {
             case Success((createdPort, _)) =>
                 log.debug(s"Successfully created or reclaimed port $createdPort")
-                portToChannel.put((datapath, createdPort.getPortNo.intValue), conn)
             case Failure(e) =>
                 log.error(s"Failed to create or reclaim datapath port ${port.getName}", e)
                 stopConnection(conn)
