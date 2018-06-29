@@ -371,11 +371,17 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
 
     "Operations on an interface and port binding" should "be consistent" in {
         val uuid = UUID.randomUUID()
-        val history = List(Interface("eth0", true), Interface("eth0", true),
-             Interface("eth0", false), Interface("eth0", false),
-             InterfaceDeleted("eth0"), InterfaceDeleted("eth0"),
-             VportBindingAdded("eth0", uuid), VportBindingAdded("eth0", uuid),
-             VportBindingDeleted("eth0"), VportBindingDeleted("eth0")).permutations.flatten
+        val history = List(
+            Interface("eth0", true),
+            Interface("eth0", true),
+            Interface("eth0", false),
+            Interface("eth0", false),
+            InterfaceDeleted("eth0"),
+            InterfaceDeleted("eth0"),
+            VportBindingAdded("eth0", uuid),
+            VportBindingAdded("eth0", uuid),
+            VportBindingDeleted("eth0"),
+            VportBindingDeleted("eth0")).permutations.flatten
         validateHistory(history)
     }
 
@@ -383,11 +389,17 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         val uuid = UUID.randomUUID()
         val dpPort = DpPort.fakeFrom(new InternalPort("midonet"), 0).asInstanceOf[InternalPort]
         entangler.registerInternalPort(dpPort)
-        val history = List(Interface("midonet", true, true), Interface("midonet", true, true),
-                           Interface("midonet", false, true), Interface("midonet", false, true),
-                           InterfaceDeleted("midonet", true), InterfaceDeleted("midonet", true),
-                           VportBindingAdded("midonet", uuid, true), VportBindingAdded("midonet", uuid, true),
-                           VportBindingDeleted("midonet", true), VportBindingDeleted("midonet", true)).permutations.flatten
+        val history = List(
+            Interface("midonet", true, true),
+            Interface("midonet", true, true),
+            Interface("midonet", false, true),
+            Interface("midonet", false, true),
+            InterfaceDeleted("midonet", true),
+            InterfaceDeleted("midonet", true),
+            VportBindingAdded("midonet", uuid, true),
+            VportBindingAdded("midonet", uuid, true),
+            VportBindingDeleted("midonet", true),
+            VportBindingDeleted("midonet", true)).permutations.flatten
         validateHistory(history)
     }
 
