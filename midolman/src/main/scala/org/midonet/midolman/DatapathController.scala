@@ -464,6 +464,10 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             minMtu = minTunnelMtu
         } // else => no change on the minimum mtu
     }
+
+    protected def scheduleOnce(delay: FiniteDuration)(f: => Unit): Unit = {
+        system.scheduler.scheduleOnce(delay, self, makeRunnable(f))
+    }
 }
 
 object DatapathStateDriver {
@@ -471,6 +475,7 @@ object DatapathStateDriver {
 
     case class DpTriad(
         ifname: String,
+        var shouldUp: Boolean = false, // The corresponding interface is up
         var isUp: Boolean = false,
         var vport: UUID = null,
         var localTunnelKey: Long = NoTunnelKey,
