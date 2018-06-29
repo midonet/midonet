@@ -20,6 +20,7 @@ import java.util.{HashSet, UUID}
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.FiniteDuration
 
 import org.junit.runner.RunWith
 import org.scalatest._
@@ -42,6 +43,11 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         val log = Logger(NOPLogger.NOP_LOGGER)
         override protected def singleThreadExecutionContext =
             ExecutionContext.callingThread
+        override protected def scheduleOnce(delay: FiniteDuration)(f: => Unit): Unit = {
+            singleThreadExecutionContext.execute(new Runnable {
+                override def run(): Unit = f
+            })
+        }
 
         protected val driver = new DatapathStateDriver(new Datapath(0, "midonet"))
 
@@ -411,6 +417,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 val prevInterfaceToTriad = (entangler.interfaceToTriad.values() map {
                     case triad: DpTriad =>
                         val newTriad = DpTriad(triad.ifname)
+                        newTriad.shouldUp = triad.shouldUp
                         newTriad.isUp = triad.isUp
                         newTriad.vport = triad.vport
                         newTriad.localTunnelKey = triad.localTunnelKey
@@ -433,15 +440,20 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             val log = Logger(NOPLogger.NOP_LOGGER)
             override protected def singleThreadExecutionContext =
                 ExecutionContext.callingThread
+            override protected def scheduleOnce(delay: FiniteDuration)(f: => Unit): Unit = {
+                singleThreadExecutionContext.execute(new Runnable {
+                    override def run(): Unit = f
+                })
+            }
 
-            var shouldFail = true
+            var failCount = 5
             var portActive = false
 
             protected val driver = new DatapathStateDriver(new Datapath(0, "midonet"))
 
             def addToDatapath(interfaceName: String): Future[(DpPort, Int)] =
-                if (shouldFail) {
-                    shouldFail = false
+                if (failCount > 0) {
+                    failCount -= 1
                     Future.failed(new Exception)
                 } else {
                     val dpPort = DpPort.fakeFrom(new NetDevPort(interfaceName), 1)
@@ -465,14 +477,9 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         entangler.updateVportInterfaceBindings(Map(id -> binding))
         entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
 
-        entangler.portActive should be (false)
+        entangler.portActive should be (true)
+        entangler.failCount should be (0)
         entangler.interfaceToTriad containsKey "eth1" should be (true)
-        entangler.vportToTriad containsKey id should be (true)
-        entangler.dpPortNumToTriad containsKey 1 should be (false)
-        entangler.keyToTriad containsKey 1 should be (false)
-
-        entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
-
         (entangler.interfaceToTriad get "eth1" dpPort) should be (
             DpPort.fakeFrom(new NetDevPort("eth1"), 1))
         entangler.dpPortNumToTriad containsKey 1 should be (true)
