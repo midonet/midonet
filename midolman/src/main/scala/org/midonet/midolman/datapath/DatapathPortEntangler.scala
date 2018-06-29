@@ -17,6 +17,7 @@ package org.midonet.midolman.datapath
 
 import java.util.{UUID, HashSet => JHashSet, Set => JSet}
 
+import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -83,6 +84,7 @@ import org.midonet.util.logging.Logger
 trait DatapathPortEntangler {
     protected def driver: DatapathStateDriver
     protected implicit def singleThreadExecutionContext: SingleThreadExecutionContext
+    protected def scheduleOnce(delay: FiniteDuration)(f: => Unit): Unit
     protected implicit def log: Logger
 
     // Sequentializes updates to a particular port. Note that while an update
@@ -184,8 +186,8 @@ trait DatapathPortEntangler {
         val triad = getOrCreate(interface.getName)
         val wasUp = triad.isUp
 
+        triad.shouldUp = isUp
         if (isUp && !wasUp) {
-            triad.isUp = isUp
             tryCreateDpPort(triad)
         } else if (!isUp) {
             deleteInterface(triad)
@@ -216,6 +218,7 @@ trait DatapathPortEntangler {
     private def deleteInterface(triad: DpTriad): Future[_] =
         tryRemoveDpPort(triad) map { x =>
             triad.isUp = false
+            triad.shouldUp = false
             shutdownIfNeeded(triad)
         }
 
@@ -227,7 +230,10 @@ trait DatapathPortEntangler {
         }
 
     private def tryCreateDpPort(triad: DpTriad): Future[_] = {
-        if ((triad.vport ne null) && triad.isUp) {
+        if (triad.shouldUp) {
+            triad.isUp = true
+        }
+        if ((triad.vport ne null) && triad.shouldUp) {
             log.info(s"Binding port ${triad.vport} to ${triad.ifname}")
             val dpPort = triad.dpPort
             if (dpPort ne null) { // If it was registered
@@ -240,10 +246,27 @@ trait DatapathPortEntangler {
                 }
                 Future successful null
             } else {
-                addDpPort(triad)
+                addDpPort(triad) recover { case t =>
+                    triad.isUp = false
+                    log.warn(s"Failed to create port ${triad.ifname}: ${t.getMessage}")
+                    // Schedule a retry
+                    scheduleOnce(1 seconds) {
+                        retryCreateDpPort(triad.ifname)
+                    }
+                }
             }
         } else {
             Future successful null
+        }
+    }
+
+    private def retryCreateDpPort(ifname: String): Unit = {
+        val triad = interfaceToTriad.get(ifname)
+        if (triad != null && triad.shouldUp && !triad.isUp) {
+            log.info(s"Retrying tryCreateDpPort for ${ifname}")
+            conveyor handle (ifname, () => tryCreateDpPort(triad))
+        } else {
+            log.info(s"No need to retry tryCreateDpPort for ${ifname}")
         }
     }
 
@@ -286,10 +309,6 @@ trait DatapathPortEntangler {
                     s"dpPortNumToTriad corruption with portNo ${dpPort.getPortNo}")
             }
             setVportStatus(triad, active = true)
-        } recover { case t =>
-            // We'll retry on the next interface scan
-            triad.isUp = false
-            log.warn(s"Failed to create port ${triad.ifname}: ${t.getMessage}")
         }
 
     private def setVportStatus(triad: DpTriad, active: Boolean): Unit = {
