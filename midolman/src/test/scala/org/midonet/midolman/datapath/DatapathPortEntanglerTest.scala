@@ -39,7 +39,7 @@ import org.midonet.util.logging.Logger
 @RunWith(classOf[JUnitRunner])
 class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneInstancePerTest {
 
-    val entangler = new DatapathPortEntangler {
+    class DatapathControllerForTesting extends DatapathPortEntangler {
         val log = Logger(NOPLogger.NOP_LOGGER)
         override protected def singleThreadExecutionContext =
             ExecutionContext.callingThread
@@ -55,18 +55,23 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         var portRemoved: DpPort = _
         var portActive: Boolean = _
         var portNumbers = 0
+        var failCount = 0
 
         def clear(): Unit = {
             portCreated = null
             portRemoved = null
         }
 
-        override def addToDatapath(interfaceName: String): Future[(DpPort, Int)] = {
-            portNumbers += 1
-            val dpPort = DpPort.fakeFrom(new NetDevPort(interfaceName), portNumbers)
-            portCreated = dpPort
-            Future.successful((portCreated, portNumbers))
-        }
+        override def addToDatapath(interfaceName: String): Future[(DpPort, Int)] =
+            if (failCount > 0) {
+                failCount -= 1
+                Future.failed(new Exception)
+            } else {
+                portNumbers += 1
+                val dpPort = DpPort.fakeFrom(new NetDevPort(interfaceName), portNumbers)
+                portCreated = dpPort
+                Future.successful((portCreated, portNumbers))
+            }
 
         override def removeFromDatapath(port: DpPort): Future[Boolean] = {
             portRemoved = port
@@ -78,6 +83,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             portActive = isActive
         }
     }
+
+    val entangler = new DatapathControllerForTesting
 
     trait DatapathOperation {
         val port: String
@@ -436,38 +443,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     }
 
     "A failed DP port create operation" should "be retried" in {
-        val entangler = new DatapathPortEntangler {
-            val log = Logger(NOPLogger.NOP_LOGGER)
-            override protected def singleThreadExecutionContext =
-                ExecutionContext.callingThread
-            override protected def scheduleOnce(delay: FiniteDuration)(f: => Unit): Unit = {
-                singleThreadExecutionContext.execute(new Runnable {
-                    override def run(): Unit = f
-                })
-            }
-
-            var failCount = 5
-            var portActive = false
-
-            protected val driver = new DatapathStateDriver(new Datapath(0, "midonet"))
-
-            def addToDatapath(interfaceName: String): Future[(DpPort, Int)] =
-                if (failCount > 0) {
-                    failCount -= 1
-                    Future.failed(new Exception)
-                } else {
-                    val dpPort = DpPort.fakeFrom(new NetDevPort(interfaceName), 1)
-                    Future.successful((dpPort, 1))
-                }
-
-            def removeFromDatapath(port: DpPort): Future[Boolean] = {
-                Future.successful(true)
-            }
-
-            def setVportStatus(port: DpPort, vport: UUID, tunnelKey: Long,
-                               isActive: Boolean): Unit = {
-                portActive = isActive
-            }
+        val entangler = new DatapathControllerForTesting {
+            failCount = 5
         }
 
         val id = UUID.randomUUID()
