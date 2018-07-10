@@ -16,6 +16,29 @@
       "revId": "35d2d64daaee88c3effcdcb10eb574acf223c72e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0da27a01_6a7ca99c",
+        "filename": "midolman/conf/minions-env.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-07-10T15:04:32Z",
+      "side": 1,
+      "message": "i guess it\u0027s safer to stop inheriting JVM_OPTS here.\nor unset it in minions-start before sourcing this script.",
+      "range": {
+        "startLine": 29,
+        "startChar": 11,
+        "endLine": 29,
+        "endChar": 19
+      },
+      "revId": "35d2d64daaee88c3effcdcb10eb574acf223c72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
