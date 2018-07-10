@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f741513f_9b050f56",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-07-10T15:02:03Z",
+      "side": 1,
+      "message": "i don\u0027t understand how it can be inherited from midolman.\nalso, it doesn\u0027t sound like a good reason to refuse the jvm from returning memory to the os.",
+      "revId": "35d2d64daaee88c3effcdcb10eb574acf223c72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
