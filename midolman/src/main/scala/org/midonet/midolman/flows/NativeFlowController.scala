@@ -208,7 +208,7 @@ class NativeFlowController(config: MidolmanConfig,
                                       (workerId << FlowController.IndexShift))
         override def sequence: Long = JNI.flowTableFlowSequence(flowTable, id)
         override def assignSequence(seq: Long): Unit =
-            JNI.flowTableFlowSetSequence(flowTable, id, sequence)
+            JNI.flowTableFlowSetSequence(flowTable, id, seq)
 
         def linkedId: Long = JNI.flowTableFlowLinkedId(flowTable, id)
         def setLinkedId(linkedId: Long): Unit =
