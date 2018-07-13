@@ -16,6 +16,8 @@
 
 package org.midonet.midolman
 
+import java.util.concurrent.ConcurrentHashMap
+
 import scala.collection.JavaConversions._
 
 import com.google.inject.{AbstractModule, Guice, Injector}
@@ -31,6 +33,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.MidolmanService
 import org.midonet.midolman.util._
 import org.midonet.midolman.util.mock.MockMidolmanActors
+import org.midonet.odp.{Flow, FlowMatch}
 
 trait MidolmanBenchmark extends MockMidolmanActors
                         with MidolmanServices
@@ -41,11 +44,13 @@ trait MidolmanBenchmark extends MockMidolmanActors
     @JmhSetup
     def midolmanBenchmarkSetup(): Unit = {
         val conf = MidoTestConfigurator.forAgents(fillConfig())
+        val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
         injector = Guice.createInjector(getModules(conf))
         injector.getInstance(classOf[MidonetBackend])
             .startAsync().awaitRunning()
         injector = injector.createChildInjector(new MockMidolmanModule(
                 hostId,
+                flowsTable,
                 injector,
                 new MidolmanConfig(conf, ConfigFactory.empty()),
                 injector.getInstance(classOf[MidonetBackend]),
