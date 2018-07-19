@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ec93fa4b_125c0b89",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-07-19T08:02:46Z",
+      "side": 1,
+      "message": "Can you provide some context when this happens? That\u0027s because:\n\n  def isExterior: Boolean \u003d this.hostId !\u003d null \u0026\u0026 this.interfaceName !\u003d null\n\nso if p.isExterior is true I would expect the port to be bound, so logging this warning seems confusing.",
+      "range": {
+        "startLine": 272,
+        "startChar": 20,
+        "endLine": 274,
+        "endChar": 65
+      },
+      "revId": "662d1f77def0ed9d996263aa2d70c1d0c173d520",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
