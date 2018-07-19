@@ -22,6 +22,30 @@
       "revId": "fb97bf30169a77c7798cc51b624aeb4238b946f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "584bebed_0fd2850d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/NativeFlowController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-07-19T15:06:34Z",
+      "side": 1,
+      "message": "see comments in https://review.gerrithub.io/#/c/midonet/midonet/+/417273/",
+      "parentUuid": "bc60e474_d581f4f6",
+      "range": {
+        "startLine": 158,
+        "startChar": 12,
+        "endLine": 159,
+        "endChar": 63
+      },
+      "revId": "fb97bf30169a77c7798cc51b624aeb4238b946f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
