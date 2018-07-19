@@ -22,6 +22,30 @@
       "revId": "5767890b17a76afb5578a513fbcb134f5abab930",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32498e43_ee8075f7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-07-19T08:52:57Z",
+      "side": 1,
+      "message": "this means this should not happen.\n\nif it happens, i think the agent exits with an error and wdog won\u0027t restart it.",
+      "parentUuid": "97993c9f_b3d98678",
+      "range": {
+        "startLine": 238,
+        "startChar": 19,
+        "endLine": 239,
+        "endChar": 87
+      },
+      "revId": "5767890b17a76afb5578a513fbcb134f5abab930",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
