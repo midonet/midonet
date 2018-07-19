@@ -83,8 +83,10 @@ class DisruptorPacketWorker(packetWorkflow: PacketWorkflow,
         interrupt()
     }
 
-    override def run(): Unit =
+    override def run(): Unit = {
+        eventProcessor.setExceptionHandler(this)
         eventProcessor.run()
+    }
 
     override def handleEventException(e: Throwable, sequence: Long,
                                       event: Object): Unit = {
