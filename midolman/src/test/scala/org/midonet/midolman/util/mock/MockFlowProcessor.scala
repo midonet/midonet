@@ -47,7 +47,7 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
                               new ShardedSimulationBackChannel(),
                               new DatapathMetrics(new MetricRegistry()),
                               new MockClock) {
-    var flowDelCb: Flow => Unit = _
+    var flowDelCb: (FlowMatch, Observer[ByteBuffer]) => Boolean = _
 
     private val log = Logger(LoggerFactory.getLogger(
         "org.midonet.datapath.mock-flow-processor"))
@@ -55,7 +55,9 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
     override def tryEject(sequence: Long, datapathId: Int, flowMatch: FlowMatch,
                           obs: Observer[ByteBuffer]): Boolean = {
         if (flowDelCb ne null) {
-            flowDelCb(new Flow(flowMatch))
+            if (!flowDelCb(flowMatch, obs)) {
+                return false
+            }
         }
         if (flowsTable ne null) {
             flowsTable.remove(flowMatch)
@@ -82,6 +84,6 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
         true
     }
 
-    def flowDeleteSubscribe(cb: Flow => Unit): Unit =
+    def flowDeleteSubscribe(cb: (FlowMatch, Observer[ByteBuffer]) => Boolean): Unit =
         flowDelCb = cb
 }
