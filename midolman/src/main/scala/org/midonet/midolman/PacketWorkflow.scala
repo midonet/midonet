@@ -573,6 +573,8 @@ class PacketWorkflow(
             case NotYetException(f, msg) =>
                 pktCtx.log.debug(s"Postponing simulation because: $msg")
                 postponeOn(pktCtx, f)
+            case ae: AssertionError =>
+                throw ae
             case NonFatal(ex) =>
                 handleErrorOn(pktCtx, ex, pktCtx.runs > 1)
         }
