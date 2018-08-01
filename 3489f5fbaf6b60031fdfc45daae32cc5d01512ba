@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f16a108c_e3314a78",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-08-01T17:20:09Z",
+      "side": 1,
+      "message": "Nothing wrong, but reviewing this code, I get confused with the \u0027andThen\u0027 from function composition and Future (see https://stackoverflow.com/a/30663223). I think it would be clearer to use \u0027onComplete\u0027 instead of \u0027andThen\u0027, as anyway we are not chaining more observers (maybe they were present in earlier versions and this is a leftover). Anyway, it can be done in a separate commit.",
+      "range": {
+        "startLine": 156,
+        "startChar": 10,
+        "endLine": 156,
+        "endChar": 17
+      },
+      "revId": "3489f5fbaf6b60031fdfc45daae32cc5d01512ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6496f8d8_cf287faa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-08-01T17:20:09Z",
+      "side": 1,
+      "message": "Here it can be seen that \u0027ensurePortPid\u0027 is calling cleaning the old port entry as this call is a future on \u0027con portsDelete(port, dp)\u0027, same as done in \u0027deleteDpPort\u0027 in line 208",
+      "range": {
+        "startLine": 190,
+        "startChar": 30,
+        "endLine": 190,
+        "endChar": 37
+      },
+      "revId": "3489f5fbaf6b60031fdfc45daae32cc5d01512ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9157f64_429da89c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-08-01T17:20:09Z",
+      "side": 1,
+      "message": "this cleaning is implicit done in case a call to \u0027ensurePortPid\u0027 is done on a new port, so this call should be redundant, in case \u0027ensurePortPid\u0027 encounter a preexisting port, and so there is no reason to abort/fail in \u0027createAndHookDpPort\u0027. Also, failures on this call are ignored by recover in next line.",
+      "range": {
+        "startLine": 208,
+        "startChar": 16,
+        "endLine": 208,
+        "endChar": 46
+      },
+      "revId": "3489f5fbaf6b60031fdfc45daae32cc5d01512ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0e08e398_198296b8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2018-08-01T17:20:09Z",
+      "side": 0,
+      "message": "what is this used for? it seems it was an old map that track the mapping between a datapath port and a netlink communication channel. I guess it was needed to reuse the same connection if some operation on the port was needed, so a new connection was not needed to be created. but now it seems that it is no longer used anymore (only additional reference to portToChannel is in line 203). There it is used to get the original connection to remove the port. If there is a connection, the port will be removed. If not, it will be ignored.",
+      "range": {
+        "startLine": 146,
+        "startChar": 16,
+        "endLine": 146,
+        "endChar": 29
+      },
+      "revId": "4aec3b372b54a6cf0e46e17bcb60fa4300407bb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
