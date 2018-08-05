@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7db2b62a_a3bdd823",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-08-05T15:20:38Z",
+      "side": 1,
+      "message": "would having the stack trace be useful here?",
+      "revId": "00850d516df033aed8873947eb48dcdaaee49be9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
