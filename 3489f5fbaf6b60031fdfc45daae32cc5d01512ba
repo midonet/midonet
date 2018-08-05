@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f5e6dae0_3faaac91",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-08-05T15:19:19Z",
+      "side": 1,
+      "message": "I think the use of `andThen` is appropriate here, since the resulting future returned by `andThen` is returned by this method.",
+      "parentUuid": "f16a108c_e3314a78",
+      "range": {
+        "startLine": 156,
+        "startChar": 10,
+        "endLine": 156,
+        "endChar": 17
+      },
+      "revId": "3489f5fbaf6b60031fdfc45daae32cc5d01512ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6496f8d8_cf287faa",
         "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
         "patchSetId": 6
