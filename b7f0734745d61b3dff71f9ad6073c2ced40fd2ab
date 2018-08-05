@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ff0083c_e8bde4b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2018-08-05T15:25:31Z",
+      "side": 1,
+      "message": "I need more context here: why would we have an AssertionError, and what would be the impact of throwing it instead of handling it via handleErrorOn. Just from a quick look this looks inherently unsafe, but I would like to know what problem we are solving here.",
+      "revId": "b7f0734745d61b3dff71f9ad6073c2ced40fd2ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
