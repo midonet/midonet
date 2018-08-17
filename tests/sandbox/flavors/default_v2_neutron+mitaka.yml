@@ -62,7 +62,9 @@ cassandra1:
   extends:
     file: $BASE/cassandra.yml
     service: cassandra
-  image: sandbox/cassandra:2.2
+  image: cassandra:2.2
+  environment:
+    - JVM_OPTS=-Xmx128M
   hostname: cassandra1
   labels:
       interface: mdts.services.cassandra.CassandraHost
