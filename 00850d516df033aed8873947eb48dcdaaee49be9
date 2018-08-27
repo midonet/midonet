@@ -16,6 +16,24 @@
       "revId": "00850d516df033aed8873947eb48dcdaaee49be9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "094fe7bb_9400da68",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-08-27T03:46:49Z",
+      "side": 1,
+      "message": "i don\u0027t think it\u0027s useful. do you think it would be?\n\nthe sequence of possibly relevant events can be more useful than a stack trace but i\u0027m not sure if it\u0027s worth to sprinkle logs for this.",
+      "parentUuid": "7db2b62a_a3bdd823",
+      "revId": "00850d516df033aed8873947eb48dcdaaee49be9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
