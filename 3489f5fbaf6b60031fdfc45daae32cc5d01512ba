@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "b69f9bd4_adbc2d76",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-08-27T03:38:00Z",
+      "side": 1,
+      "message": "it\u0027s my understanding too",
+      "parentUuid": "f5e6dae0_3faaac91",
+      "range": {
+        "startLine": 156,
+        "startChar": 10,
+        "endLine": 156,
+        "endChar": 17
+      },
+      "revId": "3489f5fbaf6b60031fdfc45daae32cc5d01512ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6496f8d8_cf287faa",
         "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
         "patchSetId": 6
@@ -83,6 +107,30 @@
       "writtenOn": "2018-08-01T17:20:09Z",
       "side": 1,
       "message": "this cleaning is implicit done in case a call to \u0027ensurePortPid\u0027 is done on a new port, so this call should be redundant, in case \u0027ensurePortPid\u0027 encounter a preexisting port, and so there is no reason to abort/fail in \u0027createAndHookDpPort\u0027. Also, failures on this call are ignored by recover in next line.",
+      "range": {
+        "startLine": 208,
+        "startChar": 16,
+        "endLine": 208,
+        "endChar": 46
+      },
+      "revId": "3489f5fbaf6b60031fdfc45daae32cc5d01512ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76fb8fd6_d85fde1d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-08-27T03:38:00Z",
+      "side": 1,
+      "message": "i\u0027m not sure what you mean here. are you talking about some possible clean-up unrelated to this patch?",
+      "parentUuid": "a9157f64_429da89c",
       "range": {
         "startLine": 208,
         "startChar": 16,

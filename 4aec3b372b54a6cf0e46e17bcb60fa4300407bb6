@@ -22,6 +22,30 @@
       "revId": "4aec3b372b54a6cf0e46e17bcb60fa4300407bb6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08bd721b_64bac3f9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-08-27T03:38:00Z",
+      "side": 0,
+      "message": "IIRC, the connection here is dedicated to upcalls and isn\u0027t used for other operations.",
+      "parentUuid": "0e08e398_198296b8",
+      "range": {
+        "startLine": 146,
+        "startChar": 16,
+        "endLine": 146,
+        "endChar": 29
+      },
+      "revId": "4aec3b372b54a6cf0e46e17bcb60fa4300407bb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
