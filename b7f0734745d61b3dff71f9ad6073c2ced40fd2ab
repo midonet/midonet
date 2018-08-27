@@ -16,6 +16,24 @@
       "revId": "b7f0734745d61b3dff71f9ad6073c2ced40fd2ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "252b9145_48d7dcfb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-08-27T03:54:02Z",
+      "side": 1,
+      "message": "i wanted to sprinkle assertions like the ones in the subsequent patches.\nthey aim to detect bugs in our code. handleErrorOn would just log and ignore them. i don\u0027t consider it \"safe\" either.",
+      "parentUuid": "9ff0083c_e8bde4b2",
+      "revId": "b7f0734745d61b3dff71f9ad6073c2ced40fd2ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
     }
   ]
 }
