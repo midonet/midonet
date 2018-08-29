@@ -37,7 +37,6 @@ class MeteringTest extends FeatureSpec with Matchers {
 
     class PrometheusMeteringForTesting extends PrometheusMetering {
         var registries = List[MeterRegistry]()
-        override def currentTimeMillis = 987654321
     }
 
     val deviceA = FlowTagger.tagForBridge(UUID.fromString("13b3e586-a075-4b0a-986a-5fb950ae0a6d"))
@@ -53,12 +52,12 @@ class MeteringTest extends FeatureSpec with Matchers {
         scenario("prometheus compatible output") {
             val expected = """# HELP midonet_packets_total Total number of packets processed.
 # TYPE midonet_packets_total counter
-midonet_packets_total{key="meters:device:13b3e586-a075-4b0a-986a-5fb950ae0a6d",registry="0"} 1 987654321
-midonet_packets_total{key="meters:device:27c9bc2e-2378-4319-aa3a-f59771639daf",registry="0"} 1 987654321
+midonet_packets_total{key="meters:device:13b3e586-a075-4b0a-986a-5fb950ae0a6d",registry="0"} 1
+midonet_packets_total{key="meters:device:27c9bc2e-2378-4319-aa3a-f59771639daf",registry="0"} 1
 # HELP midonet_packets_bytes Total number of bytes processed.
 # TYPE midonet_packets_bytes counter
-midonet_packets_bytes{key="meters:device:13b3e586-a075-4b0a-986a-5fb950ae0a6d",registry="0"} 1234 987654321
-midonet_packets_bytes{key="meters:device:27c9bc2e-2378-4319-aa3a-f59771639daf",registry="0"} 4321 987654321
+midonet_packets_bytes{key="meters:device:13b3e586-a075-4b0a-986a-5fb950ae0a6d",registry="0"} 1234
+midonet_packets_bytes{key="meters:device:27c9bc2e-2378-4319-aa3a-f59771639daf",registry="0"} 4321
 """
             val registry = MeterRegistry.newOnHeap(10)
             val matchA = new FlowMatch

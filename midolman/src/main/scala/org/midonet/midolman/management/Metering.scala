@@ -31,7 +31,6 @@ import org.midonet.util.StringUtil
 
 trait PrometheusMetering {
     protected def registries: List[MeterRegistry]
-    protected def currentTimeMillis: Long
 
     private final val metrics = Map(
         "midonet_packets_total" ->
@@ -47,8 +46,6 @@ trait PrometheusMetering {
         // https://prometheus.io/docs/instrumenting/exposition_formats/
         // See also:
         // https://prometheus.io/docs/practices/naming/
-
-        val now = currentTimeMillis
 
         metrics.foreach { case (metricsName, desc) =>
             val (getter, help) = desc
@@ -81,8 +78,7 @@ trait PrometheusMetering {
                     writer.append(key)
                     writer.append("\",registry=\"")
                     StringUtil.append(writer, i).append("\"} ")
-                    StringUtil.append(writer, getter(meter)).append(' ')
-                    StringUtil.append(writer, now).append('\n')
+                    StringUtil.append(writer, getter(meter)).append('\n')
                 }
                 i += 1
             }
@@ -96,8 +92,6 @@ object Metering extends PrometheusMetering with MeteringMXBean {
 
     protected var registries = List[MeterRegistry]()
     @volatile private var flowMeters: Array[FlowMeters] = _
-
-    override protected def currentTimeMillis = System.currentTimeMillis()
 
     override def listMeters = {
         val keys = new util.HashSet[String]
