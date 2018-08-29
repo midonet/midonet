@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5507768c_7605f44b",
+        "filename": "tests/sandbox/provisioning/keystone-provisioning.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2018-08-29T09:16:33Z",
+      "side": 1,
+      "message": "i guess you messed the patch when updating.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 8
+      },
+      "revId": "c4c8ae836eea0630985d4b8fde21e15341ec0c65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
