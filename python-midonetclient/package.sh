@@ -128,14 +128,14 @@ function package_deb() {
         --after-install package-hooks/after-install.sh \
         --after-upgrade package-hooks/after-upgrade.sh \
         -t deb ./setup.py
-    if type python3.5 > /dev/null; then
+    if type python3 > /dev/null; then
         build_hook_scripts python3-midonetclient
         eval fpm $FPM_BASE_ARGS $DEB_ARGS \
             --name python3-midonetclient \
             --description \"$DESCRIPTION - Python 3.x\" \
             -s python \
             --python-package-name-prefix python3 \
-            --python-bin python3.5 \
+            --python-bin python3 \
             --python-install-bin /usr/bin \
             --python-install-lib /usr/lib/python3/dist-packages \
             --before-remove package-hooks/before-remove.sh \
