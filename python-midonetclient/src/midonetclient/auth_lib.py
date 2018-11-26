@@ -29,7 +29,6 @@ LOG = logging.getLogger(__name__)
 
 
 _token = None
-_sem = threading.Semaphore(1)
 
 
 class Auth(object):
@@ -43,6 +42,7 @@ class Auth(object):
         self.project_id = project_id
         self.disable_ssl_certificate_validation = \
             disable_ssl_certificate_validation
+        self._sem = threading.Semaphore(1)
 
     def login(self):
         '''Login a user
@@ -51,10 +51,9 @@ class Auth(object):
         block until the first thread succeeds in setting the global _token
         variable.
         '''
-        global _sem
         global _token
 
-        if _sem.acquire(blocking=False):
+        if self._sem.acquire(blocking=False):
             try:
                 auth = base64.b64encode(
                     (self.username + ':' + self.password).encode()).decode()
@@ -71,12 +70,12 @@ class Auth(object):
                 session, sep, exp = set_cookie.partition(";")
                 session_key, sep, _token = session.partition("=")
             finally:
-                _sem.release()
+                self._sem.release()
         else:
             LOG.debug("Waiting for token to get reset")
             # Wait for another thread to set the token and release
-            _sem.acquire(blocking=True)
-            _sem.release()
+            self._sem.acquire(blocking=True)
+            self._sem.release()
 
     def get_token(self, force=False):
         '''Return the currently set token.
