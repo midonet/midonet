@@ -152,7 +152,7 @@ object GatewayMappingService {
             val s = snapshot
             if (s ne null) {
                 if (s.length == 0) null
-                else s(hash % s.length)
+                else s(Math.abs(hash) % s.length)
             } else {
                 throw NotYetException(future,
                                       s"Gateways for network $networkId not yet " +
