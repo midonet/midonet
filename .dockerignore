@@ -1,0 +1,18 @@
+*.sh
+*.md
+docs
+specs
+.dockerignore
+
+# REVISIT(yamamoto): :midonet-util:gitProps needs git
+#.git
+#.gitignore
+#.gitmodules
+#.gitreview
+
+.gradle
+.junit.xml
+Dockerfile*
+LICENSE
+*/build
+output
