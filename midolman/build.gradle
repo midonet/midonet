@@ -161,6 +161,8 @@ model {
 
                 if (targetPlatform.operatingSystem.linux) {
                     cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/linux"
+                    cppCompiler.args << '-fabi-version=7'
+                    cppCompiler.args << '-D_GLIBCXX_USE_CXX11_ABI=0'
                 }
                 if (targetPlatform.operatingSystem.macOsX) {
                     cppCompiler.args << "-I" << "${JNI_INCLUDE_DIR}/darwin"
