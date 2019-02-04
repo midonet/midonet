@@ -53,12 +53,28 @@ class TcIntegrationTest extends FeatureSpec
         }
     }
 
+    // NOTE: Recent versions of iproute2 (e.g. 4.3.0-1ubuntu3.16.04.1)
+    // use this format.  Cf. print_rate() in iproute2/tc/tc_util.c
+    def getAltDisplayRate(rate: Int) = {
+        val units = Array("", "K", "M", "G", "T")
+        var i = 0
+        var r = rate
+        while (i < units.length - 1 &&
+               r >= 1000 &&
+               ((r % 1000) == 0 || r >= 1000 * 1000)) {
+            i += 1
+            r /= 1000
+        }
+        s"${r}${units(i)}bit"
+    }
+
     def verifyIngressFilter(dev: String, rate: Int, burst: Int): Unit = {
         eventually {
             val filters = s"tc filter ls dev $dev parent ffff:".!!
             val rateStr = s"rate ${rate*1000}bit burst ${getDisplayBurst(burst)}"
+            val altRateStr = s"rate ${getAltDisplayRate(rate*1000)} burst ${getDisplayBurst(burst)}"
             val protocolStr = "filter protocol all"
-            (filters contains rateStr) shouldBe true
+            ((filters contains rateStr) || (filters contains altRateStr)) shouldBe true
             (filters contains protocolStr) shouldBe true
         }
     }
