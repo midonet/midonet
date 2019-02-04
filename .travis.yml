@@ -1,0 +1,10 @@
+sudo: required
+
+services:
+- docker
+
+install:
+- true
+
+script:
+- ./tools/travis/travis.sh
