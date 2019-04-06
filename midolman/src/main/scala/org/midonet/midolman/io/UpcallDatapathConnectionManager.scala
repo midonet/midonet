@@ -264,7 +264,7 @@ abstract class UpcallDatapathConnectionManagerBase(
                     submitted
                 } else {
                     val hash = getConnectionHash(data)
-                    val worker = Math.abs(hash) % NUM_WORKERS
+                    val worker = Math.abs(hash % NUM_WORKERS)
                     log.debug(s"Connection hash: $hash -> going to worker $worker")
                     workers(worker).submit(data)
                 }

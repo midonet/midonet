@@ -35,7 +35,7 @@ class RouteBalancer(val rTable: RoutingTable) extends AnyVal {
                 logger.debug("routing to {}", routes.get(0))
                 routes.get(0)
             case size =>
-                val ret = routes.get(Math.abs(fmatch.connectionHash()) % size)
+                val ret = routes.get(Math.abs(fmatch.connectionHash() % size))
                 logger.debug("got multiple routes: {}, selected {}",
                              routes, ret)
                 ret

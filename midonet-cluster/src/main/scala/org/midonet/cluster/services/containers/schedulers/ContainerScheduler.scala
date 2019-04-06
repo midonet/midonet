@@ -324,7 +324,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
     private def selectHostWeightedPolicy(hosts: HostsEvent): Option[UUID] = {
         val totalWeight = hosts.foldLeft(0L)((seed, host) =>
                                                  seed + host._2.status.getWeight)
-        val randomWeight = Math.abs(random.nextLong()) % totalWeight
+        val randomWeight = Math.abs(random.nextLong() % totalWeight)
         var sumWeight = 0L
         var selectedId: UUID = null
 

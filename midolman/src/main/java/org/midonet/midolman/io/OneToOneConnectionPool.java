@@ -57,7 +57,7 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
     }
 
     public OvsDatapathConnection get(int hash) {
-        return conns[Math.abs(hash) % conns.length].getConnection();
+        return conns[Math.abs(hash % conns.length)].getConnection();
     }
 
     public void start() throws Exception {
