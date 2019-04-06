@@ -212,6 +212,58 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
 
             service.stopAsync().awaitTerminated()
         }
+
+        scenario("Network has multiple gateways") {
+            Given("A gateway mapping service")
+            val service = new GatewayMappingService(vt)
+            service.startAsync().awaitRunning()
+
+            And("A router port peered to a router port")
+            val router = createRouter()
+            val bridge = createBridge()
+            val peerPort = createBridgePort(bridgeId = Some(bridge.getId))
+            val port = createRouterPort(routerId = Some(router.getId),
+                                        peerId = Some(peerPort.getId))
+            val network = createNetwork(id = bridge.getId)
+            store.multi(Seq(CreateOp(router), CreateOp(bridge),
+                            CreateOp(peerPort), CreateOp(port),
+                            CreateOp(network)))
+
+            val hashes = List(
+                random.nextInt(),
+                random.nextInt(),
+                random.nextInt(),
+                random.nextInt(),
+                random.nextInt(),
+
+                // Some interesting values
+                -1,
+                0,
+                0x7fffffff,
+                0x80000000
+            )
+            val hosts = List.tabulate(5)(_ => UUID.randomUUID())
+
+            And("A gateway entries")
+            val table = vt.stateTables
+                .getTable[UUID, AnyRef](classOf[NeutronNetwork], network.getId,
+                                        MidonetBackend.GatewayTable)
+            table.start()
+            hosts.foreach(table.add(_, GatewayHostEncoder.DefaultValue))
+
+            When("Requesting the gateway to fetch the topology")
+            getAndAwait(service, port, count = 2)
+
+            And("Requesting the gateway a third time returns the host")
+            val gateways = hashes.map(service.tryGetGateway(port.getId, _))
+
+            When("Requesting the gateways again uses cached value")
+            (hashes zip gateways).foreach { case (h, g) =>
+                service.tryGetGateway(port.getId, h) shouldBe g
+            }
+
+            service.stopAsync().awaitTerminated()
+        }
     }
 
 
