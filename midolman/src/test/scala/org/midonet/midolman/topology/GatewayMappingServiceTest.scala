@@ -204,7 +204,7 @@ class GatewayMappingServiceTest extends MidolmanSpec with TopologyBuilder {
             When("Requesting the gateway to fetch the topology")
             getAndAwait(service, port, count = 2)
 
-            And("Requesting the gateway a third time returns null")
+            And("Requesting the gateway a third time returns the host")
             service.tryGetGateway(port.getId, random.nextInt()) shouldBe hostId
 
             When("Requesting the gateway again uses cached value")
