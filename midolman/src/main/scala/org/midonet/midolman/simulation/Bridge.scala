@@ -408,6 +408,10 @@ class Bridge(val id: UUID,
                 context.log.debug("Ignoring cached IP->MAC information for " +
                                   "VLAN-tagged packet")
                 null
+            } else if (pMatch.getNetworkSrcIP == pMatch.getNetworkDstIP) {
+                context.log.debug("Ignoring cached IP->MAC information for " +
+                                  "GARP request packet")
+                null
             } else ipToMac.getOrElse(nwDst,
                                      if (ip4MacMap ne null) ip4MacMap get nwDst
                                      else null)
