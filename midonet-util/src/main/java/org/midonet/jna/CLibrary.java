@@ -44,7 +44,7 @@ public final class CLibrary {
         try {
             Native.register(Platform.C_LIBRARY_NAME);
         } catch (NoClassDefFoundError | UnsatisfiedLinkError | NoSuchMethodError e) {
-            log.error("Native method calls are not available");
+            log.error("Native method calls are not available", e);
             System.exit(-1);
         }
     }

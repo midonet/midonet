@@ -100,3 +100,8 @@ if [ "$MIDOLMAN_HPROF" = "1" ] ; then
     HPROF_FILENAME=${HPROF_FILENAME:-/tmp/midolman-minions-$DATE.hprof}
     JVM_OPTS="$JVM_OPTS -agentlib:hprof=cpu=samples,depth=100,interval=1,lineno=y,thread=y,file=$HPROF_FILENAME"
 fi
+
+# On some systems the default limit of 4096 open files is not enough.
+if [[ `ulimit -n` -lt 8192 ]] ; then
+    ulimit -n 8192
+fi
