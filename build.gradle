@@ -29,8 +29,8 @@ project.ext {
         rhelTarget = "el7"
     }
 
-    if (!(rhelTarget == "el7" || rhelTarget == "sles12")) {
-        println("Only RHEL7 and SLES12 are supported: rhelTarget property will be ignored")
+    if (!(rhelTarget == "el7" || rhelTarget == "el8" || rhelTarget == "sles12")) {
+        println("Only RHEL7 and RHEL8 and SLES12 are supported: rhelTarget property will be ignored")
     }
 
     scalaLangLevel = 'Scala 2.11.7'
