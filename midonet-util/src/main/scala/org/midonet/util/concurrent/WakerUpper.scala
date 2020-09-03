@@ -133,6 +133,8 @@ object WakerUpper {
             } catch { case ignored: Throwable => }
             i += 1
         }
-        LockSupport.parkNanos(1L) // Sleeps around 50us on the latest Linux kernels
+        LockSupport.parkNanos(50000L) // Sleep for 50us.  This restores the
+                                      // ~30% CPU utilization that we used to
+                                      // see on Xenial kernels.
     }
 }

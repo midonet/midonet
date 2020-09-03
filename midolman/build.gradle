@@ -538,7 +538,6 @@ rpm.doFirst {
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
         '-d', "midonet-tools >= ${project.rpmVersion}",
-        '-d', 'python',
         '-d', 'iproute',
         '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
         '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
@@ -546,8 +545,18 @@ rpm.doFirst {
         '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
     ])
     switch(project.rhelTarget) {
+      case "el8":
+        project.packaging.fpmOpts.addAll([
+            '--depends', 'python36',
+            '--depends', 'python3-setproctitle',
+            '--depends', 'java-1.8.0-openjdk-headless',
+            '--depends', 'libreswan >= 1.15.0',
+            '--depends', 'vpp'
+        ])
+        break
       case "el7":
         project.packaging.fpmOpts.addAll([
+            '--depends', 'python',
             '--depends', 'python-setproctitle',
             '--depends', 'java-openjdk-headless >= 1.8.0',
             '--depends', 'libreswan >= 1.15.0',
